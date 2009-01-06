@@ -26,10 +26,7 @@ import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
 /**
- * This class implements a simple peak builder. This takes all collected MzPeaks
- * in one chromatogram and try to find all possible peaks. This detection
- * follows the concept of baseline in a chromatogram to set a peak (threshold
- * level).
+ * 
  * 
  */
 public class StandardDeviationPeakDetector implements PeakResolver {

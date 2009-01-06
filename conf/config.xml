@@ -15,9 +15,9 @@
           <parameter name="Noise level" type="DOUBLE">10.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">100.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">1000.0</parameter>
           <parameter name="Mass resolution" type="INTEGER">60000</parameter>
-          <parameter name="Peak model function" type="STRING">Gaussian</parameter>
+          <parameter name="Peak model function" type="STRING">Lorentzian extended</parameter>
         </massdetector>
         <massdetector name="Local maxima">
           <parameter name="Noise level" type="DOUBLE">10.0</parameter>
@@ -34,7 +34,7 @@
         </massdetector>
         <massconnector name="Highest data point">
           <parameter name="Min time span" type="DOUBLE">20.0</parameter>
-          <parameter name="Min height" type="DOUBLE">5000.0</parameter>
+          <parameter name="Min height" type="DOUBLE">10000.0</parameter>
           <parameter name="m/z tolerance" type="DOUBLE">0.0050</parameter>
         </massconnector>
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
@@ -87,15 +87,15 @@
           <parameter name="Minimum ratio between peak min and max" type="DOUBLE">3.0</parameter>
         </peakbuilder>
         <parameter name="Peak Builder type" type="INTEGER">1</parameter>
-        <parameter name="Suffix" type="STRING">peaklist</parameter>
+        <parameter name="Suffix" type="STRING">resolved</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.5770000219345093-2399.39990234375</parameter>
-        <parameter name="m/z range" type="RANGE">134.04556274414062-134.04937744140625</parameter>
+        <parameter name="Retention time" type="RANGE">0.7519999742507935-2397.949951171875</parameter>
+        <parameter name="m/z range" type="RANGE">565.0330200195312-565.0634765625</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -171,7 +171,7 @@
           <width>100</width>
         </column>
         <column type="datafile" name="DURATION">
-          <visible>false</visible>
+          <visible>true</visible>
           <width>100</width>
         </column>
         <column type="datafile" name="HEIGHT">

@@ -28,10 +28,15 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 
 public class BaselinePeakDetectorParameters extends SimpleParameterSet {
-
+    
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
 
+    public static final String baselineTypeAbsolute = "Absolute";
+    public static final String baselineTypeThreshold = "Chromatographic threshold";
+
+    public static final String[] baselineTypes = { baselineTypeAbsolute, baselineTypeThreshold };
+    
 	public static final Parameter minimumPeakHeight = new SimpleParameter(
 			ParameterType.DOUBLE, "Min peak height",
 			"Minimum acceptable peak height", "absolute", new Double(100.0),
@@ -42,10 +47,20 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 			"Minimum acceptable peak duration", null, new Double(10.0),
 			new Double(0.0), null, MZmineCore.getRTFormat());
 	
+    public static final Parameter baselineType = new SimpleParameter(
+            ParameterType.STRING, "Baseline type",
+            "Choose either absolute value or chromatographic threshold",
+            baselineTypeAbsolute, baselineTypes);
+    
 	public static final Parameter baselineLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "Baseline level",
-			"All data points over this level are considered to form a peak", "absolute", new Double(100.0),
+			ParameterType.DOUBLE, "Absolute baseline",
+			"All data points over this level are considered to form a peak", null, new Double(100.0),
 			new Double(0.0), null, MZmineCore.getIntensityFormat());
+    
+    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
+            ParameterType.DOUBLE, "Chromatographic threshold",
+            "Baseline is set such that given percentage of the chromatogram data points is below the baseline", "%",
+            new Double(0.80), new Double(0.0), new Double(1.0), percentFormat);
 
 	public BaselinePeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration, baselineLevel });

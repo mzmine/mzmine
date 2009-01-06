@@ -25,6 +25,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
+import net.sf.mzmine.util.MathUtils;
 
 /**
  * This class implements a simple peak builder. This takes all collected MzPeaks
@@ -35,12 +36,16 @@ import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
  */
 public class BaselinePeakDetector implements PeakResolver {
 
-    private double minimumPeakHeight, minimumPeakDuration, baselineLevel;
+    private String baselineType;
+    private double minimumPeakHeight, minimumPeakDuration,
+            absoluteBaselineLevel, chromatographicThreshold;
 
     public BaselinePeakDetector(BaselinePeakDetectorParameters parameters) {
         minimumPeakHeight = (Double) parameters.getParameterValue(BaselinePeakDetectorParameters.minimumPeakHeight);
         minimumPeakDuration = (Double) parameters.getParameterValue(BaselinePeakDetectorParameters.minimumPeakDuration);
-        baselineLevel = (Double) parameters.getParameterValue(BaselinePeakDetectorParameters.baselineLevel);
+        baselineType = (String) parameters.getParameterValue(BaselinePeakDetectorParameters.baselineType);
+        absoluteBaselineLevel = (Double) parameters.getParameterValue(BaselinePeakDetectorParameters.baselineLevel);
+        chromatographicThreshold = (Double) parameters.getParameterValue(BaselinePeakDetectorParameters.chromatographicThresholdLevel);
     }
 
     /**
@@ -50,6 +55,14 @@ public class BaselinePeakDetector implements PeakResolver {
             int scanNumbers[], double retentionTimes[], double intensities[]) {
 
         Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+
+        // Determine the baseline level according to parameters
+        double thresholdLevel;
+        if (baselineType == BaselinePeakDetectorParameters.baselineTypeAbsolute)
+            thresholdLevel = absoluteBaselineLevel;
+        else
+            thresholdLevel = MathUtils.calcQuantile(intensities,
+                    chromatographicThreshold);
 
         // Current region is a region of consecutive scans which all have
         // intensity above baseline level
@@ -61,7 +74,7 @@ public class BaselinePeakDetector implements PeakResolver {
             // Find a start of the region
             MzPeak startPeak = chromatogram.getMzPeak(scanNumbers[currentRegionStart]);
             if ((startPeak == null)
-                    || (startPeak.getIntensity() < baselineLevel)) {
+                    || (startPeak.getIntensity() < thresholdLevel)) {
                 currentRegionStart++;
                 continue;
             }
@@ -73,7 +86,7 @@ public class BaselinePeakDetector implements PeakResolver {
             while (currentRegionEnd < scanNumbers.length) {
                 MzPeak endPeak = chromatogram.getMzPeak(scanNumbers[currentRegionEnd]);
                 if ((endPeak == null)
-                        || (endPeak.getIntensity() < baselineLevel)) {
+                        || (endPeak.getIntensity() < thresholdLevel)) {
                     break;
                 }
                 if (endPeak.getIntensity() > currentRegionHeight)
