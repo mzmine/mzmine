@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.taskcontrol.impl;
@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
 
 /**
  * Task controller worker thread
@@ -86,11 +87,17 @@ class WorkerThread extends Thread {
 
                 if (listener != null)
                     listener.taskFinished(currentTask.getTask());
-                
+
                 // Task finished with an error
                 if (currentTask.getTask().getStatus() == TaskStatus.ERROR) {
-                	logger.severe("Task error: " + currentTask.getTask().getErrorMessage());
-                	MZmineCore.getDesktop().displayErrorMessage("Task error: " + currentTask.getTask().getErrorMessage());
+                    logger.severe("Task error: "
+                            + currentTask.getTask().getErrorMessage());
+                    if (MZmineCore.getDesktop() != null) {
+                        MZmineCore.getDesktop().displayErrorMessage(
+                                "Error of task "
+                                        + currentTask.getTask().getTaskDescription(),
+                                currentTask.getTask().getErrorMessage());
+                    }
                 }
 
                 /*
@@ -102,17 +109,16 @@ class WorkerThread extends Thread {
 
             } catch (Throwable e) {
 
-                // this should never happen!
+                // This should never happen!
 
                 logger.log(Level.SEVERE, "Unhandled exception " + e
                         + " while processing task " + currentTask, e);
 
                 if (MZmineCore.getDesktop() != null) {
-
-                    String errorMessage = "Unhandled exception while processing task "
-                            + currentTask + ": " + e;
-
-                    MZmineCore.getDesktop().displayErrorMessage(errorMessage);
+                    MZmineCore.getDesktop().displayErrorMessage(
+                            "Exception of task "
+                                    + currentTask.getTask().getTaskDescription(),
+                            ExceptionUtils.exceptionToString(e));
                 }
 
             }

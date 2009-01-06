@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.desktop.impl;
@@ -136,15 +136,24 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     /**
-     * @see net.sf.mzmine.desktop.Desktop#displayMessage(java.lang.String)
      */
     public void displayMessage(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Message",
+        displayMessage("Message", msg);
+    }
+
+    /**
+     */
+    public void displayMessage(String title, String msg) {
+        JOptionPane.showMessageDialog(this, msg, title,
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void displayErrorMessage(String msg) {
-        JOptionPane.showMessageDialog(this, msg, "Sorry",
+        displayErrorMessage("Error", msg);
+    }
+
+    public void displayErrorMessage(String title, String msg) {
+        JOptionPane.showMessageDialog(this, msg, title,
                 JOptionPane.ERROR_MESSAGE);
     }
 

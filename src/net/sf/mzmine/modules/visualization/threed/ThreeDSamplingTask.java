@@ -13,19 +13,19 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
@@ -64,8 +64,9 @@ class ThreeDSamplingTask implements Task {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange, Range mzRange, int rtResolution,
-            int mzResolution, ThreeDDisplay display) {
+    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange,
+            Range mzRange, int rtResolution, int mzResolution,
+            ThreeDDisplay display) {
 
         status = TaskStatus.WAITING;
 
@@ -123,6 +124,8 @@ class ThreeDSamplingTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
+        logger.info("Started sampling 3D plot of " + dataFile);
+        
         try {
 
             // domain values set
@@ -134,8 +137,9 @@ class ThreeDSamplingTask implements Task {
             // set the resolution (number of data points) on retention time axis
             if (scanNumbers.length > rtResolution) {
 
-                domainSet = new Linear2DSet(display.getDomainTuple(), rtRange.getMin(),
-                        rtRange.getMax(), rtResolution, mzRange.getMin(), mzRange.getMax(), mzResolution);
+                domainSet = new Linear2DSet(display.getDomainTuple(),
+                        rtRange.getMin(), rtRange.getMax(), rtResolution,
+                        mzRange.getMin(), mzRange.getMax(), mzResolution);
 
             } else {
 
@@ -188,8 +192,8 @@ class ThreeDSamplingTask implements Task {
                 }
 
                 double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
-                        scanIntensityValues, mzRange, mzResolution, ! scan.isCentroided(),
-                        BinningType.MAX);
+                        scanIntensityValues, mzRange, mzResolution,
+                        !scan.isCentroided(), BinningType.MAX);
 
                 int scanBinIndex;
 
@@ -210,7 +214,6 @@ class ThreeDSamplingTask implements Task {
 
                     int intensityValuesIndex = (rtResolution * mzIndex)
                             + scanBinIndex;
-
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
                         intensityValues[0][intensityValuesIndex] = (double) binnedIntensities[mzIndex];
 
@@ -222,16 +225,19 @@ class ThreeDSamplingTask implements Task {
 
             }
 
-            display.setData(intensityValues, domainSet, rtRange.getMin(), rtRange.getMax(), mzRange.getMin(),
-                    mzRange.getMax(), maxBinnedIntensity);
+            display.setData(intensityValues, domainSet, rtRange.getMin(),
+                    rtRange.getMax(), mzRange.getMin(), mzRange.getMax(),
+                    maxBinnedIntensity);
 
         } catch (Throwable e) {
-            logger.log(Level.SEVERE, "Error while sampling 3D data", e);
             status = TaskStatus.ERROR;
-            errorMessage = e.toString();
+            errorMessage = "Error while sampling 3D data, "
+                    + ExceptionUtils.exceptionToString(e);
             return;
         }
 
+        logger.info("Finished sampling 3D plot of " + dataFile);
+        
         status = TaskStatus.FINISHED;
 
     }

@@ -153,12 +153,6 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
      */
     public void taskFinished(Task task) {
 
-        if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage("Error while updating 3D visualizer: "
-                    + task.getErrorMessage());
-            return;
-        }
-
         if (task.getStatus() == TaskStatus.FINISHED) {
             // Add this window to desktop
             desktop.addInternalFrame(this);

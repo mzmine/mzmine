@@ -35,8 +35,6 @@ import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
  */
 public class NoiseAmplitudePeakDetector implements PeakResolver {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private double amplitudeOfNoise;
 	private double minimumPeakHeight, minimumPeakDuration;
 
@@ -57,159 +55,83 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
             int scanNumbers[], double retentionTimes[], double intensities[]) {
 
         Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
-        /*
-		// This treeMap stores the score of frequency of intensity ranges
+
+        // This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
 		double maxIntensity = 0;
 		
-		
-		int[] scanNumbers = dataFile.getScanNumbers(1);
-		double[] chromatoIntensities = new double[scanNumbers.length];
-
 		for (int i = 0; i < scanNumbers.length; i++) {
 
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null)
-				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			else
-				chromatoIntensities[i] = 0;
-
-			addNewIntensity(chromatoIntensities[i], binsFrequency);
-			if (chromatoIntensities[i] > maxIntensity)
-				maxIntensity = chromatoIntensities[i];
+			addNewIntensity(intensities[i], binsFrequency);
+			if (intensities[i] > maxIntensity)
+				maxIntensity = intensities[i];
 
 		}
 
 		double noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
 
-		ChromatographicPeak[] chromatographicPeaks = noiseThresholdPeaksSearch(chromatogram,
-				dataFile, scanNumbers, noiseThreshold);
+        for (int i = 0; i < scanNumbers.length; i++) {
 
-		if (chromatographicPeaks.length != 0) {
-			for (ChromatographicPeak p : chromatographicPeaks) {
-				double pLength = p.getRawDataPointsRTRange().getSize();
-				double pHeight = p.getHeight();
-				if ((pLength >= minimumPeakDuration)
-						&& (pHeight >= minimumPeakHeight)) {
-					detectedPeaks.add(p);
-				}
-			}
-		}
-		else{
-			ConnectedMzPeak[] cMzPeaks = chromatogram.getConnectedMzPeaks();
-			
-			//logger.finest("Number of cMzPeaks " + cMzPeaks.length);
-			
-			Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
+            // If the intensity of this MzPeak is bigger than threshold level
+            // we store it in a Vector.
 
-			if (cMzPeaks.length > 0) {
-				
-				for (ConnectedMzPeak mzPeak : cMzPeaks) {
-			
-					if (mzPeak.getMzPeak().getIntensity() > minimumPeakHeight) {
-						regionOfMzPeaks.add(mzPeak);
-					} else if (regionOfMzPeaks.size() != 0) {
-						ConnectedPeak peak = new ConnectedPeak(dataFile,
-								regionOfMzPeaks.get(0));
-						for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-							peak.addMzPeak(regionOfMzPeaks.get(i));
-						}
-						regionOfMzPeaks.clear();
-						detectedPeaks.add(peak);
-					}
-					
-				}
-				
-				if (regionOfMzPeaks.size() != 0) {
-					ConnectedPeak peak = new ConnectedPeak(dataFile,
-							regionOfMzPeaks.get(0));
-					for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-						peak.addMzPeak(regionOfMzPeaks.get(i));
-					}
-					detectedPeaks.add(peak);
-				}
-				
-			}
-		}*/
+/*            ConnectedMzPeak mzValue = chromatogram
+                    .getConnectedMzPeak(scanNumbers[i]);
+
+            if (mzValue != null) {
+
+                if (mzValue.getMzPeak().getIntensity() >= noiseThreshold) {
+                    newChromatoMzPeaks.add(mzValue);
+                }
+
+                // If the intensity of lower than threshold level, it could mean
+                // that is the ending of this new threshold level peak
+                // we store it in a Vector.
+
+                else {
+
+                    // Verify if we add some MzPeaks to the new ConnectedPeak,
+                    // if that is true, we create a new ConnectedPeak with all
+                    // stored MzPeaks.
+
+                    if (newChromatoMzPeaks.size() > 0) {
+                        ConnectedPeak chromatoPeak = new ConnectedPeak(
+                                dataFile, newChromatoMzPeaks.elementAt(0));
+                        for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
+                            chromatoPeak.addMzPeak(newChromatoMzPeaks
+                                    .elementAt(j));
+                        }
+                        newChromatoMzPeaks.clear();
+                        newChromatoPeaks.add(chromatoPeak);
+                    }
+                }
+            }
+            */
+        }
+
+        // At least we verify if there is one last threshold peak at the end,
+        // and it was not detected in the for cycle, due there is not MzPeak
+        // with intensity below of threshold level to define the ending
+        /*
+        if (newChromatoMzPeaks.size() > 0) {
+            ConnectedPeak chromatoPeak = new ConnectedPeak(dataFile,
+                    newChromatoMzPeaks.elementAt(0));
+            for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
+                chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(j));
+            }
+            newChromatoMzPeaks.clear();
+            newChromatoPeaks.add(chromatoPeak);
+        }
+        
+        double pLength = p.getRawDataPointsRTRange().getSize();
+        double pHeight = p.getHeight();
+        if ((pLength >= minimumPeakDuration)
+                && (pHeight >= minimumPeakHeight)) {
+            detectedPeaks.add(p);
+        }
+        */
 
 		return resolvedPeaks.toArray(new ResolvedPeak[0]);
-	}
-
-	/**
-	 * 
-	 * Verify a detected peak using the criteria of auto-defined noise threshold
-	 * level. If some regions of the peak has an intensity below of this
-	 * auto-defined level, are excluded. And besides if there are more than one
-	 * region over this auto-defined level, we construct a different peak for
-	 * each region.
-	 * 
-	 * @param SimpleChromatogram
-	 *            ucPeak
-	 * @return Peak[]
-	 */
-    /*
-	private ChromatographicPeak[] noiseThresholdPeaksSearch(Chromatogram chromatogram,
-			RawDataFile dataFile, int[] scanNumbers, double noiseThreshold) {
-
-		Vector<ConnectedPeak> newChromatoPeaks = new Vector<ConnectedPeak>();
-		Vector<ConnectedMzPeak> newChromatoMzPeaks = new Vector<ConnectedMzPeak>();
-
-		for (int i = 0; i < scanNumbers.length; i++) {
-
-			// If the intensity of this MzPeak is bigger than threshold level
-			// we store it in a Vector.
-
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-
-			if (mzValue != null) {
-
-				if (mzValue.getMzPeak().getIntensity() >= noiseThreshold) {
-					newChromatoMzPeaks.add(mzValue);
-				}
-
-				// If the intensity of lower than threshold level, it could mean
-				// that is the ending of this new threshold level peak
-				// we store it in a Vector.
-
-				else {
-
-					// Verify if we add some MzPeaks to the new ConnectedPeak,
-					// if
-					// that is true, we create a new ConnectedPeak with all
-					// stored
-					// MzPeaks.
-
-					if (newChromatoMzPeaks.size() > 0) {
-						ConnectedPeak chromatoPeak = new ConnectedPeak(
-								dataFile, newChromatoMzPeaks.elementAt(0));
-						for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
-							chromatoPeak.addMzPeak(newChromatoMzPeaks
-									.elementAt(j));
-						}
-						newChromatoMzPeaks.clear();
-						newChromatoPeaks.add(chromatoPeak);
-					}
-				}
-			}
-		}
-
-		// At least we verify if there is one last threshold peak at the end,
-		// and it was not detected in the for cycle, due there is not MzPeak
-		// with intensity below of threshold level to define the ending
-
-		if (newChromatoMzPeaks.size() > 0) {
-			ConnectedPeak chromatoPeak = new ConnectedPeak(dataFile,
-					newChromatoMzPeaks.elementAt(0));
-			for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
-				chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(j));
-			}
-			newChromatoMzPeaks.clear();
-			newChromatoPeaks.add(chromatoPeak);
-		}
-
-		return newChromatoPeaks.toArray(new ConnectedPeak[0]);
 	}
 
 	/**
