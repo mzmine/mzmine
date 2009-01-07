@@ -40,8 +40,6 @@ TaskListener, ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private ScatterPlotPanel scatterPlotPanel;
-    private ScatterPlotSearchPanel searchPanel;
-    
     private Desktop desktop;
 	
     public ScatterPlotWindow(PeakList peakList, String title) {
@@ -55,18 +53,11 @@ TaskListener, ActionListener {
 
         try{
 
-        logger.finest("Creates scatterPlotSearchPanel");
-        searchPanel = new ScatterPlotSearchPanel(this);
-        add(searchPanel, BorderLayout.SOUTH);
-        
-        logger.finest("Creates scatterPlotPanel");
         scatterPlotPanel = new ScatterPlotPanel(this);
         add(scatterPlotPanel, BorderLayout.CENTER);
         
-        logger.finest("Creates ScatterPlotDataSet");
 		if (peakList != null){
-			scatterPlotPanel.setPeakList(peakList, searchPanel.getSelectionList());
-			searchPanel.activeButtons();
+			scatterPlotPanel.setPeakList(peakList);
 		}
 		
         }
@@ -80,10 +71,6 @@ TaskListener, ActionListener {
     
 	public ScatterPlot getPlotChart(){
 		return scatterPlotPanel.getPlot();
-	}
-	
-	public ScatterPlotSearchPanel getBotomPanel(){
-		return searchPanel;
 	}
 	
 	

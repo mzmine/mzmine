@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.scatterplot;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.RawDataFile;
@@ -33,7 +34,10 @@ import org.jfree.data.xy.XYDataset;
 
 public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 
-	private SimpleDateFormat sdf;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    
+    private SimpleDateFormat sdf;
 	private int fold, indX, indY;
 	private double X, Y, ratio, value;
 	private String tipText, color, ratioText, valueTxt, name, additionalInfo;
@@ -44,6 +48,7 @@ public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 	private double[] intensities;
 
 	public ScatterPlotToolTipGenerator(int fold) {
+		
 		this.fold = fold;
 		sdf = new SimpleDateFormat("m:ss");
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT+0:00"));
@@ -52,13 +57,19 @@ public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 		formatter2 = new DecimalFormat("###");
 		formatter3 = new DecimalFormat("###.##");
 		formatter4 = new DecimalFormat("###.####");
+		
+		logger.finest("Crea toolTip para scatterPlot" );
 
 	}
 
 	public String generateToolTip(XYDataset dataset, int series, int item) {
-
-		if (!enable)
+		int index = ((ScatterPlotDataSet) dataset).getArrayIndex(series, item);
+		return String.valueOf(index);
+		
+		
+	/*	if (!enable)
 			return null;
+		
 
 		if (dataset instanceof ScatterPlotDataSet) {
 
@@ -140,8 +151,7 @@ public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 			tipText = ((DiagonalPlotDataset) dataset).getToolTipText();
 		}
 
-		clean();
-		return tipText;
+		return tipText;*/
 
 	}
 

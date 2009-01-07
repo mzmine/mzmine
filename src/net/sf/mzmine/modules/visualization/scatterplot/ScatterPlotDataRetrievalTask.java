@@ -24,8 +24,6 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.DefaultListModel;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.taskcontrol.Task;
@@ -39,14 +37,16 @@ public class ScatterPlotDataRetrievalTask implements Task {
 	private String errorMessage, taskDescription;
 	private int processedItems, numOfItems;
 	private boolean update = false;
+	private String searchValue;
 
 	public ScatterPlotDataRetrievalTask(String taskDescription,
-			ScatterPlotDataSet dataSet, boolean update, int numOfItems) {
+			ScatterPlotDataSet dataSet, boolean update, int numOfItems, String searchValue) {
 		status = TaskStatus.WAITING;
 		this.taskDescription = taskDescription;
 		this.update = update;
 		this.dataSet = dataSet;
 		this.numOfItems = numOfItems;
+		this.searchValue = searchValue;
 	}
 
 	/**
@@ -100,87 +100,50 @@ public class ScatterPlotDataRetrievalTask implements Task {
 
 		if (update) {
 			
-			Vector<Vector<Integer>> seriesArray = new Vector<Vector<Integer>>();
-			Vector<Integer> items;
+			Vector<Integer> items = new Vector<Integer>();
 			Vector<Color> colorVector = new Vector<Color>();
 			Integer[][] arraySeriesAndItemsConstruction;
 			
-			DefaultListModel listModel = dataSet.getSelectionListModel();
-			int listLength = listModel.getSize();
-			int countSeries = 1;
 			colorVector.add(Color.BLUE);
 
-			for (int i = 0; i < listLength; i++) {
-				seriesArray.add(new Vector<Integer>());
-			}
-
-			String[][] searchValues;
+			//String searchValue;
 			String[] listNames = dataSet.getListNames();
 
-			for (int i = 0; i < listLength; i++) {
-				ListSelectionItem listItem = (ListSelectionItem) listModel.get(i);
-				items = seriesArray.get(i);
-				
-				if (listItem.isAlreadyCompared()){
-					if (listItem.hasMatches()){
-						Integer[] indexes = listItem.getMatches();
-						for (Integer ind: indexes){
-							items.add(ind);
-						}
-						countSeries++;
-						colorVector.add(listItem.getColor());
-					}
-					
-					processedItems += listItem.getSearchValues().length * listNames.length;
+			int length1 = listNames.length;
+			String selectionElement, originalElement;
+			selectionElement = searchValue;
+			selectionElement = selectionElement.toUpperCase();
+			for (int j = 0; j < length1; j++) {
+				originalElement = listNames[j];
+				if ((originalElement == null) || (originalElement == "")) {
 					continue;
 				}
+				originalElement = originalElement.toUpperCase();
+				if ((originalElement.matches(".*" + selectionElement + ".*"))) {
+					if (!items.contains(j))
+						items.add(j);
+				}
+					
+				processedItems++;
+			}
 				
-				searchValues = listItem.getSearchValues();
-				int length1 = searchValues.length;
-				String selectionElement, originalElement;
-				for (int j = 0; j < length1; j++) {
-					selectionElement = searchValues[j][0];
-					selectionElement = selectionElement.toUpperCase();
-
-					int length2 = listNames.length;
-					for (int k = 0; k < length2; k++) {
-						originalElement = listNames[k];
-						if ((originalElement == null) || (originalElement == "")) {
-							continue;
-						}
-						originalElement = originalElement.toUpperCase();
-
-						if ((originalElement.matches(".*" + selectionElement + ".*"))) {
-							if (!items.contains(k))
-								items.add(k);
-						}
-						
-						processedItems++;
-					}
-				}
-				if (items.size() > 0){
-					countSeries++;
-					colorVector.add(listItem.getColor());
-					listItem.setMatches(items.toArray(new Integer[0]));
-				}
-				listItem.setCompareFlag();
+		
+			if (items.size() > 0){
+				colorVector.add(Color.ORANGE);
+				dataSet.updateSeriesCount(2);
+				arraySeriesAndItemsConstruction = new Integer[2][0];
+				arraySeriesAndItemsConstruction[0] = dataSet.getArraySeriesAndItems()[0];
+				arraySeriesAndItemsConstruction[1] = items.toArray(new Integer[0]);
+			}
+			else{
+				dataSet.updateSeriesCount(1);
+				arraySeriesAndItemsConstruction = new Integer[1][0];
+				arraySeriesAndItemsConstruction[0] = dataSet.getArraySeriesAndItems()[0];
 			}
 
-
-			dataSet.updateSeriesCount(countSeries);
-			arraySeriesAndItemsConstruction = new Integer[countSeries][0];
-			arraySeriesAndItemsConstruction[0] = dataSet.getArraySeriesAndItems()[0];
-			int count = 1;
-			for (int i = 0; i < seriesArray.size(); i++) {
-				items = seriesArray.get(i);
-				if (items.size() > 0) {
-					arraySeriesAndItemsConstruction[count] = items.toArray(new Integer[0]);
-					count++;
-				}
-			}
-			
 			dataSet.updateSeriesColor(colorVector.toArray(new Color[0]));
 			dataSet.updateArraySeriesAndItems(arraySeriesAndItemsConstruction);			
+
 
 		} else {
 			

@@ -22,12 +22,8 @@ package net.sf.mzmine.modules.visualization.scatterplot;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
@@ -39,6 +35,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
@@ -49,29 +46,28 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 
 	private PeakList peakList;
 	private int domainX, domainY;
-	private DefaultListModel listModel;
 	private int series = 1;
 	private Integer[][] arraySeriesAndItems;
 	private Color[] seriesColor;
 
-	private TreeMap<Integer, ChromatographicPeak> dataPointsMap;
 	private RawDataFile[] rawDataFiles;
 	private String[] infotags;
 	private String[] listNames;
 	private Integer[] items;
 	private double[][] intensities;
 	private double lowestIntensity;
+	
+	private boolean isUpdated = false;
 
 	private ActionListener visualizer;
 
 	public ScatterPlotDataSet(PeakList peakList, int domainX, int domainY,
-			JList listSelections, ActionListener visualizer) {
+		ActionListener visualizer) {
 
 		this.peakList = peakList;
 		this.domainX = domainX;
 		this.domainY = domainY;
 		this.visualizer = visualizer;
-		listModel = (DefaultListModel) listSelections.getModel();
 		rawDataFiles = peakList.getRawDataFiles();
 
 		int numOfRows = peakList.getNumberOfRows();
@@ -89,7 +85,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 		// Start-up the refresh task
 		Task updateTask = new ScatterPlotDataRetrievalTask(
 				"Updating scatter plot of " + peakList.toString(), this, false,
-				peakList.getNumberOfRows());
+				peakList.getNumberOfRows(), null);
 		MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
 				this);
 
@@ -166,10 +162,6 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 		return listNames;
 	}
 	
-	public DefaultListModel getSelectionListModel(){
-		return listModel;
-	}
-	
 	public void updateSeriesCount(int series){
 		this.series = series;
 	}
@@ -244,22 +236,14 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 		return seriesColor[series];
 	}
 
-	public void updateListofAppliedSelection() {
+	public void updateListofAppliedSelection(String searchValue) {
 
-		int numOfItems=0;
-		int listLength = listModel.getSize();
-		ListSelectionItem listItem;
-		for (int i = 0; i < listLength; i++) {
-			listItem = (ListSelectionItem) listModel.get(i);
-			numOfItems += listItem.getSearchValues().length;
-		}
+		if (searchValue == null)
+			return;
 		
-		numOfItems *= listNames.length;
-		
-		// Start-up the refresh task
 		Task updateTask = new ScatterPlotDataRetrievalTask(
 				"Updating scatter plot of " + peakList.toString(), this, true,
-				numOfItems);
+				listNames.length, searchValue);
 		MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
 				this);
 
@@ -272,8 +256,16 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 							+ task.getErrorMessage());
 			return;
 		}
+		
+		String command = "DATASET_UPDATED";
+		
+		if (!isUpdated){
+			command = "DATASET_CREATED";
+			isUpdated = true;
+		}
 		visualizer.actionPerformed(new ActionEvent(this,
-				ActionEvent.ACTION_PERFORMED, "ScatterPlotDataSet_upgraded"));
+				ActionEvent.ACTION_PERFORMED, command));
+
 	}
 
 	public void taskStarted(Task task) {
@@ -320,6 +312,26 @@ public class ScatterPlotDataSet extends AbstractXYDataset implements
 				}
 			}
 		}
+	}
+	
+	public ChromatographicPeak[] getPeaksAt(int index){
+		ChromatographicPeak[] peaks = new ChromatographicPeak[2];
+		peaks[0] = peakList.getPeak(index, rawDataFiles[domainX]);
+		peaks[1] = peakList.getPeak(index, rawDataFiles[domainY]);
+
+		return peaks;
+	}
+	
+	public Range getRawDataFilesRTRangeAt(int index){
+		Range rtRange = rawDataFiles[domainX].getDataRTRange(1);
+		rtRange.extendRange(rawDataFiles[domainY].getDataRTRange(1));
+		return rtRange;
+	}
+
+	public Range getRawDataFilesMZRangeAt(int index){
+		Range mzRange = rawDataFiles[domainX].getDataMZRange(1);
+		mzRange.extendRange(rawDataFiles[domainY].getDataMZRange(1));
+		return mzRange;
 	}
 
 }

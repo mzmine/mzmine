@@ -25,6 +25,9 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
@@ -34,16 +37,24 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.data.general.DatasetChangeEvent;
@@ -53,6 +64,9 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JComboBox comboX, comboY, comboFold;
+	private JTextField txtSearchField;
+	private JButton btnSrch;
+	private JCheckBox labeledItems;
 	private JLabel itemName;
 	private static String[] foldXvalues = { "2", "4", "5", "8", "10", "15",
 			"20", "50", "100", "200", "1000" };
@@ -101,6 +115,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		comboFold.setActionCommand("FOLD");
 		comboFold.setEnabled(false);
 
+
 		DefaultListCellRenderer centerRenderer = new DefaultListCellRenderer() {
 			public Component getListCellRendererComponent(JList jList,
 					Object o, int i, boolean b, boolean b1) {
@@ -113,6 +128,80 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 		comboFold.setRenderer(centerRenderer);
 
+		JPanel pnlFold1 = new JPanel(new FlowLayout());
+		pnlFold1.add(new JLabel("Fold (nX)", SwingConstants.CENTER));
+		pnlFold1.add(comboFold);
+
+		txtSearchField = new JTextField();
+		txtSearchField.selectAll();
+		txtSearchField.setEnabled(true);
+		
+		btnSrch = new JButton("Search");
+		btnSrch.addActionListener(this);
+		btnSrch.setActionCommand("SEARCH");
+		btnSrch.setEnabled(true);
+		
+		JPanel pnlSearch = new JPanel();
+		pnlSearch.setLayout(new BoxLayout(pnlSearch, BoxLayout.X_AXIS));
+		pnlSearch.add(txtSearchField);
+		pnlSearch.add(Box.createRigidArea(new Dimension(10, 1)));
+		pnlSearch.add(btnSrch);
+		
+		labeledItems = new JCheckBox(" Show item's labels ");
+		labeledItems.addActionListener(this);
+		labeledItems.setHorizontalAlignment(SwingConstants.CENTER);
+		labeledItems.setActionCommand("LABEL_ITEMS");
+
+
+		JPanel pnlGrid = new JPanel();
+		pnlGrid.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.insets = new Insets(5, 5, 5, 5);
+		c.ipadx = 50;
+		c.gridwidth = 1;
+
+		c.gridx = 0;
+		c.gridy = 0;
+		pnlGrid.add(Box.createRigidArea(new Dimension(0, 10)), c);
+		c.ipadx = 10;
+		c.gridx = 0;
+		c.gridy = 1;
+		pnlGrid.add(new JLabel("Axis Y"), c);
+		c.gridx = 1;
+		c.gridy = 1;
+		pnlGrid.add(comboY, c);
+		c.gridx = 2;
+		c.gridy = 1;
+		pnlGrid.add(new JLabel("Axis X"), c);
+		c.gridx = 3;
+		c.gridy = 1;
+		pnlGrid.add(comboX, c);
+		c.gridx = 4;
+		c.gridy = 1;
+		pnlGrid.add(labeledItems, c);
+
+		
+		c.gridx = 0;
+		c.gridy = 2;
+		pnlGrid.add(new JLabel("Search"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;
+		c.gridy = 2;
+		pnlGrid.add(pnlSearch, c);
+
+		c.gridx = 4;
+		c.gridy = 2;
+		pnlGrid.add(pnlFold1, c);
+
+		
+		logger.finest("Creates scatterPlot");
+		plot = new ScatterPlot(this);
+
+        logger.finest("Creates scatterPlotToolBar");
+        toolbar = new ScatterPlotToolBar(((ActionListener) plot));
+
 		itemName = new JLabel("NO SELECTED POINT");
 		itemName.setForeground(Color.BLUE);
 		itemName.setFont(new Font("SansSerif", Font.BOLD, 15));
@@ -122,19 +211,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		pnlName.add(Box.createRigidArea(new Dimension(50, 0)));
 		pnlName.add(Box.createHorizontalGlue());
 		pnlName.add(itemName);
-
-		JPanel pnlFold1 = new JPanel(new BorderLayout());
-		pnlFold1.add(new JLabel("Fold (nX)", SwingConstants.CENTER),
-				BorderLayout.CENTER);
-		pnlFold1.add(comboFold, BorderLayout.SOUTH);
-		JPanel pnlFold = new JPanel(new FlowLayout());
-		pnlFold.add(pnlFold1);
-		
-        logger.finest("Creates scatterPlot");
-		plot = new ScatterPlot(this);
-
-        logger.finest("Creates scatterPlotToolBar");
-        toolbar = new ScatterPlotToolBar(((ActionListener) plot));
 
 		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
 		Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
@@ -146,27 +222,14 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		pnlPlot.add(toolbar, BorderLayout.EAST);
 		pnlPlot.add(plot, BorderLayout.CENTER);
 
-		JPanel pnlPlotName = new JPanel(new BorderLayout());
-		pnlPlotName.add(pnlName, BorderLayout.NORTH);
-		pnlPlotName.add(pnlPlot, BorderLayout.CENTER);
-
-		JPanel pnl1 = new JPanel(new BorderLayout());
-		pnl1.add(pnlPlotName, BorderLayout.CENTER);
-		pnl1.add(pnlX, BorderLayout.SOUTH);
-
-		JPanel pnl2 = new JPanel();
-		pnl2.setLayout(new BoxLayout(pnl2, BoxLayout.Y_AXIS));
-		pnl2.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		pnl2.add(Box.createRigidArea(new Dimension(0, 50)));
-		pnl2.add(Box.createVerticalGlue());
-		pnl2.add(pnlY);
-		pnl2.add(Box.createRigidArea(new Dimension(0, 20)));
-		pnl2.add(pnlFold);
-		pnl2.add(Box.createVerticalGlue());
+		JPanel panelPlotAndName = new JPanel(new BorderLayout());
+		panelPlotAndName.add(pnlName, BorderLayout.NORTH);
+		panelPlotAndName.add(pnlPlot, BorderLayout.CENTER);
 
 		JPanel pnlWorkspace = new JPanel(new BorderLayout());
-		pnlWorkspace.add(pnl1, BorderLayout.CENTER);
-		pnlWorkspace.add(pnl2, BorderLayout.WEST);
+		pnlWorkspace.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		pnlWorkspace.add(panelPlotAndName, BorderLayout.CENTER);
+		pnlWorkspace.add(pnlGrid, BorderLayout.SOUTH);
 
 		setLayout(new BorderLayout());
 		add(pnlWorkspace, BorderLayout.CENTER);
@@ -189,6 +252,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int x = comboX.getSelectedIndex();
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
+			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
 			plot.getToolTipGenerator().setDomainsIndexes(x, y);
 			plot.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(plot, dataSet));
@@ -204,10 +268,9 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		if ((command.equals("ADD")) || (command.equals("REMOVE"))
 				|| (command.equals("LABEL_ITEMS"))
 				|| (command.equals("SEARCH"))) {
-			dataSet.updateListofAppliedSelection();
+			setLabelItems(labeledItems.isSelected());
+			dataSet.updateListofAppliedSelection(txtSearchField.getText());
 			plot.setSeriesColor(dataSet);
-			plot.getXYPlot().datasetChanged(
-					new DatasetChangeEvent(plot, dataSet));
 			return;
 		}
 
@@ -216,23 +279,29 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			dialog.setVisible(true);
 		}
 
-		if (command.equals("ON_LINE")) {
-			int index = getCursorPosition();
+		if (command.equals("TIC")) {
+			
+				int index = getCursorPosition();
 
-			if (index == -1) {
-				JOptionPane
-						.showMessageDialog(
-								this,
-								"No point is selected, if you require to make a generic search use the main menu \"Search\"",
-								"Searching online error",
-								JOptionPane.ERROR_MESSAGE);
-				return;
-			}
+				if (index == -1) {
+					JOptionPane
+							.showMessageDialog(
+									this,
+									"No point is selected, if you require to make a generic search use the main menu \"Search\"",
+									"Searching online error",
+									JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				
+				ChromatographicPeak[] peaks = dataSet.getPeaksAt(index);
+				Range rtRange = dataSet.getRawDataFilesRTRangeAt(index);
+				Range MZRange = dataSet.getRawDataFilesMZRangeAt(index);
+				
+				TICVisualizer.showNewTICVisualizerWindow(
+						peakList.getRawDataFiles(),
+						peaks, 1,
+						TICVisualizerParameters.plotTypeBP, rtRange, MZRange);
 
-			/*DataFile df = dataSet.getDataFile();
-			SearchKEGGDialog dialog = new SearchKEGGDialog(df.getType(), df
-					.getDataPoint(index).getName());
-			dialog.setVisible(true);*/
 		}
 
 		if (command.equals("SHOW_ITEM_NAME")) {
@@ -245,22 +314,24 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			}
 		}
 
-		if (command.equals("CROP_SEL")) {
-			boolean visible = plot.getRawDataVisibleStatus();
-			plot.setRawDataVisible(!visible);
+		if (command.equals("DATASET_UPDATED")) {
+			plot.getXYPlot().datasetChanged(
+					new DatasetChangeEvent(plot, dataSet));
+		}
+	
+		if (command.equals("DATASET_CREATED")) {
+			setDomainsValues(dataSet.getDomainsNames());
+			enableButtons();
+			plot.startDatasetCounter();
+			plot.addDataset(dataSet);
 		}
 
-	
 	}
 
-	public void setPeakList(PeakList peakList, JList list) {
+	public void setPeakList(PeakList peakList) {
 
-		dataSet = new ScatterPlotDataSet(peakList, 1, 0, list, this);
+		dataSet = new ScatterPlotDataSet(peakList, 1, 0, this);
 		this.peakList = peakList;
-		setDomainsValues(dataSet.getDomainsNames());
-		activeButtons();
-		plot.startDatasetCounter();
-		plot.addDataset(dataSet);
 
 	}
 
@@ -268,9 +339,11 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		comboY.setModel(new DefaultComboBoxModel(domains));
 		comboX.setModel(new DefaultComboBoxModel(domains));
 		comboX.setSelectedIndex(1);
+		plot.getXYPlot().getRangeAxis().setLabel(domains[0]);
+		plot.getXYPlot().getDomainAxis().setLabel(domains[1]);
 	}
 
-	public void activeButtons() {
+	public void enableButtons() {
 		comboX.setEnabled(true);
 		comboY.setEnabled(true);
 		comboFold.setEnabled(true);

@@ -32,8 +32,6 @@ import javax.swing.JToolBar;
 public class ScatterPlotToolBar extends JToolBar {
 	
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-	static final Icon selectIconOff = new ImageIcon("icons/selectOff.png");
-	static final Icon selectIconOn = new ImageIcon("icons/selectOn.png");
 
 	public ScatterPlotToolBar(ActionListener actionPerfomer) {
 		
@@ -44,18 +42,14 @@ public class ScatterPlotToolBar extends JToolBar {
 		setMargin(new Insets(5, 5, 5, 5));
 		setBackground(Color.white);
 
-        JButton button1 = new JButton(axesIcon);
+		addSeparator();
+		
+		JButton button1 = new JButton(axesIcon);
         button1.addActionListener(actionPerfomer);
         button1.setActionCommand("SETUP_AXES");
         button1.setToolTipText("Setup ranges for axes");
         this.add(button1);
 
-        JToggleButton button2 = new JToggleButton(selectIconOff);
-        button2.addActionListener(actionPerfomer);
-        button2.setActionCommand("SELECTION");
-        button2.setToolTipText("Setup ranges for axes");
-        button2.setSelectedIcon(selectIconOn);
-        this.add(button2);
 }
 
 }
