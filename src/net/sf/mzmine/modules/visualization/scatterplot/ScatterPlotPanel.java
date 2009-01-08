@@ -83,7 +83,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Axis X
 		comboX = new JComboBox();
 		comboX.addActionListener(this);
-		comboX.setMaximumSize(new Dimension(50, 30));
+		//comboX.setMaximumSize(new Dimension(50, 30));
 		comboX.setActionCommand("DOMAIN");
 		comboX.setEnabled(false);
 
@@ -97,7 +97,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Axis Y
 		comboY = new JComboBox();
 		comboY.addActionListener(this);
-		comboY.setMaximumSize(new Dimension(50, 30));
+		//comboY.setMaximumSize(new Dimension(50, 30));
 		comboY.setActionCommand("DOMAIN");
 		comboY.setEnabled(false);
 
@@ -111,7 +111,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Fold
 		comboFold = new JComboBox(foldXvalues);
 		comboFold.addActionListener(this);
-		comboFold.setMaximumSize(new Dimension(50, 30));
+		//comboFold.setMaximumSize(new Dimension(50, 30));
 		comboFold.setActionCommand("FOLD");
 		comboFold.setEnabled(false);
 
@@ -253,7 +253,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
-			plot.getToolTipGenerator().setDomainsIndexes(x, y);
 			plot.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(plot, dataSet));
 			return;

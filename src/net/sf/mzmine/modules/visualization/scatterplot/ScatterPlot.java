@@ -33,6 +33,7 @@ import java.util.logging.Logger;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolTip;
+import javax.swing.ToolTipManager;
 
 import net.sf.mzmine.main.MZmineCore;
 
@@ -90,8 +91,9 @@ public class ScatterPlot extends ChartPanel {
 	private int numOfDataSets = 0, numDiagonals = 0;
 
 	// toolTip
-	private ScatterPlotToolTip tip;
 	private ScatterPlotDataSet dataSet;
+	
+	private CustomToolTipManager ttm;
 
 	public ScatterPlot(ScatterPlotPanel masterFrame) {
 
@@ -158,8 +160,7 @@ public class ScatterPlot extends ChartPanel {
 		diagonalLineRenderer = new ScatterPlotRenderer(true, false);
 
 		// set toolTipGenerator
-		toolTipGenerator = new ScatterPlotToolTipGenerator(masterFrame
-				.selectedFold());
+		toolTipGenerator = new ScatterPlotToolTipGenerator();
 		defaultRenderer.setBaseToolTipGenerator(toolTipGenerator);
 
 		XYItemLabelGenerator ItemlabelGenerator = new ScatterPlotItemLabelGenerator();
@@ -185,16 +186,16 @@ public class ScatterPlot extends ChartPanel {
 		popupMenu.add(newPopmenuItem("Show Chromatogram", "TIC"));
 		// popupMenu.add(newPopmenuItem("Search KEGG compounds", "ON_LINE"));
 
-		this.createToolTip();
-
+		this.registerCustomToolTip();
 	}
 
-	public JToolTip createToolTip() {
-		if (tip == null) {
-			tip = new ScatterPlotToolTip();
-			tip.setComponent(this);
-		}
-		return tip;
+	public void registerCustomToolTip() {
+		
+		logger.finest("Crea tooltipManager");
+		ttm = new CustomToolTipManager();
+		ttm.registerComponent(this);
+		this.createToolTip();
+		ToolTipManager.sharedInstance().unregisterComponent(this);
 	}
 
 	/**
@@ -258,8 +259,7 @@ public class ScatterPlot extends ChartPanel {
 	synchronized public void addDataset(ScatterPlotDataSet newSet) {
 
 		drawDiagonalLines(newSet);
-		toolTipGenerator.setDataFile(newSet);
-		tip.setDataFile(newSet);
+		ttm.setDataFile(newSet);
 
 		plot.setDataset(numOfDataSets + numDiagonals, newSet);
 
@@ -281,13 +281,16 @@ public class ScatterPlot extends ChartPanel {
 	public void drawDiagonalLines(ScatterPlotDataSet newSet) {
 		double[] maxMinValue = newSet.getMaxMinValue();
 		int fold = scatterPlotPanel.selectedFold();
-		toolTipGenerator.setSelectedFold(fold);
-		float foldValue = fold;
+		ttm.setSelectedFold(fold);
+		
+		double foldValue = fold;
 		for (int i = 0; i < 3; i++) {
 			if (i == 0)
-				foldValue = (float) 1 / fold;
+				foldValue = 1.0 / (double) fold;
 			if (i == 1)
 				foldValue = i;
+			
+			logger.finest("Value of fold = " + foldValue);
 			DiagonalPlotDataset newDiagonalSet = new DiagonalPlotDataset(
 					maxMinValue, foldValue);
 			addDiagonalSet(newDiagonalSet);

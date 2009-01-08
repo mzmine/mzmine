@@ -29,7 +29,7 @@ public class DiagonalPlotDataset extends AbstractXYDataset {
 	private String toolTipText;
 	private double times;
 	private static DecimalFormat formatter1 = new DecimalFormat("###");
-	private static DecimalFormat formatter2 = new DecimalFormat("###.###");
+	private static DecimalFormat formatter2 = new DecimalFormat("#.##");
 
 	public DiagonalPlotDataset(double[] maxMinValue, double times) {
 

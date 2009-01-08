@@ -68,7 +68,7 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
             return;
         }
         
-        if (peaklists[0].getNumberOfRawDataFiles()>2){
+        if (peaklists[0].getNumberOfRawDataFiles()<2){
             desktop.displayErrorMessage("There is only one raw data file in the selected peak list, it is necessary at least two for comparison");
             return;
         }
