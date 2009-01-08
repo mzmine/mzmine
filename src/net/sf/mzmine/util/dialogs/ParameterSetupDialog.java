@@ -141,11 +141,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		parametersAndComponents = new Hashtable<Parameter, JComponent>();
 
 		// panels for labels, text fields and units
-		pnlLabels = new JPanel();// new GridLayout(0, 1));
+		pnlLabels = new JPanel();
 		pnlLabels.setLayout(new BoxLayout(pnlLabels, BoxLayout.PAGE_AXIS));
-		pnlFields = new JPanel();// new GridLayout(0, 1));
+		pnlFields = new JPanel();
 		pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.PAGE_AXIS));
-		pnlUnits = new JPanel();// new GridLayout(0, 1));
+        pnlUnits = new JPanel();
 		pnlUnits.setLayout(new BoxLayout(pnlUnits, BoxLayout.PAGE_AXIS));
 
 		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
@@ -304,8 +304,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			comp.setToolTipText(p.getDescription());
 			parametersAndComponents.put(p, comp);
 			lblLabel.setLabelFor(comp);
-			pnlFields.add(comp);
-
+            
+            // Add component in a BorderLayout panel, so it can be aligned to the left
+            JPanel componentPanel = new JPanel(new BorderLayout());
+            componentPanel.add(comp, BorderLayout.CENTER);
+			pnlFields.add(componentPanel);
+            
 			// set the value of the component
 			setValue(p, parameters.getParameterValue(p));
 
@@ -455,7 +459,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 		case BOOLEAN:
 			JCheckBox checkBox = (JCheckBox) component;
-
 			Boolean selected = (Boolean) value;
 			checkBox.setSelected(selected);
 			break;
