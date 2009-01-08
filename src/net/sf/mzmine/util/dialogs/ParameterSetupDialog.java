@@ -61,8 +61,6 @@ import net.sf.mzmine.util.components.DragOrderedJList;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.components.HelpButton;
 
-import com.sun.java.ExampleFileFilter;
-
 /**
  * This class represents the parameter setup dialog shown to the user before
  * processing
@@ -272,7 +270,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			case FILE_NAME:
 				JTextField txtFilename = new JTextField();
 				txtFilename.setColumns(TEXTFIELD_COLUMNS);
-				JButton btnFileBrowser = new JButton("\\...");
+				JButton btnFileBrowser = new JButton("...");
 				btnFileBrowser.setActionCommand("FILE_BROWSER");
 				btnFileBrowser.addActionListener(this);
 				JPanel panelFilename = new JPanel();
@@ -395,10 +393,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		if (action.equals("FILE_BROWSER")) {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setMultiSelectionEnabled(false);
-
-			ExampleFileFilter filter = new ExampleFileFilter();
-			filter.addExtension("csv");
-			fileChooser.addChoosableFileFilter(filter);
+			
 			int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
 					.getMainFrame());
 
