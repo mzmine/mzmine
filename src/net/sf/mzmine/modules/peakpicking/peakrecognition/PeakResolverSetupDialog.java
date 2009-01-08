@@ -241,6 +241,12 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
         ticPlot.addTICDataset(ticDataset);
+        
+        // Set auto range to axes
+        ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
+        ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
+        ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
 
     }
 
