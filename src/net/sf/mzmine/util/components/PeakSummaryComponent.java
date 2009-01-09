@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
+package net.sf.mzmine.util.components;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -50,7 +50,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
-import net.sf.mzmine.util.components.CombinedXICComponent;
 
 public class PeakSummaryComponent extends JPanel {
 

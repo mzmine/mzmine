@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
+package net.sf.mzmine.util.components;
 
 import java.text.NumberFormat;
 import java.util.Vector;

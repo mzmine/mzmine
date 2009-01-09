@@ -42,9 +42,9 @@ import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalPlo
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotItemLabelGenerator;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotToolTipGenerator;
-import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.CustomToolTipManager;
-import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.CustomToolTipProvider;
-import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.PeakSummaryComponent;
+import net.sf.mzmine.util.components.CustomToolTipManager;
+import net.sf.mzmine.util.components.CustomToolTipProvider;
+import net.sf.mzmine.util.components.PeakSummaryComponent;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;

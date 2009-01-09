@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
+package net.sf.mzmine.util.components;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -28,7 +28,6 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import net.sf.mzmine.util.components.CombinedXICComponent;
 
 public class PeakSummaryTableCellRenderer extends DefaultTableCellRenderer {
 

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
+package net.sf.mzmine.util.components;
 
 import java.awt.event.MouseEvent;
 
