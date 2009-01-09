@@ -30,6 +30,8 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.entity.EntityCollection;
 import org.jfree.chart.labels.ItemLabelPosition;

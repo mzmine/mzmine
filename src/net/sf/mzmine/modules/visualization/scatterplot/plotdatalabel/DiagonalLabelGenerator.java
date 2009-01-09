@@ -17,9 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot;
-
-import java.text.DecimalFormat;
+package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;

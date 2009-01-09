@@ -45,13 +45,13 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.util.Range;
@@ -61,13 +61,13 @@ import org.jfree.data.general.DatasetChangeEvent;
 
 public class ScatterPlotPanel extends JPanel implements ActionListener {
 	
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    //private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JComboBox comboX, comboY, comboFold;
 	private JTextField txtSearchField;
 	private JButton btnSrch;
 	private JCheckBox labeledItems;
-	private JLabel itemName;
+	private JLabel itemName, numOfDisplayedItems;
 	private static String[] foldXvalues = { "2", "4", "5", "8", "10", "15",
 			"20", "50", "100", "200", "1000" };
 	private ScatterPlotToolBar toolbar;
@@ -83,7 +83,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Axis X
 		comboX = new JComboBox();
 		comboX.addActionListener(this);
-		//comboX.setMaximumSize(new Dimension(50, 30));
 		comboX.setActionCommand("DOMAIN");
 		comboX.setEnabled(false);
 
@@ -97,7 +96,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Axis Y
 		comboY = new JComboBox();
 		comboY.addActionListener(this);
-		//comboY.setMaximumSize(new Dimension(50, 30));
 		comboY.setActionCommand("DOMAIN");
 		comboY.setEnabled(false);
 
@@ -111,7 +109,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		// Fold
 		comboFold = new JComboBox(foldXvalues);
 		comboFold.addActionListener(this);
-		//comboFold.setMaximumSize(new Dimension(50, 30));
 		comboFold.setActionCommand("FOLD");
 		comboFold.setEnabled(false);
 
@@ -195,20 +192,19 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		c.gridy = 2;
 		pnlGrid.add(pnlFold1, c);
 
-		
-		logger.finest("Creates scatterPlot");
+		// Creates plot and toolbar
 		plot = new ScatterPlot(this);
-
-        logger.finest("Creates scatterPlotToolBar");
         toolbar = new ScatterPlotToolBar(((ActionListener) plot));
 
 		itemName = new JLabel("NO SELECTED POINT");
 		itemName.setForeground(Color.BLUE);
 		itemName.setFont(new Font("SansSerif", Font.BOLD, 15));
+		numOfDisplayedItems = new JLabel("");
 		JPanel pnlName = new JPanel();
 		pnlName.setLayout(new BoxLayout(pnlName, BoxLayout.X_AXIS));
 		pnlName.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-		pnlName.add(Box.createRigidArea(new Dimension(50, 0)));
+		//pnlName.add(Box.createRigidArea(new Dimension(50, 0)));
+		pnlName.add(numOfDisplayedItems);
 		pnlName.add(Box.createHorizontalGlue());
 		pnlName.add(itemName);
 
@@ -252,6 +248,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int x = comboX.getSelectedIndex();
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
+			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
 			plot.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(plot, dataSet));
@@ -294,7 +291,17 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 				
 				ChromatographicPeak[] peaks = dataSet.getPeaksAt(index);
 				Range rtRange = dataSet.getRawDataFilesRTRangeAt(index);
-				Range MZRange = dataSet.getRawDataFilesMZRangeAt(index);
+				Range MZRange = null;
+				
+				for (ChromatographicPeak p: peaks){
+					if (MZRange == null){
+						MZRange = p.getRawDataPointsMZRange();
+					}
+					else {
+						MZRange.extendRange(p.getRawDataPointsMZRange());
+					}
+				}
+				
 				
 				TICVisualizer.showNewTICVisualizerWindow(
 						peakList.getRawDataFiles(),
@@ -331,6 +338,11 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 		dataSet = new ScatterPlotDataSet(peakList, 1, 0, this);
 		this.peakList = peakList;
+		setDomainsValues(dataSet.getDomainsNames());
+		enableButtons();
+		plot.startDatasetCounter();
+		plot.addDataset(dataSet);
+		numOfDisplayedItems.setText(dataSet.getDisplayedCount());
 
 	}
 

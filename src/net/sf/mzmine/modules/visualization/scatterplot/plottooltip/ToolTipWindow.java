@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot;
+package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -26,7 +26,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.text.DecimalFormat;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -49,17 +48,23 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 
 public class ToolTipWindow extends JWindow {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static DecimalFormat formatter = new DecimalFormat("###.#");
 	private static DecimalFormat formatter2 = new DecimalFormat("###");
 	private static DecimalFormat formatter3 = new DecimalFormat("#.##");
 	private static Color bg = new Color(255, 250, 205);
 
+	/**
+	 * 
+	 * @param index
+	 * @param dataSet
+	 * @param fold
+	 * @param frame
+	 */
 	public ToolTipWindow(int index, ScatterPlotDataSet dataSet, int fold,
 			Frame frame) {
 
@@ -132,7 +137,6 @@ public class ToolTipWindow extends JWindow {
 		} else {
 
 			double ratioValue = height1 / height2;
-			// logger.finest("Value of ratio = " + ratioValue);
 
 			String text = formatter.format(ratioValue) + "x";
 			Color ratioColor = Color.BLACK;
@@ -145,8 +149,6 @@ public class ToolTipWindow extends JWindow {
 				text = formatter3.format(ratioValue) + "x";
 			}
 
-			logger.finest("Value of ratio = " + ratioValue + " color "
-					+ ratioColor + " format " + text);
 			ratio = new JLabel(text, SwingUtilities.LEFT);
 			ratio.setFont(ratioFont);
 			ratio.setForeground(ratioColor);
@@ -171,16 +173,7 @@ public class ToolTipWindow extends JWindow {
 		Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
 		plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
 		plotPanel.setBackground(Color.white);
-
-		SimplePeakListRow displayRow = new SimplePeakListRow(row.getID());
-		for (ChromatographicPeak peak : peaks) {
-			if (peak != null) {
-				displayRow.addPeak(peak.getDataFile(), peak);
-			}
-		}
-
-		CombinedXICComponent xic = new CombinedXICComponent(displayRow);
-		// xic.setPreferredSize(new Dimension(300, 50));
+		CombinedXICComponent xic = new CombinedXICComponent(peaks);
 		plotPanel.add(xic);
 		pnlAll.add(plotPanel, BorderLayout.CENTER);
 
@@ -212,12 +205,9 @@ public class ToolTipWindow extends JWindow {
 
 		JScrollPane listScroller = new JScrollPane(peaksInfoList);
 		Dimension preffDimension = calculatedTableDimension(peaksInfoList);
-		logger.finest("New dimension = " + preffDimension);
 
 		listScroller.setPreferredSize(preffDimension);
 		xic.setPreferredSize(new Dimension(preffDimension.width, 50));
-		// listScroller.setPreferredSize(new Dimension(300, 25 + countLines *
-		// 20));
 		listScroller.setBackground(bg);
 		JPanel listPanel = new JPanel();
 		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
@@ -230,7 +220,6 @@ public class ToolTipWindow extends JWindow {
 
 		pnlAll.add(tablePanel, BorderLayout.SOUTH);
 		add(pnlAll);
-		// setPreferredSize(new Dimension(350, 230 + (countLines * 20)));
 
 		setPreferredSize(new Dimension(preffDimension.width,
 				preffDimension.height + 200));
@@ -238,6 +227,11 @@ public class ToolTipWindow extends JWindow {
 		setVisible(true);
 	}
 
+	/**
+	 * 
+	 * @param peaksInfoList
+	 * @return
+	 */
 	private Dimension calculatedTableDimension(JTable peaksInfoList) {
 
 		int numRows = peaksInfoList.getRowCount();
@@ -269,7 +263,6 @@ public class ToolTipWindow extends JWindow {
 				compWidth = comp.getPreferredSize().width + 10;
 				maxWidth = Math.max(maxWidth, compWidth);
 
-				// logger.finest("Comp = " + compWidth);
 
 				if (c == 0) {
 					totalHeight += comp.getPreferredSize().height;

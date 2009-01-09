@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot;
+package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
 
 import java.text.DecimalFormat;
 
@@ -41,7 +41,7 @@ public class DiagonalPlotDataset extends AbstractXYDataset {
 		double minimum = maxMinValue[0] - (maxMinValue[0] / 2);
 		double maximum = maxMinValue[1] + (maxMinValue[1] / 2);
 
-		if (times > 0)
+		if (times >= 1)
 			toolTipText = formatter1.format(times) + "x";
 		else
 			toolTipText = formatter2.format(times) + "x";

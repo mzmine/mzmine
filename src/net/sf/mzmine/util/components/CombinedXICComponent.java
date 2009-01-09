@@ -25,6 +25,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.NumberFormat;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -50,36 +51,67 @@ public class CombinedXICComponent extends JComponent {
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
 
-    private PeakListRow peaks;
+    //private PeakListRow peaks;
+    private ChromatographicPeak[] peaks;
 
     private Range rtRange;
     private double maxIntensity;
 
     /**
-     * @param peak Picked peak to plot
+     * @param PeakListRow Picked peak to plot
      */
     public CombinedXICComponent(PeakListRow peaks) {
-        this(peaks, peaks.getDataPointMaxIntensity());
+    	
+    	ChromatographicPeak peak;
+    	Vector<ChromatographicPeak> validPeaks = new Vector<ChromatographicPeak>();
+    	double maxIntensity = 0;
+        for (RawDataFile dataFile: peaks.getRawDataFiles()) {
+            peak = peaks.getPeak(dataFile);
+            if (peak != null){
+            	validPeaks.add(peak);
+            	maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().getMax());
+                if (rtRange == null)
+                    rtRange = dataFile.getDataRTRange(1);
+                else
+                    rtRange.extendRange(dataFile.getDataRTRange(1));
+            }
+        }
+        
+        this.peaks = validPeaks.toArray(new ChromatographicPeak[0]);
+
+        this.maxIntensity = maxIntensity;
+
+        this.setBorder(componentBorder);
+        
+        setToolTipContent();
     }
 
     /**
-     * @param peak Picked peak to plot
+     * @param ChromatographicPeak[] Picked peaks to plot
      */
-    public CombinedXICComponent(PeakListRow peaks, double maxIntensity) {
+    public CombinedXICComponent(ChromatographicPeak[] peaks) {
 
-        this.peaks = peaks;
+    	double maxIntensity = 0;
+    	this.peaks = peaks;
 
         // find data boundaries
-        for (RawDataFile dataFile : peaks.getRawDataFiles()) {
+        for (ChromatographicPeak peak : peaks) {
+        	maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().getMax());
             if (rtRange == null)
-                rtRange = dataFile.getDataRTRange(1);
+                rtRange = peak.getDataFile().getDataRTRange(1);
             else
-                rtRange.extendRange(dataFile.getDataRTRange(1));
+                rtRange.extendRange(peak.getDataFile().getDataRTRange(1));
         }
 
         this.maxIntensity = maxIntensity;
 
         this.setBorder(componentBorder);
+        
+        setToolTipContent();
+        
+    }
+    
+    private void setToolTipContent(){
 
         StringBuffer toolTip = new StringBuffer();
         toolTip.append("<html>");
@@ -88,9 +120,9 @@ public class CombinedXICComponent extends JComponent {
 
         NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-        for (RawDataFile dataFile : peaks.getRawDataFiles()) {
+        for (ChromatographicPeak peak : peaks) {
 
-            ChromatographicPeak peak = peaks.getPeak(dataFile);
+            //ChromatographicPeak peak = peaks.getPeak(dataFile);
 
             // if we have no data, just return
             if (peak.getScanNumbers().length == 0)
@@ -100,7 +132,7 @@ public class CombinedXICComponent extends JComponent {
                     plotColors[colorIndex].getRGB()).substring(2);
 
             toolTip.append("<font color='#" + htmlColor + "'>");
-            toolTip.append(dataFile.getFileName());
+            toolTip.append(peak.getDataFile().getFileName());
             toolTip.append("</font>: ");
             toolTip.append(peak.toString());
             toolTip.append(", <b>" + intensityFormat.format(peak.getHeight())
@@ -133,9 +165,9 @@ public class CombinedXICComponent extends JComponent {
 
         int colorIndex = 0;
 
-        for (RawDataFile dataFile : peaks.getRawDataFiles()) {
+        for (ChromatographicPeak peak : peaks) {
 
-            ChromatographicPeak peak = peaks.getPeak(dataFile);
+            //ChromatographicPeak peak = peaks.getPeak(dataFile);
 
             // if we have no data, just return
             if ((peak == null) || (peak.getScanNumbers().length == 0))
@@ -163,7 +195,7 @@ public class CombinedXICComponent extends JComponent {
                     dataPointIntensity = dataPoint.getIntensity();
 
                 // get retention time (X value)
-                double retentionTime = dataFile.getScan(scanNumbers[i]).getRetentionTime();
+                double retentionTime = peak.getDataFile().getScan(scanNumbers[i]).getRetentionTime();
 
                 // calculate [X:Y] coordinates
                 xValues[i + 1] = (int) Math.floor((retentionTime - rtRange.getMin())

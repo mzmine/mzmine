@@ -36,6 +36,12 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalLabelGenerator;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalPlotDataset;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotItemLabelGenerator;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotToolTipGenerator;
+import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.CustomToolTipManager;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -52,7 +58,7 @@ import org.jfree.ui.RectangleInsets;
 
 public class ScatterPlot extends ChartPanel {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
 			-2.5f, 5, 5);
@@ -191,7 +197,6 @@ public class ScatterPlot extends ChartPanel {
 
 	public void registerCustomToolTip() {
 		
-		logger.finest("Crea tooltipManager");
 		ttm = new CustomToolTipManager();
 		ttm.registerComponent(this);
 		this.createToolTip();
@@ -290,7 +295,7 @@ public class ScatterPlot extends ChartPanel {
 			if (i == 1)
 				foldValue = i;
 			
-			logger.finest("Value of fold = " + foldValue);
+			//logger.finest("Value of fold = " + foldValue);
 			DiagonalPlotDataset newDiagonalSet = new DiagonalPlotDataset(
 					maxMinValue, foldValue);
 			addDiagonalSet(newDiagonalSet);
