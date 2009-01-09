@@ -30,7 +30,7 @@ public interface PeakList {
     /**
      * @return Short descriptive name for the peak list
      */
-    public String toString();
+    public String getName();
 
     /**
      * Returns number of raw data files participating in the peak list

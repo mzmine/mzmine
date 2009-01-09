@@ -176,7 +176,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	public String[] getDomainsNames() {
 		Vector<String> domainsNames = new Vector<String>();
 		for (RawDataFile file : rawDataFiles) {
-			domainsNames.add(file.getFileName());
+			domainsNames.add(file.getName());
 		}
 		return domainsNames.toArray(new String[0]);
 	}
@@ -357,8 +357,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	public String getDisplayedCount(){
 		String display = "<HTML>" +  peakList.getNumberOfRows() + " total peaks, ";
 		display += this.getItemCount(0) + " displayed<BR> ";
-		display += presentOnlyX + " peaks only in " + rawDataFiles[domainX].getFileName() + "<BR>";
-		display += presentOnlyY + " peaks only in " + rawDataFiles[domainY].getFileName();
+		display += presentOnlyX + " peaks only in " + rawDataFiles[domainX].getName() + "<BR>";
+		display += presentOnlyY + " peaks only in " + rawDataFiles[domainY].getName();
 		return  display;
 	}
 

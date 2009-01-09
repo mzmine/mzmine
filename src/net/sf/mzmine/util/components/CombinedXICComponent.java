@@ -108,7 +108,7 @@ public class CombinedXICComponent extends JComponent {
                     plotColors[colorIndex].getRGB()).substring(2);
 
             toolTip.append("<font color='#" + htmlColor + "'>");
-            toolTip.append(peak.getDataFile().getFileName());
+            toolTip.append(peak.getDataFile().getName());
             toolTip.append("</font>: ");
             toolTip.append(peak.toString());
             toolTip.append(", <b>" + intensityFormat.format(peak.getHeight())

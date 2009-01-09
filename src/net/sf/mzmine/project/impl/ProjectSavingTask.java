@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.project.impl;
@@ -35,6 +35,7 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.UnclosableOutputStream;
 
 /**
@@ -106,7 +107,7 @@ public class ProjectSavingTask implements Task {
                 return (double) xstream.getNumOfSerializedRows()
                         / description.getNumOfPeakListRows();
         case 6:
-            return 1f;
+            return 1;
         default:
             return 0f;
         }
@@ -156,26 +157,38 @@ public class ProjectSavingTask implements Task {
             // Stage 1 - save project description
             currentStage++;
             saveProjectDescription();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Stage 2 - save configuration
             currentStage++;
             saveConfiguration();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Stage 3 - save temporary files containing all raw data points
             currentStage++;
             saveScanDataFiles();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Stage 4 - save RawDataFile objects
             currentStage++;
             saveRawDataObjects();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Stage 5 - save PeakList objects
             currentStage++;
             savePeakListObjects();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Stage 6 - save MZmineProjectImpl instance
             currentStage++;
             saveMZmineProject();
+            if (status == TaskStatus.CANCELED)
+                return;
 
             // Finish and close the temporary ZIP file
             zipStream.close();
@@ -186,7 +199,7 @@ public class ProjectSavingTask implements Task {
 
             // Move the temporary ZIP file to the final location
             tempFile.renameTo(saveFile);
-            
+
             // Tell desktop to reload the project location
             ((MainWindow) MZmineCore.getDesktop()).reloadProject();
 
@@ -195,7 +208,8 @@ public class ProjectSavingTask implements Task {
 
         } catch (Throwable e) {
             status = TaskStatus.ERROR;
-            errorMessage = "Failed saving the project: " + e.toString();
+            errorMessage = "Failed saving the project: "
+                    + ExceptionUtils.exceptionToString(e);
         }
     }
 
@@ -240,12 +254,12 @@ public class ProjectSavingTask implements Task {
     private void saveMZmineProject() throws IOException {
         zipStream.putNextEntry(new ZipEntry("project.xml"));
         ObjectOutputStream objectStream = xstream.createObjectOutputStream(unclosableZipStream);
-        
+
         // Set the new project location
         project.setProjectFile(saveFile);
-        
+
         objectStream.writeObject(project);
-        objectStream.close();        
+        objectStream.close();
     }
 
     private void saveProjectDescription() throws IOException {

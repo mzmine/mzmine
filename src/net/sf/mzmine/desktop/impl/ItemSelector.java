@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.desktop.impl;
@@ -44,6 +44,8 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
+import net.sf.mzmine.util.dialogs.NameChangeDialog;
+import net.sf.mzmine.util.dialogs.NameChangeable;
 
 /**
  * This class implements a selector of raw data files and alignment results
@@ -107,11 +109,14 @@ public class ItemSelector extends JPanel implements ActionListener,
 
         dataFilePopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
+        GUIUtils.addMenuItem(dataFilePopupMenu, "Rename", this, "RENAME_FILE");
         GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
         peakListPopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
                 "SHOW_ALIGNED_PEAKLIST");
+        GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this,
+                "RENAME_PEAKLIST");
         GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
                 "REMOVE_PEAKLIST");
 
@@ -128,6 +133,17 @@ public class ItemSelector extends JPanel implements ActionListener,
 
         String command = e.getActionCommand();
 
+        if (command.equals("RENAME_FILE")) {
+            RawDataFile[] selectedFiles = getSelectedRawData();
+            for (RawDataFile file : selectedFiles) {
+                if (file instanceof NameChangeable) {
+                    NameChangeDialog dialog = new NameChangeDialog(
+                            (NameChangeable) file);
+                    dialog.setVisible(true);
+                }
+            }
+        }
+
         if (command.equals("REMOVE_FILE")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
             for (RawDataFile file : selectedFiles)
@@ -137,6 +153,17 @@ public class ItemSelector extends JPanel implements ActionListener,
         if (command.equals("SHOW_TIC")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
             TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null);
+        }
+
+        if (command.equals("RENAME_PEAKLIST")) {
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
+            for (PeakList peakList : selectedPeakLists) {
+                if (peakList instanceof NameChangeable) {
+                    NameChangeDialog dialog = new NameChangeDialog(
+                            (NameChangeable) peakList);
+                    dialog.setVisible(true);
+                }
+            }
         }
 
         if (command.equals("REMOVE_PEAKLIST")) {

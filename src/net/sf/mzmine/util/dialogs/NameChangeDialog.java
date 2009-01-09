@@ -20,57 +20,51 @@
 package net.sf.mzmine.util.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 
-public class ThicknessSetupDialog extends JDialog implements ActionListener {
+public class NameChangeDialog extends JDialog implements ActionListener {
 
-    private JFormattedTextField fieldThickness;
-    private JButton btnOK, btnApply, btnCancel;
-    private SpectraPlot plot;
-    private double oldThickness;
-    private static double MIN_THICKNESS = 0.00001d;
+    public static final int NAMEFIELD_COLUMNS = 20;
+    
+    private JTextField fieldName;
+    private JButton btnOK, btnCancel;
+    private NameChangeable component;
 
-    public ThicknessSetupDialog(SpectraPlot plot) {
+    public NameChangeDialog(NameChangeable component) {
+
         // Make dialog modal
         super(MZmineCore.getDesktop().getMainFrame(), true);
 
-        this.plot = plot;
-        oldThickness = plot.getBarThickness();
-        DecimalFormat defaultFormatter = new DecimalFormat("#.#####");
-        JLabel label = new JLabel("Thickness ");
-        fieldThickness = new JFormattedTextField(defaultFormatter);
-        fieldThickness.setValue(oldThickness);
-        // fieldThickness = new JTextField(Double.toString(oldThickness));
+        this.component = component;
+
+        fieldName = new JTextField();
+        fieldName.setColumns(NAMEFIELD_COLUMNS);
+        fieldName.setText(component.getName());
+        JLabel label = new JLabel("Name ");
 
         // Create a panel for labels and fields
-        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
+        JPanel pnlLabelsAndFields = new JPanel();
         pnlLabelsAndFields.add(label);
-        pnlLabelsAndFields.add(fieldThickness);
+        pnlLabelsAndFields.add(fieldName);
 
         // Create buttons
         JPanel pnlButtons = new JPanel();
         btnOK = new JButton("OK");
         btnOK.addActionListener(this);
-        btnApply = new JButton("Apply");
-        btnApply.addActionListener(this);
         btnCancel = new JButton("Cancel");
         btnCancel.addActionListener(this);
 
         pnlButtons.add(btnOK);
-        pnlButtons.add(btnApply);
         pnlButtons.add(btnCancel);
 
         // Put everything into a main panel
@@ -83,46 +77,25 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
         pack();
 
-        setTitle("Please set value of thickness");
+        setTitle("Please set new name");
         setResizable(false);
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }
 
     public void actionPerformed(ActionEvent ae) {
+
         Object src = ae.getSource();
 
         if (src == btnOK) {
-            if (setValuesToPlot()) {
-                dispose();
-            }
+            component.setName(fieldName.getText());
+            
+            // Repaint the main window to reflect the change of the name
+            MZmineCore.getDesktop().getMainFrame().repaint();
         }
 
-        if (src == btnApply) {
-            if (!setValuesToPlot())
-                fieldThickness.setValue(oldThickness);
-        }
+        dispose();
 
-        if (src == btnCancel) {
-            plot.setBarThickness(oldThickness);
-            dispose();
-        }
-    }
-
-    private boolean setValuesToPlot() {
-
-        double thickness = Double.parseDouble(fieldThickness.getText());
-
-        if (thickness >= MIN_THICKNESS) {
-            plot.setBarThickness(thickness);
-        } else {
-            MZmineCore.getDesktop().displayMessage(
-                    "Invalid value for thickness, must be greater or equal than "
-                            + MIN_THICKNESS);
-            return false;
-        }
-
-        return true;
     }
 
 }

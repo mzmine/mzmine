@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.project.impl;
@@ -31,6 +31,7 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.UnclosableInputStream;
 
 /**
@@ -185,7 +186,8 @@ public class ProjectOpeningTask implements Task {
 
         } catch (Throwable e) {
             status = TaskStatus.ERROR;
-            errorMessage = "Failed opening project: " + e.toString();
+            errorMessage = "Failed opening project: "
+                    + ExceptionUtils.exceptionToString(e);
         }
     }
 

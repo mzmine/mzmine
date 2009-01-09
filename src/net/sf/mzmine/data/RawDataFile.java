@@ -23,13 +23,8 @@ import net.sf.mzmine.util.Range;
 
 public interface RawDataFile {
 
-    /**
-     * Returns file name of raw data file object
-     * 
-     * @return File file path
-     */
-    public String getFileName();
-
+    public String getName();
+    
     public int getNumOfScans();
 
     public int getNumOfScans(int msLevel);

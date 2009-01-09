@@ -147,8 +147,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			fileNames = new String[dataFiles.length];
 
 			for (int i = 0; i < dataFiles.length; i++) {
-				fileNames[i] = dataFiles[i].getFileName();
-				if (fileNames[i].equals(previewDataFile.getFileName()))
+				fileNames[i] = dataFiles[i].getName();
+				if (fileNames[i].equals(previewDataFile.getName()))
 					indexComboFileName = i;
 			}
 

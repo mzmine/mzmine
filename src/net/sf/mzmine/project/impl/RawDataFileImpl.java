@@ -38,12 +38,13 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.NameChangeable;
 
 /**
  * RawDataFile implementation
  * 
  */
-public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
+public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChangeable {
 
     private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -83,7 +84,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getFilePath()
      */
-    public String getFileName() {
+    public String getName() {
         return this.fileName;
     }
 
@@ -541,6 +542,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
                     + e.toString());
         }
 
+    }
+
+    public void setName(String name) {
+        this.fileName = name;
     }
 
 }

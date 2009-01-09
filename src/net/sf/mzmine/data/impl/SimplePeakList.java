@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data.impl;
@@ -29,11 +29,12 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.NameChangeable;
 
 /**
  * Simple implementation of the PeakList interface.
  */
-public class SimplePeakList implements PeakList {
+public class SimplePeakList implements PeakList, NameChangeable {
 
     private String name;
     private RawDataFile[] dataFiles;
@@ -60,7 +61,8 @@ public class SimplePeakList implements PeakList {
         peakListRows = new ArrayList<PeakListRow>();
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return name;
     }
 
@@ -167,7 +169,8 @@ public class SimplePeakList implements PeakList {
      * @param endRT End of the retention time range
      * @return
      */
-    public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file, Range rtRange) {
+    public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file,
+            Range rtRange) {
         return getPeaksInsideScanAndMZRange(file, rtRange, new Range(
                 Double.MIN_VALUE, Double.MAX_VALUE));
     }
@@ -175,7 +178,8 @@ public class SimplePeakList implements PeakList {
     /**
      * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(double, double)
      */
-    public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file, Range mzRange) {
+    public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file,
+            Range mzRange) {
         return getPeaksInsideScanAndMZRange(file, new Range(Double.MIN_VALUE,
                 Double.MAX_VALUE), mzRange);
     }
@@ -184,8 +188,8 @@ public class SimplePeakList implements PeakList {
      * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(double,
      *      double, double, double)
      */
-    public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file, Range rtRange,
-            Range mzRange) {
+    public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file,
+            Range rtRange, Range mzRange) {
         Vector<ChromatographicPeak> peaksInside = new Vector<ChromatographicPeak>();
 
         ChromatographicPeak[] peaks = getPeaks(file);
@@ -256,6 +260,14 @@ public class SimplePeakList implements PeakList {
         }
 
         return null;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

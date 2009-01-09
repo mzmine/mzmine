@@ -113,7 +113,7 @@ class CMFilterTask implements Task {
         try {
 
             // Create new temporary file
-            String newName = dataFile.getFileName() + " " + suffix;
+            String newName = dataFile.getName() + " " + suffix;
             RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
 
             // Prepare scan buffer of selected window size

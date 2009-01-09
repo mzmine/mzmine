@@ -61,7 +61,7 @@ public class PeakSummaryTableModel extends AbstractTableModel{
     	ChromatographicPeak peak = peaks.get(row);
     	switch(col){
     	case (0):
-    		value = peak.getDataFile().getFileName();
+    		value = peak.getDataFile().getName();
     		break;
     	case(1): 
     		value = mzFormat.format(peak.getMZ());
@@ -101,7 +101,7 @@ public class PeakSummaryTableModel extends AbstractTableModel{
     	String localFileName;
     	int index = -1;
     	for (int i=0; i< peaks.size(); i++){
-    		localFileName = peaks.get(i).getDataFile().getFileName();
+    		localFileName = peaks.get(i).getDataFile().getName();
     		if (localFileName.equals(fileName)){
     			index = i;
     		}

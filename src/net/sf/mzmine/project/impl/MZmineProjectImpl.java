@@ -82,14 +82,14 @@ public class MZmineProjectImpl implements MZmineProject {
 			addParameter(parameter);
 		Hashtable<String, Object> parameterValues = projectParametersAndValues
 				.get(parameter);
-		parameterValues.put(rawDataFile.getFileName(), value);
+		parameterValues.put(rawDataFile.getName(), value);
 	}
 
 	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
 		if (!(hasParameter(parameter)))
 			return null;
 		Object value = projectParametersAndValues.get(parameter).get(
-				rawDataFile.getFileName());
+				rawDataFile.getName());
 		if (value == null)
 			return parameter.getDefaultValue();
 		return value;

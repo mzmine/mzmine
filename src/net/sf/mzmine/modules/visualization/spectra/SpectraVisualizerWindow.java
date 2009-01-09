@@ -268,7 +268,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             } else {
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
                 toolBar.setCentroidButton(true);
-                subTitle = isotopePattern.getDataFile().getFileName()
+                subTitle = isotopePattern.getDataFile().getName()
                         + " Scan "
                         + isotopePattern.getRepresentativeScanNumber();
             }

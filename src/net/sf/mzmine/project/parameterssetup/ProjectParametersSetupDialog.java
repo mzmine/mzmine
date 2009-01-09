@@ -197,7 +197,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 		// Find index for data file
 		int dataFileIndex = 0;
 		while (dataFileIndex < dataFiles.length) {
-			if (dataFiles[dataFileIndex].getFileName().equals(dataFileName))
+			if (dataFiles[dataFileIndex].getName().equals(dataFileName))
 				break;
 			dataFileIndex++;
 		}
