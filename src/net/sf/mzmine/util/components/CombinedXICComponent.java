@@ -25,7 +25,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.NumberFormat;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -34,7 +33,6 @@ import javax.swing.border.Border;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
@@ -60,30 +58,8 @@ public class CombinedXICComponent extends JComponent {
     /**
      * @param PeakListRow Picked peak to plot
      */
-    public CombinedXICComponent(PeakListRow peaks) {
-    	
-    	ChromatographicPeak peak;
-    	Vector<ChromatographicPeak> validPeaks = new Vector<ChromatographicPeak>();
-    	double maxIntensity = 0;
-        for (RawDataFile dataFile: peaks.getRawDataFiles()) {
-            peak = peaks.getPeak(dataFile);
-            if (peak != null){
-            	validPeaks.add(peak);
-            	maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().getMax());
-                if (rtRange == null)
-                    rtRange = dataFile.getDataRTRange(1);
-                else
-                    rtRange.extendRange(dataFile.getDataRTRange(1));
-            }
-        }
-        
-        this.peaks = validPeaks.toArray(new ChromatographicPeak[0]);
-
-        this.maxIntensity = maxIntensity;
-
-        this.setBorder(componentBorder);
-        
-        setToolTipContent();
+    public CombinedXICComponent(PeakListRow row) {
+    	this(row.getPeaks());
     }
 
     /**
