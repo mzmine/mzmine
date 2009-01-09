@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.scatterplot.plottooltip;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -31,8 +32,8 @@ import java.awt.event.MouseMotionListener;
 
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
-
-import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
+import javax.swing.JWindow;
+import javax.swing.ToolTipManager;
 
 public class CustomToolTipManager extends MouseAdapter implements
 		MouseMotionListener {
@@ -41,14 +42,12 @@ public class CustomToolTipManager extends MouseAdapter implements
 	Point preferredLocation;
 	JComponent insideComponent;
 	MouseEvent mouseEvent;
-	private int fold;
-	private ToolTipWindow tipWindow;
+	private JWindow tipWindow;
+	private JComponent newToolTipComponent;
 	boolean enabled = true;
 	boolean tipShowing = false;
 	static boolean ignore = false;
-
 	private MouseMotionListener moveBeforeEnterListener = null;
-	private ScatterPlotDataSet dataSet;
 
 	/**
      * 
@@ -69,22 +68,6 @@ public class CustomToolTipManager extends MouseAdapter implements
 		if (!flag) {
 			hideTipWindow();
 		}
-	}
-
-	/**
-	 * 
-	 * @param newSet
-	 */
-	public void setDataFile(ScatterPlotDataSet newSet) {
-		this.dataSet = newSet;
-	}
-
-	/**
-	 * 
-	 * @param fold
-	 */
-	public void setSelectedFold(int fold) {
-		this.fold = fold;
 	}
 
 	/**
@@ -129,15 +112,18 @@ public class CustomToolTipManager extends MouseAdapter implements
 				location.x = screenLocation.x + mouseEvent.getX();
 				location.y = screenLocation.y + mouseEvent.getY() + 20;
 			}
-			int index = Integer.parseInt(toolTipText);
+			
+			//int index = Integer.parseInt(toolTipText);
+			
 			Frame parentFrame = frameForComponent(insideComponent);
-			tipWindow = new ToolTipWindow(index, dataSet, fold, parentFrame);
-			;
-			tipWindow.setVisible(true);
-			tipWindow.setLocation(location);
 
+      		
+      		tipWindow = new JWindow(parentFrame);
+			tipWindow.setLayout(new BorderLayout());
+			tipWindow.add(newToolTipComponent);
+			tipWindow.setLocation(location);
 			tipWindow.pack();
-			tipWindow.repaint();
+			tipWindow.setVisible(true);
 
 			tipShowing = true;
 		}
@@ -176,6 +162,9 @@ public class CustomToolTipManager extends MouseAdapter implements
 		component.addMouseListener(this);
 		component.removeMouseMotionListener(moveBeforeEnterListener);
 		component.addMouseMotionListener(moveBeforeEnterListener);
+		
+		ToolTipManager.sharedInstance().unregisterComponent(component);
+
 	}
 
 	/**
@@ -209,9 +198,10 @@ public class CustomToolTipManager extends MouseAdapter implements
 	private void initiateToolTip(MouseEvent event) {
 
 		JComponent component = (JComponent) event.getSource();
-		String newToolTipText = component.getToolTipText(event);
+		//String newToolTipText = component.getToolTipText(event);
+		newToolTipComponent = ((CustomToolTipProvider)component).getCustomToolTipComponent(event);
 
-		if (newToolTipText == null)
+		if (newToolTipComponent == null)
 			return;
 
 		component.removeMouseMotionListener(moveBeforeEnterListener);
@@ -228,7 +218,7 @@ public class CustomToolTipManager extends MouseAdapter implements
 
 		mouseEvent = event;
 		Point newPreferredLocation = component.getToolTipLocation(event);
-		toolTipText = newToolTipText;
+		//toolTipText = newToolTipText;
 		preferredLocation = newPreferredLocation;
 		insideComponent = component;
 		showTipWindow();

@@ -29,7 +29,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ToolTipTableModel extends AbstractTableModel{
+public class PeakSummaryTableModel extends AbstractTableModel{
 
 	private static NumberFormat mzFormat = MZmineCore.getMZFormat();
 	private static NumberFormat rtFormat = MZmineCore.getRTFormat();

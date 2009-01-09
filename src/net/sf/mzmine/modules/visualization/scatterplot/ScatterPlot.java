@@ -28,13 +28,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.logging.Logger;
 
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalLabelGenerator;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalPlotDataset;
@@ -42,6 +43,8 @@ import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlot
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotItemLabelGenerator;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotToolTipGenerator;
 import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.CustomToolTipManager;
+import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.CustomToolTipProvider;
+import net.sf.mzmine.modules.visualization.scatterplot.plottooltip.PeakSummaryComponent;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -56,7 +59,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.ui.RectangleInsets;
 
-public class ScatterPlot extends ChartPanel {
+public class ScatterPlot extends ChartPanel implements CustomToolTipProvider{
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -199,8 +202,24 @@ public class ScatterPlot extends ChartPanel {
 		
 		ttm = new CustomToolTipManager();
 		ttm.registerComponent(this);
-		this.createToolTip();
-		ToolTipManager.sharedInstance().unregisterComponent(this);
+	}
+	
+	public JComponent getCustomToolTipComponent(MouseEvent event){
+
+		String index = this.getToolTipText(event);
+		if (index == null)
+			return null;
+		
+		// Get info
+		int[] indexDomains = dataSet.getDomainsIndexes();
+		RawDataFile[] rawDataFiles = dataSet.getPeakList().getRawDataFiles();
+		int indX = indexDomains[0];
+		int indY = indexDomains[1];
+		RawDataFile[] dataFiles = new RawDataFile[] { rawDataFiles[indX], rawDataFiles[indY] };
+		PeakListRow row = dataSet.getPeakList().getRow(Integer.parseInt(index));
+		
+		return new PeakSummaryComponent(row, dataFiles);
+
 	}
 
 	/**
@@ -264,7 +283,7 @@ public class ScatterPlot extends ChartPanel {
 	synchronized public void addDataset(ScatterPlotDataSet newSet) {
 
 		drawDiagonalLines(newSet);
-		ttm.setDataFile(newSet);
+		dataSet = newSet;
 
 		plot.setDataset(numOfDataSets + numDiagonals, newSet);
 
@@ -286,7 +305,6 @@ public class ScatterPlot extends ChartPanel {
 	public void drawDiagonalLines(ScatterPlotDataSet newSet) {
 		double[] maxMinValue = newSet.getMaxMinValue();
 		int fold = scatterPlotPanel.selectedFold();
-		ttm.setSelectedFold(fold);
 		
 		double foldValue = fold;
 		for (int i = 0; i < 3; i++) {

@@ -52,7 +52,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 
-public class ToolTipWindow extends JWindow {
+public class PeakSummaryComponent extends JPanel {
 
 	private static DecimalFormat formatter = new DecimalFormat("###.#");
 	private static Color bg = new Color(255, 250, 205);
@@ -61,6 +61,8 @@ public class ToolTipWindow extends JWindow {
 			.getSize() + 4);
 	private static Font ratioFont = new Font("SansSerif.bold", Font.PLAIN, defaultFont
 			.getSize() + 9);
+	static int indX = 0;
+	static int indY = 1;
 
 
 	/**
@@ -70,32 +72,24 @@ public class ToolTipWindow extends JWindow {
 	 * @param fold
 	 * @param frame
 	 */
-	public ToolTipWindow(int index, ScatterPlotDataSet dataSet, int fold,
-			Frame frame) {
+	public PeakSummaryComponent(PeakListRow row, RawDataFile[] rawDataFiles){
 
-		super(frame);
-
+		super();
 		setBackground(bg);
-
-		JPanel pnlAll = new JPanel(new BorderLayout());
-		pnlAll.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		pnlAll.setBackground(bg);
 
 
 		// Get info
-		int[] indexDomains = dataSet.getDomainsIndexes();
-		RawDataFile[] rawDataFiles = dataSet.getPeakList().getRawDataFiles();
-		int indX = indexDomains[0];
-		int indY = indexDomains[1];
-		PeakListRow row = (SimplePeakListRow) dataSet.getPeakList().getRow(
-				index);
 		ChromatographicPeak[] peaks = new ChromatographicPeak[2];
-		peaks[0] = row.getPeak(rawDataFiles[indX]);
-		peaks[1] = row.getPeak(rawDataFiles[indY]);
+		peaks[indX] = row.getPeak(rawDataFiles[indX]);
+		peaks[indY] = row.getPeak(rawDataFiles[indY]);
 		PeakIdentity identity = row.getPreferredCompoundIdentity();
 
-		// Header
-		// Peak identification
+		// General container
+		JPanel pnlAll = new JPanel(new BorderLayout());
+		pnlAll.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+		pnlAll.setBackground(bg);
+
+		// Header peak identification & ratio
 		JPanel headerPanel = new JPanel();
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 		JLabel name, info;
@@ -128,11 +122,11 @@ public class ToolTipWindow extends JWindow {
 		JLabel ratio;
 
 		double height1 = -1, height2 = -1;
-		if (peaks[0] != null) {
-			height1 = peaks[0].getHeight();
+		if (peaks[indX] != null) {
+			height1 = peaks[indX].getHeight();
 		}
-		if (peaks[1] != null) {
-			height2 = peaks[1].getHeight();
+		if (peaks[indY] != null) {
+			height2 = peaks[indY].getHeight();
 		}
 
 		if ((height1 < 0) || (height2 < 0)) {
@@ -167,8 +161,9 @@ public class ToolTipWindow extends JWindow {
 		headerAndRatioPanel.add(ratioPanel, BorderLayout.EAST);
 		headerAndRatioPanel.setBackground(bg);
 		pnlAll.add(headerAndRatioPanel, BorderLayout.NORTH);
+		// <-
 
-		// Plot
+		// Plot section
 		JPanel plotPanel = new JPanel();
 		plotPanel.setLayout(new BoxLayout(plotPanel, BoxLayout.Y_AXIS));
 		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
@@ -176,22 +171,24 @@ public class ToolTipWindow extends JWindow {
 		plotPanel.setBorder(BorderFactory.createCompoundBorder(one, two));
 		plotPanel.setBackground(Color.white);
 		CombinedXICComponent xic = new CombinedXICComponent(peaks);
+		xic.setPreferredSize(new Dimension(0, 50));
 		plotPanel.add(xic);
 		pnlAll.add(plotPanel, BorderLayout.CENTER);
+		// <-
 
 		// Table with peak's information
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BoxLayout(tablePanel, BoxLayout.Y_AXIS));
 		tablePanel.setBackground(bg);
 
-		ToolTipTableModel listElementModel = new ToolTipTableModel();
+		PeakSummaryTableModel listElementModel = new PeakSummaryTableModel();
 		JTable peaksInfoList = new JTable();
 		peaksInfoList.setModel(listElementModel);
 		peaksInfoList
 				.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		peaksInfoList.setSelectionBackground(Color.LIGHT_GRAY);
 		peaksInfoList.setDefaultRenderer(Object.class,
-				new ToolTipTableCellRenderer());
+				new PeakSummaryTableCellRenderer());
 
 		int countLines = 0;
 		for (ChromatographicPeak peak : peaks) {
@@ -207,7 +204,6 @@ public class ToolTipWindow extends JWindow {
 		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
 		Dimension preffDimension = calculatedTableDimension(peaksInfoList);
-		xic.setPreferredSize(new Dimension(preffDimension.width, 50));
 		listPanel.setPreferredSize(preffDimension);
 
 		tablePanel.add(Box.createVerticalStrut(5));
@@ -217,9 +213,6 @@ public class ToolTipWindow extends JWindow {
 		pnlAll.add(tablePanel, BorderLayout.SOUTH);
 		add(pnlAll);
 
-		setPreferredSize(new Dimension(preffDimension.width,
-				preffDimension.height + 170));
-		pack();
 	}
 
 	/**
