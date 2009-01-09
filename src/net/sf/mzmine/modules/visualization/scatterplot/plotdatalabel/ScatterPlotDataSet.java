@@ -380,5 +380,10 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		mzRange.extendRange(rawDataFiles[domainY].getDataMZRange(1));
 		return mzRange;
 	}
+	
+	public RawDataFile[] getRawDataFilesDisplayed(){
+		RawDataFile[] files = new RawDataFile[] { rawDataFiles[domainX] , rawDataFiles[domainY] };
+		return files;
+	}
 
 }
