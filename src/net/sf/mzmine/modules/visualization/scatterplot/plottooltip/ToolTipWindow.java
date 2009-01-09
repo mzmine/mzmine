@@ -26,13 +26,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Frame;
 import java.text.DecimalFormat;
+import java.text.Format;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
@@ -48,15 +48,20 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 
 public class ToolTipWindow extends JWindow {
 
 	private static DecimalFormat formatter = new DecimalFormat("###.#");
-	private static DecimalFormat formatter2 = new DecimalFormat("###");
-	private static DecimalFormat formatter3 = new DecimalFormat("#.##");
 	private static Color bg = new Color(255, 250, 205);
+	private static Font defaultFont = new Font("SansSerif", Font.PLAIN, 10);
+	private static Font titleFont = new Font("SansSerif.bold", Font.PLAIN, defaultFont
+			.getSize() + 4);
+	private static Font ratioFont = new Font("SansSerif.bold", Font.PLAIN, defaultFont
+			.getSize() + 9);
+
 
 	/**
 	 * 
@@ -76,11 +81,6 @@ public class ToolTipWindow extends JWindow {
 		pnlAll.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		pnlAll.setBackground(bg);
 
-		Font defaultFont = new Font("SansSerif.bold", Font.PLAIN, 10);
-		Font titleFont = new Font("SansSerif.bold", Font.PLAIN, defaultFont
-				.getSize() + 1);
-		Font ratioFont = new Font("SansSerif.bold", Font.PLAIN, defaultFont
-				.getSize() + 8);
 
 		// Get info
 		int[] indexDomains = dataSet.getDomainsIndexes();
@@ -90,28 +90,31 @@ public class ToolTipWindow extends JWindow {
 		PeakListRow row = (SimplePeakListRow) dataSet.getPeakList().getRow(
 				index);
 		ChromatographicPeak[] peaks = new ChromatographicPeak[2];
-		peaks[0] = row.getPeak(rawDataFiles[indY]);
-		peaks[1] = row.getPeak(rawDataFiles[indX]);
+		peaks[0] = row.getPeak(rawDataFiles[indX]);
+		peaks[1] = row.getPeak(rawDataFiles[indY]);
 		PeakIdentity identity = row.getPreferredCompoundIdentity();
 
 		// Header
 		// Peak identification
 		JPanel headerPanel = new JPanel();
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
-		JLabel name, formula, idMethod;
+		JLabel name, info;
 		if (identity != null) {
 			name = new JLabel(identity.getName(), SwingUtilities.LEFT);
-			formula = new JLabel("Formula: " + identity.getCompoundFormula(),
-					SwingUtilities.LEFT);
-			idMethod = new JLabel("Identification method: "
-					+ identity.getIdentificationMethod(), SwingUtilities.LEFT);
-			formula.setBackground(bg);
-			idMethod.setBackground(bg);
-			headerPanel.add(name, BorderLayout.CENTER);
-			headerPanel.add(formula, BorderLayout.CENTER);
-			headerPanel.add(idMethod, BorderLayout.SOUTH);
+	        StringBuffer buf = new StringBuffer();
+	        Format mzFormat = MZmineCore.getMZFormat();
+	        Format timeFormat = MZmineCore.getRTFormat();
+	        buf.append("#" + row.getID() + " ");
+	        buf.append(mzFormat.format(row.getAverageMZ()));
+	        buf.append(" m/z @");
+	        buf.append(timeFormat.format(row.getAverageRT()));
+	        info = new JLabel(buf.toString(),	SwingUtilities.LEFT);
+			info.setBackground(bg);
+			info.setFont(defaultFont);
+			headerPanel.add(name, BorderLayout.NORTH);
+			headerPanel.add(info, BorderLayout.CENTER);
 		} else {
-			name = new JLabel("Unknown", SwingUtilities.LEFT);
+			name = new JLabel(row.toString(), SwingUtilities.LEFT);
 			headerPanel.add(name, BorderLayout.CENTER);
 		}
 
@@ -135,18 +138,17 @@ public class ToolTipWindow extends JWindow {
 		if ((height1 < 0) || (height2 < 0)) {
 			ratio = new JLabel("   ");
 		} else {
-
-			double ratioValue = height1 / height2;
-
-			String text = formatter.format(ratioValue) + "x";
-			Color ratioColor = Color.BLACK;
-
-			if (ratioValue > fold) {
-				ratioColor = Color.RED;
-				text = formatter2.format(ratioValue) + "x";
-			} else if (ratioValue < (1.0 / (double) fold)) {
-				ratioColor = Color.BLUE;
-				text = formatter3.format(ratioValue) + "x";
+			
+			String text = null;
+			Color ratioColor = null;
+			
+			if (height1 > height2){
+				 text = formatter.format(height1 / height2) + "x";
+				 ratioColor = CombinedXICComponent.plotColors[0];
+			}
+			else{
+				 text = formatter.format(height2 / height1) + "x";
+				 ratioColor = CombinedXICComponent.plotColors[1];
 			}
 
 			ratio = new JLabel(text, SwingUtilities.LEFT);
@@ -191,10 +193,6 @@ public class ToolTipWindow extends JWindow {
 		peaksInfoList.setDefaultRenderer(Object.class,
 				new ToolTipTableCellRenderer());
 
-		TableColumn column = null;
-		column = peaksInfoList.getColumnModel().getColumn(0);
-		// column.setPreferredWidth(150);
-
 		int countLines = 0;
 		for (ChromatographicPeak peak : peaks) {
 			if (peak != null) {
@@ -203,16 +201,14 @@ public class ToolTipWindow extends JWindow {
 			}
 		}
 
-		JScrollPane listScroller = new JScrollPane(peaksInfoList);
-		Dimension preffDimension = calculatedTableDimension(peaksInfoList);
-
-		listScroller.setPreferredSize(preffDimension);
-		xic.setPreferredSize(new Dimension(preffDimension.width, 50));
-		listScroller.setBackground(bg);
-		JPanel listPanel = new JPanel();
-		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
-		listPanel.add(listScroller);
+		JPanel listPanel = new JPanel(new BorderLayout());
+		listPanel.add(peaksInfoList, BorderLayout.CENTER);
+		listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
 		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+
+		Dimension preffDimension = calculatedTableDimension(peaksInfoList);
+		xic.setPreferredSize(new Dimension(preffDimension.width, 50));
+		listPanel.setPreferredSize(preffDimension);
 
 		tablePanel.add(Box.createVerticalStrut(5));
 		tablePanel.add(listPanel, BorderLayout.CENTER);
@@ -222,9 +218,8 @@ public class ToolTipWindow extends JWindow {
 		add(pnlAll);
 
 		setPreferredSize(new Dimension(preffDimension.width,
-				preffDimension.height + 200));
+				preffDimension.height + 170));
 		pack();
-		setVisible(true);
 	}
 
 	/**

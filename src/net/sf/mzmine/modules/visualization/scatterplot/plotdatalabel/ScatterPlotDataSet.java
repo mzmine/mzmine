@@ -41,6 +41,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	private Color[] seriesColor;
 	private RawDataFile[] rawDataFiles;
 	private ActionListener visualizer;
+	private int presentOnlyX, presentOnlyY;
 
 	public ScatterPlotDataSet(PeakList peakList, int domainX, int domainY,
 			ActionListener visualizer) {
@@ -64,18 +65,25 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	private void initializeArraySeriesAndItems() {
 
 		PeakListRow row;
-		ChromatographicPeak peak1, peak2;
-		PeakIdentity identity;
+		ChromatographicPeak peakX, peakY;
 		Vector<Integer> peakRowIds = new Vector<Integer>();
+		presentOnlyX = 0;
+		presentOnlyY = 0;
 
 		// Verifies that both peaks exist
 		for (int i = 0; i < peakList.getNumberOfRows(); i++) {
 			row = peakList.getRow(i);
-			peak1 = row.getPeak(rawDataFiles[domainX]);
-			peak2 = row.getPeak(rawDataFiles[domainY]);
+			peakX = row.getPeak(rawDataFiles[domainX]);
+			peakY = row.getPeak(rawDataFiles[domainY]);
 
-			if ((peak1 != null) && (peak2 != null)) {
+			if ((peakX != null) && (peakY != null)) {
 				peakRowIds.add(i);
+			}
+			if ((peakX != null) && (peakY == null)) {
+				presentOnlyX++;
+			}
+			if ((peakX == null) && (peakY != null)) {
+				presentOnlyY++;
 			}
 		}
 		
@@ -185,7 +193,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		if (identity != null) {
 			return identity.getName();
 		} else {
-			return "";
+			return row.toString();
 		}
 	}
 
@@ -328,12 +336,17 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
 			arraySeriesAndItemsConstruction[1] = items.toArray(new Integer[0]);
 			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
-			seriesColor =colorVector.toArray(new Color[0]);
-			
-			visualizer.actionPerformed(new ActionEvent(this,
-					ActionEvent.ACTION_PERFORMED, "DATASET_UPDATED"));
-
 		}
+		else{
+			arraySeriesAndItemsConstruction = new Integer[1][0];
+			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
+			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
+		}
+
+		seriesColor =colorVector.toArray(new Color[0]);
+		visualizer.actionPerformed(new ActionEvent(this,
+				ActionEvent.ACTION_PERFORMED, "DATASET_UPDATED"));
+
 
 	}
 
@@ -342,7 +355,10 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 * @return String
 	 */
 	public String getDisplayedCount(){
-		String display = "Displayed " + this.getItemCount(0) + " of " + peakList.getNumberOfRows() + " peaks";
+		String display = "<HTML>" +  peakList.getNumberOfRows() + " total peaks, ";
+		display += this.getItemCount(0) + " displayed<BR> ";
+		display += presentOnlyX + " peaks only in " + rawDataFiles[domainX].getFileName() + "<BR>";
+		display += presentOnlyY + " peaks only in " + rawDataFiles[domainY].getFileName();
 		return  display;
 	}
 
