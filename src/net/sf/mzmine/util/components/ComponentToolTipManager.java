@@ -35,7 +35,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JWindow;
 import javax.swing.ToolTipManager;
 
-public class CustomToolTipManager extends MouseAdapter implements
+public class ComponentToolTipManager extends MouseAdapter implements
 		MouseMotionListener {
 
 	String toolTipText;
@@ -52,7 +52,7 @@ public class CustomToolTipManager extends MouseAdapter implements
 	/**
      * 
      */
-	public CustomToolTipManager() {
+	public ComponentToolTipManager() {
 
 		moveBeforeEnterListener = new MoveBeforeEnterListener();
 	}
@@ -199,7 +199,7 @@ public class CustomToolTipManager extends MouseAdapter implements
 
 		JComponent component = (JComponent) event.getSource();
 		//String newToolTipText = component.getToolTipText(event);
-		newToolTipComponent = ((CustomToolTipProvider)component).getCustomToolTipComponent(event);
+		newToolTipComponent = ((ComponentToolTipProvider)component).getCustomToolTipComponent(event);
 
 		if (newToolTipComponent == null)
 			return;

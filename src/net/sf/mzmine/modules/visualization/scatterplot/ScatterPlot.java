@@ -42,8 +42,8 @@ import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.DiagonalPlo
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotItemLabelGenerator;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotToolTipGenerator;
-import net.sf.mzmine.util.components.CustomToolTipManager;
-import net.sf.mzmine.util.components.CustomToolTipProvider;
+import net.sf.mzmine.util.components.ComponentToolTipManager;
+import net.sf.mzmine.util.components.ComponentToolTipProvider;
 import net.sf.mzmine.util.components.PeakSummaryComponent;
 
 import org.jfree.chart.ChartFactory;
@@ -59,7 +59,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.ui.RectangleInsets;
 
-public class ScatterPlot extends ChartPanel implements CustomToolTipProvider{
+public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -102,7 +102,7 @@ public class ScatterPlot extends ChartPanel implements CustomToolTipProvider{
 	// toolTip
 	private ScatterPlotDataSet dataSet;
 	
-	private CustomToolTipManager ttm;
+	private ComponentToolTipManager ttm;
 
 	public ScatterPlot(ScatterPlotPanel masterFrame) {
 
@@ -200,7 +200,7 @@ public class ScatterPlot extends ChartPanel implements CustomToolTipProvider{
 
 	public void registerCustomToolTip() {
 		
-		ttm = new CustomToolTipManager();
+		ttm = new ComponentToolTipManager();
 		ttm.registerComponent(this);
 	}
 	

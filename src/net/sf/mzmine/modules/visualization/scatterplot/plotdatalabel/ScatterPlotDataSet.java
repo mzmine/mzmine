@@ -116,7 +116,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	public Number getX(int series, int item) {
 		int rowID = arraySeriesAndItemsSelection[series][item];
 		return peakList.getRow(rowID).getPeak(rawDataFiles[domainX])
-				.getHeight();
+				.getArea();
 	}
 
 	/**
@@ -125,7 +125,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	public Number getY(int series, int item) {
 		int rowID = arraySeriesAndItemsSelection[series][item];
 		return peakList.getRow(rowID).getPeak(rawDataFiles[domainY])
-				.getHeight();
+				.getArea();
 	}
 
 	/**

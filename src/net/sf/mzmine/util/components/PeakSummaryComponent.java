@@ -120,27 +120,27 @@ public class PeakSummaryComponent extends JPanel {
 		JPanel ratioPanel = new JPanel(new BorderLayout());
 		JLabel ratio;
 
-		double height1 = -1, height2 = -1;
+		double area1 = -1, area2 = -1;
 		if (peaks[indX] != null) {
-			height1 = peaks[indX].getHeight();
+			area1 = peaks[indX].getArea();
 		}
 		if (peaks[indY] != null) {
-			height2 = peaks[indY].getHeight();
+			area2 = peaks[indY].getArea();
 		}
 
-		if ((height1 < 0) || (height2 < 0)) {
+		if ((area1 < 0) || (area2 < 0)) {
 			ratio = new JLabel("   ");
 		} else {
 			
 			String text = null;
 			Color ratioColor = null;
 			
-			if (height1 > height2){
-				 text = formatter.format(height1 / height2) + "x";
+			if (area1 > area2){
+				 text = formatter.format(area1 / area2) + "x";
 				 ratioColor = CombinedXICComponent.plotColors[0];
 			}
 			else{
-				 text = formatter.format(height2 / height1) + "x";
+				 text = formatter.format(area2 / area1) + "x";
 				 ratioColor = CombinedXICComponent.plotColors[1];
 			}
 
