@@ -243,29 +243,22 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		Integer[] items = arraySeriesAndItemsSelection[0];
 
 		int length = items.length;
-		double valueX, valueY;
+		double valueX, valueY, localValue;
 		double maxValue = 0, minValue = Double.MAX_VALUE;
 		double[] maxMinValue = new double[2];
 		for (int i = 0; i < length; i++) {
 
 			valueX = peakList.getRow(items[i]).getPeak(rawDataFiles[domainX])
-			.getHeight();
+			.getArea();
 
 			valueY = peakList.getRow(items[i]).getPeak(rawDataFiles[domainY])
-			.getHeight();
+			.getArea();
+			
+			localValue = Math.max(valueX, valueY);
+			maxValue = Math.max(localValue, maxValue);
 
-			if ((valueX > maxValue) || (valueY > maxValue)) {
-				if (valueX > valueY)
-					maxValue = valueX;
-				else
-					maxValue = valueY;
-			}
-			if ((valueX < minValue) || (valueY < minValue)) {
-				if (valueX < valueY)
-					minValue = valueX;
-				else
-					minValue = valueY;
-			}
+			localValue = Math.min(valueX, valueY);
+			minValue = Math.min(localValue, minValue);
 		}
 
 		maxMinValue[0] = minValue;

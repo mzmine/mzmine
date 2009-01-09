@@ -119,6 +119,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 
       		
       		tipWindow = new JWindow(parentFrame);
+      		tipWindow.setFocusableWindowState(false);
 			tipWindow.setLayout(new BorderLayout());
 			tipWindow.add(newToolTipComponent);
 			tipWindow.setLocation(location);
