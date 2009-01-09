@@ -31,12 +31,14 @@ import javax.swing.table.TableModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.util.components.ColorCircle;
+import net.sf.mzmine.util.components.CombinedXICComponent;
 import net.sf.mzmine.util.components.PeakXICComponent;
 
 import org.jfree.report.Element;
@@ -154,6 +156,30 @@ class PeakListReportGenerator {
                 textFac.setFieldname(fieldName);
                 textFac.setNullString("");
                 newElementFac = textFac;
+                break;
+                
+            case PEAKSHAPE:
+            
+                Expression peakShapeExpression = new AbstractExpression() {
+
+                    public Object getValue() {
+                        ChromatographicPeak peak = (ChromatographicPeak) getDataRow().get(fieldName);
+                        if (peak == null)
+                            return null;
+                        PeakList peakList = table.getPeakList();
+                        int rowNumber = peakList.getPeakRowNum(peak);
+                        PeakListRow row = peakList.getRow(rowNumber);
+                        return new CombinedXICComponent(row);
+
+                    }
+                };
+                final String shapeExpressionName = "expression" + modelIndex;
+                peakShapeExpression.setName(shapeExpressionName);
+                report.addExpression(peakShapeExpression);
+
+                ComponentFieldElementFactory shapeFac = new ComponentFieldElementFactory();
+                shapeFac.setFieldname(shapeExpressionName);
+                newElementFac = shapeFac;
                 break;
 
             default: 
