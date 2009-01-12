@@ -114,6 +114,8 @@ class SameRangeTask implements Task {
             }
 
             processedPeakList.addRow(newRow);
+            
+            processedRows++;
 
         }
 
@@ -177,6 +179,7 @@ class SameRangeTask implements Task {
 
         if (dataPointFound) {
             newPeak.finalizePeak();
+            if (newPeak.getArea() == 0) return null;
             return newPeak;
         }
 

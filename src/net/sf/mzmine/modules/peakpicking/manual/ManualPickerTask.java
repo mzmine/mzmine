@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.manual;
@@ -125,7 +125,8 @@ class ManualPickerTask implements Task {
 
             if (dataPointFound) {
                 newPeak.finalizePeak();
-                peakListRow.addPeak(dataFile, newPeak);
+                if (newPeak.getArea() > 0)
+                    peakListRow.addPeak(dataFile, newPeak);
             }
 
         }
