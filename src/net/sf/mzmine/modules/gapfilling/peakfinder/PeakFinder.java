@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.gapfilling.peakfinder;
@@ -39,11 +39,11 @@ import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class GapFiller implements BatchStep, TaskListener, ActionListener {
+public class PeakFinder implements BatchStep, TaskListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private GapFillerParameters parameters;
+    private PeakFinderParameters parameters;
 
     private Desktop desktop;
 
@@ -54,10 +54,10 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new GapFillerParameters();
+        parameters = new PeakFinderParameters();
 
-        desktop.addMenuItem(MZmineMenu.GAPFILLING, "Gap filler",
-                "Secondary peak detection, to fill gaps in a peak list",
+        desktop.addMenuItem(MZmineMenu.GAPFILLING, "Peak finder",
+                "Secondary peak detection, trying to find a missing peak",
                 KeyEvent.VK_G, false, this, null);
 
     }
@@ -93,13 +93,13 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
 
         if (task.getStatus() == Task.TaskStatus.FINISHED) {
             logger.info("Finished gap-filling on "
-                    + ((GapFillerTask) task).getPeakList());
+                    + ((PeakFinderTask) task).getPeakList());
         }
 
         if (task.getStatus() == Task.TaskStatus.ERROR) {
 
             String msg = "Error while gap filling peak list "
-                    + ((GapFillerTask) task).getPeakList() + ": "
+                    + ((PeakFinderTask) task).getPeakList() + ": "
                     + task.getErrorMessage();
             logger.severe(msg);
             desktop.displayErrorMessage(msg);
@@ -114,7 +114,7 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (GapFillerParameters) currentParameters);
+                (PeakFinderParameters) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -127,7 +127,7 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = (GapFillerParameters) parameters;
+        this.parameters = (PeakFinderParameters) parameters;
     }
 
     /**
@@ -144,10 +144,10 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
         }
 
         // prepare a new group of tasks
-        Task tasks[] = new GapFillerTask[peakLists.length];
+        Task tasks[] = new PeakFinderTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new GapFillerTask(peakLists[i],
-                    (GapFillerParameters) parameters);
+            tasks[i] = new PeakFinderTask(peakLists[i],
+                    (PeakFinderParameters) parameters);
         }
 
         TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);

@@ -33,7 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 
-class GapFillerTask implements Task {
+class PeakFinderTask implements Task {
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -47,17 +47,17 @@ class GapFillerTask implements Task {
 
     private int processedScans, totalScans;
 
-    GapFillerTask(PeakList peakList, GapFillerParameters parameters) {
+    PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
         this.peakList = peakList;
 
-        suffix = (String) parameters.getParameterValue(GapFillerParameters.suffix);
-        intTolerance = (Double) parameters.getParameterValue(GapFillerParameters.intTolerance);
-        mzTolerance = (Double) parameters.getParameterValue(GapFillerParameters.MZTolerance);
-        if (parameters.getParameterValue(GapFillerParameters.RTToleranceType) == GapFillerParameters.RTToleranceTypeAbsolute)
+        suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
+        intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
+        if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute)
             rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(GapFillerParameters.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Double) parameters.getParameterValue(GapFillerParameters.RTToleranceValuePercent);
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
     }
 
     public void run() {
