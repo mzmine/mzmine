@@ -129,8 +129,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
         this.add(peakListMenu);
 
         gapFillingMenu = new JMenu("Gap filling");
-        isotopesMenu.setMnemonic(KeyEvent.VK_G);
-        peakListMenu.add(isotopesMenu);
+        gapFillingMenu.setMnemonic(KeyEvent.VK_G);
+        peakListMenu.add(gapFillingMenu);
         
         isotopesMenu = new JMenu("Isotopes");
         isotopesMenu.setMnemonic(KeyEvent.VK_D);
