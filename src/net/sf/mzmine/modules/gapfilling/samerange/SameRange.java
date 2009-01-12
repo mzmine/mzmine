@@ -13,16 +13,15 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.gapfiller;
+package net.sf.mzmine.modules.gapfilling.samerange;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -35,15 +34,12 @@ import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class GapFiller implements BatchStep, TaskListener, ActionListener {
+public class SameRange implements BatchStep, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private GapFillerParameters parameters;
+    private SameRangeParameters parameters;
 
     private Desktop desktop;
 
@@ -54,11 +50,13 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new GapFillerParameters();
+        parameters = new SameRangeParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Gap filler",
-                "Secondary peak detection, to fill gaps in a peak list",
-                KeyEvent.VK_G, false, this, null);
+        desktop.addMenuItem(
+                MZmineMenu.GAPFILLING,
+                "Same RT and m/z range filler",
+                "Secondary peak detection, to fill gaps in a peak list using same RT and m/z range",
+                KeyEvent.VK_S, false, this, null);
 
     }
 
@@ -85,36 +83,13 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
 
     }
 
-    public void taskStarted(Task task) {
-        logger.info("Running gap filler");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished gap-filling on "
-                    + ((GapFillerTask) task).getPeakList());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-
-            String msg = "Error while gap filling peak list "
-                    + ((GapFillerTask) task).getPeakList() + ": "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
-        }
-
-    }
-
     /**
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (GapFillerParameters) currentParameters);
+                (SameRangeParameters) currentParameters);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -127,7 +102,7 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = (GapFillerParameters) parameters;
+        this.parameters = (SameRangeParameters) parameters;
     }
 
     /**
@@ -144,13 +119,13 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
         }
 
         // prepare a new group of tasks
-        Task tasks[] = new GapFillerTask[peakLists.length];
+        Task tasks[] = new SameRangeTask[peakLists.length];
         for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new GapFillerTask(peakLists[i],
-                    (GapFillerParameters) parameters);
+            tasks[i] = new SameRangeTask(peakLists[i],
+                    (SameRangeParameters) parameters);
         }
 
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+        TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
         newGroup.start();
 
         return newGroup;
@@ -158,7 +133,7 @@ public class GapFiller implements BatchStep, TaskListener, ActionListener {
     }
 
     public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PEAKPICKING;
+        return BatchStepCategory.GAPFILLING;
     }
 
 }

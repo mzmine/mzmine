@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data.impl;
@@ -80,19 +80,20 @@ public class SimplePeakListRow implements PeakListRow {
 
     public void addPeak(RawDataFile rawData, ChromatographicPeak peak) {
 
-        if (peak != null) {
+        if (peak == null)
+            throw new IllegalArgumentException(
+                    "Cannot add null peak to a peak list row");
 
-            /* convert the peak to SimpleChromatographicPeak for easy
-            // serialization
-            if (!((peak instanceof SimpleChromatographicPeak) || (peak instanceof IsotopePattern)))
-                peak = new SimpleChromatographicPeak(peak);
-            */
-            
-            peaks.put(rawData, peak);
-            if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
-                maxDataPointIntensity = peak.getRawDataPointsIntensityRange().getMax();
-        } else
-            peaks.remove(rawData);
+        /*
+         * convert the peak to SimpleChromatographicPeak for easy //
+         * serialization if (!((peak instanceof SimpleChromatographicPeak) ||
+         * (peak instanceof IsotopePattern))) peak = new
+         * SimpleChromatographicPeak(peak);
+         */
+
+        peaks.put(rawData, peak);
+        if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
+            maxDataPointIntensity = peak.getRawDataPointsIntensityRange().getMax();
 
     }
 

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.manual;
+package net.sf.mzmine.modules.gapfilling.samerange;
 
 import java.util.TreeMap;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import net.sf.mzmine.util.Range;
 /**
  * This class represents a manually picked chromatographic peak.
  */
-class ManualPeak implements ChromatographicPeak {
+class SameRangePeak implements ChromatographicPeak {
 
     private RawDataFile dataFile;
 
@@ -56,7 +56,7 @@ class ManualPeak implements ChromatographicPeak {
     /**
      * Initializes empty peak for adding data points
      */
-    ManualPeak(RawDataFile dataFile) {
+    SameRangePeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
         mzPeakMap = new TreeMap<Integer, MzPeak>();
     }
@@ -65,7 +65,7 @@ class ManualPeak implements ChromatographicPeak {
      * This peak is always a result of manual peak detection, therefore MANUAL
      */
     public PeakStatus getPeakStatus() {
-        return PeakStatus.MANUAL;
+        return PeakStatus.ESTIMATED;
     }
 
     /**

@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.batchmode;
@@ -52,9 +52,8 @@ public interface BatchStep extends MZmineModule {
      *            files/peak lists.
      * 
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] peakLists, ParameterSet parameters,
-            TaskGroupListener taskGroupListener);
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener);
 
     /**
      * Returns the category of the batch step (e.g. raw data processing, peak

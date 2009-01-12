@@ -24,6 +24,7 @@ public enum BatchStepCategory {
     PROJECT("Project"), 
     RAWDATAPROCESSING("Raw data processing"), 
     PEAKPICKING("Peak picking"),
+    GAPFILLING("Gap filling"),
     PEAKLISTPROCESSING("Peak list processing"), 
     ALIGNMENT("Alignment"),
     NORMALIZATION("Normalization"),

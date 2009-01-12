@@ -46,7 +46,7 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
 public class MainMenu extends JMenuBar implements ActionListener {
 
     private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
-            helpMenu, rawDataFilteringMenu, peakDetectionMenu, isotopesMenu,
+            helpMenu, rawDataFilteringMenu, peakDetectionMenu, gapFillingMenu, isotopesMenu,
             peakListFilteringMenu, alignmentMenu, normalizationMenu,
             identificationMenu, dataAnalysisMenu, peakListExportMenu;
 
@@ -128,6 +128,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
         peakListMenu.setMnemonic(KeyEvent.VK_P);
         this.add(peakListMenu);
 
+        gapFillingMenu = new JMenu("Gap filling");
+        isotopesMenu.setMnemonic(KeyEvent.VK_G);
+        peakListMenu.add(isotopesMenu);
+        
         isotopesMenu = new JMenu("Isotopes");
         isotopesMenu.setMnemonic(KeyEvent.VK_D);
         peakListMenu.add(isotopesMenu);
@@ -204,6 +208,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
             break;
         case PEAKPICKING:
             peakDetectionMenu.add(newItem);
+            break;
+        case GAPFILLING:
+            gapFillingMenu.add(newItem);
             break;
         case ISOTOPES:
             isotopesMenu.add(newItem);
