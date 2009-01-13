@@ -216,16 +216,16 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 * @param domainY
 	 * @return
 	 */
-	public int getIndex(float valueX, float valueY) {
+	public int getIndex(double valueX, double valueY) {
 		
 		Integer[] items = arraySeriesAndItemsSelection[0];
 
 		for (int i = 0; i < items.length; i++) {
 			
 			double originalValueX = peakList.getRow(items[i]).getPeak(rawDataFiles[domainX])
-			.getHeight();
+			.getArea();
 			double originalValueY = peakList.getRow(items[i]).getPeak(rawDataFiles[domainY])
-			.getHeight();
+			.getArea();
 
 			if ((Math.abs(valueX - originalValueX) < 0.0000001f)
 					&& (Math.abs(valueY - originalValueY) < 0.0000001f))

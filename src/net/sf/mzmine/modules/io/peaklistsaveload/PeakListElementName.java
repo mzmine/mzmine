@@ -22,19 +22,41 @@ package net.sf.mzmine.modules.io.peaklistsaveload;
 
 public enum PeakListElementName {
 	
-	PEAKLIST,
-	PEAKLIST_INFO,
-	NAME,
-	DATE,
-	FILE,
-	DETECTION,
-	MASS_DETECTOR,
-	CHROMATO_CONSTRUCTOR,
-	ROW,
-	IDENTITY,
-	PEAK,
-	MZPEAK,
-	ITEM;
+	PEAKLIST ("peaklist"),
+	PEAKLIST_INFO ("peaklist_info"),
+	PEAKLIST_DATE ("created"),
+	RAWFILE ("raw_file"),
+	NAME ("name"),
+	ID ("id"),
+	FORMULA ("formula"),
+	RT ("rt"),
+	MASS ("m/z"),
+	HEIGHT ("height"),
+	RTRANGE ("rt_range"),
+	MZRANGE ("m/z_range"),
+	AREA ("area"),
+	STATUS ("status"),
+	FRAGMENT ("fragment"),
+	SCAN ("scan"),
+	IDENTIFICATION ("identification_method"),
+	DETECTION ("detection_method"),
+	MASS_DETECTOR ("mass_detector"),
+	CHROMATO_CONSTRUCTOR ("chromato_builder"),
+	ROW ("row"),
+	PEAK_IDENTITY ("identity"),
+	PEAK ("peak"),
+	MZPEAK ("mzpeak"),
+	ITEM ("item");
+	
+	private String elementName;
+	
+	private PeakListElementName(String itemName){
+		this.elementName = itemName;
+	}
+	
+	public String getElementName(){
+		return elementName;
+	}
 	
 
 }

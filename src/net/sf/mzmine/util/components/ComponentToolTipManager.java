@@ -37,6 +37,8 @@ import javax.swing.ToolTipManager;
 
 public class ComponentToolTipManager extends MouseAdapter implements
 		MouseMotionListener {
+	
+	//private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	String toolTipText;
 	Point preferredLocation;
@@ -199,7 +201,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	private void initiateToolTip(MouseEvent event) {
 
 		JComponent component = (JComponent) event.getSource();
-		//String newToolTipText = component.getToolTipText(event);
+		String newToolTipText = component.getToolTipText(event);
 		newToolTipComponent = ((ComponentToolTipProvider)component).getCustomToolTipComponent(event);
 
 		if (newToolTipComponent == null)
@@ -218,10 +220,10 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		component.addMouseMotionListener(this);
 
 		mouseEvent = event;
-		Point newPreferredLocation = component.getToolTipLocation(event);
-		//toolTipText = newToolTipText;
-		preferredLocation = newPreferredLocation;
+		toolTipText = newToolTipText;
+		preferredLocation = component.getToolTipLocation(event);
 		insideComponent = component;
+		
 		showTipWindow();
 	}
 
@@ -234,9 +236,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	 *            the event in question
 	 */
 	public void mouseExited(MouseEvent event) {
-		insideComponent = null;
-		toolTipText = null;
-		mouseEvent = null;
+		reset();
 		hideTipWindow();
 	}
 
@@ -248,8 +248,8 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	 *            the event in question
 	 */
 	public void mousePressed(MouseEvent event) {
+		reset();
 		hideTipWindow();
-		mouseEvent = null;
 	}
 
 	// implements java.awt.event.MouseMotionListener
@@ -291,23 +291,35 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		JComponent component = (JComponent) event.getSource();
 		String newText = component.getToolTipText(event);
 		Point newPreferredLocation = component.getToolTipLocation(event);
-
+		
 		if (newText != null || newPreferredLocation != null) {
-			mouseEvent = event;
+
 			if ((newText.equals(toolTipText))) {
 				return;
 			} else {
+
+				newToolTipComponent = ((ComponentToolTipProvider)component).getCustomToolTipComponent(event);
+
+				if (newToolTipComponent == null)
+					return;
+				
 				toolTipText = newText;
+				mouseEvent = event;
 				preferredLocation = newPreferredLocation;
 				hideTipWindow();
 				showTipWindow();
 			}
 		} else {
-			toolTipText = null;
-			preferredLocation = null;
-			mouseEvent = null;
+			reset();
 			hideTipWindow();
 		}
+	}
+	
+	private void reset(){
+		toolTipText = null;
+		preferredLocation = null;
+		mouseEvent = null;
+		newToolTipComponent = null;
 	}
 
 	/*

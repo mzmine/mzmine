@@ -49,6 +49,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 
+import com.sun.java.ExampleFileFilter;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -93,6 +95,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private Hashtable<Parameter, Object> autoValues;
 	private Vector<ExtendedCheckBox> multipleCheckBoxes;
 	private DefaultListModel fieldOrderModel;
+	private ExampleFileFilter fileChooserFilter;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
@@ -280,6 +283,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
 				panelFilename.add(btnFileBrowser);
 				comp = panelFilename;
+				if (p.getDefaultValue() != null){
+					fileChooserFilter = new ExampleFileFilter(p.getDefaultValue().toString());
+					fileChooserFilter.setDescription(p.getDescription());
+				}
 				break;
 
 			case DRAG_ORDERED_LIST:
@@ -397,6 +404,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		if (action.equals("FILE_BROWSER")) {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setMultiSelectionEnabled(false);
+			if (fileChooserFilter != null)
+	        fileChooser.setFileFilter(fileChooserFilter);
 			
 			int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
 					.getMainFrame());

@@ -5,8 +5,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Volumes/DATA/Cell extracts/090108 VE 26 36 50MeOH round 2</parameter>
-        <parameter name="Files to import" type="STRING">090108_B_VE_26_neg_10.mzXML 090108_C_VE_36_neg_11.mzXML 090108_D_VE_26_trehalose_neg_12.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\Combined Fluid</parameter>
+        <parameter name="Files to import" type="STRING">080822_Culture_fluid_neg_06.mzXML 080822_EMM2_neg_07.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -15,7 +15,7 @@
           <parameter name="Noise level" type="DOUBLE">10.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">1000.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">60000.0</parameter>
           <parameter name="Mass resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak model function" type="STRING">Lorentzian extended</parameter>
         </massdetector>
@@ -34,8 +34,8 @@
         </massdetector>
         <massconnector name="Highest data point">
           <parameter name="Min time span" type="DOUBLE">20.0</parameter>
-          <parameter name="Min height" type="DOUBLE">10000.0</parameter>
-          <parameter name="m/z tolerance" type="DOUBLE">0.0050</parameter>
+          <parameter name="Min height" type="DOUBLE">80000.0</parameter>
+          <parameter name="m/z tolerance" type="DOUBLE">0.0020</parameter>
         </massconnector>
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
@@ -228,7 +228,11 @@
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.gapfilling.samerange.SameRange" /> 
+    <module class="net.sf.mzmine.modules.gapfilling.samerange.SameRange"> 
+      <parameters>
+        <parameter name="Name suffix" type="STRING">gap-filled</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
@@ -350,7 +354,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <parameter name="Database file" type="FILE_NAME">/Volumes/Documents/peakid.csv</parameter>
+        <parameter name="Database file" type="FILE_NAME">E:\DATA\personal_peaks_verified.csv</parameter>
         <parameter name="Field separator" type="STRING">,</parameter>
         <parameter name="Field order" type="DRAG_ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
@@ -390,6 +394,16 @@
         <parameter name="Field separator" type="STRING">,</parameter>
         <parameter name="Export elements" type="MULTIPLE_SELECTION"/>
       </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaver"> 
+      <parameters>
+        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest.mpl</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
+      <parameters>
+        <parameter name="Filename" type="FILE_NAME"/>
+      </parameters> 
     </module> 
   </modules>  
   <desktop>
@@ -406,10 +420,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>460</x>
+      <y>223</y>
+      <width>1271</width>
+      <height>700</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
   </desktop> 

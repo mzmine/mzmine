@@ -170,6 +170,11 @@ public class SimpleParameter implements Parameter {
                         "Missing possible values for multiple selection");
             }
             break;
+            
+        case FILE_NAME:
+            if ((defaultValue != null) && (!(defaultValue instanceof String)))
+                throw new IllegalArgumentException("Invalid default value type");
+            break;
         	
         }
 

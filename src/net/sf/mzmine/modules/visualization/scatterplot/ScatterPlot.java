@@ -28,11 +28,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.ToolTipManager;
 
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -61,7 +61,7 @@ import org.jfree.ui.RectangleInsets;
 
 public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
 			-2.5f, 5, 5);

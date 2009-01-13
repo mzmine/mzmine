@@ -217,8 +217,24 @@ public class SimplePeakListRow implements PeakListRow {
      * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
      */
     public void setPreferredCompoundIdentity(PeakIdentity identity) {
-        if (identity != null)
+        if (identity != null){
             preferredIdentity = identity;
+            // Verify if exists already an identity with the same name
+            PeakIdentity compoundIdentity;
+            boolean exists = false;
+            Iterator itr = identities.iterator();
+            while (itr.hasNext()) {
+                compoundIdentity = (PeakIdentity) itr.next();
+                if (compoundIdentity.getName().equals(identity.getName())) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                identities.add(identity);
+            }
+        }
     }
 
     /**

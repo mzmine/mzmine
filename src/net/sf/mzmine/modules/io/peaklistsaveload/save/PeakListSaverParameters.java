@@ -29,7 +29,7 @@ public class PeakListSaverParameters extends SimpleParameterSet{
     public static final Parameter filename = new SimpleParameter(
             ParameterType.FILE_NAME,
             "Filename",
-            "Name of exported peak list file name. If the file exists, it will be overwritten.");
+            "Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
 
 
     public PeakListSaverParameters() {

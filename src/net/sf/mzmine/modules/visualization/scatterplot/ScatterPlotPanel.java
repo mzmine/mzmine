@@ -61,7 +61,7 @@ import org.jfree.data.general.DatasetChangeEvent;
 
 public class ScatterPlotPanel extends JPanel implements ActionListener {
 	
-    //private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JComboBox comboX, comboY, comboFold;
 	private JTextField txtSearchField;
@@ -311,6 +311,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		}
 
 		if (command.equals("SHOW_ITEM_NAME")) {
+			
 			int index = getCursorPosition();
 			if (index > -1){
 			String name = dataSet.getDataPointName(index);
@@ -375,8 +376,8 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 	 * @return current cursor position
 	 */
 	public int getCursorPosition() {
-		float valueX = (float) plot.getXYPlot().getDomainCrosshairValue();
-		float valueY = (float) plot.getXYPlot().getRangeCrosshairValue();
+		double valueX = plot.getXYPlot().getDomainCrosshairValue();
+		double valueY = plot.getXYPlot().getRangeCrosshairValue();
 		return dataSet.getIndex(valueX, valueY);
 	}
 
