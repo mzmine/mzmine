@@ -143,18 +143,12 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 			id = compoundID.getText();
 			note = comments.getText();
 
-			if ((name == null) || (formula == null)){
-				String message = "Name or formula not valid";
+			if ((name == null) || (name.length() == 0)){
+				String message = "Name not valid";
 				desktop.displayErrorMessage(message);
 				return;
 			}
 				
-			if ((name.length() == 0) || (formula.length() == 0)){
-				String message = "Name or formula not valid";
-				desktop.displayErrorMessage(message);
-				return;
-			}
-			
 			SimpleCompoundIdentity compound;
 			compound = new SimpleCompoundIdentity(id, name, null,
 					formula, null, "User defined", note);
