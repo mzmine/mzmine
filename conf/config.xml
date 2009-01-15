@@ -84,8 +84,8 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.7680000066757202-2397.669921875</parameter>
-        <parameter name="m/z range" type="RANGE">540.041015625-540.0670776367188</parameter>
+        <parameter name="Retention time" type="RANGE">0.7549999952316284-2399.639892578125</parameter>
+        <parameter name="m/z range" type="RANGE">100.98603188313405-100.98627774404338</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -134,22 +134,22 @@
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
-          <width>209</width>
+          <width>140</width>
         </column>
         <column type="common" name="COMMENT">
           <visible>false</visible>
           <width>100</width>
         </column>
         <column type="common" name="PEAKSHAPE">
-          <visible>true</visible>
-          <width>522</width>
+          <visible>false</visible>
+          <width>305</width>
         </column>
         <column type="datafile" name="STATUS">
           <visible>true</visible>
-          <width>15</width>
+          <width>17</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
-          <visible>false</visible>
+          <visible>true</visible>
           <width>443</width>
         </column>
         <column type="datafile" name="MZ">
@@ -166,7 +166,7 @@
         </column>
         <column type="datafile" name="HEIGHT">
           <visible>true</visible>
-          <width>81</width>
+          <width>63</width>
         </column>
         <column type="datafile" name="AREA">
           <visible>false</visible>
@@ -359,7 +359,7 @@
         <parameter name="Field order" type="DRAG_ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">1.0</parameter>
-        <parameter name="Time tolerance" type="DOUBLE">60.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">300.0</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
@@ -402,7 +402,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME"/>
+        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest.mpl</parameter>
       </parameters> 
     </module> 
   </modules>  
@@ -420,10 +420,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>460</x>
-      <y>223</y>
-      <width>1271</width>
-      <height>700</height>
+      <x>-8</x>
+      <y>-8</y>
+      <width>-1</width>
+      <height>-1</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
   </desktop> 

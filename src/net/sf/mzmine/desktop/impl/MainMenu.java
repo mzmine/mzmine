@@ -156,7 +156,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
         dataAnalysisMenu.setMnemonic(KeyEvent.VK_S);
         peakListMenu.add(dataAnalysisMenu);
 
-        peakListExportMenu = new JMenu("Export");
+        peakListExportMenu = new JMenu("Export/Import");
         peakListExportMenu.setMnemonic(KeyEvent.VK_E);
         peakListMenu.add(peakListExportMenu);
 

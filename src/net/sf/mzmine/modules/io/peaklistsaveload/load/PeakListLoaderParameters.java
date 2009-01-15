@@ -29,7 +29,7 @@ public class PeakListLoaderParameters extends SimpleParameterSet{
     public static final Parameter filename = new SimpleParameter(
             ParameterType.FILE_NAME,
             "Filename",
-            "Name of imported peak list file name");
+            "Name of imported peak list file name", null, "mpl", null);
 
 
     public PeakListLoaderParameters() {

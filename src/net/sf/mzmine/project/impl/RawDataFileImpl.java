@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -96,9 +97,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
     }
 
     /**
-     * @see net.sf.mzmine.data.RawDataFile#getScanDataFile()
+     * @see net.sf.mzmine.data.RawDataFile#getScanDataFileasFile()
      */
-    File getScanDataFileasFile() {
+    public File getScanDataFileasFile() {
         return scanFile;
     }
 
@@ -521,6 +522,42 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
         // TODO this needs cleanup
         return new Range(getDataMinRT(msLevel), getDataMaxRT(msLevel));
     }
+    
+    public void setRTRange(int msLevel, Range rtRange){
+
+    	// if there is no cache table, create one
+        if (dataMinRT == null)
+            dataMinRT = new Hashtable<Integer, Double>();
+
+        // cache the value
+        dataMinRT.put(msLevel, rtRange.getMin());
+
+    	// if there is no cache table, create one
+        if (dataMaxRT == null)
+            dataMaxRT = new Hashtable<Integer, Double>();
+
+        // cache the value
+        dataMaxRT.put(msLevel, rtRange.getMax());
+
+    }
+
+    public void setMZRange(int msLevel, Range mzRange){
+
+    	// if there is no cache table, create one
+        if (dataMinMZ == null)
+            dataMinMZ = new Hashtable<Integer, Double>();
+
+        // cache the value
+        dataMinMZ.put(msLevel, mzRange.getMin());
+
+    	// if there is no cache table, create one
+        if (dataMaxMZ == null)
+            dataMaxMZ = new Hashtable<Integer, Double>();
+
+        // cache the value
+        dataMaxMZ.put(msLevel, mzRange.getMax());
+
+    }
 
     public int getNumOfScans(int msLevel) {
         int numOfScans = 0;
@@ -546,6 +583,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
 
     public void setName(String name) {
         this.fileName = name;
+    }
+    
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(Object value) {
+        RawDataFileImpl dataFile = (RawDataFileImpl) value;
+        File comparedScanFile = dataFile.getScanDataFileasFile();
+        if (comparedScanFile == null) return 1;
+        return comparedScanFile.compareTo(scanFile);
     }
 
 }

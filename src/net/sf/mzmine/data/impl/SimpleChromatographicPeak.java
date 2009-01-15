@@ -21,6 +21,7 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzDataPoint;
@@ -35,6 +36,8 @@ import net.sf.mzmine.util.Range;
  * This class is a simple implementation of the peak interface.
  */
 public class SimpleChromatographicPeak implements ChromatographicPeak {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakStatus peakStatus;
     private RawDataFile dataFile;
@@ -77,10 +80,13 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
         for (int ind = 0; ind < scanNumbers.length; ind++) {
 
-            double dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
+        	if (dataFile.getScan(scanNumbers[ind]) == null)
+        		logger.finest("Number of scan null = " + scanNumbers[ind]);
+        	
+        	double dataPointRT = dataFile.getScan(scanNumbers[ind]).getRetentionTime();
 
             // Update RT range
-            if (ind == 0) {
+            if (rtRange == null) {
                 rtRange = new Range(dataPointRT);
             } else {
                 rtRange.extendRange(dataPointRT);
