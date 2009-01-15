@@ -93,7 +93,12 @@ public abstract class MZmineCore {
      * 
      */
     public static MZmineProject getCurrentProject() {
-        return projectManager.getCurrentProject();
+    	if (projectManager != null){
+    		return projectManager.getCurrentProject();
+    	}
+    	else{
+    		return null;
+    	}
     }
 
     /**
@@ -252,15 +257,18 @@ public abstract class MZmineCore {
 
     // Number formatting functions
     public static NumberFormatter getIntensityFormat() {
-        return ((MainWindow) desktop).getIntensityFormat();
+        //return ((MainWindow) desktop).getIntensityFormat();
+        return desktop.getIntensityFormat();
     }
 
     public static NumberFormatter getMZFormat() {
-        return ((MainWindow) desktop).getMZFormat();
+        //return ((MainWindow) desktop).getMZFormat();
+        return desktop.getMZFormat();
     }
 
     public static NumberFormatter getRTFormat() {
-        return ((MainWindow) desktop).getRTFormat();
+        //return ((MainWindow) desktop).getRTFormat();
+        return desktop.getRTFormat();
     }
 
     public static RawDataFileWriter createNewFile(String name)

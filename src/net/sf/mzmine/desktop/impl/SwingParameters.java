@@ -29,9 +29,9 @@ import javax.swing.UIManager;
  * This class has just a single static method which sets Swing properties for
  * MZmine
  */
-class SwingParameters {
+public class SwingParameters {
 
-	static void initSwingParameters() {
+	public static void initSwingParameters() {
 
 		// Get tooltip manager instance
 		ToolTipManager tooltipManager = ToolTipManager.sharedInstance();

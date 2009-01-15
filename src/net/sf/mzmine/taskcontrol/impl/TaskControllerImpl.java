@@ -21,6 +21,7 @@ package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
@@ -96,7 +97,8 @@ public class TaskControllerImpl implements TaskController, Runnable {
         /*
          * show the task list component
          */
-        MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+        //MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+        Desktop mainWindow = MZmineCore.getDesktop();
         if (mainWindow != null) {
             // JInternalFrame selectedFrame = desktop.getSelectedFrame();
 
@@ -162,7 +164,8 @@ public class TaskControllerImpl implements TaskController, Runnable {
             // check if all tasks are finished
             if (taskQueue.allTasksFinished()) {
 
-                MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+                //MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+                Desktop mainWindow = MZmineCore.getDesktop();
 
                 if (mainWindow != null) {
                     TaskProgressWindow tlc = mainWindow.getTaskList();

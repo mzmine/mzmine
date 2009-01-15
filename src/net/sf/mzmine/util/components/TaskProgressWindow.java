@@ -92,7 +92,7 @@ public class TaskProgressWindow extends JInternalFrame implements
         pack();
 
         // set position and size
-        setBounds(120, 30, 600, 150);
+        setBounds(20, 20, 600, 150);
 
     }
 

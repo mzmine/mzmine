@@ -24,6 +24,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import javax.swing.JMenuItem;
+
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
@@ -68,6 +70,30 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
                 "Peak list table", "Shows a table view of a peak list",
                 KeyEvent.VK_L, false, this, null);
+
+    }
+    
+    public void initModule(JMenuItem menuItem) {
+
+        this.desktop = MZmineCore.getDesktop();
+        myInstance = this;
+
+        // Disable default logging of JFreeReport library
+        System.setProperty("org.jfree.base.NoDefaultDebug", "true");
+
+        // Boot the JFreeReport library in a new thread, because it may take a
+        // couple of seconds and we don't want to block MZmine startup
+        Thread bootThread = new Thread() {
+
+            public void run() {
+                JFreeReportBoot.getInstance().start();
+            }
+
+        };
+        bootThread.start();
+
+        parameters = new PeakListTableParameters();
+
 
     }
 

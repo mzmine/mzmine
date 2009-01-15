@@ -73,8 +73,6 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
             return;
         }
 
-        // Create a window, but do not add it to the desktop. It will be added
-        // automatically after completing the data set for visualization.
         ScatterPlotWindow newWindow = new ScatterPlotWindow(peaklists[0], "Scatter plot of " + peaklists[0].toString());
 
         desktop.addInternalFrame(newWindow);

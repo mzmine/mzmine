@@ -40,9 +40,11 @@ import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.io.peaklistsaveload.PeakListElementName;
 import net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaverTask;
+import net.sf.mzmine.modules.lightviewer.MZviewerWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
@@ -153,7 +155,13 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 
 		// Add new peaklist to the project
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(buildingPeakList);
+		if (currentProject != null){
+			currentProject.addPeakList(buildingPeakList);
+		}
+		else{
+			Desktop desktop = MZmineCore.getDesktop();
+			((MZviewerWindow) desktop).getItemSelector().addPeakList(buildingPeakList);
+		}
 
 		logger.info("Finished parsing " + originalFile + ", parsed "
 				+ parsedRows + " rows");

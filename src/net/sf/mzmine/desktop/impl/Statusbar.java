@@ -48,7 +48,7 @@ public class Statusbar extends JPanel implements Runnable, MouseListener {
     private LabeledProgressBar memoryLabel;
 
 
-    Statusbar() {
+    public Statusbar() {
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         setBorder(new EtchedBorder());
@@ -94,7 +94,7 @@ public class Statusbar extends JPanel implements Runnable, MouseListener {
      * @param statusText Text for status bar
      * @param textColor Text color
      */
-    void setStatusText(String statusText, Color textColor) {
+    public void setStatusText(String statusText, Color textColor) {
         statusTextLabel.setText(statusText);
         statusTextLabel.setForeground(textColor);
     }

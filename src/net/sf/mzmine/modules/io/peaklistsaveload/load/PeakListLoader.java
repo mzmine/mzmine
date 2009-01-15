@@ -22,6 +22,9 @@ package net.sf.mzmine.modules.io.peaklistsaveload.load;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.logging.Logger;
+
+import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -38,7 +41,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeakListLoader implements MZmineModule, ActionListener {
 	
-    private PeakListLoaderParameters parameters;
+    
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private PeakListLoaderParameters parameters;
     private Desktop desktop;
 
 
@@ -57,13 +63,26 @@ public class PeakListLoader implements MZmineModule, ActionListener {
                 this, null);
 		
 	}
+	
+	public void initModule(JMenuItem menuItem) {
+
+		this.desktop = MZmineCore.getDesktop();
+
+        parameters = new PeakListLoaderParameters();
+        
+        menuItem.addActionListener(this);
+		
+	}
 
 	public void setParameters(ParameterSet parameterValues) {
         this.parameters = (PeakListLoaderParameters) parameters;
 	}
 
 	public void actionPerformed(ActionEvent e) {
-        ExitCode setupExitCode = setupParameters(parameters);
+		
+        logger.finest(" Activa setup window ");
+        
+		ExitCode setupExitCode = setupParameters(parameters);
 
         if (setupExitCode != ExitCode.OK) {
             return;
