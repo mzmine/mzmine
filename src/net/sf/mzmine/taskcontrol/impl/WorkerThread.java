@@ -116,8 +116,8 @@ class WorkerThread extends Thread {
 
                 if (MZmineCore.getDesktop() != null) {
                     MZmineCore.getDesktop().displayErrorMessage(
-                            "Exception of task "
-                                    + currentTask.getTask().getTaskDescription(),
+                            "Unhandled exception in task "
+                                    + currentTask.getTask().getTaskDescription() + ": " + 
                             ExceptionUtils.exceptionToString(e));
                 }
 
