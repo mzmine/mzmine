@@ -171,13 +171,20 @@ public class PeakListSaverTask implements Task {
 			}
 
 			// write the saving file
-			File tempFile = File.createTempFile("mzminepeaklist", ".tmp");
-			OutputFormat format = OutputFormat.createPrettyPrint();
-			XMLWriter writer = new XMLWriter(new FileWriter(tempFile), format);
-			writer.write(document);
-			writer.close();
-
-			doZip(tempFile, fileName);
+            FileOutputStream fos = new FileOutputStream(fileName);
+            
+            OutputStream finalStream = fos;
+            
+            if (compression) {
+                ZipOutputStream zos = new ZipOutputStream(fos);
+                zos.setLevel(9);
+                finalStream = zos;
+            }
+             
+            OutputFormat format = OutputFormat.createPrettyPrint();
+            XMLWriter writer = new XMLWriter(finalStream, format);
+            writer.write(document);
+            writer.close();
 
 		} catch (Exception e) {
 			/* we may already have set the status to CANCELED */
@@ -367,41 +374,6 @@ public class PeakListSaverTask implements Task {
 				.getElementName());
 		secondNewElement.addText(new String(bytes));
 
-	}
-
-	public void doZip(File tempFile, String filename) {
-		if (compression) {
-			try {
-				byte[] buf = new byte[1024];
-				FileInputStream fis = new FileInputStream(tempFile);
-
-				CRC32 crc = new CRC32();
-				ZipOutputStream s = new ZipOutputStream(
-						(OutputStream) new FileOutputStream(fileName));
-
-				s.setLevel(9);
-
-				ZipEntry entry = new ZipEntry(fileName);
-				crc.reset();
-				crc.update(buf);
-				entry.setCrc(crc.getValue());
-				s.putNextEntry(entry);
-				int len = 0;
-				while ((len = fis.read(buf)) != -1) {
-					s.write(buf, 0, len);
-				}
-				s.finish();
-				s.close();
-			} catch (Exception e) {
-				if (status == TaskStatus.PROCESSING)
-					status = TaskStatus.ERROR;
-				errorMessage = e.toString();				
-				e.printStackTrace();
-			}
-		} else {
-			File savingFile = new File(fileName);
-			tempFile.renameTo(savingFile);
-		}
 	}
 
 }
