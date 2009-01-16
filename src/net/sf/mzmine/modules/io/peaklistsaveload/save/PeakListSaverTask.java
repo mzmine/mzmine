@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.io.peaklistsaveload.save;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,6 +31,7 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -41,6 +45,8 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+
+import com.Ostermiller.util.Base64;
 
 public class PeakListSaverTask implements Task{
 	
@@ -189,11 +195,31 @@ public class PeakListSaverTask implements Task{
 
         // <SCAN>
 		int[] scanNumbers = file.getScanNumbers(1);
+		StringBuilder stringIDBuilder = null, stringRTBuilder = null;
+        newElement = element.addElement(PeakListElementName.SCAN.getElementName());
+		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length) );
+        Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
 		for (int scan: scanNumbers ){
-	        newElement = element.addElement(PeakListElementName.SCAN.getElementName());
-	        newElement.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(scan) );
-	        newElement.addAttribute(PeakListElementName.RT.getElementName(), String.valueOf(file.getScan(scan).getRetentionTime()) );
+			if (stringIDBuilder == null){
+				// Scan's id
+				stringIDBuilder = new StringBuilder();
+				stringIDBuilder.append(scan);
+				// Scan's rt
+				stringRTBuilder = new StringBuilder();
+				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
+			}
+			else{
+				// Scan's id
+				stringIDBuilder.append(",");
+				stringIDBuilder.append(scan);
+				// Scan's rt
+				stringRTBuilder.append(",");
+				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
+			}
 		}
+		secondNewElement.addText(stringIDBuilder.toString());
+        secondNewElement = newElement.addElement(PeakListElementName.RT.getElementName());
+		secondNewElement.addText(stringRTBuilder.toString());
 
 	}
 	
@@ -250,21 +276,55 @@ public class PeakListSaverTask implements Task{
 		
 		// <MZPEAK>
 		int scanNumbers[] = peak.getScanNumbers();
-		Element newElement;
+		Element newElement = element.addElement(PeakListElementName.MZPEAK.getElementName());
+		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length));
+
 		MzPeak mzPeak;
+		
+		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
+		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
+
+		ByteArrayOutputStream byteMassStream = new ByteArrayOutputStream();
+		DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
+
+		ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
+		DataOutputStream dataHeightStream = new DataOutputStream(byteHeightStream);
+
+		float mass, height;
 		for (int scan: scanNumbers ){
-			newElement = element.addElement(PeakListElementName.MZPEAK.getElementName());
-			newElement.addAttribute(PeakListElementName.SCAN.getElementName(), String.valueOf(scan));
-			mzPeak = peak.getMzPeak(scan);
-			if (mzPeak != null){
-				newElement.addAttribute(PeakListElementName.MASS.getElementName(), String.valueOf(mzPeak.getMZ()));
-				newElement.addAttribute(PeakListElementName.HEIGHT.getElementName(), String.valueOf(mzPeak.getIntensity()));
-			}
-			else{
-				newElement.addAttribute(PeakListElementName.MASS.getElementName(), String.valueOf(peak.getMZ()));
-				newElement.addAttribute(PeakListElementName.HEIGHT.getElementName(), String.valueOf(0d));
+			try {
+				dataScanStream.writeInt(scan);
+				dataScanStream.flush();
+				mzPeak = peak.getMzPeak(scan);
+				if (mzPeak != null){
+					mass = (float) mzPeak.getMZ();
+					height = (float) mzPeak.getIntensity();
+				}
+				else{
+					mass = (float) peak.getMZ();
+					height = 0f;
+				}
+				dataMassStream.writeFloat(mass);
+				dataMassStream.flush();
+				dataHeightStream.writeFloat(height);
+				dataHeightStream.flush();
+
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
+
+		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
+		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
+		secondNewElement.addText(new String(bytes));
+
+		bytes = Base64.encode(byteMassStream.toByteArray());
+		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
+		secondNewElement.addText(new String(bytes));
+
+		bytes = Base64.encode(byteScanStream.toByteArray());
+		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
+		secondNewElement.addText(new String(bytes));
 
 	}
 

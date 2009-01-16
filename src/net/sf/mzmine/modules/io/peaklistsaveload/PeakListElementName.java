@@ -38,6 +38,7 @@ public enum PeakListElementName {
 	STATUS ("status"),
 	COLUMN ("column_id"),
 	SCAN ("scan"),
+	SCAN_ID ("scan_id"),
 	IDENTIFICATION ("identification_method"),
 	DETECTION ("detection_method"),
 	MASS_DETECTOR ("mass_detector"),
