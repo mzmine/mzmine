@@ -22,16 +22,21 @@ package net.sf.mzmine.modules.io.peaklistsaveload.save;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Logger;
+import java.util.zip.CRC32;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -63,12 +68,15 @@ public class PeakListSaverTask implements Task{
 
 	// parameter values
 	private String fileName;
+	private boolean compression;
 	
 	public PeakListSaverTask(PeakList peakList, PeakListSaverParameters parameters){
 		this.peakList = peakList;
 
 		fileName = (String) parameters
 				.getParameterValue(PeakListSaverParameters.filename);
+		compression = (Boolean) parameters
+		.getParameterValue(PeakListSaverParameters.compression);
 		
 		this.peakList = peakList;
 		
@@ -107,7 +115,6 @@ public class PeakListSaverTask implements Task{
         	status = TaskStatus.PROCESSING;
     		logger.info("Started saving peak list " + peakList.getName());
 
-        	File savingFile = new File(fileName);
         	Element newElement;
             Document document = DocumentFactory.getInstance().createDocument();
             Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
@@ -128,8 +135,6 @@ public class PeakListSaverTask implements Task{
             // <QUANTITY>
             newElement = saveRoot.addElement(PeakListElementName.QUANTITY.getElementName());
             newElement.addText(String.valueOf(peakList.getNumberOfRows()) );
-            
-            //fillPeakListInfoElement(newElement);
             
             // <RAWFILE>
             RawDataFile[] dataFiles = peakList.getRawDataFiles();
@@ -158,10 +163,13 @@ public class PeakListSaverTask implements Task{
             
             
             // write the saving file
+            File tempFile = File.createTempFile("mzminepeaklist", ".tmp");
             OutputFormat format = OutputFormat.createPrettyPrint();
-            XMLWriter writer = new XMLWriter(new FileWriter(savingFile), format);
+            XMLWriter writer = new XMLWriter(new FileWriter(tempFile), format);
             writer.write(document);
             writer.close();
+            
+            doZip(tempFile, fileName);
 
 
         }
@@ -280,7 +288,7 @@ public class PeakListSaverTask implements Task{
 		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length));
 
 		MzPeak mzPeak;
-		
+
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
 
@@ -327,5 +335,38 @@ public class PeakListSaverTask implements Task{
 		secondNewElement.addText(new String(bytes));
 
 	}
+	
+	public void doZip(File tempFile,String filename) {
+		if (compression){
+        try {
+            byte[] buf = new byte[1024];
+            FileInputStream fis = new FileInputStream(tempFile);
+            
+            CRC32 crc = new CRC32();
+            ZipOutputStream s = new ZipOutputStream(
+                    (OutputStream)new FileOutputStream(fileName + ".zip"));
+            
+            s.setLevel(9);
+            
+            ZipEntry entry = new ZipEntry(fileName);
+            crc.reset();
+            crc.update(buf);
+            entry.setCrc( crc.getValue());
+            s.putNextEntry(entry);
+            int len = 0;
+            while((len=fis.read(buf)) != -1) {
+                s.write(buf,0,len);
+                }
+            s.finish();
+            s.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		}
+		else{
+			File savingFile = new File(fileName);
+			tempFile.renameTo(savingFile);
+		}
+    }
 
 }

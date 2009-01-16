@@ -31,9 +31,13 @@ public class PeakListSaverParameters extends SimpleParameterSet{
             "Filename",
             "Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
 
-
+    public static final Parameter compression = new SimpleParameter(
+			ParameterType.BOOLEAN, "Compressed file",
+			"Generates a compressed file (.zip)", null, true,
+			null, null, null);
+	
     public PeakListSaverParameters() {
-        super(new Parameter[] { filename });
+        super(new Parameter[] { filename, compression });
     }
 
 
