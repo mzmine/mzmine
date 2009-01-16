@@ -53,33 +53,34 @@ import org.dom4j.io.XMLWriter;
 
 import com.Ostermiller.util.Base64;
 
-public class PeakListSaverTask implements Task{
-	
+public class PeakListSaverTask implements Task {
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
+
 	private PeakList peakList;
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
 	private int processedRows, totalRows;
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
-	
-	public static DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
+	public static DateFormat dateFormat = new SimpleDateFormat(
+			"yyyy/MM/dd HH:mm:ss");
 
 	// parameter values
 	private String fileName;
 	private boolean compression;
-	
-	public PeakListSaverTask(PeakList peakList, PeakListSaverParameters parameters){
+
+	public PeakListSaverTask(PeakList peakList,
+			PeakListSaverParameters parameters) {
 		this.peakList = peakList;
 
 		fileName = (String) parameters
 				.getParameterValue(PeakListSaverParameters.filename);
 		compression = (Boolean) parameters
-		.getParameterValue(PeakListSaverParameters.compression);
-		
+				.getParameterValue(PeakListSaverParameters.compression);
+
 		this.peakList = peakList;
-		
+
 		totalRows = peakList.getNumberOfRows();
 		dataFilesIDMap = new Hashtable<RawDataFile, Integer>();
 
@@ -107,116 +108,126 @@ public class PeakListSaverTask implements Task{
 	public String getTaskDescription() {
 		return "Saving peak list " + peakList + " to " + fileName;
 	}
-	
+
 	public void run() {
-		
-        try {
-        	
-        	status = TaskStatus.PROCESSING;
-    		logger.info("Started saving peak list " + peakList.getName());
 
-        	Element newElement;
-            Document document = DocumentFactory.getInstance().createDocument();
-            Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
-            
-            // <NAME>
-            newElement = saveRoot.addElement(PeakListElementName.NAME.getElementName());
-            newElement.addText(peakList.getName());
+		try {
 
-            // <PEAKLIST_DATE>
-            String dateText = "";
-    		if(true){//(peakList.getDateCreated() == null){
-            Date date = new Date();
-            dateText = dateFormat.format(date);
-    		}
-            newElement = saveRoot.addElement(PeakListElementName.PEAKLIST_DATE.getElementName());
-            newElement.addText(dateText);
+			status = TaskStatus.PROCESSING;
+			logger.info("Started saving peak list " + peakList.getName());
 
-            // <QUANTITY>
-            newElement = saveRoot.addElement(PeakListElementName.QUANTITY.getElementName());
-            newElement.addText(String.valueOf(peakList.getNumberOfRows()) );
-            
-            // <RAWFILE>
-            RawDataFile[] dataFiles = peakList.getRawDataFiles();
-            
-            for (int i=1; i<=dataFiles.length; i++){
-            	newElement = saveRoot.addElement(PeakListElementName.RAWFILE.getElementName());
-            	newElement.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(i));
-            	fillRawDataFileElement(dataFiles[i-1], newElement);
-            	dataFilesIDMap.put(dataFiles[i-1], i);
-            }
-            
-            // <ROW>
-            int numOfRows = peakList.getNumberOfRows();
-            PeakListRow row;
-            for (int i=0;i<numOfRows;i++){
-            	
-            	if (status == TaskStatus.CANCELED){
-            		return;
-            	}
-            	
-            	row = peakList.getRow(i);
-            	newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
-            	fillRowElement(row, newElement);
-            	processedRows++;
-            }
-            
-            
-            // write the saving file
-            File tempFile = File.createTempFile("mzminepeaklist", ".tmp");
-            OutputFormat format = OutputFormat.createPrettyPrint();
-            XMLWriter writer = new XMLWriter(new FileWriter(tempFile), format);
-            writer.write(document);
-            writer.close();
-            
-            doZip(tempFile, fileName);
+			Element newElement;
+			Document document = DocumentFactory.getInstance().createDocument();
+			Element saveRoot = document.addElement(PeakListElementName.PEAKLIST
+					.getElementName());
 
+			// <NAME>
+			newElement = saveRoot.addElement(PeakListElementName.NAME
+					.getElementName());
+			newElement.addText(peakList.getName());
 
-        }
-        catch(Exception e){
+			// <PEAKLIST_DATE>
+			String dateText = "";
+			if (true) {// (peakList.getDateCreated() == null){
+				Date date = new Date();
+				dateText = dateFormat.format(date);
+			}
+			newElement = saveRoot.addElement(PeakListElementName.PEAKLIST_DATE
+					.getElementName());
+			newElement.addText(dateText);
+
+			// <QUANTITY>
+			newElement = saveRoot.addElement(PeakListElementName.QUANTITY
+					.getElementName());
+			newElement.addText(String.valueOf(peakList.getNumberOfRows()));
+
+			// <RAWFILE>
+			RawDataFile[] dataFiles = peakList.getRawDataFiles();
+
+			for (int i = 1; i <= dataFiles.length; i++) {
+				newElement = saveRoot.addElement(PeakListElementName.RAWFILE
+						.getElementName());
+				newElement.addAttribute(
+						PeakListElementName.ID.getElementName(), String
+								.valueOf(i));
+				fillRawDataFileElement(dataFiles[i - 1], newElement);
+				dataFilesIDMap.put(dataFiles[i - 1], i);
+			}
+
+			// <ROW>
+			int numOfRows = peakList.getNumberOfRows();
+			PeakListRow row;
+			for (int i = 0; i < numOfRows; i++) {
+
+				if (status == TaskStatus.CANCELED) {
+					return;
+				}
+
+				row = peakList.getRow(i);
+				newElement = saveRoot.addElement(PeakListElementName.ROW
+						.getElementName());
+				fillRowElement(row, newElement);
+				processedRows++;
+			}
+
+			// write the saving file
+			File tempFile = File.createTempFile("mzminepeaklist", ".tmp");
+			OutputFormat format = OutputFormat.createPrettyPrint();
+			XMLWriter writer = new XMLWriter(new FileWriter(tempFile), format);
+			writer.write(document);
+			writer.close();
+
+			doZip(tempFile, fileName);
+
+		} catch (Exception e) {
 			/* we may already have set the status to CANCELED */
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
 			e.printStackTrace();
 			return;
-        }
-        
+		}
+
 		logger.info("Finished saving " + peakList.getName() + ", saved "
 				+ processedRows + " rows");
-		status = TaskStatus.FINISHED;		
+		status = TaskStatus.FINISHED;
 	}
-	
-	private void fillRawDataFileElement(RawDataFile file, Element element){
-		
-        // <NAME>
-        Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
-        newElement.addText(file.getName());
 
-        // <RTRANGE>
-        newElement = element.addElement(PeakListElementName.RTRANGE.getElementName());
-        newElement.addText(String.valueOf(file.getDataRTRange(1)) );
+	private void fillRawDataFileElement(RawDataFile file, Element element) {
 
-        // <MZRANGE>
-        newElement = element.addElement(PeakListElementName.MZRANGE.getElementName());
-        newElement.addText(String.valueOf(file.getDataMZRange(1)) );
+		// <NAME>
+		Element newElement = element.addElement(PeakListElementName.NAME
+				.getElementName());
+		newElement.addText(file.getName());
 
-        // <SCAN>
+		// <RTRANGE>
+		newElement = element.addElement(PeakListElementName.RTRANGE
+				.getElementName());
+		newElement.addText(String.valueOf(file.getDataRTRange(1)));
+
+		// <MZRANGE>
+		newElement = element.addElement(PeakListElementName.MZRANGE
+				.getElementName());
+		newElement.addText(String.valueOf(file.getDataMZRange(1)));
+
+		// <SCAN>
 		int[] scanNumbers = file.getScanNumbers(1);
 		StringBuilder stringIDBuilder = null, stringRTBuilder = null;
-        newElement = element.addElement(PeakListElementName.SCAN.getElementName());
-		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length) );
-        Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
-		for (int scan: scanNumbers ){
-			if (stringIDBuilder == null){
+		newElement = element.addElement(PeakListElementName.SCAN
+				.getElementName());
+		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
+				String.valueOf(scanNumbers.length));
+		Element secondNewElement = newElement
+				.addElement(PeakListElementName.SCAN_ID.getElementName());
+		for (int scan : scanNumbers) {
+			if (stringIDBuilder == null) {
 				// Scan's id
 				stringIDBuilder = new StringBuilder();
 				stringIDBuilder.append(scan);
 				// Scan's rt
 				stringRTBuilder = new StringBuilder();
 				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
-			}
-			else{
+			} else {
 				// Scan's id
 				stringIDBuilder.append(",");
 				stringIDBuilder.append(scan);
@@ -226,66 +237,85 @@ public class PeakListSaverTask implements Task{
 			}
 		}
 		secondNewElement.addText(stringIDBuilder.toString());
-        secondNewElement = newElement.addElement(PeakListElementName.RT.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.RT
+				.getElementName());
 		secondNewElement.addText(stringRTBuilder.toString());
 
 	}
-	
-	private void fillRowElement(PeakListRow row, Element element){
-		element.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(row.getID()) );
+
+	private void fillRowElement(PeakListRow row, Element element) {
+		element.addAttribute(PeakListElementName.ID.getElementName(), String
+				.valueOf(row.getID()));
 		Element newElement;
-		
+
 		// <PEAK_IDENTITY>
 		PeakIdentity preferredIdentity = row.getPreferredCompoundIdentity();
 		PeakIdentity[] identities = row.getCompoundIdentities();
-		
-		for (int i=0; i<identities.length; i++){
-			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY.getElementName());
-			newElement.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(i));
-			newElement.addAttribute(PeakListElementName.PREFERRED.getElementName(), String.valueOf(identities[i] == preferredIdentity));
+
+		for (int i = 0; i < identities.length; i++) {
+			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY
+					.getElementName());
+			newElement.addAttribute(PeakListElementName.ID.getElementName(),
+					String.valueOf(i));
+			newElement.addAttribute(PeakListElementName.PREFERRED
+					.getElementName(), String
+					.valueOf(identities[i] == preferredIdentity));
 			fillIdentityElement(identities[i], newElement);
 		}
-		
+
 		// <PEAK>
 		int dataFileID = 0;
 		ChromatographicPeak[] peaks = row.getPeaks();
-		for (ChromatographicPeak p: peaks){
-			newElement = element.addElement(PeakListElementName.PEAK.getElementName());
+		for (ChromatographicPeak p : peaks) {
+			newElement = element.addElement(PeakListElementName.PEAK
+					.getElementName());
 			dataFileID = dataFilesIDMap.get(p.getDataFile());
 			fillPeakElement(p, newElement, dataFileID);
 		}
-		
-	}
-	
-	private void fillIdentityElement(PeakIdentity identity, Element element){
-		
-        // <NAME>
-        Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
-        newElement.addText(identity.getName());
-
-        // <FORMULA>
-        newElement = element.addElement(PeakListElementName.FORMULA.getElementName());
-        newElement.addText(identity.getCompoundFormula());
-
-        // <IDENTIFICATION>
-        newElement = element.addElement(PeakListElementName.IDENTIFICATION.getElementName());
-        newElement.addText(identity.getIdentificationMethod());
 
 	}
-	
-	private void fillPeakElement(ChromatographicPeak peak, Element element, int dataFileID){
 
-		element.addAttribute(PeakListElementName.COLUMN.getElementName(), String.valueOf(dataFileID) );
-		element.addAttribute(PeakListElementName.MASS.getElementName(), String.valueOf(peak.getMZ()) );
-		element.addAttribute(PeakListElementName.RT.getElementName(), String.valueOf(peak.getRT()) );
-		element.addAttribute(PeakListElementName.HEIGHT.getElementName(), String.valueOf(peak.getHeight()) );
-		element.addAttribute(PeakListElementName.AREA.getElementName(), String.valueOf(peak.getArea()) );
-		element.addAttribute(PeakListElementName.STATUS.getElementName(), peak.getPeakStatus().toString() );
-		
+	private void fillIdentityElement(PeakIdentity identity, Element element) {
+
+		// <NAME>
+		Element newElement = element.addElement(PeakListElementName.NAME
+				.getElementName());
+		newElement.addText(identity.getName());
+
+		// <FORMULA>
+		newElement = element.addElement(PeakListElementName.FORMULA
+				.getElementName());
+		newElement.addText(identity.getCompoundFormula());
+
+		// <IDENTIFICATION>
+		newElement = element.addElement(PeakListElementName.IDENTIFICATION
+				.getElementName());
+		newElement.addText(identity.getIdentificationMethod());
+
+	}
+
+	private void fillPeakElement(ChromatographicPeak peak, Element element,
+			int dataFileID) {
+
+		element.addAttribute(PeakListElementName.COLUMN.getElementName(),
+				String.valueOf(dataFileID));
+		element.addAttribute(PeakListElementName.MASS.getElementName(), String
+				.valueOf(peak.getMZ()));
+		element.addAttribute(PeakListElementName.RT.getElementName(), String
+				.valueOf(peak.getRT()));
+		element.addAttribute(PeakListElementName.HEIGHT.getElementName(),
+				String.valueOf(peak.getHeight()));
+		element.addAttribute(PeakListElementName.AREA.getElementName(), String
+				.valueOf(peak.getArea()));
+		element.addAttribute(PeakListElementName.STATUS.getElementName(), peak
+				.getPeakStatus().toString());
+
 		// <MZPEAK>
 		int scanNumbers[] = peak.getScanNumbers();
-		Element newElement = element.addElement(PeakListElementName.MZPEAK.getElementName());
-		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length));
+		Element newElement = element.addElement(PeakListElementName.MZPEAK
+				.getElementName());
+		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
+				String.valueOf(scanNumbers.length));
 
 		MzPeak mzPeak;
 
@@ -296,19 +326,19 @@ public class PeakListSaverTask implements Task{
 		DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
 
 		ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
-		DataOutputStream dataHeightStream = new DataOutputStream(byteHeightStream);
+		DataOutputStream dataHeightStream = new DataOutputStream(
+				byteHeightStream);
 
 		float mass, height;
-		for (int scan: scanNumbers ){
+		for (int scan : scanNumbers) {
 			try {
 				dataScanStream.writeInt(scan);
 				dataScanStream.flush();
 				mzPeak = peak.getMzPeak(scan);
-				if (mzPeak != null){
+				if (mzPeak != null) {
 					mass = (float) mzPeak.getMZ();
 					height = (float) mzPeak.getIntensity();
-				}
-				else{
+				} else {
 					mass = (float) peak.getMZ();
 					height = 0f;
 				}
@@ -323,50 +353,55 @@ public class PeakListSaverTask implements Task{
 		}
 
 		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
-		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
+		Element secondNewElement = newElement
+				.addElement(PeakListElementName.SCAN_ID.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 		bytes = Base64.encode(byteMassStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.MASS
+				.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 		bytes = Base64.encode(byteScanStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT
+				.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 	}
-	
-	public void doZip(File tempFile,String filename) {
-		if (compression){
-        try {
-            byte[] buf = new byte[1024];
-            FileInputStream fis = new FileInputStream(tempFile);
-            
-            CRC32 crc = new CRC32();
-            ZipOutputStream s = new ZipOutputStream(
-                    (OutputStream)new FileOutputStream(fileName + ".zip"));
-            
-            s.setLevel(9);
-            
-            ZipEntry entry = new ZipEntry(fileName);
-            crc.reset();
-            crc.update(buf);
-            entry.setCrc( crc.getValue());
-            s.putNextEntry(entry);
-            int len = 0;
-            while((len=fis.read(buf)) != -1) {
-                s.write(buf,0,len);
-                }
-            s.finish();
-            s.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-		}
-		else{
+
+	public void doZip(File tempFile, String filename) {
+		if (compression) {
+			try {
+				byte[] buf = new byte[1024];
+				FileInputStream fis = new FileInputStream(tempFile);
+
+				CRC32 crc = new CRC32();
+				ZipOutputStream s = new ZipOutputStream(
+						(OutputStream) new FileOutputStream(fileName));
+
+				s.setLevel(9);
+
+				ZipEntry entry = new ZipEntry(fileName);
+				crc.reset();
+				crc.update(buf);
+				entry.setCrc(crc.getValue());
+				s.putNextEntry(entry);
+				int len = 0;
+				while ((len = fis.read(buf)) != -1) {
+					s.write(buf, 0, len);
+				}
+				s.finish();
+				s.close();
+			} catch (Exception e) {
+				if (status == TaskStatus.PROCESSING)
+					status = TaskStatus.ERROR;
+				errorMessage = e.toString();				
+				e.printStackTrace();
+			}
+		} else {
 			File savingFile = new File(fileName);
 			tempFile.renameTo(savingFile);
 		}
-    }
+	}
 
 }
