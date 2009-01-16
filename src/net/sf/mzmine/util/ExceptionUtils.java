@@ -31,7 +31,7 @@ public class ExceptionUtils {
     public static String exceptionToString(Throwable exception) {
 
         StringBuffer str = new StringBuffer();
-        str.append(exception.getMessage());
+        str.append(exception.toString());
 
         if (exception.getStackTrace().length > 0) {
             StackTraceElement location = exception.getStackTrace()[0];
