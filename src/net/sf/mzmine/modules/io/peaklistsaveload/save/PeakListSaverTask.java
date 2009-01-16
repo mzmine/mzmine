@@ -66,6 +66,10 @@ public class PeakListSaverTask implements Task {
 	private String fileName;
 	private boolean compression;
 
+	/**
+	 * @param peakList
+	 * @param parameters
+	 */
 	public PeakListSaverTask(PeakList peakList,
 			PeakListSaverParameters parameters) {
 		this.peakList = peakList;
@@ -82,14 +86,23 @@ public class PeakListSaverTask implements Task {
 
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
 	public void cancel() {
 		status = TaskStatus.CANCELED;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
 	public String getErrorMessage() {
 		return errorMessage;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
 	public double getFinishedPercentage() {
 		if (totalRows == 0) {
 			return 0.0f;
@@ -97,14 +110,23 @@ public class PeakListSaverTask implements Task {
 		return (double) processedRows / (double) totalRows;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
 	public TaskStatus getStatus() {
 		return status;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
 	public String getTaskDescription() {
 		return "Saving peak list " + peakList + " to " + fileName;
 	}
 
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 
 		try {
@@ -197,6 +219,10 @@ public class PeakListSaverTask implements Task {
 		status = TaskStatus.FINISHED;
 	}
 
+	/**
+	 * @param file
+	 * @param element
+	 */
 	private void fillRawDataFileElement(RawDataFile file, Element element) {
 
 		// <NAME>
@@ -233,10 +259,10 @@ public class PeakListSaverTask implements Task {
 				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
 			} else {
 				// Scan's id
-				stringIDBuilder.append(",");
+				stringIDBuilder.append(PeakListElementName.SEPARATOR.getElementName());
 				stringIDBuilder.append(scan);
 				// Scan's rt
-				stringRTBuilder.append(",");
+				stringRTBuilder.append(PeakListElementName.SEPARATOR.getElementName());
 				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
 			}
 		}
@@ -247,6 +273,10 @@ public class PeakListSaverTask implements Task {
 
 	}
 
+	/**
+	 * @param row
+	 * @param element
+	 */
 	private void fillRowElement(PeakListRow row, Element element) {
 		element.addAttribute(PeakListElementName.ID.getElementName(), String
 				.valueOf(row.getID()));
@@ -279,25 +309,34 @@ public class PeakListSaverTask implements Task {
 
 	}
 
+	/**
+	 * @param identity
+	 * @param element
+	 */
 	private void fillIdentityElement(PeakIdentity identity, Element element) {
 
 		// <NAME>
 		Element newElement = element.addElement(PeakListElementName.NAME
 				.getElementName());
-		newElement.addText(identity.getName());
+		newElement.addText(identity.getName() != null ? identity.getName() : " ");
 
 		// <FORMULA>
 		newElement = element.addElement(PeakListElementName.FORMULA
 				.getElementName());
-		newElement.addText(identity.getCompoundFormula());
+		newElement.addText(identity.getCompoundFormula() != null ? identity.getCompoundFormula() : " ");
 
 		// <IDENTIFICATION>
 		newElement = element.addElement(PeakListElementName.IDENTIFICATION
 				.getElementName());
-		newElement.addText(identity.getIdentificationMethod());
+		newElement.addText(identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ");
 
 	}
 
+	/**
+	 * @param peak
+	 * @param element
+	 * @param dataFileID
+	 */
 	private void fillPeakElement(ChromatographicPeak peak, Element element,
 			int dataFileID) {
 
@@ -366,7 +405,7 @@ public class PeakListSaverTask implements Task {
 				.getElementName());
 		secondNewElement.addText(new String(bytes));
 
-		bytes = Base64.encode(byteScanStream.toByteArray());
+		bytes = Base64.encode(byteHeightStream.toByteArray());
 		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT
 				.getElementName());
 		secondNewElement.addText(new String(bytes));

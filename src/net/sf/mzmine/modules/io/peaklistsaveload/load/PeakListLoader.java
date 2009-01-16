@@ -80,8 +80,6 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		
-        logger.finest(" Activa setup window ");
-        
 		ExitCode setupExitCode = setupParameters(parameters);
 
         if (setupExitCode != ExitCode.OK) {

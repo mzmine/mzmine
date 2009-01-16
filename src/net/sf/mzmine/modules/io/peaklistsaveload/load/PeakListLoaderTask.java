@@ -19,11 +19,16 @@
 
 package net.sf.mzmine.modules.io.peaklistsaveload.load;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.channels.FileChannel;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -50,6 +55,7 @@ import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.Range;
 
+import org.jfree.xml.util.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -62,48 +68,61 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
 	private int parsedRows, totalRows;
+	private StringBuffer charBuffer;
 
 	// parameter values
 	private String fileName;
-	private File originalFile;
 
 	// flags
 	private boolean peakListFlag = false;
+	private boolean scanFlag = false;
+	private boolean mzPeakFlag = false;
 
 	// temporary variables
 	private TreeMap<Integer, RawDataFile> buildingArrayRawDataFiles;
-	private TreeMap<Integer, MzPeak> buildingArrayMzPeaks;
 	private RawDataFileImpl buildingRawDataFile;
 	private PeakList buildingPeakList;
 	private SimplePeakListRow buildingRow;
-	private int peakColumnID, rawDataFileID;
+	private int peakColumnID, rawDataFileID, quantity;
 	private double mass, rt, height, area;
+	private int[] scanNumbers;
+	private double[] retentionTimes, masses, intensities;
 	private String peakStatus, peakListName, name, formula,
 			identificationMethod, identityID;
 	private boolean preferred;
 	private Date date;
 	private Range rtRange, mzRange;
 
-	private String elementText;
-
+	/**
+	 * 
+	 * @param parameters
+	 */
 	public PeakListLoaderTask(PeakListLoaderParameters parameters) {
 
 		fileName = (String) parameters
 				.getParameterValue(PeakListLoaderParameters.filename);
 
-		originalFile = new File(fileName);
-
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
 	public void cancel() {
 		logger.info("Cancelling loading of MZmine peak list " + fileName);
 		status = TaskStatus.CANCELED;
 	}
 
+	
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
 	public String getErrorMessage() {
 		return errorMessage;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
 	public double getFinishedPercentage() {
 		if (totalRows == 0) {
 			return 0.0f;
@@ -111,39 +130,67 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 		return (double) parsedRows / (double) totalRows;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
 	public TaskStatus getStatus() {
 		return status;
 	}
 
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
 	public String getTaskDescription() {
 		return "Loading peak list from " + fileName;
 	}
 
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
 	public void run() {
 
 		status = TaskStatus.PROCESSING;
-		logger.info("Started parsing file " + originalFile);
+		logger.info("Started parsing file " + fileName);
 
 		// Use the default (non-validating) parser
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 
 		try {
 
+			File originalFile = new File(fileName);
+
 			if ((!originalFile.exists()) || (!originalFile.canRead())) {
 				throw new SAXException(
 						"Parsing Cancelled, file does not exist or is not readable");
 			}
 
+			FileInputStream fis = new FileInputStream(fileName);
+			InputStream finalStream = fis;
+			byte b[] = new byte[32];
+			fis.read(b);
+			String firstLine = new String(b);
+			if (!firstLine.contains("<?xml")) {
+				FileChannel fc = fis.getChannel();
+				fc.position(0);
+				ZipInputStream zis = new ZipInputStream(fis);
+				zis.getNextEntry();
+				finalStream = zis;
+			} else {
+				FileChannel fc = fis.getChannel();
+				fc.position(0);
+			}
+
 			buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
-			buildingArrayMzPeaks = new TreeMap<Integer, MzPeak>();
+			charBuffer = new StringBuffer();
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(originalFile, this);
+			saxParser.parse(finalStream, this);
 
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
+			e.printStackTrace();
 			return;
 		}
 
@@ -153,22 +200,25 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 			return;
 		}
 
-		// Add new peaklist to the project
+		// Add new peaklist to the project or MZviewer.desktop
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		if (currentProject != null){
+		if (currentProject != null) {
 			currentProject.addPeakList(buildingPeakList);
-		}
-		else{
+		} else {
 			Desktop desktop = MZmineCore.getDesktop();
-			((MZviewerWindow) desktop).getItemSelector().addPeakList(buildingPeakList);
+			((MZviewerWindow) desktop).getItemSelector().addPeakList(
+					buildingPeakList);
 		}
 
-		logger.info("Finished parsing " + originalFile + ", parsed "
-				+ parsedRows + " rows");
+		logger.info("Finished parsing " + fileName + ", parsed " + parsedRows
+				+ " rows");
 		status = TaskStatus.FINISHED;
 
 	}
 
+	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String, java.lang.String, java.lang.String, org.xml.sax.Attributes)
+	 */
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
@@ -199,19 +249,12 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 		// <SCAN>
 		if (qName.equals(PeakListElementName.SCAN.getElementName())) {
 			try {
-				if (buildingRawDataFile == null) {
-					buildingRawDataFile = new RawDataFileImpl(name);
-				}
-				int scanNumber = Integer.parseInt(attrs
-						.getValue(PeakListElementName.ID.getElementName()));
-				double retentionTime = Double.parseDouble(attrs
-						.getValue(PeakListElementName.RT.getElementName()));
-				
-				SimpleScan newScan = new SimpleScan(scanNumber, 1,
-						retentionTime, -1, 0f, null, new MzDataPoint[0], false);
-				
-				buildingRawDataFile.addScan(newScan);
-				
+				quantity = Integer
+						.parseInt(attrs.getValue(PeakListElementName.QUANTITY
+								.getElementName()));
+
+				scanFlag = true;
+
 			} catch (Exception e) {
 				status = TaskStatus.ERROR;
 				errorMessage = "This file does not have MZmine peak list file format";
@@ -285,17 +328,12 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 		// <MZPEAK>
 		if (qName.equals(PeakListElementName.MZPEAK.getElementName())) {
 			try {
-				int mzPeakScanID = Integer.parseInt(attrs
-						.getValue(PeakListElementName.SCAN.getElementName()));
-				double mz = Double.parseDouble(attrs
-						.getValue(PeakListElementName.MASS.getElementName()));
-				double intensity = Double.parseDouble(attrs
-						.getValue(PeakListElementName.HEIGHT.getElementName()));
-				SimpleMzPeak mzPeak = new SimpleMzPeak(new SimpleDataPoint(
-						mz, intensity));
-				
-				buildingArrayMzPeaks.put(mzPeakScanID, mzPeak);
-				
+				quantity = Integer
+						.parseInt(attrs.getValue(PeakListElementName.QUANTITY
+								.getElementName()));
+
+				mzPeakFlag = true;
+
 			} catch (Exception e) {
 				status = TaskStatus.ERROR;
 				errorMessage = "This file does not have MZmine peak list file format";
@@ -308,7 +346,7 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 	}
 
 	/**
-	 * endElement()
+	 * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
@@ -319,15 +357,16 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 
 		// <NAME>
 		if (qName.equals(PeakListElementName.NAME.getElementName())) {
-			name = elementText;
+			name = getTextOfElement();
 			if (peakListFlag)
 				peakListName = name;
+
 		}
 
 		// <PEAKLIST_DATE>
 		if (qName.equals(PeakListElementName.PEAKLIST_DATE.getElementName())) {
 			try {
-				String text = elementText;
+				String text = getTextOfElement();
 				date = PeakListSaverTask.dateFormat.parse(text);
 			} catch (Exception e) {
 				status = TaskStatus.ERROR;
@@ -340,30 +379,119 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 		// <QUANTITY>
 		if (qName.equals(PeakListElementName.QUANTITY.getElementName())) {
 			try {
-				String text = elementText;
+				String text = getTextOfElement();
 				text = text.trim();
 				totalRows = Integer.parseInt(text);
 			} catch (Exception e) {
 				status = TaskStatus.ERROR;
 				errorMessage = "This file does not have MZmine peak list file format";
-				throw new SAXException("Could not read number of rows");
+				throw new SAXException("Could not read quantity");
 			}
+		}
+
+		// <SCAN_ID>
+		if (qName.equals(PeakListElementName.SCAN_ID.getElementName())) {
+			try {
+				if (scanFlag) {
+					String valueText = getTextOfElement();
+					String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
+					scanNumbers = new int[quantity];
+					for (int i = 0; i < quantity; i++) {
+						scanNumbers[i] = Integer.parseInt(values[i]);
+					}
+				} else if (mzPeakFlag) {
+					byte[] bytes = Base64.decode(getTextOfElement()
+							.toCharArray());
+					// make a data input stream
+					DataInputStream dataInputStream = new DataInputStream(
+							new ByteArrayInputStream(bytes));
+					scanNumbers = new int[quantity];
+					for (int i = 0; i < quantity; i++) {
+						scanNumbers[i] = dataInputStream.readInt();
+					}
+				}
+
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "This file does not have MZmine peak list file format";
+				e.printStackTrace();
+				throw new SAXException("Could not read list of scan numbers");
+			}
+		}
+
+		// <RT>
+		if (qName.equals(PeakListElementName.RT.getElementName())) {
+			try {
+				String valueText = getTextOfElement();
+				String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
+				retentionTimes = new double[quantity];
+				for (int i = 0; i < quantity; i++) {
+					retentionTimes[i] = Double.parseDouble(values[i]);
+				}
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "This file does not have MZmine peak list file format";
+				e.printStackTrace();
+				throw new SAXException("Could not read list of retention times");
+			}
+		}
+
+		// <MASS>
+		if (qName.equals(PeakListElementName.MASS.getElementName())) {
+			try {
+				byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
+				// make a data input stream
+				DataInputStream dataInputStream = new DataInputStream(
+						new ByteArrayInputStream(bytes));
+				masses = new double[quantity];
+				for (int i = 0; i < quantity; i++) {
+					masses[i] = (double) dataInputStream.readFloat();
+				}
+
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "This file does not have MZmine peak list file format";
+				e.printStackTrace();
+				throw new SAXException("Could not read list of masses");
+			}
+
+		}
+
+		// <HEIGHT>
+		if (qName.equals(PeakListElementName.HEIGHT.getElementName())) {
+			try {
+				byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
+				// make a data input stream
+				DataInputStream dataInputStream = new DataInputStream(
+						new ByteArrayInputStream(bytes));
+				intensities = new double[quantity];
+				for (int i = 0; i < quantity; i++) {
+					intensities[i] = (double) dataInputStream.readFloat();
+				}
+
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "This file does not have MZmine peak list file format";
+				e.printStackTrace();
+				throw new SAXException("Could not read list of intensities");
+			}
+
 		}
 
 		// <FORMULA>
 		if (qName.equals(PeakListElementName.FORMULA.getElementName())) {
-			formula = elementText;
+			formula = getTextOfElement();
 		}
 
 		// <IDENTIFICATION>
 		if (qName.equals(PeakListElementName.IDENTIFICATION.getElementName())) {
-			identificationMethod = elementText;
+			identificationMethod = getTextOfElement();
 		}
 
 		// <RTRANGE>
 		if (qName.equals(PeakListElementName.RTRANGE.getElementName())) {
 			try {
-				String valueText = elementText;
+				String valueText = getTextOfElement();
 				String values[] = valueText.split("-");
 				double min = Double.parseDouble(values[0]);
 				double max = Double.parseDouble(values[1]);
@@ -379,7 +507,7 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 		// <MZRANGE>
 		if (qName.equals(PeakListElementName.MZRANGE.getElementName())) {
 			try {
-				String valueText = elementText;
+				String valueText = getTextOfElement();
 				String values[] = valueText.split("-");
 				double min = Double.parseDouble(values[0]);
 				double max = Double.parseDouble(values[1]);
@@ -392,28 +520,25 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 			}
 		}
 
+		// <MZPEAK>
+		if (qName.equals(PeakListElementName.MZPEAK.getElementName())) {
+			mzPeakFlag = false;
+		}
+
 		// <PEAK>
 		if (qName.equals(PeakListElementName.PEAK.getElementName())) {
 
-			int index = 0;
-			int length = buildingArrayMzPeaks.size();
-			int[] scanNumbers = new int[length];
-			MzPeak[] mzPeaks = new MzPeak[length];
-
-			Iterator<Integer> itr = buildingArrayMzPeaks.keySet().iterator();
-			while (itr.hasNext()) {
-				int scan = itr.next();
-				scanNumbers[index] = scan;
-				mzPeaks[index] = buildingArrayMzPeaks.get(scan);
-				index++;
+			MzPeak[] mzPeaks = new MzPeak[quantity];
+			for (int i = 0; i < quantity; i++) {
+				mzPeaks[i] = new SimpleMzPeak(new SimpleDataPoint(masses[i],
+						intensities[i]));
 			}
-			buildingArrayMzPeaks.clear();
 
 			SimpleChromatographicPeak peak = new SimpleChromatographicPeak(
 					buildingArrayRawDataFiles.get(peakColumnID), mass, rt,
 					height, area, scanNumbers, mzPeaks, PeakStatus.valueOf(
 							PeakStatus.class, peakStatus), -1);
-			
+
 			buildingRow.addPeak(buildingArrayRawDataFiles.get(peakColumnID),
 					peak);
 		}
@@ -433,6 +558,29 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 			parsedRows++;
 		}
 
+		// <SCAN>
+		if (qName.equals(PeakListElementName.SCAN.getElementName())) {
+			try {
+				if (buildingRawDataFile == null) {
+					buildingRawDataFile = new RawDataFileImpl(name);
+				}
+
+				for (int i = 0; i < quantity; i++) {
+					SimpleScan newScan = new SimpleScan(scanNumbers[i], 1,
+							retentionTimes[i], -1, 0f, null,
+							new MzDataPoint[0], false);
+					buildingRawDataFile.addScan(newScan);
+				}
+				scanFlag = false;
+
+			} catch (Exception e) {
+				status = TaskStatus.ERROR;
+				errorMessage = "Error trying to create temporary RawDataFile";
+				throw new SAXException(
+						"Could not create scans for temporary raw data file");
+			}
+		}
+
 		// <RAWFILE>
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
 			buildingRawDataFile.setRTRange(1, rtRange);
@@ -444,13 +592,25 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 	}
 
 	/**
+	 * Return a string without tab an EOF characters
+	 * 
+	 * @return String element text
+	 */
+	private String getTextOfElement() {
+		String text = charBuffer.toString();
+		text = text.replaceAll("[\n\r\t]+", "");
+		text = text.replaceAll("^\\s+", "");
+		charBuffer.delete(0, charBuffer.length());
+		return text;
+	}
+
+	/**
 	 * characters()
 	 * 
 	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
 	 */
 	public void characters(char buf[], int offset, int len) throws SAXException {
-		elementText = new String(buf, offset, len);
-		elementText = elementText.replaceAll("[\n\r\t]+", "");
+		charBuffer = charBuffer.append(buf, offset, len);
 	}
 
 }
