@@ -21,10 +21,7 @@ package net.sf.mzmine.modules.io.peaklistsaveload.save;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.DateFormat;
@@ -32,7 +29,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Logger;
-import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -178,6 +174,7 @@ public class PeakListSaverTask implements Task {
             if (compression) {
                 ZipOutputStream zos = new ZipOutputStream(fos);
                 zos.setLevel(9);
+                zos.putNextEntry(new ZipEntry(fileName));
                 finalStream = zos;
             }
              

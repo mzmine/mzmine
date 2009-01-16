@@ -405,11 +405,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			JFileChooser fileChooser = new JFileChooser();
 			fileChooser.setMultiSelectionEnabled(false);
 			if (fileChooserFilter != null)
-	        fileChooser.setFileFilter(fileChooserFilter);
-			fileChooser.setApproveButtonText("Select");
+				fileChooser.setFileFilter(fileChooserFilter);
 			
 			int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
-					.getMainFrame(),null);
+					.getMainFrame(), "Select");
 
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File selectedFile = fileChooser.getSelectedFile();
