@@ -593,5 +593,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		}
 		return underConstuctionParameter;
 	}
+    
+    protected JComponent getComponentForParameter(Parameter p) {
+        return parametersAndComponents.get(p);
+    }
 
 }
