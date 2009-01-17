@@ -5,8 +5,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\Combined Fluid</parameter>
-        <parameter name="Files to import" type="STRING">080822_Culture_fluid_neg_06.mzXML 080822_EMM2_neg_07.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
+        <parameter name="Files to import" type="STRING">081015_E_WT_VE_neg_08.mzXML 081015_F_WT_G0_neg_09.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -85,7 +85,7 @@
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
         <parameter name="Retention time" type="RANGE">0.7549999952316284-2399.639892578125</parameter>
-        <parameter name="m/z range" type="RANGE">100.98603188313405-100.98627774404338</parameter>
+        <parameter name="m/z range" type="RANGE">100.98603057861328-100.98627471923828</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -134,14 +134,14 @@
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
-          <width>140</width>
+          <width>59</width>
         </column>
         <column type="common" name="COMMENT">
           <visible>false</visible>
           <width>100</width>
         </column>
         <column type="common" name="PEAKSHAPE">
-          <visible>false</visible>
+          <visible>true</visible>
           <width>305</width>
         </column>
         <column type="datafile" name="STATUS">
@@ -149,7 +149,7 @@
           <width>17</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
-          <visible>true</visible>
+          <visible>false</visible>
           <width>443</width>
         </column>
         <column type="datafile" name="MZ">
@@ -177,6 +177,7 @@
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
       <parameters/> 
     </module>  
@@ -359,7 +360,7 @@
         <parameter name="Field order" type="DRAG_ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">1.0</parameter>
-        <parameter name="Time tolerance" type="DOUBLE">300.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">120.0</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
@@ -397,12 +398,13 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaver"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest2.mpl</parameter>
+        <parameter name="Compressed file" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest2.mpl</parameter>
       </parameters> 
     </module> 
   </modules>  
@@ -420,10 +422,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>-8</x>
-      <y>-8</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>460</x>
+      <y>235</y>
+      <width>1118</width>
+      <height>829</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
   </desktop> 
