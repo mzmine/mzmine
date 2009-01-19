@@ -315,6 +315,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 			
 			originalElement = originalElement.toUpperCase();
 			
+            // TODO: check for exception - regular expression may be wrong
 			if ((originalElement.matches(".*" + selectionElement + ".*"))) {
 				if (!items.contains(listOfIds[rowID]))
 					items.add(listOfIds[rowID]);
