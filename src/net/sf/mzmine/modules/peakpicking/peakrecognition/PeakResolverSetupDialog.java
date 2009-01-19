@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peakpicking.peakrecognition;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,6 +34,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -44,6 +44,7 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -98,8 +99,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         // Set a listener in all parameters's fields to add functionality to
         // this dialog
-        Component[] fields = pnlFields.getComponents();
-        for (Component field : fields) {
+        for (Parameter p : pbParameters.getParameters()) {
+
+            JComponent field = getComponentForParameter(p);
             field.addPropertyChangeListener("value", this);
             if (field instanceof JCheckBox)
                 ((JCheckBox) field).addActionListener(this);
@@ -241,7 +243,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
         ticPlot.addTICDataset(ticDataset);
-        
+
         // Set auto range to axes
         ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
         ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
@@ -326,7 +328,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
         toolBar.getComponentAtIndex(0).setVisible(false);
         pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-        labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
+        pnlAll.add(pnlVisible, BorderLayout.CENTER);
 
         // Complete panel for this dialog including pnlPlotXY
         pnlLocal = new JPanel(new BorderLayout());

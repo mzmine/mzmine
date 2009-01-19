@@ -40,6 +40,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -50,6 +51,7 @@ import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
@@ -152,16 +154,18 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 					indexComboFileName = i;
 			}
 
-			// Set a listener in all parameters's fields to add functionality to
-			// this dialog
-			Component[] fields = pnlFields.getComponents();
-			for (Component field : fields) {
-				field.addPropertyChangeListener("value", this);
-				if (field instanceof JCheckBox)
-					((JCheckBox) field).addActionListener(this);
-				if (field instanceof JComboBox)
-					((JComboBox) field).addActionListener(this);
-			}
+            // Set a listener in all parameters's fields to add functionality to
+            // this dialog
+            for (Parameter p : mdParameters.getParameters()) {
+
+                JComponent field = getComponentForParameter(p);
+                field.addPropertyChangeListener("value", this);
+                if (field instanceof JCheckBox)
+                    ((JCheckBox) field).addActionListener(this);
+                if (field instanceof JComboBox)
+                    ((JComboBox) field).addActionListener(this);
+            }
+
 
 			// Add all complementary components for this dialog
 			addComponentsPnl();
@@ -453,7 +457,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		JPanel pnlVisible = new JPanel(new BorderLayout());
 
 		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
-		pnlVisible.add(pnlFileNameScanNumber, BorderLayout.SOUTH);
+        
+        JPanel tmp = new JPanel();
+        tmp.add(pnlFileNameScanNumber);
+		pnlVisible.add(tmp, BorderLayout.CENTER);
 
 		// Panel for XYPlot
 		pnlPlotXY = new JPanel(new BorderLayout());
@@ -473,7 +480,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		labelsAndFields.add(pnlVisible, BorderLayout.SOUTH);
+		pnlAll.add(pnlVisible, BorderLayout.CENTER);
 
 		// Complete panel for this dialog including pnlPlotXY
 		pnlLocal = new JPanel(new BorderLayout());

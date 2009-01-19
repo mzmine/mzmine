@@ -211,6 +211,8 @@ public class Chromatogram implements ChromatographicPeak {
                 rawDataPointsRTRange);
         for (int number : fragmentScanNumbers) {
             Scan scan = dataFile.getScan(number);
+            // Ignore scans with no peaks
+            if (scan.getBasePeak() == null) continue;
             if (rawDataPointsMZRange.contains(scan.getPrecursorMZ())) {
                 if ((fragmentScan == -1)
                         || (scan.getBasePeak().getIntensity() > topBasePeak)) {

@@ -128,6 +128,7 @@ public class ResolvedPeak implements ChromatographicPeak {
                 rawDataPointsRTRange);
         for (int number : fragmentScanNumbers) {
             Scan scan = dataFile.getScan(number);
+            if (scan.getBasePeak() == null) continue;
             if (rawDataPointsMZRange.contains(scan.getPrecursorMZ())) {
                 if ((fragmentScan == -1)
                         || (scan.getBasePeak().getIntensity() > topBasePeak)) {
