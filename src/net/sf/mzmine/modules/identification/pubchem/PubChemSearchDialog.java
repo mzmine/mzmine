@@ -13,35 +13,33 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.identification.pubchem;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
 
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PubChemSearchDialog extends ParameterSetupDialog implements
         ActionListener, PropertyChangeListener {
 
-    private PubChemSearchParameters parameters;
     private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
     private double rawMassValue;
-    public static final DecimalFormat massFormat = new DecimalFormat("#####.#####");
+    private JTextField chargeField;
+    private JFormattedTextField neutralMassField;
+    private JComboBox ionizationMethodCombo;
 
     /**
      * 
@@ -52,31 +50,22 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
         // Make dialog modal
         super("PubChem search setup dialog ", parameters);
 
-        this.parameters = parameters;
         this.rawMassValue = massValue;
 
-        Component[] fields = pnlFields.getComponents();
-        Parameter[] params = parameters.getParameters();
-        for (int i = 0; i < params.length; i++) {
-            if (params[i].getName() == "Neutral mass") {
-                ((JTextField) fields[i]).setEditable(false);
-                ((JTextField) fields[i]).setBackground(BACKGROUND_COLOR);
-                continue;
-            }
-            if (params[i].getName() == "Peak mass") {
-                ((JTextField) fields[i]).setText(massFormat.format(massValue));
-                ((JTextField) fields[i]).setEditable(false);
-                ((JTextField) fields[i]).setBackground(BACKGROUND_COLOR);
-                continue;
-            }
-            if (fields[i] instanceof JComboBox) {
-                ((JComboBox) fields[i]).addActionListener(this);
-                continue;
-            }
+        chargeField = (JTextField) getComponentForParameter(PubChemSearchParameters.charge);
+        chargeField.addPropertyChangeListener("value", this);
 
-            fields[i].addPropertyChangeListener("value", this);
+        neutralMassField = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.neutralMass);
+        neutralMassField.setEditable(false);
+        neutralMassField.setBackground(BACKGROUND_COLOR);
 
-        }
+        JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.rawMass);
+        peakMass.setEditable(false);
+        peakMass.setBackground(BACKGROUND_COLOR);
+        peakMass.setValue(massValue);
+
+        ionizationMethodCombo = (JComboBox) getComponentForParameter(PubChemSearchParameters.ionizationMethod);
+        ionizationMethodCombo.addActionListener(this);
 
         setNeutralMassValue();
 
@@ -99,7 +88,7 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 
     }
 
-    /** 
+    /**
      * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
      */
     public void propertyChange(PropertyChangeEvent pro) {
@@ -117,31 +106,18 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
         double neutral = rawMassValue;
         int sign = 1;
 
-        Component[] fields = pnlFields.getComponents();
-        Parameter[] params = parameters.getParameters();
-        for (int i = 0; i < params.length; i++) {
-            if (params[i].getName() == "Charge") {
-                chargeLevel = Integer.parseInt(((JTextField) fields[i]).getText());
-                continue;
-            }
-            if (params[i].getName() == "Ionization method") {
-                Object a = ((JComboBox) fields[i]).getSelectedItem();
-                ion = ((TypeOfIonization) a).getMass();
-                sign = ((TypeOfIonization) a).getSign();
-                ion *= sign;
-                continue;
-            }
-        }
+        chargeLevel = Integer.parseInt(chargeField.getText());
+
+        Object a = ionizationMethodCombo.getSelectedItem();
+        ion = ((TypeOfIonization) a).getMass();
+        sign = ((TypeOfIonization) a).getSign();
+        ion *= sign;
 
         neutral /= chargeLevel;
         neutral += ion;
 
-        for (int i = 0; i < params.length; i++) {
-            if (params[i].getName() == "Neutral mass") {
-                ((JFormattedTextField) fields[i]).setValue(neutral);
-                break;
-            }
-        }
+        neutralMassField.setValue(neutral);
+        
     }
 
 }
