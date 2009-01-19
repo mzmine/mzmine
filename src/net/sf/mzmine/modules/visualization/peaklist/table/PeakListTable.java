@@ -45,7 +45,7 @@ import com.sun.java.TableSorter;
 
 public class PeakListTable extends JTable {
 
-	static final String UNKNOWN_IDENTITY = "Unknown";
+	static final String EDIT_IDENTITY = "Edit";
 	static final String REMOVE_IDENTITY = "Remove";
 	static final String NEW_IDENTITY = "Add new...";
 
@@ -111,18 +111,16 @@ public class PeakListTable extends JTable {
 				combo = new JComboBox(identities);
 				combo.addItem("-------------------------");
 				combo.addItem(REMOVE_IDENTITY);
+                combo.addItem(EDIT_IDENTITY);
 			} else {
 				combo = new JComboBox();
 			}
 
 			combo.setFont(comboFont);
-
-			combo.addItem(UNKNOWN_IDENTITY);
 			combo.addItem(NEW_IDENTITY);
-			if (preferredIdentity == null) {
-				combo.setSelectedItem(UNKNOWN_IDENTITY);
-			} else
+			if (preferredIdentity != null) {
 				combo.setSelectedItem(preferredIdentity);
+            }
 
 			combo.addActionListener(new ActionListener() {
 
@@ -136,12 +134,11 @@ public class PeakListTable extends JTable {
 							dialog.setVisible(true);
 							return;
 						}
-						if (item.toString() == UNKNOWN_IDENTITY) {
-							peakListRow
-									.addCompoundIdentity(new SimpleCompoundIdentity(
-											null, UNKNOWN_IDENTITY, null, null,
-											null, "User defined", null), true);
-							return;
+						if (item.toString() == EDIT_IDENTITY) {
+                            CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
+                                    peakListRow, peakListRow.getPreferredCompoundIdentity());
+                            dialog.setVisible(true);
+                            return;
 						}
 						if (item.toString() == REMOVE_IDENTITY) {
 							PeakIdentity identity = peakListRow

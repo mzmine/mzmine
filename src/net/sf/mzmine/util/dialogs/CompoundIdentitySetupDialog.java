@@ -34,6 +34,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.desktop.Desktop;
@@ -53,13 +54,18 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 	private JButton btnOK, btnCancel;
 	
     private PeakListRow peakListRow;
+    private PeakIdentity editIdentity;
 	
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
 
-	public CompoundIdentitySetupDialog (PeakListRow peakListRow){
+    public CompoundIdentitySetupDialog (PeakListRow peakListRow){
+        this(peakListRow, null);
+    }
+    
+	public CompoundIdentitySetupDialog (PeakListRow peakListRow, PeakIdentity editIdentity){
 
 		// Make dialog modal
 		super(MZmineCore.getDesktop().getMainFrame(), true);
@@ -93,6 +99,7 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 		pnlFields.add(compoundID);
 		
 		comments = new JTextArea(5,TEXTFIELD_COLUMNS);
+        comments.setText(peakListRow.getComment());
 		JScrollPane scrollPane = new JScrollPane(comments);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -102,6 +109,14 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 		pnlComments.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 		pnlComments.add(new JLabel("Comments"), BorderLayout.NORTH);
 		pnlComments.add(scrollPane, BorderLayout.CENTER);
+        
+        if (editIdentity != null) {
+            this.editIdentity = editIdentity;
+            compoundName.setText(editIdentity.getName());
+            compoundFormula.setText(editIdentity.getCompoundFormula());
+            compoundID.setText(editIdentity.getID());
+        }
+        
 		
 		// Buttons
 		pnlButtons = new JPanel();
@@ -153,6 +168,7 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 			compound = new SimpleCompoundIdentity(id, name, null,
 					formula, null, "User defined", note);
 
+            if (editIdentity != null) peakListRow.removeCompoundIdentity(editIdentity);
 			peakListRow.addCompoundIdentity(compound, true);
 			peakListRow.setComment(note);
 			
