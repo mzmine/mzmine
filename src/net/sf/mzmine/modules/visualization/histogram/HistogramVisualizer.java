@@ -26,16 +26,22 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class HistogramVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static HistogramVisualizer myInstance;
+    
+    private HistogramParameters parameters;
 
     private Desktop desktop;
 
@@ -47,11 +53,33 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
         this.desktop = MZmineCore.getDesktop();
 
         myInstance = this;
+        
+        this.parameters = new HistogramParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list histogram",
                 "Visualization of peak list data in a histogram", KeyEvent.VK_3, false,
                 this, null);
 
+    }
+    
+    public void initLightModule(){
+        this.desktop = MZmineCore.getDesktop();
+
+        myInstance = this;
+        
+        this.parameters = new HistogramParameters();
+    	
+    }
+    
+    /**
+     * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ExitCode setupParameters(ParameterSet parameters) {
+        ParameterSetupDialog dialog = new ParameterSetupDialog(
+                "Please set parameter values for " + toString(),
+                (SimpleParameterSet) parameters);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
     }
 
     /**
@@ -64,15 +92,29 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
         PeakList[] peaklists = desktop.getSelectedPeakLists();
 
         if (peaklists.length != 1) {
-            desktop.displayErrorMessage("Please select a peak list for visualization in scatter plot");
+            desktop.displayErrorMessage("Please select a peak list for visualization in histogram plot");
             return;
         }
         
-        HistogramWindow newWindow = new HistogramWindow(peaklists[0], "Histogram of " + peaklists[0].toString());
 
-        desktop.addInternalFrame(newWindow);
+        for (PeakList pl : peaklists) {
+        	
+        	SimpleParameter p = (SimpleParameter) parameters.getParameter("Raw data files");
+        	p.setPossibleValues(pl.getRawDataFiles());
+        	
+            ExitCode exitCode = setupParameters(parameters);
+            if (exitCode != ExitCode.OK) {
+                return;
+            }
+
+            HistogramWindow newWindow = new HistogramWindow(peaklists[0], parameters);
+
+            desktop.addInternalFrame(newWindow);
+        }
+        
         
     }
+    
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#toString()
@@ -82,10 +124,11 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
     }
 
 	public ParameterSet getParameterSet() {
-		return null;
+		return parameters;
 	}
 
 	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (HistogramParameters) parameterValues;
 	}
 
 

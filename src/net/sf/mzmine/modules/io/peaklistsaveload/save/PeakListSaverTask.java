@@ -171,6 +171,10 @@ public class PeakListSaverTask implements Task {
 						.getElementName());
 				newElement.addText(proc.getDescription());
 			}
+			// Add local task
+			newElement = saveRoot.addElement(PeakListElementName.PROCESS
+					.getElementName());
+			newElement.addText("Saved to file" + fileName);
 
 			// <RAWFILE>
 			RawDataFile[] dataFiles = peakList.getRawDataFiles();

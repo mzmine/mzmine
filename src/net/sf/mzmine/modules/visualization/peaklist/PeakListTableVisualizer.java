@@ -73,7 +73,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     }
     
-    public void initModule(JMenuItem menuItem) {
+    public void initLightModule() {
 
         this.desktop = MZmineCore.getDesktop();
         myInstance = this;
@@ -96,6 +96,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
 
     }
+    
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)

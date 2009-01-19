@@ -24,20 +24,21 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
+import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.chart.block.BlockBorder;
-import org.jfree.chart.event.ChartProgressEvent;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.SeriesRenderingOrder;
@@ -77,15 +78,12 @@ public class Histogram extends ChartPanel{
 
 	private JFreeChart chart;
 	private XYPlot plot;
-	private HistogramPanel histogramPanel;
 	private boolean showItemName = false;
 	private HistogramPlotDataset dataSet;
 	
-	public Histogram(HistogramPanel masterFrame) {
+	public Histogram() {
 
 		super(null, true);
-
-		this.histogramPanel = masterFrame;
 
 		// initialize the chart by default time series chart from factory
 		chart = ChartFactory.createHistogram("", // title
@@ -168,44 +166,28 @@ public class Histogram extends ChartPanel{
 		String command = event.getActionCommand();
 
 		if (command.equals("SETUP_AXES")) {
-			histogramPanel.actionPerformed(event);
+			AxesSetupDialog dialog = new AxesSetupDialog(plot);
+			dialog.setVisible(true);
 			return;
 		}
 
 	}
 
-	/**
-	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-	 */
-	public void mouseClicked(MouseEvent event) {
-		super.mouseClicked(event);
-		requestFocus();
-		if (event.getButton() == MouseEvent.BUTTON1)
-			showItemName = true;
-	}
-
-	/**
-	 * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
-	 */
-	@Override
-	public void chartProgress(ChartProgressEvent event) {
-		// super.chartProgress(event);
-		if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
-			if (showItemName) {
-				showItemName = false;
-				histogramPanel.actionPerformed(new ActionEvent(event
-						.getSource(), ActionEvent.ACTION_PERFORMED,
-						"SHOW_ITEM_NAME"));
-			}
-		}
-	}
 
 	synchronized public void addDataset(HistogramPlotDataset newSet, HistogramDataType dataType) {
 		dataSet = newSet;
 		setAxisNumberFormat(dataType);
-		plot.getDomainAxis().setLabel(dataSet.getPeakList().getName());
+		NumberAxis axis = (NumberAxis) plot.getDomainAxis();
+		axis.setAutoRange(true);
+		NumberFormatter formatter = (NumberFormatter) axis.getNumberFormatOverride();
+		axis.setLabel(dataType.getText() + " (" + formatter.getPattern() + ")");
+		axis.setTickUnit(new NumberTickUnit(dataSet.getBinWidth()));
+		if (dataSet.getItemCount(0) > 6)
+		axis.setVerticalTickLabels(true);
+
+		plot.getRangeAxis().setLabel("Number of peaks");
 		plot.setDataset(0, newSet);
-		setTitle(dataSet.getPeakList().getName(), dataType.getText());
+		setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType.getText());
 	}
 	
 	public void setAxisNumberFormat(HistogramDataType dataType){
@@ -234,13 +216,6 @@ public class Histogram extends ChartPanel{
 		chartSubTitle.setText(subTitleText);
 	}
 
-	public HistogramPanel getMaster() {
-		return histogramPanel;
-	}
-
-	public XYPlot getXYPlot() {
-		return plot;
-	}
 
 
 }

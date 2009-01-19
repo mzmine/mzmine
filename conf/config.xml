@@ -177,27 +177,16 @@
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
-    <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"> 
+      <parameters>
+        <parameter name="Raw data files" type="MULTIPLE_SELECTION">2</parameter>
+        <parameter name="Plotted data type" type="STRING">m/z</parameter>
+        <parameter name="Number of bins" type="INTEGER">7</parameter>
+      </parameters> 
+    </module>  
     <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
-      <parameters>
-        <batchstep>
-          <method>net.sf.mzmine.modules.io.rawdataimport.RawDataImporter</method>
-          <parameters>
-            <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
-            <parameter name="Files to import" type="STRING">081015_C_EMM2-afterautoclave_neg_06.RAW</parameter>
-          </parameters>
-        </batchstep>
-        <batchstep>
-          <method>net.sf.mzmine.modules.rawdata.cropper.CropFilter</method>
-          <parameters>
-            <parameter name="Filename suffix" type="STRING">cropped</parameter>
-            <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
-            <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
-            <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-          </parameters>
-        </batchstep>
-      </parameters> 
+      <parameters/> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.cropper.CropFilter"> 
       <parameters>
@@ -240,10 +229,10 @@
     <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">gap-filled</parameter>
-        <parameter name="Intensity tolerance" type="DOUBLE">0.4</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.0030</parameter>
+        <parameter name="Intensity tolerance" type="DOUBLE">0.2</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.2</parameter>
         <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">50.0</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
       </parameters> 
     </module>  
@@ -255,10 +244,10 @@
     <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">deisotoped</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.02</parameter>
-        <parameter name="RT tolerance" type="DOUBLE">20.0</parameter>
-        <parameter name="Monotonic shape" type="BOOLEAN">false</parameter>
-        <parameter name="Maximum charge" type="INTEGER">2</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="RT tolerance" type="DOUBLE">5.0</parameter>
+        <parameter name="Monotonic shape" type="BOOLEAN">true</parameter>
+        <parameter name="Maximum charge" type="INTEGER">1</parameter>
         <parameter name="Representative isotope" type="STRING">Most intense</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
@@ -266,39 +255,39 @@
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">Duplicate peaks filtered</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.0020</parameter>
-        <parameter name="RT difference maximum" type="DOUBLE">70.0</parameter>
-        <parameter name="Require same identification" type="BOOLEAN">false</parameter>
+        <parameter name="M/Z tolerance" type="DOUBLE">0.05</parameter>
+        <parameter name="RT difference maximum" type="DOUBLE">5.0</parameter>
+        <parameter name="Require same identification" type="BOOLEAN">true</parameter>
         <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.rowsfilter.RowsFilter"> 
       <parameters>
-        <parameter name="Name suffix" type="STRING">id</parameter>
+        <parameter name="Name suffix" type="STRING">filtered</parameter>
         <parameter name="Minimum peaks in a row" type="INTEGER">1</parameter>
         <parameter name="Minimum peaks in an isotope pattern" type="INTEGER">1</parameter>
         <parameter name="Minimum m/z" type="DOUBLE">0.0</parameter>
-        <parameter name="Maximum m/z" type="DOUBLE">1000.0</parameter>
+        <parameter name="Maximum m/z" type="DOUBLE">0.0</parameter>
         <parameter name="Minimum retention time" type="DOUBLE">0.0</parameter>
-        <parameter name="Maximum retention time" type="DOUBLE">1800.0</parameter>
-        <parameter name="Only identified?" type="BOOLEAN">false</parameter>
+        <parameter name="Maximum retention time" type="DOUBLE">0.0</parameter>
+        <parameter name="Only identified?" type="BOOLEAN"/>
         <parameter name="Remove source peak list after filtering" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
       <parameters>
-        <parameter name="Peak list name" type="STRING">aligned</parameter>
-        <parameter name="m/z tolerance" type="DOUBLE">0.0025</parameter>
+        <parameter name="Peak list name" type="STRING">Aligned peak list</parameter>
+        <parameter name="m/z tolerance" type="DOUBLE">0.2</parameter>
         <parameter name="Weight for m/z" type="DOUBLE">10.0</parameter>
-        <parameter name="Retention time tolerance type" type="STRING">Relative</parameter>
-        <parameter name="Absolute RT tolerance" type="DOUBLE">40.0</parameter>
-        <parameter name="Relative RT tolerance" type="DOUBLE">0.95</parameter>
+        <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
         <parameter name="Weight for RT" type="DOUBLE">10.0</parameter>
         <parameter name="Require same ID" type="BOOLEAN">false</parameter>
         <parameter name="Weight for ID" type="DOUBLE">0.0</parameter>
         <parameter name="Compare isotope pattern" type="BOOLEAN">false</parameter>
-        <parameter name="Isotope pattern score thresold level" type="DOUBLE">0.9</parameter>
-        <parameter name="Weight for isotope pattern score" type="DOUBLE">10.0</parameter>
+        <parameter name="Isotope pattern score thresold level" type="DOUBLE">0.65</parameter>
+        <parameter name="Weight for isotope pattern score" type="DOUBLE">0.0</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner"> 
@@ -335,11 +324,11 @@
     <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
-        <parameter name="Normalization type" type="STRING">Weighted contribution of all standards</parameter>
-        <parameter name="Peak measurement type" type="STRING">Peak area</parameter>
+        <parameter name="Normalization type" type="STRING">Nearest standard</parameter>
+        <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
-        <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
-        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">1</parameter>
+        <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION"/>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -356,39 +345,37 @@
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot"> 
-      <parameters>
-        <yValueSource>Peak area</yValueSource>
-      </parameters> 
+      <parameters/> 
     </module>  
     <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator"> 
       <parameters>
-        <parameter name="Chemical formula" type="STRING">C100</parameter>
+        <parameter name="Chemical formula" type="STRING"/>
         <parameter name="Minimum % of relative abundance" type="DOUBLE">0.009999999776482582</parameter>
-        <parameter name="Charge distribution" type="INTEGER">1</parameter>
-        <parameter name="Sign of the charge" type="STRING">Positive</parameter>
-        <parameter name="Set automatic height" type="BOOLEAN">false</parameter>
-        <parameter name="Height of most abundance isotope" type="DOUBLE">1.0E7</parameter>
-        <parameter name="Add isotopes masses" type="BOOLEAN">false</parameter>
+        <parameter name="Charge distribution" type="INTEGER">0</parameter>
+        <parameter name="Sign of the charge" type="STRING">Negative</parameter>
+        <parameter name="Set automatic height" type="BOOLEAN"/>
+        <parameter name="Height of most abundance isotope" type="DOUBLE">10000.0</parameter>
+        <parameter name="Add isotopes masses" type="BOOLEAN"/>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch"> 
       <parameters>
-        <parameter name="Database file" type="FILE_NAME">E:\DATA\personal_peaks_verified.csv</parameter>
+        <parameter name="Database file" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Field order" type="DRAG_ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
+        <parameter name="Field order" type="DRAG_ORDERED_LIST">ID,m/z,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">1.0</parameter>
-        <parameter name="Time tolerance" type="DOUBLE">120.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">60.0</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch"> 
       <parameters>
-        <parameter name="Time tolerance" type="DOUBLE">5.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
         <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
-        <parameter name="Sharing points" type="DOUBLE">0.6</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION">1</parameter>
+        <parameter name="Sharing points" type="DOUBLE">0.85</parameter>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION"/>
         <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
@@ -396,27 +383,27 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"> 
       <parameters>
-        <parameter name="Peak mass" type="DOUBLE">508.00211</parameter>
+        <parameter name="Peak mass" type="DOUBLE"/>
         <parameter name="Charge" type="INTEGER">1</parameter>
-        <parameter name="Ionization method" type="STRING">+H</parameter>
-        <parameter name="Neutral mass" type="DOUBLE">506.9941673405999</parameter>
+        <parameter name="Ionization method" type="STRING"/>
+        <parameter name="Neutral mass" type="DOUBLE"/>
         <parameter name="Molecule with charge" type="BOOLEAN">false</parameter>
-        <parameter name="Number of results" type="INTEGER">100</parameter>
-        <parameter name="Mass tolerance" type="DOUBLE">0.0020</parameter>
-        <parameter name="Isotope pattern filter" type="BOOLEAN">true</parameter>
-        <parameter name="Isotope pattern score threshold" type="DOUBLE">0.8</parameter>
+        <parameter name="Number of results" type="INTEGER">15</parameter>
+        <parameter name="Mass tolerance" type="DOUBLE">0.0010</parameter>
+        <parameter name="Isotope pattern filter" type="BOOLEAN">false</parameter>
+        <parameter name="Isotope pattern score threshold" type="DOUBLE">0.65</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">/tmp/pos.csv</parameter>
+        <parameter name="Filename" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
         <parameter name="Export elements" type="MULTIPLE_SELECTION"/>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaver"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest2.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">mpl</parameter>
         <parameter name="Compressed file" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
@@ -442,7 +429,7 @@
     <mainwindow>
       <x>373</x>
       <y>82</y>
-      <width>1118</width>
+      <width>1344</width>
       <height>829</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>

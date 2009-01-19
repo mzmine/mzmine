@@ -22,13 +22,13 @@ package net.sf.mzmine.modules.visualization.histogram.histogramdatalabel;
 
 public enum HistogramDataType {
 	
-	MASS ("Mass"),
+	MASS ("m/z"),
 	
-	HEIGHT ("Height"),
+	HEIGHT ("height"),
 	
-	AREA ("Area"),
+	AREA ("area"),
 
-	RT ("Retention time");
+	RT ("retention time");
 	
 	private String text;
 	
@@ -37,6 +37,10 @@ public enum HistogramDataType {
 	}
 	
 	public String getText(){
+		return text;
+	}
+	
+	public String toString(){
 		return text;
 	}
 

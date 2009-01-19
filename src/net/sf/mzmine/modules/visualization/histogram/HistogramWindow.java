@@ -21,80 +21,72 @@ package net.sf.mzmine.modules.visualization.histogram;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 
+import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
+import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 
-public class HistogramWindow extends JInternalFrame implements
-TaskListener, ActionListener {
+public class HistogramWindow extends JInternalFrame {
 	
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private Histogram histogram;
 
-    private HistogramPanel histogramPlotPanel;
-    private Desktop desktop;
 	
-    public HistogramWindow(PeakList peakList, String title) {
+    public HistogramWindow(PeakList peakList, HistogramParameters parameters) {
 
-        super(title, true, true, true, true);
-        this.desktop = MZmineCore.getDesktop();
+        super(null, true, true, true, true);
+        //this.desktop = MZmineCore.getDesktop();
+        this.setTitle("Histogram of " + peakList.toString());
+        
+		Parameter p = parameters.getParameter("Raw data files");
+		Object[] objectArray = ((SimpleParameter) p)
+				.getMultipleSelectedValues();
+		int length = objectArray.length;
+		RawDataFile[] rawDataFiles = new RawDataFile[length];
+		for (int i = 0; i < length; i++) {
+			rawDataFiles[i] = (RawDataFile) objectArray[i];
+		} 
 
+        HistogramDataType dataType = (HistogramDataType) parameters.getParameterValue(HistogramParameters.dataType); 
+        int numOfBins = (Integer) parameters.getParameterValue(HistogramParameters.numOfBins); 
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
-
-        try{
-
-        	histogramPlotPanel = new HistogramPanel(this);
-        add(histogramPlotPanel, BorderLayout.CENTER);
         
-		if (peakList != null){
-			histogramPlotPanel.setPeakList(peakList);
-		}
-		
-        }
-        catch (Exception e){
-        	e.printStackTrace();
-        }
+		// Creates plot and toolbar
+        histogram = new Histogram();
+        HistogramToolBar toolbar = new HistogramToolBar(((ActionListener) histogram));
 
+		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+		Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+
+		JPanel pnlPlot = new JPanel(new BorderLayout());
+		pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
+		pnlPlot.setBackground(Color.white);
+
+		pnlPlot.add(toolbar, BorderLayout.EAST);
+		pnlPlot.add(histogram, BorderLayout.CENTER);
+
+	    add(pnlPlot, BorderLayout.CENTER);
         pack();
+	    
+		if (peakList != null){
+			HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType);
+			histogram.addDataset(dataSet, dataType);
+		}
 
     }
     
-	public Histogram getPlotChart(){
-		return histogramPlotPanel.getPlot();
-	}
-	
-	
-	public void actionPerformed(ActionEvent e) {
-	}
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage("Error while updating histogram: "
-                    + task.getErrorMessage());
-        }
-
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            desktop.addInternalFrame(this);
-    }
-
 }

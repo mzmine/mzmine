@@ -246,9 +246,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 				int vertSize = 0,
 				numCheckBoxes = 0;
+				ExtendedCheckBox<Object> ecb = null;
 				for (Object genericObject : p.getPossibleValues()) {
 
-					ExtendedCheckBox<Object> ecb = new ExtendedCheckBox<Object>(
+					ecb = new ExtendedCheckBox<Object>(
 							genericObject, false);
 					multipleCheckBoxes.add(ecb);
 					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -259,6 +260,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 					numCheckBoxes++;
 				}
+
+				if (numCheckBoxes < 3)
+					vertSize += 10;
 
 				JScrollPane peakPanelScroll = new JScrollPane(
 						peakCheckBoxesPanel,

@@ -44,6 +44,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
 	private HistogramDataType dataType;
 	private PeakList peakList;
+	private RawDataFile[] rawDataFiles;
 	private int numOfBins;
 	private double maximum, minimum;
 
@@ -53,7 +54,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	/** The histogram type. */
 	private HistogramType type;
 
-	public HistogramPlotDataset(PeakList peakList, int numOfBins,
+	public HistogramPlotDataset(PeakList peakList, RawDataFile[] rawDataFiles, int numOfBins,
 			HistogramDataType dataType) {
 
 		this.list = new Vector<HashMap>();
@@ -61,6 +62,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 		this.dataType = dataType;
 		this.peakList = peakList;
 		this.numOfBins = numOfBins;
+		this.rawDataFiles = rawDataFiles;
 		
 		maximum = 0;
 		minimum = Double.MAX_VALUE;
@@ -71,7 +73,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
 	public void updateHistogramDataset() {
 		this.list.clear();
-		RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+		//RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
 		ChromatographicPeak[] peaks;
 		HashMap tempMap = new HashMap();
 		double[] values = null;
@@ -163,23 +165,6 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	}
 
 	/**
-	 * Adds a series to the dataset, using the specified number of bins.
-	 * 
-	 * @param key
-	 *            the series key (<code>null</code> not permitted).
-	 * @param values
-	 *            the values (<code>null</code> not permitted).
-	 * @param bins
-	 *            the number of bins (must be at least 1).
-	 */
-	/*public void addSeries(Comparable key, double[] values, int bins) {
-		// defer argument checking...
-		double minimum = getMinimum(values);
-		double maximum = getMaximum(values);
-		addSeries(key, values, bins, minimum, maximum);
-	}*/
-
-	/**
 	 * Adds a series to the dataset. Any data value less than minimum will be
 	 * assigned to the first bin, and any data value greater than maximum will
 	 * be assigned to the last bin. Values falling on the boundary of adjacent
@@ -196,8 +181,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	 * @param maximum
 	 *            the upper bound of the bin range.
 	 */
-	public void addSeries(Comparable key, double[] values){//,
-			//double minimum, double maximum) {
+	public void addSeries(Comparable key, double[] values){
 
 		if (key == null) {
 			throw new IllegalArgumentException("Null 'key' argument.");
@@ -236,9 +220,6 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 					fraction = 0.0;
 				}
 				binIndex = (int) (fraction * numOfBins);
-				// rounding could result in binIndex being equal to bins
-				// which will cause an IndexOutOfBoundsException - see bug
-				// report 1553088
 				if (binIndex >= numOfBins) {
 					binIndex = numOfBins - 1;
 				}

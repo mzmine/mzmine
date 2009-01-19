@@ -55,7 +55,10 @@ import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader;
+import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer;
+import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
+import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
@@ -168,6 +171,9 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
         // Required modules
         PeakListLoader peakListLoader = new PeakListLoader();
+        ScatterPlotVisualizer scatterPlotVisualizer = new ScatterPlotVisualizer();
+        HistogramVisualizer histogramPlotVisualizer = new HistogramVisualizer();
+        InfoVisualizer infoVisualizer = new InfoVisualizer();
         PeakListTableVisualizer peakListTableVisualizer = new PeakListTableVisualizer();
 
         try {
@@ -200,16 +206,44 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
         // Construct menu
         menuBar = new JMenuBar();
-        //TODO
-        JMenuItem loadMenuItem = new JMenuItem("Load");
-        JMenu peakListMenu = new JMenu("File");
-        peakListMenu.add(loadMenuItem);
-        peakListMenu.setMnemonic(KeyEvent.VK_P);
-        menuBar.add(peakListMenu);
-        
-        peakListLoader.initModule(loadMenuItem);
-        peakListTableVisualizer.initModule(null);
 
+        JMenuItem loadMenuItem = new JMenuItem("Load");
+        JMenu fileMenu = new JMenu("File");
+        fileMenu.add(loadMenuItem);
+        fileMenu.setMnemonic(KeyEvent.VK_F);
+        loadMenuItem.addActionListener(peakListLoader);
+        menuBar.add(fileMenu);
+        
+        JMenu visualizationMenu = new JMenu("Visualization");
+        
+        JMenuItem peakTableViewerMenuItem = new JMenuItem("Peak list table");
+        visualizationMenu.add(peakTableViewerMenuItem);
+        visualizationMenu.setMnemonic(KeyEvent.VK_S);
+        peakTableViewerMenuItem.addActionListener(peakListTableVisualizer);
+
+        JMenuItem scatterPlotMenuItem = new JMenuItem("Scatter plot");
+        visualizationMenu.add(scatterPlotMenuItem);
+        visualizationMenu.setMnemonic(KeyEvent.VK_S);
+        scatterPlotMenuItem.addActionListener(scatterPlotVisualizer);
+        
+        JMenuItem histogramPlotMenuItem = new JMenuItem("Histogram plot");
+        visualizationMenu.add(histogramPlotMenuItem);
+        visualizationMenu.setMnemonic(KeyEvent.VK_S);
+        histogramPlotMenuItem.addActionListener(histogramPlotVisualizer);
+
+        JMenuItem peakListInfoMenuItem = new JMenuItem("Peak list info");
+        visualizationMenu.add(peakListInfoMenuItem);
+        visualizationMenu.setMnemonic(KeyEvent.VK_S);
+        peakListInfoMenuItem.addActionListener(infoVisualizer);
+        
+        menuBar.add(visualizationMenu);
+
+        // initialize modules
+        peakListLoader.initLightModule();
+        histogramPlotVisualizer.initLightModule();
+        peakListTableVisualizer.initLightModule();
+        scatterPlotVisualizer.iniLightModule();
+        infoVisualizer.initLightModule();
         
         setJMenuBar(menuBar);
 

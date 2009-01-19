@@ -64,13 +64,11 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 		
 	}
 	
-	public void initModule(JMenuItem menuItem) {
+	public void initLightModule() {
 
 		this.desktop = MZmineCore.getDesktop();
 
         parameters = new PeakListLoaderParameters();
-        
-        menuItem.addActionListener(this);
 		
 	}
 

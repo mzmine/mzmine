@@ -26,7 +26,6 @@ import java.awt.event.ActionListener;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
 public class ScatterPlotToolBar extends JToolBar {
@@ -42,8 +41,6 @@ public class ScatterPlotToolBar extends JToolBar {
 		setMargin(new Insets(5, 5, 5, 5));
 		setBackground(Color.white);
 
-		addSeparator();
-		
 		JButton button1 = new JButton(axesIcon);
         button1.addActionListener(actionPerfomer);
         button1.setActionCommand("SETUP_AXES");

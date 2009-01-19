@@ -19,16 +19,33 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
+import java.awt.Color;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 public class HistogramToolBar extends JToolBar {
 	
+	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
 	public HistogramToolBar(ActionListener actionPerfomer) {
 		
 		super(JToolBar.VERTICAL);
+
+		setFloatable(false);
+		setFocusable(false);
+		setMargin(new Insets(5, 5, 5, 5));
+		setBackground(Color.white);
+
+		JButton button1 = new JButton(axesIcon);
+        button1.addActionListener(actionPerfomer);
+        button1.setActionCommand("SETUP_AXES");
+        button1.setToolTipText("Setup ranges for axes");
+        this.add(button1);
 
 	}
 

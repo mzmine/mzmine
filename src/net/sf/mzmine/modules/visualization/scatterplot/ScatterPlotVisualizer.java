@@ -53,6 +53,13 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
                 this, null);
 
     }
+    
+    public void iniLightModule(){
+        this.desktop = MZmineCore.getDesktop();
+
+        myInstance = this;
+    	
+    }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
