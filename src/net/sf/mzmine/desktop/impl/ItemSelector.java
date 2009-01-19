@@ -39,6 +39,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.infovisualizer.InfoWindow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -115,6 +116,8 @@ public class ItemSelector extends JPanel implements ActionListener,
         peakListPopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
                 "SHOW_ALIGNED_PEAKLIST");
+        GUIUtils.addMenuItem(peakListPopupMenu, "Show list info", this,
+        		"SHOW_PEAKLIST_INFO");
         GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this,
                 "RENAME_PEAKLIST");
         GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
@@ -177,6 +180,15 @@ public class ItemSelector extends JPanel implements ActionListener,
             Desktop desktop = MZmineCore.getDesktop();
             for (PeakList peakList : selectedPeakLists) {
                 PeakListTableWindow window = new PeakListTableWindow(peakList);
+                desktop.addInternalFrame(window);
+            }
+        }
+
+        if (command.equals("SHOW_PEAKLIST_INFO")) {
+            PeakList[] selectedPeakLists = getSelectedPeakLists();
+            Desktop desktop = MZmineCore.getDesktop();
+            for (PeakList peakList : selectedPeakLists) {
+            	InfoWindow window = new InfoWindow(peakList);
                 desktop.addInternalFrame(window);
             }
         }

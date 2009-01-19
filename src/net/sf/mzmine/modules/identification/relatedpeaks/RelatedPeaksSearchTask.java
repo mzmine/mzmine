@@ -25,14 +25,16 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.GroupRelatedPeaks;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleGroupRelatedPeaks;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class RelatedPeaksSearchTask implements Task {
@@ -45,6 +47,7 @@ public class RelatedPeaksSearchTask implements Task {
 	private double shapeTolerance, rtTolerance, mzAdductTolerance,
 			sharingPoints;
 	private CommonAdducts[] selectedAdducts;
+	private RelatedPeaksSearchParameters parameters;
 
 	/**
 	 * @param parameters
@@ -54,6 +57,8 @@ public class RelatedPeaksSearchTask implements Task {
 			PeakList peakList) {
 
 		this.peakList = peakList;
+		this.parameters = parameters;
+		
 		numRows = peakList.getNumberOfRows();
 		numOfGroups = 0;
 		shapeTolerance = (Double) parameters
@@ -252,6 +257,9 @@ public class RelatedPeaksSearchTask implements Task {
 			finishedRows++;
 
 		}
+		
+        // Add task description to peakList
+        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Identification of related peaks", parameters));
 
 		status = TaskStatus.FINISHED;
 

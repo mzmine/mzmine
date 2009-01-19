@@ -19,13 +19,17 @@
 
 package net.sf.mzmine.data.impl;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -40,6 +44,12 @@ public class SimplePeakList implements PeakList, NameChangeable {
     private RawDataFile[] dataFiles;
     private ArrayList<PeakListRow> peakListRows;
     private double maxDataPointIntensity = 0;
+    private Vector<PeakListAppliedMethod> descriptionOfAppliedTasks;
+    private String dateCreated;
+    
+	public static DateFormat dateFormat = new SimpleDateFormat(
+	"yyyy/MM/dd HH:mm:ss");
+
 
     public SimplePeakList(String name, RawDataFile dataFile) {
         this(name, new RawDataFile[] { dataFile });
@@ -59,6 +69,10 @@ public class SimplePeakList implements PeakList, NameChangeable {
             this.dataFiles[i] = dataFile;
         }
         peakListRows = new ArrayList<PeakListRow>();
+        descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
+        
+		dateCreated = dateFormat.format(new Date());
+
     }
 
     @Override
@@ -269,5 +283,21 @@ public class SimplePeakList implements PeakList, NameChangeable {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod){
+    	descriptionOfAppliedTasks.add(appliedMethod);
+    }
+
+	public PeakListAppliedMethod[] getAppliedMethods() {
+		return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
+	}
+	
+	public String getDateCreated(){
+		return dateCreated;
+	}
+	
+	public void setDateCreated(String date){
+		this.dateCreated = date;
+	}
 
 }

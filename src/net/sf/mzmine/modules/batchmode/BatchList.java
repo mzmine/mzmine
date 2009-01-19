@@ -27,9 +27,11 @@ import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
 
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.util.tooltip.MZmineToolTip;
 
-public class BatchList extends JList {
+public class BatchList extends JList implements
+PeakListAppliedMethod{
 	
 	//private Logger logger = Logger.getLogger(this.getClass().getName());
 	
@@ -44,7 +46,6 @@ public class BatchList extends JList {
 	public JToolTip createToolTip() {
     	  MZmineToolTip tip = new MZmineToolTip();
     	  tip.setComponent(this);
-    	  //tip.setParameterSet(parameters);
     	  return tip;
    }
 
@@ -59,6 +60,10 @@ public class BatchList extends JList {
 	
 	public ParameterSet getParameterSet(){
 		return parameters;
+	}
+
+	public String getDescription() {
+		return null;
 	}
 	
 }

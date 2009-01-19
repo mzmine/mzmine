@@ -37,6 +37,8 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -64,6 +66,7 @@ public class PubChemSearchTask implements Task {
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private ChromatographicPeak peak;
+	private PubChemSearchParameters parameters;
 
 	/**
 	 * 
@@ -82,6 +85,7 @@ public class PubChemSearchTask implements Task {
 
 		this.peakList = peakList;
 		this.peak = peak;
+		this.parameters = parameters;
 
 		status = TaskStatus.WAITING;
 		valueOfQuery = (Double) parameters
@@ -274,6 +278,11 @@ public class PubChemSearchTask implements Task {
 					}
 					finishedLines++;
 				}
+				
+		        // Add task description to peakList
+		        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak identification of using PubChem databases",
+		        		parameters));
+
 
 			}
 

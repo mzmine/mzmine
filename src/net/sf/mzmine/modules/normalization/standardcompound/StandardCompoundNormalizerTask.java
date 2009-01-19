@@ -25,11 +25,13 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.normalization.linear.LinearNormalizerParameters;
@@ -51,6 +53,7 @@ public class StandardCompoundNormalizerTask implements Task {
     private double MZvsRTBalance;
     private boolean removeOriginal;
     private PeakListRow[] standardRows;
+    private StandardCompoundNormalizerParameters parameters;
 
     public StandardCompoundNormalizerTask(PeakList peakList,
             StandardCompoundNormalizerParameters parameters) {
@@ -253,6 +256,15 @@ public class StandardCompoundNormalizerTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(normalizedPeakList);
+        
+		// Load previous applied methods
+		for (PeakListAppliedMethod proc: originalPeakList.getAppliedMethods()){
+			normalizedPeakList.addDescriptionOfAppliedTask(proc);
+		}
+        
+        // Add task description to peakList
+        normalizedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Standard compound normalization", parameters));
+
 
         // Remove the original peaklist if requested
         if (removeOriginal)

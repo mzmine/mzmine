@@ -29,6 +29,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.taskcontrol.Task;
 
 import com.Ostermiller.util.CSVParser;
@@ -53,6 +55,7 @@ class CustomDBSearchTask implements Task {
 	private boolean ignoreFirstLine;
 	private double mzTolerance;
 	private double rtTolerance;
+	private CustomDBSearchParameters parameters;
 
 
 	CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
@@ -145,6 +148,10 @@ class CustomDBSearchTask implements Task {
 			errorMessage = e.toString();
 			return;
 		}
+		
+        // Add task description to peakList
+        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak identification using database "
+				+ dataBaseFile, parameters));
 
 		status = TaskStatus.FINISHED;
 

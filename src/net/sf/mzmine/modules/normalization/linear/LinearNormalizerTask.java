@@ -21,14 +21,16 @@ package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -47,11 +49,13 @@ class LinearNormalizerTask implements Task {
 
     private String suffix, normalizationType, peakMeasurementType;
     private boolean removeOriginal;
+    private LinearNormalizerParameters parameters;
 
     public LinearNormalizerTask(PeakList peakList,
             LinearNormalizerParameters parameters) {
 
         this.originalPeakList = peakList;
+        this.parameters = parameters;
 
         totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
 
@@ -244,6 +248,16 @@ class LinearNormalizerTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(normalizedPeakList);
+        
+		// Load previous applied methods
+		for (PeakListAppliedMethod proc: originalPeakList.getAppliedMethods()){
+			normalizedPeakList.addDescriptionOfAppliedTask(proc);
+		}
+		
+        // Add task description to peakList
+        normalizedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Linear normalization of by "
+                + normalizationType, parameters));
+
 
         // Remove the original peaklist if requested
         if (removeOriginal)

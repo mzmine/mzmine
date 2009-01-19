@@ -106,7 +106,6 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 			double[] properValues = (double[]) tempMap.get(name);
 			addSeries(name, properValues);
 		}
-		//fireDatasetChanged();
 	}
 
 	public void setNumberOfBins(int numOfBins) {
@@ -119,6 +118,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	
 	public void setBinWidth(double binWidth) {
 		int numBins;
+		updateHistogramDataset();
 		double[] values = getValues(0);
 		double minimum = getMinimum(values);
 		double maximum = getMaximum(values);

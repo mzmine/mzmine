@@ -26,8 +26,10 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -179,6 +181,16 @@ class PeakRecognitionTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(newPeakList);
+        
+		// Load previous applied methods
+		for (PeakListAppliedMethod proc: peakList.getAppliedMethods()){
+			newPeakList.addDescriptionOfAppliedTask(proc);
+		}
+        
+        // Add task description to peakList
+        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak recognition by " + 
+        		PeakRecognitionParameters.peakResolverNames[peakResolverTypeNumber], pbParameters));
+
 
         status = TaskStatus.FINISHED;
 

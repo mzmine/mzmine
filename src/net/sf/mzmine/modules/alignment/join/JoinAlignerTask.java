@@ -29,6 +29,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -57,6 +58,7 @@ class JoinAlignerTask implements Task {
     private boolean sameIDRequired, compareIsotopePattern;
     private double sameIDWeight, isotopePatternScoreThreshold,
             isotopeScoreWeight;
+    private JoinAlignerParameters parameters;
 
     // ID counter for the new peaklist
     private int newRowID = 1;
@@ -68,6 +70,7 @@ class JoinAlignerTask implements Task {
     JoinAlignerTask(PeakList[] peakLists, JoinAlignerParameters parameters) {
 
         this.peakLists = peakLists;
+        this.parameters = parameters;
 
         // Get parameter values for easier use
         peakListName = (String) parameters.getParameterValue(JoinAlignerParameters.peakListName);
@@ -293,6 +296,10 @@ class JoinAlignerTask implements Task {
         // Add new aligned peak list to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(alignedPeakList);
+        
+        // Add task description to peakList
+        alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Join aligner", parameters));
+
 
         status = TaskStatus.FINISHED;
 

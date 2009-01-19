@@ -21,13 +21,14 @@ package net.sf.mzmine.modules.gapfilling.peakfinder;
 
 import java.util.Vector;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -44,12 +45,14 @@ class PeakFinderTask implements Task {
     private double intTolerance, mzTolerance;
     private boolean rtToleranceUseAbs;
     private double rtToleranceValueAbs, rtToleranceValuePercent;
+    private PeakFinderParameters parameters;
 
     private int processedScans, totalScans;
 
     PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
         this.peakList = peakList;
+        this.parameters = parameters;
 
         suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
         intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
@@ -162,6 +165,10 @@ class PeakFinderTask implements Task {
         // Append processed peak list to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(processedPeakList);
+        
+        // Add task description to peakList
+        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
+
 
         status = TaskStatus.FINISHED;
 

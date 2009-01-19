@@ -171,5 +171,10 @@ public interface PeakList {
      * Returns a row containing given peak
      */
     public PeakListRow getPeakRow(ChromatographicPeak peak);
+    
+    /**
+     * Returns all tasks (descriptions) applied to this peak list
+     */
+    public PeakListAppliedMethod[] getAppliedMethods();
 
 }

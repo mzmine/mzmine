@@ -49,6 +49,7 @@ public enum PeakListElementName {
 	PEAK ("peak"),
 	MZPEAK ("mzpeak"),
 	SEPARATOR (";"),
+	PROCESS ("applied_method"),
 	ITEM ("item");
 	
 	private String elementName;

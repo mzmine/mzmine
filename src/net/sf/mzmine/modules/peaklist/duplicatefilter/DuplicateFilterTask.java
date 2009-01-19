@@ -23,8 +23,10 @@ import java.util.Arrays;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
@@ -49,6 +51,7 @@ class DuplicateFilterTask implements Task {
     private String suffix;
     private double mzDifferenceMax, rtDifferenceMax;
     private boolean requireSameIdentification, removeOriginal;
+    private DuplicateFilterParameters parameters;
 
     /**
      * @param rawDataFile
@@ -57,6 +60,7 @@ class DuplicateFilterTask implements Task {
     DuplicateFilterTask(PeakList peaklist, DuplicateFilterParameters parameters) {
 
         this.peaklist = peaklist;
+        this.parameters = parameters;
 
         // Get parameter values for easier use
         suffix = (String) parameters.getParameterValue(DuplicateFilterParameters.suffix);
@@ -204,6 +208,15 @@ class DuplicateFilterTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(filteredPeakList);
+        
+		// Load previous applied methods
+		for (PeakListAppliedMethod proc: peaklist.getAppliedMethods()){
+			filteredPeakList.addDescriptionOfAppliedTask(proc);
+		}
+        
+        // Add task description to peakList
+        filteredPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Duplicate peak filter", parameters));
+
 
         // Remove the original peaklist if requested
         if (removeOriginal)

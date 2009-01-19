@@ -30,6 +30,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -49,10 +50,13 @@ class SameRangeTask implements Task {
     private String suffix;
 
     private int processedRows, totalRows;
+    
+    private SameRangeParameters parameters;
 
     SameRangeTask(PeakList peakList, SameRangeParameters parameters) {
 
         this.peakList = peakList;
+        this.parameters = parameters;
 
         suffix = (String) parameters.getParameterValue(SameRangeParameters.suffix);
 
@@ -122,6 +126,10 @@ class SameRangeTask implements Task {
         // Append processed peak list to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(processedPeakList);
+        
+        // Add task description to peakList
+        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling using RT and m/z range", parameters));
+
 
         status = TaskStatus.FINISHED;
 

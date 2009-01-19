@@ -27,6 +27,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
@@ -115,6 +116,9 @@ class ConcatenateFragmentsTask implements Task, TaskListener {
 
         // Put result to project
         MZmineCore.getCurrentProject().addPeakList(alignedPeakList);
+        
+        // Add task description to peakList
+        alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(getTaskDescription()));
 
         status = TaskStatus.FINISHED;
 

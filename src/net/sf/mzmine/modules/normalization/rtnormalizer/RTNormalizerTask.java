@@ -24,10 +24,12 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -49,11 +51,13 @@ class RTNormalizerTask implements Task {
     private String suffix;
     private double mzTolerance, rtTolerance, minHeight;
     private boolean removeOriginal;
+    private RTNormalizerParameters parameters;
 
     public RTNormalizerTask(PeakList[] peakLists,
             RTNormalizerParameters parameters) {
 
         this.originalPeakLists = peakLists;
+        this.parameters= parameters;
 
         suffix = (String) parameters.getParameterValue(RTNormalizerParameters.suffix);
         mzTolerance = (Double) parameters.getParameterValue(RTNormalizerParameters.MZTolerance);
@@ -205,6 +209,15 @@ class RTNormalizerTask implements Task {
         for (int i = 0; i < originalPeakLists.length; i++) {
 
             currentProject.addPeakList(normalizedPeakLists[i]);
+            
+    		// Load previous applied methods
+    		for (PeakListAppliedMethod proc: originalPeakLists[i].getAppliedMethods()){
+    			normalizedPeakLists[i].addDescriptionOfAppliedTask(proc);
+    		}
+    		
+    		// Add task description to peakList
+            normalizedPeakLists[i].addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Retention time normalization", parameters));
+
 
             // Remove the original peaklists if requested
             if (removeOriginal)

@@ -24,9 +24,11 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
@@ -61,6 +63,7 @@ class IsotopeGrouperTask implements Task {
     private double mzTolerance, rtTolerance;
     private boolean monotonicShape, removeOriginal, chooseMostIntense;
     private int maximumCharge;
+    private IsotopeGrouperParameters parameters;
 
     /**
      * @param rawDataFile
@@ -69,6 +72,7 @@ class IsotopeGrouperTask implements Task {
     IsotopeGrouperTask(PeakList peaklist, IsotopeGrouperParameters parameters) {
 
         this.peaklist = peaklist;
+        this.parameters = parameters;
 
         // Get parameter values for easier use
         suffix = (String) parameters.getParameterValue(IsotopeGrouperParameters.suffix);
@@ -231,6 +235,15 @@ class IsotopeGrouperTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(deisotopedPeakList);
+        
+		// Load previous applied methods
+		for (PeakListAppliedMethod proc: peaklist.getAppliedMethods()){
+			deisotopedPeakList.addDescriptionOfAppliedTask(proc);
+		}
+        
+        // Add task description to peakList
+        deisotopedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Isotopic peaks grouper", parameters));
+
 
         // Remove the original peaklist if requested
         if (removeOriginal)

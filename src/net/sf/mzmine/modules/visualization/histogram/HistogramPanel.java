@@ -194,13 +194,14 @@ public class HistogramPanel extends JPanel implements ActionListener {
 			try {
 				double width = formatter.parse(widthBinField.getText())
 						.doubleValue();
-				if (dataSet.getBinWidth() != width) {
+				//if (dataSet.getBinWidth() != width) {
 					dataSet.setBinWidth(width);
-				} else {
-					int numBins = Integer.parseInt(numberBinField.getText());
-					dataSet.setNumberOfBins(numBins);
-				}
+				//} else {
+					//int numBins = Integer.parseInt(numberBinField.getText());
+					//dataSet.setNumberOfBins(numBins);
+				//}
 			} catch (ParseException e) {
+				
 				MZmineCore.getDesktop().displayErrorMessage(
 						"Incorrect format, selected data type = \"" + dataType.getText()
 								+ "\", bin width format must be like \"" + formatter.getPattern()
@@ -212,8 +213,6 @@ public class HistogramPanel extends JPanel implements ActionListener {
 
 			histogram.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(histogram, dataSet));
-			
-			
 
 			updateFields();
 

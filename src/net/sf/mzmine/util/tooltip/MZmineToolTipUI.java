@@ -27,6 +27,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JToolTip;
@@ -35,11 +36,11 @@ import javax.swing.plaf.basic.BasicToolTipUI;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.modules.batchmode.BatchList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 
 public class MZmineToolTipUI extends BasicToolTipUI {
 
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private String[] strs;
 
@@ -80,7 +81,7 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 		if (size == null)
 			return;
 		
-		g2.setColor(Color.ORANGE);//c.getBackground());
+		g2.setColor(new Color(255, 250, 205));//c.getBackground());
 		g2.fillRect(0, 0, size.width, size.height);
 		g2.setColor(c.getForeground());
 		if (strs != null) {
@@ -101,13 +102,18 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 
 		FontMetrics metrics = c.getFontMetrics(new Font("SansSerif", Font.PLAIN,
 				c.getFont().getSize() + 3));
-		JComponent list = ((JToolTip) c).getComponent();
-		ParameterSet parameters = ((BatchList) list).getParameterSet();
+		JComponent component = ((JToolTip) c).getComponent();
+		ParameterSet parameters = ((PeakListAppliedMethod) component).getParameterSet();
+		
+		if (parameters == null)
+			return null;
 		
 		Parameter[] param = parameters.getParameters();
 		
 		if (param == null)
 			return null;
+		
+		//logger.finest(param.toString());
 			
 			
 		for (Parameter p: param) {
@@ -117,7 +123,7 @@ public class MZmineToolTipUI extends BasicToolTipUI {
 				units = p.getUnits();
 			if(parameters.getParameterValue(p)!=null)
 				value = parameters.getParameterValue(p).toString();
-			String line = p.getName() + " = " + value + units;
+			String line = p.getName() + " = " + value + " " + units;
 			int width = SwingUtilities.computeStringWidth(metrics, line);
 			maxWidth = (maxWidth < width) ? width : maxWidth;
 			lineValues.add(line);

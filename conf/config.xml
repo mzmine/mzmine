@@ -6,7 +6,7 @@
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
         <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
-        <parameter name="Files to import" type="STRING">081015_E_WT_VE_neg_08.mzXML 081015_F_WT_G0_neg_09.mzXML</parameter>
+        <parameter name="Files to import" type="STRING">081015_C_EMM2-afterautoclave_neg_06.RAW</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -84,8 +84,8 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.7549999952316284-2399.639892578125</parameter>
-        <parameter name="m/z range" type="RANGE">100.98603057861328-100.98627471923828</parameter>
+        <parameter name="Retention time" type="RANGE">0.7620000243186951-2399.31005859375</parameter>
+        <parameter name="m/z range" type="RANGE">102.02789306640625-102.0281982421875</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -178,8 +178,26 @@
     </module>  
     <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"/>  
+    <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
-      <parameters/> 
+      <parameters>
+        <batchstep>
+          <method>net.sf.mzmine.modules.io.rawdataimport.RawDataImporter</method>
+          <parameters>
+            <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
+            <parameter name="Files to import" type="STRING">081015_C_EMM2-afterautoclave_neg_06.RAW</parameter>
+          </parameters>
+        </batchstep>
+        <batchstep>
+          <method>net.sf.mzmine.modules.rawdata.cropper.CropFilter</method>
+          <parameters>
+            <parameter name="Filename suffix" type="STRING">cropped</parameter>
+            <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
+            <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
+            <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
+          </parameters>
+        </batchstep>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.cropper.CropFilter"> 
       <parameters>
@@ -242,16 +260,16 @@
         <parameter name="Monotonic shape" type="BOOLEAN">false</parameter>
         <parameter name="Maximum charge" type="INTEGER">2</parameter>
         <parameter name="Representative isotope" type="STRING">Most intense</parameter>
-        <parameter name="Remove original peaklist" type="BOOLEAN">false</parameter>
+        <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter"> 
       <parameters>
-        <parameter name="Name suffix" type="STRING">dup</parameter>
+        <parameter name="Name suffix" type="STRING">Duplicate peaks filtered</parameter>
         <parameter name="M/Z tolerance" type="DOUBLE">0.0020</parameter>
         <parameter name="RT difference maximum" type="DOUBLE">70.0</parameter>
         <parameter name="Require same identification" type="BOOLEAN">false</parameter>
-        <parameter name="Remove original peaklist" type="BOOLEAN">false</parameter>
+        <parameter name="Remove original peaklist" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peaklist.rowsfilter.RowsFilter"> 
@@ -263,8 +281,8 @@
         <parameter name="Maximum m/z" type="DOUBLE">1000.0</parameter>
         <parameter name="Minimum retention time" type="DOUBLE">0.0</parameter>
         <parameter name="Maximum retention time" type="DOUBLE">1800.0</parameter>
-        <parameter name="Only identified?" type="BOOLEAN">true</parameter>
-        <parameter name="Remove source peak list after filtering" type="BOOLEAN">false</parameter>
+        <parameter name="Only identified?" type="BOOLEAN">false</parameter>
+        <parameter name="Remove source peak list after filtering" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner"> 
@@ -321,7 +339,7 @@
         <parameter name="Peak measurement type" type="STRING">Peak area</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
-        <parameter name="Standard compounds" type="MULTIPLE_SELECTION"/>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">1</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -370,7 +388,7 @@
         <parameter name="Time tolerance" type="DOUBLE">5.0</parameter>
         <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Sharing points" type="DOUBLE">0.6</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION"/>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION">1</parameter>
         <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
@@ -422,8 +440,8 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>460</x>
-      <y>235</y>
+      <x>373</x>
+      <y>82</y>
       <width>1118</width>
       <height>829</height>
     </mainwindow>

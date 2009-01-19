@@ -36,8 +36,10 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.modules.io.peaklistsaveload.PeakListElementName;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -146,7 +148,10 @@ public class PeakListSaverTask implements Task {
 
 			// <PEAKLIST_DATE>
 			String dateText = "";
-			if (true) {// (peakList.getDateCreated() == null){
+			if (((SimplePeakList)peakList).getDateCreated() == null){
+				dateText = ((SimplePeakList)peakList).getDateCreated();
+			}
+			else {
 				Date date = new Date();
 				dateText = dateFormat.format(date);
 			}
@@ -158,6 +163,14 @@ public class PeakListSaverTask implements Task {
 			newElement = saveRoot.addElement(PeakListElementName.QUANTITY
 					.getElementName());
 			newElement.addText(String.valueOf(peakList.getNumberOfRows()));
+			
+			// <PROCESS>
+			PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
+			for (PeakListAppliedMethod proc: processes){
+				newElement = saveRoot.addElement(PeakListElementName.PROCESS
+						.getElementName());
+				newElement.addText(proc.getDescription());
+			}
 
 			// <RAWFILE>
 			RawDataFile[] dataFiles = peakList.getRawDataFiles();
