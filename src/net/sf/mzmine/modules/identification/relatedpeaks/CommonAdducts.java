@@ -26,6 +26,7 @@ public enum CommonAdducts {
     NAH("[M+Na-H]", 21.9825),
     MNH4("[M+NH4-H]", 17.027),
     MK("[M+K-H]", 37.9559),
+    MMg("[M+Mg-2H]", 21.9694),
     DEUTERIUM("[(Deuterium)]glycerol", 5.0),
     CUSTOM("Custom", 0.0);
     

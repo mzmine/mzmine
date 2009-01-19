@@ -44,7 +44,7 @@ public class RelatedPeaksSearchTask implements Task {
 	private int numOfGroups;
 	private double shapeTolerance, rtTolerance, mzAdductTolerance,
 			sharingPoints;
-	private SimpleAdduct[] selectedAdducts;
+	private CommonAdducts[] selectedAdducts;
 
 	/**
 	 * @param parameters
@@ -73,20 +73,11 @@ public class RelatedPeaksSearchTask implements Task {
 		String customAdductName = (String) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.customAdductName);
 
-		selectedAdducts = new SimpleAdduct[length];
+		selectedAdducts = new CommonAdducts[length];
 		String name;
 		double mass = 0;
 		for (int i = 0; i < length; i++) {
-
-			name = ((CommonAdducts) objectArray[i]).getName();
-
-			if (name.equals("Custom")) {
-				name = customAdductName;
-				mass = customMassDifference;
-			} else {
-				mass = ((CommonAdducts) objectArray[i]).getMassDifference();
-			}
-			selectedAdducts[i] = new SimpleAdduct(name, mass);
+			selectedAdducts[i] = (CommonAdducts) objectArray[i];
 		}
 
 		mzAdductTolerance = (Double) parameters
@@ -196,7 +187,7 @@ public class RelatedPeaksSearchTask implements Task {
 
 				// set the group of the peak looking the mass differences of
 				// each selected adduct
-				for (SimpleAdduct adduct : selectedAdducts) {
+				for (CommonAdducts adduct : selectedAdducts) {
 					// Verify if the compared peak is related to the current
 					// peak
 					goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
@@ -210,7 +201,7 @@ public class RelatedPeaksSearchTask implements Task {
 
 						// If the current peak already belongs to one group, 
 						// add the compared peak to that group
-						if (currentGroup != null) {
+						/*if (currentGroup != null) {
 							currentGroup.addRow(comparedRow);
 							identity = new RelatedPeakIdentity(currentRow,
 									comparedRow, adduct, currentGroup);
@@ -218,12 +209,12 @@ public class RelatedPeaksSearchTask implements Task {
 
 							alreadyRelated = true;
 							continue;
-						}
+						}*/
 
 						// If the compared peak belongs to any group, add the
 						// current peak to that group
 
-						for (GroupRelatedPeaks group : peaksGroups) {
+						/*for (GroupRelatedPeaks group : peaksGroups) {
 							if (group.containsRow(comparedRow)) {
 								group.addRow(currentRow);
 								identity = new RelatedPeakIdentity(currentRow,
@@ -234,7 +225,7 @@ public class RelatedPeaksSearchTask implements Task {
 								alreadyRelated = true;
 								break;
 							}
-						}
+						}*/
 
 						// If the current peak doesn't belong to any group
 						// neither
@@ -246,9 +237,9 @@ public class RelatedPeaksSearchTask implements Task {
 							currentGroup = new SimpleGroupRelatedPeaks(name,
 									currentRow, comparedRow);
 							identity = new RelatedPeakIdentity(currentRow,
-									comparedRow, adduct, currentGroup);
-							comparedRow.addCompoundIdentity(identity, true);
-							currentRow.addCompoundIdentity(identity, true);
+									comparedRow, adduct);
+							comparedRow.addCompoundIdentity(identity, false);
+							// currentRow.addCompoundIdentity(identity, false);
 							peaksGroups.add(currentGroup);
 							numOfGroups++;
 						}
@@ -299,7 +290,7 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @return boolean
 	 */
 	private static boolean areRelatedPeaks(ChromatographicPeak p1,
-			ChromatographicPeak p2, double shapeTolerance, SimpleAdduct adduct,
+			ChromatographicPeak p2, double shapeTolerance, CommonAdducts adduct,
 			double rtTolerance, double mzAdductTolerance, double sharingPoints) {
 
 		// Verify proximity in retention time axis
@@ -311,10 +302,10 @@ public class RelatedPeaksSearchTask implements Task {
 		// Verify the distance between peaks in m/z axis. This help to identify
 		// false hits for adducts.
 		double mzDistance = adduct.getMassDifference();
-		double diffMZ = Math.abs(p1.getMZ() - p2.getMZ());
-		if (!(adduct.getName().equals(CommonAdducts.ALLRELATED.getName()))
-				&& (diffMZ > mzDistance + mzAdductTolerance || diffMZ < mzDistance
-						- mzAdductTolerance)) {
+		double diffMZ = p2.getMZ() - p1.getMZ();
+		if ((adduct != CommonAdducts.ALLRELATED)
+				&& ((diffMZ > mzDistance + mzAdductTolerance) || (diffMZ < mzDistance
+						- mzAdductTolerance))) {
 			return false;
 		}
 

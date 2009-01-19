@@ -16,9 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
-import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 
@@ -26,8 +26,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
 
     private PeakListRow originalPeakListRow;
     private PeakListRow relatedPeakListRow;
-    private SimpleAdduct adduct;
-    private GroupRelatedPeaks group;
+    private CommonAdducts adduct;
 
     /** 
      * @param originalPeakListRow
@@ -35,11 +34,10 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @param adduct
      */
     public RelatedPeakIdentity(PeakListRow originalPeakListRow, PeakListRow relatedPeakListRow,
-    		SimpleAdduct adduct, GroupRelatedPeaks group) {
+            CommonAdducts adduct) {
         this.originalPeakListRow = originalPeakListRow;
         this.relatedPeakListRow = relatedPeakListRow;
         this.adduct = adduct;
-        this.group = group;
     }
 
     /**
@@ -62,10 +60,10 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
     public String getName() {
     	String adductName = adduct.getName();
     	if (adductName.equals(CommonAdducts.ALLRELATED.getName())){
-    		return group.getGroupName() + " Fragment of peak: #" + group.getBiggestPeakListRow().getID();
+    		return " Fragment of peak: #" + originalPeakListRow;
     	}
     	else{
-    		return group.getGroupName() + " " + adduct.getName() + " adduct of peak: #" + group.getBiggestPeakListRow().getID();
+    		return adduct.getName() + " adduct of " + originalPeakListRow;
     	}
     }
 
@@ -108,9 +106,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        String ret;
-        ret = this.getName() + " (" + adduct.getMassDifference() + " m/z) identification method: " + this.getIdentificationMethod();
-        return ret;
+        return this.getName();
     }
 
     public int compareTo(Object value) {
