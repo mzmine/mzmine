@@ -43,6 +43,8 @@ public class IntensityPlot implements MZmineModule, ActionListener {
     private Desktop desktop;
     private IntensityPlotParameters parameters;
     private static IntensityPlot myInstance;
+    public static boolean lightViewer = false;
+
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -69,7 +71,8 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         parameters = new IntensityPlotParameters();
 
         myInstance = this;
-
+        
+        lightViewer = true;
     }
 
     /**
@@ -144,5 +147,10 @@ public class IntensityPlot implements MZmineModule, ActionListener {
             desktop.addInternalFrame(newFrame);
         }
     }
+    
+    public boolean isLightViewer(){
+    	return lightViewer;
+    }
+
 
 }

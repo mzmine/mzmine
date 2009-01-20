@@ -119,7 +119,7 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
      * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
-        return "Scatter plot";
+        return "Histogram plot";
     }
 
 	public ParameterSet getParameterSet() {

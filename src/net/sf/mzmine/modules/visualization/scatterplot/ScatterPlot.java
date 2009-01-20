@@ -187,13 +187,13 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 		this.setDismissDelay(Integer.MAX_VALUE);
 		this.setInitialDelay(0);
 
-		// this.setMouseZoomable(true, false);
 
 		// add items to popup menu
-		JPopupMenu popupMenu = getPopupMenu();
-		popupMenu.addSeparator();
-		popupMenu.add(newPopmenuItem("Show Chromatogram", "TIC"));
-		// popupMenu.add(newPopmenuItem("Search KEGG compounds", "ON_LINE"));
+		if (!ScatterPlotVisualizer.lightViewer){
+			JPopupMenu popupMenu = getPopupMenu();
+			popupMenu.addSeparator();
+			popupMenu.add(newPopmenuItem("Show Chromatogram", "TIC"));
+		}
 
 		this.registerCustomToolTip();
 	}

@@ -42,9 +42,11 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
@@ -148,7 +150,13 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         constraints.gridy = 1;
         layout.setConstraints(comp, constraints);
 
-        Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
+        Parameter[] projectParameters;
+        if (IntensityPlot.lightViewer){
+        	projectParameters = new Parameter[0];
+        }
+        else{
+        	projectParameters = MZmineCore.getCurrentProject().getParameters();
+        }
         Object xAxisSourceValues[] = new Object[projectParameters.length + 1];
         xAxisSourceValues[0] = IntensityPlotParameters.DataFileOption;
         for (int i = 0; i < projectParameters.length; i++)
