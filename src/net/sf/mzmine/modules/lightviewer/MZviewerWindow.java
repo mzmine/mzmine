@@ -44,12 +44,16 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
+import ca.guydavis.swing.desktop.CascadingWindowPositioner;
+import ca.guydavis.swing.desktop.JWindowsMenu;
+
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.Statusbar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.MZmineCore;
@@ -214,6 +218,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         fileMenu.add(loadMenuItem);
         fileMenu.setMnemonic(KeyEvent.VK_F);
         loadMenuItem.addActionListener(peakListLoader);
+        
         menuBar.add(fileMenu);
         
         JMenu visualizationMenu = new JMenu("Visualization");
@@ -244,6 +249,17 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         intensityPlotMenuItem.addActionListener(intensityPlotVisualizer);
 
         menuBar.add(visualizationMenu);
+        
+        JDesktopPane mainDesktopPane = getDesktopPane();
+        JWindowsMenu windowsMenu = new JWindowsMenu(mainDesktopPane);
+        CascadingWindowPositioner positioner = new CascadingWindowPositioner(
+                mainDesktopPane);
+        windowsMenu.setWindowPositioner(positioner);
+        windowsMenu.getMenuComponent(2).setVisible(false);
+        windowsMenu.getMenuComponent(3).setVisible(false);
+        windowsMenu.setMnemonic(KeyEvent.VK_W);
+        
+        menuBar.add(windowsMenu);
 
         // initialize modules
         peakListLoader.initLightModule();
