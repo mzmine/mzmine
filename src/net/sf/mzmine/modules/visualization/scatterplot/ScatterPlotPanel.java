@@ -248,6 +248,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int x = comboX.getSelectedIndex();
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
+			dataSet.updateListofAppliedSelection(txtSearchField.getText());
 			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
 			plot.getXYPlot().datasetChanged(
@@ -337,7 +338,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 	public void setPeakList(PeakList peakList) {
 
-		dataSet = new ScatterPlotDataSet(peakList, 1, 0, this);
+		dataSet = new ScatterPlotDataSet(peakList, 0, 1, this);
 		this.peakList = peakList;
 		setDomainsValues(dataSet.getDomainsNames());
 		enableButtons();

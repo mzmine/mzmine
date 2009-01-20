@@ -291,10 +291,22 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 			XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) defaultRenderer
 					.clone();
 			((ScatterPlotRenderer) newRenderer).setTransparency(0.4f);
-			newRenderer.setSeriesPaint(0, Color.BLUE, false);
-			newRenderer.setSeriesFillPaint(0, Color.BLUE, false);
-			newRenderer.setSeriesShape(0, dataPointsShape, false);
+
+			Color color = Color.BLUE;
+			Shape shape = dataPointsShape;
+			for (int i = 0; i < newSet.getSeriesCount(); i++) {
+
+				if (i > 0) {
+					color = ((ScatterPlotDataSet) newSet).getRendererColor(i);
+					shape = dataPointsShape2;
+				}
+				newRenderer.setSeriesPaint(i, color, false);
+				newRenderer.setSeriesFillPaint(i, color, false);
+				newRenderer.setSeriesShape(i, shape, false);
+			}
+
 			plot.setRenderer(numOfDataSets + numDiagonals, newRenderer, false);
+			
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
