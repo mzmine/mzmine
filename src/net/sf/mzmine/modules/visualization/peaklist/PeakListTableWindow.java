@@ -70,7 +70,7 @@ public class PeakListTableWindow extends JInternalFrame implements
         myParameters = visualizer.getParameterSet().clone();
 
         // Build table
-        table = new PeakListTable(visualizer, this, myParameters, peakList);
+        table = new PeakListTable(visualizer, this, myParameters, peakList, visualizer.isLightViewer());
 
         scrollPane = new JScrollPane(table);
 

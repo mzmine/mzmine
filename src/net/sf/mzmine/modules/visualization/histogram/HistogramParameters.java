@@ -23,7 +23,9 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
+import net.sf.mzmine.util.Range;
 
 public class HistogramParameters extends SimpleParameterSet {
 	
@@ -35,12 +37,17 @@ public class HistogramParameters extends SimpleParameterSet {
     public static final Parameter dataType = new SimpleParameter(
             ParameterType.STRING, "Plotted data type",
             "Peak's data to be plotted", null, HistogramDataType.values());
+    
+    public static final Parameter rangeData = new SimpleParameter(
+            ParameterType.RANGE, "Plotted data range",
+            "Range of data to be plotted", null, new Range(0, 1000),
+            new Double(0), null, MZmineCore.getMZFormat());
 
     public static final Parameter numOfBins = new SimpleParameter(
             ParameterType.INTEGER, "Number of bins",
             "The plot is divides into this number of bins", new Integer(5));
 
     public HistogramParameters() {
-        super(new Parameter[] { dataFiles, dataType, numOfBins });
+        super(new Parameter[] { dataFiles, dataType, rangeData, numOfBins });
     }
 }

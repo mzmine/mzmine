@@ -37,6 +37,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.infovisualizer.InfoWindow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -84,8 +85,8 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
         peakListPopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
                 "SHOW_ALIGNED_PEAKLIST");
-        GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this,
-        "SHOW_SCATTER_PLOT_PEAKLIST");
+        GUIUtils.addMenuItem(peakListPopupMenu, "Show list info", this,
+        		"SHOW_PEAKLIST_INFO");
         GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this,
                 "RENAME_PEAKLIST");
         GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
@@ -128,14 +129,11 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
             }
         }
 
-        if (command.equals("SHOW_SCATTER_PLOT_PEAKLIST")) {
+        if (command.equals("SHOW_PEAKLIST_INFO")) {
             PeakList[] selectedPeakLists = getSelectedPeakLists();
+            Desktop desktop = MZmineCore.getDesktop();
             for (PeakList peakList : selectedPeakLists) {
-                if (peakList.getNumberOfRawDataFiles()<2){
-                    desktop.displayErrorMessage("There is only one raw data file in " + peakList.toString() + ". It is necessary at least two for comparison");
-                    continue;
-                }
-                ScatterPlotWindow window = new ScatterPlotWindow(peakList, "Scatter plot of " + peakList.toString());
+            	InfoWindow window = new InfoWindow(peakList);
                 desktop.addInternalFrame(window);
             }
         }

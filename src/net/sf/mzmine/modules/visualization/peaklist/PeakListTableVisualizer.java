@@ -24,8 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
@@ -40,6 +38,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     private Desktop desktop;
     private PeakListTableParameters parameters;
     private static PeakListTableVisualizer myInstance;
+    private static boolean lightViewer = false;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -94,6 +93,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
         parameters = new PeakListTableParameters();
 
+        lightViewer = true;
 
     }
     
@@ -144,6 +144,10 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     public static PeakListTableVisualizer getInstance() {
         return myInstance;
+    }
+    
+    public boolean isLightViewer(){
+    	return lightViewer;
     }
 
 }

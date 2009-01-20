@@ -32,7 +32,6 @@ import javax.swing.table.TableCellEditor;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
@@ -59,7 +58,7 @@ public class PeakListTable extends JTable {
 
 	public PeakListTable(PeakListTableVisualizer visualizer,
 			PeakListTableWindow window, PeakListTableParameters parameters,
-			PeakList peakList) {
+			PeakList peakList, boolean isLightViewer) {
 
 		this.peakList = peakList;
 
@@ -82,10 +81,12 @@ public class PeakListTable extends JTable {
 		// Initialize sorter
 		sorter = new TableSorter(pkTableModel, header);
 		setModel(sorter);
-
-		PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
+		
+		if (!isLightViewer){
+			PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
 				this, cm, peakList);
-		addMouseListener(new PopupListener(popupMenu));
+			addMouseListener(new PopupListener(popupMenu));
+		}
 
 		setRowHeight(parameters.getRowHeight());
 

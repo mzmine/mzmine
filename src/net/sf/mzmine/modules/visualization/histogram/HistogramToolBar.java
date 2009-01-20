@@ -30,13 +30,13 @@ import javax.swing.JToolBar;
 
 public class HistogramToolBar extends JToolBar {
 	
-	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+	//static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
 	public HistogramToolBar(ActionListener actionPerfomer) {
 		
 		super(JToolBar.VERTICAL);
 
-		setFloatable(false);
+		/*setFloatable(false);
 		setFocusable(false);
 		setMargin(new Insets(5, 5, 5, 5));
 		setBackground(Color.white);
@@ -45,7 +45,7 @@ public class HistogramToolBar extends JToolBar {
         button1.addActionListener(actionPerfomer);
         button1.setActionCommand("SETUP_AXES");
         button1.setToolTipText("Setup ranges for axes");
-        this.add(button1);
+        this.add(button1);*/
 
 	}
 

@@ -181,6 +181,7 @@
       <parameters>
         <parameter name="Raw data files" type="MULTIPLE_SELECTION">2</parameter>
         <parameter name="Plotted data type" type="STRING">m/z</parameter>
+        <parameter name="Plotted data range" type="RANGE">100.98598758598038-824.7280023786524</parameter>
         <parameter name="Number of bins" type="INTEGER">7</parameter>
       </parameters> 
     </module>  

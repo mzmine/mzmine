@@ -93,12 +93,12 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	private SimpleParameterSet parameters;
 	private Hashtable<Parameter, Object> autoValues;
-	private Vector<ExtendedCheckBox> multipleCheckBoxes;
+	protected Vector<ExtendedCheckBox> multipleCheckBoxes;
 	private DefaultListModel fieldOrderModel;
 	private ExampleFileFilter fileChooserFilter;
 
 	// Desktop
-	private Desktop desktop = MZmineCore.getDesktop();
+	protected Desktop desktop = MZmineCore.getDesktop();
 
 	/**
 	 * Constructor
@@ -267,7 +267,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				JScrollPane peakPanelScroll = new JScrollPane(
 						peakCheckBoxesPanel,
 						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 				int width = (int) peakPanelScroll.getPreferredSize().getWidth();
 				peakPanelScroll
 						.setPreferredSize(new Dimension(width, vertSize));

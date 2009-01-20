@@ -36,6 +36,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
+import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JInternalFrame {
 	
@@ -47,7 +48,6 @@ public class HistogramWindow extends JInternalFrame {
     public HistogramWindow(PeakList peakList, HistogramParameters parameters) {
 
         super(null, true, true, true, true);
-        //this.desktop = MZmineCore.getDesktop();
         this.setTitle("Histogram of " + peakList.toString());
         
 		Parameter p = parameters.getParameter("Raw data files");
@@ -61,6 +61,7 @@ public class HistogramWindow extends JInternalFrame {
 
         HistogramDataType dataType = (HistogramDataType) parameters.getParameterValue(HistogramParameters.dataType); 
         int numOfBins = (Integer) parameters.getParameterValue(HistogramParameters.numOfBins); 
+        Range range = (Range) parameters.getParameterValue(HistogramParameters.rangeData); 
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -83,7 +84,7 @@ public class HistogramWindow extends JInternalFrame {
         pack();
 	    
 		if (peakList != null){
-			HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType);
+			HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType, range);
 			histogram.addDataset(dataSet, dataType);
 		}
 

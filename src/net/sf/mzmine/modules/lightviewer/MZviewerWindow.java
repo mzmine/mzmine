@@ -57,6 +57,7 @@ import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
+import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -175,6 +176,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         HistogramVisualizer histogramPlotVisualizer = new HistogramVisualizer();
         InfoVisualizer infoVisualizer = new InfoVisualizer();
         PeakListTableVisualizer peakListTableVisualizer = new PeakListTableVisualizer();
+        IntensityPlot intensityPlotVisualizer = new IntensityPlot();
 
         try {
             BufferedImage MZmineIcon = ImageIO.read(new File(
@@ -221,6 +223,11 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         visualizationMenu.setMnemonic(KeyEvent.VK_S);
         peakTableViewerMenuItem.addActionListener(peakListTableVisualizer);
 
+        JMenuItem peakListInfoMenuItem = new JMenuItem("Peak list info");
+        visualizationMenu.add(peakListInfoMenuItem);
+        visualizationMenu.setMnemonic(KeyEvent.VK_S);
+        peakListInfoMenuItem.addActionListener(infoVisualizer);
+        
         JMenuItem scatterPlotMenuItem = new JMenuItem("Scatter plot");
         visualizationMenu.add(scatterPlotMenuItem);
         visualizationMenu.setMnemonic(KeyEvent.VK_S);
@@ -231,11 +238,11 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         visualizationMenu.setMnemonic(KeyEvent.VK_S);
         histogramPlotMenuItem.addActionListener(histogramPlotVisualizer);
 
-        JMenuItem peakListInfoMenuItem = new JMenuItem("Peak list info");
-        visualizationMenu.add(peakListInfoMenuItem);
+        JMenuItem intensityPlotMenuItem = new JMenuItem("Intensity plot");
+        visualizationMenu.add(intensityPlotMenuItem);
         visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        peakListInfoMenuItem.addActionListener(infoVisualizer);
-        
+        intensityPlotMenuItem.addActionListener(intensityPlotVisualizer);
+
         menuBar.add(visualizationMenu);
 
         // initialize modules
@@ -244,6 +251,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         peakListTableVisualizer.initLightModule();
         scatterPlotVisualizer.iniLightModule();
         infoVisualizer.initLightModule();
+        intensityPlotVisualizer.initLightModule();
         
         setJMenuBar(menuBar);
 

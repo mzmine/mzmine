@@ -33,7 +33,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class HistogramVisualizer implements MZmineModule, ActionListener {
 
@@ -72,12 +71,12 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
     }
     
     /**
-     * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     * 
      */
-    public ExitCode setupParameters(ParameterSet parameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
+    public ExitCode setupParameters(ParameterSet parameters, PeakList peakList) {
+    	HistogramSetupDialog dialog = new HistogramSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters);
+                (SimpleParameterSet) parameters, peakList);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
@@ -102,7 +101,7 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
         	SimpleParameter p = (SimpleParameter) parameters.getParameter("Raw data files");
         	p.setPossibleValues(pl.getRawDataFiles());
         	
-            ExitCode exitCode = setupParameters(parameters);
+            ExitCode exitCode = setupParameters(parameters, pl);
             if (exitCode != ExitCode.OK) {
                 return;
             }

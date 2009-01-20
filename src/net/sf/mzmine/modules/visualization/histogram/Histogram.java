@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
-import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.ChartFactory;
@@ -38,6 +37,8 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.TickUnit;
+import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
@@ -75,10 +76,12 @@ public class Histogram extends ChartPanel{
 	
 	// legend
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+	
+	//margin
+	private static final double marginSize = 0.05;
 
 	private JFreeChart chart;
 	private XYPlot plot;
-	private boolean showItemName = false;
 	private HistogramPlotDataset dataSet;
 	
 	public Histogram() {
@@ -135,7 +138,7 @@ public class Histogram extends ChartPanel{
 		plot.setRangeCrosshairVisible(true);
 
 		// set the logarithmic axis
-		NumberAxis axisDomain = new NumberAxis();
+		NumberAxis axisDomain = new HistogramDomainAxis();
 		axisDomain.setMinorTickCount(1);
 		axisDomain.setAutoRange(true);
 
@@ -147,7 +150,9 @@ public class Histogram extends ChartPanel{
 		plot.setRangeAxis(axisRange);
 		
 		plot.setRangeCrosshairPaint(crossHairColor);
-		plot.setRenderer(new ClusteredXYBarRenderer());
+		ClusteredXYBarRenderer renderer = new ClusteredXYBarRenderer();
+		renderer.setMargin(marginSize);
+		plot.setRenderer(renderer);
 
 
 		this.setMinimumSize(new Dimension(400, 400));
@@ -165,11 +170,11 @@ public class Histogram extends ChartPanel{
 
 		String command = event.getActionCommand();
 
-		if (command.equals("SETUP_AXES")) {
+		/*if (command.equals("SETUP_AXES")) {
 			AxesSetupDialog dialog = new AxesSetupDialog(plot);
 			dialog.setVisible(true);
 			return;
-		}
+		}*/
 
 	}
 
@@ -177,11 +182,21 @@ public class Histogram extends ChartPanel{
 	synchronized public void addDataset(HistogramPlotDataset newSet, HistogramDataType dataType) {
 		dataSet = newSet;
 		setAxisNumberFormat(dataType);
-		NumberAxis axis = (NumberAxis) plot.getDomainAxis();
+		
+		double lower = dataSet.getMinimum();
+		double upper = dataSet.getMaximum();
+		
+		HistogramDomainAxis axis = (HistogramDomainAxis) plot.getDomainAxis();
 		axis.setAutoRange(true);
-		NumberFormatter formatter = (NumberFormatter) axis.getNumberFormatOverride();
-		axis.setLabel(dataType.getText() + " (" + formatter.getPattern() + ")");
+		axis.setAutoRangeIncludesZero(false);
+		axis.setLabel(dataType.getText());
+		axis.setRange(lower, upper);
+		axis.setLowerTickValue(lower);
+		axis.setUpperTickValue(upper);
+		axis.setVisibleTickCount(dataSet.getNumberOfBins()+1);
+		axis.setAutoTickUnitSelection(false);
 		axis.setTickUnit(new NumberTickUnit(dataSet.getBinWidth()));
+		
 		if (dataSet.getItemCount(0) > 6)
 		axis.setVerticalTickLabels(true);
 

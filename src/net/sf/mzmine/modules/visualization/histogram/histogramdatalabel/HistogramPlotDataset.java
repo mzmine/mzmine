@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.histogram.histogramdatalabel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -29,6 +28,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.statistics.HistogramBin;
@@ -55,7 +55,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	private HistogramType type;
 
 	public HistogramPlotDataset(PeakList peakList, RawDataFile[] rawDataFiles, int numOfBins,
-			HistogramDataType dataType) {
+			HistogramDataType dataType, Range range) {
 
 		this.list = new Vector<HashMap>();
 		this.type = HistogramType.FREQUENCY;
@@ -64,8 +64,8 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 		this.numOfBins = numOfBins;
 		this.rawDataFiles = rawDataFiles;
 		
-		maximum = 0;
-		minimum = Double.MAX_VALUE;
+		minimum = range.getMin();
+		maximum = range.getMax();
 
 		updateHistogramDataset();
 
@@ -73,9 +73,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
 	public void updateHistogramDataset() {
 		this.list.clear();
-		//RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
 		ChromatographicPeak[] peaks;
-		HashMap tempMap = new HashMap();
 		double[] values = null;
 		for (RawDataFile dataFile : rawDataFiles) {
 			peaks = peakList.getPeaks(dataFile);
@@ -96,18 +94,10 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 					break;
 				}
 				
-				minimum = Math.min(values[i], minimum);
-				maximum = Math.max(values[i], maximum);
 			}
-			tempMap.put(dataFile.getName(), values);
+			addSeries(dataFile.getName(), values);
 		}
 
-		Iterator itr = tempMap.keySet().iterator();
-		while (itr.hasNext()){
-			String name = (String) itr.next();
-			double[] properValues = (double[]) tempMap.get(name);
-			addSeries(name, properValues);
-		}
 	}
 
 	public void setNumberOfBins(int numOfBins) {
@@ -514,6 +504,14 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	 */
 	public Number getEndY(int series, int item) {
 		return getY(series, item);
+	}
+	
+	public double getMinimum(){
+		return minimum;
+	}
+
+	public double getMaximum(){
+		return maximum;
 	}
 
 }

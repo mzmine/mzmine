@@ -61,6 +61,16 @@ public class IntensityPlot implements MZmineModule, ActionListener {
                 KeyEvent.VK_D, false, this, null);
 
     }
+    
+    public void initLightModule() {
+
+        this.desktop = MZmineCore.getDesktop();
+
+        parameters = new IntensityPlotParameters();
+
+        myInstance = this;
+
+    }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
