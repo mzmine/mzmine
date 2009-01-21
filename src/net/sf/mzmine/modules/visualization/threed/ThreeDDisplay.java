@@ -351,7 +351,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
                 peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
 
                 Data[] peakData = new Data[2];
-                peakData[0] = new Real(peakHeightType, peaks[i].getHeight()
+                peakData[0] = new Real(peakHeightType, peaks[i].getRawDataPointsIntensityRange().getMax()
                         + (maxIntensity * 0.03));
 
                 String peakText;
