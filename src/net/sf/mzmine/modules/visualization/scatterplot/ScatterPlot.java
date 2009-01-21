@@ -317,7 +317,6 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 
 	public void drawDiagonalLines(ScatterPlotDataSet newSet) {
 		
-		logger.finest("Call getMaxMinValue()");
 		double[] maxMinValue = newSet.getMaxMinValue();
 		int fold = scatterPlotPanel.selectedFold();
 		

@@ -123,11 +123,8 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 		Parameter filename;
 		SimpleParameterSet parameterSet;
 		for (String name: peakListNames){
-			filename = new SimpleParameter(
-		            ParameterType.FILE_NAME,
-		            "Filename",
-		            "", null, "mpl", null);
-			parameterSet = new SimpleParameterSet(new Parameter[] { filename });
+			parameterSet = new PeakListLoaderParameters();
+			filename = parameterSet.getParameter("Filename");
 			parameterSet.setParameterValue(filename, name);
 	        runModule(null, null, parameterSet, null);
 		}
