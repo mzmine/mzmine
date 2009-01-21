@@ -175,7 +175,7 @@ class PeakListExportTask implements Task {
 							line.append(fieldSeparator);
 						} else {
 							line.append(peakListRow
-									.getPreferredCompoundIdentity()
+									.getPreferredCompoundIdentity().getName()
 									+ fieldSeparator);
 						}
 						break;
