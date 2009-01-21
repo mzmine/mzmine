@@ -134,7 +134,7 @@ public abstract class MZmineCore {
         if (desktop != null) {
             int selectedValue = JOptionPane.showInternalConfirmDialog(
                     desktop.getMainFrame().getContentPane(),
-                    "Are you sure you want to exit MZmine 2?", "Exiting...",
+                    "Are you sure you want to exit?", "Exiting...",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
             if (selectedValue != JOptionPane.YES_OPTION)
