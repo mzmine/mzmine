@@ -22,7 +22,12 @@ package net.sf.mzmine.modules.io.peaklistsaveload.load;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.logging.Logger;
+
+import javax.swing.JFileChooser;
+
+import com.sun.java.ExampleFileFilter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
@@ -81,6 +86,25 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 		
+		if (MZmineCore.isLightViewer()){
+	        JFileChooser fileChooser = new JFileChooser();
+	        fileChooser.setMultiSelectionEnabled(true);
+	        ExampleFileFilter filter = new ExampleFileFilter();
+	        filter.addExtension("mpl");
+	        filter.setDescription("MZmine peak list files");
+	        fileChooser.addChoosableFileFilter(filter);
+	        int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+
+	        if (returnVal == JFileChooser.APPROVE_OPTION) {
+	            File[] selectedFiles = fileChooser.getSelectedFiles();
+	            String[] filenames = new String[selectedFiles.length];
+	            for (int i=0; i<filenames.length; i++){
+	            	filenames[i] = selectedFiles[i].getAbsolutePath();
+	            }
+	            this.loadPeakLists(filenames);
+	        }
+		}
+		else{
 		ExitCode setupExitCode = setupParameters(parameters);
 
         if (setupExitCode != ExitCode.OK) {
@@ -88,6 +112,7 @@ public class PeakListLoader implements MZmineModule, ActionListener {
         }
 
         runModule(null, null, parameters, null);
+		}
 	}
 
 	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
