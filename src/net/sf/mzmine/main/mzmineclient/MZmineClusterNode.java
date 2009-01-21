@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main;
+package net.sf.mzmine.main.mzmineclient;
 
 import java.rmi.Remote;
 

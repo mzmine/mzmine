@@ -18,7 +18,7 @@
  */
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public enum CommonAdducts {
 

@@ -34,7 +34,7 @@ import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;

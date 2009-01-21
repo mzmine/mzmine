@@ -38,7 +38,7 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoWindow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;

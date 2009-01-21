@@ -28,7 +28,7 @@ import java.util.Iterator;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 

@@ -30,7 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 import org.openscience.cdk.applications.jchempaint.JChemPaintEditorPanel;
 import org.openscience.cdk.applications.jchempaint.JChemPaintModel;

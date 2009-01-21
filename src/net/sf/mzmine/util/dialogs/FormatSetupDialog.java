@@ -33,7 +33,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;

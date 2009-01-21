@@ -17,32 +17,39 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main;
+package net.sf.mzmine.main.mzmineclient;
 
-import javax.swing.JOptionPane;
+import net.sf.mzmine.data.ParameterSet;
 
 /**
- * This main class is executed when the user simply double-clicks on MZmine JAR
- * file. Only displays error message.
+ * This interface represents MZmine module.
  */
-public class DummyMain {
+public interface MZmineModule {
 
     /**
-     * @param args
+     * Initialize this module.
+     * 
      */
-    public static void main(String[] args) {
+    public void initModule();
 
-        String msg = "Please run MZmine using one of the provided startMZmine scripts.";
-
-        System.out.println(msg);
-
-        try {
-            JOptionPane.showMessageDialog(null, msg, "Error", JOptionPane.ERROR_MESSAGE);
-
-        } catch (Exception e) {
-            // do nothing
-        }
-
-    }
+    /**
+     * Returns module name 
+     * 
+     * @return Module name
+     */
+    public String toString();
+    
+    /**
+     * Returns module's current parameters and their values
+     * @return Parameter values as ParameterSet or null if module has no parameters
+     */
+    public ParameterSet getParameterSet();
+    
+    
+    /**
+     * Sets current parameters and their values
+     * @param parameterValues New parameter values
+     */
+    public void setParameters(ParameterSet parameterValues);
 
 }

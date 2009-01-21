@@ -29,8 +29,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -46,7 +46,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
 
@@ -100,21 +100,21 @@ public class IntensityPlot implements MZmineModule, ActionListener {
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
      */
     public String toString() {
         return "Peak intensity plot";
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
      */
     public IntensityPlotParameters getParameterSet() {
         return parameters;
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
         this.parameters = (IntensityPlotParameters) parameterValues;

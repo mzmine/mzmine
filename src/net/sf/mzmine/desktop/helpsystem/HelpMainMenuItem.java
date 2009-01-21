@@ -26,7 +26,7 @@ import javax.help.HelpBroker;
 
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.MainMenu;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class HelpMainMenuItem {
 

@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;

@@ -35,7 +35,7 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.ExtendedCheckBox;

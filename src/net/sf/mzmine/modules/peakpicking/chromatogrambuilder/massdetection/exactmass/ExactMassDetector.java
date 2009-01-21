@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;

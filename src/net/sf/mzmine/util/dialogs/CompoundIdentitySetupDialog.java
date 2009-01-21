@@ -38,7 +38,7 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class CompoundIdentitySetupDialog extends JDialog implements ActionListener{
 	

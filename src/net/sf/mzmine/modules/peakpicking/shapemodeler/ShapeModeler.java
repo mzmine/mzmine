@@ -20,12 +20,12 @@
 package net.sf.mzmine.modules.peakpicking.shapemodeler;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 
 public class ShapeModeler implements MZmineModule {
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 

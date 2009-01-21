@@ -58,7 +58,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilderParameters;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;

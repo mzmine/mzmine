@@ -32,7 +32,7 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;

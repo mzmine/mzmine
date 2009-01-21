@@ -33,8 +33,8 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
@@ -61,7 +61,7 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
     private SimpleParameterSet parameters;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
 

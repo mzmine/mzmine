@@ -26,7 +26,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 
 import net.sf.mzmine.desktop.impl.DesktopParameters;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 
 import com.sun.java.ExampleFileFilter;
@@ -42,7 +42,7 @@ public class ProjectManagerImpl implements ActionListener {
     MZmineProject currentProject;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
         currentProject = new MZmineProjectImpl();

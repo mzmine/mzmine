@@ -31,8 +31,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
@@ -60,7 +60,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     private Vector<PeakList> previousProjectPeakLists;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
 
@@ -108,7 +108,7 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
      */
     public String toString() {
         return "Batch mode";
@@ -184,14 +184,14 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
         return currentBatchSteps;
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
         currentBatchSteps = (BatchQueue) parameters;

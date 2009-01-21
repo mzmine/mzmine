@@ -40,7 +40,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.tooltip.MZmineToolTip;

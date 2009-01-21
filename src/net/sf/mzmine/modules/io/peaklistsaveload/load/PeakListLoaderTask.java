@@ -47,7 +47,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.io.peaklistsaveload.PeakListElementName;
 import net.sf.mzmine.modules.lightviewer.MZviewerWindow;
 import net.sf.mzmine.project.MZmineProject;

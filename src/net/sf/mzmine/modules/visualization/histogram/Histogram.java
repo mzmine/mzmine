@@ -27,7 +27,7 @@ import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;

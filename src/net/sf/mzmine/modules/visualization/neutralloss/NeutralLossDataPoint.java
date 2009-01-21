@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 /**
  * 

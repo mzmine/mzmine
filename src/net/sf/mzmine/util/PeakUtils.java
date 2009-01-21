@@ -25,7 +25,7 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 /**
  * Utilities for peaks and peak lists

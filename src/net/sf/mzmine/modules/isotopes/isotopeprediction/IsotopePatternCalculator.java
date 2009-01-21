@@ -28,8 +28,8 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
@@ -54,7 +54,7 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
     private SpectraPlot plot;
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
 
@@ -81,7 +81,7 @@ public class IsotopePatternCalculator implements MZmineModule, TaskListener,
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
         return parameters;

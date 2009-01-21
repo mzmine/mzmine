@@ -27,7 +27,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 import net.sf.mzmine.util.Range;

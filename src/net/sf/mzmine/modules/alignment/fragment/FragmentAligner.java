@@ -34,7 +34,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
@@ -73,7 +73,7 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
     private final String helpID = "net/sf/mzmine/modules/alignment/fragment/help/FragmentAlignment.html";
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
      */
     public void initModule() {
 
@@ -92,7 +92,7 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
         return parameters;

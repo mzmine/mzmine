@@ -22,7 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.text.Format;
 
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 /**
  * This class represents one datapoint of a spectra (m/z and intensity)

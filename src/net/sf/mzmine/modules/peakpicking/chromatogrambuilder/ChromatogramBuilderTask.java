@@ -29,7 +29,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;

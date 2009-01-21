@@ -25,7 +25,7 @@ import java.util.Iterator;
 
 import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class SimpleGroupRelatedPeaks implements GroupRelatedPeaks {
 

@@ -26,7 +26,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.SwingConstants;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import visad.ScalarMap;
 import visad.util.ColorMapWidget;

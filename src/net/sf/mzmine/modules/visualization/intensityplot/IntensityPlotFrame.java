@@ -29,7 +29,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 
 import org.jfree.chart.ChartFactory;

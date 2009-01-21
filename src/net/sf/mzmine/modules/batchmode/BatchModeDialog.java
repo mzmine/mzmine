@@ -36,8 +36,8 @@ import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;

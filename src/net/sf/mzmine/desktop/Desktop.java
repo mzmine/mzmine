@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.components.TaskProgressWindow;
 

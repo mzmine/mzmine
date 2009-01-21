@@ -29,7 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PubChemSearchDialog extends ParameterSetupDialog implements

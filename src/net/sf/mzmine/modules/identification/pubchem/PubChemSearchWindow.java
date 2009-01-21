@@ -41,7 +41,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;

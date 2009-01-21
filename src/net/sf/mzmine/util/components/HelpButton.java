@@ -25,7 +25,7 @@ import javax.swing.JButton;
 
 import net.sf.mzmine.desktop.helpsystem.HelpImp;
 import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 /**
  * This class extends JButton class to implement Help system generated

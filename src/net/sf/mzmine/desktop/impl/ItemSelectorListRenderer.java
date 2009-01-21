@@ -28,7 +28,7 @@ import javax.swing.JList;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 class ItemSelectorListRenderer extends DefaultListCellRenderer {
 
