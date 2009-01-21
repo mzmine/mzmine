@@ -174,9 +174,10 @@ class PeakListExportTask implements Task {
 						if (peakListRow.getPreferredCompoundIdentity() == null) {
 							line.append(fieldSeparator);
 						} else {
-							line.append(peakListRow
+                            
+							line.append("\"" + peakListRow
 									.getPreferredCompoundIdentity().getName()
-									+ fieldSeparator);
+									+ "\"" + fieldSeparator);
 						}
 						break;
 					case ROW_ALL_NAME:
@@ -189,7 +190,7 @@ class PeakListExportTask implements Task {
 							for (PeakIdentity compoundIdentity : compoundIdentities) {
 								name += compoundIdentity.getName() + " // ";
 							}
-							line.append(name + fieldSeparator);
+							line.append("\"" + name + "\"" + fieldSeparator);
 						}
 						break;
 					case ROW_FORMULA:
