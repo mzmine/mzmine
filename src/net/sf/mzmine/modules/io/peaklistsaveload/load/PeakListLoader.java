@@ -24,11 +24,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import javax.swing.JMenuItem;
-
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -46,6 +48,7 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 
 	private PeakListLoaderParameters parameters;
     private Desktop desktop;
+    public static PeakListLoader myInstance;
 
 
 	public ParameterSet getParameterSet() {
@@ -69,6 +72,8 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 
         parameters = new PeakListLoaderParameters();
+        
+        myInstance = this;
 		
 	}
 
@@ -110,7 +115,25 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 
         dialog.setVisible(true);
 
-        return dialog.getExitCode();	}
+        return dialog.getExitCode();
+    }
+	
+	public void loadPeakLists(String[] peakListNames){
+		
+		Parameter filename;
+		SimpleParameterSet parameterSet;
+		for (String name: peakListNames){
+			filename = new SimpleParameter(
+		            ParameterType.FILE_NAME,
+		            "Filename",
+		            "", null, "mpl", null);
+			parameterSet = new SimpleParameterSet(new Parameter[] { filename });
+			parameterSet.setParameterValue(filename, name);
+	        runModule(null, null, parameterSet, null);
+		}
+		
+		
+	}
 	
 
 }

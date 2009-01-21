@@ -282,7 +282,8 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 
 	synchronized public void addDataset(ScatterPlotDataSet newSet) {
 
-		drawDiagonalLines(newSet);
+		this.drawDiagonalLines(newSet);
+		
 		dataSet = newSet;
 
 		plot.setDataset(numOfDataSets + numDiagonals, newSet);
@@ -315,6 +316,8 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 	}
 
 	public void drawDiagonalLines(ScatterPlotDataSet newSet) {
+		
+		logger.finest("Call getMaxMinValue()");
 		double[] maxMinValue = newSet.getMaxMinValue();
 		int fold = scatterPlotPanel.selectedFold();
 		
@@ -325,10 +328,9 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 			if (i == 1)
 				foldValue = i;
 			
-			//logger.finest("Value of fold = " + foldValue);
 			DiagonalPlotDataset newDiagonalSet = new DiagonalPlotDataset(
 					maxMinValue, foldValue);
-			addDiagonalSet(newDiagonalSet);
+			this.addDiagonalSet(newDiagonalSet);
 			foldValue = fold;
 		}
 	}
@@ -336,7 +338,6 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 	private void addDiagonalSet(DiagonalPlotDataset newSet) {
 
 		plot.setDataset(numOfDataSets + numDiagonals, newSet);
-
 		try {
 			XYLineAndShapeRenderer newRenderer = (XYLineAndShapeRenderer) diagonalLineRenderer
 					.clone();

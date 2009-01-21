@@ -192,7 +192,7 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
-			e.printStackTrace();
+			//e.printStackTrace();
 			return;
 		}
 

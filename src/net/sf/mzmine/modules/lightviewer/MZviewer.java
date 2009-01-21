@@ -31,8 +31,11 @@ public class MZviewer extends MZmineCore implements Runnable {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    // make MZmineClient a singleton
+    // make MZviewer a singleton
     private static MZviewer client = new MZviewer();
+    
+    // arguments
+    private String args[];
 
     private MZviewer() {
     }
@@ -45,6 +48,8 @@ public class MZviewer extends MZmineCore implements Runnable {
      * Main method
      */
     public static void main(String args[]) {
+    	
+    	client.args = args;
 
         // create the GUI in the event-dispatching thread
         SwingUtilities.invokeLater(client);
@@ -88,8 +93,14 @@ public class MZviewer extends MZmineCore implements Runnable {
 
         // show the welcome message
         desktop.setStatusBarText("Welcome to MZviewer!");
+        
+        // Retrieving peak list arguments
+        if (args.length > 0){
+            logger.finer("Loading peak lists from arguments");
+        	desktop.addPeakLists(args);
+        }
 
     }
-
+    
 
 }

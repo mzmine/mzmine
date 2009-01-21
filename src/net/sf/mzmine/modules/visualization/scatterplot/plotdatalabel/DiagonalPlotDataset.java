@@ -24,7 +24,7 @@ import java.text.DecimalFormat;
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class DiagonalPlotDataset extends AbstractXYDataset {
-
+	
 	private double[][] values;
 	private String toolTipText;
 	private double times;

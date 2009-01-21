@@ -33,7 +33,7 @@ import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class ScatterPlotDataSet extends AbstractXYDataset{
+public class ScatterPlotDataSet extends AbstractXYDataset {
 
 	private PeakList peakList;
 	private int domainX, domainY;
@@ -51,11 +51,11 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		this.domainY = domainY;
 		this.visualizer = visualizer;
 		rawDataFiles = peakList.getRawDataFiles();
-		seriesColor = new Color[]{ Color.BLUE };
+		seriesColor = new Color[] { Color.BLUE };
 
-		// Initialize and array which contains the row's index where is present both peaks
+		// Initialize and array which contains the row's index where is present
+		// both peaks
 		initializeArraySeriesAndItems();
-
 
 	}
 
@@ -86,7 +86,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 				presentOnlyY++;
 			}
 		}
-		
+
 		Integer[] listOfIds = peakRowIds.toArray(new Integer[0]);
 		arraySeriesAndItemsSelection = new Integer[1][peakRowIds.size()];
 		arraySeriesAndItemsSelection[0] = listOfIds;
@@ -115,8 +115,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 */
 	public Number getX(int series, int item) {
 		int rowID = arraySeriesAndItemsSelection[series][item];
-		return peakList.getRow(rowID).getPeak(rawDataFiles[domainX])
-				.getArea();
+		return peakList.getRow(rowID).getPeak(rawDataFiles[domainX]).getArea();
 	}
 
 	/**
@@ -124,8 +123,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 */
 	public Number getY(int series, int item) {
 		int rowID = arraySeriesAndItemsSelection[series][item];
-		return peakList.getRow(rowID).getPeak(rawDataFiles[domainY])
-				.getArea();
+		return peakList.getRow(rowID).getPeak(rawDataFiles[domainY]).getArea();
 	}
 
 	/**
@@ -187,7 +185,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 * @return
 	 */
 	public String getDataPointName(int index) {
-		
+
 		PeakListRow row = peakList.getRow(index);
 		PeakIdentity identity = row.getPreferredCompoundIdentity();
 		if (identity != null) {
@@ -208,7 +206,6 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		return peakList.getRow(rowID).getPreferredCompoundIdentity().getName();
 	}
 
-
 	/**
 	 * Returns index of data point which exactly matches given X and Y values
 	 * 
@@ -217,15 +214,15 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 * @return
 	 */
 	public int getIndex(double valueX, double valueY) {
-		
+
 		Integer[] items = arraySeriesAndItemsSelection[0];
 
 		for (int i = 0; i < items.length; i++) {
-			
-			double originalValueX = peakList.getRow(items[i]).getPeak(rawDataFiles[domainX])
-			.getArea();
-			double originalValueY = peakList.getRow(items[i]).getPeak(rawDataFiles[domainY])
-			.getArea();
+
+			double originalValueX = peakList.getRow(items[i]).getPeak(
+					rawDataFiles[domainX]).getArea();
+			double originalValueY = peakList.getRow(items[i]).getPeak(
+					rawDataFiles[domainY]).getArea();
 
 			if ((Math.abs(valueX - originalValueX) < 0.0000001f)
 					&& (Math.abs(valueY - originalValueY) < 0.0000001f))
@@ -249,16 +246,21 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		for (int i = 0; i < length; i++) {
 
 			valueX = peakList.getRow(items[i]).getPeak(rawDataFiles[domainX])
-			.getArea();
+					.getArea();
 
 			valueY = peakList.getRow(items[i]).getPeak(rawDataFiles[domainY])
-			.getArea();
-			
-			localValue = Math.max(valueX, valueY);
-			maxValue = Math.max(localValue, maxValue);
+					.getArea();
 
-			localValue = Math.min(valueX, valueY);
-			minValue = Math.min(localValue, minValue);
+			if ((!Double.isNaN(valueX)) && (!Double.isNaN(valueY)) ) {
+
+				localValue = Math.max(valueX, valueY);
+				maxValue = Math.max(localValue, maxValue);
+
+				localValue = Math.min(valueX, valueY);
+				minValue = Math.min(localValue, minValue);
+			}
+
+
 		}
 
 		maxMinValue[0] = minValue;
@@ -285,11 +287,10 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		if (searchValue == null)
 			return;
 
-		
 		Vector<Integer> items = new Vector<Integer>();
 		Vector<Color> colorVector = new Vector<Color>();
 		Integer[][] arraySeriesAndItemsConstruction;
-		
+
 		colorVector.add(Color.BLUE);
 
 		Integer[] listOfIds = arraySeriesAndItemsSelection[0];
@@ -297,50 +298,50 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		String selectionElement, originalElement;
 		PeakListRow row;
 		PeakIdentity identity;
-		
+
 		selectionElement = searchValue;
 		selectionElement = selectionElement.toUpperCase();
-		for (int rowID = 0; rowID < length1; rowID++) {
-			
-			originalElement = null;
-			row = peakList.getRow(listOfIds[rowID]);
-			identity = row.getPreferredCompoundIdentity();
-			if (identity != null) {
-				originalElement = identity.getName();
+
+		if (selectionElement.length() > 0) {
+			for (int rowID = 0; rowID < length1; rowID++) {
+
+				originalElement = null;
+				row = peakList.getRow(listOfIds[rowID]);
+				identity = row.getPreferredCompoundIdentity();
+				if (identity != null) {
+					originalElement = identity.getName();
+				}
+
+				if ((originalElement == null) || (originalElement == "")) {
+					continue;
+				}
+
+				originalElement = originalElement.toUpperCase();
+
+				// TODO: check for exception - regular expression may be wrong
+				if ((originalElement.matches(".*" + selectionElement + ".*"))) {
+					if (!items.contains(listOfIds[rowID]))
+						items.add(listOfIds[rowID]);
+				}
+
 			}
-			
-			if ((originalElement == null) || (originalElement == "")) {
-				continue;
-			}
-			
-			originalElement = originalElement.toUpperCase();
-			
-            // TODO: check for exception - regular expression may be wrong
-			if ((originalElement.matches(".*" + selectionElement + ".*"))) {
-				if (!items.contains(listOfIds[rowID]))
-					items.add(listOfIds[rowID]);
-			}
-				
 		}
-			
-	
-		if (items.size() > 0){
+
+		if (items.size() > 0) {
 			colorVector.add(Color.ORANGE);
 			arraySeriesAndItemsConstruction = new Integer[2][0];
 			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
 			arraySeriesAndItemsConstruction[1] = items.toArray(new Integer[0]);
 			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
-		}
-		else{
+		} else {
 			arraySeriesAndItemsConstruction = new Integer[1][0];
 			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
 			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
 		}
 
-		seriesColor =colorVector.toArray(new Color[0]);
+		seriesColor = colorVector.toArray(new Color[0]);
 		visualizer.actionPerformed(new ActionEvent(this,
 				ActionEvent.ACTION_PERFORMED, "DATASET_UPDATED"));
-
 
 	}
 
@@ -348,12 +349,15 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 	 * 
 	 * @return String
 	 */
-	public String getDisplayedCount(){
-		String display = "<HTML>" +  peakList.getNumberOfRows() + " total peaks, ";
+	public String getDisplayedCount() {
+		String display = "<HTML>" + peakList.getNumberOfRows()
+				+ " total peaks, ";
 		display += this.getItemCount(0) + " displayed<BR> ";
-		display += presentOnlyX + " peaks only in " + rawDataFiles[domainX].getName() + "<BR>";
-		display += presentOnlyY + " peaks only in " + rawDataFiles[domainY].getName();
-		return  display;
+		display += presentOnlyX + " peaks only in "
+				+ rawDataFiles[domainX].getName() + "<BR>";
+		display += presentOnlyY + " peaks only in "
+				+ rawDataFiles[domainY].getName();
+		return display;
 	}
 
 	/**
@@ -390,9 +394,10 @@ public class ScatterPlotDataSet extends AbstractXYDataset{
 		mzRange.extendRange(rawDataFiles[domainY].getDataMZRange(1));
 		return mzRange;
 	}
-	
-	public RawDataFile[] getRawDataFilesDisplayed(){
-		RawDataFile[] files = new RawDataFile[] { rawDataFiles[domainX] , rawDataFiles[domainY] };
+
+	public RawDataFile[] getRawDataFilesDisplayed() {
+		RawDataFile[] files = new RawDataFile[] { rawDataFiles[domainX],
+				rawDataFiles[domainY] };
 		return files;
 	}
 

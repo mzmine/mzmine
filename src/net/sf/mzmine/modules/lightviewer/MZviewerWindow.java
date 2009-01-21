@@ -391,5 +391,9 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 	public RawDataFile[] getSelectedDataFiles() {
 		return null;
 	}
+	
+	public void addPeakLists(String[] args){
+		PeakListLoader.myInstance.loadPeakLists(args);
+	}
     
 }
