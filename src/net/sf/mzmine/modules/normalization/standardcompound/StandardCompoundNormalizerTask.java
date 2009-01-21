@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.normalization.standardcompound;
@@ -65,17 +65,16 @@ public class StandardCompoundNormalizerTask implements Task {
         peakMeasurementType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.peakMeasurementType);
         MZvsRTBalance = (Double) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
         removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
-        
-		Parameter p = parameters.getParameter("Standard compounds");
-		Object[] objectArray = ((SimpleParameter) p)
-				.getMultipleSelectedValues();
-		int length = objectArray.length;
 
-		standardRows = new PeakListRow[length];
-		for (int i = 0; i < length; i++) {
-			standardRows[i] = (PeakListRow) objectArray[i];
-		} 
-		
+        Parameter p = parameters.getParameter("Standard compounds");
+        Object[] objectArray = ((SimpleParameter) p).getMultipleSelectedValues();
+        int length = objectArray.length;
+
+        standardRows = new PeakListRow[length];
+        for (int i = 0; i < length; i++) {
+            standardRows[i] = (PeakListRow) objectArray[i];
+        }
+
     }
 
     public void cancel() {
@@ -104,8 +103,11 @@ public class StandardCompoundNormalizerTask implements Task {
 
         taskStatus = TaskStatus.PROCESSING;
 
-        logger.finest("Starting standard compound normalization of "
-                + originalPeakList + " using " + normalizationType + " (total "
+        logger.finest("XXXXXXXXXXXXXXStarting standard compound normalization of "
+                + originalPeakList
+                + " using "
+                + normalizationType
+                + " (total "
                 + standardRows.length + " standard peaks)");
 
         // Initialize new alignment result for the normalized result
@@ -117,11 +119,17 @@ public class StandardCompoundNormalizerTask implements Task {
         totalRows = originalPeakList.getNumberOfRows();
 
         // Loop through all rows
-        for (PeakListRow row : originalPeakList.getRows()) {
+        rowIteration: for (PeakListRow row : originalPeakList.getRows()) {
 
             // Cancel ?
             if (taskStatus == TaskStatus.CANCELED) {
                 return;
+            }
+
+            // Do not add the standard rows to the new peaklist
+            for (int i = 0; i < standardRows.length; i++) {
+                if (row == standardRows[i])
+                    continue rowIteration;
             }
 
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
@@ -169,9 +177,9 @@ public class StandardCompoundNormalizerTask implements Task {
                     } else {
                         normalizationFactors[0] = standardPeak.getArea();
                     }
-                    logger.finest("Normalizing using standard peak "
-                            + standardPeak + ", factor "
-                            + normalizationFactors[0]);
+                    logger.finest("Normalizing row #" + row.getID()
+                            + " using standard peak " + standardPeak
+                            + ", factor " + normalizationFactors[0]);
                     normalizationFactorWeights[0] = 1.0f;
 
                 }
@@ -196,8 +204,8 @@ public class StandardCompoundNormalizerTask implements Task {
                             // available? (Currently this is ruled out by the
                             // setup dialog, which shows only peaks that are
                             // present in all samples)
-                            normalizationFactors[standardRowIndex] = 1.0f;
-                            normalizationFactorWeights[standardRowIndex] = 0.0f;
+                            normalizationFactors[standardRowIndex] = 1.0;
+                            normalizationFactorWeights[standardRowIndex] = 0.0;
                         } else {
                             if (peakMeasurementType == StandardCompoundNormalizerParameters.peakMeasurementTypeHeight) {
                                 normalizationFactors[standardRowIndex] = standardPeak.getHeight();
@@ -224,7 +232,7 @@ public class StandardCompoundNormalizerTask implements Task {
                 // For simple scaling of the normalized values
                 normalizationFactor = normalizationFactor / 100.0f;
 
-                logger.finest("Normalizing row " + row + "[" + file
+                logger.finest("Normalizing row #" + row.getID() + "[" + file
                         + "] using factor " + normalizationFactor);
 
                 // How to handle zero normalization factor?
@@ -256,15 +264,15 @@ public class StandardCompoundNormalizerTask implements Task {
         // Add new peaklist to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(normalizedPeakList);
-        
-		// Load previous applied methods
-		for (PeakListAppliedMethod proc: originalPeakList.getAppliedMethods()){
-			normalizedPeakList.addDescriptionOfAppliedTask(proc);
-		}
-        
-        // Add task description to peakList
-        normalizedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Standard compound normalization", parameters));
 
+        // Load previous applied methods
+        for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {
+            normalizedPeakList.addDescriptionOfAppliedTask(proc);
+        }
+
+        // Add task description to peakList
+        normalizedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                "Standard compound normalization", parameters));
 
         // Remove the original peaklist if requested
         if (removeOriginal)
