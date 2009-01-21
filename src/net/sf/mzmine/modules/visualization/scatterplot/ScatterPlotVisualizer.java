@@ -37,8 +37,6 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
     private static ScatterPlotVisualizer myInstance;
     
-    public static boolean lightViewer = false;
-
     private Desktop desktop;
 
     /**
@@ -56,15 +54,6 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
     }
     
-    public void iniLightModule(){
-        this.desktop = MZmineCore.getDesktop();
-
-        myInstance = this;
-        
-        lightViewer = true;
-    	
-    }
-
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
@@ -104,9 +93,5 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 	public void setParameters(ParameterSet parameterValues) {
 	}
 	
-    public boolean isLightViewer(){
-    	return lightViewer;
-    }
-
 
 }

@@ -151,7 +151,7 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         layout.setConstraints(comp, constraints);
 
         Parameter[] projectParameters;
-        if (IntensityPlot.lightViewer){
+        if (MZmineCore.isLightViewer()){
         	projectParameters = new Parameter[0];
         }
         else{

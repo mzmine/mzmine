@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.lightviewer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
@@ -40,12 +41,10 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
-
-import ca.guydavis.swing.desktop.CascadingWindowPositioner;
-import ca.guydavis.swing.desktop.JWindowsMenu;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -53,27 +52,25 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.Statusbar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader;
-import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer;
-import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
-import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
-import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 import net.sf.mzmine.util.components.TaskProgressWindow;
+import net.sf.mzmine.util.dialogs.FormatSetupDialog;
+import ca.guydavis.swing.desktop.CascadingWindowPositioner;
+import ca.guydavis.swing.desktop.JWindowsMenu;
 
 public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
-        WindowListener, InternalFrameListener {
+        WindowListener, InternalFrameListener, ActionListener {
 
     private JDesktopPane desktopPane;
     private JMenuBar menuBar;
+    private JMenu fileMenu, visualizationMenu;
     private JSplitPane split;
     private Statusbar statusBar;
     private MZviewerItemSelector itemSelector;
@@ -160,8 +157,26 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
-    	// ignore
-    }
+        switch (parentMenu) {
+        case PEAKLISTFILTERING:
+            break;
+        case ALIGNMENT:
+            break;
+        case NORMALIZATION:
+            break;
+        case IDENTIFICATION:
+            break;
+        case PEAKLISTEXPORT:
+            fileMenu.add(newItem);
+            break;
+        case VISUALIZATIONPEAKLIST:
+            visualizationMenu.add(newItem);
+            break;
+        case DATAANALYSIS:
+            break;
+        case HELPSYSTEM:
+            break;
+        }    }
 
 
     public PeakList[] getSelectedPeakLists() {
@@ -173,14 +188,6 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     public void initModule() {
 
         SwingParameters.initSwingParameters();
-
-        // Required modules
-        PeakListLoader peakListLoader = new PeakListLoader();
-        ScatterPlotVisualizer scatterPlotVisualizer = new ScatterPlotVisualizer();
-        HistogramVisualizer histogramPlotVisualizer = new HistogramVisualizer();
-        InfoVisualizer infoVisualizer = new InfoVisualizer();
-        PeakListTableVisualizer peakListTableVisualizer = new PeakListTableVisualizer();
-        IntensityPlot intensityPlotVisualizer = new IntensityPlot();
 
         try {
             BufferedImage MZmineIcon = ImageIO.read(new File(
@@ -213,41 +220,14 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         // Construct menu
         menuBar = new JMenuBar();
 
-        JMenuItem loadMenuItem = new JMenuItem("Load");
-        JMenu fileMenu = new JMenu("File");
-        fileMenu.add(loadMenuItem);
-        fileMenu.setMnemonic(KeyEvent.VK_F);
-        loadMenuItem.addActionListener(peakListLoader);
-        
+        fileMenu = new JMenu("File");
         menuBar.add(fileMenu);
-        
-        JMenu visualizationMenu = new JMenu("Visualization");
-        
-        JMenuItem peakTableViewerMenuItem = new JMenuItem("Peak list table");
-        visualizationMenu.add(peakTableViewerMenuItem);
-        visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        peakTableViewerMenuItem.addActionListener(peakListTableVisualizer);
-
-        JMenuItem peakListInfoMenuItem = new JMenuItem("Peak list info");
-        visualizationMenu.add(peakListInfoMenuItem);
-        visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        peakListInfoMenuItem.addActionListener(infoVisualizer);
-        
-        JMenuItem scatterPlotMenuItem = new JMenuItem("Scatter plot");
-        visualizationMenu.add(scatterPlotMenuItem);
-        visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        scatterPlotMenuItem.addActionListener(scatterPlotVisualizer);
-        
-        JMenuItem histogramPlotMenuItem = new JMenuItem("Histogram plot");
-        visualizationMenu.add(histogramPlotMenuItem);
-        visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        histogramPlotMenuItem.addActionListener(histogramPlotVisualizer);
-
-        JMenuItem intensityPlotMenuItem = new JMenuItem("Intensity plot");
-        visualizationMenu.add(intensityPlotMenuItem);
-        visualizationMenu.setMnemonic(KeyEvent.VK_S);
-        intensityPlotMenuItem.addActionListener(intensityPlotVisualizer);
-
+        JMenu editMenu = new JMenu("Edit");
+        JMenuItem formatMenuItem = new JMenuItem("Set number formats...");
+        formatMenuItem.addActionListener(this);
+        editMenu.add(formatMenuItem);
+        menuBar.add(editMenu);
+        visualizationMenu = new JMenu("Visualization");
         menuBar.add(visualizationMenu);
         
         JDesktopPane mainDesktopPane = getDesktopPane();
@@ -261,14 +241,6 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         
         menuBar.add(windowsMenu);
 
-        // initialize modules
-        peakListLoader.initLightModule();
-        histogramPlotVisualizer.initLightModule();
-        peakListTableVisualizer.initLightModule();
-        scatterPlotVisualizer.iniLightModule();
-        infoVisualizer.initLightModule();
-        intensityPlotVisualizer.initLightModule();
-        
         setJMenuBar(menuBar);
 
         // Initialize window listener for responding to user events
@@ -385,8 +357,21 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
 			String toolTip, int mnemonic, boolean setAccelerator,
 			ActionListener listener, String actionCommand) {
-		return null;
-	}
+        JMenuItem newItem = new JMenuItem(text);
+        if (listener != null)
+            newItem.addActionListener(listener);
+        if (actionCommand != null)
+            newItem.setActionCommand(actionCommand);
+        if (toolTip != null)
+            newItem.setToolTipText(toolTip);
+        if (mnemonic > 0) {
+            newItem.setMnemonic(mnemonic);
+            if (setAccelerator)
+                newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
+                        ActionEvent.CTRL_MASK));
+        }
+        addMenuItem(parentMenu, newItem);
+        return newItem;	}
 
 	public RawDataFile[] getSelectedDataFiles() {
 		return null;
@@ -395,5 +380,10 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 	public void addPeakLists(String[] args){
 		PeakListLoader.myInstance.loadPeakLists(args);
 	}
+
+	public void actionPerformed(ActionEvent e) {
+        FormatSetupDialog formatDialog = new FormatSetupDialog();
+        formatDialog.setVisible(true);
+    }
     
 }

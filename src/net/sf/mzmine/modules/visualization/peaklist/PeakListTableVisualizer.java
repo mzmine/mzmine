@@ -38,7 +38,6 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
     private Desktop desktop;
     private PeakListTableParameters parameters;
     private static PeakListTableVisualizer myInstance;
-    private static boolean lightViewer = false;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -72,31 +71,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     }
     
-    public void initLightModule() {
-
-        this.desktop = MZmineCore.getDesktop();
-        myInstance = this;
-
-        // Disable default logging of JFreeReport library
-        System.setProperty("org.jfree.base.NoDefaultDebug", "true");
-
-        // Boot the JFreeReport library in a new thread, because it may take a
-        // couple of seconds and we don't want to block MZmine startup
-        Thread bootThread = new Thread() {
-
-            public void run() {
-                JFreeReportBoot.getInstance().start();
-            }
-
-        };
-        bootThread.start();
-
-        parameters = new PeakListTableParameters();
-
-        lightViewer = true;
-
-    }
-    
+ 
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -146,8 +121,5 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         return myInstance;
     }
     
-    public boolean isLightViewer(){
-    	return lightViewer;
-    }
 
 }

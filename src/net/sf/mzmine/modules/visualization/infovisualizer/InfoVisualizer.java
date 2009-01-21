@@ -55,12 +55,6 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
 
     }
     
-    public void initLightModule(){
-        this.desktop = MZmineCore.getDesktop();
-
-        myInstance = this;
-    	
-    }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)

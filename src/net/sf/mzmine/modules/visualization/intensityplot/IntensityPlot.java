@@ -43,7 +43,6 @@ public class IntensityPlot implements MZmineModule, ActionListener {
     private Desktop desktop;
     private IntensityPlotParameters parameters;
     private static IntensityPlot myInstance;
-    public static boolean lightViewer = false;
 
 
     /**
@@ -64,16 +63,6 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
     }
     
-    public void initLightModule() {
-
-        this.desktop = MZmineCore.getDesktop();
-
-        parameters = new IntensityPlotParameters();
-
-        myInstance = this;
-        
-        lightViewer = true;
-    }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -148,9 +137,5 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         }
     }
     
-    public boolean isLightViewer(){
-    	return lightViewer;
-    }
-
 
 }

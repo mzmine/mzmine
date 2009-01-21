@@ -189,7 +189,7 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 
 
 		// add items to popup menu
-		if (!ScatterPlotVisualizer.lightViewer){
+		if (!MZmineCore.isLightViewer()){
 			JPopupMenu popupMenu = getPopupMenu();
 			popupMenu.addSeparator();
 			popupMenu.add(newPopmenuItem("Show Chromatogram", "TIC"));

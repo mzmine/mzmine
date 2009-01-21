@@ -84,8 +84,8 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.7620000243186951-2399.31005859375</parameter>
-        <parameter name="m/z range" type="RANGE">102.02789306640625-102.0281982421875</parameter>
+        <parameter name="Retention time" type="RANGE">0.765999972820282-2397.72998046875</parameter>
+        <parameter name="m/z range" type="RANGE">341.1053161621094-341.10931396484375</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -166,7 +166,7 @@
         </column>
         <column type="datafile" name="HEIGHT">
           <visible>true</visible>
-          <width>63</width>
+          <width>88</width>
         </column>
         <column type="datafile" name="AREA">
           <visible>false</visible>
@@ -346,7 +346,9 @@
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot"> 
-      <parameters/> 
+      <parameters>
+        <yValueSource>Peak height</yValueSource>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator"> 
       <parameters>
@@ -410,7 +412,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\File samples\peakListTest2.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">E:\File samples\negative.mpl</parameter>
       </parameters> 
     </module> 
   </modules>  

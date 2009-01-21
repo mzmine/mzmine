@@ -19,12 +19,14 @@
 
 package net.sf.mzmine.modules.lightviewer;
 
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
 public class MZviewer extends MZmineCore implements Runnable {
@@ -33,6 +35,8 @@ public class MZviewer extends MZmineCore implements Runnable {
 
     // make MZviewer a singleton
     private static MZviewer client = new MZviewer();
+    
+    private Vector<MZmineModule> moduleSet;
     
     // arguments
     private String args[];
@@ -79,7 +83,19 @@ public class MZviewer extends MZmineCore implements Runnable {
 
             taskController.initModule();
             desktop.initModule();
+            
+            logger.finer("Loading modules");
 
+            moduleSet = new Vector<MZmineModule>();
+            
+            for (MZviewerModuleName module: MZviewerModuleName.values()){
+            	loadModule(module.getClassName());
+            }
+
+            MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+            
+            MZmineCore.isLightViewer = true;
+           
 
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not initialize MZviewer ", e);
@@ -98,6 +114,34 @@ public class MZviewer extends MZmineCore implements Runnable {
         if (args.length > 0){
             logger.finer("Loading peak lists from arguments");
         	desktop.addPeakLists(args);
+        }
+
+    }
+    
+    public MZmineModule loadModule(String moduleClassName) {
+
+        try {
+
+            logger.finest("Loading module " + moduleClassName);
+
+            // load the module class
+            Class moduleClass = Class.forName(moduleClassName);
+
+            // create instance
+            MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
+
+            // init module
+            moduleInstance.initModule();
+
+            // add to the module set
+            moduleSet.add(moduleInstance);
+
+            return moduleInstance;
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE,
+                    "Could not load module " + moduleClassName, e);
+            return null;
         }
 
     }

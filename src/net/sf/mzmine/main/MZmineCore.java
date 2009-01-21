@@ -69,6 +69,7 @@ public abstract class MZmineCore {
     protected static ProjectManagerImpl projectManager;
     protected static MZmineModule[] initializedModules;
     protected static HelpImp help;
+    protected static boolean isLightViewer;
 
     /**
      * Returns a reference to local task controller.
@@ -117,6 +118,10 @@ public abstract class MZmineCore {
      */
     public static HelpImp getHelpImp() {
         return help;
+    }
+    
+    public static boolean isLightViewer(){
+    	return isLightViewer;
     }
 
     /**

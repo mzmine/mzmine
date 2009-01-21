@@ -31,6 +31,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -70,7 +71,7 @@ public class PeakListTableWindow extends JInternalFrame implements
         myParameters = visualizer.getParameterSet().clone();
 
         // Build table
-        table = new PeakListTable(visualizer, this, myParameters, peakList, visualizer.isLightViewer());
+        table = new PeakListTable(visualizer, this, myParameters, peakList, MZmineCore.isLightViewer());
 
         scrollPane = new JScrollPane(table);
 

@@ -26,10 +26,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -64,6 +62,8 @@ public class PeakListLoader implements MZmineModule, ActionListener {
         desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Load peak list",
                 "Load a peak list from a file", KeyEvent.VK_E, true,
                 this, null);
+
+        myInstance = this;
 		
 	}
 	
@@ -72,8 +72,6 @@ public class PeakListLoader implements MZmineModule, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 
         parameters = new PeakListLoaderParameters();
-        
-        myInstance = this;
 		
 	}
 

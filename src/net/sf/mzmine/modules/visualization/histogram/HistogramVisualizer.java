@@ -61,15 +61,7 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
 
     }
     
-    public void initLightModule(){
-        this.desktop = MZmineCore.getDesktop();
-
-        myInstance = this;
-        
-        this.parameters = new HistogramParameters();
-    	
-    }
-    
+   
     /**
      * 
      */
