@@ -55,7 +55,7 @@
 		</copy>
 				
 		<copy todir="${dist}">
-			<fileset file="${rest}/startMZmine.*" />
+			<fileset file="${rest}/startMZ*.*" />
 		</copy>
 		
 		<copy todir="${dist}/conf">
