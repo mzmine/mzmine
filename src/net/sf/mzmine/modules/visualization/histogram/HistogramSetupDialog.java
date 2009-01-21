@@ -43,14 +43,11 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class HistogramSetupDialog extends ParameterSetupDialog {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private SimpleParameterSet localParameters;
-	private JComboBox dataTypeComponent; 
+	private JComboBox dataTypeComponent;
 	private JPanel dataRangeComponent;
 	private PeakList peakList;
 	private RawDataFile[] rawDataFiles;
-	private boolean initial = true;
 
 	public HistogramSetupDialog(String title, SimpleParameterSet parameters,
 			PeakList peakList) {
@@ -59,22 +56,12 @@ public class HistogramSetupDialog extends ParameterSetupDialog {
 		this.localParameters = parameters;
 		this.peakList = peakList;
 
-		Vector<RawDataFile> dataFiles = new Vector<RawDataFile>();
-		for (ExtendedCheckBox box : multipleCheckBoxes) {
-			Object genericObject = box.getObject();
-			dataFiles.add((RawDataFile) genericObject);
-			box.addActionListener(this);
-		}
-		rawDataFiles = dataFiles.toArray(new RawDataFile[0]);
-
 		Parameter p = localParameters.getParameter("Plotted data type");
 		dataTypeComponent = (JComboBox) getComponentForParameter(p);
 		dataTypeComponent.addActionListener(this);
 
 		p = localParameters.getParameter("Plotted data range");
 		dataRangeComponent = (JPanel) getComponentForParameter(p);
-		
-		actionPerformed(new ActionEvent(dataTypeComponent, 0, ""));
 
 	}
 
@@ -88,54 +75,53 @@ public class HistogramSetupDialog extends ParameterSetupDialog {
 
 		Object source = event.getSource();
 
-		if ((source instanceof JComboBox) ||
-			(source instanceof ExtendedCheckBox) ){
+		if ((source instanceof JComboBox)
+				|| (source instanceof ExtendedCheckBox)) {
 
 			try {
 
-				if (!initial) {
-					Vector<RawDataFile> dataFiles = new Vector<RawDataFile>();
-					for (ExtendedCheckBox box : multipleCheckBoxes) {
-						if (box.isSelected()) {
-							Object genericObject = box.getObject();
-							dataFiles.add((RawDataFile) genericObject);
-						}
+				Vector<RawDataFile> dataFiles = new Vector<RawDataFile>();
+				for (ExtendedCheckBox box : multipleCheckBoxes) {
+					if (box.isSelected()) {
+						Object genericObject = box.getObject();
+						dataFiles.add((RawDataFile) genericObject);
 					}
-					rawDataFiles = dataFiles.toArray(new RawDataFile[0]);
 				}
-				
-				initial = false;
+				rawDataFiles = dataFiles.toArray(new RawDataFile[0]);
 
 				if (rawDataFiles.length == 0) {
 					throw (new Exception(
 							"Please select at least one option from multiple selection parameter"));
 				}
 
-				HistogramDataType dataType = (HistogramDataType) dataTypeComponent.getSelectedItem();
+				HistogramDataType dataType = (HistogramDataType) dataTypeComponent
+						.getSelectedItem();
 				Range valueRange = calculateRange(dataType);
 				NumberFormat formatter = getAxisNumberFormat(dataType);
 				JPanel panel = (JPanel) dataRangeComponent;
-				
-				JFormattedTextField minField = new JFormattedTextField(formatter);//(JFormattedTextField) panel
-						//.getComponent(0);
+
+				JFormattedTextField minField = new JFormattedTextField(
+						formatter);
 				minField.setValue(valueRange.getMin());
-				minField.setPreferredSize(new Dimension(80,minField.getPreferredSize().height));
+				minField.setPreferredSize(new Dimension(80, minField
+						.getPreferredSize().height));
 				minField.setHorizontalAlignment(JFormattedTextField.CENTER);
 				panel.getComponent(0).setVisible(false);
 				panel.remove(0);
 				panel.add(minField, 0);
-				
-				JFormattedTextField maxField = new JFormattedTextField(formatter);//(JFormattedTextField) panel
-						//.getComponent(2);
+
+				JFormattedTextField maxField = new JFormattedTextField(
+						formatter);
 				maxField.setValue(valueRange.getMax());
-				maxField.setPreferredSize(new Dimension(80,maxField.getPreferredSize().height));
+				maxField.setPreferredSize(new Dimension(80, maxField
+						.getPreferredSize().height));
 				maxField.setHorizontalAlignment(JFormattedTextField.CENTER);
 				panel.getComponent(2).setVisible(false);
 				panel.remove(2);
 				panel.add(maxField, 2);
-				
+
 				panel.addNotify();
-				
+
 				pack();
 
 			} catch (Exception e) {
@@ -168,17 +154,19 @@ public class HistogramSetupDialog extends ParameterSetupDialog {
 					break;
 				}
 
-				minimum = Math.min(values[i], minimum);
-				maximum = Math.max(values[i], maximum);
+				if (!Double.isNaN(values[i])) {
+					minimum = Math.min(values[i], minimum);
+					maximum = Math.max(values[i], maximum);
+				}
 			}
 		}
 		return new Range(minimum, maximum);
 	}
-	
-	private NumberFormat getAxisNumberFormat(HistogramDataType dataType){
-		
+
+	private NumberFormat getAxisNumberFormat(HistogramDataType dataType) {
+
 		NumberFormat formatter = null;
-		switch (dataType){
+		switch (dataType) {
 		case AREA:
 			formatter = MZmineCore.getIntensityFormat();
 			break;
