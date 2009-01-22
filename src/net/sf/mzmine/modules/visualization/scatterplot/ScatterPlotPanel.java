@@ -352,8 +352,8 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		comboY.setModel(new DefaultComboBoxModel(domains));
 		comboX.setModel(new DefaultComboBoxModel(domains));
 		comboY.setSelectedIndex(1);
-		plot.getXYPlot().getRangeAxis().setLabel(domains[0]);
-		plot.getXYPlot().getDomainAxis().setLabel(domains[1]);
+		plot.getXYPlot().getDomainAxis().setLabel(domains[0]);
+		plot.getXYPlot().getRangeAxis().setLabel(domains[1]);
 	}
 
 	public void enableButtons() {
