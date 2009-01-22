@@ -58,6 +58,10 @@
 			<fileset file="${rest}/startMZ*.*" />
 		</copy>
 		
+		<chmod perm="a+x">
+			<fileset file="${dist}/startMZ*.*" />
+		</chmod>
+		
 		<copy todir="${dist}/conf">
 			<fileset file="${conf}/*.properties" />
 			<fileset file="${conf}/*.xml" />
