@@ -103,7 +103,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
         taskStatus = TaskStatus.PROCESSING;
 
-        logger.finest("XXXXXXXXXXXXXXStarting standard compound normalization of "
+        logger.finest("Starting standard compound normalization of "
                 + originalPeakList
                 + " using "
                 + normalizationType
@@ -128,8 +128,10 @@ public class StandardCompoundNormalizerTask implements Task {
 
             // Do not add the standard rows to the new peaklist
             for (int i = 0; i < standardRows.length; i++) {
-                if (row == standardRows[i])
+                if (row == standardRows[i]) {
+                    processedRows++;
                     continue rowIteration;
+                }
             }
 
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
