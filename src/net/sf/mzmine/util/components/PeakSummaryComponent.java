@@ -58,7 +58,7 @@ public class PeakSummaryComponent extends JPanel {
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 14);
     private static final Font ratioFont = new Font("SansSerif", Font.PLAIN, 18);
 
-    private static final Dimension xicPreferredSize = new Dimension(50, 60);
+    private static final Dimension xicPreferredSize = new Dimension(350, 70);
 
     static int indX = 0;
     static int indY = 1;
