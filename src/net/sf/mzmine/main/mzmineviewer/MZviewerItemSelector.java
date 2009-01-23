@@ -39,7 +39,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoWindow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
-import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;

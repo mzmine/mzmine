@@ -81,7 +81,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
 	private static NumberFormatter mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
 	private static NumberFormatter rtFormat = new NumberFormatter(FormatterType.TIME, "m:ss");
-	private static NumberFormatter intensityFormat = new NumberFormatter(FormatterType.NUMBER, "0.00E0");
+	private static NumberFormatter intensityFormat = new NumberFormatter(FormatterType.NUMBER, "0.0");
 
     
     public TaskProgressWindow getTaskList() {
