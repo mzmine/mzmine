@@ -100,6 +100,8 @@ class PeakListExportTask implements Task {
 		// Get number of rows
 		totalRows = peakList.getNumberOfRows();
 
+        RawDataFile rawDataFiles[] = peakList.getRawDataFiles(); 
+        
 		// Buffer for writing
 		StringBuffer line = new StringBuffer();
 
@@ -118,7 +120,7 @@ class PeakListExportTask implements Task {
 			for (int i = 0; i < length; i++) {
 				if (!elements[i].isCommon()) {
 					name = elements[i].getName();
-					name = name.replace("Export ", "");
+					name = name.replace("Export", rawDataFiles[df].getName());
 					line.append(name + fieldSeparator);
 				}
 			}
@@ -216,7 +218,7 @@ class PeakListExportTask implements Task {
 				}
 			}
 
-			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+			for (RawDataFile dataFile : rawDataFiles) {
 				for (int i = 0; i < length; i++) {
 					if (!elements[i].isCommon()) {
 						ChromatographicPeak peak = peakListRow
