@@ -127,6 +127,12 @@ public interface Desktop extends MZmineModule {
     public void displayErrorMessage(String title, String msg);
     
     /**
+     * Displays an error message
+     *
+     */
+    public void displayException(Exception e);
+    
+    /**
      * Returns array of currently selected raw data files in GUI
      * 
      * @return Array of selected raw data files

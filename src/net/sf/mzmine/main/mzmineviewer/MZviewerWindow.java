@@ -58,6 +58,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 import net.sf.mzmine.util.components.TaskProgressWindow;
@@ -384,6 +385,10 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 	public void actionPerformed(ActionEvent e) {
         FormatSetupDialog formatDialog = new FormatSetupDialog();
         formatDialog.setVisible(true);
+    }
+
+    public void displayException(Exception e) {
+        displayErrorMessage(ExceptionUtils.exceptionToString(e));
     }
     
 }

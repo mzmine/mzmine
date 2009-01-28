@@ -51,6 +51,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.components.TaskProgressWindow;
 
@@ -353,6 +354,10 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public void internalFrameOpened(InternalFrameEvent e) {
+    }
+
+    public void displayException(Exception e) {
+        displayErrorMessage(ExceptionUtils.exceptionToString(e));
     }
 
 }
