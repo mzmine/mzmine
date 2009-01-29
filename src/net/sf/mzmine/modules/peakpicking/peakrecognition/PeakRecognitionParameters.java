@@ -35,23 +35,19 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 
     // Peak recognition
     public static final String peakResolverNames[] = { "Baseline cut-off",
-            "Noise amplitude", "Standard deviation", "Savitzky-Golay",
-            "Wavelet transform", "Local minimum search" };
+            "Noise amplitude", "Savitzky-Golay",
+            "Local minimum search" };
 
     public static final String peakResolverClasses[] = {
             "net.sf.mzmine.modules.peakpicking.peakrecognition.baseline.BaselinePeakDetector",
             "net.sf.mzmine.modules.peakpicking.peakrecognition.noiseamplitude.NoiseAmplitudePeakDetector",
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.standarddeviation.StandardDeviationPeakDetector",
             "net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.SavitzkyGolayPeakDetector",
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.wavelet.WaveletPeakDetector",
             "net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch.MinimumSearchPeakDetector" };
 
     public static final String peakResolverHelpFiles[] = {
             "net/sf/mzmine/modules/peakpicking/peakrecognition/baseline/help/BaselinePeakDetector.html",
             "net/sf/mzmine/modules/peakpicking/peakrecognition/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/peakrecognition/standarddeviation/help/StandardDeviationPeakDetector.html",
             "net/sf/mzmine/modules/peakpicking/peakrecognition/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/peakrecognition/wavelet/help/WaveletPeakDetector.html",
             "TODO" };
 
     // Three step parameters

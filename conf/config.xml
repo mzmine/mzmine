@@ -5,8 +5,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">E:\DATA\Culture fluid\081015 VE and G0</parameter>
-        <parameter name="Files to import" type="STRING">081015_C_EMM2-afterautoclave_neg_06.RAW</parameter>
+        <parameter name="Last open directory" type="STRING">/Volumes/Windows HD/temp/backup E/DATA</parameter>
+        <parameter name="Files to import" type="STRING">tor2_36C_neg2.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -15,7 +15,7 @@
           <parameter name="Noise level" type="DOUBLE">10.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
-          <parameter name="Noise level" type="DOUBLE">60000.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">600.0</parameter>
           <parameter name="Mass resolution" type="INTEGER">60000</parameter>
           <parameter name="Peak model function" type="STRING">Lorentzian extended</parameter>
         </massdetector>
@@ -34,8 +34,8 @@
         </massdetector>
         <massconnector name="Highest data point">
           <parameter name="Min time span" type="DOUBLE">20.0</parameter>
-          <parameter name="Min height" type="DOUBLE">80000.0</parameter>
-          <parameter name="m/z tolerance" type="DOUBLE">0.0020</parameter>
+          <parameter name="Min height" type="DOUBLE">800.0</parameter>
+          <parameter name="m/z tolerance" type="DOUBLE">0.02</parameter>
         </massconnector>
         <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
@@ -46,46 +46,37 @@
       <parameters>
         <peakbuilder name="Baseline cut-off">
           <parameter name="Min peak height" type="DOUBLE">10000.0</parameter>
-          <parameter name="Min peak duration" type="DOUBLE">20.0</parameter>
-          <parameter name="Baseline level" type="DOUBLE">3000.0</parameter>
+          <parameter name="Min peak duration" type="DOUBLE">2.0</parameter>
+          <parameter name="Baseline level" type="DOUBLE">30000.0</parameter>
         </peakbuilder>
         <peakbuilder name="Noise amplitude">
-          <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
+          <parameter name="Min peak height" type="DOUBLE">10000.0</parameter>
           <parameter name="Min peak duration" type="DOUBLE">10.0</parameter>
           <parameter name="Amplitude of noise" type="DOUBLE">1000.0</parameter>
         </peakbuilder>
-        <peakbuilder name="Standard deviation">
-          <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
-          <parameter name="Min peak duration" type="DOUBLE">10.0</parameter>
-          <parameter name="Standard Deviation threshold level" type="DOUBLE">0.8</parameter>
-        </peakbuilder>
         <peakbuilder name="Savitzky-Golay">
-          <parameter name="Min peak height" type="DOUBLE">80000.0</parameter>
+          <parameter name="Min peak height" type="DOUBLE">1000.0</parameter>
           <parameter name="Min peak duration" type="DOUBLE">10.0</parameter>
-          <parameter name="Derivative threshold level" type="DOUBLE">0.6</parameter>
-        </peakbuilder>
-        <peakbuilder name="Wavelet transform">
-          <parameter name="Min peak height" type="DOUBLE">100.0</parameter>
-          <parameter name="Min peak duration" type="DOUBLE">10.0</parameter>
-          <parameter name="Wavelet threshold level" type="DOUBLE">0.8</parameter>
+          <parameter name="Derivative threshold level" type="DOUBLE">0.98</parameter>
         </peakbuilder>
         <peakbuilder name="Local minimum search">
-          <parameter name="Chromatographic threshold" type="DOUBLE">0.9</parameter>
-          <parameter name="Search minimum in RT range" type="DOUBLE">20.0</parameter>
+          <parameter name="Chromatographic threshold" type="DOUBLE">0.85</parameter>
+          <parameter name="Search minimum in RT range" type="DOUBLE">10.0</parameter>
           <parameter name="Minimum relative height" type="DOUBLE">0.05</parameter>
-          <parameter name="Minimum absolute height" type="DOUBLE">1000.0</parameter>
-          <parameter name="Min ratio of peak top/edge" type="DOUBLE">2.0</parameter>
+          <parameter name="Minimum absolute height" type="DOUBLE">100.0</parameter>
+          <parameter name="Min ratio of peak top/edge" type="DOUBLE">1.5</parameter>
         </peakbuilder>
-        <parameter name="Peak Builder type" type="INTEGER">5</parameter>
+        <parameter name="Peak Resolver type" type="INTEGER">0</parameter>
         <parameter name="Suffix" type="STRING">resolved</parameter>
+        <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.765999972820282-2397.72998046875</parameter>
-        <parameter name="m/z range" type="RANGE">341.1053161621094-341.10931396484375</parameter>
+        <parameter name="Retention time" type="RANGE">0.578000009059906-2399.909912109375</parameter>
+        <parameter name="m/z range" type="RANGE">266.1138000488281-266.9932556152344</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
@@ -179,7 +170,7 @@
     <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"> 
       <parameters>
-        <parameter name="Raw data files" type="MULTIPLE_SELECTION">2</parameter>
+        <parameter name="Raw data files" type="MULTIPLE_SELECTION"/>
         <parameter name="Plotted data type" type="STRING">m/z</parameter>
         <parameter name="Plotted data range" type="RANGE">100.98598758598038-824.7280023786524</parameter>
         <parameter name="Number of bins" type="INTEGER">7</parameter>
@@ -194,7 +185,7 @@
         <parameter name="Filename suffix" type="STRING">cropped</parameter>
         <parameter name="m/z range" type="RANGE">0.0-1000.0</parameter>
         <parameter name="Retention time" type="RANGE">0.0-600.0</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
+        <parameter name="Remove source file" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.mean.MeanFilter"> 
@@ -329,7 +320,7 @@
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
-        <parameter name="Standard compounds" type="MULTIPLE_SELECTION"/>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.data.PeakListRow;@45436e66</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -365,7 +356,7 @@
       <parameters>
         <parameter name="Database file" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Field order" type="DRAG_ORDERED_LIST">ID,m/z,Retention time,Identity,Formula</parameter>
+        <parameter name="Field order" type="ORDERED_LIST">ID,m/z,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">1.0</parameter>
         <parameter name="Time tolerance" type="DOUBLE">60.0</parameter>
@@ -378,7 +369,7 @@
         <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
         <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Sharing points" type="DOUBLE">0.85</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION"/>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.modules.identification.relatedpeaks.CommonAdducts;@5ab907c1</parameter>
         <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
@@ -401,7 +392,7 @@
       <parameters>
         <parameter name="Filename" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Export elements" type="MULTIPLE_SELECTION"/>
+        <parameter name="Export elements" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.modules.io.peaklistexport.ExportRowElement;@7b98153</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaver"> 
@@ -412,7 +403,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">E:\File samples\negative.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">mpl</parameter>
       </parameters> 
     </module> 
   </modules>  
@@ -430,10 +421,10 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>373</x>
-      <y>82</y>
-      <width>1344</width>
-      <height>829</height>
+      <x>317</x>
+      <y>22</y>
+      <width>1343</width>
+      <height>805</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
   </desktop> 
