@@ -59,21 +59,26 @@ public class PeakRecognitionParameters implements StorableParameterSet {
 
     private static final Parameter peakResolverTypeNumber = new SimpleParameter(
             ParameterType.INTEGER,
-            "Peak Builder type",
+            "Peak Resolver type",
             "This value defines the type of peak builder to use in three steps peak picking process",
             0);
 
-    private static final Parameter suffix = new SimpleParameter(
+    public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Suffix",
             "This string is added to filename as suffix", "resolved");
+
+    public static final Parameter autoRemove = new SimpleParameter(
+            ParameterType.BOOLEAN,
+            "Remove original peak list",
+            "If checked, original peak list will be removed and only resolved version remains",
+            new Boolean(false));
 
     public PeakRecognitionParameters() {
 
         peakResolverParameters = new SimpleParameterSet[peakResolverClasses.length];
 
         myParameters = new SimpleParameterSet(new Parameter[] {
-
-        peakResolverTypeNumber, suffix });
+                peakResolverTypeNumber, suffix, autoRemove });
 
         for (int i = 0; i < peakResolverClasses.length; i++) {
             String className = peakResolverClasses[i] + "Parameters";
@@ -92,41 +97,17 @@ public class PeakRecognitionParameters implements StorableParameterSet {
      * @param int index
      * @return SimpleParameterSet
      */
-    public SimpleParameterSet getPeakBuilderParameters(int ind) {
+    public SimpleParameterSet getPeakResolverParameters(int ind) {
         return peakResolverParameters[ind];
     }
 
     /**
      * 
-     * @param String title
-     */
-    public void setSuffix(String title) {
-        if (title.equals(""))
-            title = "peakList";
-        myParameters.setParameterValue(suffix, title);
-    }
-
-    /**
-     * 
-     * @return String
-     */
-    public String getSuffix() {
-        String Suffix = (String) myParameters.getParameterValue(suffix);
-        if (Suffix == null)
-            return "peaklist";
-        if (Suffix.equals(""))
-            return "peaklist";
-        return Suffix;
-    }
-
-    /**
-     * 
      * @param int massDetectorInd
-     * @param int chromatogramBuilderInd
+     * @param int chromatogramResolverInd
      * @param int peakResolverInd
      */
     public void setTypeNumber(int peakResolverInd) {
-
         myParameters.setParameterValue(peakResolverTypeNumber, peakResolverInd);
     }
 
@@ -134,7 +115,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
      * 
      * @return Integer peakResolverTypeNumber
      */
-    public int getPeakBuilderTypeNumber() {
+    public int getPeakResolverTypeNumber() {
         return (Integer) myParameters.getParameterValue(peakResolverTypeNumber);
     }
 
@@ -197,17 +178,11 @@ public class PeakRecognitionParameters implements StorableParameterSet {
     }
 
     public Object getParameterValue(Parameter parameter) {
-        Object objectValue = myParameters.getParameterValue(parameter);
-        if (objectValue instanceof String)
-            return objectValue;
-
-        int index = (Integer) objectValue;
-        String parameterName = parameter.getName();
-
-        if (parameterName.equals("Peak Builder type")) {
-            return peakResolverNames[index];
-        }
-        return null;
+        return myParameters.getParameterValue(parameter);
+    }
+    
+    void setParameterValue(Parameter parameter, Object value) {
+        myParameters.setParameterValue(parameter, value);
     }
 
     public Parameter[] getParameters() {

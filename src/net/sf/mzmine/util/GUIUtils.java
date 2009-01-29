@@ -13,19 +13,23 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.util;
 
 import java.awt.Container;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -35,6 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.KeyStroke;
 import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
 /**
  * GUI related utilities
@@ -289,7 +294,7 @@ public class GUIUtils {
             int horizontalAlignment) {
         return addLabel(component, text, null, horizontalAlignment, null);
     }
-    
+
     /**
      * Add a new label to a given component
      * 
@@ -321,7 +326,8 @@ public class GUIUtils {
         JLabel label = new JLabel(text, icon, horizontalAlignment);
         if (component != null)
             component.add(label);
-        if (font != null) label.setFont(font);
+        if (font != null)
+            label.setFont(font);
         return label;
     }
 
@@ -376,6 +382,73 @@ public class GUIUtils {
                 margin, margin);
         component.setBorder(marginBorder);
         return marginBorder;
+    }
+
+    /**
+     * Add a margin and border to a given component
+     * 
+     * @param component Component to add the margin to
+     * @param margin Margin size
+     * @return Created border
+     */
+    public static Border addMarginAndBorder(JComponent component, int margin) {
+        Border marginBorder = BorderFactory.createEmptyBorder(margin, margin,
+                margin, margin);
+        Border etchedBorder = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        Border compoundBorder = BorderFactory.createCompoundBorder(
+                etchedBorder, marginBorder);
+        component.setBorder(compoundBorder);
+        return compoundBorder;
+    }
+
+    /**
+     * This method creates a JPanel which layouts given components in a table of
+     * given rows/columns. Last column is considered main, so its components
+     * will be expanded to fill extra space.
+     */
+    public static JPanel makeTablePanel(int rows, int cols,
+            JComponent components[]) {
+        return makeTablePanel(rows, cols, cols - 1, components);
+    }
+
+    /**
+     * This method creates a JPanel which layouts given components in a table of
+     * given rows/columns. Specified column is considered main, so its
+     * components will be expanded to fill extra space.
+     */
+    public static JPanel makeTablePanel(int rows, int cols, int mainColumn,
+            JComponent components[]) {
+
+        GridBagLayout layout = new GridBagLayout();
+        JPanel panel = new JPanel(layout);
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.insets = new Insets(0, 0, 5, 5);
+
+        for (int row = 0; row < rows; row++)
+            for (int col = 0; col < cols; col++) {
+
+                constraints.gridx = col;
+                constraints.gridy = row;
+                constraints.weightx = (col == mainColumn) ? 1 : 0;
+                JComponent component = components[row * cols + col];
+                panel.add(component);
+                layout.setConstraints(component, constraints);
+            }
+
+        /*
+         * Create one extra invisible component, which is vertically expandable.
+         * This will align the whole table to the top.
+         */
+        JComponent space = (JComponent) Box.createGlue();
+        constraints.gridx = 0;
+        constraints.gridy = rows;
+        constraints.weightx = 0;
+        constraints.weighty = 1;
+        panel.add(space);
+        layout.setConstraints(space, constraints);
+
+        return panel;
     }
 
 }

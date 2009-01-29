@@ -13,41 +13,27 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data;
 
-
 /**
- * 
+ * This class represents a general parameter set of a module. Typical module
+ * will use a SimpleParameterSet instance.
  */
 public interface ParameterSet {
 
     /**
-     * Create a copy of this parameter set, all referenced objects must be cloned. 
+     * Create a copy of this parameter set, all referenced objects must be
+     * cloned.
      */
     public ParameterSet clone();
-    
+
     /**
      * Represent method's parameters and their values in human-readable format
      */
     public String toString();
-    
-    /**
-     * 
-     * @return
-     */
-    public Parameter[] getParameters();
-    
-    /**
-     * 
-     * @param parameter
-     * @return
-     */
-    public Object getParameterValue(Parameter parameter);
-    
-     
 
 }

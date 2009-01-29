@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data.impl;
@@ -27,12 +27,19 @@ import net.sf.mzmine.util.Range;
 
 /**
  * Simple Parameter implementation
+ * 
+ * If the parameter type is ORDERED_LIST, it must provide possibleValues
+ * 
+ * If the parameter type is MULTIPLE_SELECTION, it does not need to provide
+ * possibleValues (may be set later in SimpleParameterSet). It may provide
+ * minimum/maximum values, which indicate how many items must be set.
+ * 
  */
 public class SimpleParameter implements Parameter {
 
     private ParameterType type;
     private String name, description, units;
-    private Object defaultValue, minValue, maxValue, possibleValues[], multipleSelectedValues[];
+    private Object defaultValue, minValue, maxValue, possibleValues[];
     private NumberFormat defaultNumberFormat;
 
     public SimpleParameter(ParameterType type, String name, String description) {
@@ -163,19 +170,19 @@ public class SimpleParameter implements Parameter {
                         "Range parameters do not support selection from possible values");
             }
             break;
-        	
-        case MULTIPLE_SELECTION:
+
+        case ORDERED_LIST:
             if (possibleValues == null) {
                 throw new IllegalArgumentException(
-                        "Missing possible values for multiple selection");
+                        "Missing possible values for ordered list");
             }
             break;
-            
+
         case FILE_NAME:
             if ((defaultValue != null) && (!(defaultValue instanceof String)))
                 throw new IllegalArgumentException("Invalid default value type");
             break;
-        	
+
         }
 
     }
@@ -214,18 +221,14 @@ public class SimpleParameter implements Parameter {
     public Object[] getPossibleValues() {
         return possibleValues;
     }
-    
-    /**
-     * Set possible values to display in ParameterSetupDialog
-     */
-    public void setPossibleValues(Object[] values) {
-        this.possibleValues = values;
-    }
 
     /**
      * @see net.sf.mzmine.data.Parameter#getDefaultValue()
      */
     public Object getDefaultValue() {
+        if ((type == ParameterType.MULTIPLE_SELECTION)
+                || (type == ParameterType.ORDERED_LIST))
+            return possibleValues;
         return defaultValue;
     }
 
@@ -253,14 +256,5 @@ public class SimpleParameter implements Parameter {
     public NumberFormat getNumberFormat() {
         return defaultNumberFormat;
     }
-
-    public void setMultipleSelectedValues(Object[] values) {
-        this.multipleSelectedValues = values;
-    }
-
-    public Object[] getMultipleSelectedValues() {
-		return multipleSelectedValues;
-	}
-    
 
 }

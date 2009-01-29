@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -86,7 +85,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private String[] fileNames;
 
 	// Dialog components
-	private JPanel pnlPlotXY, pnlLocal, pnlFileNameScanNumber;
+	private JPanel pnlPlotXY, pnlFileNameScanNumber;
 	private JComboBox comboDataFileName, comboScanNumber;
 	private JCheckBox preview;
 	private JButton nextScanBtn;
@@ -166,13 +165,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
                     ((JComboBox) field).addActionListener(this);
             }
 
-
-			// Add all complementary components for this dialog
-			addComponentsPnl();
-			add(pnlLocal);
-			pack();
-			setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 		}
+        
+        addComponents();
+        
 	}
 
 	/**
@@ -227,16 +223,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void actionPerformed(ActionEvent event) {
 
+	    super.actionPerformed(event);
+        
 		Object src = event.getSource();
 		String command = event.getActionCommand();
-
-		if (src == btnOK) {
-			super.actionPerformed(event);
-		}
-
-		if (src == btnCancel) {
-			dispose();
-		}
 
 		if ((src == comboScanNumber)
 				|| ((src instanceof JCheckBox) && (src != preview))
@@ -269,8 +259,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		if (src == preview) {
 			if (preview.isSelected()) {
 				int ind = comboScanNumber.getSelectedIndex();
-				pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
-				add(pnlLocal);
+				mainPanel.add(pnlPlotXY, BorderLayout.EAST);
 				pnlFileNameScanNumber.setVisible(true);
 				pack();
 				setPeakListDataSet(ind);
@@ -278,7 +267,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				this.setResizable(true);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
-				pnlLocal.remove(pnlPlotXY);
+                mainPanel.remove(pnlPlotXY);
 				pnlFileNameScanNumber.setVisible(false);
 				this.setResizable(false);
 				pack();
@@ -311,7 +300,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
-		mdParameters = buildParameterSet(mdParameters);
+        updateParameterSetFromComponents();
 		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
 
 		try {
@@ -373,7 +362,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	 * original ParameterSetupDialog.
 	 * 
 	 */
-	private void addComponentsPnl() {
+	private void addComponents() {
 
 		// Button's parameters
 		String leftArrow = new String(new char[] { '\u2190' });
@@ -406,12 +395,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		comboDataFileName = new JComboBox(fileNames);
 		comboDataFileName.setSelectedIndex(indexComboFileName);
-		comboDataFileName.setBackground(Color.WHITE);
 		comboDataFileName.addActionListener(this);
 
 		comboScanNumber = new JComboBox(currentScanNumberlist);
 		comboScanNumber.setSelectedIndex(0);
-		comboScanNumber.setBackground(Color.WHITE);
 		comboScanNumber.addActionListener(this);
 
 		pnlFlds.add(comboDataFileName);
@@ -480,12 +467,10 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		spectrumPlot.setRelatedToolBar(toolBar);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		pnlAll.add(pnlVisible, BorderLayout.CENTER);
-
-		// Complete panel for this dialog including pnlPlotXY
-		pnlLocal = new JPanel(new BorderLayout());
-
-		pnlLocal.add(pnlAll, BorderLayout.WEST);
+		componentsPanel.add(pnlVisible, BorderLayout.CENTER);
+        
+        pack();
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 	}
 
 }

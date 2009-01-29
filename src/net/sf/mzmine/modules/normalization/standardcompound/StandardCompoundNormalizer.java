@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.normalization.standardcompound;
@@ -29,7 +29,6 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -109,10 +108,13 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         }
 
         for (PeakList pl : selectedPeakLists) {
-        	
-        	SimpleParameter p = (SimpleParameter) parameters.getParameter("Standard compounds");
-        	p.setPossibleValues(getPeakListRows(pl));
-        	
+
+            PeakListRow rows[] = pl.getRows();
+            Arrays.sort(rows, new PeakListRowSorterByMZ());
+            parameters.setMultipleSelection(
+                    StandardCompoundNormalizerParameters.standardCompounds,
+                    rows);
+
             ExitCode exitCode = setupParameters(parameters);
             if (exitCode != ExitCode.OK) {
                 return;
@@ -169,19 +171,6 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
 
         return newGroup;
 
-    }
-    
-    /**
-     * Return an array of peak list rows
-     * 
-     * @param peakList
-     * @return PeakListRow[]
-     */
-    private static PeakListRow[] getPeakListRows(PeakList peakList){
-        // Get all rows and sort them
-        PeakListRow rows[] = peakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorterByMZ());
-        return rows;
     }
 
 }

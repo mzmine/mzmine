@@ -36,8 +36,6 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static InfoVisualizer myInstance;
-
     private Desktop desktop;
 
     /**
@@ -46,8 +44,6 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
     public void initModule() {
 
         this.desktop = MZmineCore.getDesktop();
-
-        myInstance = this;
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list info",
                 "Visualization of peak list information", KeyEvent.VK_3, false,

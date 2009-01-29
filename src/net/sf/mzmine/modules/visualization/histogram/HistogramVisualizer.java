@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -37,8 +36,6 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class HistogramVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private static HistogramVisualizer myInstance;
     
     private HistogramParameters parameters;
 
@@ -51,8 +48,6 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
-        myInstance = this;
-        
         this.parameters = new HistogramParameters();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list histogram",
@@ -90,8 +85,7 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
 
         for (PeakList pl : peaklists) {
         	
-        	SimpleParameter p = (SimpleParameter) parameters.getParameter("Raw data files");
-        	p.setPossibleValues(pl.getRawDataFiles());
+            parameters.setMultipleSelection(HistogramParameters.dataFiles, pl.getRawDataFiles());
         	
             ExitCode exitCode = setupParameters(parameters, pl);
             if (exitCode != ExitCode.OK) {

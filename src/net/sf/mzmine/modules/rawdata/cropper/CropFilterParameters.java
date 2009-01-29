@@ -44,7 +44,7 @@ public class CropFilterParameters extends SimpleParameterSet {
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
-            "Remove source file after filtering",
+            "Remove source file",
             "If checked, original file will be removed and only filtered version remains",
             new Boolean(true));
 

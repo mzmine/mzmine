@@ -23,7 +23,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -32,7 +31,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JToolTip;
 import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -43,11 +41,8 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.tooltip.MZmineToolTip;
 
 public class InfoWindow extends JInternalFrame {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private NumberFormatter rtFormat = MZmineCore.getRTFormat();
 	private NumberFormatter mzFormat = MZmineCore.getMZFormat();

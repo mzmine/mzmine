@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.histogram;
@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.visualization.histogram;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.JInternalFrame;
@@ -30,64 +29,57 @@ import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JInternalFrame {
-	
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    
+
     private Histogram histogram;
 
-	
     public HistogramWindow(PeakList peakList, HistogramParameters parameters) {
 
         super(null, true, true, true, true);
         this.setTitle("Histogram of " + peakList.toString());
-        
-		Parameter p = parameters.getParameter("Raw data files");
-		Object[] objectArray = ((SimpleParameter) p)
-				.getMultipleSelectedValues();
-		int length = objectArray.length;
-		RawDataFile[] rawDataFiles = new RawDataFile[length];
-		for (int i = 0; i < length; i++) {
-			rawDataFiles[i] = (RawDataFile) objectArray[i];
-		} 
 
-        HistogramDataType dataType = (HistogramDataType) parameters.getParameterValue(HistogramParameters.dataType); 
-        int numOfBins = (Integer) parameters.getParameterValue(HistogramParameters.numOfBins); 
-        Range range = (Range) parameters.getParameterValue(HistogramParameters.rangeData); 
+        Object dataFileObjects[] = (Object[]) parameters.getParameterValue(HistogramParameters.dataFiles);
+        RawDataFile rawDataFiles[] = new RawDataFile[dataFileObjects.length];
+        for (int i = 0; i < dataFileObjects.length; i++)
+            rawDataFiles[i] = (RawDataFile) dataFileObjects[i];
+
+        HistogramDataType dataType = (HistogramDataType) parameters.getParameterValue(HistogramParameters.dataType);
+        int numOfBins = (Integer) parameters.getParameterValue(HistogramParameters.numOfBins);
+        Range range = (Range) parameters.getParameterValue(HistogramParameters.rangeData);
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
-        
-		// Creates plot and toolbar
+
+        // Creates plot and toolbar
         histogram = new Histogram();
-        HistogramToolBar toolbar = new HistogramToolBar(((ActionListener) histogram));
+        HistogramToolBar toolbar = new HistogramToolBar(
+                ((ActionListener) histogram));
 
-		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-		Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+        Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
 
-		JPanel pnlPlot = new JPanel(new BorderLayout());
-		pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
-		pnlPlot.setBackground(Color.white);
+        JPanel pnlPlot = new JPanel(new BorderLayout());
+        pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
+        pnlPlot.setBackground(Color.white);
 
-		pnlPlot.add(toolbar, BorderLayout.EAST);
-		pnlPlot.add(histogram, BorderLayout.CENTER);
+        pnlPlot.add(toolbar, BorderLayout.EAST);
+        pnlPlot.add(histogram, BorderLayout.CENTER);
 
-	    add(pnlPlot, BorderLayout.CENTER);
+        add(pnlPlot, BorderLayout.CENTER);
         pack();
-	    
-		if (peakList != null){
-			HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList, rawDataFiles, numOfBins, dataType, range);
-			histogram.addDataset(dataSet, dataType);
-		}
+
+        if (peakList != null) {
+            HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,
+                    rawDataFiles, numOfBins, dataType, range);
+            histogram.addDataset(dataSet, dataType);
+        }
 
     }
-    
+
 }

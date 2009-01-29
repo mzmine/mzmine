@@ -29,9 +29,7 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -39,8 +37,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
@@ -53,6 +49,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.modules.visualization.tic.TICToolBar;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
@@ -65,7 +62,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
     // Dialog components
     static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
-    private JPanel pnlPlotXY, pnlLocal, pnlVisible, pnlLab, pnlFlds;
+    
+    private JPanel pnlPlotXY, pnlVisible, pnlLabelsFields;
     private JComboBox comboPeakList, comboPeak;
     private JCheckBox preview;
 
@@ -88,13 +86,13 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
         super(
                 PeakRecognitionParameters.peakResolverNames[peakResolverTypeNumber]
                         + "'s parameter setup dialog ",
-                parameters.getPeakBuilderParameters(peakResolverTypeNumber),
+                parameters.getPeakResolverParameters(peakResolverTypeNumber),
                 PeakRecognitionParameters.peakResolverHelpFiles[peakResolverTypeNumber]);
 
         this.peakResolverTypeNumber = peakResolverTypeNumber;
 
         // Parameters of local mass detector to get preview values
-        pbParameters = parameters.getPeakBuilderParameters(
+        pbParameters = parameters.getPeakResolverParameters(
                 peakResolverTypeNumber).clone();
 
         // Set a listener in all parameters's fields to add functionality to
@@ -109,27 +107,15 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
                 ((JComboBox) field).addActionListener(this);
         }
 
-        // Add all complementary components for this dialog
-        addComponentsPnl();
-        add(pnlLocal);
-        pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+        addComponents();
 
     }
 
     public void actionPerformed(ActionEvent event) {
 
+        super.actionPerformed(event);
+
         Object src = event.getSource();
-
-        if (src == btnOK) {
-            super.actionPerformed(event);
-            return;
-        }
-
-        if (src == btnCancel) {
-            dispose();
-            return;
-        }
 
         if (src == comboPeakList) {
             PeakList selectedPeakList = (PeakList) comboPeakList.getSelectedItem();
@@ -145,9 +131,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         if (src == preview) {
             if (preview.isSelected()) {
-                pnlLocal.add(pnlPlotXY, BorderLayout.CENTER);
-                pnlVisible.add(pnlLab, BorderLayout.WEST);
-                pnlVisible.add(pnlFlds, BorderLayout.CENTER);
+                mainPanel.add(pnlPlotXY, BorderLayout.EAST);
+                pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
                 pack();
                 PeakList selected[] = MZmineCore.getDesktop().getSelectedPeakLists();
                 if (selected.length > 0)
@@ -157,9 +142,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
                 this.setResizable(true);
             } else {
-                pnlLocal.remove(pnlPlotXY);
-                pnlVisible.remove(pnlLab);
-                pnlVisible.remove(pnlFlds);
+                mainPanel.remove(pnlPlotXY);
+                pnlVisible.remove(pnlLabelsFields);
                 pack();
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
                 this.setResizable(false);
@@ -196,7 +180,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         // Create Peak Builder
         PeakResolver peakResolver;
-        pbParameters = buildParameterSet(pbParameters);
+        updateParameterSetFromComponents();
         String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
 
         try {
@@ -257,7 +241,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
      * original ParameterSetupDialog.
      * 
      */
-    private void addComponentsPnl() {
+    private void addComponents() {
 
         PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
 
@@ -273,42 +257,27 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
         pnlpreview.add(preview, BorderLayout.CENTER);
         pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-        // Elements of pnlLab
-        pnlLab = new JPanel();
-        pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
-        pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        JLabel lblFileSelected = new JLabel("Peak list ");
-        JLabel lblRetentionTime = new JLabel("Peak");
-
-        pnlLab.add(lblFileSelected);
-        pnlLab.add(Box.createVerticalStrut(25));
-        pnlLab.add(lblRetentionTime);
-
-        // Elements of pnlFlds
-        pnlFlds = new JPanel();
-        pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
-        pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        JComponent tableComponents[] = new JComponent[4];
+        tableComponents[0] =  new JLabel("Peak list");
 
         comboPeakList = new JComboBox();
         for (PeakList peakList : peakLists) {
             if (peakList.getNumberOfRawDataFiles() == 1)
                 comboPeakList.addItem(peakList);
         }
-
-        comboPeakList.setBackground(Color.WHITE);
         comboPeakList.setFont(comboFont);
         comboPeakList.addActionListener(this);
+        tableComponents[1] = comboPeakList;
 
         comboPeak = new JComboBox();
-        comboPeak.setBackground(Color.WHITE);
         comboPeak.setFont(comboFont);
         comboPeak.setRenderer(new PeakPreviewComboRenderer());
+        
+        tableComponents[2] = new JLabel("Peak");
 
-        pnlFlds.add(comboPeakList);
-        pnlFlds.add(Box.createVerticalStrut(10));
-        pnlFlds.add(comboPeak);
-        pnlFlds.add(Box.createVerticalStrut(10));
+        tableComponents[3] = comboPeak;
+
+        pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, tableComponents);
 
         // Put all together
         pnlVisible = new JPanel(new BorderLayout());
@@ -316,9 +285,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         // Panel for XYPlot
         pnlPlotXY = new JPanel(new BorderLayout());
-        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-        Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-        pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
+        GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
         pnlPlotXY.setBackground(Color.white);
 
         ticPlot = new TICPlot((ActionListener) this);
@@ -328,11 +295,11 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
         toolBar.getComponentAtIndex(0).setVisible(false);
         pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-        pnlAll.add(pnlVisible, BorderLayout.CENTER);
+        componentsPanel.add(pnlVisible, BorderLayout.CENTER);
 
-        // Complete panel for this dialog including pnlPlotXY
-        pnlLocal = new JPanel(new BorderLayout());
-        pnlLocal.add(pnlAll, BorderLayout.WEST);
+        pack();
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+
     }
 
 }

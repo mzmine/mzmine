@@ -67,7 +67,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
             ParameterType.BOOLEAN,
             "Remove original peak list",
             "If checked, original peak list will be removed and only normalized version remains",
-            new Boolean(true));
+            new Boolean(false));
     
 	public static final Parameter standardCompounds = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION,

@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.histogram;
@@ -28,16 +28,15 @@ import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.Histogra
 import net.sf.mzmine.util.Range;
 
 public class HistogramParameters extends SimpleParameterSet {
-	
 
     public static final Parameter dataFiles = new SimpleParameter(
-            ParameterType.MULTIPLE_SELECTION, "Raw data files", "Column of peaks to be plotted",
-            null, new Object[]{"fakeDataFile" });
+            ParameterType.MULTIPLE_SELECTION, "Raw data files",
+            "Column of peaks to be plotted", null, null, 1, null);
 
     public static final Parameter dataType = new SimpleParameter(
             ParameterType.STRING, "Plotted data type",
             "Peak's data to be plotted", null, HistogramDataType.values());
-    
+
     public static final Parameter rangeData = new SimpleParameter(
             ParameterType.RANGE, "Plotted data range",
             "Range of data to be plotted", null, new Range(0, 1000),
@@ -50,4 +49,5 @@ public class HistogramParameters extends SimpleParameterSet {
     public HistogramParameters() {
         super(new Parameter[] { dataFiles, dataType, rangeData, numOfBins });
     }
+
 }

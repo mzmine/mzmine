@@ -25,6 +25,8 @@ import java.util.Enumeration;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
+import net.sf.mzmine.util.components.MultiLineToolTipUI;
+
 /**
  * This class has just a single static method which sets Swing properties for
  * MZmine
@@ -36,8 +38,8 @@ public class SwingParameters {
 		// Get tooltip manager instance
 		ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
 
-		// Set tooltip display after 100 ms
-		tooltipManager.setInitialDelay(100);
+		// Set tooltip display after 10 ms
+		tooltipManager.setInitialDelay(10);
 
 		// Never dismiss tooltips
 		tooltipManager.setDismissDelay(Integer.MAX_VALUE);
@@ -60,12 +62,17 @@ public class SwingParameters {
 		UIManager.put("List.font", smallFont);
 		UIManager.put("Table.font", smallFont);
 		UIManager.put("ToolTip.font", tinyFont);
-
+        
+        // Set platform look & feel
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+        
+        // Set tooltip UI to support multi-line tooltips
+        UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
+        UIManager.put(MultiLineToolTipUI.class.getName(), MultiLineToolTipUI.class);
 
 	}
 

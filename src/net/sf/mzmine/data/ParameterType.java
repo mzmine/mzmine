@@ -52,13 +52,13 @@ public enum ParameterType {
     MULTIPLE_SELECTION,
     
     /**
-     * Parameter values represented by a list of selection
+     * File name selection
      */
     FILE_NAME,
     
     /**
-     * Parameter values represented by a list of selection
+     * A list which can be ordered, e.g. by dragging
      */
-    DRAG_ORDERED_LIST
+    ORDERED_LIST
 
 }

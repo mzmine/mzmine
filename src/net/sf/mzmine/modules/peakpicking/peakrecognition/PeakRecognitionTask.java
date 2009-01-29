@@ -42,7 +42,7 @@ class PeakRecognitionTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peakList;
+    private PeakList originalPeakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -53,10 +53,11 @@ class PeakRecognitionTask implements Task {
 
     // User parameters
     private String suffix;
+    private boolean removeOriginal;
 
     private int peakResolverTypeNumber;
 
-    // Peak Builders
+    // Peak Resolvers
     private PeakResolver peakResolver;
 
     private ParameterSet pbParameters;
@@ -67,11 +68,12 @@ class PeakRecognitionTask implements Task {
      */
     PeakRecognitionTask(PeakList peakList, PeakRecognitionParameters parameters) {
 
-        this.peakList = peakList;
+        this.originalPeakList = peakList;
 
-        peakResolverTypeNumber = parameters.getPeakBuilderTypeNumber();
-        pbParameters = parameters.getPeakBuilderParameters(peakResolverTypeNumber);
-        suffix = parameters.getSuffix();
+        peakResolverTypeNumber = parameters.getPeakResolverTypeNumber();
+        pbParameters = parameters.getPeakResolverParameters(peakResolverTypeNumber);
+        suffix = (String) parameters.getParameterValue(PeakRecognitionParameters.suffix);
+        removeOriginal = (Boolean) parameters.getParameterValue(PeakRecognitionParameters.autoRemove);
 
     }
 
@@ -79,7 +81,7 @@ class PeakRecognitionTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Peak recognition on " + peakList;
+        return "Peak recognition on " + originalPeakList;
     }
 
     /**
@@ -120,7 +122,7 @@ class PeakRecognitionTask implements Task {
 
         status = TaskStatus.PROCESSING;
 
-        logger.info("Started peak recognition on " + peakList);
+        logger.info("Started peak recognition on " + originalPeakList);
 
         // Create new peak constructor according with the user's selection
         String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
@@ -136,7 +138,7 @@ class PeakRecognitionTask implements Task {
         }
 
         // Get data file information
-        RawDataFile dataFile = peakList.getRawDataFile(0);
+        RawDataFile dataFile = originalPeakList.getRawDataFile(0);
         int scanNumbers[] = dataFile.getScanNumbers(1);
         double retentionTimes[] = new double[scanNumbers.length];
         for (int i = 0; i < scanNumbers.length; i++)
@@ -145,11 +147,11 @@ class PeakRecognitionTask implements Task {
 
         // Create new peak list
         SimplePeakList newPeakList = new SimplePeakList(
-                peakList + " " + suffix, dataFile);
+                originalPeakList + " " + suffix, dataFile);
 
-        totalRows = peakList.getNumberOfRows();
+        totalRows = originalPeakList.getNumberOfRows();
 
-        for (ChromatographicPeak chromatogram : peakList.getPeaks(dataFile)) {
+        for (ChromatographicPeak chromatogram : originalPeakList.getPeaks(dataFile)) {
 
             if (status == TaskStatus.CANCELED)
                 return;
@@ -182,8 +184,12 @@ class PeakRecognitionTask implements Task {
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(newPeakList);
         
+        // Remove the original peaklist if requested
+        if (removeOriginal)
+            currentProject.removePeakList(originalPeakList);
+        
 		// Load previous applied methods
-		for (PeakListAppliedMethod proc: peakList.getAppliedMethods()){
+		for (PeakListAppliedMethod proc: originalPeakList.getAppliedMethods()){
 			newPeakList.addDescriptionOfAppliedTask(proc);
 		}
         
@@ -194,7 +200,7 @@ class PeakRecognitionTask implements Task {
 
         status = TaskStatus.FINISHED;
 
-        logger.info("Finished peak recognition on " + peakList);
+        logger.info("Finished peak recognition on " + originalPeakList);
 
     }
 

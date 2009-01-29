@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.identification.custom;
@@ -83,10 +83,11 @@ public class CustomDBSearch implements BatchStep, ActionListener {
     public void actionPerformed(ActionEvent e) {
 
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        /*
-         * if (selectedPeakLists.length < 1) {
-         * desktop.displayErrorMessage("Please select a peak list"); return; }
-         */
+
+        if (selectedPeakLists.length < 1) {
+            desktop.displayErrorMessage("Please select a peak list");
+            return;
+        }
 
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
@@ -128,8 +129,8 @@ public class CustomDBSearch implements BatchStep, ActionListener {
      * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ExitCode setupParameters(ParameterSet parameters) {
-        //CustomDBSearchDialog dialog = new CustomDBSearchDialog(
-          //      (CustomDBSearchParameters) parameters);
+        // CustomDBSearchDialog dialog = new CustomDBSearchDialog(
+        // (CustomDBSearchParameters) parameters);
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
                 (SimpleParameterSet) parameters);

@@ -24,11 +24,11 @@ public enum HistogramDataType {
 	
 	MASS ("m/z"),
 	
-	HEIGHT ("height"),
+	HEIGHT ("Height"),
 	
-	AREA ("area"),
+	AREA ("Area"),
 
-	RT ("retention time");
+	RT ("Retention time");
 	
 	private String text;
 	

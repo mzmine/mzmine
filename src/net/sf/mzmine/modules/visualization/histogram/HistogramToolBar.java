@@ -19,13 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
-import java.awt.Color;
-import java.awt.Insets;
 import java.awt.event.ActionListener;
 
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 public class HistogramToolBar extends JToolBar {

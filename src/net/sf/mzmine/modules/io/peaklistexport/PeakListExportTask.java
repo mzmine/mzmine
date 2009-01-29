@@ -21,13 +21,11 @@ package net.sf.mzmine.modules.io.peaklistexport;
 import java.io.FileWriter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.taskcontrol.Task;
 
 class PeakListExportTask implements Task {
@@ -50,15 +48,7 @@ class PeakListExportTask implements Task {
 		fieldSeparator = (String) parameters
 				.getParameterValue(PeakListExportParameters.fieldSeparator);
 
-		Parameter p = parameters.getParameter("Export elements");
-		Object[] objectArray = ((SimpleParameter) p)
-				.getMultipleSelectedValues();
-		int length = objectArray.length;
-		elements = new ExportRowElement[length];
-
-		for (int i = 0; i < length; i++) {
-			elements[i] = (ExportRowElement) objectArray[i];
-		}
+        elements = (ExportRowElement[]) parameters.getParameterValue(PeakListExportParameters.exportItemMultipleSelection);
 
 	}
 

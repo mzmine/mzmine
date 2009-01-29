@@ -68,22 +68,13 @@ public class RelatedPeaksSearchTask implements Task {
 		sharingPoints = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
 
-		Parameter p = parameters.getParameter("Adducts");
-		Object[] objectArray = ((SimpleParameter) p)
-				.getMultipleSelectedValues();
-		int length = objectArray.length;
+        
+        selectedAdducts = (CommonAdducts[]) parameters.getParameterValue(RelatedPeaksSearchParameters.adducts);
 
 		double customMassDifference = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.customAdductValue);
 		String customAdductName = (String) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.customAdductName);
-
-		selectedAdducts = new CommonAdducts[length];
-		String name;
-		double mass = 0;
-		for (int i = 0; i < length; i++) {
-			selectedAdducts[i] = (CommonAdducts) objectArray[i];
-		}
 
 		mzAdductTolerance = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.mzAdductTolerance);

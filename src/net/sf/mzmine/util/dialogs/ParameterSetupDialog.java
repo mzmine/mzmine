@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.util.dialogs;
@@ -23,13 +23,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
 import java.text.NumberFormat;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -44,24 +42,25 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
-
-import com.sun.java.ExampleFileFilter;
+import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.DragOrderedJList;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.components.HelpButton;
+
+import com.sun.java.ExampleFileFilter;
 
 /**
  * This class represents the parameter setup dialog shown to the user before
@@ -70,536 +69,502 @@ import net.sf.mzmine.util.components.HelpButton;
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
 
-	public static final int TEXTFIELD_COLUMNS = 10;
+    static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-	private ExitCode exitCode = ExitCode.UNKNOWN;
+    public static final int TEXTFIELD_COLUMNS = 10;
 
-	protected String helpID;
+    private ExitCode exitCode = ExitCode.UNKNOWN;
 
-	private boolean invalidParameterValue = false;
+    private String helpID;
 
-	// Parameters and their representation in the dialog
-	public Hashtable<Parameter, JComponent> parametersAndComponents;
+    // Parameters and their representation in the dialog
+    protected SimpleParameterSet parameterSet;
+    private Hashtable<Parameter, JComponent> parametersAndComponents;
+    private Hashtable<Parameter, Object> autoValues;
 
-	// Buttons
-	protected JButton btnOK, btnCancel, btnAuto, btnHelp;
+    // Buttons
+    private JButton btnOK, btnCancel, btnAuto, btnHelp;
 
-	// Panels
-	private JPanel pnlLabels, pnlUnits, pnlButtons;
-	public JPanel labelsAndFields, pnlFields;
+    /**
+     * Derived classed may add their components to these panels. Both panels use
+     * BorderLayout. mainPanel containts componentPanel in the CENTER position
+     * and buttons in the SOUTH position. componentsPanel contains field names
+     * and components in the NORTH position. Other positions are free to use by
+     * derived specialized dialogs.
+     */
+    protected JPanel componentsPanel, mainPanel;
 
-	// Derived classed may add their components to this panel
-	protected JPanel pnlAll;
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters) {
+        this(title, parameters, null, null);
+    }
 
-	private SimpleParameterSet parameters;
-	private Hashtable<Parameter, Object> autoValues;
-	protected Vector<ExtendedCheckBox> multipleCheckBoxes;
-	private DefaultListModel fieldOrderModel;
-	private ExampleFileFilter fileChooserFilter;
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters,
+            String helpID) {
+        this(title, parameters, null, helpID);
+    }
 
-	// Desktop
-	protected Desktop desktop = MZmineCore.getDesktop();
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters,
+            Hashtable<Parameter, Object> autoValues) {
+        this(title, parameters, autoValues, null);
+    }
 
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters) {
-		this(title, parameters, null, null);
-	}
+    /**
+     * Constructor
+     */
+    public ParameterSetupDialog(String title, SimpleParameterSet parameters,
+            Hashtable<Parameter, Object> autoValues, String helpID) {
 
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
-			String helpID) {
-		this(title, parameters, null, helpID);
-	}
+        // Make dialog modal
+        super(MZmineCore.getDesktop().getMainFrame(), title, true);
 
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
-			Hashtable<Parameter, Object> autoValues) {
-		this(title, parameters, autoValues, null);
-	}
+        this.parameterSet = parameters;
+        this.autoValues = autoValues;
+        this.helpID = helpID;
 
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(String title, SimpleParameterSet parameters,
-			Hashtable<Parameter, Object> autoValues, String helpID) {
+        parametersAndComponents = new Hashtable<Parameter, JComponent>();
 
-		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), true);
+        addDialogComponents();
 
-		this.parameters = parameters;
-		this.autoValues = autoValues;
+        pack();
+        setResizable(false);
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-		// Check if there are any parameters
-		Parameter[] allParameters = parameters.getParameters();
-		if ((allParameters == null) || (allParameters.length == 0)) {
-			dispose();
-		}
+    }
 
-		parametersAndComponents = new Hashtable<Parameter, JComponent>();
+    private void addDialogComponents() {
 
-		// panels for labels, text fields and units
-		pnlLabels = new JPanel();
-		pnlLabels.setLayout(new BoxLayout(pnlLabels, BoxLayout.PAGE_AXIS));
-		pnlFields = new JPanel();
-		pnlFields.setLayout(new BoxLayout(pnlFields, BoxLayout.PAGE_AXIS));
-        pnlUnits = new JPanel();
-		pnlUnits.setLayout(new BoxLayout(pnlUnits, BoxLayout.PAGE_AXIS));
+        JComponent components[] = new JComponent[parameterSet.getParameters().length * 3];
+        int componentCounter = 0;
 
-		pnlFields.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-		pnlLabels.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
-		pnlUnits.setBorder(BorderFactory.createEmptyBorder(0, 5, 5, 5));
+        // Create labels and components for each parameter
+        for (Parameter p : parameterSet.getParameters()) {
 
-		// Create labels and components for each parameter
+            // create labels
+            JLabel label = new JLabel(p.getName());
+            components[componentCounter++] = label;
 
-		for (int i = 0; i < allParameters.length; i++) {
-			Parameter p = allParameters[i];
+            JComponent comp = createComponentForParameter(p);
+            comp.setToolTipText(p.getDescription());
+            label.setLabelFor(comp);
 
-			// create labels
-			JLabel lblLabel = new JLabel(p.getName());
-			pnlLabels.add(lblLabel);
+            parametersAndComponents.put(p, comp);
 
-			String unitStr = "";
-			if (p.getUnits() != null) {
-				unitStr = p.getUnits();
-			}
-			JLabel unitLabel = new JLabel(unitStr);
-			pnlUnits.add(unitLabel);
+            components[componentCounter++] = comp;
 
-			Object[] possibleValues = p.getPossibleValues();
-			if ((possibleValues != null)
-					&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
-					&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)) {
-				JComboBox combo = new JComboBox();
-				for (Object value : possibleValues) {
-					combo.addItem(value);
-					if (value == parameters.getParameterValue(p))
-						combo.setSelectedItem(value);
-				}
+            String unitStr = "";
+            if (p.getUnits() != null)
+                unitStr = p.getUnits();
 
-				int height = (int) combo.getPreferredSize().getHeight();
-				lblLabel.setMaximumSize(new Dimension((int) lblLabel
-						.getPreferredSize().getWidth(), height));
-				unitLabel.setMaximumSize(new Dimension((int) unitLabel
-						.getPreferredSize().getWidth(), height));
+            components[componentCounter++] = new JLabel(unitStr);
 
-				combo.setToolTipText(p.getDescription());
-				parametersAndComponents.put(p, combo);
-				lblLabel.setLabelFor(combo);
-				pnlFields.add(combo);
-				continue;
-			}
+        }
 
-			JComponent comp = null;
+        // Buttons
+        JPanel pnlButtons = new JPanel();
 
-			NumberFormat format = p.getNumberFormat();
-			if (format == null)
-				format = NumberFormat.getNumberInstance();
+        btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
+        btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
 
-			switch (p.getType()) {
+        if (autoValues != null) {
+            btnAuto = GUIUtils.addButton(pnlButtons, "Set automatically", null,
+                    this);
+        }
 
-			case STRING:
-				JTextField txtField = new JTextField();
-				txtField.setColumns(TEXTFIELD_COLUMNS);
-				comp = txtField;
-				break;
-			case INTEGER:
-			case DOUBLE:
+        if (helpID != null) {
+            btnHelp = new HelpButton(helpID);
+            pnlButtons.add(btnHelp);
+        }
 
-				JFormattedTextField fmtField = new JFormattedTextField(format);
-				fmtField.setColumns(TEXTFIELD_COLUMNS);
-				comp = fmtField;
-				break;
+        // Panel collecting all labels, fields and units
+        JPanel labelsAndFields = GUIUtils.makeTablePanel(
+                parameterSet.getParameters().length, 3, 1, components);
 
-			case RANGE:
+        // Load the values into the components
+        updateComponentsFromParameterSet();
 
-				JFormattedTextField minTxtField = new JFormattedTextField(
-						format);
-				JFormattedTextField maxTxtField = new JFormattedTextField(
-						format);
-				minTxtField.setColumns(TEXTFIELD_COLUMNS);
-				maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-				JPanel panel = new JPanel(new FlowLayout());
-				panel.add(minTxtField);
-				GUIUtils.addLabel(panel, " - ");
-				panel.add(maxTxtField);
-				comp = panel;
-				break;
+        // Panel where components are in the NORTH part and derived classes can
+        // add their own components around
+        componentsPanel = new JPanel(new BorderLayout());
+        componentsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10,
+                10));
+        componentsPanel.add(labelsAndFields, BorderLayout.NORTH);
+        componentsPanel.add(pnlButtons, BorderLayout.SOUTH);
 
-			case BOOLEAN:
-				JCheckBox checkBox = new JCheckBox();
-				comp = checkBox;
-				break;
+        mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(componentsPanel, BorderLayout.CENTER);
 
-			case MULTIPLE_SELECTION:
+        add(mainPanel);
 
-				JPanel peakCheckBoxesPanel = new JPanel();
-				peakCheckBoxesPanel.setBackground(Color.white);
-				peakCheckBoxesPanel.setLayout(new BoxLayout(
-						peakCheckBoxesPanel, BoxLayout.Y_AXIS));
-				multipleCheckBoxes = new Vector<ExtendedCheckBox>();
+    }
 
-				int vertSize = 0,
-				numCheckBoxes = 0;
-				ExtendedCheckBox<Object> ecb = null;
-				for (Object genericObject : p.getPossibleValues()) {
+    private JComponent createComponentForParameter(Parameter p) {
 
-					ecb = new ExtendedCheckBox<Object>(
-							genericObject, false);
-					multipleCheckBoxes.add(ecb);
-					ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
-					peakCheckBoxesPanel.add(ecb);
+        Object[] possibleValues = p.getPossibleValues();
+        if ((possibleValues != null)
+                && (p.getType() != ParameterType.MULTIPLE_SELECTION)
+                && (p.getType() != ParameterType.ORDERED_LIST)) {
+            JComboBox combo = new JComboBox();
+            for (Object value : possibleValues) {
+                combo.addItem(value);
+                if (value == parameterSet.getParameterValue(p))
+                    combo.setSelectedItem(value);
+            }
 
-					if (numCheckBoxes < 7)
-						vertSize += (int) ecb.getPreferredSize().getHeight();
+            combo.setToolTipText(p.getDescription());
+            return combo;
 
-					numCheckBoxes++;
-				}
+        }
 
-				if (numCheckBoxes < 3)
-					vertSize += 10;
+        JComponent comp = null;
 
-				JScrollPane peakPanelScroll = new JScrollPane(
-						peakCheckBoxesPanel,
-						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-				int width = (int) peakPanelScroll.getPreferredSize().getWidth();
-				peakPanelScroll
-						.setPreferredSize(new Dimension(width, vertSize));
-				comp = peakPanelScroll;
-				break;
+        NumberFormat format = p.getNumberFormat();
+        if (format == null)
+            format = NumberFormat.getNumberInstance();
 
-			case FILE_NAME:
-				JTextField txtFilename = new JTextField();
-				txtFilename.setColumns(TEXTFIELD_COLUMNS);
-				JButton btnFileBrowser = new JButton("...");
-				btnFileBrowser.setActionCommand("FILE_BROWSER");
-				btnFileBrowser.addActionListener(this);
-				JPanel panelFilename = new JPanel();
-				panelFilename.setLayout(new BoxLayout(panelFilename,
-						BoxLayout.X_AXIS));
-				panelFilename.add(txtFilename);
-				panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
-				panelFilename.add(btnFileBrowser);
-				comp = panelFilename;
-				if (p.getDefaultValue() != null){
-					fileChooserFilter = new ExampleFileFilter(p.getDefaultValue().toString());
-					fileChooserFilter.setDescription(p.getDescription());
-				}
-				break;
+        switch (p.getType()) {
 
-			case DRAG_ORDERED_LIST:
-				fieldOrderModel = new DefaultListModel();
-				for (Object item : p.getPossibleValues())
-					fieldOrderModel.addElement(item);
-				DragOrderedJList fieldOrderList = new DragOrderedJList(
-						fieldOrderModel);
-				JScrollPane listScroller = new JScrollPane(fieldOrderList);
-				comp = listScroller;
-
-				break;
-
-			}
-
-			int height = (int) comp.getPreferredSize().getHeight();
-			lblLabel.setMaximumSize(new Dimension((int) lblLabel
-					.getPreferredSize().getWidth(), height));
-			unitLabel.setMaximumSize(new Dimension((int) unitLabel
-					.getPreferredSize().getWidth(), height));
-
-			comp.setToolTipText(p.getDescription());
-			parametersAndComponents.put(p, comp);
-			lblLabel.setLabelFor(comp);
+        case STRING:
+            JTextField txtField = new JTextField();
+            txtField.setColumns(TEXTFIELD_COLUMNS);
+            comp = txtField;
+            break;
             
-            // Add component in a BorderLayout panel, so it can be aligned to the left
-            JPanel componentPanel = new JPanel(new BorderLayout());
-            componentPanel.add(comp, BorderLayout.CENTER);
-			pnlFields.add(componentPanel);
-            
-			// set the value of the component
-			setValue(p, parameters.getParameterValue(p));
+        case INTEGER:
+        case DOUBLE:
 
-		}
+            JFormattedTextField fmtField = new JFormattedTextField(format);
+            fmtField.setColumns(TEXTFIELD_COLUMNS);
+            comp = fmtField;
+            break;
 
-		// Buttons
-		pnlButtons = new JPanel();
-		btnOK = new JButton("OK");
-		btnOK.addActionListener(this);
-		btnCancel = new JButton("Cancel");
-		btnCancel.addActionListener(this);
-		pnlButtons.add(btnOK);
-		pnlButtons.add(btnCancel);
+        case RANGE:
 
-		if (autoValues != null) {
-			btnAuto = new JButton("Set automatically");
-			btnAuto.addActionListener(this);
-			pnlButtons.add(btnAuto);
-		}
+            JFormattedTextField minTxtField = new JFormattedTextField(format);
+            JFormattedTextField maxTxtField = new JFormattedTextField(format);
+            minTxtField.setColumns(TEXTFIELD_COLUMNS);
+            maxTxtField.setColumns(TEXTFIELD_COLUMNS);
+            JPanel panel = new JPanel();
+            panel.add(minTxtField);
+            GUIUtils.addLabel(panel, " - ");
+            panel.add(maxTxtField);
+            comp = panel;
+            break;
 
-		if (helpID != null) {
-			this.helpID = helpID;
-			btnHelp = new HelpButton(helpID);
-			pnlButtons.add(btnHelp);
-		}
+        case BOOLEAN:
+            JCheckBox checkBox = new JCheckBox();
+            comp = checkBox;
+            break;
 
-		// Panel collecting all labels, fileds and units
-		labelsAndFields = new JPanel(new BorderLayout());
-		labelsAndFields.add(pnlLabels, BorderLayout.WEST);
-		labelsAndFields.add(pnlFields, BorderLayout.CENTER);
-		labelsAndFields.add(pnlUnits, BorderLayout.EAST);
+        case MULTIPLE_SELECTION:
+            JPanel peakCheckBoxesPanel = new JPanel();
+            peakCheckBoxesPanel.setBackground(Color.white);
+            peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
+                    BoxLayout.Y_AXIS));
 
-		// Panel where everything is collected
-		pnlAll = new JPanel(new BorderLayout());
-		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		add(pnlAll);
+            int vertSize = 0,
+            numCheckBoxes = 0;
+            ExtendedCheckBox<Object> ecb = null;
+            Object multipleValues[] = parameterSet.getMultipleSelection(p);
+            if (multipleValues == null)
+                multipleValues = p.getPossibleValues();
+            for (Object genericObject : multipleValues) {
 
-		// Leave the BorderLayout.CENTER area empty, so that derived dialogs can
-		// put their own controls in there
-		pnlAll.add(labelsAndFields, BorderLayout.NORTH);
-		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
+                ecb = new ExtendedCheckBox<Object>(genericObject, false);
+                ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
+                peakCheckBoxesPanel.add(ecb);
 
-		pack();
-		setTitle(title);
-		setResizable(false);
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+                if (numCheckBoxes < 7)
+                    vertSize += (int) ecb.getPreferredSize().getHeight();
 
-	}
+                numCheckBoxes++;
+            }
 
-	/**
-	 * Implementation for ActionListener interface
-	 */
-	public void actionPerformed(ActionEvent ae) {
+            if (numCheckBoxes < 3)
+                vertSize += 10;
 
-		Object src = ae.getSource();
-		String action = ae.getActionCommand();
+            JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
+                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            peakPanelScroll.setPreferredSize(new Dimension(0, vertSize));
+            comp = peakPanelScroll;
+            break;
 
-		if (src == btnOK) {
-			SimpleParameterSet p = buildParameterSet(parameters);
+        case FILE_NAME:
+            JTextField txtFilename = new JTextField();
+            txtFilename.setColumns(TEXTFIELD_COLUMNS);
+            txtFilename.setFont(smallFont);
+            JButton btnFileBrowser = new JButton("...");
+            final Parameter fileParameter = p;
+            btnFileBrowser.addActionListener(new ActionListener() {
 
-			if (invalidParameterValue) {
-				exitCode = ExitCode.UNKNOWN;
-				invalidParameterValue = false;
-				return;
-			}
+                public void actionPerformed(ActionEvent e) {
+                    JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setMultiSelectionEnabled(false);
+                    int returnVal = fileChooser.showDialog(
+                            MZmineCore.getDesktop().getMainFrame(), "Select");
+                    if (returnVal == JFileChooser.APPROVE_OPTION) {
+                        setComponentValue(fileParameter,
+                                fileChooser.getSelectedFile().getAbsolutePath());
+                    }
 
-			parameters = p;
-			exitCode = ExitCode.OK;
-			dispose();
-		}
+                }
+            });
+            JPanel panelFilename = new JPanel();
+            panelFilename.setLayout(new BoxLayout(panelFilename,
+                    BoxLayout.X_AXIS));
+            panelFilename.add(txtFilename);
+            panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
+            panelFilename.add(btnFileBrowser);
+            comp = panelFilename;
+            if (p.getDefaultValue() != null) {
+                ExampleFileFilter fileChooserFilter = new ExampleFileFilter(
+                        p.getDefaultValue().toString());
+                fileChooserFilter.setDescription(p.getDescription());
+            }
+            break;
 
-		if (src == btnCancel) {
-			exitCode = ExitCode.CANCEL;
-			dispose();
-		}
+        case ORDERED_LIST:
+            DefaultListModel fieldOrderModel = new DefaultListModel();
+            for (Object item : p.getPossibleValues())
+                fieldOrderModel.addElement(item);
+            DragOrderedJList fieldOrderList = new DragOrderedJList(
+                    fieldOrderModel);
+            fieldOrderList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            fieldOrderList.setBorder(new EtchedBorder(1));
+            comp = fieldOrderList;
+            break;
 
-		if (src == btnAuto) {
+        }
 
-			for (Parameter p : autoValues.keySet()) {
-				setValue(p, autoValues.get(p));
-			}
+        return comp;
 
-		}
+    }
 
-		if (action.equals("FILE_BROWSER")) {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setMultiSelectionEnabled(false);
-			if (fileChooserFilter != null)
-				fileChooser.setFileFilter(fileChooserFilter);
-			
-			int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
-					.getMainFrame(), "Select");
+    protected Object getComponentValue(Parameter p) {
 
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File selectedFile = fileChooser.getSelectedFile();
-				Iterator<Parameter> paramIter = parametersAndComponents
-						.keySet().iterator();
-				while (paramIter.hasNext()) {
-					Parameter p = paramIter.next();
-					if (p.getType() == ParameterType.FILE_NAME)
-						setValue(p, (selectedFile.getAbsolutePath()));
-				}
-			}
+        Object[] possibleValues = p.getPossibleValues();
+        if ((possibleValues != null)
+                && (p.getType() != ParameterType.MULTIPLE_SELECTION)
+                && (p.getType() != ParameterType.ORDERED_LIST)) {
+            JComboBox combo = (JComboBox) parametersAndComponents.get(p);
+            return possibleValues[combo.getSelectedIndex()];
+        }
 
-		}
+        switch (p.getType()) {
 
-	}
+        case INTEGER:
+            JFormattedTextField intField = (JFormattedTextField) parametersAndComponents.get(p);
+            Number intNumberValue = (Number) intField.getValue();
+            if (intNumberValue == null)
+                return null;
+            return intNumberValue.intValue();
 
-	/**
-	 * Method for reading exit code
-	 * 
-	 */
-	public ExitCode getExitCode() {
-		return exitCode;
-	}
+        case DOUBLE:
 
-	void setValue(Parameter p, Object value) {
+            JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents.get(p);
+            Number doubleNumberValue = (Number) doubleField.getValue();
+            if (doubleNumberValue == null)
+                return null;
+            return doubleNumberValue.doubleValue();
 
-		JComponent component = parametersAndComponents.get(p);
-		if ((component == null) || (value == null))
-			return;
+        case RANGE:
+            JPanel panel = (JPanel) parametersAndComponents.get(p);
+            JFormattedTextField minField = (JFormattedTextField) panel.getComponent(0);
+            JFormattedTextField maxField = (JFormattedTextField) panel.getComponent(2);
+            double minValue = ((Number) minField.getValue()).doubleValue();
+            double maxValue = ((Number) maxField.getValue()).doubleValue();
+            Range rangeValue = new Range(minValue, maxValue);
+            return rangeValue;
 
-		if (component instanceof JComboBox) {
-			JComboBox combo = (JComboBox) component;
-			combo.setSelectedItem(value);
-			return;
-		}
+        case STRING:
+            JTextField stringField = (JTextField) parametersAndComponents.get(p);
+            return stringField.getText();
 
-		switch (p.getType()) {
-		case STRING:
-			JTextField strField = (JTextField) component;
-			String strValue = (String) value;
-			strField.setText(strValue);
-			break;
-		case INTEGER:
-		case DOUBLE:
-			JFormattedTextField txtField = (JFormattedTextField) component;
-			txtField.setValue(value);
-			break;
-		case RANGE:
-			Range valueRange = (Range) value;
-			JPanel panel = (JPanel) component;
-			JFormattedTextField minField = (JFormattedTextField) panel
-					.getComponent(0);
-			minField.setValue(valueRange.getMin());
-			JFormattedTextField maxField = (JFormattedTextField) panel
-					.getComponent(2);
-			maxField.setValue(valueRange.getMax());
-			break;
-		case BOOLEAN:
-			JCheckBox checkBox = (JCheckBox) component;
-			Boolean selected = (Boolean) value;
-			checkBox.setSelected(selected);
-			break;
-		case FILE_NAME:
-			JPanel panelFile = (JPanel) component;
-			JTextField txtFilename = (JTextField) panelFile.getComponent(0);
-			txtFilename.setText((String) value);
-			break;
+        case BOOLEAN:
+            JCheckBox checkBox = (JCheckBox) parametersAndComponents.get(p);
+            return checkBox.isSelected();
 
-		}
-	}
+        case MULTIPLE_SELECTION:
+            JScrollPane scrollPanel = (JScrollPane) parametersAndComponents.get(p);
+            JPanel checkBoxPanel = (JPanel) scrollPanel.getViewport().getComponent(
+                    0);
 
-	/**
-	 * This function collect all the information from the form's filed and build
-	 * the ParameterSet.
-	 * 
-	 */
-	public SimpleParameterSet buildParameterSet(
-			SimpleParameterSet underConstuctionParameter) {
-		Iterator<Parameter> paramIter = parametersAndComponents.keySet()
-				.iterator();
-		while (paramIter.hasNext()) {
-			Parameter p = paramIter.next();
+            Vector<Object> selectedGenericObject = new Vector<Object>();
+            Component checkBoxes[] = checkBoxPanel.getComponents();
 
-			try {
+            for (Component comp : checkBoxes) {
+                ExtendedCheckBox<?> box = (ExtendedCheckBox<?>) comp;
+                if (box.isSelected()) {
+                    Object genericObject = box.getObject();
+                    selectedGenericObject.add(genericObject);
+                }
+            }
+            return selectedGenericObject.toArray();
 
-				Object[] possibleValues = p.getPossibleValues();
-				if ((possibleValues != null)
-						&& (p.getType() != ParameterType.MULTIPLE_SELECTION)
-						&& (p.getType() != ParameterType.DRAG_ORDERED_LIST)) {
-					JComboBox combo = (JComboBox) parametersAndComponents
-							.get(p);
-					underConstuctionParameter.setParameterValue(p,
-							possibleValues[combo.getSelectedIndex()]);
-					continue;
-				}
+        case FILE_NAME:
+            JPanel fileNamePanel = (JPanel) parametersAndComponents.get(p);
+            JTextField txtFilename = (JTextField) fileNamePanel.getComponent(0);
+            return txtFilename.getText();
 
-				switch (p.getType()) {
-				case INTEGER:
-					JFormattedTextField intField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Integer newIntValue = ((Number) intField.getValue())
-							.intValue();
-					underConstuctionParameter.setParameterValue(p, newIntValue);
-					break;
-				case DOUBLE:
-					JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
-							.get(p);
-					Double newDoubleValue = ((Number) doubleField.getValue())
-							.doubleValue();
-					underConstuctionParameter.setParameterValue(p,
-							newDoubleValue);
-					break;
-				case RANGE:
-					JPanel panel = (JPanel) parametersAndComponents.get(p);
-					JFormattedTextField minField = (JFormattedTextField) panel
-							.getComponent(0);
-					JFormattedTextField maxField = (JFormattedTextField) panel
-							.getComponent(2);
-					double minValue = ((Number) minField.getValue())
-							.doubleValue();
-					double maxValue = ((Number) maxField.getValue())
-							.doubleValue();
-					Range rangeValue = new Range(minValue, maxValue);
-					underConstuctionParameter.setParameterValue(p, rangeValue);
-					break;
-				case STRING:
-					JTextField stringField = (JTextField) parametersAndComponents
-							.get(p);
-					underConstuctionParameter.setParameterValue(p, stringField
-							.getText());
-					break;
-				case BOOLEAN:
-					JCheckBox checkBox = (JCheckBox) parametersAndComponents
-							.get(p);
-					Boolean newBoolValue = checkBox.isSelected();
-					underConstuctionParameter
-							.setParameterValue(p, newBoolValue);
-					break;
+        case ORDERED_LIST:
+            JList list = (JList) parametersAndComponents.get(p);
+            DefaultListModel fieldOrderModel = (DefaultListModel) list.getModel();
+            return fieldOrderModel.toArray();
 
-				case MULTIPLE_SELECTION:
-					Vector<Object> selectedGenericObject = new Vector<Object>();
+        }
 
-					int numSelections = 0;
-					for (ExtendedCheckBox box : multipleCheckBoxes) {
-						if (box.isSelected()) {
-							Object genericObject = box.getObject();
-							selectedGenericObject.add(genericObject);
-							numSelections += 1;
-						}
-					}
+        return null;
 
-					((SimpleParameter) p)
-							.setMultipleSelectedValues(selectedGenericObject
-									.toArray(new Object[0]));
-					underConstuctionParameter.setParameterValue(p,
-							numSelections);
-					break;
+    }
 
-				case FILE_NAME:
-					JPanel panelFile = (JPanel) parametersAndComponents.get(p);
-					JTextField txtFilename = (JTextField) panelFile
-							.getComponent(0);
-					underConstuctionParameter.setParameterValue(p, txtFilename
-							.getText());
-					break;
+    protected void setComponentValue(Parameter p, Object value) {
 
-				case DRAG_ORDERED_LIST:
-					((SimpleParameter) p).setPossibleValues(fieldOrderModel
-							.toArray());
-					underConstuctionParameter.setParameterValue(p,
-							fieldOrderModel.toArray().length);
-					break;
+        JComponent component = parametersAndComponents.get(p);
+        if ((component == null) || (value == null))
+            return;
 
-				}
+        if (component instanceof JComboBox) {
+            JComboBox combo = (JComboBox) component;
+            combo.setSelectedItem(value);
+            return;
+        }
 
-			} catch (Exception invalidValueException) {
-				desktop.displayMessage(invalidValueException.getMessage());
-				invalidParameterValue = true;
-				return underConstuctionParameter;
-			}
+        switch (p.getType()) {
 
-		}
-		return underConstuctionParameter;
-	}
-    
+        case STRING:
+            JTextField strField = (JTextField) component;
+            String strValue = (String) value;
+            strField.setText(strValue);
+            break;
+
+        case INTEGER:
+        case DOUBLE:
+            JFormattedTextField txtField = (JFormattedTextField) component;
+            txtField.setValue(value);
+            break;
+
+        case RANGE:
+            Range valueRange = (Range) value;
+            JPanel panel = (JPanel) component;
+            JFormattedTextField minField = (JFormattedTextField) panel.getComponent(0);
+            minField.setValue(valueRange.getMin());
+            JFormattedTextField maxField = (JFormattedTextField) panel.getComponent(2);
+            maxField.setValue(valueRange.getMax());
+            break;
+
+        case BOOLEAN:
+            JCheckBox checkBox = (JCheckBox) component;
+            Boolean selected = (Boolean) value;
+            checkBox.setSelected(selected);
+            break;
+
+        case FILE_NAME:
+            JPanel fileNamePanel = (JPanel) component;
+            JTextField txtFilename = (JTextField) fileNamePanel.getComponent(0);
+            txtFilename.setText(value.toString());
+            break;
+
+        case MULTIPLE_SELECTION:
+            Object multipleValues[] = (Object[]) value;
+            JScrollPane scrollPanel = (JScrollPane) component;
+            JPanel multiplePanel = (JPanel) scrollPanel.getViewport().getComponent(
+                    0);
+            Component checkBoxes[] = multiplePanel.getComponents();
+            for (Component comp : checkBoxes) {
+                ExtendedCheckBox<?> box = (ExtendedCheckBox<?>) comp;
+                boolean isSelected = false;
+                for (Object v : multipleValues) {
+                    if (v == box.getObject())
+                        isSelected = true;
+                }
+                box.setSelected(isSelected);
+            }
+            break;
+
+        case ORDERED_LIST:
+            JList list = (JList) component;
+            DefaultListModel newModel = new DefaultListModel();
+            Object values[] = (Object[]) value;
+            for (Object v : values)
+                newModel.addElement(v);
+            list.setModel(newModel);
+            break;
+
+        }
+    }
+
+    protected void updateComponentsFromParameterSet() {
+        for (Parameter p : parameterSet.getParameters()) {
+            setComponentValue(p, parameterSet.getParameterValue(p));
+        }
+    }
+
+    /**
+     * This function collects all the information from the form components and
+     * set the ParameterSet values accordingly.
+     * 
+     */
+    protected void updateParameterSetFromComponents()
+            throws IllegalArgumentException {
+        for (Parameter p : parameterSet.getParameters()) {
+            Object value = getComponentValue(p);
+            if (value != null)
+                parameterSet.setParameterValue(p, value);
+        }
+
+    }
+
     protected JComponent getComponentForParameter(Parameter p) {
         return parametersAndComponents.get(p);
+    }
+
+    /**
+     * Implementation for ActionListener interface
+     */
+    public void actionPerformed(ActionEvent ae) {
+
+        Object src = ae.getSource();
+
+        if (src == btnOK) {
+            try {
+                updateParameterSetFromComponents();
+            } catch (Exception invalidValueException) {
+                MZmineCore.getDesktop().displayErrorMessage(
+                        invalidValueException.getMessage());
+                return;
+            }
+
+            exitCode = ExitCode.OK;
+            dispose();
+        }
+
+        if (src == btnCancel) {
+            exitCode = ExitCode.CANCEL;
+            dispose();
+        }
+
+        if (src == btnAuto) {
+            for (Parameter p : autoValues.keySet()) {
+                setComponentValue(p, autoValues.get(p));
+            }
+        }
+
+    }
+
+    /**
+     * Method for reading exit code
+     */
+    public ExitCode getExitCode() {
+        return exitCode;
     }
 
 }

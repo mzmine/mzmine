@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data.impl;
@@ -22,7 +22,6 @@ package net.sf.mzmine.data.impl;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -32,6 +31,8 @@ import net.sf.mzmine.util.Range;
 import org.dom4j.Element;
 
 /**
+ * Simple storage for the parameters and their values. Typical module will
+ * inherit this class and define the parameters for the constructor.
  */
 public class SimpleParameterSet implements StorableParameterSet {
 
@@ -39,24 +40,20 @@ public class SimpleParameterSet implements StorableParameterSet {
     public static final String PARAMETER_NAME_ATTRIBUTE = "name";
     public static final String PARAMETER_TYPE_ATTRIBUTE = "type";
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    // Parameters
+    private Parameter parameters[];
 
-    // sorted parameters
-    private Vector<Parameter> parameters;
-
-    // parameter -> value
+    // Parameter -> value
     private Hashtable<Parameter, Object> values;
 
-    /**
-     * Checks if project contains current value for some of the parameters, and
-     * initializes this object using those values if present.
-     * 
-     */
-    public SimpleParameterSet() {
-        // Initialize hashtable for storing values for parameters
-        parameters = new Vector<Parameter>();
-        values = new Hashtable<Parameter, Object>();
+    // Multiple selection parameter -> multiple values (array)
+    private Hashtable<Parameter, Object[]> multipleSelectionValues;
 
+    /**
+     * This constructor is only used for cloning
+     */
+    private SimpleParameterSet() {
+        this(new Parameter[0]);
     }
 
     /**
@@ -65,67 +62,27 @@ public class SimpleParameterSet implements StorableParameterSet {
      * 
      */
     public SimpleParameterSet(Parameter[] initParameters) {
-        this();
-        for (Parameter p : initParameters) {
-            parameters.add(p);
-        }
+        this.parameters = initParameters;
+        values = new Hashtable<Parameter, Object>();
+        multipleSelectionValues = new Hashtable<Parameter, Object[]>();
     }
 
     /**
      * @see net.sf.mzmine.data.ParameterSet#getAllParameters()
      */
     public Parameter[] getParameters() {
-        return parameters.toArray(new Parameter[0]);
+        return parameters;
     }
 
     /**
      * @see net.sf.mzmine.data.ParameterSet#getParameter(java.lang.String)
      */
     public Parameter getParameter(String name) {
-        Iterator<Parameter> it = parameters.iterator();
-        while (it.hasNext()) {
-            Parameter p = it.next();
+        for (Parameter p : parameters) {
             if (p.getName().equals(name))
                 return p;
         }
         return null;
-    }
-
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#addParameter(net.sf.mzmine.data.Parameter)
-     */
-    public boolean hasParameter(Parameter parameter) {
-        return parameters.contains(parameter);
-    }
-
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#addParameter(net.sf.mzmine.data.Parameter)
-     */
-    public void addParameter(Parameter parameter) {
-
-        Iterator<Parameter> params = parameters.iterator();
-
-        while (params.hasNext()) {
-
-            Parameter p = params.next();
-            if (p.getName().equals(parameter.getName())) {
-                logger.warning("Parameter set already contains parameter called "
-                        + parameter.getName());
-                return;
-            }
-        }
-
-        parameters.add(parameter);
-
-    }
-
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#removeParameter(net.sf.mzmine.data.Parameter)
-     */
-    public void removeParameter(Parameter parameter) {
-        parameters.remove(parameter);
-        values.remove(parameter);
-
     }
 
     /**
@@ -138,23 +95,29 @@ public class SimpleParameterSet implements StorableParameterSet {
         return value;
     }
 
+    public void setMultipleSelection(Parameter parameter,
+            Object[] selectionArray) {
+        assert parameter.getType() == ParameterType.MULTIPLE_SELECTION;
+        multipleSelectionValues.put(parameter, selectionArray);
+    }
+
+    public Object[] getMultipleSelection(Parameter parameter) {
+        return multipleSelectionValues.get(parameter);
+    }
+
     /**
      */
     public void setParameterValue(Parameter parameter, Object value)
             throws IllegalArgumentException {
 
-        if (!parameters.contains(parameter))
-            throw (new IllegalArgumentException("Unknown parameter "
-                    + parameter));
-
-        
         Object possibleValues[] = parameter.getPossibleValues();
-        
-        if ((possibleValues != null) 
-        		&& (parameter.getType() != ParameterType.MULTIPLE_SELECTION)
-        		&& (parameter.getType() != ParameterType.DRAG_ORDERED_LIST)){
+
+        if ((possibleValues != null)
+                && (parameter.getType() != ParameterType.MULTIPLE_SELECTION)
+                && (parameter.getType() != ParameterType.ORDERED_LIST)) {
             for (Object possibleValue : possibleValues) {
-                // We compare String version of the values, in case some values were specified as Enum constants
+                // We compare String version of the values, in case some values
+                // were specified as Enum constants
                 if (possibleValue.toString().equals(value.toString())) {
                     values.put(parameter, possibleValue);
                     return;
@@ -226,31 +189,38 @@ public class SimpleParameterSet implements StorableParameterSet {
             break;
 
         case MULTIPLE_SELECTION:
-            if ((Integer)value <= 0)
-                throw (new IllegalArgumentException("Please select at least one option from multiple selection parameter"));
+            if (!value.getClass().isArray())
+                throw (new IllegalArgumentException("Value type mismatch"));
+            Object valueArray[] = (Object[]) value;
+            if (parameter.getMinimumValue() != null) {
+                int min = (Integer) parameter.getMinimumValue();
+                if (valueArray.length < min)
+                    throw (new IllegalArgumentException(
+                            "Please select minimum " + min
+                                    + " values for parameter " + parameter));
+            }
+            if (parameter.getMaximumValue() != null) {
+                int max = (Integer) parameter.getMaximumValue();
+                if (valueArray.length > max)
+                    throw (new IllegalArgumentException(
+                            "Please select maximum " + max
+                                    + " values for parameter " + parameter));
+            }
             break;
-            
+
         case FILE_NAME:
             if (!(value instanceof String))
                 throw (new IllegalArgumentException("Value type mismatch"));
-        	break;
-
-        case DRAG_ORDERED_LIST:
-            if ((Integer)value <= 0)
-                throw (new IllegalArgumentException("Illegal number of list's items"));
             break;
-        
+
+        case ORDERED_LIST:
+            if (!value.getClass().isArray())
+                throw (new IllegalArgumentException("Value type mismatch"));
+            break;
+
         }
 
         values.put(parameter, value);
-    }
-    
- 
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#removeParameterValue(net.sf.mzmine.data.Parameter)
-     */
-    public void removeParameterValue(Parameter parameter) {
-        values.remove(parameter);
     }
 
     /**
@@ -258,47 +228,41 @@ public class SimpleParameterSet implements StorableParameterSet {
      */
     public void exportValuesToXML(Element element) {
 
-        Iterator<Parameter> params = parameters.iterator();
-
-        while (params.hasNext()) {
-
-            Parameter p = params.next();
+        for (Parameter p : parameters) {
 
             Element newElement = element.addElement(PARAMETER_ELEMENT_NAME);
 
             newElement.addAttribute(PARAMETER_NAME_ATTRIBUTE, p.getName());
             newElement.addAttribute(PARAMETER_TYPE_ATTRIBUTE,
                     p.getType().toString());
-            
-            if (p.getType() == ParameterType.DRAG_ORDERED_LIST){
+
+            if (p.getType() == ParameterType.ORDERED_LIST) {
                 Object[] values = p.getPossibleValues();
                 if (values != null) {
-                    String valueAsString="";
-                    for (int i=0;i<values.length; i++){
-                    	if (i==values.length-1){
+                    String valueAsString = "";
+                    for (int i = 0; i < values.length; i++) {
+                        if (i == values.length - 1) {
                             valueAsString += String.valueOf(values[i]);
-                    	}
-                    	else{
+                        } else {
                             valueAsString += String.valueOf(values[i]) + ",";
-                    	}
+                        }
                     }
                     newElement.addText(valueAsString);
-                } 
-            }
-            else{
-            Object value = getParameterValue(p);
-            if (value != null) {
-                String valueAsString;
-                if (value instanceof Range) {
-                    Range rangeValue = (Range) value;
-                    valueAsString = String.valueOf(rangeValue.getMin()) + "-"
-                            + String.valueOf(rangeValue.getMax());
-                } else {
-                    valueAsString = value.toString();
                 }
-                newElement.addText(valueAsString);
+            } else {
+                Object value = getParameterValue(p);
+                if (value != null) {
+                    String valueAsString;
+                    if (value instanceof Range) {
+                        Range rangeValue = (Range) value;
+                        valueAsString = String.valueOf(rangeValue.getMin())
+                                + "-" + String.valueOf(rangeValue.getMax());
+                    } else {
+                        valueAsString = value.toString();
+                    }
+                    newElement.addText(valueAsString);
 
-            }
+                }
             }
 
         }
@@ -314,50 +278,73 @@ public class SimpleParameterSet implements StorableParameterSet {
 
         while (paramIter.hasNext()) {
             Element paramElem = (Element) paramIter.next();
+
             Parameter param = getParameter(paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE));
-            if (param != null) {
 
-            	
-                ParameterType paramType = ParameterType.valueOf(paramElem.attributeValue(PARAMETER_TYPE_ATTRIBUTE));
-                String valueText = paramElem.getText();
-            	
+            if (param == null)
+                continue;
 
-                if ((valueText == null) || (valueText.length() == 0))
-                    continue;
-                Object value = null;
-                switch (paramType) {
-                case BOOLEAN:
-                    value = Boolean.parseBoolean(valueText);
-                    break;
-                case INTEGER:
-                    value = Integer.parseInt(valueText);
-                    break;
-                case DOUBLE:
-                    value = Double.parseDouble(valueText);
-                    break;
-                case RANGE:
-                    String values[] = valueText.split("-");
-                    double min = Double.parseDouble(values[0]);
-                    double max = Double.parseDouble(values[1]);
-                    value = new Range(min, max);
-                    break;
-                case STRING:
-                    value = valueText;
-                    break;
-                case MULTIPLE_SELECTION:
-                    value = Integer.parseInt(valueText);
-                    break;
-                case FILE_NAME:
-                    value = valueText;
-                    break;
-                case DRAG_ORDERED_LIST:
-                    String orderedValues[] = valueText.split(",");
-                    ((SimpleParameter)param).setPossibleValues(orderedValues);
-                    value = orderedValues.length;
-                    break;
+            ParameterType paramType = ParameterType.valueOf(paramElem.attributeValue(PARAMETER_TYPE_ATTRIBUTE));
+            String valueText = paramElem.getText();
+
+            if ((valueText == null) || (valueText.length() == 0))
+                continue;
+
+            Object value = null;
+            switch (paramType) {
+            case BOOLEAN:
+                value = Boolean.parseBoolean(valueText);
+                break;
+            case INTEGER:
+                value = Integer.parseInt(valueText);
+                break;
+            case DOUBLE:
+                value = Double.parseDouble(valueText);
+                break;
+            case RANGE:
+                String values[] = valueText.split("-");
+                double min = Double.parseDouble(values[0]);
+                double max = Double.parseDouble(values[1]);
+                value = new Range(min, max);
+                break;
+            case STRING:
+                value = valueText;
+                break;
+            case MULTIPLE_SELECTION:
+                String stringMultipleValues[] = valueText.split(",");
+                Object possibleMultipleValues[] = param.getPossibleValues();
+                if (possibleMultipleValues == null) continue;
+                Vector<Object> multipleValues = new Vector<Object>();
+
+                for (int i = 0; i < stringMultipleValues.length; i++) {
+                    for (int j = 0; j < possibleMultipleValues.length; j++)
+                        if (stringMultipleValues[i].equals(possibleMultipleValues[j].toString()))
+                            multipleValues.add(possibleMultipleValues[j]);
+                }
+                value = multipleValues.toArray();
+
+                break;
+            case FILE_NAME:
+                value = valueText;
+                break;
+            case ORDERED_LIST:
+                String stringValues[] = valueText.split(",");
+                Object possibleValues[] = param.getPossibleValues();
+                Object orderedValues[] = new Object[stringValues.length];
+                for (int i = 0; i < stringValues.length; i++) {
+                    for (int j = 0; j < possibleValues.length; j++)
+                        if (stringValues[i].equals(possibleValues[j].toString()))
+                            orderedValues[i] = possibleValues[j];
                 }
 
+                value = orderedValues;
+                break;
+            }
+
+            try {
                 setParameterValue(param, value);
+            } catch (IllegalArgumentException e) {
+                // ignore
             }
 
         }
@@ -365,16 +352,16 @@ public class SimpleParameterSet implements StorableParameterSet {
     }
 
     public SimpleParameterSet clone() {
-        Parameter params[] = getParameters();
+
         try {
             // do not make a new instance of SimpleParameterSet, but instead
             // clone the runtime class of this instance - runtime type may be
             // inherited class
-            SimpleParameterSet newSet = this.getClass().newInstance();
 
-            for (Parameter p : params) {
-                if (!newSet.hasParameter(p))
-                    newSet.addParameter(p);
+            SimpleParameterSet newSet = this.getClass().newInstance();
+            newSet.parameters = this.parameters;
+
+            for (Parameter p : parameters) {
                 Object v = values.get(p);
                 if (v != null)
                     newSet.setParameterValue(p, v);
@@ -397,7 +384,5 @@ public class SimpleParameterSet implements StorableParameterSet {
         }
         return s.toString();
     }
-
-	
 
 }

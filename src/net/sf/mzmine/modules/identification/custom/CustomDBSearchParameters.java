@@ -40,7 +40,7 @@ public class CustomDBSearchParameters extends SimpleParameterSet {
 			(Object) ",");
 
 	public static final Parameter fieldOrder = new SimpleParameter(
-			ParameterType.DRAG_ORDERED_LIST, "Field order",
+			ParameterType.ORDERED_LIST, "Field order",
 			"Order of items in which they are readed from database file", null,
 			FieldItem.values());
 

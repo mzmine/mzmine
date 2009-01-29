@@ -46,7 +46,6 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
     private PeakRecognitionParameters parameters;
     private ExitCode exitCode = ExitCode.UNKNOWN;
-    private String title;
 
     // Dialog components
     private JButton btnOK, btnCancel, btnHelp, btnSetPeak;
@@ -60,7 +59,6 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
                 "Please select peak resolver", true);
 
         this.parameters = parameters;
-        this.title = title;
 
         addComponentsToDialog();
         setResizable(false);
@@ -76,10 +74,10 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
         if (src == btnSetPeak) {
 
-            int indexPeakBuilder = comboPeaksConstructors.getSelectedIndex();
+            int indexPeakResolver = comboPeaksConstructors.getSelectedIndex();
 
             PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
-                    parameters, indexPeakBuilder);
+                    parameters, indexPeakResolver);
 
             dialog.setVisible(true);
         }
@@ -87,7 +85,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         if (src == btnOK) {
 
             parameters.setTypeNumber(comboPeaksConstructors.getSelectedIndex());
-            parameters.setSuffix(txtField.getText());
+            parameters.setParameterValue(PeakRecognitionParameters.suffix, txtField.getText());
             exitCode = ExitCode.OK;
             dispose();
         }
@@ -107,14 +105,14 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
         // Elements of suffix
         txtField = new JTextField();
-        txtField.setText(parameters.getSuffix());
+        txtField.setText((String) parameters.getParameterValue(PeakRecognitionParameters.suffix));
         txtField.selectAll();
         txtField.setMaximumSize(new Dimension(250, 30));
 
         // Elements of Peak recognition
         comboPeaksConstructors = new JComboBox(
                 PeakRecognitionParameters.peakResolverNames);
-        comboPeaksConstructors.setSelectedIndex(parameters.getPeakBuilderTypeNumber());
+        comboPeaksConstructors.setSelectedIndex(parameters.getPeakResolverTypeNumber());
         comboPeaksConstructors.addActionListener(this);
         comboPeaksConstructors.setMaximumSize(new Dimension(200, 28));
         btnSetPeak = new JButton("Set parameters");
@@ -137,7 +135,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         c.insets = new Insets(5, 5, 5, 5);
         c.gridx = 0;
         c.gridy = 0;
-        pnlCombo.add(new JLabel("Filename suffix "), c);
+        pnlCombo.add(new JLabel("Filename suffix"), c);
         c.gridwidth = 4;
         c.gridx = 1;
         pnlCombo.add(txtField, c);
@@ -167,7 +165,6 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         add(pnlAll);
 
         pack();
-        setTitle(title);
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
     }

@@ -19,26 +19,20 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
-import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.axis.TickUnit;
-import org.jfree.chart.axis.TickUnits;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
@@ -51,23 +45,9 @@ import org.jfree.ui.RectangleInsets;
 
 public class Histogram extends ChartPanel{
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	// plot colors for diagonal lines
-	private static final Color[] plotDiagonalColors = { new Color(165, 42, 42),
-			Color.BLACK, new Color(165, 42, 42) };
-
 	// grid color
 	private static final Color gridColor = Color.lightGray;
 
-	// crosshair (selection) color
-	private static final Color crossHairColor = Color.gray;
-
-	// crosshair stroke
-	private static final BasicStroke crossHairStroke = new BasicStroke(1,
-			BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
-					5, 3 }, 0);
-	
 	// titles
 	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
 	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
@@ -149,7 +129,6 @@ public class Histogram extends ChartPanel{
 		plot.setDomainAxis(axisDomain);
 		plot.setRangeAxis(axisRange);
 		
-		plot.setRangeCrosshairPaint(crossHairColor);
 		ClusteredXYBarRenderer renderer = new ClusteredXYBarRenderer();
 		renderer.setMargin(marginSize);
 		plot.setRenderer(renderer);
@@ -160,24 +139,6 @@ public class Histogram extends ChartPanel{
 		this.setInitialDelay(0);
 
 	}
-
-	/**
-	 * 
-	 */
-	public void actionPerformed(ActionEvent event) {
-
-		super.actionPerformed(event);
-
-		String command = event.getActionCommand();
-
-		/*if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(plot);
-			dialog.setVisible(true);
-			return;
-		}*/
-
-	}
-
 
 	synchronized public void addDataset(HistogramPlotDataset newSet, HistogramDataType dataType) {
 		dataSet = newSet;
