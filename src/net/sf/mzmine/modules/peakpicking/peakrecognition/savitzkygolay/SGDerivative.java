@@ -24,13 +24,15 @@ public final class SGDerivative {
 	/**
 	 * This method returns the second smoothed derivative values of an array.
 	 * 
-	 * @param chromatoIntensities
-	 * @return
+	 * @param double[] values
+	 * @param boolean is first derivative
+	 * @param int level of filter (1 - 12)
+	 * @return double[] derivative of values
 	 */
-	public static double[] calculateDerivative(double[] chromatoIntensities,
+	public static double[] calculateDerivative(double[] values,
 			boolean firstDerivative, int levelOfFilter) {
 
-		double[] derivative = new double[chromatoIntensities.length];
+		double[] derivative = new double[values.length];
 		int M = 0;
 
 		for (int k = 0; k < derivative.length; k++) {
@@ -43,7 +45,7 @@ public final class SGDerivative {
 
 			// Perform derivative using Savitzky Golay coefficients
 			for (int i = -M; i <= M; i++) {
-				derivative[k] += chromatoIntensities[k + i]
+				derivative[k] += values[k + i]
 						* getSGCoefficient(M, i, firstDerivative);
 			}
 			// if ((Math.abs(derivative[k])) > maxValueDerivative)
@@ -78,3 +80,4 @@ public final class SGDerivative {
 	}
 
 }
+
