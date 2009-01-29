@@ -19,182 +19,142 @@
 
 package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
+import java.util.TreeMap;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.Range;
 
 public class TrianglePeakModel implements ChromatographicPeak {
 
-    private double rtRight = -1, rtLeft = -1;
-    private double rtMain, intensityMain, alpha, beta;
-    public double getArea() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public RawDataFile getDataFile() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public double getHeight() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public double getMZ() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public int getMostIntenseFragmentScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public MzPeak getMzPeak(int scanNumber) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public PeakStatus getPeakStatus() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public double getRT() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public Range getRawDataPointsIntensityRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public Range getRawDataPointsMZRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public Range getRawDataPointsRTRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    public int getRepresentativeScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-    public int[] getScanNumbers() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	// Model information
+	private double rtRight = -1, rtLeft = -1;
+	private double alpha, beta;
 
-    /*
-    public ChromatographicPeak fillingPeak(
-            ChromatographicPeak originalDetectedShape, double[] params) {
+	// Peak information
+	private double rt, height, mz, area;
+	private int[] scanNumbers;
+	private RawDataFile rawDataFile;
+	private PeakStatus status;
+	private int representativeScan = -1, fragmentScan = -1;
+	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+			rawDataPointsRTRange;
+	private TreeMap<Integer, MzPeak> dataPointsMap;
 
-        ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape).getAllMzPeaks();
+	public double getArea() {
+		return area;
+	}
 
-        double C, factor;
+	public RawDataFile getDataFile() {
+		return rawDataFile;
+	}
 
-        C = params[0]; // level of excess;
-        factor = (1.0f - (Math.abs(C) / 10.0f));
+	public double getHeight() {
+		return height;
+	}
 
-        intensityMain = originalDetectedShape.getHeight() * factor;
-        rtMain = originalDetectedShape.getRT();
+	public double getMZ() {
+		return mz;
+	}
 
-        rtRight = -1;
-        rtLeft = -1;
-        calculateBase(listMzPeaks);
+	public int getMostIntenseFragmentScanNumber() {
+		return fragmentScan;
+	}
 
-        alpha = (double) Math.atan(intensityMain / (rtMain - rtLeft));
-        beta = (double) Math.atan(intensityMain / (rtRight - rtMain));
+	public MzPeak getMzPeak(int scanNumber) {
+		return dataPointsMap.get(scanNumber);
+	}
 
-        // Calculate intensity of each point in the shape.
-        double t, shapeHeight;
-        ConnectedMzPeak newMzPeak = listMzPeaks[0].clone();
-        t = listMzPeaks[0].getScan().getRetentionTime();
-        shapeHeight = getIntensity(t);
-        ((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
-        ConnectedPeak filledPeak = new ConnectedPeak(
-                originalDetectedShape.getDataFile(), newMzPeak);
+	public PeakStatus getPeakStatus() {
+		return status;
+	}
 
-        for (int i = 1; i < listMzPeaks.length; i++) {
+	public double getRT() {
+		return rt;
+	}
 
-            t = listMzPeaks[i].getScan().getRetentionTime();
-            shapeHeight = getIntensity(t);
+	public Range getRawDataPointsIntensityRange() {
+		return rawDataPointsIntensityRange;
+	}
 
-            newMzPeak = listMzPeaks[i].clone();
-            ((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
-            filledPeak.addMzPeak(newMzPeak);
-        }
+	public Range getRawDataPointsMZRange() {
+		return rawDataPointsMZRange;
+	}
 
-        return filledPeak;
-    }
+	public Range getRawDataPointsRTRange() {
+		return rawDataPointsRTRange;
+	}
 
-    public double getIntensity(double rt) {
+	public int getRepresentativeScanNumber() {
+		return representativeScan;
+	}
 
-        double intensity = 0;
-        if ((rt > rtLeft) && (rt < rtRight)) {
-            if (rt <= rtMain) {
-                intensity = (double) Math.tan(alpha) * (rt - rtLeft);
-            }
-            if (rt > rtMain) {
-                intensity = (double) Math.tan(beta) * (rtRight - rt);
-            }
-        }
+	public int[] getScanNumbers() {
+		return scanNumbers;
+	}
 
-        return intensity;
-    }
+	public TrianglePeakModel(ChromatographicPeak originalDetectedShape,
+			int[] scanNumbers, double[] intensities, double[] retentionTimes,
+			double resolution) {
 
-    private void calculateBase(ConnectedMzPeak[] listMzPeaks) {
+		height = originalDetectedShape.getHeight();
+		rt = originalDetectedShape.getRT();
+		mz = originalDetectedShape.getMZ();
+		this.scanNumbers = scanNumbers;
+		rawDataFile = originalDetectedShape.getDataFile();
+		rawDataPointsIntensityRange = originalDetectedShape
+				.getRawDataPointsIntensityRange();
+		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
+		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
+		dataPointsMap = new TreeMap<Integer, MzPeak>();
 
-        double halfIntensity = intensityMain / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
-        ConnectedMzPeak[] rangeDataPoints = listMzPeaks;
+		rtRight = retentionTimes[retentionTimes.length - 1];
+		rtLeft = retentionTimes[0];
 
-        for (int i = 0; i < rangeDataPoints.length - 1; i++) {
+		alpha = (double) Math.atan(height / (rt - rtLeft));
+		beta = (double) Math.atan(height / (rtRight - rt));
 
-            intensity = rangeDataPoints[i].getMzPeak().getIntensity();
-            intensityPlus = rangeDataPoints[i + 1].getMzPeak().getIntensity();
-            retentionTime = rangeDataPoints[i].getScan().getRetentionTime();
+		// Calculate intensity of each point in the shape.
+		double shapeHeight, currentRT, previousRT, previousHeight;
 
-            if (intensity > intensityMain)
-                continue;
+		previousHeight = calculateIntensity(retentionTimes[0]);
+		MzPeak mzPeak = new SimpleMzPeak(
+				new SimpleDataPoint(mz, previousHeight));
+		dataPointsMap.put(scanNumbers[0], mzPeak);
 
-            // Left side of the curve
-            if (retentionTime < rtMain) {
-                if ((intensity <= halfIntensity)
-                        && (intensityPlus >= halfIntensity)) {
-                    rtLeft = retentionTime;
-                    continue;
-                }
-            }
+		for (int i = 1; i < retentionTimes.length; i++) {
 
-            // Right side of the curve
-            if (retentionTime > rtMain) {
-                if ((intensity >= halfIntensity)
-                        && (intensityPlus <= halfIntensity)) {
+			shapeHeight = calculateIntensity(retentionTimes[i]);
+			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
+			dataPointsMap.put(scanNumbers[0], mzPeak);
 
-                    rtRight = retentionTime;
-                    break;
-                }
-            }
-        }
+			currentRT = retentionTimes[i];
+			previousRT = retentionTimes[i - 1];
+			dataPointsMap.put(scanNumbers[0], mzPeak);
+			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
+					/ 2;
+			previousHeight = shapeHeight;
+		}
 
-        if ((rtRight <= -1) && (rtLeft > 0)) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            rtRight = rtMain + ((ending - beginning) / 4.71f);
-        }
+	}
 
-        if ((rtRight > 0) && (rtLeft <= -1)) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            rtLeft = rtMain - ((ending - beginning) / 4.71f);
-        }
+	private double calculateIntensity(double retentionTime) {
 
-        boolean negative = (((rtRight - rtLeft)) < 0);
+		double intensity = 0;
+		if ((retentionTime > rtLeft) && (retentionTime < rtRight)) {
+			if (retentionTime <= rt) {
+				intensity = (double) Math.tan(alpha) * (retentionTime - rtLeft);
+			}
+			if (retentionTime > rt) {
+				intensity = (double) Math.tan(beta) * (rtRight - retentionTime);
+			}
+		}
 
-        if ((negative) || ((rtRight == -1) && (rtLeft == -1))) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            rtRight = rtMain + ((ending - beginning) / 9.42f);
-            rtLeft = rtMain - ((ending - beginning) / 9.42f);
-        }
-    }
-    */
+		return intensity;
+	}
 
 }

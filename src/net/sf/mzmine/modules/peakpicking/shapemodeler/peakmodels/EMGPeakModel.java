@@ -19,11 +19,12 @@
 
 package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
+import java.util.TreeMap;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.Range;
@@ -32,48 +33,89 @@ public class EMGPeakModel implements ChromatographicPeak {
 
     private double xRight = -1, xLeft = -1;
     
-    /**
-     * This method return a peak with a the most closest EMG shape to the
-     * original peak.
-     * 
-     * @param originalDetectedPeak
-     * @param params
-     * 
-     * @return peak
-     */
-    /*
-    public ChromatographicPeak fillingPeak(
-            ChromatographicPeak originalDetectedShape, double[] params) {
+	// Peak information
+	private double rt, height, mz, area;
+	private int[] scanNumbers;
+	private RawDataFile rawDataFile;
+	private PeakStatus status;
+	private int representativeScan = -1, fragmentScan = -1;
+	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+			rawDataPointsRTRange;
+	private TreeMap<Integer, MzPeak> dataPointsMap;
+
+	public double getArea() {
+		return area;
+	}
+
+	public RawDataFile getDataFile() {
+		return rawDataFile;
+	}
+
+	public double getHeight() {
+		return height;
+	}
+
+	public double getMZ() {
+		return mz;
+	}
+
+	public int getMostIntenseFragmentScanNumber() {
+		return fragmentScan;
+	}
+
+	public MzPeak getMzPeak(int scanNumber) {
+		return dataPointsMap.get(scanNumber);
+	}
+
+	public PeakStatus getPeakStatus() {
+		return status;
+	}
+
+	public double getRT() {
+		return rt;
+	}
+
+	public Range getRawDataPointsIntensityRange() {
+		return rawDataPointsIntensityRange;
+	}
+
+	public Range getRawDataPointsMZRange() {
+		return rawDataPointsMZRange;
+	}
+
+	public Range getRawDataPointsRTRange() {
+		return rawDataPointsRTRange;
+	}
+
+	public int getRepresentativeScanNumber() {
+		return representativeScan;
+	}
+
+	public int[] getScanNumbers() {
+		return scanNumbers;
+	}
+
+	public EMGPeakModel(ChromatographicPeak originalDetectedShape,
+			int[] scanNumbers, double[] intensities, double[] retentionTimes,
+			double resolution) {
+
+		height = originalDetectedShape.getHeight();
+		rt = originalDetectedShape.getRT();
+		mz = originalDetectedShape.getMZ();
+		this.scanNumbers = scanNumbers;
+		rawDataFile = originalDetectedShape.getDataFile();
+		rawDataPointsIntensityRange = originalDetectedShape
+				.getRawDataPointsIntensityRange();
+		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
+		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
+		dataPointsMap = new TreeMap<Integer, MzPeak>();
 
         xRight = -1;
         xLeft = -1;
 
-        
-        ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) originalDetectedShape).getAllMzPeaks();
-
-        RawDataFile dataFile = originalDetectedShape.getDataFile();
-        Range originalRange = originalDetectedShape.getRawDataPointsRTRange();
-        double rangeSize = originalRange.getSize();
-        double mass = originalDetectedShape.getMZ();
-        Range extendedRange = new Range(originalRange.getMin() - rangeSize,
-                originalRange.getMax() + rangeSize);
-        int[] listScans = dataFile.getScanNumbers(1, extendedRange);
-
-        double heightMax, RT, MZ, C, FWHM, factor, resolution;
-
-        C = params[0]; // level of excess;
-        resolution = params[1];
-        factor = (1.0f - (Math.abs(C) / 10.0f));
-
-        heightMax = originalDetectedShape.getHeight() * factor;
-        RT = originalDetectedShape.getRT();
-        MZ = originalDetectedShape.getMZ();
-
-        FWHM = calculateWidth(listMzPeaks, heightMax, RT, MZ, resolution) * factor;
-
-        if (FWHM < 0) {
-            return originalDetectedShape;
-        }
+		// FWFM (Full Width at Half Maximum)
+		double FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
+				height);
 
         /*
          * Calculates asymmetry of the peak using the formula
@@ -83,19 +125,21 @@ public class EMGPeakModel implements ChromatographicPeak {
          * This formula is a variation of Foley J.P., Dorsey J.G. "Equations for
          * calculation of chormatographic figures of Merit for Ideal and Skewed
          * Peaks", Anal. Chem. 1983, 55, 730-737.
+         * 
+         * */
          
 
         // Left side
-        double beginning = xLeft;//listMzPeaks[0].getScan().getRetentionTime();
+        double beginning = xLeft;
         if (beginning <= 0)
-        	beginning = listMzPeaks[0].getScan().getRetentionTime();
-        double a = (RT - beginning) * factor;
+        	beginning = retentionTimes[0];
+        double a = (rt - beginning);
         
         // Right side
-        double ending = xRight;//listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
+        double ending = xRight;
         if (ending <= 0)
-        	ending = listMzPeaks[listMzPeaks.length - 1].getScan().getRetentionTime();
-        double b = (ending - RT) * factor;
+        	ending = retentionTimes[retentionTimes.length - 1];
+        double b = (ending - rt);
 
         double paramA = b / a;
         double paramB = (1.76d * Math.pow(paramA, 2))
@@ -108,50 +152,28 @@ public class EMGPeakModel implements ChromatographicPeak {
         if ((b > a) && (Ap > 0))
             Ap *= -1;
         
-        // Calculate intensity of each point in the shape.
-        double t, shapeHeight;
-        Scan scan;
+		// Calculate intensity of each point in the shape.
+		double shapeHeight, currentRT, previousRT, previousHeight, C = 0.5d;
 
-        ConnectedMzPeak newMzPeak = null;
-        ConnectedPeak filledPeak = null;
+		previousHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, retentionTimes[0]);
+		MzPeak mzPeak = new SimpleMzPeak(
+				new SimpleDataPoint(mz, previousHeight));
+		dataPointsMap.put(scanNumbers[0], mzPeak);
 
-        for (int scanIndex : listScans) {
+		for (int i = 1; i < retentionTimes.length; i++) {
 
-            scan = dataFile.getScan(scanIndex);
-            t = scan.getRetentionTime();
-            shapeHeight = calculateEMGIntensity(heightMax, RT, FWHM, Ap, C, t);
+			shapeHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, retentionTimes[0]);
+			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
+			dataPointsMap.put(scanNumbers[0], mzPeak);
 
-            // Level of significance
-            if (shapeHeight < (heightMax * 0.001))
-                continue;
-
-            newMzPeak = getDetectedMzPeak(listMzPeaks, scan);
-
-            if (newMzPeak != null) {
-            	
-            	//logger.finest(t + "        " + newMzPeak.getMzPeak().getIntensity());
-            	
-                ((SimpleMzPeak) newMzPeak.getMzPeak()).setIntensity(shapeHeight);
-            } else {
-                newMzPeak = new ConnectedMzPeak(scan, new SimpleMzPeak(
-                        new SimpleDataPoint(mass, shapeHeight)));
-            }
-
-            if (filledPeak == null) {
-                filledPeak = new ConnectedPeak(
-                        originalDetectedShape.getDataFile(), newMzPeak);
-            }
-
-            filledPeak.addMzPeak(newMzPeak);
-        }
+			currentRT = retentionTimes[i];
+			previousRT = retentionTimes[i - 1];
+			dataPointsMap.put(scanNumbers[0], mzPeak);
+			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
+					/ 2;
+			previousHeight = shapeHeight;
+		}
         
-        if (filledPeak == null)
-        	return originalDetectedShape;
-
-        if (filledPeak.getAllMzPeaks().length == 0)
-        	return originalDetectedShape;
-
-        return filledPeak;
     }
 
     /**
@@ -162,52 +184,51 @@ public class EMGPeakModel implements ChromatographicPeak {
      * @param height
      * @param RT
      * @return FWHM
+     * */
      
-    private double calculateWidth(ConnectedMzPeak[] listMzPeaks, double height,
-            double RT, double MZ, double resolution) {
+    private double calculateWidth(double[] intensities,
+			double[] retentionTimes, double resolution, double retentionTime,
+			double mass, double maxIntensity) {
 
-        double halfIntensity = height / 2, intensity = 0, intensityPlus = 0, retentionTime = 0;
+        double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
         double leftY1,leftX1,leftY2,leftX2,mLeft;
         double rightY1,rightX1,rightY2,rightX2,mRight;
         double localXLeft = -1, localXRight = -1;
         double lowestLeft = intensity/5, lowestRight = intensity/5;
-        ConnectedMzPeak[] rangeDataPoints = listMzPeaks.clone();
-        
         double FWHM ;
+        double beginning = retentionTimes[0];
+        double ending = retentionTimes[retentionTimes.length - 1];
 
-        for (int i = 0; i < rangeDataPoints.length - 1; i++) {
+        for (int i = 0; i < retentionTimes.length - 1; i++) {
 
-            intensity = rangeDataPoints[i].getMzPeak().getIntensity();
-            intensityPlus = rangeDataPoints[i + 1].getMzPeak().getIntensity();
-            retentionTime = rangeDataPoints[i].getScan().getRetentionTime();
-            
-            //logger.finest(retentionTime + " " + intensity);
+            intensity = intensities[i];
+            intensityPlus = intensities[i + 1];
 
             if (intensity > height)
                 continue;
 
             // Left side of the curve
-            if (retentionTime < RT) {
+            if (retentionTimes[i] < retentionTime) {
             	if (intensity < lowestLeft){
             		lowestLeft = intensity;
-            		xLeft = retentionTime;
+            		xLeft = retentionTimes[i];
             	}
             	
             	
             	
-                if ((intensity <= halfIntensity) && (retentionTime < RT)
+                if ((intensity <= halfIntensity) && (retentionTimes[i] < retentionTime)
                         && (intensityPlus >= halfIntensity)) {
 
                     // First point with intensity just less than half of total
                     // intensity
                     leftY1 = intensity;
-                    leftX1 = retentionTime;
+                    leftX1 = retentionTimes[i];
 
                     // Second point with intensity just bigger than half of
                     // total
                     // intensity
                     leftY2 = intensityPlus;
-                    leftX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    leftX2 = retentionTimes[i + 1];
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
                     mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
@@ -223,15 +244,15 @@ public class EMGPeakModel implements ChromatographicPeak {
             }
 
             // Right side of the curve
-            if (retentionTime > RT) {
+            if (retentionTime > retentionTime) {
 
             	if (intensity < lowestRight){
             		lowestRight = intensity;
-            		xRight = retentionTime;
+            		xRight = retentionTimes[i];
             	}
 
             	
-            	if ((intensity >= halfIntensity) && (retentionTime > RT)
+            	if ((intensity >= halfIntensity) && (retentionTimes[i] > retentionTime)
                         && (intensityPlus <= halfIntensity)) {
 
                     // First point with intensity just bigger than half of total
@@ -242,7 +263,7 @@ public class EMGPeakModel implements ChromatographicPeak {
                     // Second point with intensity just less than half of total
                     // intensity
                     rightY2 = intensityPlus;
-                    rightX2 = rangeDataPoints[i + 1].getScan().getRetentionTime();
+                    rightX2 = retentionTimes[i + 1];
 
                     // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
                     mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
@@ -257,38 +278,26 @@ public class EMGPeakModel implements ChromatographicPeak {
                 }
             }
         }
-
-        if ((localXRight <= -1) && (localXLeft > 0)) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            localXRight = RT + (ending - beginning) / 4.71f;
-            //xRight = localXRight;
-            FWHM = (localXRight - localXLeft) / 2.354820045d;
-            return FWHM;
-        }
-
-        if ((localXRight > 0) && (localXLeft <= -1)) {
-            double beginning = rangeDataPoints[0].getScan().getRetentionTime();
-            double ending = rangeDataPoints[rangeDataPoints.length - 1].getScan().getRetentionTime();
-            localXLeft = RT - (ending - beginning) / 4.71f;
-            //xLeft = localXLeft;
-            FWHM = (localXRight - localXLeft) / 2.354820045d;
-            return FWHM;
-        }
-
+        
+        FWHM = (localXRight - localXLeft) / 2.354820045d;
         boolean negative = (((localXRight - localXLeft)) < 0);
 
-        if ((negative) || ((localXRight == -1) && (localXLeft == -1))) {
-            
-        	FWHM = (MZ / resolution);
-            FWHM /= 2.354820045d;
-            return FWHM;
-        	
-            
+        if ((localXRight <= -1) && (localXLeft > 0)) {
+            localXRight = retentionTime + (ending - beginning) / 4.71f;
+            FWHM = (localXRight - localXLeft) / 2.354820045d;
         }
 
-        // 
-        return FWHM = (localXRight - localXLeft) / 2.354820045d;
+        else if ((localXRight > 0) && (localXLeft <= -1)) {
+            localXLeft = retentionTime - (ending - beginning) / 4.71f;
+            FWHM = (localXRight - localXLeft) / 2.354820045d;
+        }
+
+        if ((negative) || ((localXRight == -1) && (localXLeft == -1))) {
+        	FWHM = (mass / resolution);
+            FWHM /= 2.354820045d;
+        }
+
+        return FWHM ;
 
     }
 
@@ -327,82 +336,6 @@ public class EMGPeakModel implements ChromatographicPeak {
             shapeHeight = 0;
 
         return shapeHeight;
-    }
-/*
-    public ConnectedMzPeak getDetectedMzPeak(ConnectedMzPeak[] listMzPeaks,
-            Scan scan) {
-        int scanNumber = scan.getScanNumber();
-        for (int i = 0; i < listMzPeaks.length; i++) {
-            if (listMzPeaks[i].getScan().getScanNumber() == scanNumber)
-                return listMzPeaks[i].clone();
-        }
-        return null;
-    }
-    */
-
-    public double getArea() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public RawDataFile getDataFile() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public double getHeight() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public double getMZ() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public int getMostIntenseFragmentScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public MzPeak getMzPeak(int scanNumber) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public PeakStatus getPeakStatus() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public double getRT() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public Range getRawDataPointsIntensityRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public Range getRawDataPointsMZRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public Range getRawDataPointsRTRange() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public int getRepresentativeScanNumber() {
-        // TODO Auto-generated method stub
-        return 0;
-    }
-
-    public int[] getScanNumbers() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }
