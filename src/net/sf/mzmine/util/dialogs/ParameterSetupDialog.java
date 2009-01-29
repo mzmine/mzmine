@@ -63,8 +63,26 @@ import net.sf.mzmine.util.components.HelpButton;
 import com.sun.java.ExampleFileFilter;
 
 /**
- * This class represents the parameter setup dialog shown to the user before
- * processing
+ * This class represents the parameter setup dialog to set the values of
+ * SimpleParameterSet. Each Parameter is represented by a component. The
+ * component can be obtained by calling getComponentForParameter(). Type of
+ * component depends on parameter type:
+ * 
+ * STRING - JTextField
+ * 
+ * INTEGER, DOUBLE - JFormattedTextField
+ * 
+ * RANGE - JPanel containing a JFormattedTextField (min), JLabel and
+ * JFormattedTextField (max)
+ * 
+ * BOOLEAN - JCheckBox
+ * 
+ * MULTIPLE_SELECTION - JScrollPane with JViewPort containing a JPanel
+ * containing multiple ExtendedCheckBoxes
+ * 
+ * FILE_NAME - JPanel containing JTextField, space and a JButton
+ * 
+ * ORDERED_LIST - DragOrderedJList
  * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener {
@@ -88,9 +106,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     /**
      * Derived classed may add their components to these panels. Both panels use
      * BorderLayout. mainPanel containts componentPanel in the CENTER position
-     * and buttons in the SOUTH position. componentsPanel contains field names
-     * and components in the NORTH position. Other positions are free to use by
-     * derived specialized dialogs.
+     * and nothing else. componentsPanel contains parameter components in the
+     * NORTH position and buttons in the SOUTH position. Other positions are
+     * free to use by derived (specialized) dialogs.
      */
     protected JPanel componentsPanel, mainPanel;
 
@@ -140,6 +158,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * Constructs all components of the dialog
+     */
     private void addDialogComponents() {
 
         JComponent components[] = new JComponent[parameterSet.getParameters().length * 3];
@@ -206,6 +227,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * Creates a dialog component to control given parameter.
+     */
     private JComponent createComponentForParameter(Parameter p) {
 
         Object[] possibleValues = p.getPossibleValues();
@@ -237,7 +261,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
             txtField.setColumns(TEXTFIELD_COLUMNS);
             comp = txtField;
             break;
-            
+
         case INTEGER:
         case DOUBLE:
 
@@ -349,6 +373,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * Returns current value of the component controlling given parameter.
+     */
     protected Object getComponentValue(Parameter p) {
 
         Object[] possibleValues = p.getPossibleValues();
@@ -426,6 +453,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * Sets the value of a component which is controlling given parameter to
+     * given value.
+     */
     protected void setComponentValue(Parameter p, Object value) {
 
         JComponent component = parametersAndComponents.get(p);
@@ -502,6 +533,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
         }
     }
 
+    /**
+     * This function sets the values of all components according to the values
+     * in the ParameterSet.
+     */
     protected void updateComponentsFromParameterSet() {
         for (Parameter p : parameterSet.getParameters()) {
             setComponentValue(p, parameterSet.getParameterValue(p));
@@ -511,7 +546,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     /**
      * This function collects all the information from the form components and
      * set the ParameterSet values accordingly.
-     * 
      */
     protected void updateParameterSetFromComponents()
             throws IllegalArgumentException {
@@ -523,6 +557,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
     }
 
+    /**
+     * Return a component which is controlling given parameter.
+     */
     protected JComponent getComponentForParameter(Parameter p) {
         return parametersAndComponents.get(p);
     }
