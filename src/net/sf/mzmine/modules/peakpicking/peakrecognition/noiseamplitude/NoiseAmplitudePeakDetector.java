@@ -25,8 +25,6 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
@@ -59,77 +57,54 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
         // This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
 		double maxIntensity = 0;
+		double avgChromatoIntensities = 0;
 		
 		for (int i = 0; i < scanNumbers.length; i++) {
 
 			addNewIntensity(intensities[i], binsFrequency);
 			if (intensities[i] > maxIntensity)
 				maxIntensity = intensities[i];
+			avgChromatoIntensities += intensities[i];
 
 		}
 
+		avgChromatoIntensities /= scanNumbers.length;
+
+		// If the current chromatogram has characteristics of background or just
+		// noise
+		// return an empty array.
+		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
+			return resolvedPeaks.toArray(new ResolvedPeak[0]);
+
 		double noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
 
-        for (int i = 0; i < scanNumbers.length; i++) {
+		boolean activePeak = false;
+		// Index of starting region of the current peak
+		int totalNumberPoints = scanNumbers.length;
+		int currentPeakStart = totalNumberPoints;
 
-            // If the intensity of this MzPeak is bigger than threshold level
-            // we store it in a Vector.
 
-/*            ConnectedMzPeak mzValue = chromatogram
-                    .getConnectedMzPeak(scanNumbers[i]);
+		for (int i = 0; i < totalNumberPoints; i++) {
+			if ((intensities[i] > noiseThreshold) && (!activePeak)) {
+				currentPeakStart = i;
+				activePeak = true;
+			}
 
-            if (mzValue != null) {
-
-                if (mzValue.getMzPeak().getIntensity() >= noiseThreshold) {
-                    newChromatoMzPeaks.add(mzValue);
-                }
-
-                // If the intensity of lower than threshold level, it could mean
-                // that is the ending of this new threshold level peak
-                // we store it in a Vector.
-
-                else {
-
-                    // Verify if we add some MzPeaks to the new ConnectedPeak,
-                    // if that is true, we create a new ConnectedPeak with all
-                    // stored MzPeaks.
-
-                    if (newChromatoMzPeaks.size() > 0) {
-                        ConnectedPeak chromatoPeak = new ConnectedPeak(
-                                dataFile, newChromatoMzPeaks.elementAt(0));
-                        for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
-                            chromatoPeak.addMzPeak(newChromatoMzPeaks
-                                    .elementAt(j));
-                        }
-                        newChromatoMzPeaks.clear();
-                        newChromatoPeaks.add(chromatoPeak);
-                    }
-                }
-            }
-            */
-        }
-
-        // At least we verify if there is one last threshold peak at the end,
-        // and it was not detected in the for cycle, due there is not MzPeak
-        // with intensity below of threshold level to define the ending
-        /*
-        if (newChromatoMzPeaks.size() > 0) {
-            ConnectedPeak chromatoPeak = new ConnectedPeak(dataFile,
-                    newChromatoMzPeaks.elementAt(0));
-            for (int j = 1; j < newChromatoMzPeaks.size(); j++) {
-                chromatoPeak.addMzPeak(newChromatoMzPeaks.elementAt(j));
-            }
-            newChromatoMzPeaks.clear();
-            newChromatoPeaks.add(chromatoPeak);
-        }
-        
-        double pLength = p.getRawDataPointsRTRange().getSize();
-        double pHeight = p.getHeight();
-        if ((pLength >= minimumPeakDuration)
-                && (pHeight >= minimumPeakHeight)) {
-            detectedPeaks.add(p);
-        }
-        */
+			if ((intensities[i] < noiseThreshold) && (activePeak)) {
+				if (i - currentPeakStart > 0) {
+					ResolvedPeak peak = new ResolvedPeak(chromatogram,
+							currentPeakStart, i);
+					double pLength = peak.getRawDataPointsRTRange().getSize();
+					double pHeight = peak.getHeight();
+					if ((pLength >= minimumPeakDuration)
+							&& (pHeight >= minimumPeakHeight)) {
+						resolvedPeaks.add(peak);
+					}
+				}
+				currentPeakStart = totalNumberPoints;
+				activePeak = false;
+			}
+		}
 
 		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 	}

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition.standarddeviation;
 
+import java.util.Arrays;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -47,80 +48,64 @@ public class StandardDeviationPeakDetector implements PeakResolver {
 				.getParameterValue(StandardDeviationPeakDetectorParameters.standardDeviationLevel);
 	}
 
-    /**
+	/**
      */
-    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
-            int scanNumbers[], double retentionTimes[], double intensities[]) {
+	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
-/*		double standardDeviationlevelPeak;
+		double standardDeviationlevelPeak;
 
-		int[] scanNumbers = chromatogram.getDataFile().getScanNumbers(1);
-		double[] chromatoIntensities = new double[scanNumbers.length];
-		double sumIntensities = 0;
+		double maxIntensity = 0;
+
+		double avgChromatoIntensities = 0;
+		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
-
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null) {
-				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			} else
-				chromatoIntensities[i] = 0;
-			sumIntensities += chromatoIntensities[i];
+			if (intensities[i] > maxIntensity)
+				maxIntensity = intensities[i];
+			avgChromatoIntensities += intensities[i];
 		}
 
-		standardDeviationlevelPeak = calcChromatogramThreshold(
-				chromatoIntensities, (sumIntensities / scanNumbers.length),
-				standardDeviationLevel);
+		avgChromatoIntensities /= scanNumbers.length;
 
-		Vector<ConnectedMzPeak> regionOfMzPeaks = new Vector<ConnectedMzPeak>();
-		Vector<ConnectedPeak> underDetectionPeaks = new Vector<ConnectedPeak>();
+		// If the current chromatogram has characteristics of background or just
+		// noise
+		// return an empty array.
+		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
+			return resolvedPeaks.toArray(new ResolvedPeak[0]);
 
-		if (cMzPeaks.length > 0) {
+		boolean activePeak = false;
+		// Index of starting region of the current peak
+		int totalNumberPoints = scanNumbers.length;
+		int currentPeakStart = totalNumberPoints;
 
-			for (ConnectedMzPeak mzPeak : cMzPeaks) {
+		standardDeviationlevelPeak = calcChromatogramThreshold(intensities,
+				avgChromatoIntensities, standardDeviationLevel);
 
-				if (mzPeak.getMzPeak().getIntensity() > standardDeviationlevelPeak) {
-					regionOfMzPeaks.add(mzPeak);
-				} else if (regionOfMzPeaks.size() != 0) {
-					ConnectedPeak peak = new ConnectedPeak(dataFile,
-							regionOfMzPeaks.get(0));
-					for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-						peak.addMzPeak(regionOfMzPeaks.get(i));
-					}
-					regionOfMzPeaks.clear();
+		for (int i = 0; i < totalNumberPoints; i++) {
+			if ((intensities[i] > standardDeviationlevelPeak) && (!activePeak)) {
+				currentPeakStart = i;
+				activePeak = true;
+			}
 
+			if ((intensities[i] < standardDeviationlevelPeak) && (activePeak)) {
+				if (i - currentPeakStart > 0) {
+					ResolvedPeak peak = new ResolvedPeak(chromatogram,
+							currentPeakStart, i);
 					double pLength = peak.getRawDataPointsRTRange().getSize();
 					double pHeight = peak.getHeight();
 					if ((pLength >= minimumPeakDuration)
 							&& (pHeight >= minimumPeakHeight)) {
-						underDetectionPeaks.add(peak);
+						resolvedPeaks.add(peak);
 					}
-
 				}
-
+				currentPeakStart = totalNumberPoints;
+				activePeak = false;
 			}
-
-			if (regionOfMzPeaks.size() != 0) {
-				ConnectedPeak peak = new ConnectedPeak(dataFile,
-						regionOfMzPeaks.get(0));
-				for (int i = 0; i < regionOfMzPeaks.size(); i++) {
-					peak.addMzPeak(regionOfMzPeaks.get(i));
-				}
-
-				double pLength = peak.getRawDataPointsRTRange().getSize();
-				double pHeight = peak.getHeight();
-				if ((pLength >= minimumPeakDuration)
-						&& (pHeight >= minimumPeakHeight)) {
-					underDetectionPeaks.add(peak);
-				}
-
-			}
-
 		}
-*/
+
 		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 	}
 
