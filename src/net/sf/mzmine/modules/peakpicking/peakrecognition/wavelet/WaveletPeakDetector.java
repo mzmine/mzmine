@@ -19,10 +19,14 @@
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition.wavelet;
 
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -42,15 +46,15 @@ public class WaveletPeakDetector implements PeakResolver {
 
 	private double minimumPeakHeight, minimumPeakDuration,
 			waveletThresholdLevel;
-
+	
 	/**
 	 * Parameters of the wavelet, The WAVELET_ESL & WAVELET_ESL indicates the
 	 * Effective Support boundaries
 	 */
 	private static final int WAVELET_ESL = -5;
 	private static final int WAVELET_ESR = 5;
-	private double maxWaveletIntensity = 0;
-	private double maxIntensity = 0;
+	//private double maxWaveletIntensity = 0;
+	//private double maxIntensity = 0;
 	double[] W;
 
 	public WaveletPeakDetector(WaveletPeakDetectorParameters parameters) {
@@ -61,48 +65,43 @@ public class WaveletPeakDetector implements PeakResolver {
 				.getParameterValue(WaveletPeakDetectorParameters.minimumPeakDuration);
 		waveletThresholdLevel = (Double) parameters
 				.getParameterValue(WaveletPeakDetectorParameters.waveletThresholdLevel);
-
+		int numOfSections = (Integer) parameters
+		.getParameterValue(WaveletPeakDetectorParameters.numOfSections);
 		// Pre-calculate coefficients of the wavelet
-		preCalculateCWT(1000);
+		preCalculateCWT(numOfSections);
 
 	}
 
     public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
             int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+        Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
 
-        maxWaveletIntensity = 0;
-		maxIntensity = 0;
+        //maxWaveletIntensity = 0;
+		//maxIntensity = 0;
 
-
-        /*
-		int[] scanNumbers = dataFile.getScanNumbers(1);
-		double[] chromatoIntensities = new double[scanNumbers.length];
+		double maxIntensity = 0;
 		double avgChromatoIntensities = 0;
+		Arrays.sort(scanNumbers);
 
 		for (int i = 0; i < scanNumbers.length; i++) {
-			ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[i]);
-			if (mzValue != null)
-				chromatoIntensities[i] = mzValue.getMzPeak().getIntensity();
-			else
-				chromatoIntensities[i] = 0;
-			if (chromatoIntensities[i] > maxIntensity)
-				maxIntensity = chromatoIntensities[i];
-			avgChromatoIntensities += chromatoIntensities[i];
+			if (intensities[i] > maxIntensity)
+				maxIntensity = intensities[i];
+			avgChromatoIntensities += intensities[i];
 		}
 
 		avgChromatoIntensities /= scanNumbers.length;
 
-		// Chromatogram with characteristics of background
+		// If the current chromatogram has characteristics of background or just noise
+		// return an empty array.
 		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
-			return detectedPeaks.toArray(new ChromatographicPeak[0]);
+			return resolvedPeaks.toArray(new ResolvedPeak[0]);
 
-		double[] waveletIntensities = performCWT(chromatoIntensities);
+		double[] waveletIntensities = performCWT(intensities);
+		double noiseThreshold = calcWaveletThreshold(waveletIntensities, waveletThresholdLevel);
 
 		ChromatographicPeak[] chromatographicPeaks = getWaveletPeaks(
-				chromatogram, dataFile, scanNumbers, waveletIntensities);
+				chromatogram, scanNumbers, waveletIntensities, noiseThreshold);
 
 		if (chromatographicPeaks.length != 0) {
 			for (ChromatographicPeak p : chromatographicPeaks) {
@@ -110,25 +109,12 @@ public class WaveletPeakDetector implements PeakResolver {
 				double pHeight = p.getHeight();
 				if ((pLength >= minimumPeakDuration)
 						&& (pHeight >= minimumPeakHeight)) {
-					// Apply peak filling method
-					if (fillingPeaks) {
-						ChromatographicPeak shapeFilledPeak = peakModel.fillingPeak(p, new double[]{excessLevel});
-						pLength = shapeFilledPeak.getRawDataPointsRTRange().getSize();
-						pHeight = shapeFilledPeak.getHeight();
-						if ((pLength >= minimumPeakDuration)
-								&& (pHeight >= minimumPeakHeight)) {
-						restPeaktoChromatogram(shapeFilledPeak, chromatogram);
-						detectedPeaks.add(shapeFilledPeak);
-						}
-						else
-							detectedPeaks.add(p);
-					} else
-						detectedPeaks.add(p);
+						resolvedPeaks.add(p);
 				}
 			}
-		}*/
+		}
 
-		return resolvedPeaks.toArray(new ResolvedPeak[0]);
+		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 
 	}
 
@@ -144,42 +130,49 @@ public class WaveletPeakDetector implements PeakResolver {
 	 *            ucPeak
 	 * @return Peak[]
 	 */
-    /*
-	public ChromatographicPeak[] getWaveletPeaks(Chromatogram chromatogram,
-			RawDataFile dataFile, int[] scanNumbers, double[] waveletIntensities) {
+    
+	public ChromatographicPeak[] getWaveletPeaks(ChromatographicPeak chromatogram,
+			int[] scanNumbers, double[] waveletIntensities, double noiseThreshold) {
 
-		double waveletThresholdLevel = calcWaveletThreshold(waveletIntensities), maxLocalWaveletIntensity = 0;
-		int indexMaxPoint = 0;
+        Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
 
 		boolean activeFirstPeak = false, activeSecondPeak = false, passThreshold = false;
 		int crossZero = 0;
+		
+		int totalNumberPoints = waveletIntensities.length;
+		
+		// Indexes of start and ending of the current peak and beginning of the next
+		int currentPeakStart = totalNumberPoints;
+		int nextPeakStart = totalNumberPoints;
+		int currentPeakEnd = 0;
 
-		Vector<ConnectedPeak> newPeaks = new Vector<ConnectedPeak>();
-		Vector<ConnectedMzPeak> newMzPeaks = new Vector<ConnectedMzPeak>();
-		Vector<ConnectedMzPeak> newOverlappedMzPeaks = new Vector<ConnectedMzPeak>();
+		Chromatogram derivativeChromatogram = new Chromatogram(chromatogram.getDataFile());
 
 		for (int i = 1; i < waveletIntensities.length; i++) {
 			
-			double absolute = (double) waveletIntensities[i]; //Math.abs(derivativeOfIntensities[i]);
-			if (( absolute > maxLocalWaveletIntensity) && (crossZero == 2)) {
-				maxLocalWaveletIntensity = absolute;
-				indexMaxPoint = i;
-			}
+			// DEBUGGING
+			//derivativeChromatogram.addMzPeak(scanNumbers[i], 
+				//new SimpleMzPeak(new SimpleDataPoint(chromatogram.getMZ(), waveletIntensities[i]*10)));
 
+			
 			if (((waveletIntensities[i - 1] < 0.0f) && (waveletIntensities[i] > 0.0f))
 					|| ((waveletIntensities[i - 1] > 0.0f) && (waveletIntensities[i] < 0.0f))) {
 
 				if ((waveletIntensities[i - 1] > 0.0f)
 						&& (waveletIntensities[i] < 0.0f)) {
 					if (crossZero == 0) {
+						currentPeakStart = i;
 						activeFirstPeak = true;
 					}
 					if (crossZero == 2) {
-						if (passThreshold)
+						if (passThreshold){
 							activeSecondPeak = true;
+							nextPeakStart = i;
+						}
 						else {
-							newMzPeaks.clear();
+							currentPeakStart = i;
 							crossZero = 0;
+							activeFirstPeak = true;
 						}
 					}
 
@@ -187,6 +180,7 @@ public class WaveletPeakDetector implements PeakResolver {
 
 				if (crossZero == 3) {
 					activeFirstPeak = false;
+					currentPeakEnd = i;
 				}
 
 				// Always clean
@@ -198,89 +192,73 @@ public class WaveletPeakDetector implements PeakResolver {
 
 			}
 
-			if ((!passThreshold)
-					&& ((Math.abs(waveletIntensities[i]) > waveletThresholdLevel))) {
+			// Filter for noise threshold level
+			if (Math.abs(waveletIntensities[i]) > noiseThreshold) {
 				passThreshold = true;
-				if ((crossZero == 0)) {
-					activeFirstPeak = true;
-					crossZero++;
-				}
 			}
-
-			if (((waveletIntensities[i - 1] < 0.0f) && (waveletIntensities[i] == 0.0f))) {
+			
+			// Start peak region
+			if ((crossZero == 0) && (waveletIntensities[i] < 0) && (!activeFirstPeak)) {
+				activeFirstPeak = true;
+				currentPeakStart = i;
+				crossZero++;
+			}
+			
+			// Finalize the peak region in case of zero values.
+			if ((waveletIntensities[i-1] == 0) && (waveletIntensities[i] == 0) &&
+				(activeFirstPeak)){
+				if (crossZero < 3){
+					currentPeakEnd = 0;
+				}
+				else{
+					currentPeakEnd = i;
+				}
 				activeFirstPeak = false;
 				activeSecondPeak = false;
+				crossZero = 0;
 			}
 
-			// if (true){
-			if ((activeFirstPeak)) {
-				ConnectedMzPeak mzValue = chromatogram
-						.getConnectedMzPeak(scanNumbers[i]);
-				if (mzValue != null) {
-					newMzPeaks.add(mzValue);
-					
+			// If exists a detected area (difference between indexes) create a
+			// new resolved peak for this region of the chromatogram
+			if ((currentPeakEnd - currentPeakStart > 0) && (!activeFirstPeak)) {
 
-					 
-				} else if (newMzPeaks.size() > 0) {
-					activeFirstPeak = false;
-					crossZero = 0;
-				}
-			}
+				ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
+						currentPeakStart, currentPeakEnd);
+				resolvedPeaks.add((ChromatographicPeak) newPeak);
 
-			if (activeSecondPeak) {
-				ConnectedMzPeak mzValue = chromatogram
-						.getConnectedMzPeak(scanNumbers[i]);
-				if (mzValue != null) {
-					newOverlappedMzPeaks.add(mzValue);
-					
-
-					 
-				}
-			}
-
-			if ((newMzPeaks.size() > 0) && (!activeFirstPeak)) {
-				ConnectedPeak peak = new ConnectedPeak(dataFile, newMzPeaks
-						.elementAt(0));
-				for (int j = 1; j < newMzPeaks.size(); j++) {
-					peak.addMzPeak(newMzPeaks.elementAt(j));
-				}
-				
-				if (fillingPeaks) {
-					
-					ConnectedMzPeak mzValue = chromatogram
-					.getConnectedMzPeak(scanNumbers[indexMaxPoint]);
-					
-					if (mzValue != null) {
-						double height = mzValue.getMzPeak()
-								.getIntensity();
-						peak.setHeight(height);
-
-						double rt = mzValue.getScan()
-								.getRetentionTime();
-						peak.setRT(rt);
-					}
-
-				indexMaxPoint = 0;
-				maxLocalWaveletIntensity = 0;
-				}
-				
-				newMzPeaks.clear();
-				newPeaks.add(peak);
-
-				if ((newOverlappedMzPeaks.size() > 0) && (activeSecondPeak)) {
-					for (ConnectedMzPeak p : newOverlappedMzPeaks)
-						newMzPeaks.add(p);
+				// If exists next overlapped peak, swap the indexes between next
+				// and current, and clean ending index for this new current peak
+				if (activeSecondPeak) {
 					activeSecondPeak = false;
 					activeFirstPeak = true;
-					crossZero = 2;
-					newOverlappedMzPeaks.clear();
-				} else
+					if (waveletIntensities[i] < 0)
+						crossZero = 1;
+					else
+						crossZero = 2;
+					passThreshold = false;
+					currentPeakStart = nextPeakStart;
+					nextPeakStart = totalNumberPoints;
+				} else {
+					currentPeakStart = totalNumberPoints;
+					nextPeakStart = totalNumberPoints;
 					crossZero = 0;
+					passThreshold = false;
+					currentPeakEnd = 0;
+				}
+				// Reset the ending variable
+				currentPeakEnd = 0;
 			}
-
+			
 		}
+		
+		
+		// DEBUGGING
+		//derivativeChromatogram.finishChromatogram();
+		//ChromatographicPeak peak = (ChromatographicPeak) derivativeChromatogram;
+		//resolvedPeaks.add(peak);
+		//logger.finest("Size of resolved peak array " + resolvedPeaks.size());
 
-		return newPeaks.toArray(new ConnectedPeak[0]);
+		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 	}
 
 	/**
@@ -293,6 +271,9 @@ public class WaveletPeakDetector implements PeakResolver {
 		int length = chromatoIntensities.length;
 		int scale = 1;
 		double[] waveletIntensities = new double[length];
+        double maxWaveletIntensity = 0;
+		double maxIntensity = 0;
+
 
 		/*
 		 * We only perform Translation of the wavelet in the starting in scale 2
@@ -377,44 +358,20 @@ public class WaveletPeakDetector implements PeakResolver {
 
 	/**
 	 * 
-	 * @param chromatoIntensities
-	 * @return waveletThresholdLevel
+	 * @param double[] wavelet intensities
+	 * @param double comparative threshold level
+	 * @return double wavelet threshold value
 	 */
-	private double calcWaveletThreshold(double[] waveletIntensities) {
+	private static double calcWaveletThreshold(double[] waveletIntensities, double thresholdLevel) {
 
 		double[] intensities = new double[waveletIntensities.length];
 		for (int i = 0; i < waveletIntensities.length; i++) {
 			intensities[i] = (double) Math.abs(waveletIntensities[i]);
 		}
 
-		return MathUtils.calcQuantile(intensities, waveletThresholdLevel);
+		return MathUtils.calcQuantile(intensities, thresholdLevel);
 	}
 	
-	/**
-	 * @param shapeFilledPeak
-	 * @param chromatogram
-	 */
-    /*
-	public void restPeaktoChromatogram(ChromatographicPeak shapeFilledPeak, Chromatogram chromatogram){
-		
-		ConnectedMzPeak[] listMzPeaks = ((ConnectedPeak) shapeFilledPeak)
-		.getAllMzPeaks();
-		int scanNumber = 0;
-		double filledIntensity = 0, originalIntensity = 0, restedIntensity;
-		ConnectedMzPeak mzValue = null;
-		
-		for (ConnectedMzPeak mzPeak: listMzPeaks){
-			scanNumber = mzPeak.getScan().getScanNumber();
-			filledIntensity = mzPeak.getMzPeak().getIntensity();
-			mzValue = chromatogram.getConnectedMzPeak(scanNumber);
-			if (mzValue != null){
-				originalIntensity = mzValue.getMzPeak().getIntensity();
-				restedIntensity = originalIntensity - filledIntensity;
-				if (restedIntensity < 0)
-					restedIntensity = 0;
-				((SimpleMzPeak) mzValue.getMzPeak()).setIntensity(restedIntensity);
-			}
-		}
-	}*/
-
 }
+
+	

@@ -47,8 +47,13 @@ public class WaveletPeakDetectorParameters extends SimpleParameterSet {
 			"Minimum acceptable intensity in the wavelet for peak recognition",
 			null, new Double(0.80), new Double(0.0), null, percentFormat);
 
+	public static final Parameter numOfSections = new SimpleParameter(
+			ParameterType.INTEGER, "Density of the wavelet",
+			"Number of sections that the wavelet is divided into (10 - 2000). Bigger number more resolution",
+			null, new Integer(100), new Integer(10), new Integer(2000), null);
+	
 	public WaveletPeakDetectorParameters() {
 		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				waveletThresholdLevel });
+				waveletThresholdLevel, numOfSections });
 	}
 }

@@ -24,9 +24,6 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -94,7 +91,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		double noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative, derivativeThresholdLevel);
 
 		ChromatographicPeak[] resolvedOriginalPeaks = SGPeaksSearch(chromatogram,
-				chromato2ndDerivative, noiseThreshold, intensities, scanNumbers);
+				chromato2ndDerivative, noiseThreshold);
 
 		// Apply final filter of detected peaks, according with setup parameters
 		if (resolvedOriginalPeaks.length != 0) {
@@ -124,7 +121,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	 * @return ChromatographicPeak[]
 	 */
 	private ChromatographicPeak[] SGPeaksSearch(ChromatographicPeak chromatogram,
-			double[] derivativeOfIntensities, double noiseThreshold, double[] intensities, int[] scanNumbers) {
+			double[] derivativeOfIntensities, double noiseThreshold) {
 
 		// flag to identify the current and next
 		// overlapped peak
@@ -145,7 +142,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		int nextPeakStart = totalNumberPoints;
 		int currentPeakEnd = 0;
 		
-		Chromatogram derivativeChromatogram = new Chromatogram(chromatogram.getDataFile());
+		//Chromatogram derivativeChromatogram = new Chromatogram(chromatogram.getDataFile());
 
 		// Shape analysis of derivative of chromatogram 
 		// "*" represents the original chromatogram shape.
