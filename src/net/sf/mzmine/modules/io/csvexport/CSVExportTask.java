@@ -28,7 +28,7 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
-class PeakListExportTask implements Task {
+class CSVExportTask implements Task {
 
 	private PeakList peakList;
 	private TaskStatus status = TaskStatus.WAITING;
@@ -39,16 +39,16 @@ class PeakListExportTask implements Task {
 	private String fileName, fieldSeparator;
 	private ExportRowElement[] elements;
 
-	PeakListExportTask(PeakList peakList, PeakListExportParameters parameters) {
+	CSVExportTask(PeakList peakList, CSVExporterParameters parameters) {
 
 		this.peakList = peakList;
 
 		fileName = (String) parameters
-				.getParameterValue(PeakListExportParameters.filename);
+				.getParameterValue(CSVExporterParameters.filename);
 		fieldSeparator = (String) parameters
-				.getParameterValue(PeakListExportParameters.fieldSeparator);
+				.getParameterValue(CSVExporterParameters.fieldSeparator);
 
-        elements = (ExportRowElement[]) parameters.getParameterValue(PeakListExportParameters.exportItemMultipleSelection);
+        elements = (ExportRowElement[]) parameters.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
 
 	}
 

@@ -60,7 +60,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class PeakListLoaderTask extends DefaultHandler implements Task {
+public class XMLImportTask extends DefaultHandler implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -98,10 +98,10 @@ public class PeakListLoaderTask extends DefaultHandler implements Task {
 	 * 
 	 * @param parameters
 	 */
-	public PeakListLoaderTask(PeakListLoaderParameters parameters) {
+	public XMLImportTask(XMLImporterParameters parameters) {
 
 		fileName = (String) parameters
-				.getParameterValue(PeakListLoaderParameters.filename);
+				.getParameterValue(XMLImporterParameters.filename);
 
 	}
 

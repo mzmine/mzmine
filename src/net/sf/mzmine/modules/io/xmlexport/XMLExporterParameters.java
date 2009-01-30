@@ -17,23 +17,28 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.xmlimport;
+package net.sf.mzmine.modules.io.xmlexport;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public class PeakListLoaderParameters extends SimpleParameterSet{
-
+public class XMLExporterParameters extends SimpleParameterSet{
+	
     public static final Parameter filename = new SimpleParameter(
             ParameterType.FILE_NAME,
             "Filename",
-            "Name of imported peak list file name", null, "mpl", null);
+            "Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
 
-
-    public PeakListLoaderParameters() {
-        super(new Parameter[] { filename });
+    public static final Parameter compression = new SimpleParameter(
+			ParameterType.BOOLEAN, "Compressed file",
+			"Generates a compressed file (.zip)", null, true,
+			null, null, null);
+	
+    public XMLExporterParameters() {
+        super(new Parameter[] { filename, compression });
     }
+
 
 }

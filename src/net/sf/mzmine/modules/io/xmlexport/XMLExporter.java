@@ -30,16 +30,15 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.modules.io.csvexport.PeakListExportParameters;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class PeakListSaver implements MZmineModule, ActionListener {
+public class XMLExporter implements MZmineModule, ActionListener {
 	
-    private PeakListSaverParameters parameters;
+    private XMLExporterParameters parameters;
     private Desktop desktop;
 
 
@@ -50,7 +49,7 @@ public class PeakListSaver implements MZmineModule, ActionListener {
 	public void initModule() {
 		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new PeakListSaverParameters();
+        parameters = new XMLExporterParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Save peak list",
                 "Save a peak list to file", KeyEvent.VK_E, true,
@@ -58,7 +57,7 @@ public class PeakListSaver implements MZmineModule, ActionListener {
 	}
 
 	public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (PeakListSaverParameters) parameters;
+        this.parameters = (XMLExporterParameters) parameters;
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -81,8 +80,8 @@ public class PeakListSaver implements MZmineModule, ActionListener {
 	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters, TaskGroupListener taskGroupListener) {
         
-		PeakListSaverTask task = new PeakListSaverTask(peakLists[0],
-                (PeakListSaverParameters) parameters);
+		XMLExportTask task = new XMLExportTask(peakLists[0],
+                (XMLExporterParameters) parameters);
 
         TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
                 taskGroupListener);
@@ -97,7 +96,7 @@ public class PeakListSaver implements MZmineModule, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (PeakListSaverParameters) parameters);
+                (XMLExporterParameters) parameters);
 
         dialog.setVisible(true);
 

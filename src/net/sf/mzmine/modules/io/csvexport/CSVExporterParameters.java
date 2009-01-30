@@ -24,7 +24,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public class PeakListExportParameters extends SimpleParameterSet {
+public class CSVExporterParameters extends SimpleParameterSet {
 
     public static final Parameter filename = new SimpleParameter(
             ParameterType.FILE_NAME,
@@ -41,7 +41,7 @@ public class PeakListExportParameters extends SimpleParameterSet {
             "Multiple selection of row's elements to export", null, ExportRowElement.values());
 
 
-    public PeakListExportParameters() {
+    public CSVExporterParameters() {
         super(new Parameter[] { filename, fieldSeparator, exportItemMultipleSelection });
     }
 

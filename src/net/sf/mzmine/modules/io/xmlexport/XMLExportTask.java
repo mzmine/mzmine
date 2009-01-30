@@ -50,7 +50,7 @@ import org.dom4j.io.XMLWriter;
 
 import com.Ostermiller.util.Base64;
 
-public class PeakListSaverTask implements Task {
+public class XMLExportTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -71,14 +71,14 @@ public class PeakListSaverTask implements Task {
 	 * @param peakList
 	 * @param parameters
 	 */
-	public PeakListSaverTask(PeakList peakList,
-			PeakListSaverParameters parameters) {
+	public XMLExportTask(PeakList peakList,
+			XMLExporterParameters parameters) {
 		this.peakList = peakList;
 
 		fileName = (String) parameters
-				.getParameterValue(PeakListSaverParameters.filename);
+				.getParameterValue(XMLExporterParameters.filename);
 		compression = (Boolean) parameters
-				.getParameterValue(PeakListSaverParameters.compression);
+				.getParameterValue(XMLExporterParameters.compression);
 
 		this.peakList = peakList;
 

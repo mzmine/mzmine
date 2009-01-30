@@ -37,10 +37,10 @@ import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class PeakListExporter implements MZmineModule, ActionListener,
+public class CSVExporter implements MZmineModule, ActionListener,
         BatchStep {
 
-    private PeakListExportParameters parameters;
+    private CSVExporterParameters parameters;
     private Desktop desktop;
 
     /**
@@ -50,7 +50,7 @@ public class PeakListExporter implements MZmineModule, ActionListener,
 
         this.desktop = MZmineCore.getDesktop();
 
-        parameters = new PeakListExportParameters();
+        parameters = new CSVExporterParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to CSV file",
                 "Export peak list data into CSV file", KeyEvent.VK_E, true,
@@ -63,7 +63,7 @@ public class PeakListExporter implements MZmineModule, ActionListener,
     }
 
     public void setParameters(ParameterSet parameters) {
-        this.parameters = (PeakListExportParameters) parameters;
+        this.parameters = (CSVExporterParameters) parameters;
     }
 
     public void actionPerformed(ActionEvent event) {
@@ -98,8 +98,8 @@ public class PeakListExporter implements MZmineModule, ActionListener,
     public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
             ParameterSet parameters, TaskGroupListener taskGroupListener) {
 
-        PeakListExportTask task = new PeakListExportTask(peakLists[0],
-                (PeakListExportParameters) parameters);
+        CSVExportTask task = new CSVExportTask(peakLists[0],
+                (CSVExporterParameters) parameters);
 
         TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
                 taskGroupListener);
@@ -115,7 +115,7 @@ public class PeakListExporter implements MZmineModule, ActionListener,
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (PeakListExportParameters) parameters);
+                (CSVExporterParameters) parameters);
 
         dialog.setVisible(true);
 
