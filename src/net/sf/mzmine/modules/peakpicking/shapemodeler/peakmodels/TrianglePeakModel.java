@@ -27,11 +27,12 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class TrianglePeakModel implements ChromatographicPeak {
 
-	// Model information
+    // Model information
 	private double rtRight = -1, rtLeft = -1;
 	private double alpha, beta;
 
@@ -96,6 +97,10 @@ public class TrianglePeakModel implements ChromatographicPeak {
 	public int[] getScanNumbers() {
 		return scanNumbers;
 	}
+	
+	public String toString(){
+		return "Triangle peak " + PeakUtils.peakToString(this);
+	}
 
 	public TrianglePeakModel(ChromatographicPeak originalDetectedShape,
 			int[] scanNumbers, double[] intensities, double[] retentionTimes,
@@ -111,10 +116,11 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
 		dataPointsMap = new TreeMap<Integer, MzPeak>();
+		status = originalDetectedShape.getPeakStatus();
 
 		rtRight = retentionTimes[retentionTimes.length - 1];
 		rtLeft = retentionTimes[0];
-
+		
 		alpha = (double) Math.atan(height / (rt - rtLeft));
 		beta = (double) Math.atan(height / (rtRight - rt));
 
@@ -127,10 +133,10 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		dataPointsMap.put(scanNumbers[0], mzPeak);
 
 		for (int i = 1; i < retentionTimes.length; i++) {
-
+			
 			shapeHeight = calculateIntensity(retentionTimes[i]);
 			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
-			dataPointsMap.put(scanNumbers[0], mzPeak);
+			dataPointsMap.put(scanNumbers[i], mzPeak);
 
 			currentRT = retentionTimes[i];
 			previousRT = retentionTimes[i - 1];

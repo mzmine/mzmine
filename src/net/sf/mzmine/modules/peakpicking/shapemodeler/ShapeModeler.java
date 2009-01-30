@@ -19,30 +19,119 @@
 
 package net.sf.mzmine.modules.peakpicking.shapemodeler;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroupListener;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class ShapeModeler implements MZmineModule {
+public class ShapeModeler implements MZmineModule, ActionListener {
 
-    /**
+	private ShapeModelerParameters parameters;
+
+	private Desktop desktop;
+	
+	/**
      * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
+    	
+		this.desktop = MZmineCore.getDesktop();
+
+		parameters = new ShapeModelerParameters();
+		
+		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Peak shape modeler",
+				"Calculate peak shape accroding to selected peak shape model",
+				0, true, this, null);
 
     }
+    
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
+
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
+		if (peakLists.length == 0) {
+			desktop.displayErrorMessage("Please select at least one peak list");
+			return;
+		}
+
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
+
+		runModule(null, peakLists, parameters.clone(), null);
+
+	}
+	
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet parameters) {
+		ShapeModelerSetupDialog dialog = new ShapeModelerSetupDialog(
+				"Please set parameter values for " + toString(),
+				(ShapeModelerParameters) parameters);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#toString()
      */
     public String toString() {
-        return "Manual peak detector";
+        return "Peak shape modeler";
     }
 
-    public ParameterSet getParameterSet() {
-        return null;
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    public void setParameters(ParameterSet parameterValues) {
-    }
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (ShapeModelerParameters) parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+	 *      net.sf.mzmine.data.AlignmentResult[],
+	 *      net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 */
+	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+		// check peak lists
+		if ((peakLists == null) || (peakLists.length == 0)) {
+			desktop
+					.displayErrorMessage("Please select peak lists for recognition");
+			return null;
+		}
+
+		// prepare a new group of tasks
+		Task tasks[] = new ShapeModelerTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new ShapeModelerTask(peakLists[i],
+					(ShapeModelerParameters) parameters);
+		}
+		TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
+
+		// start the group
+		newGroup.start();
+
+		return newGroup;
+	}
 
 }

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
@@ -27,11 +28,15 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.util.MathUtils;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class GaussianPeakModel implements ChromatographicPeak {
 
-	private double FWHM, partC, part2C2;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+    private double FWHM, partC, part2C2;
 
 	// Peak information
 	private double rt, height, mz, area;
@@ -96,13 +101,17 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	public int[] getScanNumbers() {
 		return scanNumbers;
 	}
+	
+	public String toString(){
+		return "Gaussian peak " + PeakUtils.peakToString(this);
+	}
 
 	public GaussianPeakModel(ChromatographicPeak originalDetectedShape,
 			int[] scanNumbers, double[] intensities, double[] retentionTimes,
 			double resolution) {
 
 		height = originalDetectedShape.getHeight();
-		rt = originalDetectedShape.getRT();
+		rt = MathUtils.calcQuantile(retentionTimes, 0.5d);
 		mz = originalDetectedShape.getMZ();
 		this.scanNumbers = scanNumbers;
 		rawDataFile = originalDetectedShape.getDataFile();
@@ -111,6 +120,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
 		dataPointsMap = new TreeMap<Integer, MzPeak>();
+		status = originalDetectedShape.getPeakStatus();
 
 		// FWFM (Full Width at Half Maximum)
 		FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
@@ -130,8 +140,9 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		for (int i = 1; i < retentionTimes.length; i++) {
 
 			shapeHeight = calculateIntensity(retentionTimes[i]);
+			logger.finest("Shape value " + i+ " intensity " + intensities[i] + " shape " + shapeHeight);
 			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
-			dataPointsMap.put(scanNumbers[0], mzPeak);
+			dataPointsMap.put(scanNumbers[i], mzPeak);
 
 			currentRT = retentionTimes[i];
 			previousRT = retentionTimes[i - 1];
@@ -263,7 +274,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 			aproximatedFWHM = FWHMResolution;
 		}
 
-		return aproximatedFWHM;
+		return FWHMResolution;
 	}
 
 }

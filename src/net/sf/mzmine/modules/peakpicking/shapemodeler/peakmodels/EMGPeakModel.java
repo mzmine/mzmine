@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
@@ -27,9 +28,12 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class EMGPeakModel implements ChromatographicPeak {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private double xRight = -1, xLeft = -1;
     
@@ -94,6 +98,10 @@ public class EMGPeakModel implements ChromatographicPeak {
 	public int[] getScanNumbers() {
 		return scanNumbers;
 	}
+	
+	public String toString(){
+		return "EMG peak " + PeakUtils.peakToString(this);
+	}
 
 	public EMGPeakModel(ChromatographicPeak originalDetectedShape,
 			int[] scanNumbers, double[] intensities, double[] retentionTimes,
@@ -109,6 +117,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
 		dataPointsMap = new TreeMap<Integer, MzPeak>();
+		status = originalDetectedShape.getPeakStatus();
 
         xRight = -1;
         xLeft = -1;
@@ -163,8 +172,9 @@ public class EMGPeakModel implements ChromatographicPeak {
 		for (int i = 1; i < retentionTimes.length; i++) {
 
 			shapeHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, retentionTimes[0]);
+			logger.finest("Shape value " + i+ " intensity " + intensities[i] + " shape " + shapeHeight);
 			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
-			dataPointsMap.put(scanNumbers[0], mzPeak);
+			dataPointsMap.put(scanNumbers[i], mzPeak);
 
 			currentRT = retentionTimes[i];
 			previousRT = retentionTimes[i - 1];
