@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -61,9 +62,31 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 	public void actionPerformed(ActionEvent e) {
 
 		PeakList[] peakLists = desktop.getSelectedPeakLists();
+		
 		if (peakLists.length == 0) {
 			desktop.displayErrorMessage("Please select at least one peak list");
 			return;
+		}
+		
+		// Verify previous applied methods
+		boolean resolvedFlag = false;
+		for (int i = 0; i < peakLists.length; i++) {
+			for (PeakListAppliedMethod proc: peakLists[i].getAppliedMethods()){
+				
+				if (proc.getDescription().contains("Peak recognition"))
+					resolvedFlag = true;
+
+				if (proc.getDescription().contains("normalization")){
+					desktop.displayErrorMessage("Peak list " + peakLists[i] + 
+					" has been processed using \"" + proc.getDescription() +"\", impossible to make peak shape modeling");
+					return;
+				}
+			}
+
+			if (!resolvedFlag)
+				desktop.displayMessage("Warning", "Peak list " + peakLists[i] + 
+						" has not been processed using \"Peak recognition\", result could be uncertain");
+			resolvedFlag = false;
 		}
 
 		ExitCode exitCode = setupParameters(parameters);

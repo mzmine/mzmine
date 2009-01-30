@@ -124,6 +124,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		// FWFM (Full Width at Half Maximum)
 		FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
 				height);
+		//FWHM = MathUtils.calcStd(intensities) * 2.355;
 
 		partC = FWHM / CONST;
 		part2C2 = 2f * (double) Math.pow(partC, 2);

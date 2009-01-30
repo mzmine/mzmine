@@ -21,8 +21,12 @@ public class AppliedMethodList extends JList {
 		if (index > -1) {
 			parameters = ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameterSet();
 		}
+		if (parameters != null){
         String toolTipText = parameters.toString().replace(", ", "´n");
 		return toolTipText;
+		}
+		else
+			return null;
 	}
 	
 	public ParameterSet getParameterSet(){

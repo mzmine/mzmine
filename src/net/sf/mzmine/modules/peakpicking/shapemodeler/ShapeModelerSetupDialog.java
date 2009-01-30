@@ -95,11 +95,12 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 
         if (src == comboPeakList) {
             PeakList selectedPeakList = (PeakList) comboPeakList.getSelectedItem();
-            PeakListRow peaks[] = selectedPeakList.getRows();
+            PeakListRow rows[] = selectedPeakList.getRows();
             comboPeak.removeActionListener(this);
             comboPeak.removeAllItems();
-            for (PeakListRow peak : peaks)
-                comboPeak.addItem(peak);
+            for (PeakListRow row : rows){
+                comboPeak.addItem(row);
+            }
             comboPeak.addActionListener(this);
             comboPeak.setSelectedIndex(0);
             return;
@@ -238,8 +239,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 
         comboPeakList = new JComboBox();
         for (PeakList peakList : peakLists) {
-            if (peakList.getNumberOfRawDataFiles() == 1)
-                comboPeakList.addItem(peakList);
+            comboPeakList.addItem(peakList);
         }
         comboPeakList.setFont(comboFont);
         comboPeakList.addActionListener(this);

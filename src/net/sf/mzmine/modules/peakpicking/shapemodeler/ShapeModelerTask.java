@@ -211,7 +211,7 @@ class ShapeModelerTask implements Task {
 		}
         
         // Add task description to peakList
-        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak shaped by " + 
+        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peaks shaped by " + 
         		shapeModelerType +" function", null));
 
 
