@@ -67,7 +67,7 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
                 "Peak list table", "Shows a table view of a peak list",
-                KeyEvent.VK_L, false, this, null);
+                KeyEvent.VK_T, false, this, null);
 
     }
     

@@ -35,8 +35,6 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static ScatterPlotVisualizer myInstance;
-    
     private Desktop desktop;
 
     /**
@@ -46,10 +44,8 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
 
-        myInstance = this;
-
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list scatter plot",
-                "Visualization of peak list data in scatter plot", KeyEvent.VK_3, false,
+        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Scatter plot",
+                "Visualization of peak list data in scatter plot", KeyEvent.VK_S, false,
                 this, null);
 
     }

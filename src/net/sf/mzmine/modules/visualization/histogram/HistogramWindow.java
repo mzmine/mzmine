@@ -37,7 +37,7 @@ import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JInternalFrame {
 
-    private Histogram histogram;
+    private HistogramChart histogram;
 
     public HistogramWindow(PeakList peakList, HistogramParameters parameters) {
 
@@ -57,7 +57,7 @@ public class HistogramWindow extends JInternalFrame {
         setBackground(Color.white);
 
         // Creates plot and toolbar
-        histogram = new Histogram();
+        histogram = new HistogramChart();
         HistogramToolBar toolbar = new HistogramToolBar(
                 ((ActionListener) histogram));
 

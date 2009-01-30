@@ -28,7 +28,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
-import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JMenuItem;
@@ -59,9 +58,7 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.ui.RectangleInsets;
 
-public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+public class ScatterPlotChart extends ChartPanel implements ComponentToolTipProvider{
 
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
 			-2.5f, 5, 5);
@@ -104,7 +101,7 @@ public class ScatterPlot extends ChartPanel implements ComponentToolTipProvider{
 	
 	private ComponentToolTipManager ttm;
 
-	public ScatterPlot(ScatterPlotPanel masterFrame) {
+	public ScatterPlotChart(ScatterPlotPanel masterFrame) {
 
 		super(null, true);
 

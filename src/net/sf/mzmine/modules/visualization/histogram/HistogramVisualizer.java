@@ -50,8 +50,8 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
 
         this.parameters = new HistogramParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list histogram",
-                "Visualization of peak list data in a histogram", KeyEvent.VK_3, false,
+        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Histogram",
+                "Visualization of peak list data in a histogram", KeyEvent.VK_H, false,
                 this, null);
 
     }

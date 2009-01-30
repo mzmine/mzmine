@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.scatterplot;
@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 
@@ -34,48 +33,43 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 
-public class ScatterPlotWindow extends JInternalFrame implements
-TaskListener, ActionListener {
-	
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+public class ScatterPlotWindow extends JInternalFrame implements TaskListener,
+        ActionListener {
 
     private ScatterPlotPanel scatterPlotPanel;
     private Desktop desktop;
-	
+
     public ScatterPlotWindow(PeakList peakList, String title) {
 
         super(title, true, true, true, true);
         this.desktop = MZmineCore.getDesktop();
 
-
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
-        try{
+        try {
 
-        scatterPlotPanel = new ScatterPlotPanel(this);
-        add(scatterPlotPanel, BorderLayout.CENTER);
-        
-		if (peakList != null){
-			scatterPlotPanel.setPeakList(peakList);
-		}
-		
-        }
-        catch (Exception e){
-        	e.printStackTrace();
+            scatterPlotPanel = new ScatterPlotPanel(this);
+            add(scatterPlotPanel, BorderLayout.CENTER);
+
+            if (peakList != null) {
+                scatterPlotPanel.setPeakList(peakList);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         pack();
 
     }
-    
-	public ScatterPlot getPlotChart(){
-		return scatterPlotPanel.getPlot();
-	}
-	
-	
-	public void actionPerformed(ActionEvent e) {
-	}
+
+    public ScatterPlotChart getPlotChart() {
+        return scatterPlotPanel.getPlot();
+    }
+
+    public void actionPerformed(ActionEvent e) {
+    }
 
     /**
      * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)

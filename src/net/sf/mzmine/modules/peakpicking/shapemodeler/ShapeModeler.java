@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peakpicking.shapemodeler;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;

@@ -186,7 +186,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
 		double lower = minimum;
 		double upper;
-		List binList = new ArrayList(numOfBins);
+		List<HistogramBin> binList = new ArrayList<HistogramBin>(numOfBins);
 		for (int i = 0; i < numOfBins; i++) {
 			HistogramBin bin;
 			// make sure bins[bins.length]'s upper boundary ends at maximum
@@ -219,7 +219,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
 		}
 		// generic map for each series
-		HashMap map = new HashMap();
+		HashMap<String, Object> map = new HashMap<String, Object>();
 		map.put("key", key);
 		map.put("bins", binList);
 		map.put("values.length", new Integer(values.length));

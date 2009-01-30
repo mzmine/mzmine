@@ -46,7 +46,7 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
         this.desktop = MZmineCore.getDesktop();
 
         desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list info",
-                "Visualization of peak list information", KeyEvent.VK_3, false,
+                "Visualization of peak list information", KeyEvent.VK_I, false,
                 this, null);
 
     }

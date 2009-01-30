@@ -13,15 +13,14 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay;
 
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
@@ -39,250 +38,254 @@ import net.sf.mzmine.util.MathUtils;
  */
 public class SavitzkyGolayPeakDetector implements PeakResolver {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private double minimumPeakHeight, minimumPeakDuration,
+            derivativeThresholdLevel;
 
-	private double minimumPeakHeight, minimumPeakDuration,
-			derivativeThresholdLevel;
-
-	/**
-	 * Constructor of Savitzky-Golay Peak Builder
-	 * 
-	 * @param parameters
-	 */
-	public SavitzkyGolayPeakDetector(
-			SavitzkyGolayPeakDetectorParameters parameters) {
-
-		minimumPeakDuration = (Double) parameters
-				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakDuration);
-		minimumPeakHeight = (Double) parameters
-				.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakHeight);
-		derivativeThresholdLevel = (Double) parameters
-				.getParameterValue(SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel);
-
-	}
-
-	/**
+    /**
+     * Constructor of Savitzky-Golay Peak Builder
+     * 
+     * @param parameters
      */
-	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
-			int scanNumbers[], double retentionTimes[], double intensities[]) {
+    public SavitzkyGolayPeakDetector(
+            SavitzkyGolayPeakDetectorParameters parameters) {
 
-		Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
+        minimumPeakDuration = (Double) parameters.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakDuration);
+        minimumPeakHeight = (Double) parameters.getParameterValue(SavitzkyGolayPeakDetectorParameters.minimumPeakHeight);
+        derivativeThresholdLevel = (Double) parameters.getParameterValue(SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel);
 
-		double maxIntensity = 0;
+    }
 
-		double avgChromatoIntensities = 0;
-		Arrays.sort(scanNumbers);
+    /**
+     */
+    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+            int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-		for (int i = 0; i < scanNumbers.length; i++) {
-			if (intensities[i] > maxIntensity)
-				maxIntensity = intensities[i];
-			avgChromatoIntensities += intensities[i];
-		}
+        Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
 
-		avgChromatoIntensities /= scanNumbers.length;
+        double maxIntensity = 0;
 
-		// If the current chromatogram has characteristics of background or just noise
-		// return an empty array.
-		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
-			return resolvedPeaks.toArray(new ResolvedPeak[0]);
+        double avgChromatoIntensities = 0;
+        Arrays.sort(scanNumbers);
 
-		double[] chromato2ndDerivative = SGDerivative.calculateDerivative(
-				intensities, false, 12);
-		double noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative, derivativeThresholdLevel);
+        for (int i = 0; i < scanNumbers.length; i++) {
+            if (intensities[i] > maxIntensity)
+                maxIntensity = intensities[i];
+            avgChromatoIntensities += intensities[i];
+        }
 
-		ChromatographicPeak[] resolvedOriginalPeaks = SGPeaksSearch(chromatogram,
-				chromato2ndDerivative, noiseThreshold);
+        avgChromatoIntensities /= scanNumbers.length;
 
-		// Apply final filter of detected peaks, according with setup parameters
-		if (resolvedOriginalPeaks.length != 0) {
-			for (ChromatographicPeak p : resolvedOriginalPeaks) {
-				double pLength = p.getRawDataPointsRTRange().getSize();
-				double pHeight = p.getHeight();
-				if ((pLength >= minimumPeakDuration)
-						&& (pHeight >= minimumPeakHeight)) {
-					resolvedPeaks.add(p);
-				}
-			}
-		}
+        // If the current chromatogram has characteristics of background or just
+        // noise
+        // return an empty array.
+        if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
+            return resolvedPeaks.toArray(new ResolvedPeak[0]);
 
-		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
+        double[] chromato2ndDerivative = SGDerivative.calculateDerivative(
+                intensities, false, 12);
+        double noiseThreshold = calcDerivativeThreshold(chromato2ndDerivative,
+                derivativeThresholdLevel);
 
-	}
+        ChromatographicPeak[] resolvedOriginalPeaks = SGPeaksSearch(
+                chromatogram, chromato2ndDerivative, noiseThreshold);
 
-	/**
-	 * 
-	 * 
-	 * @param dataFile
-	 * @param chromatogram
-	 * @param scanNumbers
-	 * @param derivativeOfIntensities
-	 * @param noiseThreshold
-	 * 
-	 * @return ChromatographicPeak[]
-	 */
-	private ChromatographicPeak[] SGPeaksSearch(ChromatographicPeak chromatogram,
-			double[] derivativeOfIntensities, double noiseThreshold) {
+        // Apply final filter of detected peaks, according with setup parameters
+        if (resolvedOriginalPeaks.length != 0) {
+            for (ChromatographicPeak p : resolvedOriginalPeaks) {
+                double pLength = p.getRawDataPointsRTRange().getSize();
+                double pHeight = p.getHeight();
+                if ((pLength >= minimumPeakDuration)
+                        && (pHeight >= minimumPeakHeight)) {
+                    resolvedPeaks.add(p);
+                }
+            }
+        }
 
-		// flag to identify the current and next
-		// overlapped peak
-		boolean activeFirstPeak = false; 
-		boolean activeSecondPeak = false;
-		// flag to indicate the value of 2nd
-		// derivative pass noise threshold level
-		boolean passThreshold = false; 
-		// number of times that 2nd derivative cross zero
-		// value for the current peak detection
-		int crossZero = 0; 
+        return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 
-		Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
-		int totalNumberPoints = derivativeOfIntensities.length;
-		
-		// Indexes of start and ending of the current peak and beginning of the next
-		int currentPeakStart = totalNumberPoints;
-		int nextPeakStart = totalNumberPoints;
-		int currentPeakEnd = 0;
-		
-		//Chromatogram derivativeChromatogram = new Chromatogram(chromatogram.getDataFile());
+    }
 
-		// Shape analysis of derivative of chromatogram 
-		// "*" represents the original chromatogram shape.
-		// "-" represents the shape of chromatogram's derivative.
-		//
-		//  "        ***
-		//  "       *   *   +
-		//  "    + *     * + +
-		//  "   + x       x   +
-		//  "--+-*-+-----+-*---+----
-		//  "      +   +
-		//  "       + +
-		//  "        +
-		for (int i = 1; i < totalNumberPoints; i++) {
-			
-			// DEBUGGING
-			//derivativeChromatogram.addMzPeak(scanNumbers[i], 
-			//	new SimpleMzPeak(new SimpleDataPoint(chromatogram.getMZ(), derivativeOfIntensities[i]*1000)));
-			
-			// Changing sign and crossing zero
-			if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
-					|| ((derivativeOfIntensities[i - 1] > 0.0f) && (derivativeOfIntensities[i] < 0.0f))) {
+    /**
+     * 
+     * 
+     * @param dataFile
+     * @param chromatogram
+     * @param scanNumbers
+     * @param derivativeOfIntensities
+     * @param noiseThreshold
+     * 
+     * @return ChromatographicPeak[]
+     */
+    private ChromatographicPeak[] SGPeaksSearch(
+            ChromatographicPeak chromatogram, double[] derivativeOfIntensities,
+            double noiseThreshold) {
 
-				if ((derivativeOfIntensities[i - 1] < 0.0f)
-						&& (derivativeOfIntensities[i] > 0.0f)) {
-					if (crossZero == 2) {
-						// After second crossing zero starts the next overlapped
-						// peak, but depending of passThreshold flag is
-						// activated
-						if (passThreshold) {
-							activeSecondPeak = true;
-							nextPeakStart = i;
-						} else {
-							currentPeakStart = i;
-							crossZero = 0;
-							activeFirstPeak = true;
-						}
-					}
+        // flag to identify the current and next
+        // overlapped peak
+        boolean activeFirstPeak = false;
+        boolean activeSecondPeak = false;
+        // flag to indicate the value of 2nd
+        // derivative pass noise threshold level
+        boolean passThreshold = false;
+        // number of times that 2nd derivative cross zero
+        // value for the current peak detection
+        int crossZero = 0;
 
-				}
+        Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
+        int totalNumberPoints = derivativeOfIntensities.length;
 
-				// Finalize the first overlapped peak
-				if (crossZero == 3) {
-					activeFirstPeak = false;
-					currentPeakEnd = i;
-				}
+        // Indexes of start and ending of the current peak and beginning of the
+        // next
+        int currentPeakStart = totalNumberPoints;
+        int nextPeakStart = totalNumberPoints;
+        int currentPeakEnd = 0;
 
-				// Increments when detect a crossing zero event
-				passThreshold = false;
-				if ((activeFirstPeak) || (activeSecondPeak)) {
-					crossZero++;
-				}
+        // Chromatogram derivativeChromatogram = new
+        // Chromatogram(chromatogram.getDataFile());
 
-			}
-			
-			// Filter for noise threshold level
-			if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold) {
-				passThreshold = true;
-			}
-			
-			// Start peak region
-			if ((crossZero == 0) && (derivativeOfIntensities[i] > 0) && (!activeFirstPeak)) {
-				activeFirstPeak = true;
-				currentPeakStart = i;
-				crossZero++;
-			}
-			
-			// Finalize the peak region in case of zero values.
-			if ((derivativeOfIntensities[i-1] == 0) && (derivativeOfIntensities[i] == 0) &&
-				(activeFirstPeak)){
-				if (crossZero < 3){
-					currentPeakEnd = 0;
-				}
-				else{
-					currentPeakEnd = i;
-				}
-				activeFirstPeak = false;
-				activeSecondPeak = false;
-				crossZero = 0;
-			}
+        // Shape analysis of derivative of chromatogram
+        // "*" represents the original chromatogram shape.
+        // "-" represents the shape of chromatogram's derivative.
+        //
+        // " ***
+        // " * * +
+        // " + * * + +
+        // " + x x +
+        // "--+-*-+-----+-*---+----
+        // " + +
+        // " + +
+        // " +
+        for (int i = 1; i < totalNumberPoints; i++) {
 
-			// If exists a detected area (difference between indexes) create a
-			// new resolved peak for this region of the chromatogram
-			if ((currentPeakEnd - currentPeakStart > 0) && (!activeFirstPeak)) {
+            // DEBUGGING
+            // derivativeChromatogram.addMzPeak(scanNumbers[i],
+            // new SimpleMzPeak(new SimpleDataPoint(chromatogram.getMZ(),
+            // derivativeOfIntensities[i]*1000)));
 
-				ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
-						currentPeakStart, currentPeakEnd);
-				resolvedPeaks.add((ChromatographicPeak) newPeak);
+            // Changing sign and crossing zero
+            if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
+                    || ((derivativeOfIntensities[i - 1] > 0.0f) && (derivativeOfIntensities[i] < 0.0f))) {
 
-				// If exists next overlapped peak, swap the indexes between next
-				// and current, and clean ending index for this new current peak
-				if (activeSecondPeak) {
-					activeSecondPeak = false;
-					activeFirstPeak = true;
-					if (derivativeOfIntensities[i] > 0)
-						crossZero = 1;
-					else
-						crossZero = 2;
-					passThreshold = false;
-					currentPeakStart = nextPeakStart;
-					nextPeakStart = totalNumberPoints;
-				} else {
-					currentPeakStart = totalNumberPoints;
-					nextPeakStart = totalNumberPoints;
-					crossZero = 0;
-					passThreshold = false;
-					currentPeakEnd = 0;
-				}
-				// Reset the ending variable
-				currentPeakEnd = 0;
-			}
+                if ((derivativeOfIntensities[i - 1] < 0.0f)
+                        && (derivativeOfIntensities[i] > 0.0f)) {
+                    if (crossZero == 2) {
+                        // After second crossing zero starts the next overlapped
+                        // peak, but depending of passThreshold flag is
+                        // activated
+                        if (passThreshold) {
+                            activeSecondPeak = true;
+                            nextPeakStart = i;
+                        } else {
+                            currentPeakStart = i;
+                            crossZero = 0;
+                            activeFirstPeak = true;
+                        }
+                    }
 
-		}
+                }
 
-		// DEBUGGING
-		//derivativeChromatogram.finishChromatogram();
-		//ChromatographicPeak peak = (ChromatographicPeak) derivativeChromatogram;
-		//resolvedPeaks.add(peak);
-		//logger.finest("Size of resolved peak array" + resolvedPeaks.size());
-		
-		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
-	}
+                // Finalize the first overlapped peak
+                if (crossZero == 3) {
+                    activeFirstPeak = false;
+                    currentPeakEnd = i;
+                }
 
-	/**
-	 * Calculates the value (double) according with the comparative threshold.
-	 * 
-	 * @param doubel[] chromato derivative intensities
-	 * @param double comparative threshold level
-	 * @return double derivative threshold Level
-	 */
-	private static double calcDerivativeThreshold(double[] derivativeIntensities, double comparativeThresholdLevel) {
+                // Increments when detect a crossing zero event
+                passThreshold = false;
+                if ((activeFirstPeak) || (activeSecondPeak)) {
+                    crossZero++;
+                }
 
-		double[] intensities = new double[derivativeIntensities.length];
-		for (int i = 0; i < derivativeIntensities.length; i++) {
-			intensities[i] = Math.abs(derivativeIntensities[i]);
-		}
-		
-		double threshold = MathUtils.calcQuantile(intensities, comparativeThresholdLevel);
-		
-		return threshold;
-	}
+            }
+
+            // Filter for noise threshold level
+            if (Math.abs(derivativeOfIntensities[i]) > noiseThreshold) {
+                passThreshold = true;
+            }
+
+            // Start peak region
+            if ((crossZero == 0) && (derivativeOfIntensities[i] > 0)
+                    && (!activeFirstPeak)) {
+                activeFirstPeak = true;
+                currentPeakStart = i;
+                crossZero++;
+            }
+
+            // Finalize the peak region in case of zero values.
+            if ((derivativeOfIntensities[i - 1] == 0)
+                    && (derivativeOfIntensities[i] == 0) && (activeFirstPeak)) {
+                if (crossZero < 3) {
+                    currentPeakEnd = 0;
+                } else {
+                    currentPeakEnd = i;
+                }
+                activeFirstPeak = false;
+                activeSecondPeak = false;
+                crossZero = 0;
+            }
+
+            // If exists a detected area (difference between indexes) create a
+            // new resolved peak for this region of the chromatogram
+            if ((currentPeakEnd - currentPeakStart > 0) && (!activeFirstPeak)) {
+
+                ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
+                        currentPeakStart, currentPeakEnd);
+                resolvedPeaks.add((ChromatographicPeak) newPeak);
+
+                // If exists next overlapped peak, swap the indexes between next
+                // and current, and clean ending index for this new current peak
+                if (activeSecondPeak) {
+                    activeSecondPeak = false;
+                    activeFirstPeak = true;
+                    if (derivativeOfIntensities[i] > 0)
+                        crossZero = 1;
+                    else
+                        crossZero = 2;
+                    passThreshold = false;
+                    currentPeakStart = nextPeakStart;
+                    nextPeakStart = totalNumberPoints;
+                } else {
+                    currentPeakStart = totalNumberPoints;
+                    nextPeakStart = totalNumberPoints;
+                    crossZero = 0;
+                    passThreshold = false;
+                    currentPeakEnd = 0;
+                }
+                // Reset the ending variable
+                currentPeakEnd = 0;
+            }
+
+        }
+
+        // DEBUGGING
+        // derivativeChromatogram.finishChromatogram();
+        // ChromatographicPeak peak = (ChromatographicPeak)
+        // derivativeChromatogram;
+        // resolvedPeaks.add(peak);
+        // logger.finest("Size of resolved peak array" + resolvedPeaks.size());
+
+        return resolvedPeaks.toArray(new ChromatographicPeak[0]);
+    }
+
+    /**
+     * Calculates the value (double) according with the comparative threshold.
+     * 
+     * @param doubel[] chromato derivative intensities
+     * @param double comparative threshold level
+     * @return double derivative threshold Level
+     */
+    private static double calcDerivativeThreshold(
+            double[] derivativeIntensities, double comparativeThresholdLevel) {
+
+        double[] intensities = new double[derivativeIntensities.length];
+        for (int i = 0; i < derivativeIntensities.length; i++) {
+            intensities[i] = Math.abs(derivativeIntensities[i]);
+        }
+
+        double threshold = MathUtils.calcQuantile(intensities,
+                comparativeThresholdLevel);
+
+        return threshold;
+    }
 
 }

@@ -22,7 +22,6 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;

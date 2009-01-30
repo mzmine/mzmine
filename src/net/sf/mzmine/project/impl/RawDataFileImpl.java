@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;

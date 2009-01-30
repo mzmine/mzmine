@@ -43,7 +43,7 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
-public class Histogram extends ChartPanel{
+public class HistogramChart extends ChartPanel{
 
 	// grid color
 	private static final Color gridColor = Color.lightGray;
@@ -64,7 +64,7 @@ public class Histogram extends ChartPanel{
 	private XYPlot plot;
 	private HistogramPlotDataset dataSet;
 	
-	public Histogram() {
+	public HistogramChart() {
 
 		super(null, true);
 

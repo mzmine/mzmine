@@ -42,11 +42,9 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
 import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;

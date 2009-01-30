@@ -30,7 +30,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -61,8 +60,6 @@ import org.jfree.data.general.DatasetChangeEvent;
 
 public class ScatterPlotPanel extends JPanel implements ActionListener {
 	
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private JComboBox comboX, comboY, comboFold;
 	private JTextField txtSearchField;
 	private JButton btnSrch;
@@ -71,7 +68,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 	private static String[] foldXvalues = { "2", "4", "5", "8", "10", "15",
 			"20", "50", "100", "200", "1000" };
 	private ScatterPlotToolBar toolbar;
-	private ScatterPlot plot;
+	private ScatterPlotChart plot;
 	private ActionListener scatterPlotWindow;
 	private ScatterPlotDataSet dataSet;
 	private PeakList peakList;
@@ -193,7 +190,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		pnlGrid.add(pnlFold1, c);
 
 		// Creates plot and toolbar
-		plot = new ScatterPlot(this);
+		plot = new ScatterPlotChart(this);
         toolbar = new ScatterPlotToolBar(((ActionListener) plot));
 
 		itemName = new JLabel("NO SELECTED POINT");
@@ -232,7 +229,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 	}
 
-	public ScatterPlot getPlot() {
+	public ScatterPlotChart getPlot() {
 		return plot;
 	}
 
