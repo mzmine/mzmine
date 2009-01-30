@@ -13,18 +13,16 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.normalization.standardcompound;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
 
 /**
  * 
@@ -43,11 +41,10 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
     public static final Object[] peakMeasurementTypePossibleValues = {
             peakMeasurementTypeHeight, peakMeasurementTypeArea };
 
-    
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Name suffix",
             "Suffix to be added to peak list name", null, "normalized", null);
-    
+
     public static final Parameter standardUsageType = new SimpleParameter(
             ParameterType.STRING, "Normalization type",
             "Normalize intensities using ", standardUsageTypeNearest,
@@ -68,12 +65,11 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
             "Remove original peak list",
             "If checked, original peak list will be removed and only normalized version remains",
             new Boolean(false));
-    
-	public static final Parameter standardCompounds = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION,
-			"Standard compounds",
-			"List of peaks, where is possible to choose one or more peaks as standard for normalization",
-			null, new PeakListRow[]{new SimplePeakListRow(0)});
+
+    public static final Parameter standardCompounds = new SimpleParameter(
+            ParameterType.MULTIPLE_SELECTION,
+            "Standard compounds",
+            "List of peaks, where is possible to choose one or more peaks as standard for normalization");
 
     public StandardCompoundNormalizerParameters() {
         super(new Parameter[] { suffix, standardUsageType, peakMeasurementType,

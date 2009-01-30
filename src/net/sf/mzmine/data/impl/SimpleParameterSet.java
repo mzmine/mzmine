@@ -46,7 +46,8 @@ public class SimpleParameterSet implements StorableParameterSet {
     // Parameter -> value
     private Hashtable<Parameter, Object> values;
 
-    // Multiple selection parameter -> multiple values (array of possible values)
+    // Multiple selection parameter -> multiple values (array of possible
+    // values)
     private Hashtable<Parameter, Object[]> multipleSelectionValues;
 
     /**
@@ -236,7 +237,8 @@ public class SimpleParameterSet implements StorableParameterSet {
             newElement.addAttribute(PARAMETER_TYPE_ATTRIBUTE,
                     p.getType().toString());
 
-            if (p.getType() == ParameterType.ORDERED_LIST) {
+            if ((p.getType() == ParameterType.MULTIPLE_SELECTION)
+                    || (p.getType() == ParameterType.ORDERED_LIST)) {
                 Object[] values = p.getPossibleValues();
                 if (values != null) {
                     String valueAsString = "";
@@ -313,7 +315,8 @@ public class SimpleParameterSet implements StorableParameterSet {
             case MULTIPLE_SELECTION:
                 String stringMultipleValues[] = valueText.split(",");
                 Object possibleMultipleValues[] = param.getPossibleValues();
-                if (possibleMultipleValues == null) continue;
+                if (possibleMultipleValues == null)
+                    continue;
                 Vector<Object> multipleValues = new Vector<Object>();
 
                 for (int i = 0; i < stringMultipleValues.length; i++) {
