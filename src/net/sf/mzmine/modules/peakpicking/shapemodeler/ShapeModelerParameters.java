@@ -44,7 +44,7 @@ public class ShapeModelerParameters extends SimpleParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Suffix",
-            "This string is added to filename as suffix", "resolved");
+            "This string is added to filename as suffix", (Object) "resolved");
     
 	public static final Parameter massResolution = new SimpleParameter(
 			ParameterType.INTEGER,
