@@ -1,69 +1,110 @@
-Code
 
-* Data analysis
-- CDA and Sammons plots are not implemented. 
-- RT/mz plot's color axis needs more informative title - instead of "Logratio" it should say e.g. "log2(avg peak area(file1, file2) / avg peak area (file3, file4))"
-
-* Standard compound normalizer
-- NOMIS method
-
-* Gap filler
-- Secondary peak picking is not implemented
-
-* Finish raw data visualizers
-- TIC can be activated only when just 1 data file is selected
-- 2D visualizer is not yet finished. It should show detected peaks on top of the visualization.
-- TIC, Spectra and 2D visualizer need a common dialog to set X/Y axis range
-- "Set same axis range to other visualizers" menu item
-- 3D-visualizer needs a setting for peak annotation threshold (annotate only peaks above given level), threshold in % or absolute
-- TIC/2D/3D visualizer setup dialog should remember last range values and offer either default values (depending on file) or last values
-- Datasets of JFreeChart library have to be updated in swing event-dispatching thread, otherwise exceptions can be thrown
-- From raw data it should be possible to find nearest peak to cursor position and show it on a peak list and available alignment results
-- Update visualizers after data or peak list has been modified.
+TODO list for MZmine 2.0 release
 
 
-* Alignment result table visualizer
-- Display isotope pattern and charge of deisotoped peaks
+***** Core modules *****
+
+Project manager
+* We need to reimplement project saving/loading using our own project file format. 
+  Saving using serialization is too slow (2 hr saving a ~1 GB size project)
+* Bug: projectParametersAndValues is indexed by String (filename), 
+  but should be indexed by RawDataFile
 
 
-* From peak list table it should be possible to open raw data visualizers showing the detected or estimated peak:
-- 2D visualizer with an overview of the region around the peak
-- Spectrum showing scan at the highest position of the peak 
-- XIC with area for the peak shaded (new feature)
+Desktop
+* ItemSelector should be replaced with a JTree which allows unfolding raw data 
+  files into individual scans and peak lists into individual rows (Tomas)
+
+Task controller
+* Tasks with high priority (e.g. visualization) should never wait and always 
+  allocate a thread
+* Number of simultaneously running threads should be set in a configuration dialog,
+  not by editing config file
+* TaskListener and TaskGroup classes are obsolete and should be removed
+
+***** Raw data import *****
+
+Recognition of centroid/continuous scans is not perfect. 
+Control1.CDF scan 1027 is recognized as centroid which is not true.
+This should be fixed.
 
 
-* Each module should provide a detailed description of all its parameters. 
-- Parameter descriptions should be detailed enough to make software understandable.
+***** Raw data filtering *****
+
+These algorithms are almost unchanged since original MZmine 1.
+We should think how they can be applied to high-resolution data. 
+Probably we need to improve the algorithms.
 
 
-* IO
-- User should be able to set mass precision per each file/MS level
-- Use the ProteomeCommons IO framework for reading all kinds of mass spec formats
+***** Peak detection *****
+
+Shape modeler
+* Not finished yet (Alex)
+
+Peak recognition
+* Add checkbox "remove original chromatogram"
 
 
-* Peak picking
-- Peak picking method should limit detected peaks with minimum/maximum duration
+***** Visualizers *****
+
+2D visualizer
+* Need to set threshold for how many peaks will be annotated (Sandra)
+* Color scale should be editable, similar as color scale of RT/MZ plots
+
+3D visualizer
+* Need to set threshold for how many peaks will be annotated
+
+Peak list table
+* Combined XIC component should have a nicer tooltip showing which color is 
+  which data file
+* PeakSummaryComponent may be integrated into the tooltip
+
+Scatter plot
+* Currently user can search only for compound name, but should also be able
+  to search by mass/RT
+* Bug: Typing invalid regular expression in the search box will cause an
+  exception
+
+Isotope pattern visualizer
+* Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes
+
+TIC/XIC visualizer
+* Visualizer should be able to show several peaks from one peaklist column
+* When showing a particular peak, the dialog should offer "smarter" retention
+  time range, same as 3D visualizer
+
+Spectra visualizer
+* Bug: sometimes fragment scans are shown twice in MS/MS combo
+
+Peak list row summary visualizer (new)
+* We should implement a new simple visualizer "Peak list row summary" with
+  easy binding to all other visualizers and manual peak detection. This visualizer 
+  can integrate the PeakSummaryComponent.
 
 
-* User interface
-- Copy/paste
-- Printing
-- Undo
+***** Identification *****
+
+Related peaks search
+* This module should perhaps be split into several modules for adduct search, 
+  fragments search (using MS/MS), dimers etc. (Tomas)
 
 
 
-* Compound identification
-- Implement basic identification methods using KEGG/PubChem/custom database
-- Implement in-source fragment identification
-- Display identification results in alignment result visualizer
+***** Data analysis *****
+
+RT/mz plots
+* Color axis needs more informative title - instead of "Logratio" it should say 
+  e.g. "log2(avg peak area(file1, file2) / avg peak area (file3, file4))"
+
+PCA plot
+* Bug: PCA plot may freeze if data contains Double.NaN
 
 
-* Dialogs
-- Problems in entering acceptable values to formatted fields. For example retention times shown in AxesSetupDialog.
 
 
-Other
+***** Documentation *****
 
-* Write documentation for the new code
-
-* Rewrite User's manual.
+Write documentation for the new code
+* Comments in critical parts of the code (algorithms)
+* Help files
+* User's manual.
