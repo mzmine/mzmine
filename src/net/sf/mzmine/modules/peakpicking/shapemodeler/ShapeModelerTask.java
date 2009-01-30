@@ -62,7 +62,8 @@ class ShapeModelerTask implements Task {
         shapeModelerType = (String) parameters.getParameterValue(ShapeModelerParameters.shapeModelerType);
         suffix = (String) parameters.getParameterValue(ShapeModelerParameters.suffix);
         removeOriginal = (Boolean) parameters.getParameterValue(ShapeModelerParameters.autoRemove);
-        resolution = (Double) parameters.getParameterValue(ShapeModelerParameters.massResolution);
+        int value = (Integer) parameters.getParameterValue(ShapeModelerParameters.massResolution);
+        resolution = value;
         
     }
 
@@ -146,14 +147,14 @@ class ShapeModelerTask implements Task {
         totalRows = originalPeakList.getNumberOfRows();
         int[] scanNumbers;
         double[] retentionTimes, intensities;
+        SimplePeakListRow newRow;
         
         for (PeakListRow row : originalPeakList.getRows()) {
 
             if (status == TaskStatus.CANCELED)
                 return;
             
-            SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
-            newPeakID++;
+            newRow = new SimplePeakListRow(newPeakID);
 
         	   try {
                    for (ChromatographicPeak peak: row.getPeaks()){
@@ -174,10 +175,12 @@ class ShapeModelerTask implements Task {
                                intensities[i] = 0;
                        }
                        
+                   // shapePeakModel(ChromatographicPeak originalDetectedShape, int[] scanNumbers, 
+                   // double[] intensities, double[] retentionTimes, double resolution)
                    ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct.newInstance (
-                           peak, scanNumbers, retentionTimes, intensities, resolution);
+                           peak, scanNumbers, intensities, retentionTimes, resolution);
 
-                   newRow.addPeak(peak.getDataFile(), shapePeak);
+                   newRow.addPeak(shapePeak.getDataFile(), shapePeak);
                    }
 
                } catch (Exception e) {
@@ -190,6 +193,7 @@ class ShapeModelerTask implements Task {
         	   
         	   
             newPeakList.addRow(newRow);
+            newPeakID++;
             processedRows++;
         }
 

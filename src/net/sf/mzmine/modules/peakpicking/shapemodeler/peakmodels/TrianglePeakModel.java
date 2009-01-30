@@ -126,23 +126,21 @@ public class TrianglePeakModel implements ChromatographicPeak {
 
 		// Calculate intensity of each point in the shape.
 		double shapeHeight, currentRT, previousRT, previousHeight;
+		MzPeak mzPeak;
 
 		previousHeight = calculateIntensity(retentionTimes[0]);
-		MzPeak mzPeak = new SimpleMzPeak(
-				new SimpleDataPoint(mz, previousHeight));
-		dataPointsMap.put(scanNumbers[0], mzPeak);
+		previousRT = retentionTimes[0];
 
-		for (int i = 1; i < retentionTimes.length; i++) {
+		for (int i = 0; i < retentionTimes.length; i++) {
 			
-			shapeHeight = calculateIntensity(retentionTimes[i]);
+			currentRT = retentionTimes[i];
+			shapeHeight = calculateIntensity(currentRT);
 			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
 			dataPointsMap.put(scanNumbers[i], mzPeak);
 
-			currentRT = retentionTimes[i];
-			previousRT = retentionTimes[i - 1];
-			dataPointsMap.put(scanNumbers[0], mzPeak);
 			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
 					/ 2;
+			previousRT = currentRT;
 			previousHeight = shapeHeight;
 		}
 

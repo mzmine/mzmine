@@ -188,8 +188,6 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
             ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct.newInstance (
                     previewPeak, scanNumbers, intensities, retentionTimes, resolution);
             
-            logger.finest(" Values of shape peak " + shapePeak);
-
             PeakDataSet peakDataSet = new PeakDataSet(shapePeak);
             ticPlot.addPeakDataset(peakDataSet);
 
@@ -207,6 +205,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
                     + shapeModelClassName;
             MZmineCore.getDesktop().displayErrorMessage(message);
             logger.severe(message);
+            e.printStackTrace();
             return;
         }
         

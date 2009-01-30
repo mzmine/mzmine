@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -155,34 +156,51 @@ public class EMGPeakModel implements ChromatographicPeak {
                 - (11.15d * paramA) + 28.0d;
 
         // Calculates Width at base of the peak.
-        double paramC = (FWHM *2.355 ) / 4.71;
+        double paramC = FWHM;//(FWHM *2.355 ) / 4.71;
         double Ap = paramC / paramB;
 
         if ((b > a) && (Ap > 0))
             Ap *= -1;
         
 		// Calculate intensity of each point in the shape.
-		double shapeHeight, currentRT, previousRT, previousHeight, C = 0.5d;
+		double shapeHeight, currentRT, previousRT, previousHeight, C = 0.1d;
+		MzPeak mzPeak;
+		
+        int allScanNumbers[] = rawDataFile.getScanNumbers(1);
+        double allRetentionTimes[] = new double[allScanNumbers.length];
+        for (int i = 0; i < allScanNumbers.length; i++)
+        	allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i]).getRetentionTime();
 
-		previousHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, retentionTimes[0]);
-		MzPeak mzPeak = new SimpleMzPeak(
-				new SimpleDataPoint(mz, previousHeight));
-		dataPointsMap.put(scanNumbers[0], mzPeak);
+		previousHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, allRetentionTimes[0]);
+		previousRT = allRetentionTimes[0];
+		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
 
-		for (int i = 1; i < retentionTimes.length; i++) {
+		for (int i = 0; i < allRetentionTimes.length; i++) {
 
-			shapeHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, retentionTimes[0]);
-			logger.finest("Shape value " + i+ " intensity " + intensities[i] + " shape " + shapeHeight);
+			shapeHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, allRetentionTimes[i]);
+			if (shapeHeight > height * 0.01d){
 			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
-			dataPointsMap.put(scanNumbers[i], mzPeak);
+			dataPointsMap.put(allScanNumbers[i], mzPeak);
+			rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
+			}
 
-			currentRT = retentionTimes[i];
-			previousRT = retentionTimes[i - 1];
-			dataPointsMap.put(scanNumbers[0], mzPeak);
+			currentRT = allRetentionTimes[i];
 			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
 					/ 2;
+			previousRT = currentRT;
 			previousHeight = shapeHeight;
 		}
+		
+		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
+		int i = 0;
+		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
+		while(itr.hasNext()){
+			int number = itr.next();
+			newScanNumbers[i]= number;
+			i++;
+		}
+		
+		this.scanNumbers = newScanNumbers;
         
     }
 
@@ -200,7 +218,98 @@ public class EMGPeakModel implements ChromatographicPeak {
 			double[] retentionTimes, double resolution, double retentionTime,
 			double mass, double maxIntensity) {
 
-        double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
+		double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
+		double beginning = retentionTimes[0];
+		double ending = retentionTimes[retentionTimes.length - 1];
+		//double xRight = -1;
+		//double xLeft = -1;
+
+		for (int i = 0; i < intensities.length - 1; i++) {
+
+			intensity = intensities[i];
+			intensityPlus = intensities[i + 1];
+
+			if (intensity > maxIntensity)
+				continue;
+
+			// Left side of the curve
+			if (retentionTimes[i] < retentionTime) {
+				if ((intensity <= halfIntensity)
+						&& (intensityPlus >= halfIntensity)) {
+
+					// First point with intensity just less than half of total
+					// intensity
+					double leftY1 = intensity;
+					double leftX1 = retentionTimes[i];
+
+					// Second point with intensity just bigger than half of
+					// total
+					// intensity
+					double leftY2 = intensityPlus;
+					double leftX2 = retentionTimes[i + 1];
+
+					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
+					double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+
+					// We calculate the desired point (at half intensity) with
+					// the
+					// linear equation
+					// X = X1 + [(Y - Y1) / m ], where Y = half of total
+					// intensity
+					xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
+					continue;
+				}
+			}
+
+			// Right side of the curve
+			if (retentionTimes[i] > retentionTime) {
+				if ((intensity >= halfIntensity)
+						&& (intensityPlus <= halfIntensity)) {
+
+					// First point with intensity just bigger than half of total
+					// intensity
+					double rightY1 = intensity;
+					double rightX1 = retentionTimes[i];
+
+					// Second point with intensity just less than half of total
+					// intensity
+					double rightY2 = intensityPlus;
+					double rightX2 = retentionTimes[i + 1];
+
+					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
+					double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+
+					// We calculate the desired point (at half intensity) with
+					// the
+					// linear equation
+					// X = X1 + [(Y - Y1) / m ], where Y = half of total
+					// intensity
+					xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
+					break;
+				}
+			}
+		}
+
+		if ((xRight <= -1) && (xLeft > 0)) {
+			xRight = retentionTime + (ending - beginning) / 4.71f;
+		}
+
+		if ((xRight > 0) && (xLeft <= -1)) {
+			xLeft = retentionTime - (ending - beginning) / 4.71f;
+		}
+
+		boolean negative = (((xRight - xLeft)) < 0);
+
+		if ((negative) || ((xRight == -1) && (xLeft == -1))) {
+			xRight = retentionTime + (ending - beginning) / 9.42f;
+			xLeft = retentionTime - (ending - beginning) / 9.42f;
+		}
+
+		double aproximatedFWHM = (xRight - xLeft) / 2.354820045d;
+
+		return aproximatedFWHM;
+    	
+    	/*double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
         double leftY1,leftX1,leftY2,leftX2,mLeft;
         double rightY1,rightX1,rightY2,rightX2,mRight;
         double localXLeft = -1, localXRight = -1;
@@ -307,7 +416,7 @@ public class EMGPeakModel implements ChromatographicPeak {
             FWHM /= 2.354820045d;
         }
 
-        return FWHM ;
+        return FWHM ;*/
 
     }
 
