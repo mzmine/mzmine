@@ -71,6 +71,7 @@
         <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
+    <module class="net.sf.mzmine.modules.peakpicking.shapemodeler.ShapeModeler"/>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
@@ -320,7 +321,7 @@
         <parameter name="Peak measurement type" type="STRING">Peak height</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
-        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.data.PeakListRow;@45436e66</parameter>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">#0 ? m/z @0:00</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -369,7 +370,7 @@
         <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
         <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Sharing points" type="DOUBLE">0.85</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.modules.identification.relatedpeaks.CommonAdducts;@5ab907c1</parameter>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION">All related peaks, 0.0000 m/z,[M+Na-H], 21.9825 m/z,[M+NH4-H], 17.0270 m/z,[M+K-H], 37.9559 m/z,[M+Mg-2H], 21.9694 m/z,[(Deuterium)]glycerol, 5.0000 m/z,Custom, 0.0000 m/z</parameter>
         <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
@@ -388,20 +389,20 @@
         <parameter name="Isotope pattern score threshold" type="DOUBLE">0.65</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.io.peaklistexport.PeakListExporter"> 
+    <module class="net.sf.mzmine.modules.io.csvexport.CSVExporter"> 
       <parameters>
         <parameter name="Filename" type="FILE_NAME"/>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Export elements" type="MULTIPLE_SELECTION">[Lnet.sf.mzmine.modules.io.peaklistexport.ExportRowElement;@7b98153</parameter>
+        <parameter name="Export elements" type="MULTIPLE_SELECTION">Export row ID,Export row m/z,Export row retention time,Export row comment,Export row compound name,Export row all compound names,Export row compound formula,Export row number of detected peaks,Export peak status,Export peak m/z,Export peak retention time,Export peak height,Export peak area</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.io.peaklistsaveload.save.PeakListSaver"> 
+    <module class="net.sf.mzmine.modules.io.xmlexport.XMLExporter"> 
       <parameters>
         <parameter name="Filename" type="FILE_NAME">mpl</parameter>
         <parameter name="Compressed file" type="BOOLEAN">true</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader"> 
+    <module class="net.sf.mzmine.modules.io.xmlimport.XMLImporter"> 
       <parameters>
         <parameter name="Filename" type="FILE_NAME">mpl</parameter>
       </parameters> 
@@ -421,8 +422,8 @@
       <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
-      <x>317</x>
-      <y>22</y>
+      <x>223</x>
+      <y>94</y>
       <width>1343</width>
       <height>805</height>
     </mainwindow>
