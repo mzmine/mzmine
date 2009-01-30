@@ -51,8 +51,8 @@ public class XMLExporter implements MZmineModule, ActionListener {
 
         parameters = new XMLExporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Save peak list",
-                "Save a peak list to file", KeyEvent.VK_E, true,
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to XML file",
+                "Save a peak list to XML file", KeyEvent.VK_X, true,
                 this, null);		
 	}
 

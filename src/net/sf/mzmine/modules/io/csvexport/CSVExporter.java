@@ -53,7 +53,7 @@ public class CSVExporter implements MZmineModule, ActionListener,
         parameters = new CSVExporterParameters();
 
         desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to CSV file",
-                "Export peak list data into CSV file", KeyEvent.VK_E, true,
+                "Export peak list data into CSV file", KeyEvent.VK_C, true,
                 this, null);
 
     }

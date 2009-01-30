@@ -59,8 +59,8 @@ public class XMLImporter implements MZmineModule, ActionListener {
 
         parameters = new XMLImporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Load peak list",
-                "Load a peak list from a file", KeyEvent.VK_E, true, this, null);
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Import from XML file",
+                "Load a peak list from a XML file", KeyEvent.VK_I, true, this, null);
 
         myInstance = this;
 
