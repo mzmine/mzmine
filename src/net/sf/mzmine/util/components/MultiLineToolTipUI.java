@@ -61,7 +61,8 @@ public class MultiLineToolTipUI extends ToolTipUI {
         int fontHeight = fontMetrics.getHeight();
 
         if (tipText == null)
-            tipText = "";
+            return new Dimension(0, 0);
+
         String lines[] = tipText.split("´n");
         int num_lines = lines.length;
 
@@ -91,6 +92,8 @@ public class MultiLineToolTipUI extends ToolTipUI {
         int fontHeight = fontMetrics.getHeight();
         int fontAscent = fontMetrics.getAscent();
         String tipText = ((JToolTip) c).getTipText();
+        if (tipText == null)
+            return;
         String lines[] = tipText.split("´n");
         int num_lines = lines.length;
         int height;

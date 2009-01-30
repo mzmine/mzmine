@@ -93,7 +93,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
         // Parameters of local mass detector to get preview values
         pbParameters = parameters.getPeakResolverParameters(
-                peakResolverTypeNumber).clone();
+                peakResolverTypeNumber);
 
         // Set a listener in all parameters's fields to add functionality to
         // this dialog
@@ -165,7 +165,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
     }
 
     private void loadPreviewPeak() {
-
+        
         PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
         if (previewRow == null)
             return;

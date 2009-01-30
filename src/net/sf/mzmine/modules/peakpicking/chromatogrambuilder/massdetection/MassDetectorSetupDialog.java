@@ -137,7 +137,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 			// Parameters of local mass detector to get preview values
 			mdParameters = parameters.getMassDetectorParameters(
-					massDetectorTypeNumber).clone();
+					massDetectorTypeNumber);
 
 			// List of scan to apply mass detector
 			listScans = previewDataFile.getScanNumbers(1);
@@ -301,6 +301,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
         updateParameterSetFromComponents();
+        
 		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
 
 		try {

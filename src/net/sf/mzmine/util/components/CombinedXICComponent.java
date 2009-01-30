@@ -90,7 +90,6 @@ public class CombinedXICComponent extends JComponent {
     private void setToolTipContent(){
 
         StringBuffer toolTip = new StringBuffer();
-        toolTip.append("<html>");
 
         int colorIndex = 0;
 
@@ -104,21 +103,17 @@ public class CombinedXICComponent extends JComponent {
             if (peak.getScanNumbers().length == 0)
                 continue;
 
-            String htmlColor = Integer.toHexString(
-                    plotColors[colorIndex].getRGB()).substring(2);
+            //String htmlColor = Integer.toHexString(
+            //        plotColors[colorIndex].getRGB()).substring(2);
 
-            toolTip.append("<font color='#" + htmlColor + "'>");
             toolTip.append(peak.getDataFile().getName());
-            toolTip.append("</font>: ");
+            toolTip.append(": ");
             toolTip.append(peak.toString());
-            toolTip.append(", <b>" + intensityFormat.format(peak.getHeight())
-                    + "</b>");
-            toolTip.append("<br>");
+            toolTip.append(", " + intensityFormat.format(peak.getHeight()));
+            toolTip.append("´n");
             colorIndex = (colorIndex + 1) % plotColors.length;
 
         }
-
-        toolTip.append("</html>");
 
         // add tooltip
         setToolTipText(toolTip.toString());

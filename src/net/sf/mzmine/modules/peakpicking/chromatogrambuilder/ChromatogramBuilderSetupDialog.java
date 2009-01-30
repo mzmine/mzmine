@@ -96,7 +96,6 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 							+ "'s parameter setup dialog ", parameters
 							.getMassConnectorParameters(ind),
 					ChromatogramBuilderParameters.massConnectorHelpFiles[ind]);
-			;
 
 			dialog.setVisible(true);
 		}

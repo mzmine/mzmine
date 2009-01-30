@@ -96,7 +96,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
     private String helpID;
 
     // Parameters and their representation in the dialog
-    protected SimpleParameterSet parameterSet;
+    private SimpleParameterSet parameterSet;
     private Hashtable<Parameter, JComponent> parametersAndComponents;
     private Hashtable<Parameter, Object> autoValues;
 
