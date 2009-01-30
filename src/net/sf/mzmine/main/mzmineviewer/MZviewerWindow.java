@@ -56,7 +56,7 @@ import net.sf.mzmine.desktop.impl.Statusbar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.modules.io.peaklistsaveload.load.PeakListLoader;
+import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
@@ -379,7 +379,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 	}
 	
 	public void addPeakLists(String[] args){
-		PeakListLoader.myInstance.loadPeakLists(args);
+		XMLImporter.myInstance.loadPeakLists(args);
 	}
 
 	public void actionPerformed(ActionEvent e) {

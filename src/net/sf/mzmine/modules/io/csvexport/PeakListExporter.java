@@ -16,8 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.modules.io.peaklistsaveload.save;
+package net.sf.mzmine.modules.io.csvexport;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -30,42 +29,48 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.modules.io.peaklistexport.PeakListExportParameters;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class PeakListSaver implements MZmineModule, ActionListener {
-	
-    private PeakListSaverParameters parameters;
+public class PeakListExporter implements MZmineModule, ActionListener,
+        BatchStep {
+
+    private PeakListExportParameters parameters;
     private Desktop desktop;
 
+    /**
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     */
+    public void initModule() {
 
-	public ParameterSet getParameterSet() {
+        this.desktop = MZmineCore.getDesktop();
+
+        parameters = new PeakListExportParameters();
+
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to CSV file",
+                "Export peak list data into CSV file", KeyEvent.VK_E, true,
+                this, null);
+
+    }
+
+    public ParameterSet getParameterSet() {
         return parameters;
-	}
+    }
 
-	public void initModule() {
-		this.desktop = MZmineCore.getDesktop();
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (PeakListExportParameters) parameters;
+    }
 
-        parameters = new PeakListSaverParameters();
+    public void actionPerformed(ActionEvent event) {
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Save peak list",
-                "Save a peak list to file", KeyEvent.VK_E, true,
-                this, null);		
-	}
-
-	public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (PeakListSaverParameters) parameters;
-	}
-
-	public void actionPerformed(ActionEvent e) {
         PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        
         if (selectedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single peak list to save");
+            desktop.displayErrorMessage("Please select a single peak list for export");
             return;
         }
 
@@ -76,13 +81,25 @@ public class PeakListSaver implements MZmineModule, ActionListener {
         }
 
         runModule(null, selectedPeakLists, parameters, null);
-	}
 
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
-        
-		PeakListSaverTask task = new PeakListSaverTask(peakLists[0],
-                (PeakListSaverParameters) parameters);
+    }
+
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#toString()
+     */
+    public String toString() {
+        return "Peak list exporter";
+    }
+
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.PROJECT;
+    }
+
+    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+
+        PeakListExportTask task = new PeakListExportTask(peakLists[0],
+                (PeakListExportParameters) parameters);
 
         TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
                 taskGroupListener);
@@ -91,18 +108,17 @@ public class PeakListSaver implements MZmineModule, ActionListener {
         newGroup.start();
 
         return newGroup;
-    
-	}
 
-	public ExitCode setupParameters(ParameterSet parameters) {
+    }
+
+    public ExitCode setupParameters(ParameterSet parameters) {
+
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (PeakListSaverParameters) parameters);
+                (PeakListExportParameters) parameters);
 
         dialog.setVisible(true);
 
         return dialog.getExitCode();
-	}
-	
-
+    }
 }

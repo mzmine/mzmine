@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.peaklistsaveload.save;
+package net.sf.mzmine.modules.io.xmlexport;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -40,7 +40,6 @@ import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.modules.io.peaklistsaveload.PeakListElementName;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.dom4j.Document;

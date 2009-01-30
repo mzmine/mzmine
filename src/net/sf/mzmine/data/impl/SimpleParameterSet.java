@@ -46,7 +46,7 @@ public class SimpleParameterSet implements StorableParameterSet {
     // Parameter -> value
     private Hashtable<Parameter, Object> values;
 
-    // Multiple selection parameter -> multiple values (array)
+    // Multiple selection parameter -> multiple values (array of possible values)
     private Hashtable<Parameter, Object[]> multipleSelectionValues;
 
     /**

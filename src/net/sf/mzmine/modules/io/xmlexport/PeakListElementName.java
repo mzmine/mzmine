@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.modules.io.peaklistsaveload;
+package net.sf.mzmine.modules.io.xmlexport;
 
 public enum PeakListElementName {
 	
