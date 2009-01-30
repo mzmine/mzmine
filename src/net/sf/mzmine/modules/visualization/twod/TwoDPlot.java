@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.twod;
@@ -140,18 +140,17 @@ class TwoDPlot extends ChartPanel {
 
         peakDataRenderer = new PeakDataRenderer();
 
-        /* add items to popup menu
-        MenuItem annotationsMenuItem, dataPointsMenuItem, plotTypeMenuItem;
-        // TODO
-        plotTypeMenuItem = new JMenuItem("Toggle centroid/continuous mode");
-        plotTypeMenuItem.addActionListener(visualizer);
-        plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
-        add(plotTypeMenuItem);
-
-        JPopupMenu popupMenu = getPopupMenu();
-        popupMenu.addSeparator();
-        popupMenu.add(plotTypeMenuItem);
-        */
+        /*
+         * add items to popup menu MenuItem annotationsMenuItem,
+         * dataPointsMenuItem, plotTypeMenuItem; // TODO plotTypeMenuItem = new
+         * JMenuItem("Toggle centroid/continuous mode");
+         * plotTypeMenuItem.addActionListener(visualizer);
+         * plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
+         * add(plotTypeMenuItem);
+         * 
+         * JPopupMenu popupMenu = getPopupMenu(); popupMenu.addSeparator();
+         * popupMenu.add(plotTypeMenuItem);
+         */
 
     }
 
@@ -169,25 +168,26 @@ class TwoDPlot extends ChartPanel {
         peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
 
     }
-    
+
     void switchPeaksVisible() {
-    	
-    	if (plot.getDataset(1) == null) return;
-    	
-    	boolean peaksVisible = plot.getRenderer(1) != null;
-    	if (peaksVisible) {
-    		plot.setRenderer(1, null);
-    	} else {
-    		plot.setRenderer(1, peakDataRenderer);
-    	}
+
+        if (plot.getDataset(1) == null)
+            return;
+
+        boolean peaksVisible = plot.getRenderer(1) != null;
+        if (peaksVisible) {
+            plot.setRenderer(1, null);
+        } else {
+            plot.setRenderer(1, peakDataRenderer);
+        }
     }
-    
+
     PlotMode getPlotMode() {
-    	return plot.getPlotMode();
+        return plot.getPlotMode();
     }
-    
+
     void setPlotMode(PlotMode plotMode) {
-    	plot.setPlotMode(plotMode);
+        plot.setPlotMode(plotMode);
     }
 
     void loadPeakList(PeakList peakList) {
@@ -195,6 +195,13 @@ class TwoDPlot extends ChartPanel {
         PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
                 rtRange, mzRange);
 
+        plot.setDataset(1, peaksDataSet);
+        plot.setRenderer(1, peakDataRenderer);
+    }
+
+    void loadPeakListRange(PeakList peakList, Range intensity) {
+        PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
+                intensity);
         plot.setDataset(1, peaksDataSet);
         plot.setRenderer(1, peakDataRenderer);
     }
@@ -209,11 +216,13 @@ class TwoDPlot extends ChartPanel {
             Rectangle2D plotArea = getScreenDataArea();
             RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
             RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
-            double rt = (double) xAxis.java2DToValue(mouseX, plotArea, xAxisEdge);
-            double mz = (double) yAxis.java2DToValue(mouseY, plotArea, yAxisEdge);
+            double rt = (double) xAxis.java2DToValue(mouseX, plotArea,
+                    xAxisEdge);
+            double mz = (double) yAxis.java2DToValue(mouseY, plotArea,
+                    yAxisEdge);
 
-            tooltip = "<html>Retention time: " + rtFormat.format(rt)
-                    + "<br>m/z: " + mzFormat.format(mz) + "</html>";
+            tooltip = "Retention time: " + rtFormat.format(rt) + "´nm/z: "
+                    + mzFormat.format(mz);
         }
 
         return tooltip;

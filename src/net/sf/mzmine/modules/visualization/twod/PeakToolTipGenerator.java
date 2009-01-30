@@ -55,12 +55,12 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         double mzValue = dataPoint.getMZ();
         int scanNumber = dataPoint.getScanNumber();
 
-        String toolTip = "<html>Peak: " + peak + "<br>Status: "
-                + peak.getPeakStatus() + "<br>Peak list row: " + row
-                + "<br>Scan #" + scanNumber + "<br>Retention time: "
-                + rtFormat.format(rtValue) + "<br>m/z: "
-                + mzFormat.format(mzValue) + "<br>Intensity: "
-                + intensityFormat.format(intValue) + "</html>";
+        String toolTip = "Peak: " + peak + "´nStatus: "
+                + peak.getPeakStatus() + "´nPeak list row: " + row
+                + "´nScan #" + scanNumber + "´nRetention time: "
+                + rtFormat.format(rtValue) + "´nm/z: "
+                + mzFormat.format(mzValue) + "´nIntensity: "
+                + intensityFormat.format(intValue);
 
         return toolTip;
     }

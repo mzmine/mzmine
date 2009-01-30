@@ -40,6 +40,7 @@ class TwoDToolBar extends JToolBar {
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
     static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
     static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    static final Icon intensityIcon = new ImageIcon("icons/intensitybaricon.png");
     
     private JButton centroidContinuousButton;
     
@@ -74,7 +75,14 @@ class TwoDToolBar extends JToolBar {
         addSeparator();
         
         centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_PLOTMODE",
-        "Switch between continuous and centroided mode");        
+        "Switch between continuous and centroided mode");       
+        
+        addSeparator();
+
+        GUIUtils.addButton(this, null, intensityIcon, masterFrame,
+                "SWITCH_INTENSITIES", "Hide some peaks");     
+       
+        
         
     }
 

@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
@@ -31,24 +31,24 @@ import org.jfree.data.xy.XYDataset;
  */
 class MassDetectorPreviewToolTipGenerator implements XYToolTipGenerator {
 
-	private NumberFormat mzFormat = MZmineCore.getMZFormat();
-	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-	/**
-	 * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-	 *      int, int)
-	 */
-	public String generateToolTip(XYDataset dataset, int series, int item) {
+    /**
+     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
+     *      int, int)
+     */
+    public String generateToolTip(XYDataset dataset, int series, int item) {
 
-		double intValue = dataset.getYValue(series, item);
-		double mzValue = dataset.getXValue(series, item);
+        double intValue = dataset.getYValue(series, item);
+        double mzValue = dataset.getXValue(series, item);
 
-		String tooltip = "<html>" + "m/z peak is detected at <br>m/z: "
-				+ mzFormat.format(mzValue) + "<br>intensity: "
-				+ intensityFormat.format(intValue) + "</html>";
+        String tooltip = "m/z peak is detected at ´nm/z: "
+                + mzFormat.format(mzValue) + "´nintensity: "
+                + intensityFormat.format(intValue);
 
-		return tooltip;
+        return tooltip;
 
-	}
+    }
 
 }

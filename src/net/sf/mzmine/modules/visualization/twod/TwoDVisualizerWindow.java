@@ -55,6 +55,10 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 	private int msLevel;
 
 	private Desktop desktop;
+        
+        private Range intensityRange;
+        
+        private int intensityProportion = 10;
 
 	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, Range rtRange, Range mzRange) {
 
@@ -152,7 +156,22 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 				twoDPlot.setPlotMode(PlotMode.CENTROID);
 			}
 		}
-		
+            
+            if (command.equals("SWITCH_INTENSITIES")) {
+                PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+                if (selectedPeakList == null) {
+                    return;
+                }
+                double maxIntensity = selectedPeakList.getDataPointMaxIntensity();
+                if (intensityRange == null || intensityProportion == 125) {
+                    intensityProportion = 1;
+                } else {
+                    intensityProportion *= 5;
+                }
+                intensityRange = new Range(0, maxIntensity / intensityProportion);
+
+                twoDPlot.loadPeakListRange(selectedPeakList, intensityRange);
+            }
 	}
 
 	/**

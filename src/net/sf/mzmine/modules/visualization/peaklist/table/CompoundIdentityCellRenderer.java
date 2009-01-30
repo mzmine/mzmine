@@ -75,10 +75,10 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
             newLabel.setText(identity.getName());
 
             String toolTipText = 
-                "<html>Identification method: " + identity.getIdentificationMethod() + "<br>" +
-                "Compound name: " + identity.getName() + "<br>" +
-                "Compound ID: " + identity.getID() + "<br>" +
-                "Compound formula: " + identity.getCompoundFormula() + "<br></html>";
+                "Identification method: " + identity.getIdentificationMethod() + "´n" +
+                "Compound name: " + identity.getName() + "´n" +
+                "Compound ID: " + identity.getID() + "´n" +
+                "Compound formula: " + identity.getCompoundFormula() + "´n";
 
             newLabel.setToolTipText(toolTipText);
 

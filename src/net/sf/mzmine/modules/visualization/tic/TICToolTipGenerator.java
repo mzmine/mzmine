@@ -53,14 +53,13 @@ class TICToolTipGenerator implements XYToolTipGenerator {
             double mzValue = ticDataSet.getZValue(series, item);
             int scanNumber = ticDataSet.getScanNumber(series, item);
 
-            toolTip = "<html>Scan #" + scanNumber + "<br>Retention time: "
-                    + rtFormat.format(rtValue) + "<br>Base peak m/z: "
-                    + mzFormat.format(mzValue) + "<br>Intensity: "
-                    + intensityFormat.format(intValue) + "</html>";
+            toolTip = "Scan #" + scanNumber + "´nRetention time: "
+                    + rtFormat.format(rtValue) + "´nBase peak m/z: "
+                    + mzFormat.format(mzValue) + "´nIntensity: "
+                    + intensityFormat.format(intValue);
         } else {
-            toolTip = "<html>Retention time: " + rtFormat.format(rtValue)
-                    + "<br>Intensity: " + intensityFormat.format(intValue)
-                    + "</html>";
+            toolTip = "Retention time: " + rtFormat.format(rtValue)
+                    + "´nIntensity: " + intensityFormat.format(intValue);
         }
 
         return toolTip;

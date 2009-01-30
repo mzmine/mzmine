@@ -46,7 +46,6 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
         RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
         StringBuffer sb = new StringBuffer();
-        sb.append("<html>");
         for (int i = 0; i < files.length; i++) {
             sb.append(files[i].toString());
             sb.append(": ");
@@ -57,10 +56,8 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
             } else {
                 sb.append("N/A");
             }
-            sb.append("<br>");
+            sb.append("´n");
         }
-
-        sb.append("</html>");
 
         return sb.toString();
     }
