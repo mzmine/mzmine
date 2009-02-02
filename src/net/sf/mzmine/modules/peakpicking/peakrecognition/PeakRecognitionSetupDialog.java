@@ -29,6 +29,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -50,6 +51,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
     // Dialog components
     private JButton btnOK, btnCancel, btnHelp, btnSetPeak;
     private JComboBox comboPeaksConstructors;
+    private JCheckBox removeOriginalCheckBox;
     private JTextField txtField;
 
     public PeakRecognitionSetupDialog(String title,
@@ -86,6 +88,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
             parameters.setTypeNumber(comboPeaksConstructors.getSelectedIndex());
             parameters.setParameterValue(PeakRecognitionParameters.suffix, txtField.getText());
+            parameters.setParameterValue(PeakRecognitionParameters.autoRemove, removeOriginalCheckBox.isSelected());
             exitCode = ExitCode.OK;
             dispose();
         }
@@ -117,6 +120,10 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         comboPeaksConstructors.setMaximumSize(new Dimension(200, 28));
         btnSetPeak = new JButton("Set parameters");
         btnSetPeak.addActionListener(this);
+        
+        //Element remove original peak list
+        removeOriginalCheckBox = new JCheckBox();
+        removeOriginalCheckBox.setSelected((Boolean) parameters.getParameterValue(PeakRecognitionParameters.autoRemove));
 
         // Elements of buttons
         btnOK = new JButton("OK");
@@ -150,8 +157,14 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         c.gridx = 4;
         pnlCombo.add(btnSetPeak, c);
 
-        c.gridx = 1;
+        c.gridx = 0;
         c.gridy = 4;
+        pnlCombo.add(new JLabel(parameters.autoRemove.getName()), c);
+        c.gridx = 1;
+        pnlCombo.add(removeOriginalCheckBox, c);
+        
+        c.gridx = 1;
+        c.gridy = 5;
         pnlCombo.add(btnOK, c);
         c.gridx = 2;
         pnlCombo.add(btnCancel, c);

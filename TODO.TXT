@@ -43,6 +43,7 @@ Shape modeler
 
 Peak recognition
 * Add checkbox "remove original chromatogram"
+(Done 2009/2/2 Alex)
 
 
 ***** Visualizers *****
