@@ -24,7 +24,9 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
@@ -220,8 +222,14 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             // Add all fragment scans to MS/MS selector combo
             int fragmentScans[] = currentScan.getFragmentScanNumbers();
             if (fragmentScans != null) {
+            	
+            	TreeSet<Integer> set = new TreeSet<Integer>();
+            	for (int fragment : fragmentScans) {
+            		set.add(fragment);
+            	}
+            	Integer[] sortedAndReduced = set.toArray(new Integer[0]);
 
-                for (int fragment : fragmentScans) {
+                for (int fragment : sortedAndReduced){
                     Scan fragmentScan = dataFile.getScan(fragment);
                     if (fragmentScan == null)
                         continue;
