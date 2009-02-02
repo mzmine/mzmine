@@ -29,15 +29,21 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class EMGPeakModel implements ChromatographicPeak {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private double xRight = -1, xLeft = -1;
-    
+	// EMG parameters
+	private double H; // Height of EMG model
+	private double M; // Time of the maximum point in EMG model
+	private double Dp; // Peak width of EMG model
+	private double Ap; // Asymmetry factor (skewness)
+	private double C; // Excess factor of EMG model
+
 	// Peak information
 	private double rt, height, mz, area;
 	private int[] scanNumbers;
@@ -99,8 +105,8 @@ public class EMGPeakModel implements ChromatographicPeak {
 	public int[] getScanNumbers() {
 		return scanNumbers;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		return "EMG peak " + PeakUtils.peakToString(this);
 	}
 
@@ -120,68 +126,32 @@ public class EMGPeakModel implements ChromatographicPeak {
 		dataPointsMap = new TreeMap<Integer, MzPeak>();
 		status = originalDetectedShape.getPeakStatus();
 
-        xRight = -1;
-        xLeft = -1;
+		// Initialize EMG parameters base on intensities and retention times
+		initializEMGParameters(intensities, retentionTimes, rt, height);
 
-		// FWFM (Full Width at Half Maximum)
-		double FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
-				height);
-
-        /*
-         * Calculates asymmetry of the peak using the formula
-         * 
-         * Ap = FWHM / ([1.76 (b/a)^2] - [11.15 (b/a)] + 28)
-         * 
-         * This formula is a variation of Foley J.P., Dorsey J.G. "Equations for
-         * calculation of chormatographic figures of Merit for Ideal and Skewed
-         * Peaks", Anal. Chem. 1983, 55, 730-737.
-         * 
-         * */
-         
-
-        // Left side
-        double beginning = xLeft;
-        if (beginning <= 0)
-        	beginning = retentionTimes[0];
-        double a = (rt - beginning);
-        
-        // Right side
-        double ending = xRight;
-        if (ending <= 0)
-        	ending = retentionTimes[retentionTimes.length - 1];
-        double b = (ending - rt);
-
-        double paramA = b / a;
-        double paramB = (1.76d * Math.pow(paramA, 2))
-                - (11.15d * paramA) + 28.0d;
-
-        // Calculates Width at base of the peak.
-        double paramC = FWHM;//(FWHM *2.355 ) / 4.71;
-        double Ap = paramC / paramB;
-
-        if ((b > a) && (Ap > 0))
-            Ap *= -1;
-        
 		// Calculate intensity of each point in the shape.
-		double shapeHeight, currentRT, previousRT, previousHeight, C = 0.1d;
+		double shapeHeight, currentRT, previousRT, previousHeight;
 		MzPeak mzPeak;
-		
-        int allScanNumbers[] = rawDataFile.getScanNumbers(1);
-        double allRetentionTimes[] = new double[allScanNumbers.length];
-        for (int i = 0; i < allScanNumbers.length; i++)
-        	allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i]).getRetentionTime();
 
-		previousHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, allRetentionTimes[0]);
+		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
+		double allRetentionTimes[] = new double[allScanNumbers.length];
+		for (int i = 0; i < allScanNumbers.length; i++)
+			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
+					.getRetentionTime();
+
+		previousHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
+				allRetentionTimes[0]);
 		previousRT = allRetentionTimes[0];
 		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
 
 		for (int i = 0; i < allRetentionTimes.length; i++) {
 
-			shapeHeight = calculateEMGIntensity(height, rt, FWHM, Ap, C, allRetentionTimes[i]);
-			if (shapeHeight > height * 0.01d){
-			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
-			dataPointsMap.put(allScanNumbers[i], mzPeak);
-			rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
+			shapeHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
+					allRetentionTimes[i]);
+			if (shapeHeight > height * 0.01d) {
+				mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
+				dataPointsMap.put(allScanNumbers[i], mzPeak);
+				rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
 			}
 
 			currentRT = allRetentionTimes[i];
@@ -190,271 +160,249 @@ public class EMGPeakModel implements ChromatographicPeak {
 			previousRT = currentRT;
 			previousHeight = shapeHeight;
 		}
-		
+
 		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
 		int i = 0;
 		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
-		while(itr.hasNext()){
+		while (itr.hasNext()) {
 			int number = itr.next();
-			newScanNumbers[i]= number;
+			newScanNumbers[i] = number;
 			i++;
 		}
-		
+
 		this.scanNumbers = newScanNumbers;
-        
-    }
 
-    /**
-     * This method calculates the width of the chromatographic peak at half
-     * intensity
-     * 
-     * @param listMzPeaks
-     * @param height
-     * @param RT
-     * @return FWHM
-     * */
-     
-    private double calculateWidth(double[] intensities,
-			double[] retentionTimes, double resolution, double retentionTime,
-			double mass, double maxIntensity) {
+	}
 
-		double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
-		double beginning = retentionTimes[0];
-		double ending = retentionTimes[retentionTimes.length - 1];
-		//double xRight = -1;
-		//double xLeft = -1;
+	/**
+	 * This method calculates the width of the chromatographic peak at half
+	 * intensity
+	 * 
+	 * @param listMzPeaks
+	 * @param height
+	 * @param RT
+	 * @return FWHM
+	 * 
+	 * 
+	 *         This calculation is based on work of Foley J.P., Dorsey J.G.
+	 *         "Equations for calculation of chromatographic figures of Merit
+	 *         for Ideal and Skewed Peaks", Anal. Chem. 1983, 55, 730-737.
+	 * */
 
-		for (int i = 0; i < intensities.length - 1; i++) {
+	private void initializEMGParameters(double[] intensities,
+			double[] retentionTimes, double retentionTime, double maxIntensity) {
 
-			intensity = intensities[i];
-			intensityPlus = intensities[i + 1];
+		// Add lateral zero values to intensities array. This allows us to
+		// get better result from 2nd derivative.
+		int LATERAL_OFFSET = 5;
+		double[] intensitiesWithZeros = new double[intensities.length
+				+ (LATERAL_OFFSET * 2)];
+		// Left side zeros
+		for (int i = 0; i < LATERAL_OFFSET; i++)
+			intensitiesWithZeros[i] = 0;
+		// Current values
+		for (int i = 0; i < intensities.length; i++)
+			intensitiesWithZeros[i + LATERAL_OFFSET] = intensities[i];
+		// Right side zeros
+		for (int i = intensities.length; i < intensitiesWithZeros.length; i++)
+			intensitiesWithZeros[i] = 0;
 
-			if (intensity > maxIntensity)
-				continue;
+		logger.finest("Size of extended zeros = " + intensitiesWithZeros.length
+				+ " original " + intensities.length);
 
-			// Left side of the curve
-			if (retentionTimes[i] < retentionTime) {
-				if ((intensity <= halfIntensity)
-						&& (intensityPlus >= halfIntensity)) {
+		// First calculate the 2nd derivative of intensities in order to get the
+		// inflection points of the curve in each side (left and right),
+		// using a filter of level 12.
+		double[] secondDerivative = SGDerivative.calculateDerivative(
+				intensitiesWithZeros, false, 12);
 
-					// First point with intensity just less than half of total
-					// intensity
-					double leftY1 = intensity;
-					double leftX1 = retentionTimes[i];
+		// Analyze the second derivative values to identify crossing zero points.
+		// Those positions correspond to inflection points.
+		int crossZero = 0;
+		int inflectionPointLeft = 0;
+		int inflectionPointRight = 0;
+		int index = 0;
 
-					// Second point with intensity just bigger than half of
-					// total
-					// intensity
-					double leftY2 = intensityPlus;
-					double leftX2 = retentionTimes[i + 1];
+		for (int i = 1; i < secondDerivative.length; i++) {
 
-					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-					double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+			// DEBUGGING
+			// logger.finest("Second derivative [" + i+"]= " +
+			// secondDerivative[i]);
 
-					// We calculate the desired point (at half intensity) with
-					// the
-					// linear equation
-					// X = X1 + [(Y - Y1) / m ], where Y = half of total
-					// intensity
-					xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
-					continue;
-				}
-			}
+			// Changing sign and crossing zero
+			if (((secondDerivative[i - 1] < 0.0f) && (secondDerivative[i] > 0.0f))
+					|| ((secondDerivative[i - 1] > 0.0f) && (secondDerivative[i] < 0.0f))) {
 
-			// Right side of the curve
-			if (retentionTimes[i] > retentionTime) {
-				if ((intensity >= halfIntensity)
-						&& (intensityPlus <= halfIntensity)) {
-
-					// First point with intensity just bigger than half of total
-					// intensity
-					double rightY1 = intensity;
-					double rightX1 = retentionTimes[i];
-
-					// Second point with intensity just less than half of total
-					// intensity
-					double rightY2 = intensityPlus;
-					double rightX2 = retentionTimes[i + 1];
-
-					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-					double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
-
-					// We calculate the desired point (at half intensity) with
-					// the
-					// linear equation
-					// X = X1 + [(Y - Y1) / m ], where Y = half of total
-					// intensity
-					xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
-					break;
+				if ((secondDerivative[i - 1] < 0.0f)
+						&& (secondDerivative[i] > 0.0f)) {
+					index = i - 1 - LATERAL_OFFSET;
+					if ((crossZero == 1)
+							&& (retentionTimes[index] > retentionTime)) {
+						inflectionPointRight = index;
+						break;
+					}
+				} else {
+					if ((crossZero == 0) && (i - 1 > LATERAL_OFFSET)) {
+						index = i - LATERAL_OFFSET;
+						if (retentionTimes[index] < retentionTime) {
+							inflectionPointLeft = index;
+							crossZero++;
+						}
+					}
 				}
 			}
 		}
 
-		if ((xRight <= -1) && (xLeft > 0)) {
-			xRight = retentionTime + (ending - beginning) / 4.71f;
-		}
+		/*
+		 * The inflection point represents the tangent of the curve. We use the
+		 * secant function to calculate the pendient of the tangent line.
+		 * 
+		 * m = f(x+h) - f(x) / h 
+		 * 
+		 * where m is the pendient, f(x) is the intensity in inflection point
+		 * and h is the time between two points defined by secant line. In our 
+		 * case, the identified peak's rt and height are x+h and f(x+h).
+		 */
+		double mLeft = (maxIntensity - intensities[inflectionPointLeft])
+				/ (retentionTime - retentionTimes[inflectionPointLeft]);
 
-		if ((xRight > 0) && (xLeft <= -1)) {
-			xLeft = retentionTime - (ending - beginning) / 4.71f;
-		}
+		double mRight = (maxIntensity - intensities[inflectionPointRight])
+				/ (retentionTimes[inflectionPointRight] - retentionTime);
 
-		boolean negative = (((xRight - xLeft)) < 0);
+		/*
+		 * Then calculate peak's width at base (Wb), using tagent line. Also 
+		 * obtains the value of b and a (b/a = asymmetry factor). Using rect 
+		 * line formula
+		 * 
+		 * 		x2 = [(y2 - Y1) / m] + x1
+		 * 
+		 * where x2 represents the retention time value at 10% of total peak's
+		 * height (y2).
+		 */
+		// First left side
+		double a = ((maxIntensity * 0.10d) - intensities[inflectionPointLeft])
+				/ mLeft;
+		a += retentionTimes[inflectionPointLeft];
+		// Second right side
+		double b = (intensities[inflectionPointRight] - (maxIntensity * 0.10d))
+				/ mRight;
+		b += retentionTimes[inflectionPointRight];
 
-		if ((negative) || ((xRight == -1) && (xLeft == -1))) {
-			xRight = retentionTime + (ending - beginning) / 9.42f;
-			xLeft = retentionTime - (ending - beginning) / 9.42f;
-		}
+		// Now assign asymmetry factor(skewness) to general variable and peak's
+		// width at base
+		Ap = Math.abs(b - retentionTime) / Math.abs(a - retentionTime);
+		double Wb = Math.abs(b - a);
 
-		double aproximatedFWHM = (xRight - xLeft) / 2.354820045d;
+		// DEBUGGING
+		// logger.finest("Value a= " + MZmineCore.getRTFormat().format(a) +
+		// " b= " + MZmineCore.getRTFormat().format(b) + " Ap= " + Ap + " Wb= "
+		// + Wb);
 
-		return aproximatedFWHM;
-    	
-    	/*double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
-        double leftY1,leftX1,leftY2,leftX2,mLeft;
-        double rightY1,rightX1,rightY2,rightX2,mRight;
-        double localXLeft = -1, localXRight = -1;
-        double lowestLeft = intensity/5, lowestRight = intensity/5;
-        double FWHM ;
-        double beginning = retentionTimes[0];
-        double ending = retentionTimes[retentionTimes.length - 1];
+		/*
+		 * Calculates the variance of asymmetric peak using the formula
+		 * 
+		 * Variance = Wb^2 / ([1.76 (b/a)^2] - [11.15 (b/a)] + 28)
+		 * 
+		 * where Wb is the peak width at base (10% of height), b is the right
+		 * side of the peak and a the left side.
+		 * 
+		 * Sigma is calculated by
+		 * 
+		 * sigma = Wb / ([3.27 (b/a)] +1.2)
+		 * 
+		 * Now the relationship between sigma, tau and variance is defined by
+		 * 
+		 * Variance = (sigma)^2 + (tau)^2
+		 * 
+		 * so tau is obtained by
+		 * 
+		 * tau = sqrt( variance - sigma)
+		 *	
+		 * where sigma is standard deviation and tau is the time constant of
+		 * exponential function.
+		 */
+		double variance = Math.pow(Wb, 2)
+				/ (1.76d * (Math.pow(Ap, 2)) - 11.15d * (Ap) + 28.0d);
+		double sigma = Wb / ((3.27d * (Ap)) + 1.2d);
+		double tau = Math.sqrt(Math.abs(variance - sigma));
 
-        for (int i = 0; i < retentionTimes.length - 1; i++) {
+		// According with the relationship between standard deviation and peak's
+		// width
+		//
+		// Wb = 4(stdDev)
+		//
+		// We have already Wb and sigma, so we take the average
+		Dp = ((Wb / 4.0d) + sigma) / 2;
 
-            intensity = intensities[i];
-            intensityPlus = intensities[i + 1];
+		// DEBUGGING
+		// logger.finest("Value variance= " + variance + " sigma= " + sigma +
+		// " tau= " + tau + " Dp= " + Dp);
 
-            if (intensity > height)
-                continue;
+		/* The relationship between skewness/excess is directly related to the
+		 * proportion between tau/sigma. So excess can be calculated by
+		 *
+		 * C = [sigma * (Ap)] / tau
+		 *
+		 * where C is the excess value of the EMG model.
+		 */
+		C = (sigma * Ap) / tau;
 
-            // Left side of the curve
-            if (retentionTimes[i] < retentionTime) {
-            	if (intensity < lowestLeft){
-            		lowestLeft = intensity;
-            		xLeft = retentionTimes[i];
-            	}
-            	
-            	
-            	
-                if ((intensity <= halfIntensity) && (retentionTimes[i] < retentionTime)
-                        && (intensityPlus >= halfIntensity)) {
+		/* From the location of peak maximum (peak's retention time) we can
+		 * calculate the center of the Gaussian part using
+		 *
+		 * M = tmax - sigma[ (-0.19*(Ap)^2) + 1.16*(Ap) - 0.55 ]
+		 *
+		 * where M is the retention time of the EMG model.
+		 */
+		M = (-0.19d * (Math.pow(Ap, 2))) + (1.16d * (Ap)) - 0.55d;
+		M *= sigma;
+		M += retentionTime;
 
-                    // First point with intensity just less than half of total
-                    // intensity
-                    leftY1 = intensity;
-                    leftX1 = retentionTimes[i];
+		// Finally the height to use in the EMG value is approximately 20% 
+		// less than original peak
+		H = maxIntensity * 0.80d;
 
-                    // Second point with intensity just bigger than half of
-                    // total
-                    // intensity
-                    leftY2 = intensityPlus;
-                    leftX2 = retentionTimes[i + 1];
+		// DEBUGGING
+		// logger.finest("Value C= " + C + " M= " +
+		// MZmineCore.getRTFormat().format(M) + " H= " + H);
 
-                    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+	}
 
-                    // We calculate the desired point (at half intensity) with
-                    // the
-                    // linear equation
-                    // X = X1 + [(Y - Y1) / m ], where Y = half of total
-                    // intensity
-                    localXLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
-                    continue;
-                }
-            }
+	/**
+	 * 
+	 * This method calculates the height of Exponential Modified Gaussian
+	 * function, using the mathematical model proposed by Zs. Pápai and T. L.
+	 * Pap "Determination of chromatographic peak parameters by non-linear curve
+	 * fitting using statistical moments", The Analyst,
+	 * http://www.rsc.org/publishing/journals/AN/article.asp?doi=b111304f
+	 * 
+	 * @param H
+	 * @param M
+	 * @param Dp
+	 * @param Ap
+	 * @param C
+	 * @param t
+	 * @return intensity
+	 */
+	private static double calculateEMGIntensity(double H, double M, double Dp,
+			double Ap, double C, double t) {
+		double shapeHeight;
 
-            // Right side of the curve
-            if (retentionTime > retentionTime) {
+		double partA1 = Math.pow((t - M), 2) / (2 * Math.pow(Dp, 2));
+		double partA = H * Math.exp(-1 * partA1);
 
-            	if (intensity < lowestRight){
-            		lowestRight = intensity;
-            		xRight = retentionTimes[i];
-            	}
+		double partB1 = (t - M) / Dp;
+		double partB2 = (Ap / 6.0f) * (Math.pow(partB1, 2) - (3 * partB1));
+		double partB3 = (C / 24)
+				* (Math.pow(partB1, 4) - (6 * Math.pow(partB1, 2)) + 3);
+		double partB = 1 + partB2 + partB3;
 
-            	
-            	if ((intensity >= halfIntensity) && (retentionTimes[i] > retentionTime)
-                        && (intensityPlus <= halfIntensity)) {
+		shapeHeight = (double) (partA * partB);
 
-                    // First point with intensity just bigger than half of total
-                    // intensity
-                    rightY1 = intensity;
-                    rightX1 = retentionTime;
+		if (shapeHeight < 0)
+			shapeHeight = 0;
 
-                    // Second point with intensity just less than half of total
-                    // intensity
-                    rightY2 = intensityPlus;
-                    rightX2 = retentionTimes[i + 1];
-
-                    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-                    mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
-
-                    // We calculate the desired point (at half intensity) with
-                    // the
-                    // linear equation
-                    // X = X1 + [(Y - Y1) / m ], where Y = half of total
-                    // intensity
-                    localXRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
-                    break;
-                }
-            }
-        }
-        
-        FWHM = (localXRight - localXLeft) / 2.354820045d;
-        boolean negative = (((localXRight - localXLeft)) < 0);
-
-        if ((localXRight <= -1) && (localXLeft > 0)) {
-            localXRight = retentionTime + (ending - beginning) / 4.71f;
-            FWHM = (localXRight - localXLeft) / 2.354820045d;
-        }
-
-        else if ((localXRight > 0) && (localXLeft <= -1)) {
-            localXLeft = retentionTime - (ending - beginning) / 4.71f;
-            FWHM = (localXRight - localXLeft) / 2.354820045d;
-        }
-
-        if ((negative) || ((localXRight == -1) && (localXLeft == -1))) {
-        	FWHM = (mass / resolution);
-            FWHM /= 2.354820045d;
-        }
-
-        return FWHM ;*/
-
-    }
-
-    /**
-     * 
-     * This method calculates the height of Exponential Modified Gaussian
-     * function, using the mathematical model proposed by Zs. Pápai and T. L.
-     * Pap "Determination of chromatographic peak parameters by non-linear curve
-     * fitting using statistical moments", The Analyst,
-     * http://www.rsc.org/publishing/journals/AN/article.asp?doi=b111304f
-     * 
-     * @param heightMax
-     * @param RT
-     * @param Dp
-     * @param Ap
-     * @param C
-     * @param t
-     * @return intensity
-     */
-    private double calculateEMGIntensity(double heightMax, double RT, double Dp,
-            double Ap, double C, double t) {
-        double shapeHeight;
-
-        double partA1 = Math.pow((t - RT), 2) / (2 * Math.pow(Dp, 2));
-        double partA = heightMax * Math.exp(-1 * partA1);
-
-        double partB1 = (t - RT) / Dp;
-        double partB2 = (Ap / 6.0f) * (Math.pow(partB1, 2) - (3 * partB1));
-        double partB3 = (C / 24)
-                * (Math.pow(partB1, 4) - (6 * Math.pow(partB1, 2)) + 3);
-        double partB = 1 + partB2 + partB3;
-
-        shapeHeight = (double) (partA * partB);
-
-        if (shapeHeight < 0)
-            shapeHeight = 0;
-
-        return shapeHeight;
-    }
+		return shapeHeight;
+	}
 
 }

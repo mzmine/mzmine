@@ -23,6 +23,9 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -140,27 +143,31 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
         int nextPeakStart = totalNumberPoints;
         int currentPeakEnd = 0;
 
-        // Chromatogram derivativeChromatogram = new
-        // Chromatogram(chromatogram.getDataFile());
+        // DEBUGGING
+        Chromatogram derivativeChromatogram = new
+        Chromatogram(chromatogram.getDataFile());
 
-        // Shape analysis of derivative of chromatogram
-        // "*" represents the original chromatogram shape.
-        // "-" represents the shape of chromatogram's derivative.
-        //
-        // " ***
-        // " * * +
-        // " + * * + +
-        // " + x x +
-        // "--+-*-+-----+-*---+----
-        // " + +
-        // " + +
-        // " +
+        /* Shape analysis of derivative of chromatogram
+        * "*" represents the original chromatogram shape.
+        * "-" represents the shape of chromatogram's derivative.
+        *
+        * "        ***
+        * "       *   *   +
+        * "    + *     * + +
+        * "   + x       x   +
+        * "--+-*-+-----+-*---+----
+        * "       +   +
+        * "        + +
+        * "         +
+        * 
+        * */
+         
         for (int i = 1; i < totalNumberPoints; i++) {
 
             // DEBUGGING
             // derivativeChromatogram.addMzPeak(scanNumbers[i],
             // new SimpleMzPeak(new SimpleDataPoint(chromatogram.getMZ(),
-            // derivativeOfIntensities[i]*1000)));
+            // derivativeOfIntensities[i]*100)));
 
             // Changing sign and crossing zero
             if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
