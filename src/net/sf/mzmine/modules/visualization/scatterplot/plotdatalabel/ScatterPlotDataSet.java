@@ -23,6 +23,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Vector;
+import java.util.regex.PatternSyntaxException;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
@@ -282,8 +283,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 	 * 
 	 * @param searchValue
 	 */
-	public void updateListofAppliedSelection(String searchValue) {
-
+	public void updateListofAppliedSelection (String searchValue) throws PatternSyntaxException {
+		
 		if (searchValue == null)
 			return;
 
@@ -318,11 +319,12 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 				originalElement = originalElement.toUpperCase();
 
-				// TODO: check for exception - regular expression may be wrong
 				if ((originalElement.matches(".*" + selectionElement + ".*"))) {
-					if (!items.contains(listOfIds[rowID]))
+					if (!items.contains(listOfIds[rowID])){
 						items.add(listOfIds[rowID]);
+					}
 				}
+				
 
 			}
 		}

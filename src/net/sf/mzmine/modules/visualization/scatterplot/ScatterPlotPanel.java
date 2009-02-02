@@ -30,6 +30,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -245,7 +246,18 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int x = comboX.getSelectedIndex();
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
-			dataSet.updateListofAppliedSelection(txtSearchField.getText());
+			try{
+				dataSet.updateListofAppliedSelection(txtSearchField.getText());
+			}
+			catch (PatternSyntaxException pe){
+				JOptionPane
+				.showMessageDialog(
+						this,
+						"The regular expression's syntax is invalid. " + pe.getPattern(),
+						"Searching item error",
+						JOptionPane.ERROR_MESSAGE);
+				txtSearchField.setText("");
+			}
 			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
 			plot.getXYPlot().datasetChanged(
@@ -263,7 +275,19 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 				|| (command.equals("LABEL_ITEMS"))
 				|| (command.equals("SEARCH"))) {
 			setLabelItems(labeledItems.isSelected());
-			dataSet.updateListofAppliedSelection(txtSearchField.getText());
+			try{
+				dataSet.updateListofAppliedSelection(txtSearchField.getText());
+			}
+			catch(PatternSyntaxException pe){
+				JOptionPane
+				.showMessageDialog(
+						this,
+						"The regular expression's syntax is invalid. " + pe.getPattern(),
+						"Searching item error",
+						JOptionPane.ERROR_MESSAGE);
+				txtSearchField.setText("");
+				return;
+			}
 			plot.setSeriesColor(dataSet);
 			return;
 		}

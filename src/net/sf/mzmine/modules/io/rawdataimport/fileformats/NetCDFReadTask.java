@@ -448,13 +448,17 @@ public class NetCDFReadTask implements Task {
          * they are part the left/right part of the peak.
          */
 
-        int i, j;
+        int i, j, previous=0;
+        boolean centroid = true;
         for (i = 0, j = 0; i < completeDataPoints.length; i++) {
             double intensity = completeDataPoints[i].getIntensity();
             double mz = completeDataPoints[i].getMZ();
             if (completeDataPoints[i].getIntensity() > 0) {
                 tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
                 j++;
+                if ((i == previous+1) && (i != 1))
+                	centroid = false;
+                previous = i;
                 continue;
             }
             if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
@@ -476,7 +480,7 @@ public class NetCDFReadTask implements Task {
                 retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0],
                 false);
 
-        if (i == j) {
+        if ((i == j) && (centroid)){
             buildingScan.setCentroided(true);
             buildingScan.setDataPoints(tempDataPoints);
         } else {

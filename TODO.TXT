@@ -26,7 +26,7 @@ Task controller
 
 Recognition of centroid/continuous scans is not perfect. 
 Control1.CDF scan 1027 is recognized as centroid which is not true.
-This should be fixed.
+(Fixed 2009/2/2 Alex).
 
 
 ***** Raw data filtering *****
@@ -39,7 +39,7 @@ Probably we need to improve the algorithms.
 ***** Peak detection *****
 
 Shape modeler
-* Not finished yet (Alex)
+* Under testing by users (2009/2/2 Alex)
 
 Peak recognition
 * Add checkbox "remove original chromatogram"
@@ -63,7 +63,7 @@ Scatter plot
 * Currently user can search only for compound name, but should also be able
   to search by mass/RT
 * Bug: Typing invalid regular expression in the search box will cause an
-  exception
+  exception. (Fixed 2009/2/2 Alex)
 
 Isotope pattern visualizer
 * Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes
