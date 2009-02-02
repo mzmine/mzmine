@@ -68,6 +68,7 @@ Scatter plot
 
 Isotope pattern visualizer
 * Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes
+(Fixed 2009/2/2 Alex)
 
 TIC/XIC visualizer
 * Visualizer should be able to show several peaks from one peaklist column

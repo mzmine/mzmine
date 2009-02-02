@@ -110,7 +110,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         this.dataFile = dataFile;
-
+        
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -148,8 +148,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
                 public void run() {
                     loadRawData(mzDataTable);
-                    // loadPeaks();
-                    // loadIsotopePattern((IsotopePattern) mzDataTable);
+                     loadPeaks();
+                     loadIsotopePattern((IsotopePattern) mzDataTable);
                 }
 
             };
