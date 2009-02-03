@@ -52,9 +52,14 @@ Peak recognition
 2D visualizer
 * Need to set threshold for how many peaks will be annotated (Sandra)
 * Color scale should be editable, similar as color scale of RT/MZ plots
+* Intensity scale is now relative to the zoomed area. There should be a 
+  setting to make it absolute (e.g. when comparing two files)
 
 3D visualizer
 * Need to set threshold for how many peaks will be annotated
+* There should be a setting for the intensity scale (e.g. when comparing
+  two files)
+
 
 Peak list table
 * Combined XIC component should have a nicer tooltip showing which color is 
