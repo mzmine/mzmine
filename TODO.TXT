@@ -22,6 +22,11 @@ Task controller
   not by editing config file
 * TaskListener and TaskGroup classes are obsolete and should be removed
 
+Batch mode
+* It need to be redesigned. 
+* Bug: it can not be used again if during its running any process hasn't finished correctly. 
+
+
 ***** Raw data import *****
 
 Recognition of centroid/continuous scans is not perfect. 
@@ -100,6 +105,10 @@ Related peaks search
 * This module should perhaps be split into several modules for adduct search, 
   fragments search (using MS/MS), dimers etc. (Tomas)
 
+Custom database search
+* Bug: the identification assigned to one peak changes to another peak when
+ one of the names is selected and the peak list is sorted. This selected identification 
+ doesn't change its position in the list when it is sorted.
 
 
 ***** Data analysis *****
