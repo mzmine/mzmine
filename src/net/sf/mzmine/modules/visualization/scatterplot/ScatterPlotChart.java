@@ -292,10 +292,10 @@ public class ScatterPlotChart extends ChartPanel implements ComponentToolTipProv
 
 			Color color = Color.BLUE;
 			Shape shape = dataPointsShape;
-			for (int i = 0; i < newSet.getSeriesCount(); i++) {
+			for (int i = 0; i < 2; i++) {
 
 				if (i > 0) {
-					color = ((ScatterPlotDataSet) newSet).getRendererColor(i);
+					color = Color.ORANGE;//((ScatterPlotDataSet) newSet).getRendererColor(i);
 					shape = dataPointsShape2;
 				}
 				newRenderer.setSeriesPaint(i, color, false);

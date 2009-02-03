@@ -39,7 +39,8 @@ Probably we need to improve the algorithms.
 ***** Peak detection *****
 
 Shape modeler
-* Under testing by users (2009/2/2 Alex)
+* Under testing by users 
+(2009/2/2 Alex)
 
 Peak recognition
 * Add checkbox "remove original chromatogram"
@@ -63,8 +64,10 @@ Peak list table
 Scatter plot
 * Currently user can search only for compound name, but should also be able
   to search by mass/RT
+  (Done 2009/2/3 Alex)
 * Bug: Typing invalid regular expression in the search box will cause an
-  exception. (Fixed 2009/2/2 Alex)
+  exception. 
+  (Fixed 2009/2/2 Alex)
 
 Isotope pattern visualizer
 * Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes

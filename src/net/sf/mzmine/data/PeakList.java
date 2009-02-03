@@ -176,5 +176,15 @@ public interface PeakList {
      * Returns all tasks (descriptions) applied to this peak list
      */
     public PeakListAppliedMethod[] getAppliedMethods();
+    
+    /**
+     * Returns the whole m/z range of the peak list 
+     */
+    public Range getRowsMZRange();
+
+    /**
+     * Returns the whole retention time range of the peak list 
+     */
+    public Range getRowsRTRange();
 
 }

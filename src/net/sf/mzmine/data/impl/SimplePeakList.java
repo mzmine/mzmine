@@ -46,6 +46,7 @@ public class SimplePeakList implements PeakList, NameChangeable {
     private double maxDataPointIntensity = 0;
     private Vector<PeakListAppliedMethod> descriptionOfAppliedTasks;
     private String dateCreated;
+    private Range mzRange, rtRange;
     
 	public static DateFormat dateFormat = new SimpleDateFormat(
 	"yyyy/MM/dd HH:mm:ss");
@@ -174,6 +175,15 @@ public class SimplePeakList implements PeakList, NameChangeable {
         if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
             maxDataPointIntensity = row.getDataPointMaxIntensity();
         }
+        
+        if (mzRange == null){
+        	mzRange = new Range(row.getAverageMZ());
+        	rtRange = new Range(row.getAverageRT());
+        }
+        else{
+        	mzRange.extendRange(row.getAverageMZ());
+        	rtRange.extendRange(row.getAverageRT());
+        }
     }
 
     /**
@@ -233,9 +243,20 @@ public class SimplePeakList implements PeakList, NameChangeable {
 
     private void updateMaxIntensity() {
         maxDataPointIntensity = 0;
+        mzRange = null;
+        rtRange = null;
         for (PeakListRow peakListRow : peakListRows) {
             if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity)
                 maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
+            
+            if (mzRange == null){
+            	mzRange = new Range(peakListRow.getAverageMZ());
+            	rtRange = new Range(peakListRow.getAverageRT());
+            }
+            else{
+            	mzRange.extendRange(peakListRow.getAverageMZ());
+            	rtRange.extendRange(peakListRow.getAverageRT());
+            }
         }
     }
 
@@ -298,6 +319,14 @@ public class SimplePeakList implements PeakList, NameChangeable {
 	
 	public void setDateCreated(String date){
 		this.dateCreated = date;
+	}
+
+	public Range getRowsMZRange() {
+		return mzRange;
+	}
+
+	public Range getRowsRTRange() {
+		return rtRange;
 	}
 
 }

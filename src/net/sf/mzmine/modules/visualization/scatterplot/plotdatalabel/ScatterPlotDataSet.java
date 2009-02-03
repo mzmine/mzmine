@@ -252,7 +252,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 			valueY = peakList.getRow(items[i]).getPeak(rawDataFiles[domainY])
 					.getArea();
 
-			if ((!Double.isNaN(valueX)) && (!Double.isNaN(valueY)) ) {
+			if ((!Double.isNaN(valueX)) && (!Double.isNaN(valueY))) {
 
 				localValue = Math.max(valueX, valueY);
 				maxValue = Math.max(localValue, maxValue);
@@ -260,7 +260,6 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 				localValue = Math.min(valueX, valueY);
 				minValue = Math.min(localValue, minValue);
 			}
-
 
 		}
 
@@ -281,11 +280,15 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 	/**
 	 * 
-	 * @param searchValue
+	 * @param Object search value
+	 * @param ScatterPlotSearchDataType data type
+	 * 
+	 * @throws Exception
 	 */
-	public void updateListofAppliedSelection (String searchValue) throws PatternSyntaxException {
-		
-		if (searchValue == null)
+	public void updateListofAppliedSelection(Object searchObject,
+			ScatterPlotSearchDataType dataType) throws Exception{
+
+		if (searchObject == null)
 			return;
 
 		Vector<Integer> items = new Vector<Integer>();
@@ -296,35 +299,62 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 		Integer[] listOfIds = arraySeriesAndItemsSelection[0];
 		int length1 = listOfIds.length;
-		String selectionElement, originalElement;
 		PeakListRow row;
 		PeakIdentity identity;
+		String originalName, searchName;
+		double originalValue = 0;
+		boolean invalid = false;
 
-		selectionElement = searchValue;
-		selectionElement = selectionElement.toUpperCase();
+		for (int rowID = 0; rowID < length1; rowID++) {
+			
+			if (invalid)
+				break;
 
-		if (selectionElement.length() > 0) {
-			for (int rowID = 0; rowID < length1; rowID++) {
-
-				originalElement = null;
-				row = peakList.getRow(listOfIds[rowID]);
-				identity = row.getPreferredCompoundIdentity();
-				if (identity != null) {
-					originalElement = identity.getName();
-				}
-
-				if ((originalElement == null) || (originalElement == "")) {
-					continue;
-				}
-
-				originalElement = originalElement.toUpperCase();
-
-				if ((originalElement.matches(".*" + selectionElement + ".*"))) {
-					if (!items.contains(listOfIds[rowID])){
+			row = peakList.getRow(listOfIds[rowID]);
+			switch (dataType) {
+			case MASS:
+				originalValue = row.getAverageMZ();
+				if (((Range) searchObject).contains(originalValue)) {
+					if (!items.contains(listOfIds[rowID])) {
 						items.add(listOfIds[rowID]);
 					}
 				}
+				break;
+			case RT:
+				originalValue = row.getAverageRT();
+				if (((Range) searchObject).contains(originalValue)) {
+					if (!items.contains(listOfIds[rowID])) {
+						items.add(listOfIds[rowID]);
+					}
+				}
+				break;
+			case NAME:
+				searchName = searchObject.toString();
+				searchName = searchName.toUpperCase();
+
+				if (searchName.length() == 0){
+					invalid = true;
+					break;
+				}
 				
+				originalName = null;
+				identity = row.getPreferredCompoundIdentity();
+				if (identity != null) {
+					originalName = identity.getName();
+				}
+
+				if ((originalName == null) || (originalName == "")) {
+					continue;
+				}
+
+				originalName = originalName.toUpperCase();
+				
+				if ((originalName.matches(".*" + searchName + ".*"))) {
+					if (!items.contains(listOfIds[rowID])) {
+						items.add(listOfIds[rowID]);
+					}
+				}
+				break;
 
 			}
 		}

@@ -30,6 +30,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 import java.util.regex.PatternSyntaxException;
 
 import javax.swing.BorderFactory;
@@ -40,6 +41,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -48,10 +50,15 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
+import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotSearchDataType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.util.Range;
@@ -60,9 +67,11 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import org.jfree.data.general.DatasetChangeEvent;
 
 public class ScatterPlotPanel extends JPanel implements ActionListener {
-	
-	private JComboBox comboX, comboY, comboFold;
+
+	private JComboBox comboX, comboY, comboFold, comboSearchDataType;
 	private JTextField txtSearchField;
+	private JFormattedTextField minSearchField, maxSearchField;
+	private JLabel labelRange;
 	private JButton btnSrch;
 	private JCheckBox labeledItems;
 	private JLabel itemName, numOfDisplayedItems;
@@ -77,6 +86,17 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 	public ScatterPlotPanel(ActionListener scatterPlotWindow) {
 
 		this.scatterPlotWindow = scatterPlotWindow;
+
+		// Utility
+		DefaultListCellRenderer centeredRenderer = new DefaultListCellRenderer() {
+			public Component getListCellRendererComponent(JList jList,
+					Object o, int i, boolean b, boolean b1) {
+				JLabel rendrlbl = (JLabel) super.getListCellRendererComponent(
+						jList, o, i, b, b1);
+				rendrlbl.setHorizontalAlignment(SwingConstants.CENTER);
+				return rendrlbl;
+			}
+		};
 
 		// Axis X
 		comboX = new JComboBox();
@@ -109,45 +129,83 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		comboFold.addActionListener(this);
 		comboFold.setActionCommand("FOLD");
 		comboFold.setEnabled(false);
-
-
-		DefaultListCellRenderer centerRenderer = new DefaultListCellRenderer() {
-			public Component getListCellRendererComponent(JList jList,
-					Object o, int i, boolean b, boolean b1) {
-				JLabel rendrlbl = (JLabel) super.getListCellRendererComponent(
-						jList, o, i, b, b1);
-				rendrlbl.setHorizontalAlignment(SwingConstants.CENTER);
-				return rendrlbl;
-			}
-		};
-
-		comboFold.setRenderer(centerRenderer);
+		comboFold.setRenderer(centeredRenderer);
 
 		JPanel pnlFold1 = new JPanel(new FlowLayout());
 		pnlFold1.add(new JLabel("Fold (nX)", SwingConstants.CENTER));
 		pnlFold1.add(comboFold);
 
+		// Search
 		txtSearchField = new JTextField();
 		txtSearchField.selectAll();
 		txtSearchField.setEnabled(true);
-		
+		txtSearchField.setPreferredSize(new Dimension(230, txtSearchField
+				.getPreferredSize().height));
+
+		minSearchField = new JFormattedTextField();
+		minSearchField.selectAll();
+		minSearchField.setEnabled(true);
+		minSearchField.setPreferredSize(new Dimension(100, minSearchField
+				.getPreferredSize().height));
+
+		labelRange = new JLabel("-");
+
+		maxSearchField = new JFormattedTextField();
+		maxSearchField.selectAll();
+		maxSearchField.setEnabled(true);
+		maxSearchField.setPreferredSize(new Dimension(100, maxSearchField
+				.getPreferredSize().height));
+
+		comboSearchDataType = new JComboBox(ScatterPlotSearchDataType.values());
+		comboSearchDataType.addActionListener(this);
+		comboSearchDataType.setActionCommand("SEARCH_DATA_TYPE");
+		comboSearchDataType.setEnabled(true);
+		comboSearchDataType.setRenderer(centeredRenderer);
+
 		btnSrch = new JButton("Search");
 		btnSrch.addActionListener(this);
 		btnSrch.setActionCommand("SEARCH");
 		btnSrch.setEnabled(true);
-		
+
+		JPanel pnlGridSearch = new JPanel();
+		pnlGridSearch.setLayout(new GridBagLayout());
+		GridBagConstraints cSrch = new GridBagConstraints();
+		cSrch.fill = GridBagConstraints.HORIZONTAL;
+		cSrch.insets = new Insets(5, 5, 5, 5);
+		// cSrch.ipadx = 50;
+		cSrch.gridwidth = 1;
+
+		cSrch.gridwidth = 3;
+		cSrch.gridx = 0;
+		cSrch.gridy = 0;
+		pnlGridSearch.add(txtSearchField, cSrch);
+		cSrch.gridwidth = 1;
+		cSrch.gridx = 0;
+		cSrch.gridy = 1;
+		pnlGridSearch.add(minSearchField, cSrch);
+		cSrch.gridx = 1;
+		pnlGridSearch.add(labelRange, cSrch);
+		cSrch.gridx = 2;
+		pnlGridSearch.add(maxSearchField, cSrch);
+
 		JPanel pnlSearch = new JPanel();
+		pnlSearch.setBorder(BorderFactory.createTitledBorder(BorderFactory
+				.createEtchedBorder(EtchedBorder.LOWERED), "Search by",
+				TitledBorder.LEFT, TitledBorder.TOP));
+
 		pnlSearch.setLayout(new BoxLayout(pnlSearch, BoxLayout.X_AXIS));
-		pnlSearch.add(txtSearchField);
-		pnlSearch.add(Box.createRigidArea(new Dimension(10, 1)));
+		pnlSearch.add(comboSearchDataType);
+		pnlSearch.add(pnlGridSearch);
 		pnlSearch.add(btnSrch);
-		
+		activeTextSearchField(true);
+
+		// Show items
 		labeledItems = new JCheckBox(" Show item's labels ");
 		labeledItems.addActionListener(this);
 		labeledItems.setHorizontalAlignment(SwingConstants.CENTER);
 		labeledItems.setActionCommand("LABEL_ITEMS");
 
-
+		// Bottom panel layout
 		JPanel pnlGrid = new JPanel();
 		pnlGrid.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
@@ -177,12 +235,11 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		c.gridy = 1;
 		pnlGrid.add(labeledItems, c);
 
-		
+		/*
+		 * c.gridx = 0; c.gridy = 2; pnlGrid.add(new JLabel("Search"), c);
+		 */
+		c.gridwidth = 4;
 		c.gridx = 0;
-		c.gridy = 2;
-		pnlGrid.add(new JLabel("Search"), c);
-		c.gridwidth = 3;
-		c.gridx = 1;
 		c.gridy = 2;
 		pnlGrid.add(pnlSearch, c);
 
@@ -192,7 +249,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 		// Creates plot and toolbar
 		plot = new ScatterPlotChart(this);
-        toolbar = new ScatterPlotToolBar(((ActionListener) plot));
+		toolbar = new ScatterPlotToolBar(((ActionListener) plot));
 
 		itemName = new JLabel("NO SELECTED POINT");
 		itemName.setForeground(Color.BLUE);
@@ -246,20 +303,19 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int x = comboX.getSelectedIndex();
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
-			try{
+			updateSelection();
+			/*try {
 				dataSet.updateListofAppliedSelection(txtSearchField.getText());
-			}
-			catch (PatternSyntaxException pe){
-				JOptionPane
-				.showMessageDialog(
-						this,
-						"The regular expression's syntax is invalid. " + pe.getPattern(),
-						"Searching item error",
+			} catch (PatternSyntaxException pe) {
+				JOptionPane.showMessageDialog(this,
+						"The regular expression's syntax is invalid. "
+								+ pe.getPattern(), "Searching item error",
 						JOptionPane.ERROR_MESSAGE);
 				txtSearchField.setText("");
-			}
+			}*/
 			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
-			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY.getSelectedItem().toString());
+			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY
+					.getSelectedItem().toString());
 			plot.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(plot, dataSet));
 			return;
@@ -271,25 +327,65 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			return;
 		}
 
-		if ((command.equals("ADD")) || (command.equals("REMOVE"))
-				|| (command.equals("LABEL_ITEMS"))
-				|| (command.equals("SEARCH"))) {
+		if (command.equals("LABEL_ITEMS")) {
 			setLabelItems(labeledItems.isSelected());
-			try{
-				dataSet.updateListofAppliedSelection(txtSearchField.getText());
-			}
-			catch(PatternSyntaxException pe){
-				JOptionPane
-				.showMessageDialog(
-						this,
-						"The regular expression's syntax is invalid. " + pe.getPattern(),
-						"Searching item error",
-						JOptionPane.ERROR_MESSAGE);
-				txtSearchField.setText("");
-				return;
-			}
+		}
+
+		if (command.equals("SEARCH")) {
+			setLabelItems(labeledItems.isSelected());
+			updateSelection();
+			/*ScatterPlotSearchDataType dataType = (ScatterPlotSearchDataType) comboSearchDataType
+					.getSelectedItem();
+			double value;
+			Range range;
+			switch (dataType) {
+			case NAME:
+				try {
+					dataSet.updateListofAppliedSelection(txtSearchField
+							.getText(), dataType);
+				} catch (Exception pe) {
+					JOptionPane.showMessageDialog(this,
+							"The regular expression's syntax is invalid.",
+							"Searching item error", JOptionPane.ERROR_MESSAGE);
+					txtSearchField.setText("");
+					return;
+				}
+				plot.setSeriesColor(dataSet);
+				break;
+			case MASS:
+				try {
+					value = ((Number) minSearchField.getValue()).doubleValue();
+					range = new Range(value);
+					value = ((Number) maxSearchField.getValue()).doubleValue();
+					range.extendRange(value);
+					dataSet.updateListofAppliedSelection(range, dataType);
+				} catch (Exception pe) {
+					JOptionPane.showMessageDialog(this,
+							"Invalid range of search", "Searching item error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				plot.setSeriesColor(dataSet);
+				break;
+			case RT:
+				try {
+					value = ((Number) minSearchField.getValue()).doubleValue();
+					range = new Range(value);
+					value = ((Number) maxSearchField.getValue()).doubleValue();
+					range.extendRange(value);
+					dataSet.updateListofAppliedSelection(range, dataType);
+				} catch (Exception pe) {
+					JOptionPane.showMessageDialog(this,
+							"Invalid range of search", "Searching item error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				plot.setSeriesColor(dataSet);
+				break;
+			}*/
 			plot.setSeriesColor(dataSet);
 			return;
+
 		}
 
 		if (command.equals("SETUP_AXES")) {
@@ -298,61 +394,114 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		}
 
 		if (command.equals("TIC")) {
-			
-				int index = getCursorPosition();
 
-				if (index == -1) {
-					JOptionPane
-							.showMessageDialog(
-									this,
-									"No point is selected, if you require to make a generic search use the main menu \"Search\"",
-									"Searching online error",
-									JOptionPane.ERROR_MESSAGE);
-					return;
+			int index = getCursorPosition();
+
+			if (index == -1) {
+				JOptionPane
+						.showMessageDialog(
+								this,
+								"No point is selected, if you require to make a generic search use the main menu \"Search\"",
+								"Searching online error",
+								JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			ChromatographicPeak[] peaks = dataSet.getPeaksAt(index);
+			Range rtRange = dataSet.getRawDataFilesRTRangeAt(index);
+			Range MZRange = null;
+
+			for (ChromatographicPeak p : peaks) {
+				if (MZRange == null) {
+					MZRange = p.getRawDataPointsMZRange();
+				} else {
+					MZRange.extendRange(p.getRawDataPointsMZRange());
 				}
-				
-				ChromatographicPeak[] peaks = dataSet.getPeaksAt(index);
-				Range rtRange = dataSet.getRawDataFilesRTRangeAt(index);
-				Range MZRange = null;
-				
-				for (ChromatographicPeak p: peaks){
-					if (MZRange == null){
-						MZRange = p.getRawDataPointsMZRange();
-					}
-					else {
-						MZRange.extendRange(p.getRawDataPointsMZRange());
-					}
-				}
-				
-				
-				TICVisualizer.showNewTICVisualizerWindow(
-						dataSet.getRawDataFilesDisplayed(),
-						peaks, 1,
-						TICVisualizerParameters.plotTypeBP, rtRange, MZRange);
+			}
+
+			TICVisualizer.showNewTICVisualizerWindow(dataSet
+					.getRawDataFilesDisplayed(), peaks, 1,
+					TICVisualizerParameters.plotTypeBP, rtRange, MZRange);
 
 		}
 
 		if (command.equals("SHOW_ITEM_NAME")) {
-			
+
 			int index = getCursorPosition();
-			if (index > -1){
-			String name = dataSet.getDataPointName(index);
-			if (name == "")
-				name = "Unknown";
-			itemName.setText(name);
+			if (index > -1) {
+				String name = dataSet.getDataPointName(index);
+				if (name == "")
+					name = "Unknown";
+				itemName.setText(name);
 			}
+		}
+
+		if (command.equals("SEARCH_DATA_TYPE")) {
+			ScatterPlotSearchDataType dataType = (ScatterPlotSearchDataType) comboSearchDataType
+					.getSelectedItem();
+			updateNumberFormats(dataType);
+			activeTextSearchField(dataType == ScatterPlotSearchDataType.NAME);
+			return;
 		}
 
 		if (command.equals("DATASET_UPDATED")) {
 			plot.getXYPlot().datasetChanged(
 					new DatasetChangeEvent(plot, dataSet));
 		}
-	
+
 		if (command.equals("DATASET_CREATED")) {
 			setDomainsValues(dataSet.getDomainsNames());
 			enableButtons();
 			plot.startDatasetCounter();
 			plot.addDataset(dataSet);
+		}
+
+	}
+
+	private void updateSelection() {
+		ScatterPlotSearchDataType dataType = (ScatterPlotSearchDataType) comboSearchDataType
+				.getSelectedItem();
+		double value;
+		Range range;
+		switch (dataType) {
+		case NAME:
+			try {
+				dataSet.updateListofAppliedSelection(txtSearchField.getText(),
+						dataType);
+			} catch (Exception pe) {
+				JOptionPane.showMessageDialog(this,
+						"The regular expression's syntax is invalid.",
+						"Searching item error", JOptionPane.ERROR_MESSAGE);
+				txtSearchField.setText("");
+				return;
+			}
+			break;
+		case MASS:
+			try {
+				value = ((Number) minSearchField.getValue()).doubleValue();
+				range = new Range(value);
+				value = ((Number) maxSearchField.getValue()).doubleValue();
+				range.extendRange(value);
+				dataSet.updateListofAppliedSelection(range, dataType);
+			} catch (Exception pe) {
+				JOptionPane.showMessageDialog(this, "Invalid range of search",
+						"Searching item error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			break;
+		case RT:
+			try {
+				value = ((Number) minSearchField.getValue()).doubleValue();
+				range = new Range(value);
+				value = ((Number) maxSearchField.getValue()).doubleValue();
+				range.extendRange(value);
+				dataSet.updateListofAppliedSelection(range, dataType);
+			} catch (Exception pe) {
+				JOptionPane.showMessageDialog(this, "Invalid range of search",
+						"Searching item error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			break;
 		}
 
 	}
@@ -383,6 +532,34 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		comboFold.setEnabled(true);
 	}
 
+	public void activeTextSearchField(boolean active) {
+		txtSearchField.setVisible(active);
+		minSearchField.setVisible(!active);
+		labelRange.setVisible(!active);
+		maxSearchField.setVisible(!active);
+	}
+
+	private void updateNumberFormats(ScatterPlotSearchDataType dataType) {
+
+		NumberFormat formatter;
+		Range range;
+		if (dataType == ScatterPlotSearchDataType.RT) {
+			formatter = MZmineCore.getRTFormat();
+			range = peakList.getRowsRTRange();
+		} else {
+			formatter = MZmineCore.getMZFormat();
+			range = peakList.getRowsMZRange();
+		}
+		DefaultFormatterFactory fac = new DefaultFormatterFactory(
+				new NumberFormatter(formatter));
+
+		minSearchField.setFormatterFactory(fac);
+		minSearchField.setValue(range.getMin());
+		maxSearchField.setFormatterFactory(fac);
+		maxSearchField.setValue(range.getMax());
+
+	}
+
 	public int selectedFold() {
 
 		String foldText = foldXvalues[comboFold.getSelectedIndex()];
@@ -406,14 +583,15 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 	public void setLabelItems(boolean status) {
 		int index = plot.getXYPlot().indexOf(dataSet);
 		plot.getXYPlot().getRenderer(index).setBaseItemLabelsVisible(status);
+		plot.getXYPlot().datasetChanged(new DatasetChangeEvent(plot, dataSet));
+
 	}
 
-	public ScatterPlotDataSet getDataSet(){
+	public ScatterPlotDataSet getDataSet() {
 		return dataSet;
 	}
 
-	public PeakList getPeakList(){
+	public PeakList getPeakList() {
 		return peakList;
 	}
 }
-
