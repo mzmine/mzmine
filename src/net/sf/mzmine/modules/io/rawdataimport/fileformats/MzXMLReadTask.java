@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 import java.util.zip.Inflater;
 
@@ -41,6 +42,8 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.xml.util.Base64;
 import org.xml.sax.Attributes;
@@ -147,6 +150,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
             if (status == TaskStatus.PROCESSING)
                 status = TaskStatus.ERROR;
             errorMessage = e.toString();
+            e.printStackTrace();
             return;
         }
 
@@ -437,7 +441,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
             // If we have no peaks with intensity of 0, we assume the scan is
             // centroided
-            if (i == j) {
+            //if ((i == j) && (centroid)){
+            if (ScanUtils.isCentroided(completeDataPoints)){
                 buildingScan.setCentroided(true);
                 buildingScan.setDataPoints(tempDataPoints);
             } else {

@@ -33,6 +33,7 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ScanUtils;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
@@ -448,17 +449,13 @@ public class NetCDFReadTask implements Task {
          * they are part the left/right part of the peak.
          */
 
-        int i, j, previous=0;
-        boolean centroid = true;
+        int i, j;
         for (i = 0, j = 0; i < completeDataPoints.length; i++) {
             double intensity = completeDataPoints[i].getIntensity();
             double mz = completeDataPoints[i].getMZ();
             if (completeDataPoints[i].getIntensity() > 0) {
                 tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
                 j++;
-                if ((i == previous+1) && (i != 1))
-                	centroid = false;
-                previous = i;
                 continue;
             }
             if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
@@ -479,8 +476,10 @@ public class NetCDFReadTask implements Task {
         SimpleScan buildingScan = new SimpleScan(scanNum, 1,
                 retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0],
                 false);
+        
 
-        if ((i == j) && (centroid)){
+        //if ((i == j) && (centroid)){
+        if (ScanUtils.isCentroided(completeDataPoints)){
             buildingScan.setCentroided(true);
             buildingScan.setDataPoints(tempDataPoints);
         } else {

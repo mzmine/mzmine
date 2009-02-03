@@ -26,7 +26,8 @@ Task controller
 
 Recognition of centroid/continuous scans is not perfect. 
 Control1.CDF scan 1027 is recognized as centroid which is not true.
-(Fixed 2009/2/2 Alex).
+(Implemented new utility (ScanUtils.isCentroided). 
+Change applied to all raw data file importers 2009/2/3 Alex).
 
 
 ***** Raw data filtering *****

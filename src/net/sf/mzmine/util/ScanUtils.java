@@ -256,4 +256,39 @@ public class ScanUtils {
         return -1;
 
     }
+    
+    public static boolean isCentroided(MzDataPoint[] dataPoints){
+     	
+    	boolean centroid = false;
+    	Range mzRange = null;
+		if (dataPoints.length == 1)
+			return true;
+
+		if (dataPoints.length > 0) {
+			mzRange = new Range(dataPoints[0].getMZ());
+			for (MzDataPoint dp : dataPoints){ 
+				mzRange.extendRange(dp.getMZ());
+			}
+		}
+		else{
+			return false;
+		}
+
+		double massStep = mzRange.getSize() / dataPoints.length;
+		double tempdiff, diff = 0, previousMass = dataPoints[0].getMZ();
+		for (MzDataPoint dp : dataPoints) {
+			tempdiff = Math.abs(dp.getMZ() - previousMass);
+			previousMass = dp.getMZ();
+			if (dp.getIntensity() == 0)
+				continue;
+			if (tempdiff > (massStep*1.5d) ){
+				centroid = true;
+				if (tempdiff > diff)
+					diff = tempdiff;
+			}
+		}
+		
+		return centroid;
+		
+    }
 }
