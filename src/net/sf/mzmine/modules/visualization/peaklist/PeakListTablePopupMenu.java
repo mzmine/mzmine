@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -26,6 +27,7 @@ import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Arrays;
 
+import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -52,6 +54,7 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.components.PeakSummaryComponent;
 
 import com.sun.java.TableSorter;
 
@@ -69,7 +72,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
 			showSpectrumItem, showXICItem, showMSMSItem,
 			showIsotopePatternItem, show2DItem, show3DItem, pubChemSearchItem,
-			manuallyDefineItem;
+			manuallyDefineItem, showPeakRowSummaryItem;
 
 	private RawDataFile clickedDataFile;
 	private PeakListRow clickedPeakListRow;
@@ -95,6 +98,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
 		showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
 				"Isotope pattern", this);
+		showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu,
+				"Peak row summary", this);
 
 		searchMenu = new JMenu("Search...");
 		this.add(searchMenu);
@@ -125,6 +130,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		show3DItem.setEnabled(false);
 		showMSMSItem.setEnabled(false);
 		showIsotopePatternItem.setEnabled(false);
+		showPeakRowSummaryItem.setEnabled(true);
 
 		// Enable row items if applicable
 		int selectedRows[] = table.getSelectedRows();
@@ -387,6 +393,23 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			originalModel.fireTableDataChanged();
 			ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
 					newRow);
+		}
+
+		if (src == showPeakRowSummaryItem) {
+
+			JInternalFrame newWindow = new JInternalFrame(clickedPeakListRow
+					.toString(), true, true, true, true);
+			newWindow.setLayout(new BorderLayout());
+			PeakSummaryComponent peakRowSummary = new PeakSummaryComponent(
+					clickedPeakListRow, clickedPeakListRow.getRawDataFiles(),
+					true, false, true, true, true, this.getBackground());
+			newWindow.add(peakRowSummary, BorderLayout.CENTER);
+			newWindow
+					.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+			newWindow.pack();
+			MZmineCore.getDesktop().addInternalFrame(newWindow);
+			newWindow.setVisible(true);
+
 		}
 
 	}

@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.logging.Logger;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -29,6 +30,7 @@ import javax.swing.table.TableCellRenderer;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 import net.sf.mzmine.util.components.PeakXICComponent;
@@ -39,6 +41,9 @@ import org.jfree.ui.OverlayLayout;
  * 
  */
 class PeakShapeCellRenderer implements TableCellRenderer {
+	
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
 
     private PeakList peakList;
     private PeakListTableParameters parameters;
@@ -99,7 +104,13 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
             PeakListRow plRow = (PeakListRow) value;
             
-            CombinedXICComponent xic = new CombinedXICComponent(plRow);
+            RawDataFile[] dataFiles = peakList.getRawDataFiles();
+        	ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
+        	for (int i=0; i<dataFiles.length; i++){
+        		peaks[i] = plRow.getPeak(dataFiles[i]);
+        	}
+        	
+            CombinedXICComponent xic = new CombinedXICComponent(peaks, plRow.getID());
 
             newPanel.add(xic);
             

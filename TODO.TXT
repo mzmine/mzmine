@@ -70,7 +70,9 @@ Peak recognition
 Peak list table
 * Combined XIC component should have a nicer tooltip showing which color is 
   which data file
+(Done 2009/2/4 Alex)
 * PeakSummaryComponent may be integrated into the tooltip
+(Done 2009/2/4 Alex)
 
 Scatter plot
 * Currently user can search only for compound name, but should also be able
@@ -97,6 +99,7 @@ Peak list row summary visualizer (new)
 * We should implement a new simple visualizer "Peak list row summary" with
   easy binding to all other visualizers and manual peak detection. This visualizer 
   can integrate the PeakSummaryComponent.
+(Done 2009/2/4 Alex)
 
 
 ***** Identification *****

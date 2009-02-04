@@ -20,6 +20,7 @@
 package net.sf.mzmine.util.components;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
@@ -29,6 +30,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseMotionListener;
+import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -37,8 +39,8 @@ import javax.swing.ToolTipManager;
 
 public class ComponentToolTipManager extends MouseAdapter implements
 		MouseMotionListener {
-	
-	//private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	String toolTipText;
 	Point preferredLocation;
@@ -50,6 +52,11 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	boolean tipShowing = false;
 	static boolean ignore = false;
 	private MouseMotionListener moveBeforeEnterListener = null;
+	
+	public static String CUSTOM = "Custom - ";
+	public static final Color bg = new Color(255, 250, 205);
+
+	
 
 	/**
      * 
@@ -114,17 +121,17 @@ public class ComponentToolTipManager extends MouseAdapter implements
 				location.x = screenLocation.x + mouseEvent.getX();
 				location.y = screenLocation.y + mouseEvent.getY() + 20;
 			}
-			
-			//int index = Integer.parseInt(toolTipText);
-			
+
+			// int index = Integer.parseInt(toolTipText);
+
 			Frame parentFrame = frameForComponent(insideComponent);
 
-      		
-      		tipWindow = new JWindow(parentFrame);
-      		tipWindow.setFocusableWindowState(false);
+			tipWindow = new JWindow(parentFrame);
+			tipWindow.setFocusableWindowState(false);
 			tipWindow.setLayout(new BorderLayout());
 			tipWindow.add(newToolTipComponent);
 			tipWindow.setLocation(location);
+			tipWindow.setBackground(bg);
 			tipWindow.pack();
 			tipWindow.setVisible(true);
 
@@ -161,11 +168,19 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	 */
 	public void registerComponent(JComponent component) {
 
+		try {
+			if (!isComponentToolTipProvider(component))
+				return;
+		} catch (ClassNotFoundException e) {
+			logger.severe("Error trying to register a ComponentToolTipProvider " + e.getMessage());
+			return;
+		}
+		
 		component.removeMouseListener(this);
 		component.addMouseListener(this);
 		component.removeMouseMotionListener(moveBeforeEnterListener);
 		component.addMouseMotionListener(moveBeforeEnterListener);
-		
+
 		ToolTipManager.sharedInstance().unregisterComponent(component);
 
 	}
@@ -202,7 +217,8 @@ public class ComponentToolTipManager extends MouseAdapter implements
 
 		JComponent component = (JComponent) event.getSource();
 		String newToolTipText = component.getToolTipText(event);
-		newToolTipComponent = ((ComponentToolTipProvider)component).getCustomToolTipComponent(event);
+		newToolTipComponent = ((ComponentToolTipProvider) component)
+				.getCustomToolTipComponent(event);
 
 		if (newToolTipComponent == null)
 			return;
@@ -223,7 +239,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		toolTipText = newToolTipText;
 		preferredLocation = component.getToolTipLocation(event);
 		insideComponent = component;
-		
+
 		showTipWindow();
 	}
 
@@ -291,18 +307,19 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		JComponent component = (JComponent) event.getSource();
 		String newText = component.getToolTipText(event);
 		Point newPreferredLocation = component.getToolTipLocation(event);
-		
+
 		if (newText != null || newPreferredLocation != null) {
 
 			if ((newText.equals(toolTipText))) {
 				return;
 			} else {
 
-				newToolTipComponent = ((ComponentToolTipProvider)component).getCustomToolTipComponent(event);
+				newToolTipComponent = ((ComponentToolTipProvider) component)
+						.getCustomToolTipComponent(event);
 
 				if (newToolTipComponent == null)
 					return;
-				
+
 				toolTipText = newText;
 				mouseEvent = event;
 				preferredLocation = newPreferredLocation;
@@ -314,8 +331,8 @@ public class ComponentToolTipManager extends MouseAdapter implements
 			hideTipWindow();
 		}
 	}
-	
-	private void reset(){
+
+	private void reset() {
 		toolTipText = null;
 		preferredLocation = null;
 		mouseEvent = null;
@@ -351,6 +368,38 @@ public class ComponentToolTipManager extends MouseAdapter implements
 			component = component.getParent();
 		}
 		return (Frame) component;
+	}
+
+	/**
+	 * Verifies if a component implements certain interface
+	 * 
+	 * @param obj
+	 * @param behavior
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
+	public static boolean isComponentToolTipProvider(Object obj)	throws ClassNotFoundException {
+
+		// get interface of ComponentToolTipProvider
+		Class bClass = Class.forName("net.sf.mzmine.util.components.ComponentToolTipProvider");
+		Class c = obj.getClass();
+
+		// walk back up hierarchy to check interfaces
+		while (c != null) {
+
+			// get interfaces for this class
+			Class[] ia = c.getInterfaces();
+
+			// is behavior among them?
+			for (int i = 0; i < ia.length; i++) {
+				if (ia[i] == bClass)
+					return true;
+			}
+			c = c.getSuperclass();
+
+		}
+
+		return false;
 	}
 
 }

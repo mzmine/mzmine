@@ -36,13 +36,11 @@ public class PeakSummaryTableCellRenderer extends DefaultTableCellRenderer {
 
 		Component newComponent = super.getTableCellRendererComponent(table,
 				value, isSelected, hasFocus, row, column);
+		
+		PeakSummaryTableModel listElementModel = (PeakSummaryTableModel) table.getModel();
 
-		if ((row == 0) && (column == 0)){
-			newComponent.setForeground(CombinedXICComponent.plotColors[0]);
-			((JLabel)newComponent).setHorizontalAlignment(SwingConstants.LEFT);
-		}else 
-		if ((row == 1) && (column == 0)){
-			newComponent.setForeground(CombinedXICComponent.plotColors[1]);
+		if (column == 0){
+			newComponent.setForeground(listElementModel.getPeakColor(row));
 			((JLabel)newComponent).setHorizontalAlignment(SwingConstants.LEFT);
 		}
 		else{

@@ -304,15 +304,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
 			updateSelection();
-			/*try {
-				dataSet.updateListofAppliedSelection(txtSearchField.getText());
-			} catch (PatternSyntaxException pe) {
-				JOptionPane.showMessageDialog(this,
-						"The regular expression's syntax is invalid. "
-								+ pe.getPattern(), "Searching item error",
-						JOptionPane.ERROR_MESSAGE);
-				txtSearchField.setText("");
-			}*/
 			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY
 					.getSelectedItem().toString());
@@ -334,55 +325,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		if (command.equals("SEARCH")) {
 			setLabelItems(labeledItems.isSelected());
 			updateSelection();
-			/*ScatterPlotSearchDataType dataType = (ScatterPlotSearchDataType) comboSearchDataType
-					.getSelectedItem();
-			double value;
-			Range range;
-			switch (dataType) {
-			case NAME:
-				try {
-					dataSet.updateListofAppliedSelection(txtSearchField
-							.getText(), dataType);
-				} catch (Exception pe) {
-					JOptionPane.showMessageDialog(this,
-							"The regular expression's syntax is invalid.",
-							"Searching item error", JOptionPane.ERROR_MESSAGE);
-					txtSearchField.setText("");
-					return;
-				}
-				plot.setSeriesColor(dataSet);
-				break;
-			case MASS:
-				try {
-					value = ((Number) minSearchField.getValue()).doubleValue();
-					range = new Range(value);
-					value = ((Number) maxSearchField.getValue()).doubleValue();
-					range.extendRange(value);
-					dataSet.updateListofAppliedSelection(range, dataType);
-				} catch (Exception pe) {
-					JOptionPane.showMessageDialog(this,
-							"Invalid range of search", "Searching item error",
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				plot.setSeriesColor(dataSet);
-				break;
-			case RT:
-				try {
-					value = ((Number) minSearchField.getValue()).doubleValue();
-					range = new Range(value);
-					value = ((Number) maxSearchField.getValue()).doubleValue();
-					range.extendRange(value);
-					dataSet.updateListofAppliedSelection(range, dataType);
-				} catch (Exception pe) {
-					JOptionPane.showMessageDialog(this,
-							"Invalid range of search", "Searching item error",
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				plot.setSeriesColor(dataSet);
-				break;
-			}*/
 			plot.setSeriesColor(dataSet);
 			return;
 

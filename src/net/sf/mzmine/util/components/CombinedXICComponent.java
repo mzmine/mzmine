@@ -24,7 +24,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -33,13 +32,13 @@ import javax.swing.border.Border;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 /**
  * Simple lightweight component for plotting peak shape
  */
-public class CombinedXICComponent extends JComponent {
+public class CombinedXICComponent extends JComponent{
 
     public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
 
@@ -54,24 +53,41 @@ public class CombinedXICComponent extends JComponent {
 
     private Range rtRange;
     private double maxIntensity;
+    private PeakListRow row;
 
     /**
      * @param PeakListRow Picked peak to plot
      */
-    public CombinedXICComponent(PeakListRow row) {
-    	this(row.getPeaks());
-    }
+    /*public CombinedXICComponent(PeakListRow row, RawDataFile[] dataFiles) {
+    	
+    	this.row = row;
+    	ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
+    	for (int i=0; i<dataFiles.length; i++){
+    		peaks[i] = row.getPeak(dataFiles[i]);
+    	}
+    	this(peaks);
+    	
+    	// We use the tool tip text as a id for customTooltipProvider
+        setToolTipText(ComponentToolTipManager.CUSTOM + row.getID());
+    }*/
 
     /**
      * @param ChromatographicPeak[] Picked peaks to plot
      */
-    public CombinedXICComponent(ChromatographicPeak[] peaks) {
+    public CombinedXICComponent(ChromatographicPeak[] peaks, int id) {
 
+    	// We use the tool tip text as a id for customTooltipProvider
+    	if (id >= 0)
+            setToolTipText(ComponentToolTipManager.CUSTOM + id);
+    	
     	double maxIntensity = 0;
     	this.peaks = peaks;
 
         // find data boundaries
         for (ChromatographicPeak peak : peaks) {
+        	if (peak == null)
+        		continue;
+        	
         	maxIntensity = Math.max(maxIntensity, peak.getRawDataPointsIntensityRange().getMax());
             if (rtRange == null)
                 rtRange = peak.getDataFile().getDataRTRange(1);
@@ -83,42 +99,8 @@ public class CombinedXICComponent extends JComponent {
 
         this.setBorder(componentBorder);
         
-        setToolTipContent();
-        
     }
     
-    private void setToolTipContent(){
-
-        StringBuffer toolTip = new StringBuffer();
-
-        int colorIndex = 0;
-
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
-
-        for (ChromatographicPeak peak : peaks) {
-
-            //ChromatographicPeak peak = peaks.getPeak(dataFile);
-
-            // if we have no data, just return
-            if (peak.getScanNumbers().length == 0)
-                continue;
-
-            //String htmlColor = Integer.toHexString(
-            //        plotColors[colorIndex].getRGB()).substring(2);
-
-            toolTip.append(peak.getDataFile().getName());
-            toolTip.append(": ");
-            toolTip.append(peak.toString());
-            toolTip.append(", " + intensityFormat.format(peak.getHeight()));
-            toolTip.append("´n");
-            colorIndex = (colorIndex + 1) % plotColors.length;
-
-        }
-
-        // add tooltip
-        setToolTipText(toolTip.toString());
-
-    }
 
     public void paint(Graphics g) {
 
@@ -138,7 +120,9 @@ public class CombinedXICComponent extends JComponent {
 
         for (ChromatographicPeak peak : peaks) {
 
-            //ChromatographicPeak peak = peaks.getPeak(dataFile);
+            // set color for current XIC
+            g2.setColor(plotColors[colorIndex]);
+            colorIndex = (colorIndex + 1) % plotColors.length;
 
             // if we have no data, just return
             if ((peak == null) || (peak.getScanNumbers().length == 0))
@@ -146,10 +130,6 @@ public class CombinedXICComponent extends JComponent {
 
             // get scan numbers, one data point per each scan
             int scanNumbers[] = peak.getScanNumbers();
-
-            // set color for current XIC
-            g2.setColor(plotColors[colorIndex]);
-            colorIndex = (colorIndex + 1) % plotColors.length;
 
             // for each datapoint, find [X:Y] coordinates of its point in
             // painted image

@@ -20,6 +20,7 @@
 
 package net.sf.mzmine.util.components;
 
+import java.awt.Color;
 import java.text.NumberFormat;
 import java.util.Vector;
 
@@ -36,6 +37,7 @@ public class PeakSummaryTableModel extends AbstractTableModel{
 			.getIntensityFormat();
 	
 	private Vector<ChromatographicPeak> peaks = new Vector<ChromatographicPeak>();
+	private Vector<Color> peakColors = new Vector<Color>();
 	
     private static String[] columnNames = {"File Name",
         "Mass",
@@ -87,8 +89,13 @@ public class PeakSummaryTableModel extends AbstractTableModel{
     	return false;
     }
     
-    public void addElement(ChromatographicPeak peak){
+    public Color getPeakColor(int row){
+    	return peakColors.get(row);
+    }
+    
+    public void addElement(ChromatographicPeak peak, Color peakColor){
     	peaks.add(peak);
+    	peakColors.add(peakColor);
     	fireTableRowsInserted(0,peaks.size()-1);
     }
     

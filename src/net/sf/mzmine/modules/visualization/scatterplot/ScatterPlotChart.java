@@ -215,7 +215,7 @@ public class ScatterPlotChart extends ChartPanel implements ComponentToolTipProv
 		RawDataFile[] dataFiles = new RawDataFile[] { rawDataFiles[indX], rawDataFiles[indY] };
 		PeakListRow row = dataSet.getPeakList().getRow(Integer.parseInt(index));
 		
-		return new PeakSummaryComponent(row, dataFiles);
+		return new PeakSummaryComponent(row, dataFiles, true, true, true, true, false, ComponentToolTipManager.bg);
 
 	}
 
