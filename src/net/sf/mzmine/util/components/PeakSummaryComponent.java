@@ -276,7 +276,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		JPanel buttonsPanel = new JPanel(new BorderLayout());
 		buttonsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		buttonsPanel.add(pnlShow, BorderLayout.NORTH);
-		buttonsPanel.add(btnChange, BorderLayout.CENTER);
+		buttonsPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+		buttonsPanel.add(btnChange, BorderLayout.SOUTH);
 		buttonsPanel.setBackground(bg);
 		buttonsPanel.setVisible(buttonsVisible);
 
@@ -373,7 +374,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 			if (visualizerType.equals("Chromatogram")) {
 				TICVisualizer.showNewTICVisualizerWindow(dataFiles,
-						selectedPeaks, 1, TICVisualizerParameters.plotTypeBP,
+						selectedPeaks, selectedPeaks, 1, TICVisualizerParameters.plotTypeBP,
 						rtRange, mzRange);
 				return;
 			} else if (visualizerType.equals("Mass spectrum")) {

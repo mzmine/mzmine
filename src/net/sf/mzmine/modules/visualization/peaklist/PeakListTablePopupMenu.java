@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Vector;
 
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
@@ -76,6 +77,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 	private RawDataFile clickedDataFile;
 	private PeakListRow clickedPeakListRow;
+	private PeakListRow[] allClickedPeakListRows;
 
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
@@ -123,47 +125,59 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	public void show(Component invoker, int x, int y) {
 
 		// First, disable all the Show... items
-		showXICItem.setEnabled(true);
+		showMenu.setEnabled(false);
+		searchMenu.setEnabled(false);
+		showXICItem.setEnabled(false);
 		manuallyDefineItem.setEnabled(false);
 		showSpectrumItem.setEnabled(false);
 		show2DItem.setEnabled(false);
 		show3DItem.setEnabled(false);
 		showMSMSItem.setEnabled(false);
 		showIsotopePatternItem.setEnabled(false);
-		showPeakRowSummaryItem.setEnabled(true);
+		showPeakRowSummaryItem.setEnabled(false);
 
 		// Enable row items if applicable
 		int selectedRows[] = table.getSelectedRows();
 		deleteRowsItem.setEnabled(selectedRows.length > 0);
 		plotRowsItem.setEnabled(selectedRows.length > 0);
+		showMenu.setEnabled(selectedRows.length > 0);
 
 		// Find the row and column where the user clicked
+		clickedDataFile = null;
 		Point clickedPoint = new Point(x, y);
 		int clickedRow = table.rowAtPoint(clickedPoint);
 		int clickedColumn = columnModel.getColumn(
 				table.columnAtPoint(clickedPoint)).getModelIndex();
 		if ((clickedRow >= 0) && (clickedColumn >= 0)) {
-
+			
 			TableSorter sorter = (TableSorter) table.getModel();
 			clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
-			showXICItem.setEnabled(true);
+			allClickedPeakListRows = new PeakListRow[selectedRows.length];
+			for (int i = 0; i < selectedRows.length; i++) {
+				allClickedPeakListRows[i] = peakList.getRow(sorter
+						.modelIndex(selectedRows[i]));
+			}
+			showXICItem.setEnabled(selectedRows.length > 0);
+			showPeakRowSummaryItem.setEnabled(selectedRows.length == 1);
 
 			// If we clicked on data file columns, check the peak
 			if (clickedColumn >= CommonColumnType.values().length) {
 
 				// Enable manual peak picking
-				manuallyDefineItem.setEnabled(true);
+				manuallyDefineItem.setEnabled(selectedRows.length == 1);
 
 				// Find the actual peak, if we have it
 				int dataFileIndex = (clickedColumn - CommonColumnType.values().length)
 						/ DataFileColumnType.values().length;
 				clickedDataFile = peakList.getRawDataFile(dataFileIndex);
 
+				PeakListRow clickedPeakListRow = peakList.getRow(sorter
+						.modelIndex(clickedRow));
 				ChromatographicPeak clickedPeak = clickedPeakListRow
 						.getPeak(clickedDataFile);
 
 				// If we have the peak, enable Show... items
-				if (clickedPeak != null) {
+				if ((clickedPeak != null) && (selectedRows.length == 1)){
 					showSpectrumItem.setEnabled(true);
 					show2DItem.setEnabled(true);
 					show3DItem.setEnabled(true);
@@ -171,6 +185,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 							.setEnabled(clickedPeak instanceof IsotopePattern);
 					showMSMSItem.setEnabled(clickedPeak
 							.getMostIntenseFragmentScanNumber() > 0);
+					
+					searchMenu.setEnabled(true);
+
 				}
 
 			}
@@ -226,58 +243,52 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		if (src == showXICItem) {
 
+			Range rtRange = null, mzRange = null;
+			Vector<RawDataFile> selectedDataFiles = new Vector<RawDataFile>();
+			Vector<ChromatographicPeak> selectedPeaks = new Vector<ChromatographicPeak>();
+			Vector<ChromatographicPeak> dataFilePeaks = new Vector<ChromatographicPeak>();
+			ChromatographicPeak[] peaks, preSelectedPeaks;
+
 			// Check if we clicked on a raw data file XIC, or combined XIC
-			if (clickedDataFile == null) {
-				Range rtRange = null, mzRange = null;
-				for (RawDataFile dataFile : clickedPeakListRow
-						.getRawDataFiles()) {
-					if (rtRange == null)
-						rtRange = dataFile.getDataRTRange(1);
-					else
-						rtRange.extendRange(dataFile.getDataRTRange(1));
+			for (PeakListRow row : allClickedPeakListRows) {
+					for (RawDataFile dataFile : row.getRawDataFiles()) {
+						if (!selectedDataFiles.contains(dataFile))
+							selectedDataFiles.add(dataFile);
+						if (rtRange == null)
+							rtRange = dataFile.getDataRTRange(1);
+						else
+							rtRange.extendRange(dataFile.getDataRTRange(1));
+					}
+					for (ChromatographicPeak peak : row.getPeaks()) {
+						selectedPeaks.add(peak);
+						if (clickedDataFile != null)
+							if (clickedDataFile == peak.getDataFile())
+								dataFilePeaks.add(peak);
+						if (mzRange == null)
+							mzRange = peak.getRawDataPointsMZRange();
+						else
+							mzRange.extendRange(peak.getRawDataPointsMZRange());
+					}
 				}
-				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-					if (mzRange == null)
-						mzRange = peak.getRawDataPointsMZRange();
-					else
-						mzRange.extendRange(peak.getRawDataPointsMZRange());
-				}
-				TICVisualizer.showNewTICVisualizerWindow(clickedPeakListRow
-						.getRawDataFiles(), clickedPeakListRow.getPeaks(), 1,
+				
+				peaks = selectedPeaks
+				.toArray(new ChromatographicPeak[0]);
+				
+				if (clickedDataFile != null)
+					preSelectedPeaks = dataFilePeaks.toArray(new ChromatographicPeak[0]);
+				else
+					preSelectedPeaks = peaks;
+				
+				TICVisualizer.showNewTICVisualizerWindow(selectedDataFiles
+						.toArray(new RawDataFile[0]), peaks, preSelectedPeaks, 1,
 						TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
+				
 				return;
-			}
-
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
-
-			if (clickedPeak != null) {
-				TICVisualizer.showNewTICVisualizerWindow(
-						new RawDataFile[] { clickedDataFile },
-						new ChromatographicPeak[] { clickedPeak }, 1,
-						TICVisualizerParameters.plotTypeBP, clickedDataFile
-								.getDataRTRange(1), clickedPeak
-								.getRawDataPointsMZRange());
-
-			} else {
-				Range mzRange = new Range(clickedPeakListRow.getAverageMZ());
-
-				for (ChromatographicPeak peak : clickedPeakListRow.getPeaks()) {
-					if (peak == null)
-						continue;
-					mzRange.extendRange(peak.getRawDataPointsMZRange());
-
-				}
-				TICVisualizer.showNewTICVisualizerWindow(
-						new RawDataFile[] { clickedDataFile }, null, 1,
-						TICVisualizerParameters.plotTypeBP, clickedDataFile
-								.getDataRTRange(1), mzRange);
-			}
 
 		}
 
 		if (src == show2DItem) {
-
+			
 			ChromatographicPeak clickedPeak = clickedPeakListRow
 					.getPeak(clickedDataFile);
 
@@ -371,6 +382,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			if (clickedDataFile != null)
 				clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
 
+			if (clickedPeak != null)
 			pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow,
 					clickedPeak);
 		}

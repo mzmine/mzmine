@@ -362,7 +362,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			}
 
 			TICVisualizer.showNewTICVisualizerWindow(dataSet
-					.getRawDataFilesDisplayed(), peaks, 1,
+					.getRawDataFilesDisplayed(), peaks, null, 1,
 					TICVisualizerParameters.plotTypeBP, rtRange, MZRange);
 
 		}

@@ -54,11 +54,16 @@ public class TICVisualizerParameters extends SimpleParameterSet {
             "Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
             "m/z", new Range(0, 1000), new Double(0), null,
             MZmineCore.getMZFormat());
+    
+    public static final Parameter selectionPeaks = new SimpleParameter(
+            ParameterType.MULTIPLE_SELECTION,
+            "Selected peaks",
+            "List of peaks to display in TIC visualizer");
 
     public TICVisualizerParameters() {
         super(
                 new Parameter[] { msLevel, plotType, retentionTimeRange,
-                        mzRange });
+                        mzRange , selectionPeaks});
     }
 
 }

@@ -47,6 +47,7 @@ public class PeakUtils {
         buf.append(mzFormat.format(peak.getMZ()));
         buf.append(" m/z @");
         buf.append(timeFormat.format(peak.getRT()));
+        buf.append(" ["+peak.getDataFile().getName() + "]");
         return buf.toString();
     }
 

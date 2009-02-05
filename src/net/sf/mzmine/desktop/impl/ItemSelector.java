@@ -155,7 +155,7 @@ public class ItemSelector extends JPanel implements ActionListener,
 
         if (command.equals("SHOW_TIC")) {
             RawDataFile[] selectedFiles = getSelectedRawData();
-            TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null);
+            TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null, null);
         }
 
         if (command.equals("RENAME_PEAKLIST")) {
@@ -243,7 +243,7 @@ public class ItemSelector extends JPanel implements ActionListener,
                     return;
                 RawDataFile clickedFile = (RawDataFile) rawDataFilesModel.get(clickedIndex);
                 TICVisualizer.showNewTICVisualizerWindow(
-                        new RawDataFile[] { clickedFile }, null);
+                        new RawDataFile[] { clickedFile }, null, null);
             }
 
             if (e.getSource() == peakLists) {

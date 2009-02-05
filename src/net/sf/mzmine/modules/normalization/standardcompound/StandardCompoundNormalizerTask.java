@@ -35,6 +35,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.normalization.linear.LinearNormalizerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.CollectionUtils;
 
 public class StandardCompoundNormalizerTask implements Task {
 
@@ -63,7 +64,8 @@ public class StandardCompoundNormalizerTask implements Task {
         peakMeasurementType = (String) parameters.getParameterValue(StandardCompoundNormalizerParameters.peakMeasurementType);
         MZvsRTBalance = (Double) parameters.getParameterValue(StandardCompoundNormalizerParameters.MZvsRTBalance);
         removeOriginal = (Boolean) parameters.getParameterValue(StandardCompoundNormalizerParameters.autoRemove);
-        standardRows= (PeakListRow[]) parameters.getParameterValue(StandardCompoundNormalizerParameters.standardCompounds);
+        Object stdRowObjects[] = (Object[]) parameters.getParameterValue(StandardCompoundNormalizerParameters.standardCompounds);
+        standardRows = CollectionUtils.changeArrayType(stdRowObjects, PeakListRow.class);
         
     }
 

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.util;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -42,6 +44,17 @@ public class CollectionUtils {
             array[index++] = it.next();
         }
         return array;
+    }
+    
+    public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
+    	
+    	T newArray[] = (T[]) Array.newInstance(newClass, array.length);
+ 
+    	for (int i = 0; i < array.length; i++) {
+    		newArray[i] = (T) array[i];
+    	}
+    	
+    	return newArray;
     }
 
     /**
