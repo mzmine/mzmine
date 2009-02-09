@@ -18,13 +18,12 @@
  */
 package net.sf.mzmine.modules.visualization.twod;
 
-import java.util.Iterator;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import org.dom4j.Element;
 
 public class PeakThresholdParameters extends SimpleParameterSet {
 
@@ -38,7 +37,4 @@ public class PeakThresholdParameters extends SimpleParameterSet {
 	public PeakThresholdParameters() {
 		super(new Parameter[] { intensityThreshold, topThreshold });
 	}
-        
-        
-
 }
