@@ -34,7 +34,7 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 class PeakDataSet extends AbstractXYDataset {
 
-	private PeakList peakList;
+	private PeakList peakList;	
 
 	private ChromatographicPeak peaks[];
 
@@ -71,7 +71,7 @@ class PeakDataSet extends AbstractXYDataset {
 
 			if (thisPeakDataPoints.size() > 0) {
 				PeakDataPoint dpArray[] = thisPeakDataPoints
-						.toArray(new PeakDataPoint[0]);
+				.toArray(new PeakDataPoint[0]);
 				processedPeaks.add(peak);
 				processedPeakDataPoints.add(dpArray);
 				thisPeakDataPoints.clear();
@@ -83,46 +83,7 @@ class PeakDataSet extends AbstractXYDataset {
 		dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
 
 	}
-       
-    PeakDataSet(RawDataFile dataFile, PeakList peakList, Range intensity) {
 
-        this.peakList = peakList;
-
-        Vector<ChromatographicPeak> processedPeaks = new Vector<ChromatographicPeak>(1024, 1024);
-        Vector<PeakDataPoint[]> processedPeakDataPoints = new Vector<PeakDataPoint[]>(
-                1024, 1024);
-        Vector<PeakDataPoint> thisPeakDataPoints = new Vector<PeakDataPoint>();
-
-        ChromatographicPeak allPeaks[] = peakList.getPeaks(dataFile);
-
-        for (ChromatographicPeak peak : allPeaks) {
-            if (intensity.contains(peak.getHeight())) {
-                int scanNumbers[] = peak.getScanNumbers();
-
-                for (int scan : scanNumbers) {
-
-                    double rt = dataFile.getScan(scan).getRetentionTime();
-                    MzDataPoint dp = peak.getMzPeak(scan);
-                    if (dp != null) {
-                        PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);
-                        thisPeakDataPoints.add(newDP);
-                    }
-
-                }
-
-                if (thisPeakDataPoints.size() > 0) {
-                    PeakDataPoint dpArray[] = thisPeakDataPoints.toArray(new PeakDataPoint[0]);
-                    processedPeaks.add(peak);
-                    processedPeakDataPoints.add(dpArray);
-                    thisPeakDataPoints.clear();
-                }
-            }
-        }
-
-        peaks = processedPeaks.toArray(new ChromatographicPeak[0]);
-        dataPoints = processedPeakDataPoints.toArray(new PeakDataPoint[0][]);
-
-    }
 
 	@Override
 	public int getSeriesCount() {
@@ -157,5 +118,5 @@ class PeakDataSet extends AbstractXYDataset {
 	public Number getY(int series, int item) {
 		return dataPoints[series][item].getMZ();
 	}
-   
+
 }

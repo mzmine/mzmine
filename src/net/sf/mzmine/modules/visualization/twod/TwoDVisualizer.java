@@ -41,119 +41,127 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class TwoDVisualizer implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private static TwoDVisualizer myInstance;
+	private static TwoDVisualizer myInstance;
 
-    private TwoDParameters parameters;
+	private TwoDParameters parameters;
 
-    private Desktop desktop;
+	private static PeakThresholdParameters peakThresholdParameters;
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
-     */
-    public void initModule() {
+	private Desktop desktop;
 
-        myInstance = this;
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 */
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		myInstance = this;
 
-        parameters = new TwoDParameters();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "2D plot",
-                "2D visualization", KeyEvent.VK_2, false, this, null);
+		peakThresholdParameters = new PeakThresholdParameters();
 
-    }
+		parameters = new TwoDParameters();   
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "2D plot",
+				"2D visualization", KeyEvent.VK_2, false, this, null);
 
-        logger.finest("Opening a new 2D visualizer setup dialog");
+	}
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length != 1) {
-            desktop.displayErrorMessage("Please select a single data file");
-            return;
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
-        autoValues.put(TwoDParameters.msLevel, 1);
-        autoValues.put(TwoDParameters.retentionTimeRange,
-                dataFiles[0].getDataRTRange(1));
-        autoValues.put(TwoDParameters.mzRange, dataFiles[0].getDataMZRange(1));
+		logger.finest("Opening a new 2D visualizer setup dialog");
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters,
-                autoValues);
+		RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+		if (dataFiles.length != 1) {
+			desktop.displayErrorMessage("Please select a single data file");
+			return;
+		}
 
-        dialog.setVisible(true);
+		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		autoValues.put(TwoDParameters.msLevel, 1);
+		autoValues.put(TwoDParameters.retentionTimeRange,
+				dataFiles[0].getDataRTRange(1));
+		autoValues.put(TwoDParameters.mzRange, dataFiles[0].getDataMZRange(1));
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters,
+				autoValues);
 
-        int msLevel = (Integer) parameters.getParameterValue(TwoDParameters.msLevel);
-        Range rtRange = (Range) parameters.getParameterValue(TwoDParameters.retentionTimeRange);
-        Range mzRange = (Range) parameters.getParameterValue(TwoDParameters.mzRange);
+		dialog.setVisible(true);
 
-        // Create a window, but do not add it to the desktop. It will be added
-        // automatically after finishing the sampling task.
-        new TwoDVisualizerWindow(dataFiles[0], msLevel, rtRange, mzRange);
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-    }
+		int msLevel = (Integer) parameters.getParameterValue(TwoDParameters.msLevel);
+		Range rtRange = (Range) parameters.getParameterValue(TwoDParameters.retentionTimeRange);
+		Range mzRange = (Range) parameters.getParameterValue(TwoDParameters.mzRange);
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
-     */
-    public String toString() {
-        return "2D visualizer";
-    }
+		// Create a window, but do not add it to the desktop. It will be added
+		// automatically after finishing the sampling task.
+		new TwoDVisualizerWindow(dataFiles[0], msLevel, rtRange, mzRange, peakThresholdParameters);
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (TwoDParameters) parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "2D visualizer";
+	}
 
-    public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
-            Range mzRange, Range rtRange) {
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-        Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
-        autoValues.put(TwoDParameters.msLevel, 1);
-        autoValues.put(TwoDParameters.retentionTimeRange,
-                dataFile.getDataRTRange(1));
-        autoValues.put(TwoDParameters.mzRange, dataFile.getDataMZRange(1));
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (TwoDParameters) parameters;
+	}
 
-        myInstance.parameters.setParameterValue(
-                TwoDParameters.retentionTimeRange, rtRange);
-        myInstance.parameters.setParameterValue(TwoDParameters.mzRange, mzRange);
+	static PeakThresholdParameters getThresholdParameters(){
+		return peakThresholdParameters;
+	}
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for 2D visualizer",
-                myInstance.parameters, autoValues);
+	public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
+			Range mzRange, Range rtRange) {
 
-        dialog.setVisible(true);
+		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		autoValues.put(TwoDParameters.msLevel, 1);
+		autoValues.put(TwoDParameters.retentionTimeRange,
+				dataFile.getDataRTRange(1));
+		autoValues.put(TwoDParameters.mzRange, dataFile.getDataMZRange(1));
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		myInstance.parameters.setParameterValue(
+				TwoDParameters.retentionTimeRange, rtRange);
+		myInstance.parameters.setParameterValue(TwoDParameters.mzRange, mzRange);
 
-        int msLevel = (Integer) myInstance.parameters.getParameterValue(TwoDParameters.msLevel);
-        rtRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.retentionTimeRange);
-        mzRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.mzRange);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for 2D visualizer",
+				myInstance.parameters, autoValues);
 
-        // Create a window, but do not add it to the desktop. It will be added
-        // automatically after finishing the sampling task.
-        new TwoDVisualizerWindow(dataFile, msLevel, rtRange, mzRange);
+		dialog.setVisible(true);
 
-    }
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
+
+		int msLevel = (Integer) myInstance.parameters.getParameterValue(TwoDParameters.msLevel);
+		rtRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.retentionTimeRange);
+		mzRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.mzRange);
+
+		// Create a window, but do not add it to the desktop. It will be added
+		// automatically after finishing the sampling task.
+		new TwoDVisualizerWindow(dataFile, msLevel, rtRange, mzRange, getThresholdParameters());
+
+	}
 
 }

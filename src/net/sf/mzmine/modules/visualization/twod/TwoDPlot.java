@@ -44,189 +44,176 @@ import org.jfree.ui.RectangleEdge;
  */
 class TwoDPlot extends ChartPanel {
 
-    // crosshair (selection) color
-    private static final Color crossHairColor = Color.gray;
+	// crosshair (selection) color
+	private static final Color crossHairColor = Color.gray;
 
-    // crosshair stroke
-    private static final BasicStroke crossHairStroke = new BasicStroke(1,
-            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
-                    5, 3 }, 0);
+	// crosshair stroke
+	private static final BasicStroke crossHairStroke = new BasicStroke(1,
+			BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+			5, 3 }, 0);
 
-    private RawDataFile rawDataFile;
-    private Range rtRange, mzRange;
+	private RawDataFile rawDataFile;
+	private Range rtRange, mzRange;
 
-    private JFreeChart chart;
+	private JFreeChart chart;
 
-    private TwoDXYPlot plot;
+	private TwoDXYPlot plot;
 
-    private PeakDataRenderer peakDataRenderer;
+	private PeakDataRenderer peakDataRenderer;
 
-    // title font
-    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
-            11);
-    private TextTitle chartTitle, chartSubTitle;
+	// title font
+	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+			11);
+	private TextTitle chartTitle, chartSubTitle;
 
-    private NumberAxis xAxis, yAxis;
+	private NumberAxis xAxis, yAxis;
 
-    private NumberFormat rtFormat = MZmineCore.getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat rtFormat = MZmineCore.getRTFormat();
+	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 
-    // private TwoDItemRenderer renderer;
+	// private TwoDItemRenderer renderer;
 
-    TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
-            TwoDDataSet dataset, Range rtRange, Range mzRange) {
+	TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
+			TwoDDataSet dataset, Range rtRange, Range mzRange) {
 
-        super(null, true);
+		super(null, true);
 
-        this.rawDataFile = rawDataFile;
-        this.rtRange = rtRange;
-        this.mzRange = mzRange;
+		this.rawDataFile = rawDataFile;
+		this.rtRange = rtRange;
+		this.mzRange = mzRange;
 
-        setBackground(Color.white);
-        setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		setBackground(Color.white);
+		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
+		NumberFormat rtFormat = MZmineCore.getRTFormat();
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
 
-        // set the X axis (retention time) properties
-        xAxis = new NumberAxis("Retention time");
-        xAxis.setAutoRangeIncludesZero(false);
-        xAxis.setNumberFormatOverride(rtFormat);
-        xAxis.setUpperMargin(0);
-        xAxis.setLowerMargin(0);
+		// set the X axis (retention time) properties
+		xAxis = new NumberAxis("Retention time");
+		xAxis.setAutoRangeIncludesZero(false);
+		xAxis.setNumberFormatOverride(rtFormat);
+		xAxis.setUpperMargin(0);
+		xAxis.setLowerMargin(0);
 
-        // set the Y axis (intensity) properties
-        yAxis = new NumberAxis("m/z");
-        yAxis.setAutoRangeIncludesZero(false);
-        yAxis.setNumberFormatOverride(mzFormat);
-        yAxis.setUpperMargin(0);
-        yAxis.setLowerMargin(0);
+		// set the Y axis (intensity) properties
+		yAxis = new NumberAxis("m/z");
+		yAxis.setAutoRangeIncludesZero(false);
+		yAxis.setNumberFormatOverride(mzFormat);
+		yAxis.setUpperMargin(0);
+		yAxis.setLowerMargin(0);
 
-        // set the plot properties
-        plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
-        plot.setBackgroundPaint(Color.white);
-        plot.setDomainGridlinesVisible(false);
-        plot.setRangeGridlinesVisible(false);
+		// set the plot properties
+		plot = new TwoDXYPlot(dataset, rtRange, mzRange, xAxis, yAxis);
+		plot.setBackgroundPaint(Color.white);
+		plot.setDomainGridlinesVisible(false);
+		plot.setRangeGridlinesVisible(false);
 
-        // chart properties
-        chart = new JFreeChart("", titleFont, plot, false);
-        chart.setBackgroundPaint(Color.white);
+		// chart properties
+		chart = new JFreeChart("", titleFont, plot, false);
+		chart.setBackgroundPaint(Color.white);
 
-        setChart(chart);
+		setChart(chart);
 
-        // title
-        chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
-        chartTitle.setFont(titleFont);
+		// title
+		chartTitle = chart.getTitle();
+		chartTitle.setMargin(5, 0, 0, 0);
+		chartTitle.setFont(titleFont);
 
-        chartSubTitle = new TextTitle();
-        chartSubTitle.setFont(subTitleFont);
-        chartSubTitle.setMargin(5, 0, 0, 0);
-        chart.addSubtitle(chartSubTitle);
+		chartSubTitle = new TextTitle();
+		chartSubTitle.setFont(subTitleFont);
+		chartSubTitle.setMargin(5, 0, 0, 0);
+		chart.addSubtitle(chartSubTitle);
 
-        // disable maximum size (we don't want scaling)
-        setMaximumDrawWidth(Integer.MAX_VALUE);
-        setMaximumDrawHeight(Integer.MAX_VALUE);
+		// disable maximum size (we don't want scaling)
+		setMaximumDrawWidth(Integer.MAX_VALUE);
+		setMaximumDrawHeight(Integer.MAX_VALUE);
 
-        // set crosshair (selection) properties
-        plot.setRangeCrosshairVisible(false);
-        plot.setDomainCrosshairVisible(true);
-        plot.setDomainCrosshairPaint(crossHairColor);
-        plot.setDomainCrosshairStroke(crossHairStroke);
+		// set crosshair (selection) properties
+		plot.setRangeCrosshairVisible(false);
+		plot.setDomainCrosshairVisible(true);
+		plot.setDomainCrosshairPaint(crossHairColor);
+		plot.setDomainCrosshairStroke(crossHairStroke);
 
-        // set rendering order
-        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+		// set rendering order
+		plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        peakDataRenderer = new PeakDataRenderer();
+		peakDataRenderer = new PeakDataRenderer();
 
-        /*
-         * add items to popup menu MenuItem annotationsMenuItem,
-         * dataPointsMenuItem, plotTypeMenuItem; // TODO plotTypeMenuItem = new
-         * JMenuItem("Toggle centroid/continuous mode");
-         * plotTypeMenuItem.addActionListener(visualizer);
-         * plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
-         * add(plotTypeMenuItem);
-         * 
-         * JPopupMenu popupMenu = getPopupMenu(); popupMenu.addSeparator();
-         * popupMenu.add(plotTypeMenuItem);
-         */
+		/*
+		 * add items to popup menu MenuItem annotationsMenuItem,
+		 * dataPointsMenuItem, plotTypeMenuItem; // TODO plotTypeMenuItem = new
+		 * JMenuItem("Toggle centroid/continuous mode");
+		 * plotTypeMenuItem.addActionListener(visualizer);
+		 * plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
+		 * add(plotTypeMenuItem);
+		 * 
+		 * JPopupMenu popupMenu = getPopupMenu(); popupMenu.addSeparator();
+		 * popupMenu.add(plotTypeMenuItem);
+		 */
 
-    }
+	}
 
-    TwoDXYPlot getXYPlot() {
-        return plot;
-    }
+	TwoDXYPlot getXYPlot() {
+		return plot;
+	}
 
-    void setTitle(String title) {
-        chartTitle.setText(title);
-    }
+	void setTitle(String title) {
+		chartTitle.setText(title);
+	}
 
-    void switchDataPointsVisible() {
+	void switchDataPointsVisible() {
 
-        boolean dataPointsVisible = peakDataRenderer.getBaseShapesVisible();
-        peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
+		boolean dataPointsVisible = peakDataRenderer.getBaseShapesVisible();
+		peakDataRenderer.setBaseShapesVisible(!dataPointsVisible);
 
-    }
+	}
 
-    void switchPeaksVisible() {
+	void setPeaksNotVisible() {
 
-        if (plot.getDataset(1) == null)
-            return;
+		if (plot.getDataset(1) == null)
+			return;       
+		plot.setRenderer(1, null);        
+	}
 
-        boolean peaksVisible = plot.getRenderer(1) != null;
-        if (peaksVisible) {
-            plot.setRenderer(1, null);
-        } else {
-            plot.setRenderer(1, peakDataRenderer);
-        }
-    }
+	PlotMode getPlotMode() {
+		return plot.getPlotMode();
+	}
 
-    PlotMode getPlotMode() {
-        return plot.getPlotMode();
-    }
+	void setPlotMode(PlotMode plotMode) {
+		plot.setPlotMode(plotMode);
+	}
 
-    void setPlotMode(PlotMode plotMode) {
-        plot.setPlotMode(plotMode);
-    }
+	void loadPeakList(PeakList peakList) {
 
-    void loadPeakList(PeakList peakList) {
+		PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
+				rtRange, mzRange);
 
-        PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
-                rtRange, mzRange);
+		plot.setDataset(1, peaksDataSet);
+		plot.setRenderer(1, peakDataRenderer);
+	}   
 
-        plot.setDataset(1, peaksDataSet);
-        plot.setRenderer(1, peakDataRenderer);
-    }
+	public String getToolTipText(MouseEvent event) {
 
-    void loadPeakListRange(PeakList peakList, Range intensity) {
-        PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
-                intensity);
-        plot.setDataset(1, peaksDataSet);
-        plot.setRenderer(1, peakDataRenderer);
-    }
+		String tooltip = super.getToolTipText(event);
 
-    public String getToolTipText(MouseEvent event) {
+		if (tooltip == null) {
+			int mouseX = event.getX();
+			int mouseY = event.getY();
+			Rectangle2D plotArea = getScreenDataArea();
+			RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
+			RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
+			double rt = (double) xAxis.java2DToValue(mouseX, plotArea,
+					xAxisEdge);
+			double mz = (double) yAxis.java2DToValue(mouseY, plotArea,
+					yAxisEdge);
 
-        String tooltip = super.getToolTipText(event);
+			tooltip = "Retention time: " + rtFormat.format(rt) + "m/z: "
+			+ mzFormat.format(mz);
+		}
 
-        if (tooltip == null) {
-            int mouseX = event.getX();
-            int mouseY = event.getY();
-            Rectangle2D plotArea = getScreenDataArea();
-            RectangleEdge xAxisEdge = plot.getDomainAxisEdge();
-            RectangleEdge yAxisEdge = plot.getRangeAxisEdge();
-            double rt = (double) xAxis.java2DToValue(mouseX, plotArea,
-                    xAxisEdge);
-            double mz = (double) yAxis.java2DToValue(mouseY, plotArea,
-                    yAxisEdge);
+		return tooltip;
 
-            tooltip = "Retention time: " + rtFormat.format(rt) + "´nm/z: "
-                    + mzFormat.format(mz);
-        }
-
-        return tooltip;
-
-    }
+	}
 
 }

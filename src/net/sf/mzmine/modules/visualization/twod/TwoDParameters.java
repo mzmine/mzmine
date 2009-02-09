@@ -25,29 +25,41 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.Range;
+import org.dom4j.Element;
 
 /**
  * 2D visualizer parameter set
  */
 public class TwoDParameters extends SimpleParameterSet {
 
-    public static final Integer[] msLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	public static final Integer[] msLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
 
-    public static final Parameter msLevel = new SimpleParameter(
-            ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,
-            msLevels);
+	public static final Parameter msLevel = new SimpleParameter(
+			ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,
+			msLevels);
 
-    public static final Parameter retentionTimeRange = new SimpleParameter(
-            ParameterType.RANGE, "Retention time",
-            "Retention time (X axis) range", null, new Range(0, 600),
-            new Double(0), null, MZmineCore.getRTFormat());
+	public static final Parameter retentionTimeRange = new SimpleParameter(
+			ParameterType.RANGE, "Retention time",
+			"Retention time (X axis) range", null, new Range(0, 600),
+			new Double(0), null, MZmineCore.getRTFormat());
 
-    public static final Parameter mzRange = new SimpleParameter(
-            ParameterType.RANGE, "m/z range", "m/z (Y axis) range", "m/z",
-            new Range(0, 1000), new Double(0), null, MZmineCore.getMZFormat());
+	public static final Parameter mzRange = new SimpleParameter(
+			ParameterType.RANGE, "m/z range", "m/z (Y axis) range", "m/z",
+			new Range(0, 1000), new Double(0), null, MZmineCore.getMZFormat());
 
-    public TwoDParameters() {
-        super(new Parameter[] { msLevel, retentionTimeRange, mzRange });
-    }
+	public TwoDParameters() {
+		super(new Parameter[] { msLevel, retentionTimeRange, mzRange });
+	}    
+
+
+	public void exportValuesToXML(Element element) {
+		super.exportValuesToXML(element);
+		TwoDVisualizer.getThresholdParameters().exportValuesToXML(element);
+	}  
+
+	public void importValuesFromXML(Element element) {
+		super.importValuesFromXML(element);
+		TwoDVisualizer.getThresholdParameters().importValuesFromXML(element);      
+	}
 
 }

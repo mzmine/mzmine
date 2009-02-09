@@ -41,26 +41,22 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-		ActionListener, TaskListener {
+ActionListener, TaskListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TwoDToolBar toolBar;
 	private TwoDPlot twoDPlot;
-	private TwoDBottomPanel bottomPanel;
+	private TwoDBottomPanel bottomPanel; 
 
 	private TwoDDataSet dataset;
 
 	private RawDataFile dataFile;
 	private int msLevel;
 
-	private Desktop desktop;
-        
-        private Range intensityRange;
-        
-        private int intensityProportion = 10;
+	private Desktop desktop;       
 
-	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, Range rtRange, Range mzRange) {
+	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, Range rtRange, Range mzRange, PeakThresholdParameters peakThresholdParameters) {
 
 		super(dataFile.toString(), true, true, true, true);
 
@@ -70,7 +66,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		setBackground(Color.white);
 
 		this.dataFile = dataFile;
-		this.msLevel = msLevel;
+		this.msLevel = msLevel;                
 
 		dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
 
@@ -80,8 +76,8 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
 		add(twoDPlot, BorderLayout.CENTER);
 
-		bottomPanel = new TwoDBottomPanel(this, dataFile);
-		add(bottomPanel, BorderLayout.SOUTH);
+		bottomPanel = new TwoDBottomPanel(this, dataFile, peakThresholdParameters);
+		add(bottomPanel, BorderLayout.SOUTH);               
 
 		updateTitle();
 
@@ -89,8 +85,8 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
 		// After we have constructed everything, load the peak lists into the
 		// bottom panel
-		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
-
+		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject()); 
+		bottomPanel.buildPeakThresholdSelector(MZmineCore.getCurrentProject());
 	}
 
 	void updateTitle() {
@@ -122,32 +118,20 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
 		if (command.equals("SHOW_DATA_POINTS")) {
 			twoDPlot.switchDataPointsVisible();
-		}
-
-		if (command.equals("SHOW_ANNOTATIONS")) {
-			twoDPlot.switchPeaksVisible();
-		}
+		}		
 
 		if (command.equals("PEAKLIST_CHANGE")) {
 
-			PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-			if (selectedPeakList == null)
-				return;
-
-			logger.finest("Loading a peak list " + selectedPeakList
-					+ " to a 2D view of " + dataFile);
-
-			twoDPlot.loadPeakList(selectedPeakList);
-
+			setPeakThreshold();
 		}
 
 		if (command.equals("SETUP_AXES")) {
 			AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
 			dialog.setVisible(true);
 		}
-		
+
 		if (command.equals("SWITCH_PLOTMODE")) {
-			
+
 			if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
 				toolBar.setCentroidButton(true);
 				twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
@@ -156,23 +140,54 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 				twoDPlot.setPlotMode(PlotMode.CENTROID);
 			}
 		}
-            
-            if (command.equals("SWITCH_INTENSITIES")) {
-                PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-                if (selectedPeakList == null) {
-                    return;
-                }
-                double maxIntensity = selectedPeakList.getDataPointMaxIntensity();
-                if (intensityRange == null || intensityProportion == 125) {
-                    intensityProportion = 1;
-                } else {
-                    intensityProportion *= 5;
-                }
-                intensityRange = new Range(0, maxIntensity / intensityProportion);
 
-                twoDPlot.loadPeakListRange(selectedPeakList, intensityRange);
-            }
+		if (command.equals("PEAKS_VIEW_THRESHOLD")) { 
+
+			setPeakThreshold();
+		}
+
+		if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
+
+			PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+			if (selectedPeakList == null) {
+				return;
+			}
+
+			twoDPlot.loadPeakList(selectedPeakList);
+		}
 	}
+
+	
+	private void setPeakThreshold(){
+		toolBar.toggleContinuousModeButtonSetEnable(true);
+
+		String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
+		if (selectedPeakThreshold == null) {
+			return;
+		}
+
+		if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())){
+			bottomPanel.peakTextFieldSetVisible(false);
+			toolBar.toggleContinuousModeButtonSetEnable(false);
+			twoDPlot.setPeaksNotVisible();
+		}
+		if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())){
+			bottomPanel.peakTextFieldSetVisible(false);                                
+		}
+		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName()) ||
+				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())){
+			bottomPanel.peakTextFieldSetVisible(true);                               
+		}
+
+		PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+		if (selectedPeakList == null) {
+			return;
+		}
+		twoDPlot.loadPeakList(selectedPeakList);
+
+		bottomPanel.revalidate();       
+	}
+
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)

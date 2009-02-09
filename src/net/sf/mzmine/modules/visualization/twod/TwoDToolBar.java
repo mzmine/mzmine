@@ -34,65 +34,53 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TwoDToolBar extends JToolBar {
 
-    static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
-    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon("icons/annotationsicon.png");
-    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
-    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
-    static final Icon intensityIcon = new ImageIcon("icons/intensitybaricon.png");
-    
-    private JButton centroidContinuousButton;
-    
-    TwoDToolBar(TwoDVisualizerWindow masterFrame) {
+	static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
+	static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");    
+	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+	static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+	static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
 
-        super(JToolBar.VERTICAL);
+	private JButton centroidContinuousButton, toggleContinuousModeButton;
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+	TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
-        GUIUtils.addButton(this, null, paletteIcon, masterFrame,
-                "SWITCH_PALETTE", "Switch palette");
-        
-        addSeparator();
-        
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS",
-                "Toggle displaying of data points in continuous mode");
-        
-        addSeparator();
-        
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+		super(JToolBar.VERTICAL);
 
-        addSeparator();
+		setFloatable(false);
+		setFocusable(false);
+		setMargin(new Insets(5, 5, 5, 5));
+		setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
-                "Setup ranges for axes");
-        
-        addSeparator();
-        
-        centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_PLOTMODE",
-        "Switch between continuous and centroided mode");       
-        
-        addSeparator();
+		GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+				"SWITCH_PALETTE", "Switch palette");
 
-        GUIUtils.addButton(this, null, intensityIcon, masterFrame,
-                "SWITCH_INTENSITIES", "Hide some peaks");     
-       
-        
-        
-    }
+		addSeparator();
 
-    void setCentroidButton(boolean centroid) {
-        if (centroid) {
-            centroidContinuousButton.setIcon(centroidIcon);
-        } else {
-            centroidContinuousButton.setIcon(continuousIcon);
-        }
-    }
-    
-    
+		toggleContinuousModeButton = GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
+				"SHOW_DATA_POINTS",
+		"Toggle displaying of data points in continuous mode");
+
+		addSeparator();      
+
+		GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+		"Setup ranges for axes");
+
+		addSeparator();
+
+		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_PLOTMODE",
+		"Switch between continuous and centroided mode");  
+
+	}
+
+	void setCentroidButton(boolean centroid) {
+		if (centroid) {
+			centroidContinuousButton.setIcon(centroidIcon);
+		} else {
+			centroidContinuousButton.setIcon(continuousIcon);
+		}
+	}
+
+	void toggleContinuousModeButtonSetEnable(boolean enable){
+		toggleContinuousModeButton.setEnabled(enable);
+	}
 }
