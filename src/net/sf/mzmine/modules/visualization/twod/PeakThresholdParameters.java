@@ -34,7 +34,13 @@ public class PeakThresholdParameters extends SimpleParameterSet {
 	public static final Parameter topThreshold = new SimpleParameter(            
 			ParameterType.INTEGER, "Top peaks threshold", "User-defined top peaks threshold", 0);
 
+	public static final Parameter topThresholdArea = new SimpleParameter(            
+			ParameterType.INTEGER, "Top peaks threshold in the displayed area", "User-defined top peaks threshold in the displayed area", 0);
+
+	public static final Parameter comboBoxIndexThreshold = new SimpleParameter(            
+			ParameterType.INTEGER, "Index threshold combo box", "Index threshold combo box", 0);
+
 	public PeakThresholdParameters() {
-		super(new Parameter[] { intensityThreshold, topThreshold });
+		super(new Parameter[] { intensityThreshold, topThreshold, topThresholdArea,comboBoxIndexThreshold});
 	}
 }

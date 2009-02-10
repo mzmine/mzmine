@@ -44,6 +44,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * 2D visualizer's bottom panel
@@ -133,7 +134,14 @@ InternalFrameListener {
 		if (selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())) {
 			peakTextField.setText(String.valueOf((Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThreshold)));
 		}
+
+		if (selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
+			peakTextField.setText(String.valueOf((Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThresholdArea)));
+		}
 		peakTextField.setVisible(b);
+
+		int index = peakSelector.getSelectedIndex();
+		peakThresholdParameters.setParameterValue(PeakThresholdParameters.comboBoxIndexThreshold, index);
 	}
 
 	/**   
@@ -151,7 +159,7 @@ InternalFrameListener {
 	PeakList getPeaksInThreshold() {
 		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
 		String selectedPeakOption = (String) peakSelector.getSelectedItem();
-		this.peakListSelector.setEnabled(true);
+		peakListSelector.setEnabled(true);
 
 		if (selectedPeakOption.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())) {                        
 			Double threshold = (Double) peakThresholdParameters.getParameterValue(PeakThresholdParameters.intensityThreshold);
@@ -174,12 +182,22 @@ InternalFrameListener {
 			}
 		}
 
+		if (selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
+			int threshold = (Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThresholdArea);
+			try {
+				threshold = Integer.valueOf(peakTextField.getText());
+				peakThresholdParameters.setParameterValue(PeakThresholdParameters.topThresholdArea, threshold);
+				return getTopThresholdPeakListDisplayedArea(threshold);
+			} catch (NumberFormatException exception) {
+			}
+		}
+
 		if (selectedPeakOption.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
 			return selectedPeakList;
 		} 
 
 		if (selectedPeakOption.equals(PeakThresholdMode.NO_PEAKS.getName())) {
-			this.peakListSelector.setEnabled(false);
+			peakListSelector.setEnabled(false);
 		} 
 
 		return null;
@@ -211,11 +229,37 @@ InternalFrameListener {
 			peakRows.add(peakRow);
 		}        
 		Collections.sort(peakRows, new PeakComparator());
+		if(threshold > peakRows.size()) threshold = peakRows.size();
 		for (int i = 0; i < threshold; i++) {          
 			newList.addRow(peakRows.elementAt(i));            
 		}        
 		return newList;
 	}
+
+	/**
+	 * Returns a peak list with the top peaks defined by the parameter "threshold" for 
+	 * the displayed area
+	 */
+	PeakList getTopThresholdPeakListDisplayedArea(int threshold) {
+		Range mzRange = masterFrame.getPlot().getXYPlot().getAxisRange();
+		Range rtRange = masterFrame.getPlot().getXYPlot().getDomainRange();
+
+		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
+		Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
+		for (PeakListRow peakRow : selectedPeakList.getRows()) {
+			if(mzRange.contains(peakRow.getAverageMZ()) && rtRange.contains(peakRow.getAverageRT())){
+				peakRows.add(peakRow);
+			}
+		}        
+		Collections.sort(peakRows, new PeakComparator());
+		if(threshold > peakRows.size()) threshold = peakRows.size();
+		for (int i = 0; i < threshold; i++) {          
+			newList.addRow(peakRows.elementAt(i));            
+		}        
+		return newList;
+	}
+
 
 	/**
 	 * Returns selected peak list
@@ -248,11 +292,13 @@ InternalFrameListener {
 	 */    
 	void buildPeakThresholdSelector(MZmineProject project) {
 		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
+		int index = (Integer)peakThresholdParameters.getParameterValue(PeakThresholdParameters.comboBoxIndexThreshold);
 		if (currentPeakLists.length > 0) {
 			for (PeakThresholdMode option : PeakThresholdMode.values()) {
 				peakSelector.addItem(option.getName());
 			}
 		}
+		peakSelector.setSelectedIndex(index);
 	}
 
 

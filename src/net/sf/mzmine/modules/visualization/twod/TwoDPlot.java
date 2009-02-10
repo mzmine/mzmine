@@ -86,9 +86,6 @@ class TwoDPlot extends ChartPanel {
 		setBackground(Color.white);
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-		NumberFormat rtFormat = MZmineCore.getRTFormat();
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
-
 		// set the X axis (retention time) properties
 		xAxis = new NumberAxis("Retention time");
 		xAxis.setAutoRangeIncludesZero(false);

@@ -21,9 +21,10 @@ package net.sf.mzmine.modules.visualization.twod;
 
 public enum PeakThresholdMode {        
 	ALL_PEAKS("All peaks"),
-        NO_PEAKS("No peaks"),
-	ABOVE_INTENSITY_PEAKS("Peaks above user-defined intesinty "),
-	TOP_PEAKS("User-defined top peaks");
+	NO_PEAKS("No peaks"),
+	ABOVE_INTENSITY_PEAKS("Peaks above user-defined intesinty"),
+	TOP_PEAKS("User-defined top peaks"),
+	TOP_PEAKS_AREA("User-defined top peaks in the displayed area");
 
 	private final String name;   
 

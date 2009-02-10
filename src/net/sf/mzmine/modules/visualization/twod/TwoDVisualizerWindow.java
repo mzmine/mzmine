@@ -157,7 +157,7 @@ ActionListener, TaskListener {
 		}
 	}
 
-	
+
 	private void setPeakThreshold(){
 		toolBar.toggleContinuousModeButtonSetEnable(true);
 
@@ -175,7 +175,8 @@ ActionListener, TaskListener {
 			bottomPanel.peakTextFieldSetVisible(false);                                
 		}
 		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName()) ||
-				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())){
+				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName()) ||
+				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())){
 			bottomPanel.peakTextFieldSetVisible(true);                               
 		}
 
