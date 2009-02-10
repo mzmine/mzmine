@@ -84,6 +84,7 @@ Scatter plot
   exception. 
   (Fixed 2009/2/2 Alex)
 
+
 Isotope pattern visualizer
 * Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes
 (Fixed 2009/2/2 Alex)
@@ -92,6 +93,7 @@ TIC/XIC visualizer
 * Visualizer should be able to show several peaks from one peaklist column
 * When showing a particular peak, the dialog should offer "smarter" retention
   time range, same as 3D visualizer
+* Bug: NullPointerException when TIC visualizer setup dialog is opening. (ParameterSetupDialog.java:303)
 
 Spectra visualizer
 * Bug: sometimes fragment scans are shown twice in MS/MS combo
