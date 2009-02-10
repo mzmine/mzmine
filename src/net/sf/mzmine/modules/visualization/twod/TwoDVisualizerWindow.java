@@ -120,7 +120,8 @@ ActionListener, TaskListener {
 			twoDPlot.switchDataPointsVisible();
 		}		
 
-		if (command.equals("PEAKLIST_CHANGE")) {
+		if (command.equals("PEAKLIST_CHANGE") || 
+				command.equals("PEAKS_VIEW_THRESHOLD")) {
 
 			setPeakThreshold();
 		}
@@ -141,10 +142,6 @@ ActionListener, TaskListener {
 			}
 		}
 
-		if (command.equals("PEAKS_VIEW_THRESHOLD")) { 
-
-			setPeakThreshold();
-		}
 
 		if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
 

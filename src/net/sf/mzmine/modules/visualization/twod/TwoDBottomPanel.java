@@ -187,7 +187,7 @@ InternalFrameListener {
 			try {
 				threshold = Integer.valueOf(peakTextField.getText());
 				peakThresholdParameters.setParameterValue(PeakThresholdParameters.topThresholdArea, threshold);
-				return getTopThresholdPeakListDisplayedArea(threshold);
+				return getTopThresholdPeakList(threshold);
 			} catch (NumberFormatException exception) {
 			}
 		}
@@ -210,6 +210,7 @@ InternalFrameListener {
 	PeakList getIntensityThresholdPeakList(double intensity) {
 		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
+
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
 			if (peakRow.getDataPointMaxIntensity() > intensity) {
 				newList.addRow(peakRow);
@@ -222,37 +223,29 @@ InternalFrameListener {
 	 * Returns a peak list with the top peaks defined by the parameter "threshold"
 	 */
 	PeakList getTopThresholdPeakList(int threshold) {
-		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
-		Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
-		for (PeakListRow peakRow : selectedPeakList.getRows()) {
-			peakRows.add(peakRow);
-		}        
-		Collections.sort(peakRows, new PeakComparator());
-		if(threshold > peakRows.size()) threshold = peakRows.size();
-		for (int i = 0; i < threshold; i++) {          
-			newList.addRow(peakRows.elementAt(i));            
-		}        
-		return newList;
-	}
-
-	/**
-	 * Returns a peak list with the top peaks defined by the parameter "threshold" for 
-	 * the displayed area
-	 */
-	PeakList getTopThresholdPeakListDisplayedArea(int threshold) {
-		Range mzRange = masterFrame.getPlot().getXYPlot().getAxisRange();
-		Range rtRange = masterFrame.getPlot().getXYPlot().getDomainRange();
 
 		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
+
 		Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
+
+		Range mzRange = selectedPeakList.getRowsMZRange();
+		Range rtRange = selectedPeakList.getRowsRTRange();
+
+		String selectedPeakOption = (String) peakSelector.getSelectedItem();
+		if(selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())){
+			mzRange = masterFrame.getPlot().getXYPlot().getAxisRange();
+			rtRange = masterFrame.getPlot().getXYPlot().getDomainRange();
+		}
+
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
 			if(mzRange.contains(peakRow.getAverageMZ()) && rtRange.contains(peakRow.getAverageRT())){
 				peakRows.add(peakRow);
 			}
-		}        
+		}  
+
 		Collections.sort(peakRows, new PeakComparator());
+
 		if(threshold > peakRows.size()) threshold = peakRows.size();
 		for (int i = 0; i < threshold; i++) {          
 			newList.addRow(peakRows.elementAt(i));            
