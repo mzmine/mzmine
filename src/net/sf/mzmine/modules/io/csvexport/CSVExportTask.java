@@ -37,19 +37,22 @@ class CSVExportTask implements Task {
 
 	// parameter values
 	private String fileName, fieldSeparator;
-	private ExportRowElement[] elements;
+	private ExportRowElement[] elements;       
 
 	CSVExportTask(PeakList peakList, CSVExporterParameters parameters) {
 
 		this.peakList = peakList;
 
 		fileName = (String) parameters
-				.getParameterValue(CSVExporterParameters.filename);
+		.getParameterValue(CSVExporterParameters.filename);
 		fieldSeparator = (String) parameters
-				.getParameterValue(CSVExporterParameters.fieldSeparator);
+		.getParameterValue(CSVExporterParameters.fieldSeparator);
 
-        elements = (ExportRowElement[]) parameters.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
-
+		Object[] elementsObject = (Object[]) parameters.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
+		elements = new ExportRowElement[elementsObject.length];
+		for(int i = 0; i < elementsObject.length; i++){
+			elements[i] = (ExportRowElement) elementsObject[i];
+		}
 	}
 
 	public void cancel() {
@@ -90,8 +93,8 @@ class CSVExportTask implements Task {
 		// Get number of rows
 		totalRows = peakList.getNumberOfRows();
 
-        RawDataFile rawDataFiles[] = peakList.getRawDataFiles(); 
-        
+		RawDataFile rawDataFiles[] = peakList.getRawDataFiles(); 
+
 		// Buffer for writing
 		StringBuffer line = new StringBuffer();
 
@@ -147,8 +150,8 @@ class CSVExportTask implements Task {
 						break;
 					case ROW_MZ:
 						line
-								.append(peakListRow.getAverageMZ()
-										+ fieldSeparator);
+						.append(peakListRow.getAverageMZ()
+								+ fieldSeparator);
 						break;
 					case ROW_RT:
 						line.append((peakListRow.getAverageRT() / 60)
@@ -166,7 +169,7 @@ class CSVExportTask implements Task {
 						if (peakListRow.getPreferredCompoundIdentity() == null) {
 							line.append(fieldSeparator);
 						} else {
-                            
+
 							line.append("\"" + peakListRow
 									.getPreferredCompoundIdentity().getName()
 									+ "\"" + fieldSeparator);
@@ -178,7 +181,7 @@ class CSVExportTask implements Task {
 						} else {
 							name = "";
 							PeakIdentity[] compoundIdentities = peakListRow
-									.getCompoundIdentities();
+							.getCompoundIdentities();
 							for (PeakIdentity compoundIdentity : compoundIdentities) {
 								name += compoundIdentity.getName() + " // ";
 							}
@@ -212,7 +215,7 @@ class CSVExportTask implements Task {
 				for (int i = 0; i < length; i++) {
 					if (!elements[i].isCommon()) {
 						ChromatographicPeak peak = peakListRow
-								.getPeak(dataFile);
+						.getPeak(dataFile);
 						if (peak != null) {
 							switch (elements[i]) {
 							case PEAK_STATUS:
