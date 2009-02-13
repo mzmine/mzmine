@@ -13,14 +13,13 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.util;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -45,28 +44,25 @@ public class CollectionUtils {
         }
         return array;
     }
-    
-    public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
-    	
-    	T newArray[] = (T[]) Array.newInstance(newClass, array.length);
- 
-    	for (int i = 0; i < array.length; i++) {
-    		newArray[i] = (T) array[i];
-    	}
-    	
-    	return newArray;
-    }
 
     /**
-     * Converts an array of ints to an array of Integers
+     * Change the type of array of Objects to an array of objects of type
+     * newClass. The code of the method is a bit tricky, but the purpose is to
+     * avoid warnings about unchecked casts.
      * 
-     * @param array Array of ints
-     * @return Array of Integers
      */
-    public static Integer[] toIntegerArray(int array[]) {
-        Integer newArray[] = new Integer[array.length];
-        for (int i = 0; i < array.length; i++)
-            newArray[i] = new Integer(array[i]);
+    public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
+
+        Object newArrayObject = Array.newInstance(newClass, array.length);
+
+        Class<T[]> newArrayClass = T[].class;
+
+        T newArray[] = newArrayClass.cast(newArrayObject);
+
+        for (int i = 0; i < array.length; i++) {
+            newArray[i] = newClass.cast(array[i]);
+        }
+
         return newArray;
     }
 
@@ -86,7 +82,7 @@ public class CollectionUtils {
         }
         return array;
     }
-    
+
     /**
      * Returns an array of doubles consisting of the elements of the specified
      * collection.
@@ -129,14 +125,12 @@ public class CollectionUtils {
      * @param needle object
      * @return true if haystack contains needle
      */
-     public static <T> boolean arrayContains(T haystack[], T needle) {
+    public static <T> boolean arrayContains(T haystack[], T needle) {
         for (T test : haystack) {
             if (needle.equals(test))
                 return true;
         }
         return false;
     }
-    
-
 
 }
