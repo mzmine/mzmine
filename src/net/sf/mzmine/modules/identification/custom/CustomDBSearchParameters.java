@@ -41,7 +41,7 @@ public class CustomDBSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter fieldOrder = new SimpleParameter(
 			ParameterType.ORDERED_LIST, "Field order",
-			"Order of items in which they are readed from database file", null,
+			"Order of items in which they are read from database file", null,
 			FieldItem.values());
 
 	public static final Parameter ignoreFirstLine = new SimpleParameter(
