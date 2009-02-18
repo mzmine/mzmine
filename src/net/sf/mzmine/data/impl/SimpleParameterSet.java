@@ -239,7 +239,7 @@ public class SimpleParameterSet implements StorableParameterSet {
 
             if ((p.getType() == ParameterType.MULTIPLE_SELECTION)
                     || (p.getType() == ParameterType.ORDERED_LIST)) {
-                Object[] values = p.getPossibleValues();
+                Object[] values = (Object[]) getParameterValue(p);
                 if (values != null) {
                     String valueAsString = "";
                     for (int i = 0; i < values.length; i++) {
@@ -321,7 +321,7 @@ public class SimpleParameterSet implements StorableParameterSet {
 
                 for (int i = 0; i < stringMultipleValues.length; i++) {
                     for (int j = 0; j < possibleMultipleValues.length; j++)
-                        if (stringMultipleValues[i].equals(possibleMultipleValues[j].toString()))
+                        if (stringMultipleValues[i].equals(String.valueOf(possibleMultipleValues[j])))
                             multipleValues.add(possibleMultipleValues[j]);
                 }
                 value = multipleValues.toArray();
@@ -335,11 +335,11 @@ public class SimpleParameterSet implements StorableParameterSet {
                 Object possibleValues[] = param.getPossibleValues();
                 Object orderedValues[] = new Object[stringValues.length];
                 for (int i = 0; i < stringValues.length; i++) {
-                    for (int j = 0; j < possibleValues.length; j++)
-                        if (stringValues[i].equals(possibleValues[j].toString()))
+                    for (int j = 0; j < possibleValues.length; j++) {
+                        if (stringValues[i].equals(String.valueOf(possibleValues[j])))
                             orderedValues[i] = possibleValues[j];
+                    }
                 }
-
                 value = orderedValues;
                 break;
             }
