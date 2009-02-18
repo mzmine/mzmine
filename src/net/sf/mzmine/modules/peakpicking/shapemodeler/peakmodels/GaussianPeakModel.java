@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzPeak;
@@ -29,13 +28,10 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
-import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class GaussianPeakModel implements ChromatographicPeak {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private double FWHM, partC, part2C2;
 

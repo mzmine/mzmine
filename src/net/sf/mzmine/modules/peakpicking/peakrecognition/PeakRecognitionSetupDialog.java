@@ -159,7 +159,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
         c.gridx = 0;
         c.gridy = 4;
-        pnlCombo.add(new JLabel(parameters.autoRemove.getName()), c);
+        pnlCombo.add(new JLabel(PeakRecognitionParameters.autoRemove.getName()), c);
         c.gridx = 1;
         pnlCombo.add(removeOriginalCheckBox, c);
         

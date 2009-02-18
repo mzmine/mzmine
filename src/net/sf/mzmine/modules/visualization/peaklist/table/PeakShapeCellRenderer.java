@@ -13,15 +13,14 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.logging.Logger;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -41,13 +40,10 @@ import org.jfree.ui.OverlayLayout;
  * 
  */
 class PeakShapeCellRenderer implements TableCellRenderer {
-	
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-
 
     private PeakList peakList;
     private PeakListTableParameters parameters;
-    
+
     /**
      * 
      */
@@ -78,7 +74,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
             ChromatographicPeak peak = (ChromatographicPeak) value;
             double maxHeight = 0;
-            
+
             switch (parameters.getPeakShapeNormalization()) {
             case GLOBALMAX:
                 maxHeight = peakList.getDataPointMaxIntensity();
@@ -91,31 +87,32 @@ class PeakShapeCellRenderer implements TableCellRenderer {
                 maxHeight = peak.getRawDataPointsIntensityRange().getMax();
                 break;
             }
-            
+
             PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
             newPanel.add(xic);
 
             newPanel.setToolTipText(xic.getToolTipText());
-           
+
         }
-        
+
         if (value instanceof PeakListRow) {
 
             PeakListRow plRow = (PeakListRow) value;
-            
+
             RawDataFile[] dataFiles = peakList.getRawDataFiles();
-        	ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
-        	for (int i=0; i<dataFiles.length; i++){
-        		peaks[i] = plRow.getPeak(dataFiles[i]);
-        	}
-        	
-            CombinedXICComponent xic = new CombinedXICComponent(peaks, plRow.getID());
+            ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
+            for (int i = 0; i < dataFiles.length; i++) {
+                peaks[i] = plRow.getPeak(dataFiles[i]);
+            }
+
+            CombinedXICComponent xic = new CombinedXICComponent(peaks,
+                    plRow.getID());
 
             newPanel.add(xic);
-            
+
             newPanel.setToolTipText(xic.getToolTipText());
-           
+
         }
 
         return newPanel;

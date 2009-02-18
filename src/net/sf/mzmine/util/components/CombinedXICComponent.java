@@ -31,8 +31,6 @@ import javax.swing.border.Border;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -48,28 +46,10 @@ public class CombinedXICComponent extends JComponent{
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
 
-    //private PeakListRow peaks;
     private ChromatographicPeak[] peaks;
 
     private Range rtRange;
     private double maxIntensity;
-    private PeakListRow row;
-
-    /**
-     * @param PeakListRow Picked peak to plot
-     */
-    /*public CombinedXICComponent(PeakListRow row, RawDataFile[] dataFiles) {
-    	
-    	this.row = row;
-    	ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
-    	for (int i=0; i<dataFiles.length; i++){
-    		peaks[i] = row.getPeak(dataFiles[i]);
-    	}
-    	this(peaks);
-    	
-    	// We use the tool tip text as a id for customTooltipProvider
-        setToolTipText(ComponentToolTipManager.CUSTOM + row.getID());
-    }*/
 
     /**
      * @param ChromatographicPeak[] Picked peaks to plot

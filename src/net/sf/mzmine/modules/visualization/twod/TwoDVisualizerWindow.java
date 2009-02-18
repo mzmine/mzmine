@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.twod;
@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Logger;
 
 import javax.swing.JInternalFrame;
 
@@ -41,176 +40,174 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-ActionListener, TaskListener {
+        ActionListener, TaskListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private TwoDToolBar toolBar;
+    private TwoDPlot twoDPlot;
+    private TwoDBottomPanel bottomPanel;
 
-	private TwoDToolBar toolBar;
-	private TwoDPlot twoDPlot;
-	private TwoDBottomPanel bottomPanel; 
+    private TwoDDataSet dataset;
 
-	private TwoDDataSet dataset;
+    private RawDataFile dataFile;
+    private int msLevel;
 
-	private RawDataFile dataFile;
-	private int msLevel;
+    private Desktop desktop;
 
-	private Desktop desktop;       
+    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
+            Range rtRange, Range mzRange,
+            PeakThresholdParameters peakThresholdParameters) {
 
-	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel, Range rtRange, Range mzRange, PeakThresholdParameters peakThresholdParameters) {
+        super(dataFile.toString(), true, true, true, true);
 
-		super(dataFile.toString(), true, true, true, true);
+        this.desktop = MZmineCore.getDesktop();
 
-		this.desktop = MZmineCore.getDesktop();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
+        this.dataFile = dataFile;
+        this.msLevel = msLevel;
 
-		this.dataFile = dataFile;
-		this.msLevel = msLevel;                
+        dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
 
-		dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
+        toolBar = new TwoDToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
-		toolBar = new TwoDToolBar(this);
-		add(toolBar, BorderLayout.EAST);
+        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
+        add(twoDPlot, BorderLayout.CENTER);
 
-		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
-		add(twoDPlot, BorderLayout.CENTER);
+        bottomPanel = new TwoDBottomPanel(this, dataFile,
+                peakThresholdParameters);
+        add(bottomPanel, BorderLayout.SOUTH);
 
-		bottomPanel = new TwoDBottomPanel(this, dataFile, peakThresholdParameters);
-		add(bottomPanel, BorderLayout.SOUTH);               
+        updateTitle();
 
-		updateTitle();
+        pack();
 
-		pack();
+        // After we have constructed everything, load the peak lists into the
+        // bottom panel
+        bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
+        bottomPanel.buildPeakThresholdSelector(MZmineCore.getCurrentProject());
+    }
 
-		// After we have constructed everything, load the peak lists into the
-		// bottom panel
-		bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject()); 
-		bottomPanel.buildPeakThresholdSelector(MZmineCore.getCurrentProject());
-	}
+    void updateTitle() {
 
-	void updateTitle() {
+        StringBuffer title = new StringBuffer();
+        title.append("[");
+        title.append(dataFile.toString());
+        title.append("]: 2D view");
 
-		StringBuffer title = new StringBuffer();
-		title.append("[");
-		title.append(dataFile.toString());
-		title.append("]: 2D view");
+        setTitle(title.toString());
 
-		setTitle(title.toString());
+        title.append(", MS");
+        title.append(msLevel);
 
-		title.append(", MS");
-		title.append(msLevel);
+        twoDPlot.setTitle(title.toString());
 
-		twoDPlot.setTitle(title.toString());
+    }
 
-	}
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent event) {
+        String command = event.getActionCommand();
 
-		String command = event.getActionCommand();
+        if (command.equals("SWITCH_PALETTE")) {
+            twoDPlot.getXYPlot().switchPalette();
+        }
 
-		if (command.equals("SWITCH_PALETTE")) {
-			twoDPlot.getXYPlot().switchPalette();
-		}
+        if (command.equals("SHOW_DATA_POINTS")) {
+            twoDPlot.switchDataPointsVisible();
+        }
 
-		if (command.equals("SHOW_DATA_POINTS")) {
-			twoDPlot.switchDataPointsVisible();
-		}		
+        if (command.equals("PEAKLIST_CHANGE")
+                || command.equals("PEAKS_VIEW_THRESHOLD")) {
 
-		if (command.equals("PEAKLIST_CHANGE") || 
-				command.equals("PEAKS_VIEW_THRESHOLD")) {
+            setPeakThreshold();
+        }
 
-			setPeakThreshold();
-		}
+        if (command.equals("SETUP_AXES")) {
+            AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+            dialog.setVisible(true);
+        }
 
-		if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
-			dialog.setVisible(true);
-		}
+        if (command.equals("SWITCH_PLOTMODE")) {
 
-		if (command.equals("SWITCH_PLOTMODE")) {
+            if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+                toolBar.setCentroidButton(true);
+                twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+            } else {
+                toolBar.setCentroidButton(false);
+                twoDPlot.setPlotMode(PlotMode.CENTROID);
+            }
+        }
 
-			if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-				toolBar.setCentroidButton(true);
-				twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-			} else {
-				toolBar.setCentroidButton(false);
-				twoDPlot.setPlotMode(PlotMode.CENTROID);
-			}
-		}
+        if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
 
+            PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+            if (selectedPeakList == null) {
+                return;
+            }
 
-		if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
+            twoDPlot.loadPeakList(selectedPeakList);
+        }
+    }
 
-			PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-			if (selectedPeakList == null) {
-				return;
-			}
+    private void setPeakThreshold() {
+        toolBar.toggleContinuousModeButtonSetEnable(true);
 
-			twoDPlot.loadPeakList(selectedPeakList);
-		}
-	}
+        String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
+        if (selectedPeakThreshold == null) {
+            return;
+        }
 
+        if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())) {
+            bottomPanel.peakTextFieldSetVisible(false);
+            toolBar.toggleContinuousModeButtonSetEnable(false);
+            twoDPlot.setPeaksNotVisible();
+        }
+        if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
+            bottomPanel.peakTextFieldSetVisible(false);
+        }
+        if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())
+                || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())
+                || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
+            bottomPanel.peakTextFieldSetVisible(true);
+        }
 
-	private void setPeakThreshold(){
-		toolBar.toggleContinuousModeButtonSetEnable(true);
+        PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+        if (selectedPeakList == null) {
+            return;
+        }
+        twoDPlot.loadPeakList(selectedPeakList);
 
-		String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
-		if (selectedPeakThreshold == null) {
-			return;
-		}
+        bottomPanel.revalidate();
+    }
 
-		if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())){
-			bottomPanel.peakTextFieldSetVisible(false);
-			toolBar.toggleContinuousModeButtonSetEnable(false);
-			twoDPlot.setPeaksNotVisible();
-		}
-		if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())){
-			bottomPanel.peakTextFieldSetVisible(false);                                
-		}
-		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName()) ||
-				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName()) ||
-				selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())){
-			bottomPanel.peakTextFieldSetVisible(true);                               
-		}
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskFinished(Task task) {
+        if (task.getStatus() == TaskStatus.ERROR) {
+            desktop.displayErrorMessage("Error while updating 2D visualizer: "
+                    + task.getErrorMessage());
+        }
 
-		PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-		if (selectedPeakList == null) {
-			return;
-		}
-		twoDPlot.loadPeakList(selectedPeakList);
+        if (task.getStatus() == TaskStatus.FINISHED) {
+            // Add this window to desktop
+            desktop.addInternalFrame(this);
+        }
+    }
 
-		bottomPanel.revalidate();       
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
+     */
+    public void taskStarted(Task task) {
+        // ignore
+    }
 
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskFinished(Task task) {
-		if (task.getStatus() == TaskStatus.ERROR) {
-			desktop.displayErrorMessage("Error while updating 2D visualizer: "
-					+ task.getErrorMessage());
-		}
-
-		if (task.getStatus() == TaskStatus.FINISHED) {
-			// Add this window to desktop
-			desktop.addInternalFrame(this);
-		}
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskStarted(Task task) {
-		// ignore
-	}
-
-	TwoDPlot getPlot() {
-		return twoDPlot;
-	}
+    TwoDPlot getPlot() {
+        return twoDPlot;
+    }
 
 }
