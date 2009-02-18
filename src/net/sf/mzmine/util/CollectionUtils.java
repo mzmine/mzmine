@@ -47,17 +47,13 @@ public class CollectionUtils {
 
     /**
      * Change the type of array of Objects to an array of objects of type
-     * newClass. The code of the method is a bit tricky, but the purpose is to
-     * avoid warnings about unchecked casts.
+     * newClass.
      * 
      */
+    @SuppressWarnings("unchecked")
     public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
-        Object newArrayObject = Array.newInstance(newClass, array.length);
-
-        Class<T[]> newArrayClass = T[].class;
-
-        T newArray[] = newArrayClass.cast(newArrayObject);
+        T newArray[] = (T[]) Array.newInstance(newClass, array.length);
 
         for (int i = 0; i < array.length; i++) {
             newArray[i] = newClass.cast(array[i]);
