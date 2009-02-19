@@ -99,6 +99,7 @@ public class SimpleParameterSet implements StorableParameterSet {
     public void setMultipleSelection(Parameter parameter,
             Object[] selectionArray) {
         assert parameter.getType() == ParameterType.MULTIPLE_SELECTION;
+        if (selectionArray == null) selectionArray = new Object[0];
         multipleSelectionValues.put(parameter, selectionArray);
     }
 

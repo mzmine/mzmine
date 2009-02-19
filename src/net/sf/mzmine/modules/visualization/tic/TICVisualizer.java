@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.tic;
@@ -77,8 +77,9 @@ public class TICVisualizer implements MZmineModule, ActionListener {
     }
 
     public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            ChromatographicPeak[] peaks, ChromatographicPeak[] preSelectedPeaks, int msLevel, Object plotType,
-            Range rtRange, Range mzRange) {
+            ChromatographicPeak[] peaks,
+            ChromatographicPeak[] preSelectedPeaks, int msLevel,
+            Object plotType, Range rtRange, Range mzRange) {
         TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters.clone();
         newParameters.setParameterValue(TICVisualizerParameters.msLevel,
                 msLevel);
@@ -88,22 +89,23 @@ public class TICVisualizer implements MZmineModule, ActionListener {
                 TICVisualizerParameters.retentionTimeRange, rtRange);
         newParameters.setParameterValue(TICVisualizerParameters.mzRange,
                 mzRange);
-        newParameters.setMultipleSelection(TICVisualizerParameters.selectionPeaks,
-                peaks);
+        newParameters.setMultipleSelection(
+                TICVisualizerParameters.selectionPeaks, peaks);
         newParameters.setParameterValue(TICVisualizerParameters.selectionPeaks,
-        		preSelectedPeaks);
+                preSelectedPeaks);
 
         myInstance.showNewTICVisualizerWindow(dataFiles, newParameters);
     }
 
     public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
             ChromatographicPeak[] peaks, ChromatographicPeak[] preSelectedPeaks) {
-    	
+
         TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters.clone();
-        newParameters.setMultipleSelection(TICVisualizerParameters.selectionPeaks,
-                peaks);
-        newParameters.setParameterValue(TICVisualizerParameters.selectionPeaks,
-        		preSelectedPeaks);
+        newParameters.setMultipleSelection(
+                TICVisualizerParameters.selectionPeaks, peaks);
+        if (preSelectedPeaks != null)
+            newParameters.setParameterValue(
+                    TICVisualizerParameters.selectionPeaks, preSelectedPeaks);
         myInstance.showNewTICVisualizerWindow(dataFiles, newParameters);
     }
 
@@ -142,9 +144,10 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         Range rtRange = (Range) parameters.getParameterValue(TICVisualizerParameters.retentionTimeRange);
         Range mzRange = (Range) parameters.getParameterValue(TICVisualizerParameters.mzRange);
         Object peakObjects[] = (Object[]) parameters.getParameterValue(TICVisualizerParameters.selectionPeaks);
-        ChromatographicPeak[] peaks = CollectionUtils.changeArrayType(peakObjects, ChromatographicPeak.class);
+        ChromatographicPeak[] peaks = CollectionUtils.changeArrayType(
+                peakObjects, ChromatographicPeak.class);
         this.parameters = parameters;
-        
+
         Object plotType = parameters.getParameterValue(TICVisualizerParameters.plotType);
 
         TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
