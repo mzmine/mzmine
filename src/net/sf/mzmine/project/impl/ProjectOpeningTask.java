@@ -27,7 +27,6 @@ import java.io.ObjectInputStream;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
@@ -179,7 +178,6 @@ public class ProjectOpeningTask implements Task {
             // Set the project
             ProjectManagerImpl projectManager = ProjectManagerImpl.getInstance();
             projectManager.setCurrentProject(loadedProject);
-            ((MainWindow) MZmineCore.getDesktop()).reloadProject();
 
             logger.info("Finished opening project " + openFile);
             status = TaskStatus.FINISHED;

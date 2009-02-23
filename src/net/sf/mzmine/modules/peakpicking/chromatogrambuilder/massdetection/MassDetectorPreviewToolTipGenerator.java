@@ -43,8 +43,8 @@ class MassDetectorPreviewToolTipGenerator implements XYToolTipGenerator {
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);
 
-        String tooltip = "m/z peak is detected at ´nm/z: "
-                + mzFormat.format(mzValue) + "´nintensity: "
+        String tooltip = "m/z peak is detected at \nm/z: "
+                + mzFormat.format(mzValue) + "\nintensity: "
                 + intensityFormat.format(intValue);
 
         return tooltip;

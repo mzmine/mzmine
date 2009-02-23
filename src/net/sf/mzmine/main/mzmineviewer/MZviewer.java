@@ -63,7 +63,6 @@ public class MZviewer extends MZmineCore implements Runnable {
     /**
      * @see java.lang.Runnable#run()
      */
-    @SuppressWarnings("unchecked")
     public void run() {
 
         MZviewerWindow desktop = null;

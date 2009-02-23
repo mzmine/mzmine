@@ -24,6 +24,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * Simple implementation of the Scan interface.
@@ -306,4 +307,7 @@ public class SimpleScan implements Scan {
 		return totalIonCurrent;
 	}
 
+	public String toString() {
+		return ScanUtils.scanToString(this);
+	}
 }

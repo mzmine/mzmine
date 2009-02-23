@@ -31,7 +31,6 @@ import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
@@ -199,9 +198,6 @@ public class ProjectSavingTask implements Task {
 
             // Move the temporary ZIP file to the final location
             tempFile.renameTo(saveFile);
-
-            // Tell desktop to reload the project location
-            ((MainWindow) MZmineCore.getDesktop()).reloadProject();
 
             logger.info("Finished saving project to " + saveFile);
             status = TaskStatus.FINISHED;

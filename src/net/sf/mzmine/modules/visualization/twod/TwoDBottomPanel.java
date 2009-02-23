@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-
 import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -36,12 +36,14 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
@@ -50,7 +52,7 @@ import net.sf.mzmine.util.Range;
  * 2D visualizer's bottom panel
  */
 class TwoDBottomPanel extends JPanel implements ProjectListener,
-InternalFrameListener {
+		InternalFrameListener {
 
 	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 	private NumberFormat intensityThresholdFormat;
@@ -62,9 +64,9 @@ InternalFrameListener {
 
 	private TwoDVisualizerWindow masterFrame;
 	private RawDataFile dataFile;
-	private MZmineProject project;
 
-	TwoDBottomPanel(TwoDVisualizerWindow masterFrame, RawDataFile dataFile, PeakThresholdParameters peakThresholdParameters) {
+	TwoDBottomPanel(TwoDVisualizerWindow masterFrame, RawDataFile dataFile,
+			PeakThresholdParameters peakThresholdParameters) {
 
 		this.dataFile = dataFile;
 		this.masterFrame = masterFrame;
@@ -91,7 +93,7 @@ InternalFrameListener {
 
 		JPanel peakThresholdPanel = new JPanel();
 		peakThresholdPanel.setBackground(Color.white);
-		peakThresholdPanel.setPreferredSize(new Dimension(50, 10));          
+		peakThresholdPanel.setPreferredSize(new Dimension(50, 10));
 		peakTextField = new JTextField();
 		peakTextField.setPreferredSize(new Dimension(40, 15));
 		peakTextField.setFont(smallFont);
@@ -105,15 +107,14 @@ InternalFrameListener {
 
 		peakListSelector = new JComboBox();
 		peakListSelector.setBackground(Color.white);
-		peakListSelector.setFont(smallFont);                
+		peakListSelector.setFont(smallFont);
 		peakListSelector.addActionListener(masterFrame);
 		peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-		add(peakListSelector);		
+		add(peakListSelector);
 
 		add(Box.createHorizontalStrut(10));
 
-		project = MZmineCore.getCurrentProject();
-		project.addProjectListener(this);
+		MZmineCore.getProjectManager().addProjectListener(this);
 
 		masterFrame.addInternalFrameListener(this);
 
@@ -122,29 +123,41 @@ InternalFrameListener {
 	}
 
 	/**
-	 * Shows or hides a text field depending on the value of b and 
-	 * loads the text in the text field from the parameters
-	 */     
+	 * Shows or hides a text field depending on the value of b and loads the
+	 * text in the text field from the parameters
+	 */
 	void peakTextFieldSetVisible(boolean b) {
 		String selectedPeakThreshold = getPeaksSelectedThreshold();
-		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())) {
-			peakTextField.setText(String.valueOf((Double) peakThresholdParameters.getParameterValue(PeakThresholdParameters.intensityThreshold)));
+		if (selectedPeakThreshold
+				.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())) {
+			peakTextField
+					.setText(String
+							.valueOf((Double) peakThresholdParameters
+									.getParameterValue(PeakThresholdParameters.intensityThreshold)));
 		}
 
 		if (selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())) {
-			peakTextField.setText(String.valueOf((Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThreshold)));
+			peakTextField
+					.setText(String
+							.valueOf((Integer) peakThresholdParameters
+									.getParameterValue(PeakThresholdParameters.topThreshold)));
 		}
 
-		if (selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
-			peakTextField.setText(String.valueOf((Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThresholdArea)));
+		if (selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA
+				.getName())) {
+			peakTextField
+					.setText(String
+							.valueOf((Integer) peakThresholdParameters
+									.getParameterValue(PeakThresholdParameters.topThresholdArea)));
 		}
 		peakTextField.setVisible(b);
 
 		int index = peakSelector.getSelectedIndex();
-		peakThresholdParameters.setParameterValue(PeakThresholdParameters.comboBoxIndexThreshold, index);
+		peakThresholdParameters.setParameterValue(
+				PeakThresholdParameters.comboBoxIndexThreshold, index);
 	}
 
-	/**   
+	/**
 	 * Returns selected Item from the "peak threshold" combo box
 	 */
 	String getPeaksSelectedThreshold() {
@@ -153,40 +166,50 @@ InternalFrameListener {
 	}
 
 	/**
-	 * Returns a peak list different peaks depending on the selected option 
-	 * of the "peak Threshold" combo box
+	 * Returns a peak list different peaks depending on the selected option of
+	 * the "peak Threshold" combo box
 	 */
 	PeakList getPeaksInThreshold() {
-		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
 		String selectedPeakOption = (String) peakSelector.getSelectedItem();
 		peakListSelector.setEnabled(true);
 
-		if (selectedPeakOption.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())) {                        
-			Double threshold = (Double) peakThresholdParameters.getParameterValue(PeakThresholdParameters.intensityThreshold);
+		if (selectedPeakOption.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS
+				.getName())) {
+			Double threshold = (Double) peakThresholdParameters
+					.getParameterValue(PeakThresholdParameters.intensityThreshold);
 			try {
 				threshold = Double.valueOf(peakTextField.getText());
-				peakTextField.setText(intensityThresholdFormat.format(threshold));
-				peakThresholdParameters.setParameterValue(PeakThresholdParameters.intensityThreshold, threshold);
+				peakTextField.setText(intensityThresholdFormat
+						.format(threshold));
+				peakThresholdParameters.setParameterValue(
+						PeakThresholdParameters.intensityThreshold, threshold);
 				return getIntensityThresholdPeakList(threshold);
 			} catch (NumberFormatException exception) {
 			}
 		}
 
 		if (selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS.getName())) {
-			int threshold = (Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThreshold);
+			int threshold = (Integer) peakThresholdParameters
+					.getParameterValue(PeakThresholdParameters.topThreshold);
 			try {
 				threshold = Integer.valueOf(peakTextField.getText());
-				peakThresholdParameters.setParameterValue(PeakThresholdParameters.topThreshold, threshold);
+				peakThresholdParameters.setParameterValue(
+						PeakThresholdParameters.topThreshold, threshold);
 				return getTopThresholdPeakList(threshold);
 			} catch (NumberFormatException exception) {
 			}
 		}
 
-		if (selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
-			int threshold = (Integer) peakThresholdParameters.getParameterValue(PeakThresholdParameters.topThresholdArea);
+		if (selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA
+				.getName())) {
+			int threshold = (Integer) peakThresholdParameters
+					.getParameterValue(PeakThresholdParameters.topThresholdArea);
 			try {
 				threshold = Integer.valueOf(peakTextField.getText());
-				peakThresholdParameters.setParameterValue(PeakThresholdParameters.topThresholdArea, threshold);
+				peakThresholdParameters.setParameterValue(
+						PeakThresholdParameters.topThresholdArea, threshold);
 				return getTopThresholdPeakList(threshold);
 			} catch (NumberFormatException exception) {
 			}
@@ -194,22 +217,24 @@ InternalFrameListener {
 
 		if (selectedPeakOption.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
 			return selectedPeakList;
-		} 
+		}
 
 		if (selectedPeakOption.equals(PeakThresholdMode.NO_PEAKS.getName())) {
 			peakListSelector.setEnabled(false);
-		} 
+		}
 
 		return null;
 	}
 
 	/**
-	 * Returns a peak list with the peaks which intensity is above the 
-	 * parameter "intensity"
+	 * Returns a peak list with the peaks which intensity is above the parameter
+	 * "intensity"
 	 */
 	PeakList getIntensityThresholdPeakList(double intensity) {
-		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
+				dataFile);
 
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
 			if (peakRow.getDataPointMaxIntensity() > intensity) {
@@ -220,12 +245,15 @@ InternalFrameListener {
 	}
 
 	/**
-	 * Returns a peak list with the top peaks defined by the parameter "threshold"
+	 * Returns a peak list with the top peaks defined by the parameter
+	 * "threshold"
 	 */
 	PeakList getTopThresholdPeakList(int threshold) {
 
-		PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(), dataFile);
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
+				dataFile);
 
 		Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
 
@@ -233,33 +261,35 @@ InternalFrameListener {
 		Range rtRange = selectedPeakList.getRowsRTRange();
 
 		String selectedPeakOption = (String) peakSelector.getSelectedItem();
-		if(selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())){
+		if (selectedPeakOption.equals(PeakThresholdMode.TOP_PEAKS_AREA
+				.getName())) {
 			mzRange = masterFrame.getPlot().getXYPlot().getAxisRange();
 			rtRange = masterFrame.getPlot().getXYPlot().getDomainRange();
 		}
 
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
-			if(mzRange.contains(peakRow.getAverageMZ()) && rtRange.contains(peakRow.getAverageRT())){
+			if (mzRange.contains(peakRow.getAverageMZ())
+					&& rtRange.contains(peakRow.getAverageRT())) {
 				peakRows.add(peakRow);
 			}
-		}  
+		}
 
 		Collections.sort(peakRows, new PeakComparator());
 
-		if(threshold > peakRows.size()) threshold = peakRows.size();
-		for (int i = 0; i < threshold; i++) {          
-			newList.addRow(peakRows.elementAt(i));            
-		}        
+		if (threshold > peakRows.size())
+			threshold = peakRows.size();
+		for (int i = 0; i < threshold; i++) {
+			newList.addRow(peakRows.elementAt(i));
+		}
 		return newList;
 	}
-
 
 	/**
 	 * Returns selected peak list
 	 */
 	PeakList getSelectedPeakList() {
 		PeakList selectedPeakList = (PeakList) peakListSelector
-		.getSelectedItem();
+				.getSelectedItem();
 		return selectedPeakList;
 	}
 
@@ -268,8 +298,8 @@ InternalFrameListener {
 	 */
 	void rebuildPeakListSelector(MZmineProject project) {
 		PeakList selectedPeakList = (PeakList) peakListSelector
-		.getSelectedItem();
-		PeakList currentPeakLists[] = project.getPeakLists(dataFile);               
+				.getSelectedItem();
+		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
 		peakListSelector.removeAllItems();
 		for (int i = currentPeakLists.length - 1; i >= 0; i--) {
 			peakListSelector.addItem(currentPeakLists[i]);
@@ -277,15 +307,15 @@ InternalFrameListener {
 		if (selectedPeakList != null)
 			peakListSelector.setSelectedItem(selectedPeakList);
 
-
-	}   
+	}
 
 	/**
 	 * Loads the options to the "peak threshold" combo box
-	 */    
+	 */
 	void buildPeakThresholdSelector(MZmineProject project) {
 		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
-		int index = (Integer)peakThresholdParameters.getParameterValue(PeakThresholdParameters.comboBoxIndexThreshold);
+		int index = (Integer) peakThresholdParameters
+				.getParameterValue(PeakThresholdParameters.comboBoxIndexThreshold);
 		if (currentPeakLists.length > 0) {
 			for (PeakThresholdMode option : PeakThresholdMode.values()) {
 				peakSelector.addItem(option.getName());
@@ -294,14 +324,11 @@ InternalFrameListener {
 		peakSelector.setSelectedIndex(index);
 	}
 
-
-
 	/**
 	 * ProjectListener implementaion
 	 */
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-		if (event == ProjectEvent.PEAKLIST_CHANGE)
-			rebuildPeakListSelector(project);                      
+		rebuildPeakListSelector(project);
 	}
 
 	public void internalFrameActivated(InternalFrameEvent event) {
@@ -314,7 +341,7 @@ InternalFrameListener {
 	 * the GC would not be able to collect it
 	 */
 	public void internalFrameClosed(InternalFrameEvent event) {
-		project.removeProjectListener(this);
+		MZmineCore.getProjectManager().removeProjectListener(this);
 		masterFrame.removeInternalFrameListener(this);
 	}
 
@@ -337,7 +364,6 @@ InternalFrameListener {
 	public void internalFrameOpened(InternalFrameEvent event) {
 		// Ignore
 	}
-
 
 	class PeakComparator implements Comparator<PeakListRow> {
 

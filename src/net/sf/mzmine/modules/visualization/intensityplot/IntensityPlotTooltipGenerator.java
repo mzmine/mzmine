@@ -56,7 +56,7 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
             } else {
                 sb.append("N/A");
             }
-            sb.append("´n");
+            sb.append("\n");
         }
 
         return sb.toString();

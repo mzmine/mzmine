@@ -37,8 +37,8 @@ import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
-import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
+import ca.guydavis.swing.desktop.WindowPositioner;
 
 /**
  * This class represents the main menu of MZmine desktop
@@ -174,10 +174,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
          * Windows menu
          */
 
-        JDesktopPane mainDesktopPane = ((MainWindow) MZmineCore.getDesktop()).getDesktopPane();
+        MainPanel mainPanel = ((MainWindow) MZmineCore.getDesktop()).getMainPanel();
+        JDesktopPane mainDesktopPane = mainPanel.getDesktopPane();
         windowsMenu = new JWindowsMenu(mainDesktopPane);
-        CascadingWindowPositioner positioner = new CascadingWindowPositioner(
-                mainDesktopPane);
+        WindowPositioner positioner = mainPanel.getWindowPositioner();
         windowsMenu.setWindowPositioner(positioner);
         windowsMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowsMenu);

@@ -19,12 +19,20 @@
 
 package net.sf.mzmine.util;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.text.Format;
 
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.IsotopePattern;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 /**
@@ -214,6 +222,65 @@ public class PeakUtils {
         }
 
         return false;
+    }
+    
+    /**
+     * Creates a 16x16 icon representing a peaklist row
+     */
+    public static Icon createPeakListRowIcon(PeakListRow row) {
+    	
+    	// Find total retention time range
+    	Range rtRange = null;
+    	for (RawDataFile dataFile : row.getRawDataFiles()) {
+    		if (rtRange == null) rtRange = dataFile.getDataRTRange(1);
+    		else rtRange.extendRange(dataFile.getDataRTRange(1));
+    	}
+    	
+    	double intensities[] = new double[15];
+    	
+    	for (ChromatographicPeak peak : row.getPeaks()) {
+    		RawDataFile dataFile = peak.getDataFile();
+    		int scanNumbers[] = peak.getScanNumbers();
+    		for (int scanNumber : scanNumbers) {
+    			Scan scan = dataFile.getScan(scanNumber);
+    			double rt = scan.getRetentionTime();
+    			MzPeak mzPeak = peak.getMzPeak(scanNumber);
+    			if (mzPeak == null) continue;
+    			double intensity = mzPeak.getIntensity();
+    			int rtBin = (int) Math.round(((rt - rtRange.getMin()) / rtRange.getSize()) * 14);
+    			intensities[rtBin] = intensity;
+    		}
+    	}
+    	
+    	double maxIntensity = 0;
+    	for (double intensity : intensities) if (intensity > maxIntensity) maxIntensity = intensity;
+    	
+    	
+    	int heights[] = new int[intensities.length];
+    	for (int i = 0; i < intensities.length; i++) {
+    		heights[i] = (int) Math.round((intensities[i] / maxIntensity) * 14);
+    	}
+
+    	BufferedImage image = new BufferedImage(16, 16, BufferedImage.TYPE_INT_RGB);
+
+    	for (int x = 0; x < 16; x++) 
+    	for (int y = 0; y < 16; y++) image.setRGB(x,y,Color.white.getRGB());
+    	
+		for (int y = 1; y < 16; y++)
+			image.setRGB(0, y, Color.black.getRGB());
+
+    	for (int x = 1; x < 16; x++) {
+    		image.setRGB(x, 15, Color.black.getRGB());
+    		
+    		for (int y = 1; y < heights[x - 1]; y++)
+    			image.setRGB(x, 16-y, Color.blue.getRGB());
+    		//for (int y = heights[x - 1]; y < 16; y++)
+    		//	image.setRGB(x, y, Color.white.getRGB());
+    	}
+    	
+    	ImageIcon icon = new ImageIcon(image);
+    	
+    	return icon;
     }
 
 }

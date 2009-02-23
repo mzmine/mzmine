@@ -36,6 +36,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -52,7 +53,6 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 
 	private ThreeDVisualizerWindow masterFrame;
 	private RawDataFile dataFile;
-	private MZmineProject project;
 
 	ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
 
@@ -85,8 +85,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 		showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
 		add(showIdChkBox);
 
-		project = MZmineCore.getCurrentProject();
-		project.addProjectListener(this);
+		MZmineCore.getProjectManager().addProjectListener(this);
 
 		masterFrame.addInternalFrameListener(this);
 
@@ -122,8 +121,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 	 * ProjectListener implementaion
 	 */
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-		if (event == ProjectEvent.PEAKLIST_CHANGE)
-			rebuildPeakListSelector(project);
+		rebuildPeakListSelector(project);
 	}
 
 	public void internalFrameActivated(InternalFrameEvent event) {
@@ -136,7 +134,7 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 	 * the GC would not be able to collect it
 	 */
 	public void internalFrameClosed(InternalFrameEvent event) {
-		project.removeProjectListener(this);
+		MZmineCore.getProjectManager().removeProjectListener(this);
 		masterFrame.removeInternalFrameListener(this);
 	}
 

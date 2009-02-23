@@ -36,6 +36,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 
@@ -56,7 +57,6 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
 	private SpectraVisualizerWindow masterFrame;
 	private RawDataFile dataFile;
-	private MZmineProject project;
 	private boolean isotopeFlag;
 
 	SpectraBottomPanel(SpectraVisualizerWindow masterFrame,
@@ -130,8 +130,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 
 		}
 
-		project = MZmineCore.getCurrentProject();
-		project.addProjectListener(this);
+		MZmineCore.getProjectManager().addProjectListener(this);
 
 		masterFrame.addInternalFrameListener(this);
 
@@ -170,7 +169,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 	}
 
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-		if ((event == ProjectEvent.PEAKLIST_CHANGE) && (!isotopeFlag))
+		if (!isotopeFlag)
 			rebuildPeakListSelector(project);
 	}
 
@@ -184,7 +183,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 	 * the GC would not be able to collect it
 	 */
 	public void internalFrameClosed(InternalFrameEvent event) {
-		project.removeProjectListener(this);
+		MZmineCore.getProjectManager().removeProjectListener(this);
 		masterFrame.removeInternalFrameListener(this);
 	}
 
@@ -207,4 +206,5 @@ class SpectraBottomPanel extends JPanel implements ProjectListener,
 	public void internalFrameOpened(InternalFrameEvent event) {
 		// Ignore
 	}
+
 }

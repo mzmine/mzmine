@@ -9,9 +9,8 @@
  * version.
  * 
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the im plied warranty of MERCHANTABILITY or FITNESS
- * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
- * details.
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
@@ -22,11 +21,14 @@ package net.sf.mzmine.project;
 
 
 /**
- * This interface defines a listener which can be registered to the project and
- * is notified when project is modified.
+ * Project manager
  */
-public interface ProjectListener {
+public interface ProjectManager {
 
-	public void projectModified(ProjectEvent event, MZmineProject project);
+	public MZmineProject getCurrentProject();
+
+	public void addProjectListener(ProjectListener listener);
+
+	public void removeProjectListener(ProjectListener listener);
 
 }

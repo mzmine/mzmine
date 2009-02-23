@@ -43,7 +43,7 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
         double intValue = dataset.getYValue(series, item);
         double mzValue = dataset.getXValue(series, item);
 
-        String tooltip = "m/z: " + mzFormat.format(mzValue) + "´nIntensity: "
+        String tooltip = "m/z: " + mzFormat.format(mzValue) + "\nIntensity: "
                 + intensityFormat.format(intValue);
 
         return tooltip;

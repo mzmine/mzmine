@@ -38,7 +38,7 @@ public class BatchList extends JList {
         if (index > -1) {
             ParameterSet parameters = ((BatchStepWrapper) getModel().getElementAt(
                     index)).getParameters();
-            return parameters.toString().replace(", ", "´n");
+            return parameters.toString().replace(", ", "\n");
         }
         return null;
     }

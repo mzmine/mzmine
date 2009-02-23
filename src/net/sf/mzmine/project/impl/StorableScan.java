@@ -31,6 +31,7 @@ import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * Implementation of the Scan interface which stores raw data points in a temporary file
@@ -325,6 +326,10 @@ public class StorableScan implements Scan {
     private Object readResolve() {
         logger = Logger.getLogger(this.getClass().getName());
         return this;
+    }
+    
+    public String toString() {
+    	return ScanUtils.scanToString(this);
     }
 
 }

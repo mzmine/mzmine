@@ -63,7 +63,7 @@ public class MultiLineToolTipUI extends ToolTipUI {
         if (tipText == null)
             return new Dimension(0, 0);
 
-        String lines[] = tipText.split("´n");
+        String lines[] = tipText.split("\n");
         int num_lines = lines.length;
 
         int width, height, onewidth;
@@ -94,7 +94,7 @@ public class MultiLineToolTipUI extends ToolTipUI {
         String tipText = ((JToolTip) c).getTipText();
         if (tipText == null)
             return;
-        String lines[] = tipText.split("´n");
+        String lines[] = tipText.split("\n");
         int num_lines = lines.length;
         int height;
         int i;

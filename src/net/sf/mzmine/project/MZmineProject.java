@@ -136,14 +136,4 @@ public interface MZmineProject {
      */
     public PeakList[] getPeakLists(RawDataFile file);
 
-    /**
-     * Adds a listener which is notified when there is a change of the project
-     */
-    public void addProjectListener(ProjectListener listener);
-
-    /**
-     * Remove a listener which is notified when there is a change of the project
-     */
-    public void removeProjectListener(ProjectListener listener);
-
 }

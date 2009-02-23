@@ -205,7 +205,7 @@ class TwoDPlot extends ChartPanel {
 			double mz = (double) yAxis.java2DToValue(mouseY, plotArea,
 					yAxisEdge);
 
-			tooltip = "Retention time: " + rtFormat.format(rt) + "m/z: "
+			tooltip = "Retention time: " + rtFormat.format(rt) + "\nm/z: "
 			+ mzFormat.format(mz);
 		}
 

@@ -52,7 +52,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
-import net.sf.mzmine.desktop.impl.Statusbar;
+import net.sf.mzmine.desktop.impl.StatusBar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
@@ -73,7 +73,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     private JMenuBar menuBar;
     private JMenu fileMenu, visualizationMenu;
     private JSplitPane split;
-    private Statusbar statusBar;
+    private StatusBar statusBar;
     private MZviewerItemSelector itemSelector;
     private TaskProgressWindow taskList;
 
@@ -215,7 +215,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         c.setLayout(new BorderLayout());
         c.add(split, BorderLayout.CENTER);
 
-        statusBar = new Statusbar();
+        statusBar = new StatusBar();
         c.add(statusBar, BorderLayout.SOUTH);
 
         // Construct menu

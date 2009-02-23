@@ -30,7 +30,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectListener;
+import net.sf.mzmine.project.ProjectEvent;
 
 /**
  * This class represents a MZmine project. That includes raw data files,
@@ -39,7 +39,6 @@ import net.sf.mzmine.project.ProjectListener;
 public class MZmineProjectImpl implements MZmineProject {
 
 	private Hashtable<Parameter, Hashtable<String, Object>> projectParametersAndValues;
-	private transient Vector<ProjectListener> listeners;
 	
     private DefaultListModel rawDataList;
 	private DefaultListModel peakListsList;
@@ -48,7 +47,6 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public MZmineProjectImpl() {
 		
-        listeners = new Vector<ProjectListener>();
         this.rawDataList = new DefaultListModel();
         this.peakListsList = new DefaultListModel();
         projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
@@ -97,11 +95,13 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void addFile(RawDataFile newFile) {
 		this.rawDataList.addElement(newFile);
+		ProjectManagerImpl.getInstance().fireListeners(ProjectEvent.DATAFILE_ADDED);
 	}
 
 	public void removeFile(RawDataFile file) {
 		this.rawDataList.removeElement(file);
 		file.close();
+		ProjectManagerImpl.getInstance().fireListeners(ProjectEvent.DATAFILE_REMOVED);
 	}
 
 	public RawDataFile[] getDataFiles() {
@@ -115,10 +115,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void addPeakList(PeakList peakList) {
 		this.peakListsList.addElement(peakList);
+		ProjectManagerImpl.getInstance().fireListeners(ProjectEvent.PEAKLIST_ADDED);
 	}
 
 	public void removePeakList(PeakList peakList) {
 		this.peakListsList.removeElement(peakList);
+		ProjectManagerImpl.getInstance().fireListeners(ProjectEvent.PEAKLIST_REMOVED);
 	}
 
 	public PeakList[] getPeakLists() {
@@ -140,25 +142,9 @@ public class MZmineProjectImpl implements MZmineProject {
 		return result.toArray(new PeakList[0]);
 	}
 
-	public void addProjectListener(ProjectListener listener) {
-		listeners.add(listener);
-		listener.projectModified(ProjectListener.ProjectEvent.PROJECT_CHANGED,
-				this);
-	}
-
-	public void removeProjectListener(ProjectListener listener) {
-		listeners.remove(listener);
-	}
 
 	public DefaultListModel getPeakListsListModel() {
 		return this.peakListsList;
-	}
-
-	/**
-	 * Returns DataFileListModel for GUI
-	 */
-	public DefaultListModel getRawDataListModel() {
-		return this.rawDataList;
 	}
 
     public File getProjectFile() {
@@ -169,8 +155,4 @@ public class MZmineProjectImpl implements MZmineProject {
         this.projectFile = file;
     }
     
-    private Object readResolve() {
-        listeners = new Vector<ProjectListener>();
-        return this;
-    }
 }

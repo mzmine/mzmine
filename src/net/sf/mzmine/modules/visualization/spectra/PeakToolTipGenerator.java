@@ -56,27 +56,27 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 
 			predicted = peakListDataSet.isPredicted();
 
-			tooltip = "Peak: isotope´nStatus: "
+			tooltip = "Peak: isotope\nStatus: "
 					+ peakListDataSet.getIsotopePatternStatus()
-					+ "´nData point m/z: " + mzFormat.format(mzValue);
+					+ "\nData point m/z: " + mzFormat.format(mzValue);
 
 			if (predicted) {
-				tooltip += "´nFormula: " + peakListDataSet.getFormula()
-						+ "´nData point intensity: "
+				tooltip += "\nFormula: " + peakListDataSet.getFormula()
+						+ "\nData point intensity: "
 						+ percentFormat.format((intValue / increase) * 100)
 						+ "% </html>";
 			} else {
-				tooltip += "´nData point intensity: "
+				tooltip += "\nData point intensity: "
 						+ intensityFormat.format(intValue);
 			}
 		} else {
 			ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
 			PeakList peakList = peakListDataSet.getPeakList();
 			PeakListRow row = peakList.getPeakRow(peak);
-			tooltip = "<html>" + "Peak: " + peak + "´nStatus: "
-					+ peak.getPeakStatus() + "´nPeak list row: " + row
-					+ "´nData point m/z: " + mzFormat.format(mzValue)
-					+ "´nData point intensity: "
+			tooltip = "<html>" + "Peak: " + peak + "\nStatus: "
+					+ peak.getPeakStatus() + "\nPeak list row: " + row
+					+ "\nData point m/z: " + mzFormat.format(mzValue)
+					+ "\nData point intensity: "
 					+ intensityFormat.format(intValue);
 		}
 

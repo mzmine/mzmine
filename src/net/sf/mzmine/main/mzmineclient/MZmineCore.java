@@ -34,6 +34,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.helpsystem.HelpImp;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -50,235 +51,249 @@ import org.dom4j.io.XMLWriter;
  */
 public abstract class MZmineCore {
 
-    public static final File CONFIG_FILE = new File("conf/config.xml");
+	public static final File CONFIG_FILE = new File("conf/config.xml");
 
-    // configuration XML structure
-    public static final String PARAMETER_ELEMENT_NAME = "parameter";
-    public static final String PARAMETERS_ELEMENT_NAME = "parameters";
-    public static final String MODULES_ELEMENT_NAME = "modules";
-    public static final String MODULE_ELEMENT_NAME = "module";
-    public static final String CLASS_ATTRIBUTE_NAME = "class";
-    public static final String NODES_ELEMENT_NAME = "nodes";
-    public static final String LOCAL_ATTRIBUTE_NAME = "local";
-    public static final String DESKTOP_ELEMENT_NAME = "desktop";
+	// configuration XML structure
+	public static final String PARAMETER_ELEMENT_NAME = "parameter";
+	public static final String PARAMETERS_ELEMENT_NAME = "parameters";
+	public static final String MODULES_ELEMENT_NAME = "modules";
+	public static final String MODULE_ELEMENT_NAME = "module";
+	public static final String CLASS_ATTRIBUTE_NAME = "class";
+	public static final String NODES_ELEMENT_NAME = "nodes";
+	public static final String LOCAL_ATTRIBUTE_NAME = "local";
+	public static final String DESKTOP_ELEMENT_NAME = "desktop";
 
-    private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-    protected static TaskController taskController;
-    protected static Desktop desktop;
-    protected static ProjectManagerImpl projectManager;
-    protected static MZmineModule[] initializedModules;
-    protected static HelpImp help;
-    protected static boolean isLightViewer;
+	protected static TaskController taskController;
+	protected static Desktop desktop;
+	protected static ProjectManagerImpl projectManager;
+	protected static MZmineModule[] initializedModules;
+	protected static HelpImp help;
+	protected static boolean isLightViewer;
 
-    /**
-     * Returns a reference to local task controller.
-     * 
-     * @return TaskController reference
-     */
-    public static TaskController getTaskController() {
-        return taskController;
-    }
+	/**
+	 * Returns a reference to local task controller.
+	 * 
+	 * @return TaskController reference
+	 */
+	public static TaskController getTaskController() {
+		return taskController;
+	}
 
-    /**
-     * Returns a reference to Desktop. May return null on MZmine nodes with no
-     * GUI.
-     * 
-     * @return Desktop reference or null
-     */
-    public static Desktop getDesktop() {
-        return desktop;
-    }
+	/**
+	 * Returns a reference to Desktop. May return null on MZmine nodes with no
+	 * GUI.
+	 * 
+	 * @return Desktop reference or null
+	 */
+	public static Desktop getDesktop() {
+		return desktop;
+	}
 
-    /**
-     * 
-     */
-    public static MZmineProject getCurrentProject() {
-    	if (projectManager != null){
-    		return projectManager.getCurrentProject();
-    	}
-    	else{
-    		return null;
-    	}
-    }
-
-    /**
-     * Returns an array of all initialized MZmine modules
-     * 
-     * @return Array of all initialized MZmine modules
-     */
-    public static MZmineModule[] getAllModules() {
-        return initializedModules;
-    }
-
-    /**
-     * Returns an array of all initialized MZmine modules
-     * 
-     * @return Array of all initialized MZmine modules
-     */
-    public static HelpImp getHelpImp() {
-        return help;
-    }
-    
-    public static boolean isLightViewer(){
-    	return isLightViewer;
-    }
-
-    /**
-     * Saves configuration and exits the application.
+	/**
      * 
      */
-    public static void exitMZmine() {
+	public static ProjectManager getProjectManager() {
+		return projectManager;
+	}
+	
+	/**
+     * 
+     */
+	public static MZmineProject getCurrentProject() {
+		return projectManager.getCurrentProject();
+	}
 
-        // If we have GUI, ask if use really wants to quit
-        if (desktop != null) {
-            int selectedValue = JOptionPane.showInternalConfirmDialog(
-                    desktop.getMainFrame().getContentPane(),
-                    "Are you sure you want to exit?", "Exiting...",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+	/**
+	 * Returns an array of all initialized MZmine modules
+	 * 
+	 * @return Array of all initialized MZmine modules
+	 */
+	public static MZmineModule[] getAllModules() {
+		return initializedModules;
+	}
 
-            if (selectedValue != JOptionPane.YES_OPTION)
-                return;
-            desktop.getMainFrame().dispose();
-        }
+	/**
+	 * Returns an array of all initialized MZmine modules
+	 * 
+	 * @return Array of all initialized MZmine modules
+	 */
+	public static HelpImp getHelpImp() {
+		return help;
+	}
 
-        System.exit(0);
+	public static boolean isLightViewer() {
+		return isLightViewer;
+	}
 
-    }
+	/**
+	 * Saves configuration and exits the application.
+	 * 
+	 */
+	public static void exitMZmine() {
 
-    public static void saveConfiguration(File file) {
+		// If we have GUI, ask if use really wants to quit
+		if (desktop != null) {
+			int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
+					.getMainFrame().getContentPane(),
+					"Are you sure you want to exit?", "Exiting...",
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-        try {
+			if (selectedValue != JOptionPane.YES_OPTION)
+				return;
+			desktop.getMainFrame().dispose();
+		}
 
-            // load current configuration from XML
-            SAXReader reader = new SAXReader();
-            Document configuration = reader.read(CONFIG_FILE);
-            Element configRoot = configuration.getRootElement();
+		System.exit(0);
 
-            // save desktop configuration
-            StorableParameterSet desktopParameters = ((MainWindow) desktop).getParameterSet();
-            Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
-            if (desktopConfigElement == null) {
-                desktopConfigElement = configRoot.addElement(DESKTOP_ELEMENT_NAME);
-            }
-            desktopConfigElement.clearContent();
-            try {
-                desktopParameters.exportValuesToXML(desktopConfigElement);
-            } catch (Exception e) {
-                logger.log(Level.SEVERE,
-                        "Could not save desktop configuration", e);
-            }
+	}
 
-            // traverse modules
-            for (MZmineModule module : getAllModules()) {
+	public static void saveConfiguration(File file) {
 
-                ParameterSet currentParameters = module.getParameterSet();
-                if ((currentParameters == null)
-                        || (!(currentParameters instanceof StorableParameterSet)))
-                    continue;
+		try {
 
-                String className = module.getClass().getName();
-                String xpathLocation = "//configuration/modules/module[@class='"
-                        + className + "']";
-                Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
-                if (moduleElement != null) {
+			// load current configuration from XML
+			SAXReader reader = new SAXReader();
+			Document configuration = reader.read(CONFIG_FILE);
+			Element configRoot = configuration.getRootElement();
 
-                    Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
-                    if (parametersElement == null)
-                        parametersElement = moduleElement.addElement(PARAMETERS_ELEMENT_NAME);
-                    else
-                        parametersElement.clearContent();
+			// save desktop configuration
+			StorableParameterSet desktopParameters = ((MainWindow) desktop)
+					.getParameterSet();
+			Element desktopConfigElement = configRoot
+					.element(DESKTOP_ELEMENT_NAME);
+			if (desktopConfigElement == null) {
+				desktopConfigElement = configRoot
+						.addElement(DESKTOP_ELEMENT_NAME);
+			}
+			desktopConfigElement.clearContent();
+			try {
+				desktopParameters.exportValuesToXML(desktopConfigElement);
+			} catch (Exception e) {
+				logger.log(Level.SEVERE,
+						"Could not save desktop configuration", e);
+			}
 
-                    try {
-                        ((StorableParameterSet) currentParameters).exportValuesToXML(parametersElement);
-                    } catch (Exception e) {
-                        logger.log(Level.SEVERE,
-                                "Could not save configuration of module "
-                                        + module, e);
-                    }
-                }
+			// traverse modules
+			for (MZmineModule module : getAllModules()) {
 
-            }
+				ParameterSet currentParameters = module.getParameterSet();
+				if ((currentParameters == null)
+						|| (!(currentParameters instanceof StorableParameterSet)))
+					continue;
 
-            // write the config file
-            OutputFormat format = OutputFormat.createPrettyPrint();
-            XMLWriter writer = new XMLWriter(new FileWriter(file), format);
-            writer.write(configuration);
-            writer.close();
+				String className = module.getClass().getName();
+				String xpathLocation = "//configuration/modules/module[@class='"
+						+ className + "']";
+				Element moduleElement = (Element) configuration
+						.selectSingleNode(xpathLocation);
+				if (moduleElement != null) {
 
-            logger.finest("Saved configuration to file " + file);
+					Element parametersElement = moduleElement
+							.element(PARAMETERS_ELEMENT_NAME);
+					if (parametersElement == null)
+						parametersElement = moduleElement
+								.addElement(PARAMETERS_ELEMENT_NAME);
+					else
+						parametersElement.clearContent();
 
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not update configuration file "
-                    + file, e);
-        }
+					try {
+						((StorableParameterSet) currentParameters)
+								.exportValuesToXML(parametersElement);
+					} catch (Exception e) {
+						logger.log(Level.SEVERE,
+								"Could not save configuration of module "
+										+ module, e);
+					}
+				}
 
-    }
+			}
 
-    public static void loadConfiguration(File file) {
+			// write the config file
+			OutputFormat format = OutputFormat.createPrettyPrint();
+			XMLWriter writer = new XMLWriter(new FileWriter(file), format);
+			writer.write(configuration);
+			writer.close();
 
-        try {
-            SAXReader reader = new SAXReader();
-            Document configuration = reader.read(file);
-            Element configRoot = configuration.getRootElement();
+			logger.finest("Saved configuration to file " + file);
 
-            logger.finest("Loading desktop configuration");
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Could not update configuration file "
+					+ file, e);
+		}
 
-            StorableParameterSet desktopParameters = (StorableParameterSet) desktop.getParameterSet();
-            Element desktopConfigElement = configRoot.element(DESKTOP_ELEMENT_NAME);
-            if (desktopConfigElement != null)
-                desktopParameters.importValuesFromXML(desktopConfigElement);
+	}
 
-            logger.finest("Loading modules configuration");
+	public static void loadConfiguration(File file) {
 
-            for (MZmineModule module : getAllModules()) {
-                String className = module.getClass().getName();
-                String xpathLocation = "//configuration/modules/module[@class='"
-                        + className + "']";
+		try {
+			SAXReader reader = new SAXReader();
+			Document configuration = reader.read(file);
+			Element configRoot = configuration.getRootElement();
 
-                Element moduleElement = (Element) configuration.selectSingleNode(xpathLocation);
-                if (moduleElement == null)
-                    continue;
+			logger.finest("Loading desktop configuration");
 
-                Element parametersElement = moduleElement.element(PARAMETERS_ELEMENT_NAME);
+			StorableParameterSet desktopParameters = (StorableParameterSet) desktop
+					.getParameterSet();
+			Element desktopConfigElement = configRoot
+					.element(DESKTOP_ELEMENT_NAME);
+			if (desktopConfigElement != null)
+				desktopParameters.importValuesFromXML(desktopConfigElement);
 
-                if (parametersElement != null) {
-                    ParameterSet moduleParameters = module.getParameterSet();
-                    if ((moduleParameters != null)
-                            && (moduleParameters instanceof StorableParameterSet))
-                        ((StorableParameterSet) moduleParameters).importValuesFromXML(parametersElement);
-                }
+			logger.finest("Loading modules configuration");
 
-            }
+			for (MZmineModule module : getAllModules()) {
+				String className = module.getClass().getName();
+				String xpathLocation = "//configuration/modules/module[@class='"
+						+ className + "']";
 
-            logger.finest("Loaded configuration from file " + file);
+				Element moduleElement = (Element) configuration
+						.selectSingleNode(xpathLocation);
+				if (moduleElement == null)
+					continue;
 
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Could not parse configuration file "
-                    + file, e);
-        }
+				Element parametersElement = moduleElement
+						.element(PARAMETERS_ELEMENT_NAME);
 
-    }
+				if (parametersElement != null) {
+					ParameterSet moduleParameters = module.getParameterSet();
+					if ((moduleParameters != null)
+							&& (moduleParameters instanceof StorableParameterSet))
+						((StorableParameterSet) moduleParameters)
+								.importValuesFromXML(parametersElement);
+				}
 
-    // Number formatting functions
-    public static NumberFormatter getIntensityFormat() {
-        //return ((MainWindow) desktop).getIntensityFormat();
-        return desktop.getIntensityFormat();
-    }
+			}
 
-    public static NumberFormatter getMZFormat() {
-        //return ((MainWindow) desktop).getMZFormat();
-        return desktop.getMZFormat();
-    }
+			logger.finest("Loaded configuration from file " + file);
 
-    public static NumberFormatter getRTFormat() {
-        //return ((MainWindow) desktop).getRTFormat();
-        return desktop.getRTFormat();
-    }
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Could not parse configuration file "
+					+ file, e);
+		}
 
-    public static RawDataFileWriter createNewFile(String name)
-            throws IOException {
-        return new RawDataFileImpl(name);
-    }
+	}
+
+	// Number formatting functions
+	public static NumberFormatter getIntensityFormat() {
+		// return ((MainWindow) desktop).getIntensityFormat();
+		return desktop.getIntensityFormat();
+	}
+
+	public static NumberFormatter getMZFormat() {
+		// return ((MainWindow) desktop).getMZFormat();
+		return desktop.getMZFormat();
+	}
+
+	public static NumberFormatter getRTFormat() {
+		// return ((MainWindow) desktop).getRTFormat();
+		return desktop.getRTFormat();
+	}
+
+	public static RawDataFileWriter createNewFile(String name)
+			throws IOException {
+		return new RawDataFileImpl(name);
+	}
 
 }

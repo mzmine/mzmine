@@ -62,17 +62,18 @@ public class SwingParameters {
 		UIManager.put("List.font", smallFont);
 		UIManager.put("Table.font", smallFont);
 		UIManager.put("ToolTip.font", tinyFont);
-        
-        // Set platform look & feel
+
+		// Set platform look & feel
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {
-			e.printStackTrace();
+			// ignore
 		}
-        
-        // Set tooltip UI to support multi-line tooltips
-        UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
-        UIManager.put(MultiLineToolTipUI.class.getName(), MultiLineToolTipUI.class);
+
+		// Set tooltip UI to support multi-line tooltips
+		UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
+		UIManager.put(MultiLineToolTipUI.class.getName(),
+				MultiLineToolTipUI.class);
 
 	}
 
