@@ -63,6 +63,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 		}
 
 		if (value == ProjectTreeModel.dataFilesItem) {
+            label.setIcon(dataFileIcon);
 			label.setFont(bigFont);
 		}
 
