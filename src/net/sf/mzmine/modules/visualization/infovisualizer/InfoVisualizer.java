@@ -86,6 +86,11 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
 
 	public void setParameters(ParameterSet parameterValues) {
 	}
+    
+    public static void showNewPeakListInfo(PeakList peakList) {
+        InfoWindow newWindow = new InfoWindow(peakList);
+        MZmineCore.getDesktop().addInternalFrame(newWindow);
+    }
 
 
 }

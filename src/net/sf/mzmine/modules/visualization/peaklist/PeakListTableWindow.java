@@ -52,7 +52,7 @@ public class PeakListTableWindow extends JInternalFrame implements
     /**
      * Constructor: initializes an empty visualizer
      */
-    public PeakListTableWindow(PeakList peakList) {
+    PeakListTableWindow(PeakList peakList) {
 
         super(peakList.toString(), true, true, true, true);
 

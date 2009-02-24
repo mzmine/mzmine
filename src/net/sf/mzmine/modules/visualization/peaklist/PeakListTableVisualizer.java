@@ -121,5 +121,9 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
         return myInstance;
     }
     
+    public static void showNewPeakListVisualizerWindow(PeakList peakList) {
+        PeakListTableWindow window = new PeakListTableWindow(peakList);
+        MZmineCore.getDesktop().addInternalFrame(window);
+    }
 
 }

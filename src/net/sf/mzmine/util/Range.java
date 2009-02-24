@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.util;
@@ -178,15 +178,24 @@ public class Range {
     }
 
     /**
-     * Returns the String representation
-     * 
-     * @return This range as string
+     * Compares two Ranges
      */
-    public int compareTo( Range range2) {
+    public int compareTo(Range range2) {
         Double value1 = this.getMax() - this.getMin();
         Double value2 = range2.getMax() - range2.getMin();
-    	
-    	return value1.compareTo(value2);
+
+        return value1.compareTo(value2);
     }
 
+    /**
+     * Splits the range in numOfBins bins and then returns the index of the bin
+     * which contains given value. Indexes are from 0 to (numOfBins - 1).
+     */
+    public int binNumber(int numOfBins, double value) {
+        double rangeLength = max - min;
+        double valueDistanceFromStart = value - min;
+        int index = (int) Math.round((valueDistanceFromStart / rangeLength)
+                * (numOfBins - 1));
+        return index;
+    }
 }

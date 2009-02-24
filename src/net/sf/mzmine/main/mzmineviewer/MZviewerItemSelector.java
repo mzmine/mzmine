@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.main.mzmineviewer;
@@ -37,8 +37,8 @@ import javax.swing.event.ListSelectionListener;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.modules.visualization.infovisualizer.InfoWindow;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
+import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
@@ -53,14 +53,12 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
     private DragOrderedJList peakLists;
     private DefaultListModel peakListsModel;
     private JPopupMenu peakListPopupMenu;
-    private Desktop desktop;
 
     /**
      * Constructor
      */
     public MZviewerItemSelector(Desktop desktop) {
 
-    	this.desktop = desktop;
         peakListsModel = new DefaultListModel();
         peakLists = new DragOrderedJList(peakListsModel);
         peakLists.addMouseListener(this);
@@ -69,7 +67,7 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
 
         JPanel peakListPanel = new JPanel();
         peakListPanel.setLayout(new BorderLayout());
-        
+
         JLabel resultsTitle = new JLabel(PEAK_LISTS_LABEL);
         peakListPanel.add(resultsTitle, BorderLayout.NORTH);
 
@@ -80,12 +78,11 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
         setLayout(new BorderLayout());
         add(peakListPanel, BorderLayout.CENTER);
 
-
         peakListPopupMenu = new JPopupMenu();
         GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list", this,
                 "SHOW_ALIGNED_PEAKLIST");
         GUIUtils.addMenuItem(peakListPopupMenu, "Show list info", this,
-        		"SHOW_PEAKLIST_INFO");
+                "SHOW_PEAKLIST_INFO");
         GUIUtils.addMenuItem(peakListPopupMenu, "Rename", this,
                 "RENAME_PEAKLIST");
         GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
@@ -115,30 +112,26 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
         }
 
         if (command.equals("REMOVE_PEAKLIST")) {
-   			int[] indexes = peakLists.getSelectedIndices();
-   			for(int index: indexes)
-   				peakListsModel.remove(index);
+            int[] indexes = peakLists.getSelectedIndices();
+            for (int index : indexes)
+                peakListsModel.remove(index);
         }
 
         if (command.equals("SHOW_ALIGNED_PEAKLIST")) {
             PeakList[] selectedPeakLists = getSelectedPeakLists();
             for (PeakList peakList : selectedPeakLists) {
-                PeakListTableWindow window = new PeakListTableWindow(peakList);
-                desktop.addInternalFrame(window);
+                PeakListTableVisualizer.showNewPeakListVisualizerWindow(peakList);
             }
         }
 
         if (command.equals("SHOW_PEAKLIST_INFO")) {
             PeakList[] selectedPeakLists = getSelectedPeakLists();
-            Desktop desktop = MZmineCore.getDesktop();
             for (PeakList peakList : selectedPeakLists) {
-            	InfoWindow window = new InfoWindow(peakList);
-                desktop.addInternalFrame(window);
+                InfoVisualizer.showNewPeakListInfo(peakList);
             }
         }
 
     }
-
 
     public PeakList[] getSelectedPeakLists() {
 
@@ -153,9 +146,9 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
         return res;
 
     }
-    
-    public void addPeakList(PeakList newPeakList){
-    	peakListsModel.addElement(newPeakList);
+
+    public void addPeakList(PeakList newPeakList) {
+        peakListsModel.addElement(newPeakList);
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -167,9 +160,7 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
                 if (clickedIndex < 0)
                     return;
                 PeakList clickedPeakList = (PeakList) peakListsModel.get(clickedIndex);
-                PeakListTableWindow window = new PeakListTableWindow(
-                        clickedPeakList);
-                desktop.addInternalFrame(window);
+                PeakListTableVisualizer.showNewPeakListVisualizerWindow(clickedPeakList);
             }
 
         }
@@ -201,7 +192,7 @@ public class MZviewerItemSelector extends JPanel implements ActionListener,
     }
 
     public void valueChanged(ListSelectionEvent event) {
-    	// ignore
+        // ignore
     }
 
     public void reloadDataModel() {

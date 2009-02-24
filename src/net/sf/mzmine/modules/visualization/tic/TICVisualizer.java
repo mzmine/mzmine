@@ -97,6 +97,10 @@ public class TICVisualizer implements MZmineModule, ActionListener {
         myInstance.showNewTICVisualizerWindow(dataFiles, newParameters);
     }
 
+    public static void showNewTICVisualizerWindow(RawDataFile dataFile) {
+        showNewTICVisualizerWindow(new RawDataFile[] { dataFile }, null, null);
+    }
+    
     public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
             ChromatographicPeak[] peaks, ChromatographicPeak[] preSelectedPeaks) {
 

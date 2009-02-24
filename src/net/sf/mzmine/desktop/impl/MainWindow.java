@@ -54,239 +54,238 @@ import net.sf.mzmine.util.components.TaskProgressWindow;
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-		WindowListener, ProjectListener {
+        WindowListener, ProjectListener {
 
-	private DesktopParameters parameters;
+    private DesktopParameters parameters;
 
-	private TaskProgressWindow taskList;
+    private TaskProgressWindow taskList;
 
-	private HelpMainMenuItem help;
+    private HelpMainMenuItem help;
 
-	private MainPanel mainPanel;
+    private MainPanel mainPanel;
 
-	public TaskProgressWindow getTaskList() {
-		return taskList;
-	}
+    public TaskProgressWindow getTaskList() {
+        return taskList;
+    }
 
-	private MainMenu menuBar;
+    private MainMenu menuBar;
 
-	public MainMenu getMainMenu() {
-		return menuBar;
-	}
+    public MainMenu getMainMenu() {
+        return menuBar;
+    }
 
-	public void addInternalFrame(JInternalFrame frame) {
-		mainPanel.addInternalFrame(frame);
-	}
+    public void addInternalFrame(JInternalFrame frame) {
+        mainPanel.addInternalFrame(frame);
+    }
 
-	/**
-	 * WindowListener interface implementation
-	 */
-	public void windowOpened(WindowEvent e) {
-	}
-
-	public void windowClosing(WindowEvent e) {
-		MZmineCore.exitMZmine();
-	}
-
-	public void windowClosed(WindowEvent e) {
-	}
-
-	public void windowIconified(WindowEvent e) {
-	}
-
-	public void windowDeiconified(WindowEvent e) {
-	}
-
-	public void windowActivated(WindowEvent e) {
-	}
-
-	public void windowDeactivated(WindowEvent e) {
-	}
-
-	public void setStatusBarText(String text) {
-		setStatusBarText(text, Color.black);
-	}
-
-	/**
+    /**
+     * WindowListener interface implementation
      */
-	public void displayMessage(String msg) {
-		displayMessage("Message", msg);
-	}
+    public void windowOpened(WindowEvent e) {
+    }
 
-	/**
+    public void windowClosing(WindowEvent e) {
+        MZmineCore.exitMZmine();
+    }
+
+    public void windowClosed(WindowEvent e) {
+    }
+
+    public void windowIconified(WindowEvent e) {
+    }
+
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    public void windowActivated(WindowEvent e) {
+    }
+
+    public void windowDeactivated(WindowEvent e) {
+    }
+
+    public void setStatusBarText(String text) {
+        setStatusBarText(text, Color.black);
+    }
+
+    /**
      */
-	public void displayMessage(String title, String msg) {
-		JOptionPane.showMessageDialog(this, msg, title,
-				JOptionPane.INFORMATION_MESSAGE);
-	}
+    public void displayMessage(String msg) {
+        displayMessage("Message", msg);
+    }
 
-	public void displayErrorMessage(String msg) {
-		displayErrorMessage("Error", msg);
-	}
-
-	public void displayErrorMessage(String title, String msg) {
-		JOptionPane.showMessageDialog(this, msg, title,
-				JOptionPane.ERROR_MESSAGE);
-	}
-
-	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
-		menuBar.addMenuItem(parentMenu, newItem);
-	}
-
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getSelectedDataFiles()
-	 */
-	public RawDataFile[] getSelectedDataFiles() {
-		return mainPanel.getProjectTree().getSelectedDataFiles();
-	}
-
-	public PeakList[] getSelectedPeakLists() {
-		return mainPanel.getProjectTree().getSelectedPeakLists();
-	}
-
-	/**
+    /**
      */
-	public void initModule() {
+    public void displayMessage(String title, String msg) {
+        JOptionPane.showMessageDialog(this, msg, title,
+                JOptionPane.INFORMATION_MESSAGE);
+    }
 
-		SwingParameters.initSwingParameters();
+    public void displayErrorMessage(String msg) {
+        displayErrorMessage("Error", msg);
+    }
 
-		parameters = new DesktopParameters();
+    public void displayErrorMessage(String title, String msg) {
+        JOptionPane.showMessageDialog(this, msg, title,
+                JOptionPane.ERROR_MESSAGE);
+    }
 
-		try {
-			BufferedImage MZmineIcon = ImageIO.read(new File(
-					"icons/MZmineIcon.png"));
-			setIconImage(MZmineIcon);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
+        menuBar.addMenuItem(parentMenu, newItem);
+    }
 
-		mainPanel = new MainPanel();
-		add(mainPanel);
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getSelectedDataFiles()
+     */
+    public RawDataFile[] getSelectedDataFiles() {
+        return mainPanel.getProjectTree().getSelectedObjects(RawDataFile.class);
+    }
 
-		// Construct menu
-		menuBar = new MainMenu();
-		help = new HelpMainMenuItem();
-		help.addMenuItem(menuBar);
-		setJMenuBar(menuBar);
+    public PeakList[] getSelectedPeakLists() {
+        return mainPanel.getProjectTree().getSelectedObjects(PeakList.class);
+    }
 
-		// Initialize window listener for responding to user events
-		addWindowListener(this);
+    /**
+     */
+    public void initModule() {
 
-		pack();
+        SwingParameters.initSwingParameters();
 
-		// TODO: check screen size?
-		setBounds(0, 0, 1000, 700);
-		setLocationRelativeTo(null);
+        parameters = new DesktopParameters();
 
-		// Application wants to control closing by itself
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        try {
+            BufferedImage MZmineIcon = ImageIO.read(new File(
+                    "icons/MZmineIcon.png"));
+            setIconImage(MZmineIcon);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-		setTitle("MZmine 2");
+        mainPanel = new MainPanel();
+        add(mainPanel);
 
-		taskList = new TaskProgressWindow((TaskControllerImpl) MZmineCore
-				.getTaskController());
-		// Do not use addInternalFrame(), to avoid making the tasklist visible
-		mainPanel.getDesktopPane().add(taskList);
+        // Construct menu
+        menuBar = new MainMenu();
+        help = new HelpMainMenuItem();
+        help.addMenuItem(menuBar);
+        setJMenuBar(menuBar);
 
-		MZmineCore.getProjectManager().addProjectListener(this);
+        // Initialize window listener for responding to user events
+        addWindowListener(this);
 
-	}
+        pack();
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
-	 */
-	public JFrame getMainFrame() {
-		return this;
-	}
+        // TODO: check screen size?
+        setBounds(0, 0, 1000, 700);
+        setLocationRelativeTo(null);
 
-	public HelpMainMenuItem getHelp() {
-		return help;
-	}
+        // Application wants to control closing by itself
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#addMenuItem(net.sf.mzmine.desktop.Desktop.BatchStepCategory,
-	 *      java.lang.String, java.awt.event.ActionListener, java.lang.String,
-	 *      int, boolean, boolean)
-	 */
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			String toolTip, int mnemonic, boolean setAccelerator,
-			ActionListener listener, String actionCommand) {
-		return menuBar.addMenuItem(parentMenu, text, toolTip, mnemonic,
-				setAccelerator, listener, actionCommand);
-	}
+        setTitle("MZmine 2");
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#setStatusBarText(java.lang.String,
-	 *      java.awt.Color)
-	 */
-	public void setStatusBarText(String text, Color textColor) {
-		mainPanel.getStatusBar().setStatusText(text, textColor);
-	}
+        taskList = new TaskProgressWindow(
+                (TaskControllerImpl) MZmineCore.getTaskController());
+        // Do not use addInternalFrame(), to avoid making the tasklist visible
+        mainPanel.getDesktopPane().add(taskList);
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getMZFormatProvider()
-	 */
-	public NumberFormatter getMZFormat() {
-		return parameters.getMZFormat();
-	}
+        MZmineCore.getProjectManager().addProjectListener(this);
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getRTFormatProvider()
-	 */
-	public NumberFormatter getRTFormat() {
-		return parameters.getRTFormat();
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getIntensityFormatProvider()
-	 */
-	public NumberFormatter getIntensityFormat() {
-		return parameters.getIntensityFormat();
-	}
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
+     */
+    public JFrame getMainFrame() {
+        return this;
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-	 */
-	public DesktopParameters getParameterSet() {
-		return parameters;
-	}
+    public HelpMainMenuItem getHelp() {
+        return help;
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (DesktopParameters) parameterValues;
-	}
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#addMenuItem(net.sf.mzmine.desktop.Desktop.BatchStepCategory,
+     *      java.lang.String, java.awt.event.ActionListener, java.lang.String,
+     *      int, boolean, boolean)
+     */
+    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+            String toolTip, int mnemonic, boolean setAccelerator,
+            ActionListener listener, String actionCommand) {
+        return menuBar.addMenuItem(parentMenu, text, toolTip, mnemonic,
+                setAccelerator, listener, actionCommand);
+    }
 
-	public void projectModified(ProjectEvent event, MZmineProject project) {
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#setStatusBarText(java.lang.String,
+     *      java.awt.Color)
+     */
+    public void setStatusBarText(String text, Color textColor) {
+        mainPanel.getStatusBar().setStatusText(text, textColor);
+    }
 
-		mainPanel.getProjectTree().getModel().fireTreeChanged();
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getMZFormatProvider()
+     */
+    public NumberFormatter getMZFormat() {
+        return parameters.getMZFormat();
+    }
 
-		if (project.getProjectFile() != null) {
-			String projectName = project.getProjectFile().getName();
-			if (projectName.endsWith(".mzmine")) {
-				projectName = projectName
-						.substring(0, projectName.length() - 7);
-			}
-			setTitle("MZmine 2: " + projectName);
-		}
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getRTFormatProvider()
+     */
+    public NumberFormatter getRTFormat() {
+        return parameters.getRTFormat();
+    }
 
-	}
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getIntensityFormatProvider()
+     */
+    public NumberFormatter getIntensityFormat() {
+        return parameters.getIntensityFormat();
+    }
 
-	public void displayException(Exception e) {
-		displayErrorMessage(ExceptionUtils.exceptionToString(e));
-	}
+    /**
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+     */
+    public DesktopParameters getParameterSet() {
+        return parameters;
+    }
 
-	MainPanel getMainPanel() {
-		return mainPanel;
-	}
+    /**
+     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public void setParameters(ParameterSet parameterValues) {
+        this.parameters = (DesktopParameters) parameterValues;
+    }
 
-	public JInternalFrame[] getInternalFrames() {
-		return mainPanel.getDesktopPane().getAllFrames();
-	}
+    public void projectModified(ProjectEvent event, MZmineProject project) {
 
-	public JInternalFrame getSelectedFrame() {
-		return mainPanel.getDesktopPane().getSelectedFrame();
-	}
+        mainPanel.getProjectTree().getModel().fireTreeChanged();
+
+        if (project.getProjectFile() != null) {
+            String projectName = project.getProjectFile().getName();
+            if (projectName.endsWith(".mzmine")) {
+                projectName = projectName.substring(0, projectName.length() - 7);
+            }
+            setTitle("MZmine 2: " + projectName);
+        }
+
+    }
+
+    public void displayException(Exception e) {
+        displayErrorMessage(ExceptionUtils.exceptionToString(e));
+    }
+
+    MainPanel getMainPanel() {
+        return mainPanel;
+    }
+
+    public JInternalFrame[] getInternalFrames() {
+        return mainPanel.getDesktopPane().getAllFrames();
+    }
+
+    public JInternalFrame getSelectedFrame() {
+        return mainPanel.getDesktopPane().getSelectedFrame();
+    }
 
 }

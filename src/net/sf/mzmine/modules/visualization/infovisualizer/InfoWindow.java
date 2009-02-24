@@ -42,7 +42,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.Range;
 
-public class InfoWindow extends JInternalFrame {
+class InfoWindow extends JInternalFrame {
 
 	private NumberFormatter rtFormat = MZmineCore.getRTFormat();
 	private NumberFormatter mzFormat = MZmineCore.getMZFormat();
@@ -50,7 +50,7 @@ public class InfoWindow extends JInternalFrame {
 	Range rtRange, mzRange;
 	int numOfRows, numOfIdentities;
 
-	public InfoWindow(PeakList peakList) {
+	InfoWindow(PeakList peakList) {
 
 		super("Peak list information", true, true, true, true);
 
