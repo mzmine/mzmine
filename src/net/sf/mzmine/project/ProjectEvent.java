@@ -1,4 +1,5 @@
-/* Copyright 2006-2009 The MZmine 2 Development Team
+/*
+ * Copyright 2006-2009 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,5 +20,5 @@
 package net.sf.mzmine.project;
 
 public enum ProjectEvent {
-	DATAFILE_ADDED, DATAFILE_REMOVED, PEAKLIST_ADDED, PEAKLIST_REMOVED, NAME_CHANGED, ALL_CHANGED
+    DATAFILE_ADDED, DATAFILE_REMOVED, PEAKLIST_ADDED, PEAKLIST_REMOVED, PEAKLIST_CONTENTS_CHANGED, PROJECT_NAME_CHANGED, ALL_CHANGED
 }

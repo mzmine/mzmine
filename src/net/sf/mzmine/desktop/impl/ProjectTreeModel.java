@@ -43,7 +43,7 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 
     private JTree projectTree;
     private Vector<TreeModelListener> listeners;
-    
+
     ProjectTreeModel(JTree projectTree) {
         this.projectTree = projectTree;
         listeners = new Vector<TreeModelListener>();
@@ -147,21 +147,19 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
     }
 
     public void projectModified(ProjectEvent event) {
-        
+
         if (event == ProjectEvent.ALL_CHANGED) {
             for (TreeModelListener l : listeners) {
                 l.treeStructureChanged(new TreeModelEvent(this,
                         new Object[] { getRoot() }));
-                
-
             }
             projectTree.expandPath(new TreePath(new Object[] { getRoot(),
                     ProjectTreeModel.dataFilesItem }));
             projectTree.expandPath(new TreePath(new Object[] { getRoot(),
                     ProjectTreeModel.peakListsItem }));
         }
-        
-        if (event == ProjectEvent.NAME_CHANGED) {
+
+        if (event == ProjectEvent.PROJECT_NAME_CHANGED) {
             for (TreeModelListener l : listeners) {
                 l.treeNodesChanged(new TreeModelEvent(this,
                         new Object[] { getRoot() }));
@@ -181,6 +179,16 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
             for (TreeModelListener l : listeners) {
                 l.treeStructureChanged(new TreeModelEvent(this, new Object[] {
                         getRoot(), peakListsItem }));
+            }
+        }
+
+        if (event == ProjectEvent.PEAKLIST_CONTENTS_CHANGED) {
+            PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+            for (PeakList peakList : peakLists) {
+                for (TreeModelListener l : listeners) {
+                    l.treeStructureChanged(new TreeModelEvent(this,
+                            new Object[] { getRoot(), peakListsItem, peakList }));
+                }
             }
         }
 

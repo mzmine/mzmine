@@ -371,6 +371,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 							.getRawDataPointsMZRange());
 				}
 			}
+            
+            if (dataFiles.length == 0) return;
 
 			if (visualizerType.equals("Chromatogram")) {
 				TICVisualizer.showNewTICVisualizerWindow(dataFiles,

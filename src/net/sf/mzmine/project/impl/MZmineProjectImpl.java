@@ -91,14 +91,14 @@ public class MZmineProjectImpl implements MZmineProject {
 
     public void addFile(RawDataFile newFile) {
         dataFiles.add(newFile);
-        ProjectManagerImpl.getInstance().fireListeners(
+        ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.DATAFILE_ADDED);
     }
 
     public void removeFile(RawDataFile file) {
         dataFiles.remove(file);
         file.close();
-        ProjectManagerImpl.getInstance().fireListeners(
+        ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.DATAFILE_REMOVED);
     }
 
@@ -108,13 +108,13 @@ public class MZmineProjectImpl implements MZmineProject {
 
     public void addPeakList(PeakList peakList) {
         peakLists.add(peakList);
-        ProjectManagerImpl.getInstance().fireListeners(
+        ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.PEAKLIST_ADDED);
     }
 
     public void removePeakList(PeakList peakList) {
         peakLists.remove(peakList);
-        ProjectManagerImpl.getInstance().fireListeners(
+        ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.PEAKLIST_REMOVED);
     }
 
@@ -137,8 +137,8 @@ public class MZmineProjectImpl implements MZmineProject {
 
     void setProjectFile(File file) {
         this.projectFile = file;
-        ProjectManagerImpl.getInstance().fireListeners(
-                ProjectEvent.NAME_CHANGED);
+        ProjectManagerImpl.getInstance().fireProjectListeners(
+                ProjectEvent.PROJECT_NAME_CHANGED);
     }
 
     public String toString() {

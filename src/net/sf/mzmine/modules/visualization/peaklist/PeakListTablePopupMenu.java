@@ -52,6 +52,7 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 
@@ -216,6 +217,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 peakList.removeRow(unsordedIndexes[i]);
             }
             originalModel.fireTableDataChanged();
+            
+            // Notify the project manager that peaklist contents have changed
+            MZmineCore.getProjectManager().fireProjectListeners(
+                    ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+
 
         }
 
@@ -389,6 +395,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             originalModel.fireTableDataChanged();
             ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
                     newRow);
+            
+            // Notify the project manager that peaklist contents have changed
+            MZmineCore.getProjectManager().fireProjectListeners(
+                    ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+        
         }
 
         if (src == showPeakRowSummaryItem) {

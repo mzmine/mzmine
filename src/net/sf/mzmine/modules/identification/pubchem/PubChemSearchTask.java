@@ -43,6 +43,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class PubChemSearchTask implements Task {
@@ -282,6 +283,11 @@ public class PubChemSearchTask implements Task {
 		        // Add task description to peakList
 		        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak identification of using PubChem databases",
 		        		parameters));
+                
+		        // Notify the project manager that peaklist contents have changed
+                MZmineCore.getProjectManager().fireProjectListeners(
+                        ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+
 
 
 			}

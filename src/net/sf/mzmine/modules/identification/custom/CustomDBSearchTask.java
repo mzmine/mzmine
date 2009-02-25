@@ -29,6 +29,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
 
 import com.Ostermiller.util.CSVParser;
@@ -188,6 +190,10 @@ class CustomDBSearchTask implements Task {
 
             }
         }
+        
+        // Notify the project manager that peaklist contents have changed
+        MZmineCore.getProjectManager().fireProjectListeners(
+                ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
 
     }
 

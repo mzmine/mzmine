@@ -30,5 +30,7 @@ public interface ProjectManager {
 	public void addProjectListener(ProjectListener listener);
 
 	public void removeProjectListener(ProjectListener listener);
+    
+    public void fireProjectListeners(ProjectEvent event);
 
 }

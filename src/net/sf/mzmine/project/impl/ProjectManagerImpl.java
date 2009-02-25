@@ -79,7 +79,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 
 	void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
-		fireListeners(ProjectEvent.ALL_CHANGED);
+		fireProjectListeners(ProjectEvent.ALL_CHANGED);
 	}
 
 	public static ProjectManagerImpl getInstance() {
@@ -154,7 +154,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		listeners.remove(listener);
 	}
 
-	public void fireListeners(ProjectEvent event) {
+	public void fireProjectListeners(ProjectEvent event) {
 		for (ProjectListener listener : listeners)
 			listener.projectModified(event);
 	}
