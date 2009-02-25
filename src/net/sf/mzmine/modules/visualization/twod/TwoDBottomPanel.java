@@ -296,7 +296,8 @@ class TwoDBottomPanel extends JPanel implements ProjectListener,
 	/**
 	 * Reloads peak lists from the project to the selector combo box
 	 */
-	void rebuildPeakListSelector(MZmineProject project) {
+	void rebuildPeakListSelector() {
+		MZmineProject project = MZmineCore.getCurrentProject();
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
@@ -312,7 +313,8 @@ class TwoDBottomPanel extends JPanel implements ProjectListener,
 	/**
 	 * Loads the options to the "peak threshold" combo box
 	 */
-	void buildPeakThresholdSelector(MZmineProject project) {
+	void buildPeakThresholdSelector() {
+		MZmineProject project = MZmineCore.getCurrentProject();
 		PeakList currentPeakLists[] = project.getPeakLists(dataFile);
 		int index = (Integer) peakThresholdParameters
 				.getParameterValue(PeakThresholdParameters.comboBoxIndexThreshold);
@@ -321,14 +323,15 @@ class TwoDBottomPanel extends JPanel implements ProjectListener,
 				peakSelector.addItem(option.getName());
 			}
 		}
-		peakSelector.setSelectedIndex(index);
+		if (index < currentPeakLists.length)
+			peakSelector.setSelectedIndex(index);
 	}
 
 	/**
 	 * ProjectListener implementaion
 	 */
 	public void projectModified(ProjectEvent event, MZmineProject project) {
-		rebuildPeakListSelector(project);
+		rebuildPeakListSelector();
 	}
 
 	public void internalFrameActivated(InternalFrameEvent event) {
