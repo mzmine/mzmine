@@ -92,10 +92,10 @@ class SameRangeTask implements Task {
             newRow.setComment(sourceRow.getComment());
 
             // Copy identities
-            for (PeakIdentity ident : sourceRow.getCompoundIdentities())
-                newRow.addCompoundIdentity(ident, false);
-            if (sourceRow.getPreferredCompoundIdentity() != null)
-                newRow.setPreferredCompoundIdentity(sourceRow.getPreferredCompoundIdentity());
+            for (PeakIdentity ident : sourceRow.getPeakIdentities())
+                newRow.addPeakIdentity(ident, false);
+            if (sourceRow.getPreferredPeakIdentity() != null)
+                newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
 
             // Copy each peaks and fill gaps
             for (RawDataFile column : columns) {

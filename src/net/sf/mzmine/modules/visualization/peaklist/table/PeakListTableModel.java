@@ -90,7 +90,7 @@ public class PeakListTableModel extends AbstractTableModel {
             case COMMENT:
                 return peakListRow.getComment();
             case IDENTITY:
-                return peakListRow.getPreferredCompoundIdentity();
+                return peakListRow.getPreferredPeakIdentity();
             case PEAKSHAPE:
                 return peakListRow;
             }
@@ -152,9 +152,9 @@ public class PeakListTableModel extends AbstractTableModel {
 
         if (columnType == CommonColumnType.IDENTITY) {
             if (value instanceof PeakIdentity)
-                peakListRow.setPreferredCompoundIdentity((PeakIdentity) value);
+                peakListRow.setPreferredPeakIdentity((PeakIdentity) value);
             else
-                peakListRow.setPreferredCompoundIdentity(PeakIdentity.UNKNOWN_IDENTITY);
+                peakListRow.setPreferredPeakIdentity(PeakIdentity.UNKNOWN_IDENTITY);
         }
 
     }

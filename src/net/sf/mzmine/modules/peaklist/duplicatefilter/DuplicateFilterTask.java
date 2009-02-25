@@ -150,8 +150,8 @@ class DuplicateFilterTask implements Task {
         			// Use preferred identifications if available instead of all identifications
         			// Use CompoundIDs if available instead of CompoundNames
         			
-       				PeakIdentity[] firstIdentities = peaklistRows[firstRowIndex].getCompoundIdentities();
-       				PeakIdentity[] secondIdentities = peaklistRows[secondRowIndex].getCompoundIdentities();
+       				PeakIdentity[] firstIdentities = peaklistRows[firstRowIndex].getPeakIdentities();
+       				PeakIdentity[] secondIdentities = peaklistRows[secondRowIndex].getPeakIdentities();
        				
        				if ( (firstIdentities.length==0) && (secondIdentities.length==0) )
        					sameID = true;

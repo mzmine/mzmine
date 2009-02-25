@@ -36,7 +36,7 @@ import javax.swing.JTextField;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
@@ -164,12 +164,12 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 				return;
 			}
 				
-			SimpleCompoundIdentity compound;
-			compound = new SimpleCompoundIdentity(id, name, null,
+			SimplePeakIdentity compound;
+			compound = new SimplePeakIdentity(id, name, null,
 					formula, null, "User defined", note);
 
-            if (editIdentity != null) peakListRow.removeCompoundIdentity(editIdentity);
-			peakListRow.addCompoundIdentity(compound, true);
+            if (editIdentity != null) peakListRow.removePeakIdentity(editIdentity);
+			peakListRow.addPeakIdentity(compound, true);
 			peakListRow.setComment(note);
 			
 			exitCode = ExitCode.OK;

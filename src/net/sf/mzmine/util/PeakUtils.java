@@ -163,8 +163,8 @@ public class PeakUtils {
             return false;
 
         // If both have preferred identity available, then compare only those
-        PeakIdentity row1PreferredIdentity = row1.getPreferredCompoundIdentity();
-        PeakIdentity row2PreferredIdentity = row2.getPreferredCompoundIdentity();
+        PeakIdentity row1PreferredIdentity = row1.getPreferredPeakIdentity();
+        PeakIdentity row2PreferredIdentity = row2.getPreferredPeakIdentity();
         if ((row1PreferredIdentity != null) && (row2PreferredIdentity != null)) {
             if (row1PreferredIdentity.getName().equals(
                     row2PreferredIdentity.getName()))
@@ -174,8 +174,8 @@ public class PeakUtils {
         }
 
         // If no identities at all for both rows, then return true
-        PeakIdentity[] row1Identities = row1.getCompoundIdentities();
-        PeakIdentity[] row2Identities = row2.getCompoundIdentities();
+        PeakIdentity[] row1Identities = row1.getPeakIdentities();
+        PeakIdentity[] row2Identities = row2.getPeakIdentities();
         if ((row1Identities.length == 0) && (row2Identities.length == 0))
             return true;
 
@@ -207,7 +207,7 @@ public class PeakUtils {
      */
     public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
 
-        for (PeakIdentity identity : row.getCompoundIdentities()) {
+        for (PeakIdentity identity : row.getPeakIdentities()) {
             if (identity.getName().equals(id.getName()))
                 return true;
         }

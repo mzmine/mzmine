@@ -32,13 +32,13 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.NameChangeable;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.NameChangeable;
 
 /**
  * RawDataFile implementation

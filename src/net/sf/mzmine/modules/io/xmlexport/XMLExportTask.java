@@ -299,8 +299,8 @@ public class XMLExportTask implements Task {
 		Element newElement;
 
 		// <PEAK_IDENTITY>
-		PeakIdentity preferredIdentity = row.getPreferredCompoundIdentity();
-		PeakIdentity[] identities = row.getCompoundIdentities();
+		PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
+		PeakIdentity[] identities = row.getPeakIdentities();
 
 		for (int i = 0; i < identities.length; i++) {
 			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY

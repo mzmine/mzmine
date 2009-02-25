@@ -153,7 +153,7 @@ class InfoWindow extends JInternalFrame {
 		ChromatographicPeak peak;
 
 		for (PeakListRow row : rows) {
-			if (row.getPreferredCompoundIdentity() != null)
+			if (row.getPreferredPeakIdentity() != null)
 				numOfIdentities++;
 			for (RawDataFile rawData : rawDataFiles) {
 				peak = row.getPeak(rawData);

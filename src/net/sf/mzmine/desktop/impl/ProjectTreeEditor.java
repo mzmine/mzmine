@@ -1,4 +1,5 @@
-/* Copyright 2006-2009 The MZmine 2 Development Team
+/*
+ * Copyright 2006-2009 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,17 +19,46 @@
 
 package net.sf.mzmine.desktop.impl;
 
+import java.awt.event.MouseEvent;
+import java.util.EventObject;
+
+import javax.swing.DefaultCellEditor;
+import javax.swing.JTextField;
 import javax.swing.JTree;
-import javax.swing.tree.DefaultTreeCellEditor;
-import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+
+import net.sf.mzmine.data.NameChangeable;
 
 
-class ProjectTreeEditor extends DefaultTreeCellEditor {
+class ProjectTreeEditor extends DefaultCellEditor {
 
-	ProjectTreeEditor(JTree tree, DefaultTreeCellRenderer renderer) {
-		super(tree, renderer);
-		// TODO Auto-generated constructor stub
-	}
+    private JTree projectTree;
+    private Object editedObject;
 
+    ProjectTreeEditor(JTree projectTree) {
+        super(new JTextField());
+        this.projectTree = projectTree;
+        this.getComponent().setFont(ProjectTreeRenderer.smallerFont);
+    }
+
+    public boolean isCellEditable(EventObject e) {
+        if (e instanceof MouseEvent) {
+            MouseEvent me = (MouseEvent) e;
+            TreePath clickedPath = projectTree.getPathForLocation(me.getX(),
+                    me.getY());
+            if (clickedPath == null)
+                return false;
+            editedObject = clickedPath.getLastPathComponent();
+            return (editedObject instanceof NameChangeable);
+        }
+        return true;
+    }
+    
+    public boolean stopCellEditing() {
+        String value = (String) getCellEditorValue();
+        NameChangeable nameChangeableObject = (NameChangeable) editedObject;
+        nameChangeableObject.setName(value);
+        return super.stopCellEditing();
+    }
 
 }

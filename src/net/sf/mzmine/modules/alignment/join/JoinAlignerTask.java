@@ -280,12 +280,12 @@ class JoinAlignerTask implements Task {
 
                 // Add all non-existing identities from the original row to the
                 // aligned row
-                for (PeakIdentity identity : row.getCompoundIdentities()) {
+                for (PeakIdentity identity : row.getPeakIdentities()) {
                     if (!PeakUtils.containsIdentity(targetRow, identity))
-                        targetRow.addCompoundIdentity(identity, false);
+                        targetRow.addPeakIdentity(identity, false);
                 }
                 // TODO Handling of conflicting preferred identities
-                targetRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());
+                targetRow.setPreferredPeakIdentity(row.getPreferredPeakIdentity());
 
                 processedRows++;
 

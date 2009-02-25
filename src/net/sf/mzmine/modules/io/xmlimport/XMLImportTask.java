@@ -39,16 +39,14 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineviewer.MZviewerWindow;
 import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
@@ -204,13 +202,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 		// Add new peaklist to the project or MZviewer.desktop
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		if (currentProject != null) {
-			currentProject.addPeakList(buildingPeakList);
-		} else {
-			Desktop desktop = MZmineCore.getDesktop();
-			((MZviewerWindow) desktop).getItemSelector().addPeakList(
-					buildingPeakList);
-		}
+		currentProject.addPeakList(buildingPeakList);
 
 		logger.info("Finished parsing " + fileName + ", parsed " + parsedRows
 				+ " rows");
@@ -552,10 +544,10 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-			SimpleCompoundIdentity identity = new SimpleCompoundIdentity(
+			SimplePeakIdentity identity = new SimplePeakIdentity(
 					identityID, name, new String[0], formula, null,
 					identificationMethod, null);
-			buildingRow.addCompoundIdentity(identity, preferred);
+			buildingRow.addPeakIdentity(identity, preferred);
 		}
 
 		// <ROW>

@@ -52,6 +52,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
+import net.sf.mzmine.desktop.impl.ProjectTree;
 import net.sf.mzmine.desktop.impl.StatusBar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
@@ -74,7 +75,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     private JMenu fileMenu, visualizationMenu;
     private JSplitPane split;
     private StatusBar statusBar;
-    private MZviewerItemSelector itemSelector;
+    private ProjectTree itemSelector;
     private TaskProgressWindow taskList;
 
     private static int openFrameCount = 0;
@@ -181,7 +182,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
 
     public PeakList[] getSelectedPeakLists() {
-        return itemSelector.getSelectedPeakLists();
+        return itemSelector.getSelectedObjects(PeakList.class);
     }
 
     /**
@@ -199,7 +200,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         }
 
         // Initialize item selector
-        itemSelector = new MZviewerItemSelector(this);
+        itemSelector = new ProjectTree();
 
         // Place objects on main window
         desktopPane = new JDesktopPane();
@@ -327,10 +328,6 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
      * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-    }
-
-    public MZviewerItemSelector getItemSelector() {
-        return itemSelector;
     }
 
     public void internalFrameActivated(InternalFrameEvent e) {

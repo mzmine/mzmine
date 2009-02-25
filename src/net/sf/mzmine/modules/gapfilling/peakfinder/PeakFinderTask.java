@@ -81,10 +81,10 @@ class PeakFinderTask implements Task {
             PeakListRow sourceRow = peakList.getRow(row);
             PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
             newRow.setComment(sourceRow.getComment());
-            for (PeakIdentity ident : sourceRow.getCompoundIdentities())
-                newRow.addCompoundIdentity(ident, false);
-            if (sourceRow.getPreferredCompoundIdentity() != null)
-                newRow.setPreferredCompoundIdentity(sourceRow.getPreferredCompoundIdentity());
+            for (PeakIdentity ident : sourceRow.getPeakIdentities())
+                newRow.addPeakIdentity(ident, false);
+            if (sourceRow.getPreferredPeakIdentity() != null)
+                newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
             processedPeakList.addRow(newRow);
         }
 

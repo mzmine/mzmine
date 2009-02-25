@@ -107,7 +107,7 @@ class RowsFilterTask implements Task {
 
             if (row.getNumberOfPeaks() < minPresent)
                 rowIsGood = false;
-            if ((identified) && (row.getPreferredCompoundIdentity() == null))
+            if ((identified) && (row.getPreferredPeakIdentity() == null))
                 rowIsGood = false;
             if ((row.getAverageMZ() > maxMZ) || (row.getAverageMZ() < minMZ))
                 rowIsGood = false;

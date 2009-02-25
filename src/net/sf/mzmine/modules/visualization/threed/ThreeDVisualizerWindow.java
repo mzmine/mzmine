@@ -128,7 +128,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         // After we have constructed everything, load the peak lists into the
         // bottom panel
-        bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
+        bottomPanel.rebuildPeakListSelector();
 
     }
 

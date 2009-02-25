@@ -187,7 +187,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
     public String getDataPointName(int index) {
 
         PeakListRow row = peakList.getRow(index);
-        PeakIdentity identity = row.getPreferredCompoundIdentity();
+        PeakIdentity identity = row.getPreferredPeakIdentity();
         if (identity != null) {
             return identity.getName();
         } else {
@@ -203,7 +203,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
      */
     public String getDataPointName(int series, int item) {
         int rowID = arraySeriesAndItemsSelection[series][item];
-        return peakList.getRow(rowID).getPreferredCompoundIdentity().getName();
+        return peakList.getRow(rowID).getPreferredPeakIdentity().getName();
     }
 
     /**
@@ -335,7 +335,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
                 }
 
                 originalName = null;
-                identity = row.getPreferredCompoundIdentity();
+                identity = row.getPreferredPeakIdentity();
                 if (identity != null) {
                     originalName = identity.getName();
                 }

@@ -128,9 +128,9 @@ public class StandardCompoundNormalizerTask implements Task {
 
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
             normalizedRow.setComment(row.getComment());
-            for (PeakIdentity ident : row.getCompoundIdentities())
-                normalizedRow.addCompoundIdentity(ident, false);
-            normalizedRow.setPreferredCompoundIdentity(row.getPreferredCompoundIdentity());
+            for (PeakIdentity ident : row.getPeakIdentities())
+                normalizedRow.addPeakIdentity(ident, false);
+            normalizedRow.setPreferredPeakIdentity(row.getPreferredPeakIdentity());
 
             // Get m/z and RT of the current row
             double mz = row.getAverageMZ();

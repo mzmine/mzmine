@@ -117,7 +117,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			peaks[i] = row.getPeak(rawDataFiles[i]);
 		}
 
-		PeakIdentity identity = row.getPreferredCompoundIdentity();
+		PeakIdentity identity = row.getPreferredPeakIdentity();
 
 		// General container
 		JPanel pnlAll = new JPanel(new BorderLayout());

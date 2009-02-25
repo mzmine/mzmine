@@ -28,12 +28,12 @@ import java.util.List;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.NameChangeable;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.NameChangeable;
 
 /**
  * Simple implementation of the PeakList interface.

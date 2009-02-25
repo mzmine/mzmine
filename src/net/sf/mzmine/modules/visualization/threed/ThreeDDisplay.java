@@ -357,7 +357,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
                 String peakText;
 
                 PeakListRow row = peakList.getPeakRow(peaks[i]);
-                PeakIdentity id = row.getPreferredCompoundIdentity();
+                PeakIdentity id = row.getPreferredPeakIdentity();
                 if (showCompoundName && (id != null))
                     peakText = id.getName();
                 else

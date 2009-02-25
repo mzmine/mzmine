@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleCompoundIdentity;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.taskcontrol.Task;
@@ -170,7 +170,7 @@ class CustomDBSearchTask implements Task {
         }
 
         File dbFile = new File(dataBaseFile);
-        SimpleCompoundIdentity newIdentity = new SimpleCompoundIdentity(lineID,
+        SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineID,
                 lineName, null, lineFormula, null, dbFile.getName(), null);
 
         for (PeakListRow peakRow : peakList.getRows()) {
@@ -184,7 +184,7 @@ class CustomDBSearchTask implements Task {
                         + ", RT " + lineRT + ")");
 
                 // add new identity to the row
-                peakRow.addCompoundIdentity(newIdentity, false);
+                peakRow.addPeakIdentity(newIdentity, false);
 
             }
         }

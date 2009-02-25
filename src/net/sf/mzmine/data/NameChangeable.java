@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util.dialogs;
+package net.sf.mzmine.data;
 
 
 public interface NameChangeable {

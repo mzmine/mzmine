@@ -13,12 +13,11 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data;
-
 
 /**
  * 
@@ -54,12 +53,12 @@ public interface PeakListRow {
      * Add a peak
      */
     public void addPeak(RawDataFile rawData, ChromatographicPeak peak);
-    
+
     /**
      * Has a peak?
      */
     public boolean hasPeak(ChromatographicPeak peak);
-        
+
     /**
      * Returns average M/Z for peaks on this row
      */
@@ -83,38 +82,39 @@ public interface PeakListRow {
     /**
      * Add a new identity candidate (result of identification method)
      * 
-     * @param identity New compound identity
-     * @param preffered boolean value to define this identity as preferred identity
+     * @param identity New peak identity
+     * @param preffered boolean value to define this identity as preferred
+     *            identity
      */
-    public void addCompoundIdentity(PeakIdentity identity, boolean preffered);
-    
+    public void addPeakIdentity(PeakIdentity identity, boolean preffered);
+
     /**
      * Remove identity candidate
      * 
-     * @param identity Compound identity
+     * @param identity Peak identity
      */
-    public void removeCompoundIdentity(PeakIdentity identity);
+    public void removePeakIdentity(PeakIdentity identity);
 
     /**
-     * Returns all candidates for this compound's identity
+     * Returns all candidates for this peak's identity
      * 
      * @return Identity candidates
      */
-    public PeakIdentity[] getCompoundIdentities();
+    public PeakIdentity[] getPeakIdentities();
 
     /**
-     * Returns preferred compound identity among candidates
+     * Returns preferred peak identity among candidates
      * 
      * @return Preferred identity
      */
-    public PeakIdentity getPreferredCompoundIdentity();
+    public PeakIdentity getPreferredPeakIdentity();
 
     /**
-     * Sets a preferred compound identity among candidates
+     * Sets a preferred peak identity among candidates
      * 
      * @param identity Preferred identity
      */
-    public void setPreferredCompoundIdentity(PeakIdentity identity);
+    public void setPreferredPeakIdentity(PeakIdentity identity);
 
     /**
      * Returns maximum raw data point intensity among all peaks in this row

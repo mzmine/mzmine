@@ -232,7 +232,7 @@ public class RelatedPeaksSearchTask implements Task {
 									currentRow, comparedRow);
 							identity = new RelatedPeakIdentity(currentRow,
 									comparedRow, adduct);
-							comparedRow.addCompoundIdentity(identity, false);
+							comparedRow.addPeakIdentity(identity, false);
 							// currentRow.addCompoundIdentity(identity, false);
 							peaksGroups.add(currentGroup);
 							numOfGroups++;

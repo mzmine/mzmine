@@ -103,12 +103,12 @@ class ConcatenateFragmentsTask implements Task, TaskListener {
 
                 // Add all non-existing identities from the original row to the
                 // aligned row
-                for (PeakIdentity identity : fragmentRow.getCompoundIdentities()) {
+                for (PeakIdentity identity : fragmentRow.getPeakIdentities()) {
                     if (!PeakUtils.containsIdentity(targetRow, identity))
-                        targetRow.addCompoundIdentity(identity, false);
+                        targetRow.addPeakIdentity(identity, false);
                 }
 
-                targetRow.setPreferredCompoundIdentity(fragmentRow.getPreferredCompoundIdentity());
+                targetRow.setPreferredPeakIdentity(fragmentRow.getPreferredPeakIdentity());
 
             }
 

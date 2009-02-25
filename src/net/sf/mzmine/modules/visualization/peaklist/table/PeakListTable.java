@@ -156,9 +156,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 			int peakListRowIndex = sorter.modelIndex(row);
 			peakListRow = peakList.getRow(peakListRowIndex);
 
-			PeakIdentity identities[] = peakListRow.getCompoundIdentities();
+			PeakIdentity identities[] = peakListRow.getPeakIdentities();
 			PeakIdentity preferredIdentity = peakListRow
-					.getPreferredCompoundIdentity();
+					.getPreferredPeakIdentity();
 			JComboBox combo;
 
 			if ((identities != null) && (identities.length > 0)) {
@@ -190,15 +190,15 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 						}
 						if (item.toString() == EDIT_IDENTITY) {
                             CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
-                                    peakListRow, peakListRow.getPreferredCompoundIdentity());
+                                    peakListRow, peakListRow.getPreferredPeakIdentity());
                             dialog.setVisible(true);
                             return;
 						}
 						if (item.toString() == REMOVE_IDENTITY) {
 							PeakIdentity identity = peakListRow
-									.getPreferredCompoundIdentity();
+									.getPreferredPeakIdentity();
 							if (identity != PeakIdentity.UNKNOWN_IDENTITY) {
-								peakListRow.removeCompoundIdentity(identity);
+								peakListRow.removePeakIdentity(identity);
 								DefaultComboBoxModel comboModel = (DefaultComboBoxModel) combo
 										.getModel();
 								comboModel.removeElement(identity);
@@ -207,7 +207,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 						}
 						if (item instanceof PeakIdentity) {
 							peakListRow
-									.setPreferredCompoundIdentity((PeakIdentity) item);
+									.setPreferredPeakIdentity((PeakIdentity) item);
 						}
 					}
 				}

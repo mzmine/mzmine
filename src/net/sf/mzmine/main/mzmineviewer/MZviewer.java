@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
 public class MZviewer extends MZmineCore implements Runnable {
@@ -73,15 +74,18 @@ public class MZviewer extends MZmineCore implements Runnable {
             // create instances of core modules
             TaskControllerImpl taskController = new TaskControllerImpl(1);
             desktop = new MZviewerWindow();
+            ProjectManagerImpl projectManager = new ProjectManagerImpl();
 
             // save static references to MZmineCore
             MZmineCore.taskController = taskController;
             MZmineCore.desktop = desktop;
+            MZmineCore.projectManager = projectManager;
 
             logger.finer("Initializing core classes");
 
             taskController.initModule();
             desktop.initModule();
+            projectManager.initModule();
             
             logger.finer("Loading modules");
 

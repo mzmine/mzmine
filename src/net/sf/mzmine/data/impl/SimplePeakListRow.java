@@ -162,7 +162,7 @@ public class SimplePeakListRow implements PeakListRow {
     /**
      * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
      */
-    public void addCompoundIdentity(PeakIdentity identity, boolean preferred) {
+    public void addPeakIdentity(PeakIdentity identity, boolean preferred) {
 
         // Verify if exists already an identity with the same name
         PeakIdentity compoundIdentity;
@@ -180,7 +180,7 @@ public class SimplePeakListRow implements PeakListRow {
             identities.add(identity);
             if ((preferredIdentity == PeakIdentity.UNKNOWN_IDENTITY)
                     || (preferred)) {
-                setPreferredCompoundIdentity(identity);
+                setPreferredPeakIdentity(identity);
             }
         }
     }
@@ -188,35 +188,35 @@ public class SimplePeakListRow implements PeakListRow {
     /**
      * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
      */
-    public void removeCompoundIdentity(PeakIdentity identity) {
+    public void removePeakIdentity(PeakIdentity identity) {
         identities.remove(identity);
         if (preferredIdentity == identity) {
             if (identities.size() > 0) {
                 PeakIdentity[] identitiesArray = identities.toArray(new PeakIdentity[0]);
-                setPreferredCompoundIdentity(identitiesArray[0]);
+                setPreferredPeakIdentity(identitiesArray[0]);
             } else
                 preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
         }
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakListRow#getCompoundIdentities()
+     * @see net.sf.mzmine.data.PeakListRow#getPeakIdentities()
      */
-    public PeakIdentity[] getCompoundIdentities() {
+    public PeakIdentity[] getPeakIdentities() {
         return identities.toArray(new PeakIdentity[0]);
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakListRow#getPreferredCompoundIdentity()
+     * @see net.sf.mzmine.data.PeakListRow#getPreferredPeakIdentity()
      */
-    public PeakIdentity getPreferredCompoundIdentity() {
+    public PeakIdentity getPreferredPeakIdentity() {
         return preferredIdentity;
     }
 
     /**
-     * @see net.sf.mzmine.data.PeakListRow#setPreferredCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+     * @see net.sf.mzmine.data.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.data.PeakIdentity)
      */
-    public void setPreferredCompoundIdentity(PeakIdentity identity) {
+    public void setPreferredPeakIdentity(PeakIdentity identity) {
         if (identity != null){
             preferredIdentity = identity;
             // Verify if exists already an identity with the same name

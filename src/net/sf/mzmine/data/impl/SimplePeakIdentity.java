@@ -24,7 +24,7 @@ import net.sf.mzmine.data.PeakIdentity;
 /**
  * Simple CompoundIdentity implementation;
  */
-public class SimpleCompoundIdentity implements PeakIdentity, Comparable {
+public class SimplePeakIdentity implements PeakIdentity, Comparable {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
     private String databaseEntryURL, identificationMethod, scopeNote;
@@ -38,7 +38,7 @@ public class SimpleCompoundIdentity implements PeakIdentity, Comparable {
      * @param identificationMethod
      * @param scopeNote
      */
-    public SimpleCompoundIdentity(String compoundID, String compoundName,
+    public SimplePeakIdentity(String compoundID, String compoundName,
             String[] alternateNames, String compoundFormula,
             String databaseEntryURL, String identificationMethod, String scopeNote) {
         this.compoundID = compoundID;

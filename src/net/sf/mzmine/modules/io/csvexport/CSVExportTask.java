@@ -165,22 +165,22 @@ class CSVExportTask implements Task {
 						}
 						break;
 					case ROW_NAME:
-						if (peakListRow.getPreferredCompoundIdentity() == null) {
+						if (peakListRow.getPreferredPeakIdentity() == null) {
 							line.append(fieldSeparator);
 						} else {
 
 							line.append("\"" + peakListRow
-									.getPreferredCompoundIdentity().getName()
+									.getPreferredPeakIdentity().getName()
 									+ "\"" + fieldSeparator);
 						}
 						break;
 					case ROW_ALL_NAME:
-						if (peakListRow.getPreferredCompoundIdentity() == null) {
+						if (peakListRow.getPreferredPeakIdentity() == null) {
 							line.append(fieldSeparator);
 						} else {
 							name = "";
 							PeakIdentity[] compoundIdentities = peakListRow
-							.getCompoundIdentities();
+							.getPeakIdentities();
 							for (PeakIdentity compoundIdentity : compoundIdentities) {
 								name += compoundIdentity.getName() + " // ";
 							}
@@ -188,11 +188,11 @@ class CSVExportTask implements Task {
 						}
 						break;
 					case ROW_FORMULA:
-						if (peakListRow.getPreferredCompoundIdentity() == null) {
+						if (peakListRow.getPreferredPeakIdentity() == null) {
 							line.append(fieldSeparator);
 						} else {
 							line.append(peakListRow
-									.getPreferredCompoundIdentity()
+									.getPreferredPeakIdentity()
 									.getCompoundFormula()
 									+ fieldSeparator);
 						}

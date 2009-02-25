@@ -274,7 +274,7 @@ public class PubChemSearchTask implements Task {
 						getSummary(compound, valueOfQuery);
 						getName(pubChemID, compound);
 
-						row.addCompoundIdentity(compound, false);
+						row.addPeakIdentity(compound, false);
 					}
 					finishedLines++;
 				}

@@ -33,6 +33,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.project.MZmineProject;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
@@ -45,6 +46,14 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
     static final Font bigFont = new Font("SansSerif", Font.PLAIN, 12);
     static final Font smallerFont = new Font("SansSerif", Font.PLAIN, 11);
     static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+    
+    ProjectTreeRenderer() {
+        setFont(smallFont);
+        setOpenIcon(null);
+        setClosedIcon(null);
+        setLeafIcon(null);
+    }
+    
 
     public Component getTreeCellRendererComponent(JTree tree, Object value,
             boolean sel, boolean expanded, boolean leaf, int row,
@@ -53,7 +62,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
         JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value,
                 sel, expanded, leaf, row, hasFocus);
 
-        if (value == ProjectTreeModel.rootItem) {
+        if (value instanceof MZmineProject) {
             label.setIcon(projectIcon);
             label.setFont(bigFont);
         }
@@ -69,14 +78,12 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
         }
 
         if (value instanceof RawDataFile) {
-            label.setIcon(null);
             label.setFont(smallerFont);
         }
 
         if (value instanceof Scan) {
             Scan s = (Scan) value;
             label.setIcon(spectrumIcon);
-            label.setFont(smallFont);
             if (s.getMSLevel() > 1)
                 label.setForeground(Color.red);
             else
@@ -95,8 +102,12 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
         }
 
         if (value instanceof PeakListRow) {
+            PeakListRow r = (PeakListRow) value;
             label.setIcon(peakIcon);
-            label.setFont(smallFont);
+            if (r.getPreferredPeakIdentity() != null) {
+                label.setForeground(Color.red);
+            }
+            
         }
 
         return label;

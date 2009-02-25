@@ -27,6 +27,6 @@ package net.sf.mzmine.project;
  */
 public interface ProjectListener {
 
-	public void projectModified(ProjectEvent event, MZmineProject project);
+	public void projectModified(ProjectEvent event);
 
 }

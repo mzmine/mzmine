@@ -41,7 +41,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
@@ -181,7 +180,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         // Application wants to control closing by itself
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-        setTitle("MZmine 2");
+        updateTitle();
 
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
@@ -190,6 +189,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         MZmineCore.getProjectManager().addProjectListener(this);
 
+    }
+    
+    void updateTitle() {
+        String projectName = MZmineCore.getCurrentProject().toString();
+        setTitle("MZmine 2: " + projectName);
     }
 
     /**
@@ -258,18 +262,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
         this.parameters = (DesktopParameters) parameterValues;
     }
 
-    public void projectModified(ProjectEvent event, MZmineProject project) {
-
-        mainPanel.getProjectTree().getModel().fireTreeChanged();
-
-        if (project.getProjectFile() != null) {
-            String projectName = project.getProjectFile().getName();
-            if (projectName.endsWith(".mzmine")) {
-                projectName = projectName.substring(0, projectName.length() - 7);
-            }
-            setTitle("MZmine 2: " + projectName);
-        }
-
+    public void projectModified(ProjectEvent event) {
+        updateTitle();
     }
 
     public void displayException(Exception e) {

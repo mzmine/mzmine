@@ -165,7 +165,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         // After we have constructed everything, load the peak lists into the
         // bottom panel
         if (visualizerType == SpectraVisualizerType.SPECTRUM)
-            bottomPanel.rebuildPeakListSelector(MZmineCore.getCurrentProject());
+            bottomPanel.rebuildPeakListSelector();
 
     }
 

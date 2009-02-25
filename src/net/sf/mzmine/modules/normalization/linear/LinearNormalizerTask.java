@@ -223,8 +223,8 @@ class LinearNormalizerTask implements Task {
                         normalizedRow = new SimplePeakListRow(
                                 originalpeakListRow.getID());
                         normalizedRow.setComment(originalpeakListRow.getComment());
-                        for (PeakIdentity ident : originalpeakListRow.getCompoundIdentities())
-                            normalizedRow.addCompoundIdentity(ident, false);
+                        for (PeakIdentity ident : originalpeakListRow.getPeakIdentities())
+                            normalizedRow.addPeakIdentity(ident, false);
                         rowMap.put(originalpeakListRow, normalizedRow);
                     }
 
