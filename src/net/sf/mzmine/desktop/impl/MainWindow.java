@@ -184,6 +184,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
+        
         // Do not use addInternalFrame(), to avoid making the tasklist visible
         mainPanel.getDesktopPane().add(taskList);
 

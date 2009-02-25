@@ -84,8 +84,8 @@ public class MZviewer extends MZmineCore implements Runnable {
             logger.finer("Initializing core classes");
 
             taskController.initModule();
-            desktop.initModule();
             projectManager.initModule();
+            desktop.initModule();
             
             logger.finer("Loading modules");
 

@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.main.mzmineviewer;
@@ -40,9 +40,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
-import javax.swing.border.EtchedBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
@@ -52,8 +50,8 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.DesktopParameters;
+import net.sf.mzmine.desktop.impl.MainPanel;
 import net.sf.mzmine.desktop.impl.ProjectTree;
-import net.sf.mzmine.desktop.impl.StatusBar;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
@@ -70,41 +68,25 @@ import ca.guydavis.swing.desktop.JWindowsMenu;
 public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener, InternalFrameListener, ActionListener {
 
-    private JDesktopPane desktopPane;
     private JMenuBar menuBar;
     private JMenu fileMenu, visualizationMenu;
-    private JSplitPane split;
-    private StatusBar statusBar;
     private ProjectTree itemSelector;
     private TaskProgressWindow taskList;
+    private MainPanel mainPanel;
 
-    private static int openFrameCount = 0;
-    private static final int xOffset = 30, yOffset = 30;
+    private static NumberFormatter mzFormat = new NumberFormatter(
+            FormatterType.NUMBER, "0.000");
+    private static NumberFormatter rtFormat = new NumberFormatter(
+            FormatterType.TIME, "m:ss");
+    private static NumberFormatter intensityFormat = new NumberFormatter(
+            FormatterType.NUMBER, "0.00");
 
-	private static NumberFormatter mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
-	private static NumberFormatter rtFormat = new NumberFormatter(FormatterType.TIME, "m:ss");
-	private static NumberFormatter intensityFormat = new NumberFormatter(FormatterType.NUMBER, "0.00");
-
-    
     public TaskProgressWindow getTaskList() {
         return taskList;
     }
 
     public void addInternalFrame(JInternalFrame frame) {
-        desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
-        // TODO: adjust frame position
-        frame.setVisible(true);
-        frame.addInternalFrameListener(this);
-        openFrameCount++;
-        frame.setLocation(xOffset * openFrameCount, yOffset * openFrameCount);
-        desktopPane.validate();
-    }
-
-    /**
-     * This method returns the desktop
-     */
-    public JDesktopPane getDesktopPane() {
-        return desktopPane;
+        mainPanel.addInternalFrame(frame);
     }
 
     /**
@@ -178,8 +160,8 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
             break;
         case HELPSYSTEM:
             break;
-        }    }
-
+        }
+    }
 
     public PeakList[] getSelectedPeakLists() {
         return itemSelector.getSelectedObjects(PeakList.class);
@@ -199,25 +181,11 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
             e.printStackTrace();
         }
 
-        // Initialize item selector
-        itemSelector = new ProjectTree();
+        mainPanel = new MainPanel();
 
-        // Place objects on main window
-        desktopPane = new JDesktopPane();
-        desktopPane.setBackground(new Color(65, 105, 170));
-
-        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, itemSelector,
-                desktopPane);
-
-        desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-
-        desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
         Container c = getContentPane();
         c.setLayout(new BorderLayout());
-        c.add(split, BorderLayout.CENTER);
-
-        statusBar = new StatusBar();
-        c.add(statusBar, BorderLayout.SOUTH);
+        c.add(mainPanel, BorderLayout.CENTER);
 
         // Construct menu
         menuBar = new JMenuBar();
@@ -231,8 +199,8 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         menuBar.add(editMenu);
         visualizationMenu = new JMenu("Visualization");
         menuBar.add(visualizationMenu);
-        
-        JDesktopPane mainDesktopPane = getDesktopPane();
+
+        JDesktopPane mainDesktopPane = mainPanel.getDesktopPane();
         JWindowsMenu windowsMenu = new JWindowsMenu(mainDesktopPane);
         CascadingWindowPositioner positioner = new CascadingWindowPositioner(
                 mainDesktopPane);
@@ -240,7 +208,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         windowsMenu.getMenuComponent(2).setVisible(false);
         windowsMenu.getMenuComponent(3).setVisible(false);
         windowsMenu.setMnemonic(KeyEvent.VK_W);
-        
+
         menuBar.add(windowsMenu);
 
         setJMenuBar(menuBar);
@@ -261,10 +229,9 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
         taskList = new TaskProgressWindow(
                 (TaskControllerImpl) MZmineCore.getTaskController());
-        desktopPane.add(taskList, JLayeredPane.DEFAULT_LAYER);
+        mainPanel.getDesktopPane().add(taskList, JLayeredPane.DEFAULT_LAYER);
 
     }
-    
 
     /**
      * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
@@ -273,19 +240,18 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         return this;
     }
 
-
     /**
      * @see net.sf.mzmine.desktop.Desktop#getSelectedFrame()
      */
     public JInternalFrame getSelectedFrame() {
-        return desktopPane.getSelectedFrame();
+        return mainPanel.getDesktopPane().getSelectedFrame();
     }
 
     /**
      * @see net.sf.mzmine.desktop.Desktop#getInternalFrames()
      */
     public JInternalFrame[] getInternalFrames() {
-        return desktopPane.getAllFrames();
+        return mainPanel.getDesktopPane().getAllFrames();
     }
 
     /**
@@ -293,7 +259,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
      *      java.awt.Color)
      */
     public void setStatusBarText(String text, Color textColor) {
-        statusBar.setStatusText(text, textColor);
+        mainPanel.getStatusBar().setStatusText(text, textColor);
     }
 
     /**
@@ -334,7 +300,6 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public void internalFrameClosed(InternalFrameEvent e) {
-        openFrameCount--;
     }
 
     public void internalFrameClosing(InternalFrameEvent e) {
@@ -352,9 +317,9 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     public void internalFrameOpened(InternalFrameEvent e) {
     }
 
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			String toolTip, int mnemonic, boolean setAccelerator,
-			ActionListener listener, String actionCommand) {
+    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
+            String toolTip, int mnemonic, boolean setAccelerator,
+            ActionListener listener, String actionCommand) {
         JMenuItem newItem = new JMenuItem(text);
         if (listener != null)
             newItem.addActionListener(listener);
@@ -369,17 +334,18 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
                         ActionEvent.CTRL_MASK));
         }
         addMenuItem(parentMenu, newItem);
-        return newItem;	}
+        return newItem;
+    }
 
-	public RawDataFile[] getSelectedDataFiles() {
-		return null;
-	}
-	
-	public void addPeakLists(String[] args){
-		XMLImporter.myInstance.loadPeakLists(args);
-	}
+    public RawDataFile[] getSelectedDataFiles() {
+        return null;
+    }
 
-	public void actionPerformed(ActionEvent e) {
+    public void addPeakLists(String[] args) {
+        XMLImporter.myInstance.loadPeakLists(args);
+    }
+
+    public void actionPerformed(ActionEvent e) {
         FormatSetupDialog formatDialog = new FormatSetupDialog();
         formatDialog.setVisible(true);
     }
@@ -387,5 +353,5 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     public void displayException(Exception e) {
         displayErrorMessage(ExceptionUtils.exceptionToString(e));
     }
-    
+
 }

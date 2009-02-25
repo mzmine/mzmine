@@ -40,67 +40,66 @@ import ca.guydavis.swing.desktop.WindowPositioner;
  * This class is the main window of application
  * 
  */
-class MainPanel extends JPanel {
+public class MainPanel extends JPanel {
 
-	private JDesktopPane desktopPane;
-	private CascadingWindowPositioner windowPositioner;
-	private JSplitPane split;
-	private ProjectTree projectTree;
-	private StatusBar statusBar;
+    private JDesktopPane desktopPane;
+    private CascadingWindowPositioner windowPositioner;
+    private JSplitPane split;
+    private ProjectTree projectTree;
+    private StatusBar statusBar;
 
-	/**
+    /**
      */
-	MainPanel() {
+    public MainPanel() {
 
-		super(new BorderLayout());
+        super(new BorderLayout());
 
-		// Initialize item selector
-		projectTree = new ProjectTree();
+        // Initialize item selector
+        projectTree = new ProjectTree();
 
-		JScrollPane projectTreeScroll = new JScrollPane(projectTree);
-		projectTreeScroll.setMinimumSize(new Dimension(200, 200));
+        JScrollPane projectTreeScroll = new JScrollPane(projectTree);
+        projectTreeScroll.setMinimumSize(new Dimension(200, 200));
 
-		// Place objects on main window
-		desktopPane = new JDesktopPane();
-		desktopPane.setBackground(new Color(65, 105, 170));
-		desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-		desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+        // Place objects on main window
+        desktopPane = new JDesktopPane();
+        desktopPane.setBackground(new Color(65, 105, 170));
+        desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+        desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
 
-		windowPositioner = new CascadingWindowPositioner(desktopPane);
+        windowPositioner = new CascadingWindowPositioner(desktopPane);
 
-		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectTreeScroll,
-				desktopPane);
+        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectTreeScroll,
+                desktopPane);
 
-		add(split, BorderLayout.CENTER);
+        add(split, BorderLayout.CENTER);
 
-		statusBar = new StatusBar();
-		add(statusBar, BorderLayout.SOUTH);
+        statusBar = new StatusBar();
+        add(statusBar, BorderLayout.SOUTH);
 
-	}
+    }
 
-	void addInternalFrame(JInternalFrame frame) {
-		desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
-		frame.setVisible(true);
-		Point location = windowPositioner.getPosition(frame, Arrays
-				.asList(desktopPane.getAllFrames()));
-		frame.setLocation(location.x, location.y);
-		// desktopPane.validate();
-	}
+    public void addInternalFrame(JInternalFrame frame) {
+        desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
+        frame.setVisible(true);
+        Point location = windowPositioner.getPosition(frame,
+                Arrays.asList(desktopPane.getAllFrames()));
+        frame.setLocation(location.x, location.y);
+    }
 
-	JDesktopPane getDesktopPane() {
-		return desktopPane;
-	}
+    public JDesktopPane getDesktopPane() {
+        return desktopPane;
+    }
 
-	ProjectTree getProjectTree() {
-		return projectTree;
-	}
+    public ProjectTree getProjectTree() {
+        return projectTree;
+    }
 
-	StatusBar getStatusBar() {
-		return statusBar;
-	}
+    public StatusBar getStatusBar() {
+        return statusBar;
+    }
 
-	WindowPositioner getWindowPositioner() {
-		return windowPositioner;
-	}
+    public WindowPositioner getWindowPositioner() {
+        return windowPositioner;
+    }
 
 }
