@@ -146,6 +146,10 @@ class CustomDBSearchTask implements Task {
         ((SimplePeakList) peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
                 "Peak identification using database " + dataBaseFile,
                 parameters));
+        
+        // Notify the project manager that peaklist contents have changed
+        MZmineCore.getProjectManager().fireProjectListeners(
+                ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
 
         status = TaskStatus.FINISHED;
 
@@ -190,10 +194,6 @@ class CustomDBSearchTask implements Task {
 
             }
         }
-        
-        // Notify the project manager that peaklist contents have changed
-        MZmineCore.getProjectManager().fireProjectListeners(
-                ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
 
     }
 
