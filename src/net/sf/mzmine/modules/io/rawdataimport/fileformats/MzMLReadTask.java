@@ -432,24 +432,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
              * Update of fragmentScanNumbers of each Scan in the parentStack
              */
 
-            for (SimpleScan currentScan : parentStack) {
-                if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
-                    int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
-
-                    if (currentFragmentScanNumbers != null) {
-                        int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
-                        currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
-                        System.arraycopy(tempFragmentScanNumbers, 0,
-                                currentFragmentScanNumbers, 0,
-                                tempFragmentScanNumbers.length);
-                        currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan.getScanNumber();
-                        currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-
-                    } else {
-                        currentFragmentScanNumbers = new int[1];
-                        currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
-                        currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-                    }
+            for (SimpleScan s : parentStack) {
+                if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
+                    s.addFragmentScan(buildingScan.getScanNumber());
                 }
             }
 

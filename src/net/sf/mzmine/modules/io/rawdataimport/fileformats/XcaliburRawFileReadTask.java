@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.io.rawdataimport.fileformats;
@@ -297,22 +297,9 @@ public class XcaliburRawFileReadTask implements Task {
             buildingScan.setPrecursorMZ(precursorMz);
 
         if (!parentStack.isEmpty()) {
-            for (SimpleScan currentScan : parentStack) {
-                if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
-                    int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
-                    if (currentFragmentScanNumbers != null) {
-                        int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
-                        currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
-                        System.arraycopy(tempFragmentScanNumbers, 0,
-                                currentFragmentScanNumbers, 0,
-                                tempFragmentScanNumbers.length);
-                        currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan.getScanNumber();
-                        currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-                    } else {
-                        currentFragmentScanNumbers = new int[1];
-                        currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
-                        currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-                    }
+            for (SimpleScan s : parentStack) {
+                if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
+                    s.addFragmentScan(buildingScan.getScanNumber());
                 }
             }
         }

@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.visualization.spectra;
@@ -110,7 +110,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
         }
 
         this.dataFile = dataFile;
-        
+
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
@@ -148,8 +148,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
                 public void run() {
                     loadRawData(mzDataTable);
-                     loadPeaks();
-                     loadIsotopePattern((IsotopePattern) mzDataTable);
+                    loadPeaks();
+                    loadIsotopePattern((IsotopePattern) mzDataTable);
                 }
 
             };
@@ -170,8 +170,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
     public void loadRawData(MzDataTable rawData) {
 
-        logger.finest("Loading rawData#  from " + dataFile
-                + " for spectra visualizer");
+        if (rawData instanceof Scan) {
+            logger.finest("Loading scan #" + ((Scan) rawData).getScanNumber()
+                    + " from " + dataFile + " for spectra visualizer");
+        }
 
         spectrumDataSet = new SpectraDataSet(rawData);
 
@@ -220,7 +222,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             // Add all fragment scans to MS/MS selector combo
             int fragmentScans[] = currentScan.getFragmentScanNumbers();
             if (fragmentScans != null) {
-                for (int fragment : fragmentScans){
+                for (int fragment : fragmentScans) {
                     Scan fragmentScan = dataFile.getScan(fragment);
                     if (fragmentScan == null)
                         continue;
@@ -267,8 +269,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
             } else {
                 spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
                 toolBar.setCentroidButton(true);
-                subTitle = isotopePattern.getDataFile().getName()
-                        + " Scan "
+                subTitle = isotopePattern.getDataFile().getName() + " Scan "
                         + isotopePattern.getRepresentativeScanNumber();
             }
 

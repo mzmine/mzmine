@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.io.rawdataimport.fileformats;
@@ -56,7 +56,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File originalFile;
-    private RawDataFileWriter newMZmineFile;
+    private RawDataFileWriter newRawDataFile;
     private TaskStatus status = TaskStatus.WAITING;
     private int totalScans = -1;
     private int parsedScans;
@@ -77,7 +77,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
     /*
      * This stack stores the current scan and all his fragments until all the
      * information is recover. The logic is FIFO at the moment of write into the
-     * MZmineFile
+     * RawDataFile
      */
     private LinkedList<SimpleScan> parentStack;
 
@@ -134,13 +134,13 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
         try {
 
-            newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
+            newRawDataFile = MZmineCore.createNewFile(originalFile.getName());
 
             SAXParser saxParser = factory.newSAXParser();
             saxParser.parse(originalFile, this);
 
             // Close file
-            RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+            RawDataFile finalRawDataFile = newRawDataFile.finishWriting();
             MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
         } catch (Throwable e) {
@@ -222,22 +222,29 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
             }
 
             int parentScan = -1;
-            if (msLevelTree > 0) {
-                if (msLevel > 9) {
-                    status = TaskStatus.ERROR;
-                    errorMessage = "msLevel value bigger than 10";
-                    throw new SAXException(
-                            "The value of msLevel is bigger than 10");
-                }
+
+            if (msLevel > 9) {
+                status = TaskStatus.ERROR;
+                errorMessage = "msLevel value bigger than 10";
+                throw new SAXException("The value of msLevel is bigger than 10");
+            }
+
+            if (msLevel > 1) {
                 parentScan = parentTreeValue[msLevel - 1];
+                for (SimpleScan p : parentStack) {
+                    if (p.getScanNumber() == parentScan) {
+                        p.addFragmentScan(scanNumber);
+                    }
+                }
             }
 
             // Setting the level of fragment of scan and parent scan number
             msLevelTree++;
             parentTreeValue[msLevel] = scanNumber;
 
-            buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
-                    parentScan, 0f, null, new MzDataPoint[0], false);
+            buildingScan = new SimpleScan(null, scanNumber, msLevel,
+                    retentionTime, parentScan, 0f, null, new MzDataPoint[0],
+                    false);
 
         }
 
@@ -279,7 +286,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
             /*
              * At this point we verify if the scan and his fragments are closed,
              * so we include the present scan/fragment into the stack and start
-             * to take elements from them (FIFO) for the MZmineFile.
+             * to take elements from them (FIFO) for the RawDataFile.
              */
 
             if (msLevelTree == 0) {
@@ -288,7 +295,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
                 while (!parentStack.isEmpty()) {
                     SimpleScan currentScan = parentStack.removeLast();
                     try {
-                        newMZmineFile.addScan(currentScan);
+                        newRawDataFile.addScan(currentScan);
                     } catch (IOException e) {
                         status = TaskStatus.ERROR;
                         errorMessage = "IO error: " + e;
@@ -298,39 +305,13 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
                 }
 
                 /*
-                 * The scan with all his fragments is in the MzmineFile, now we
+                 * The scan with all his fragments is in the RawDataFile, now we
                  * clean the stack for the next scan and fragments.
                  */
                 parentStack.clear();
 
             }
 
-            /*
-             * If there are some scan/fragments still open, we update the
-             * reference of fragments of each element in the stack with the
-             * current scan/fragment.
-             */
-
-            else {
-                for (SimpleScan currentScan : parentStack) {
-                    if (currentScan.getScanNumber() == buildingScan.getParentScanNumber()) {
-                        int[] currentFragmentScanNumbers = currentScan.getFragmentScanNumbers();
-                        if (currentFragmentScanNumbers != null) {
-                            int[] tempFragmentScanNumbers = currentFragmentScanNumbers;
-                            currentFragmentScanNumbers = new int[tempFragmentScanNumbers.length + 1];
-                            System.arraycopy(tempFragmentScanNumbers, 0,
-                                    currentFragmentScanNumbers, 0,
-                                    tempFragmentScanNumbers.length);
-                            currentFragmentScanNumbers[tempFragmentScanNumbers.length] = buildingScan.getScanNumber();
-                            currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-                        } else {
-                            currentFragmentScanNumbers = new int[1];
-                            currentFragmentScanNumbers[0] = buildingScan.getScanNumber();
-                            currentScan.setFragmentScanNumbers(currentFragmentScanNumbers);
-                        }
-                    }
-                }
-            }
             return;
         }
 
@@ -439,8 +420,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
             // If we have no peaks with intensity of 0, we assume the scan is
             // centroided
-            //if ((i == j) && (centroid)){
-            if (ScanUtils.isCentroided(completeDataPoints)){
+            // if ((i == j) && (centroid)){
+            if (ScanUtils.isCentroided(completeDataPoints)) {
                 buildingScan.setCentroided(true);
                 buildingScan.setDataPoints(tempDataPoints);
             } else {

@@ -13,17 +13,19 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.data.impl;
 
+import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -33,286 +35,285 @@ import net.sf.mzmine.util.ScanUtils;
 public class SimpleScan implements Scan {
 
     private RawDataFile dataFile;
-	private int scanNumber;
-	private int msLevel;
-	private int parentScan;
-	private int fragmentScans[];
-	private MzDataPoint dataPoints[];
-	private double precursorMZ;
-	private int precursorCharge;
-	private double retentionTime;
-	private Range mzRange;
-	private MzDataPoint basePeak;
-	private double totalIonCurrent;
-	private boolean centroided;
+    private int scanNumber;
+    private int msLevel;
+    private int parentScan;
+    private int fragmentScans[];
+    private MzDataPoint dataPoints[];
+    private double precursorMZ;
+    private int precursorCharge;
+    private double retentionTime;
+    private Range mzRange;
+    private MzDataPoint basePeak;
+    private double totalIonCurrent;
+    private boolean centroided;
 
-	/**
-	 * Clone constructor
-	 */
-	public SimpleScan(Scan sc) {
-		this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc
-				.getParentScanNumber(), sc.getPrecursorMZ(), sc
-				.getFragmentScanNumbers(), sc.getDataPoints(), sc
-				.isCentroided());
-	}
+    /**
+     * Clone constructor
+     */
+    public SimpleScan(Scan sc) {
+        this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(),
+                sc.getRetentionTime(), sc.getParentScanNumber(),
+                sc.getPrecursorMZ(), sc.getFragmentScanNumbers(),
+                sc.getDataPoints(), sc.isCentroided());
+    }
 
-	/**
-	 * Constructor for creating scan with given data
-	 */
-	public SimpleScan(RawDataFile dataFile,int scanNumber, int msLevel, double retentionTime,
-			int parentScan, double precursorMZ, int fragmentScans[],
-			MzDataPoint[] dataPoints, boolean centroided) {
+    /**
+     * Constructor for creating scan with given data
+     */
+    public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
+            double retentionTime, int parentScan, double precursorMZ,
+            int fragmentScans[], MzDataPoint[] dataPoints, boolean centroided) {
 
-		// check assumptions about proper scan data
-		assert (msLevel == 1) || (parentScan > 0);
+        // check assumptions about proper scan data
+        assert (msLevel == 1) || (parentScan > 0);
 
-		// save scan data
+        // save scan data
         this.dataFile = dataFile;
-		this.scanNumber = scanNumber;
-		this.msLevel = msLevel;
-		this.retentionTime = retentionTime;
-		this.parentScan = parentScan;
-		this.precursorMZ = precursorMZ;
+        this.scanNumber = scanNumber;
+        this.msLevel = msLevel;
+        this.retentionTime = retentionTime;
+        this.parentScan = parentScan;
+        this.precursorMZ = precursorMZ;
         this.fragmentScans = fragmentScans;
-		this.centroided = centroided;
+        this.centroided = centroided;
 
-		setDataPoints(dataPoints);
-	}
+        setDataPoints(dataPoints);
+    }
 
-	/**
-	 * @return Returns scan datapoints
-	 */
-	public MzDataPoint[] getDataPoints() {
-		return dataPoints;
-	}
+    /**
+     * @return Returns scan datapoints
+     */
+    public MzDataPoint[] getDataPoints() {
+        return dataPoints;
+    }
 
-	/**
-	 * @return Returns scan datapoints within a given range
-	 */
-	public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+    /**
+     * @return Returns scan datapoints within a given range
+     */
+    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
 
-		int startIndex, endIndex;
-		for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-			if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
-				break;
-		}
+        int startIndex, endIndex;
+        for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+            if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
+                break;
+        }
 
-		for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-			if (dataPoints[endIndex].getMZ() > mzRange.getMax())
-				break;
-		}
+        for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+            if (dataPoints[endIndex].getMZ() > mzRange.getMax())
+                break;
+        }
 
-		MzDataPoint pointsWithinRange[] = new MzDataPoint[endIndex - startIndex];
+        MzDataPoint pointsWithinRange[] = new MzDataPoint[endIndex - startIndex];
 
-		// Copy the relevant points
-		System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
-				- startIndex);
+        // Copy the relevant points
+        System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
+                - startIndex);
 
-		return pointsWithinRange;
-	}
-	
-	
-	/**
-	 * @return Returns scan datapoints over certain intensity
-	 */
-	public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
-		int index;
-		Vector<MzDataPoint> points = new Vector<MzDataPoint>();
-		
-		for (index = 0; index < dataPoints.length; index++) {
-			if (dataPoints[index].getIntensity() >= intensity)
-				points.add(dataPoints[index]);
-		}
+        return pointsWithinRange;
+    }
 
-		MzDataPoint pointsOverIntensity[] = points.toArray(new MzDataPoint[0]);
+    /**
+     * @return Returns scan datapoints over certain intensity
+     */
+    public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+        int index;
+        Vector<MzDataPoint> points = new Vector<MzDataPoint>();
 
-		return pointsOverIntensity;
-	}
+        for (index = 0; index < dataPoints.length; index++) {
+            if (dataPoints[index].getIntensity() >= intensity)
+                points.add(dataPoints[index]);
+        }
 
-	/**
-	 * @param mzValues
-	 *            m/z values to set
-	 * @param intensityValues
-	 *            Intensity values to set
-	 */
-	public void setDataPoints(MzDataPoint[] dataPoints) {
+        MzDataPoint pointsOverIntensity[] = points.toArray(new MzDataPoint[0]);
 
-		this.dataPoints = dataPoints;
+        return pointsOverIntensity;
+    }
 
-		// find m/z range and base peak
-		if (dataPoints.length > 0) {
+    /**
+     * @param mzValues m/z values to set
+     * @param intensityValues Intensity values to set
+     */
+    public void setDataPoints(MzDataPoint[] dataPoints) {
 
-			basePeak = dataPoints[0];
-			mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
+        this.dataPoints = dataPoints;
 
-			for (MzDataPoint dp : dataPoints) {
+        // find m/z range and base peak
+        if (dataPoints.length > 0) {
 
-				if (dp.getIntensity() > basePeak.getIntensity())
-					basePeak = dp;
+            basePeak = dataPoints[0];
+            mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
 
-				mzRange.extendRange(dp.getMZ());
+            for (MzDataPoint dp : dataPoints) {
 
-				totalIonCurrent += dp.getIntensity();
+                if (dp.getIntensity() > basePeak.getIntensity())
+                    basePeak = dp;
 
-			}
+                mzRange.extendRange(dp.getMZ());
 
-		} else {
-			// Empty scan, so no m/z range or base peak
-			mzRange = new Range(0, 0);
-			basePeak = null;
-			totalIonCurrent = 0;
-		}
+                totalIonCurrent += dp.getIntensity();
 
-	}
+            }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
-	 */
-	public int getNumberOfDataPoints() {
-		return dataPoints.length;
-	}
+        } else {
+            // Empty scan, so no m/z range or base peak
+            mzRange = new Range(0, 0);
+            basePeak = null;
+            totalIonCurrent = 0;
+        }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getScanNumber()
-	 */
-	public int getScanNumber() {
-		return scanNumber;
-	}
+    }
 
-	/**
-	 * @param scanNumber
-	 *            The scanNumber to set.
-	 */
-	public void setScanNumber(int scanNumber) {
-		this.scanNumber = scanNumber;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
+     */
+    public int getNumberOfDataPoints() {
+        return dataPoints.length;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getMSLevel()
-	 */
-	public int getMSLevel() {
-		return msLevel;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getScanNumber()
+     */
+    public int getScanNumber() {
+        return scanNumber;
+    }
 
-	/**
-	 * @param msLevel
-	 *            The msLevel to set.
-	 */
-	public void setMSLevel(int msLevel) {
-		this.msLevel = msLevel;
-	}
+    /**
+     * @param scanNumber The scanNumber to set.
+     */
+    public void setScanNumber(int scanNumber) {
+        this.scanNumber = scanNumber;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
-	 */
-	public double getPrecursorMZ() {
-		return precursorMZ;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getMSLevel()
+     */
+    public int getMSLevel() {
+        return msLevel;
+    }
 
-	/**
-	 * @param precursorMZ
-	 *            The precursorMZ to set.
-	 */
-	public void setPrecursorMZ(double precursorMZ) {
-		this.precursorMZ = precursorMZ;
-	}
+    /**
+     * @param msLevel The msLevel to set.
+     */
+    public void setMSLevel(int msLevel) {
+        this.msLevel = msLevel;
+    }
 
-	/**
-	 * @return Returns the precursorCharge.
-	 */
-	public int getPrecursorCharge() {
-		return precursorCharge;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
+     */
+    public double getPrecursorMZ() {
+        return precursorMZ;
+    }
 
-	/**
-	 * @param precursorCharge
-	 *            The precursorCharge to set.
-	 */
-	public void setPrecursorCharge(int precursorCharge) {
-		this.precursorCharge = precursorCharge;
-	}
+    /**
+     * @param precursorMZ The precursorMZ to set.
+     */
+    public void setPrecursorMZ(double precursorMZ) {
+        this.precursorMZ = precursorMZ;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
-	 */
-	public double getRetentionTime() {
-		return retentionTime;
-	}
+    /**
+     * @return Returns the precursorCharge.
+     */
+    public int getPrecursorCharge() {
+        return precursorCharge;
+    }
 
-	/**
-	 * @param retentionTime
-	 *            The retentionTime to set.
-	 */
-	public void setRetentionTime(double retentionTime) {
-		this.retentionTime = retentionTime;
-	}
+    /**
+     * @param precursorCharge The precursorCharge to set.
+     */
+    public void setPrecursorCharge(int precursorCharge) {
+        this.precursorCharge = precursorCharge;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
-	 */
-	public Range getMZRange() {
-		return mzRange;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
+     */
+    public double getRetentionTime() {
+        return retentionTime;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
-	 */
-	public MzDataPoint getBasePeak() {
-		return basePeak;
-	}
+    /**
+     * @param retentionTime The retentionTime to set.
+     */
+    public void setRetentionTime(double retentionTime) {
+        this.retentionTime = retentionTime;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getParentScanNumber()
-	 */
-	public int getParentScanNumber() {
-		return parentScan;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getMZRangeMax()
+     */
+    public Range getMZRange() {
+        return mzRange;
+    }
 
-	/**
-	 * @param parentScan
-	 *            The parentScan to set.
-	 */
-	public void setParentScanNumber(int parentScan) {
-		this.parentScan = parentScan;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
+     */
+    public MzDataPoint getBasePeak() {
+        return basePeak;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#getFragmentScanNumbers()
-	 */
-	public int[] getFragmentScanNumbers() {
-		return fragmentScans;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getParentScanNumber()
+     */
+    public int getParentScanNumber() {
+        return parentScan;
+    }
 
-	/**
-	 * @param fragmentScans
-	 *            The fragmentScans to set.
-	 */
-	public void setFragmentScanNumbers(int[] fragmentScans) {
-		this.fragmentScans = fragmentScans;
-	}
+    /**
+     * @param parentScan The parentScan to set.
+     */
+    public void setParentScanNumber(int parentScan) {
+        this.parentScan = parentScan;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Scan#isCentroided()
-	 */
-	public boolean isCentroided() {
-		return centroided;
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#getFragmentScanNumbers()
+     */
+    public int[] getFragmentScanNumbers() {
+        return fragmentScans;
+    }
 
-	/**
-	 * @param centroided
-	 *            The centroided to set.
-	 */
-	public void setCentroided(boolean centroided) {
-		this.centroided = centroided;
-	}
+    /**
+     * @param fragmentScans The fragmentScans to set.
+     */
+    public void setFragmentScanNumbers(int[] fragmentScans) {
+        this.fragmentScans = fragmentScans;
+    }
 
-	public double getTIC() {
-		return totalIonCurrent;
-	}
+    public void addFragmentScan(int fragmentScan) {
+        TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
+        if (fragmentScans != null) {
+            for (int frag : fragmentScans)
+                fragmentsSet.add(frag);
+        }
+        fragmentsSet.add(fragmentScan);
+        fragmentScans = CollectionUtils.toIntArray(fragmentsSet);
+    }
 
-	public String toString() {
-		return ScanUtils.scanToString(this);
-	}
+    /**
+     * @see net.sf.mzmine.data.Scan#isCentroided()
+     */
+    public boolean isCentroided() {
+        return centroided;
+    }
+
+    /**
+     * @param centroided The centroided to set.
+     */
+    public void setCentroided(boolean centroided) {
+        this.centroided = centroided;
+    }
+
+    public double getTIC() {
+        return totalIonCurrent;
+    }
+
+    public String toString() {
+        return ScanUtils.scanToString(this);
+    }
 
     public RawDataFile getDataFile() {
         return dataFile;
