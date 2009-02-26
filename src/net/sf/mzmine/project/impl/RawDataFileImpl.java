@@ -36,7 +36,6 @@ import net.sf.mzmine.data.NameChangeable;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 
@@ -44,7 +43,8 @@ import net.sf.mzmine.util.Range;
  * RawDataFile implementation
  * 
  */
-public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChangeable {
+public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
+        NameChangeable {
 
     private transient Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -430,40 +430,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
         StorableScan storedScan = new StorableScan(newScan, this);
         scans.put(scanNumber, storedScan);
 
-        // If this is a fragment scan, update the fragmentScans[] array of its
-        // parent
-        if (newScan.getParentScanNumber() > 0) {
-            Scan parentScan = scans.get(newScan.getParentScanNumber());
-            if (parentScan != null) {
-                if (parentScan instanceof StorableScan) {
-                    int fragmentScans[] = ((StorableScan) parentScan).getFragmentScanNumbers();
-                    if (fragmentScans != null) {
-                        ArrayList<Integer> fragmentScansList = new ArrayList<Integer>();
-                        for (int fragmentScan : fragmentScans)
-                            fragmentScansList.add(fragmentScan);
-                        fragmentScansList.add(newScan.getScanNumber());
-                        fragmentScans = CollectionUtils.toIntArray(fragmentScansList);
-                        ((StorableScan) parentScan).setFragmentScanNumbers(fragmentScans);
-                    } else {
-                        ((StorableScan) parentScan).setFragmentScanNumbers(new int[] { newScan.getScanNumber() });
-                    }
-                }
-                if (parentScan instanceof SimpleScan) {
-                    int fragmentScans[] = ((SimpleScan) parentScan).getFragmentScanNumbers();
-                    if (fragmentScans != null) {
-                        ArrayList<Integer> fragmentScansList = new ArrayList<Integer>();
-                        for (int fragmentScan : fragmentScans)
-                            fragmentScansList.add(fragmentScan);
-                        fragmentScansList.add(newScan.getScanNumber());
-                        fragmentScans = CollectionUtils.toIntArray(fragmentScansList);
-                        ((SimpleScan) parentScan).setFragmentScanNumbers(fragmentScans);
-                    } else {
-                        ((SimpleScan) parentScan).setFragmentScanNumbers(new int[] { newScan.getScanNumber() });
-                    }
-                }
-            }
-        }
-
     }
 
     public String toString() {
@@ -521,17 +487,17 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
         // TODO this needs cleanup
         return new Range(getDataMinRT(msLevel), getDataMaxRT(msLevel));
     }
-    
-    public void setRTRange(int msLevel, Range rtRange){
 
-    	// if there is no cache table, create one
+    public void setRTRange(int msLevel, Range rtRange) {
+
+        // if there is no cache table, create one
         if (dataMinRT == null)
             dataMinRT = new Hashtable<Integer, Double>();
 
         // cache the value
         dataMinRT.put(msLevel, rtRange.getMin());
 
-    	// if there is no cache table, create one
+        // if there is no cache table, create one
         if (dataMaxRT == null)
             dataMaxRT = new Hashtable<Integer, Double>();
 
@@ -540,16 +506,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
 
     }
 
-    public void setMZRange(int msLevel, Range mzRange){
+    public void setMZRange(int msLevel, Range mzRange) {
 
-    	// if there is no cache table, create one
+        // if there is no cache table, create one
         if (dataMinMZ == null)
             dataMinMZ = new Hashtable<Integer, Double>();
 
         // cache the value
         dataMinMZ.put(msLevel, mzRange.getMin());
 
-    	// if there is no cache table, create one
+        // if there is no cache table, create one
         if (dataMaxMZ == null)
             dataMaxMZ = new Hashtable<Integer, Double>();
 
@@ -583,14 +549,15 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter, NameChan
     public void setName(String name) {
         this.fileName = name;
     }
-    
+
     /**
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     public int compareTo(Object value) {
         RawDataFileImpl dataFile = (RawDataFileImpl) value;
         File comparedScanFile = dataFile.getScanDataFileasFile();
-        if (comparedScanFile == null) return 1;
+        if (comparedScanFile == null)
+            return 1;
         return comparedScanFile.compareTo(scanFile);
     }
 

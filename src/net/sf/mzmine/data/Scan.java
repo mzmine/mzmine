@@ -28,6 +28,12 @@ public interface Scan extends MzDataTable {
 
     /**
      * 
+     * @return RawDataFile containing this Scan
+     */
+    public RawDataFile getDataFile();
+    
+    /**
+     * 
      * @return Scan number
      */
     public int getScanNumber();

@@ -411,7 +411,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
             // If we have no peaks with intensity of 0, we assume the scan is
             // centroided
 
-            buildingScan = new SimpleScan(scanNumber, msLevel, retentionTime,
+            buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
                     parentScan, precursorMz, null, new MzDataPoint[0], false);
 
             buildingScan.setCentroided(centroided);

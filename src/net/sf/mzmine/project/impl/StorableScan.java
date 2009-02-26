@@ -28,6 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.Range;
@@ -330,6 +331,10 @@ public class StorableScan implements Scan {
     
     public String toString() {
     	return ScanUtils.scanToString(this);
+    }
+
+    public RawDataFile getDataFile() {
+        return rawDataFile;
     }
 
 }

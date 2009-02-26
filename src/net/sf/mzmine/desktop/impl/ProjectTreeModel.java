@@ -27,6 +27,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
+import net.sf.mzmine.data.NameChangeable;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -67,13 +68,21 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
             return ((PeakList) parent).getRow(num);
         }
         if (parent instanceof RawDataFile) {
-            int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
+            int scanNumbers[] = ((RawDataFile) parent).getScanNumbers(1);
             return ((RawDataFile) parent).getScan(scanNumbers[num]);
+        }
+        if (parent instanceof Scan) {
+            Scan parentScan = (Scan) parent;
+            int fragments[] = parentScan.getFragmentScanNumbers();
+            RawDataFile dataFile = parentScan.getDataFile();
+            Scan fragmentScan = dataFile.getScan(fragments[num]);
+            return fragmentScan;
         }
         throw (new IllegalArgumentException("Unknown parent " + parent));
     }
 
     public int getChildCount(Object parent) {
+
         if (parent instanceof MZmineProject)
             return 2;
         if (parent == dataFilesItem) {
@@ -86,8 +95,13 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
             return ((PeakList) parent).getNumberOfRows();
         }
         if (parent instanceof RawDataFile) {
-            return ((RawDataFile) parent).getNumOfScans();
+            return ((RawDataFile) parent).getNumOfScans(1);
         }
+        if (parent instanceof Scan) {
+            int fragmentScans[] = ((Scan) parent).getFragmentScanNumbers();
+            return fragmentScans.length;
+        }
+
         throw (new IllegalArgumentException("Unknown parent " + parent));
     }
 
@@ -117,10 +131,17 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
                     return i;
         }
         if (parent instanceof RawDataFile) {
-            int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
+            int scanNumbers[] = ((RawDataFile) parent).getScanNumbers(1);
             int num = ((Scan) child).getScanNumber();
             for (int i = 0; i < scanNumbers.length; i++)
                 if (scanNumbers[i] == num)
+                    return i;
+        }
+        if (parent instanceof Scan) {
+            Scan parentScan = (Scan) parent, childScan = (Scan) child;
+            int fragments[] = parentScan.getFragmentScanNumbers();
+            for (int i = 0; i < fragments.length; i++)
+                if (fragments[i] == childScan.getScanNumber())
                     return i;
         }
         throw (new IllegalArgumentException("Unknown parent " + parent));
@@ -131,7 +152,13 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
     }
 
     public boolean isLeaf(Object element) {
-        return ((element instanceof Scan) || (element instanceof PeakListRow));
+        if (element instanceof PeakListRow)
+            return true;
+        if (element instanceof Scan) {
+            int fragments[] = ((Scan) element).getFragmentScanNumbers();
+            return fragments == null;
+        }
+        return false;
     }
 
     public void addTreeModelListener(TreeModelListener l) {
@@ -143,7 +170,9 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
     }
 
     public void valueForPathChanged(TreePath path, Object value) {
-        // ignore
+        NameChangeable object = (NameChangeable) path.getLastPathComponent();
+        String newName = (String) value;
+        object.setName(newName);
     }
 
     public void projectModified(ProjectEvent event) {

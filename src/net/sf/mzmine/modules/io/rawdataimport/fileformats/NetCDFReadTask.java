@@ -403,7 +403,7 @@ public class NetCDFReadTask implements Task {
         // An empty scan needs some special attention..
         if (scanLength[0] == 0) {
             scanNum++;
-            return new SimpleScan(scanNum, 1, retentionTime.doubleValue(), -1,
+            return new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), -1,
                     0, null, new MzDataPoint[0], false);
         }
 
@@ -473,7 +473,7 @@ public class NetCDFReadTask implements Task {
 
         scanNum++;
 
-        SimpleScan buildingScan = new SimpleScan(scanNum, 1,
+        SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
                 retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0],
                 false);
         

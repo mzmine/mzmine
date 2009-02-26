@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
@@ -95,6 +96,10 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
         SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
                 dataFile, dataFile.toString(), dataFile.getScan(scanNumber));
         MZmineCore.getDesktop().addInternalFrame(newWindow);
+    }
+    
+    public static void showNewSpectrumWindow(Scan scan) {
+        showNewSpectrumWindow(scan.getDataFile(), scan.getScanNumber());
     }
 
     public static void showIsotopePattern(RawDataFile dataFile,

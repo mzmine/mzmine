@@ -225,7 +225,7 @@ public class XcaliburRawFileReadTask implements Task {
         // Setting the parent scan number for this level of fragments
         parentTreeValue[msLevel] = scanNumber;
 
-        buildingScan = new SimpleScan(scanNumber, msLevel, retentionTime,
+        buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
                 parentScan, 0f, null, new MzDataPoint[0], false);
 
         /*

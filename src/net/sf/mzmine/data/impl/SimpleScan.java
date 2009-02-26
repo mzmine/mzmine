@@ -22,6 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.util.Vector;
 
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
@@ -31,6 +32,7 @@ import net.sf.mzmine.util.ScanUtils;
  */
 public class SimpleScan implements Scan {
 
+    private RawDataFile dataFile;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
@@ -48,7 +50,7 @@ public class SimpleScan implements Scan {
 	 * Clone constructor
 	 */
 	public SimpleScan(Scan sc) {
-		this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc
+		this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc
 				.getParentScanNumber(), sc.getPrecursorMZ(), sc
 				.getFragmentScanNumbers(), sc.getDataPoints(), sc
 				.isCentroided());
@@ -57,7 +59,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * Constructor for creating scan with given data
 	 */
-	public SimpleScan(int scanNumber, int msLevel, double retentionTime,
+	public SimpleScan(RawDataFile dataFile,int scanNumber, int msLevel, double retentionTime,
 			int parentScan, double precursorMZ, int fragmentScans[],
 			MzDataPoint[] dataPoints, boolean centroided) {
 
@@ -65,12 +67,13 @@ public class SimpleScan implements Scan {
 		assert (msLevel == 1) || (parentScan > 0);
 
 		// save scan data
+        this.dataFile = dataFile;
 		this.scanNumber = scanNumber;
 		this.msLevel = msLevel;
 		this.retentionTime = retentionTime;
 		this.parentScan = parentScan;
 		this.precursorMZ = precursorMZ;
-		this.fragmentScans = fragmentScans;
+        this.fragmentScans = fragmentScans;
 		this.centroided = centroided;
 
 		setDataPoints(dataPoints);
@@ -310,4 +313,8 @@ public class SimpleScan implements Scan {
 	public String toString() {
 		return ScanUtils.scanToString(this);
 	}
+
+    public RawDataFile getDataFile() {
+        return dataFile;
+    }
 }

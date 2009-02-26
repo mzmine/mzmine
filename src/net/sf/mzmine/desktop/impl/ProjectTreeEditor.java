@@ -29,7 +29,6 @@ import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.NameChangeable;
 
-
 class ProjectTreeEditor extends DefaultCellEditor {
 
     private JTree projectTree;
@@ -52,13 +51,6 @@ class ProjectTreeEditor extends DefaultCellEditor {
             return (editedObject instanceof NameChangeable);
         }
         return true;
-    }
-    
-    public boolean stopCellEditing() {
-        String value = (String) getCellEditorValue();
-        NameChangeable nameChangeableObject = (NameChangeable) editedObject;
-        nameChangeableObject.setName(value);
-        return super.stopCellEditing();
     }
 
 }

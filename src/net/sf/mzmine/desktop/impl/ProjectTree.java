@@ -137,17 +137,9 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
         }
 
         if (command.equals("SHOW_SPECTRA")) {
-            TreePath selectedItems[] = getSelectionPaths();
-            if (selectedItems != null) {
-                for (TreePath path : selectedItems) {
-                    Object selectedObject = path.getLastPathComponent();
-                    if (selectedObject instanceof Scan) {
-                        Scan scan = (Scan) selectedObject;
-                        RawDataFile dataFile = (RawDataFile) path.getParentPath().getLastPathComponent();
-                        SpectraVisualizer.showNewSpectrumWindow(dataFile,
-                                scan.getScanNumber());
-                    }
-                }
+            Scan selectedScans[] = getSelectedObjects(Scan.class);
+            for (Scan scan : selectedScans) {
+                SpectraVisualizer.showNewSpectrumWindow(scan);
             }
         }
 
@@ -239,9 +231,7 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 
         if (clickedObject instanceof Scan) {
             Scan clickedScan = (Scan) clickedObject;
-            RawDataFile dataFile = (RawDataFile) clickedPath.getParentPath().getLastPathComponent();
-            SpectraVisualizer.showNewSpectrumWindow(dataFile,
-                    clickedScan.getScanNumber());
+            SpectraVisualizer.showNewSpectrumWindow(clickedScan);
         }
 
         if (clickedObject instanceof PeakListRow) {
