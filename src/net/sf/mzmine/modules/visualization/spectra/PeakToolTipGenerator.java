@@ -64,7 +64,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 				tooltip += "\nFormula: " + peakListDataSet.getFormula()
 						+ "\nData point intensity: "
 						+ percentFormat.format((intValue / increase) * 100)
-						+ "% </html>";
+						+ "%";
 			} else {
 				tooltip += "\nData point intensity: "
 						+ intensityFormat.format(intValue);
@@ -73,7 +73,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
 			ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
 			PeakList peakList = peakListDataSet.getPeakList();
 			PeakListRow row = peakList.getPeakRow(peak);
-			tooltip = "<html>" + "Peak: " + peak + "\nStatus: "
+			tooltip = "Peak: " + peak + "\nStatus: "
 					+ peak.getPeakStatus() + "\nPeak list row: " + row
 					+ "\nData point m/z: " + mzFormat.format(mzValue)
 					+ "\nData point intensity: "
