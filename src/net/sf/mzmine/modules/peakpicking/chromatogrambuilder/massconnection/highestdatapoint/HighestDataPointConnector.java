@@ -54,7 +54,6 @@ public class HighestDataPointConnector implements MassConnector {
         mzTolerance = (Double) parameters.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
 
         buildingChromatograms = new TreeMap<Double, Chromatogram>();
-        connectedChromatograms = new TreeMap<Double, Chromatogram>();
         connectedChromatogramsSet = new HashSet<Chromatogram>();
 
     }
@@ -65,7 +64,7 @@ public class HighestDataPointConnector implements MassConnector {
         Arrays.sort(mzValues, new DataPointSorter(false, false));
 
         // Empty the collection of connected chromatograms
-        connectedChromatograms.clear();
+        connectedChromatograms = new TreeMap<Double, Chromatogram>();
         connectedChromatogramsSet.clear();
 
         for (MzPeak mzPeak : mzValues) {
@@ -146,6 +145,8 @@ public class HighestDataPointConnector implements MassConnector {
         // All remaining chromatograms in buildingChromatograms are discarded
         // and buildingChromatograms is replaced with connectedChromatograms
         buildingChromatograms = connectedChromatograms;
+        
+        
 
     }
 
