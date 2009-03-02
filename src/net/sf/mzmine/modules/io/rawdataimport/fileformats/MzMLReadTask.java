@@ -13,8 +13,8 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.modules.io.rawdataimport.fileformats;
@@ -165,9 +165,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
             MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
         } catch (Throwable e) {
-            if (status == TaskStatus.PROCESSING)
+            if (status == TaskStatus.PROCESSING) {
                 status = TaskStatus.ERROR;
-            errorMessage = e.toString();
+                errorMessage = e.toString();
+            }
             return;
         }
 
@@ -411,8 +412,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
             // If we have no peaks with intensity of 0, we assume the scan is
             // centroided
 
-            buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
-                    parentScan, precursorMz, null, new MzDataPoint[0], false);
+            buildingScan = new SimpleScan(null, scanNumber, msLevel,
+                    retentionTime, parentScan, precursorMz, null,
+                    new MzDataPoint[0], false);
 
             buildingScan.setCentroided(centroided);
             buildingScan.setPrecursorCharge(precursorCharge);
