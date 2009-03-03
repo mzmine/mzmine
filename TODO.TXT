@@ -2,6 +2,13 @@
 TODO list for MZmine 2.0 release
 
 
+***** Optimization *****
+
+* Reduce memory footprint
+
+* Optimize the mass connector and mass detector algorithms for better speed
+
+
 ***** Core modules *****
 
 Project manager
@@ -13,7 +20,8 @@ Project manager
 
 Desktop
 * ItemSelector should be replaced with a JTree which allows unfolding raw data 
-  files into individual scans and peak lists into individual rows (Tomas)
+  files into individual scans and peak lists into individual rows (Finished Tomas)
+* JTree needs support for drag&drop reordering of data files/peak lists  (Tomas)
 
 Task controller
 * Tasks with high priority (e.g. visualization) should never wait and always 
@@ -23,7 +31,7 @@ Task controller
 * TaskListener and TaskGroup classes are obsolete and should be removed
 
 Batch mode
-* It need to be redesigned. 
+* It need to be redesigned. (Tomas)
 * Bug: it can not be used again if during its running any process hasn't finished correctly. 
 
 
@@ -90,7 +98,8 @@ Isotope pattern visualizer
 (Fixed 2009/2/2 Alex)
 
 TIC/XIC visualizer
-* Visualizer should be able to show several peaks from one peaklist column
+* Visualizer should be able to show several peaks from one peaklist column 
+  and allow a selection of data files to be shown
 * When showing a particular peak, the dialog should offer "smarter" retention
   time range, same as 3D visualizer
 * Bug: NullPointerException when TIC visualizer setup dialog is opening. (ParameterSetupDialog.java:303)
