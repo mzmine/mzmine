@@ -75,6 +75,9 @@ Peak recognition
 * Need to set threshold for how many peaks will be annotated
 * There should be a setting for the intensity scale (e.g. when comparing
   two files)
+* There should be a switch whether missing points in the grid should be
+  approximated - makes sense only for continuous mode when looking in high
+  detail
 
 
 Peak list table
