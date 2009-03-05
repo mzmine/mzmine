@@ -448,6 +448,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 		if (command.equals("CHANGE")) {
 			int indexRow = peaksInfoList.getSelectedRow();
+			if(indexRow == -1)
+				return;
 			ChromatographicPeak selectedPeak = listElementModel
 					.getElementAt(indexRow);
 			ManualPeakPicker
