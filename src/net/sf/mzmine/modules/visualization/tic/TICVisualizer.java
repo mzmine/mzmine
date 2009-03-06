@@ -43,143 +43,174 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class TICVisualizer implements MZmineModule, ActionListener {
 
-    private static TICVisualizer myInstance;
+	private static TICVisualizer myInstance;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TICVisualizerParameters parameters;
+	private TICVisualizerParameters parameters;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 */
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new TICVisualizerParameters();
+		parameters = new TICVisualizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "TIC plot",
-                "Visualization of the chromatogram", KeyEvent.VK_T, false,
-                this, null);
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "TIC plot",
+				"Visualization of the chromatogram", KeyEvent.VK_T, false,
+				this, null);
 
-        myInstance = this;
+		myInstance = this;
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
-        RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
-        showNewTICVisualizerWindow(selectedFiles, parameters);
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
+		RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
+		TICVisualizerParameters parametersCopy = (TICVisualizerParameters) parameters
+				.clone();
+		if (selectedFiles.length > 0) {
+			parametersCopy.setParameterValue(TICVisualizerParameters.dataFiles,
+					selectedFiles);
+		}
+		showNewTICVisualizerWindow(parametersCopy);
+	}
 
-    public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            ChromatographicPeak[] peaks,
-            ChromatographicPeak[] preSelectedPeaks, int msLevel,
-            Object plotType, Range rtRange, Range mzRange) {
-        TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters.clone();
-        newParameters.setParameterValue(TICVisualizerParameters.msLevel,
-                msLevel);
-        newParameters.setParameterValue(TICVisualizerParameters.plotType,
-                plotType);
-        newParameters.setParameterValue(
-                TICVisualizerParameters.retentionTimeRange, rtRange);
-        newParameters.setParameterValue(TICVisualizerParameters.mzRange,
-                mzRange);
-        newParameters.setMultipleSelection(
-                TICVisualizerParameters.selectionPeaks, peaks);
-        newParameters.setParameterValue(TICVisualizerParameters.selectionPeaks,
-                preSelectedPeaks);
+	public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+			ChromatographicPeak[] peaks,
+			ChromatographicPeak[] preSelectedPeaks, int msLevel,
+			Object plotType, Range rtRange, Range mzRange) {
+		TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance
+				.getParameterSet().clone();
+		newParameters.setParameterValue(TICVisualizerParameters.msLevel,
+				msLevel);
+		newParameters.setParameterValue(TICVisualizerParameters.plotType,
+				plotType);
+		newParameters.setParameterValue(
+				TICVisualizerParameters.retentionTimeRange, rtRange);
+		newParameters.setParameterValue(TICVisualizerParameters.mzRange,
+				mzRange);
+		newParameters.setMultipleSelection(
+				TICVisualizerParameters.selectionPeaks, peaks);
+		newParameters.setParameterValue(TICVisualizerParameters.selectionPeaks,
+				preSelectedPeaks);
+		newParameters.setParameterValue(TICVisualizerParameters.dataFiles,
+				dataFiles);
 
-        myInstance.showNewTICVisualizerWindow(dataFiles, newParameters);
-    }
+		myInstance.showNewTICVisualizerWindow(newParameters);
+	}
 
-    public static void showNewTICVisualizerWindow(RawDataFile dataFile) {
-        showNewTICVisualizerWindow(new RawDataFile[] { dataFile }, null, null);
-    }
-    
-    public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            ChromatographicPeak[] peaks, ChromatographicPeak[] preSelectedPeaks) {
+	public static void showNewTICVisualizerWindow(RawDataFile dataFile) {
+		showNewTICVisualizerWindow(new RawDataFile[] { dataFile }, null, null);
+	}
 
-        TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters.clone();
-        newParameters.setMultipleSelection(
-                TICVisualizerParameters.selectionPeaks, peaks);
-        if (preSelectedPeaks != null)
-            newParameters.setParameterValue(
-                    TICVisualizerParameters.selectionPeaks, preSelectedPeaks);
-        myInstance.showNewTICVisualizerWindow(dataFiles, newParameters);
-    }
+	public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
+			ChromatographicPeak[] peaks, ChromatographicPeak[] preSelectedPeaks) {
 
-    private void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-            TICVisualizerParameters parameters) {
+		TICVisualizerParameters newParameters = (TICVisualizerParameters) myInstance.parameters
+				.clone();
+		newParameters.setMultipleSelection(
+				TICVisualizerParameters.selectionPeaks, peaks);
+		if (preSelectedPeaks != null)
+			newParameters.setParameterValue(
+					TICVisualizerParameters.selectionPeaks, preSelectedPeaks);
+		newParameters.setParameterValue(TICVisualizerParameters.dataFiles,
+				dataFiles);
 
-        logger.finest("Opening a new TIC visualizer setup dialog");
+		myInstance.showNewTICVisualizerWindow(newParameters);
+	}
 
-        if ((dataFiles == null) || (dataFiles.length == 0)) {
-            desktop.displayErrorMessage("Please select at least one data file");
-            return;
-        }
+	private void showNewTICVisualizerWindow(TICVisualizerParameters parameters) {
 
-        Hashtable<Parameter, Object> autoValues = null;
-        if (dataFiles.length == 1) {
-            autoValues = new Hashtable<Parameter, Object>();
-            autoValues.put(TICVisualizerParameters.msLevel, 1);
-            autoValues.put(TICVisualizerParameters.retentionTimeRange,
-                    dataFiles[0].getDataRTRange(1));
-            autoValues.put(TICVisualizerParameters.mzRange,
-                    dataFiles[0].getDataMZRange(1));
+		logger.finest("Opening a new TIC visualizer setup dialog");
 
-        }
+		parameters.setMultipleSelection(TICVisualizerParameters.dataFiles,
+				MZmineCore.getCurrentProject().getDataFiles());
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters,
-                autoValues);
+		Object dataFileObjects[] = (Object[]) parameters
+				.getParameterValue(TICVisualizerParameters.dataFiles);
+		
+		RawDataFile dataFiles[] = CollectionUtils.changeArrayType(
+				dataFileObjects, RawDataFile.class);
 
-        dialog.setVisible(true);
+		Hashtable<Parameter, Object> autoValues = null;
+		if (dataFiles.length == 1) {
+			autoValues = new Hashtable<Parameter, Object>();
+			autoValues.put(TICVisualizerParameters.msLevel, 1);
+			autoValues.put(TICVisualizerParameters.retentionTimeRange,
+					dataFiles[0].getDataRTRange(1));
+			autoValues.put(TICVisualizerParameters.mzRange, dataFiles[0]
+					.getDataMZRange(1));
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		}
 
-        int msLevel = (Integer) parameters.getParameterValue(TICVisualizerParameters.msLevel);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters,
+				autoValues);
 
-        Range rtRange = (Range) parameters.getParameterValue(TICVisualizerParameters.retentionTimeRange);
-        Range mzRange = (Range) parameters.getParameterValue(TICVisualizerParameters.mzRange);
-        Object peakObjects[] = (Object[]) parameters.getParameterValue(TICVisualizerParameters.selectionPeaks);
-        ChromatographicPeak[] peaks = CollectionUtils.changeArrayType(
-                peakObjects, ChromatographicPeak.class);
-        this.parameters = parameters;
+		dialog.setVisible(true);
 
-        Object plotType = parameters.getParameterValue(TICVisualizerParameters.plotType);
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-        TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
-                plotType, msLevel, rtRange, mzRange, peaks);
+		int msLevel = (Integer) parameters
+				.getParameterValue(TICVisualizerParameters.msLevel);
 
-        desktop.addInternalFrame(newWindow);
+		Range rtRange = (Range) parameters
+				.getParameterValue(TICVisualizerParameters.retentionTimeRange);
+		Range mzRange = (Range) parameters
+				.getParameterValue(TICVisualizerParameters.mzRange);
+		Object peakObjects[] = (Object[]) parameters
+				.getParameterValue(TICVisualizerParameters.selectionPeaks);
+		ChromatographicPeak[] peaks = CollectionUtils.changeArrayType(
+				peakObjects, ChromatographicPeak.class);
+		dataFileObjects = (Object[]) parameters
+				.getParameterValue(TICVisualizerParameters.dataFiles);
+		dataFiles = CollectionUtils.changeArrayType(dataFileObjects,
+				RawDataFile.class);
+		Object plotType = parameters
+				.getParameterValue(TICVisualizerParameters.plotType);
 
-    }
+		if (dataFiles.length == 0) {
+			desktop.displayErrorMessage("Please select at least one data file");
+			return;
+		}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
-     */
-    public String toString() {
-        return "TIC/XIC visualizer";
-    }
+		// Save the parameters
+		setParameters(parameters);
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+		TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
+				plotType, msLevel, rtRange, mzRange, peaks);
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet newParameters) {
-        parameters = (TICVisualizerParameters) newParameters;
-    }
+		desktop.addInternalFrame(newWindow);
+
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "TIC/XIC visualizer";
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public TICVisualizerParameters getParameterSet() {
+		return parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet newParameters) {
+		parameters = (TICVisualizerParameters) newParameters;
+	}
 
 }
