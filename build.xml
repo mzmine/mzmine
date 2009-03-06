@@ -10,7 +10,6 @@
 	<property name="dist" value="dist" />
 
 	<property name="manifest" value="mzmine.mf" />
-	<property name="mainclass" value="net.sf.mzmine.main.DummyMain" />
 
     <fileset id="jars" dir="${lib}">
     	<include name="*.jar" />
@@ -27,7 +26,6 @@
 	<target name="manifest">
 	   	<manifest file="${manifest}" mode="replace">
 	  		<attribute name="Built-By" value="${user.name}"/>
-	  		<attribute name="Main-Class" value="${mainclass}"/>
 	   		<attribute name="Class-Path" value=". ${classpath}"/>	  	
 	  	</manifest>
 	</target>
