@@ -1,2 +1,32 @@
 @echo off
-java -Djava.util.logging.config.file=conf/logging.properties -Xms1024m -Xmx1384m -cp MZmine2.jar net.sf.mzmine.main.mzmineclient.MZmineClient
+
+rem The HEAP_SIZE variable line defines the Java heap size in MB. 
+rem That is the total amount of memory available to MZmine 2.
+rem Please adjust according to the amount of memory of your computer.
+rem Maximum value on a 32-bit Windows system is about 1300. 
+set HEAP_SIZE=1024
+
+rem If you have a 64-bit CPU, 64-bit OS and 64-bit JVM installed, you 
+rem can run MZmine 2 in 64-bit mode and increase the HEAP_SIZE above 
+rem the limitations of 32-bit platform. In that case, please set the 
+rem value of USE_64_BIT parameter to "-d64" (without quotes).
+set USE_64_BIT=
+
+rem The TMP_FILE_DIRECTORY parameter defines the location where temporary 
+rem files (parsed raw data) will be placed. Default is %TEMP%, which 
+rem represents the system temporary directory.
+set TMP_FILE_DIRECTORY=%TEMP%
+
+rem It is usually not necessary to modify the JAVA_COMMAND parameter, but 
+rem if you like to run a specific Java Virtual Machine, you may set the 
+rem path to the java command of that JVM
+set JAVA_COMMAND=java
+
+rem It is not necessary to modify the following section
+set LOGGING_CONFIG_FILE=conf/logging.properties
+set JAVA_PARAMETERS=%USE_64_BIT% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
+set CLASS_PATH=MZmine2.jar
+set MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
+
+rem This command starts the Java Virtual Machine
+%JAVA_COMMAND% %JAVA_PARAMETERS% -classpath %CLASS_PATH% %MAIN_CLASS%  
