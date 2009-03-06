@@ -10,9 +10,7 @@ TODO list for MZmine 2.0 release
 
 * Temporary files containing raw data could be memory-mapped (using FileChannel.map()) for better performance.
 
-* Temporary files are (sometimes?) not removed after MZmine exits.
-  Proposed solution: MZmine locks the files with FileLock. After exit, locks are automatically removed.
-  When MZmine starts, it checks existing temp files and if they don't have a lock, it removes them.
+* Temporary files are (sometimes?) not removed after MZmine exits. (Solved 2009/3/6 Tomas)
   
 
 ***** Core modules *****
