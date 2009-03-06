@@ -83,16 +83,16 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			// Get the temporary directory
 			File tempDir = new File(System.getProperty("java.io.tmpdir"));
-			
+
 			// Find all files with the mask mzmine*.scans
 			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
 					return name.matches("mzmine.*\\.scans");
 				}
 			});
-			
+
 			for (File remainingTmpFile : remainingTmpFiles) {
-			
+
 				// Try to obtain a lock on the file
 				RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
 						"rw");
@@ -105,7 +105,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 					logger.finest("Removing unused file " + remainingTmpFile);
 					remainingTmpFile.delete();
 				}
-				
+
 			}
 
 			SAXReader reader = new SAXReader();
@@ -115,9 +115,12 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			// Get the configured number of computation nodes
 			int numberOfNodes;
 
-			Element nodes = configRoot.element(NODES_ELEMENT_NAME);
-			String numberOfNodesConfigEntry = nodes
-					.attributeValue(LOCAL_ATTRIBUTE_NAME);
+			String numberOfNodesConfigEntry = null;
+			Element nodesElement = configRoot.element(NODES_ELEMENT_NAME);
+			if (nodesElement != null) {
+				numberOfNodesConfigEntry = nodesElement
+						.attributeValue(LOCAL_ATTRIBUTE_NAME);
+			}
 			if (numberOfNodesConfigEntry != null) {
 				numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
 			} else
