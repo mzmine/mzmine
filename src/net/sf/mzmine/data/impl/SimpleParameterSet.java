@@ -94,6 +94,10 @@ public class SimpleParameterSet implements StorableParameterSet {
 		Object value = values.get(parameter);
 		if (value == null)
 			value = parameter.getDefaultValue();
+		if (value == null) {
+			if (parameter.getType() == ParameterType.MULTIPLE_SELECTION)
+				return new Object[0];
+		}
 		return value;
 	}
 
