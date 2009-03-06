@@ -80,31 +80,39 @@ public class MZmineClient extends MZmineCore implements Runnable {
 		try {
 
 			logger.finest("Checking for old temporary files...");
+
 			// Get the temporary directory
 			File tempDir = new File(System.getProperty("java.io.tmpdir"));
+			
+			// Find all files with the mask mzmine*.scans
 			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
 					return name.matches("mzmine.*\\.scans");
 				}
 			});
+			
 			for (File remainingTmpFile : remainingTmpFiles) {
+			
+				// Try to obtain a lock on the file
 				RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
 						"rw");
 				FileLock lock = rac.getChannel().tryLock();
 				rac.close();
-				// We locked the file, which means nobody is using it anymore
-				// and it can be removed
+
 				if (lock != null) {
+					// We locked the file, which means nobody is using it
+					// anymore and it can be removed
 					logger.finest("Removing unused file " + remainingTmpFile);
 					remainingTmpFile.delete();
 				}
+				
 			}
 
 			SAXReader reader = new SAXReader();
 			configuration = reader.read(CONFIG_FILE);
 			Element configRoot = configuration.getRootElement();
 
-			// get the configured number of computation nodes
+			// Get the configured number of computation nodes
 			int numberOfNodes;
 
 			Element nodes = configRoot.element(NODES_ELEMENT_NAME);
