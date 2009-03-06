@@ -240,16 +240,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         if (src == showXICItem) {
 
             Range rtRange = null, mzRange = null;
-            Vector<RawDataFile> selectedDataFiles = new Vector<RawDataFile>();
             Vector<ChromatographicPeak> selectedPeaks = new Vector<ChromatographicPeak>();
             Vector<ChromatographicPeak> dataFilePeaks = new Vector<ChromatographicPeak>();
             ChromatographicPeak[] peaks, preSelectedPeaks;
-
+            RawDataFile selectedDataFiles[] = peakList.getRawDataFiles();
+            if (clickedDataFile != null) selectedDataFiles = new RawDataFile[] { clickedDataFile };
+            
             // Check if we clicked on a raw data file XIC, or combined XIC
             for (PeakListRow row : allClickedPeakListRows) {
+            	
                 for (RawDataFile dataFile : row.getRawDataFiles()) {
-                    if (!selectedDataFiles.contains(dataFile))
-                        selectedDataFiles.add(dataFile);
                     if (rtRange == null)
                         rtRange = dataFile.getDataRTRange(1);
                     else
@@ -275,7 +275,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 preSelectedPeaks = peaks;
 
             TICVisualizer.showNewTICVisualizerWindow(
-                    selectedDataFiles.toArray(new RawDataFile[0]), peaks,
+                    selectedDataFiles, peaks,
                     preSelectedPeaks, 1, TICVisualizerParameters.plotTypeBP,
                     rtRange, mzRange);
 
