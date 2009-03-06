@@ -21,7 +21,7 @@ Project manager
 * We need to reimplement project saving/loading using our own project file format. 
   Saving using serialization is too slow (2 hr saving a ~1 GB size project)
 * Bug: projectParametersAndValues is indexed by String (filename), 
-  but should be indexed by RawDataFile
+  but should be indexed by RawDataFile (Fixed 2009/3/6 Tomas)
 
 
 Desktop

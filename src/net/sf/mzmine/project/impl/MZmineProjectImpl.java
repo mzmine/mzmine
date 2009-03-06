@@ -35,7 +35,7 @@ import net.sf.mzmine.project.ProjectEvent;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-    private Hashtable<Parameter, Hashtable<String, Object>> projectParametersAndValues;
+    private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
     private Vector<RawDataFile> dataFiles;
     private Vector<PeakList> peakLists;
@@ -46,7 +46,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
         this.dataFiles = new Vector<RawDataFile>();
         this.peakLists = new Vector<PeakList>();
-        projectParametersAndValues = new Hashtable<Parameter, Hashtable<String, Object>>();
+        projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
     }
 
@@ -54,7 +54,7 @@ public class MZmineProjectImpl implements MZmineProject {
         if (projectParametersAndValues.containsKey(parameter))
             return;
 
-        Hashtable<String, Object> parameterValues = new Hashtable<String, Object>();
+        Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
         projectParametersAndValues.put(parameter, parameterValues);
 
     }
@@ -75,15 +75,16 @@ public class MZmineProjectImpl implements MZmineProject {
             Object value) {
         if (!(hasParameter(parameter)))
             addParameter(parameter);
-        Hashtable<String, Object> parameterValues = projectParametersAndValues.get(parameter);
-        parameterValues.put(rawDataFile.getName(), value);
+        Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
+				.get(parameter);
+		parameterValues.put(rawDataFile, value);
     }
 
     public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
         if (!(hasParameter(parameter)))
             return null;
         Object value = projectParametersAndValues.get(parameter).get(
-                rawDataFile.getName());
+                rawDataFile);
         if (value == null)
             return parameter.getDefaultValue();
         return value;
