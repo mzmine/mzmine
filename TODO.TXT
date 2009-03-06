@@ -48,6 +48,11 @@ Control1.CDF scan 1027 is recognized as centroid which is not true.
 (Implemented new utility (ScanUtils.isCentroided). 
 Change applied to all raw data file importers 2009/2/3 Alex).
 
+RAW file import using Thermo XCalibur DLL
+* Raw file import is using too much memory. Memory is released when task is 
+  finished, but importing one file may consume >500MB RAM during the process.
+* Binding to XCalibur DLL doesn't work when MZmine is running 64-bit
+
 
 ***** Raw data filtering *****
 
