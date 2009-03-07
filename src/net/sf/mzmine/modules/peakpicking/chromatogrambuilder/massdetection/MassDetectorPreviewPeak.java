@@ -54,7 +54,7 @@ class MassDetectorPreviewPeak implements ChromatographicPeak {
 		return null;
 	}
 
-	public MzPeak getMzPeak(int scanNumber) {
+	public MzPeak getDataPoint(int scanNumber) {
 		return mzPeak;
 	}
 

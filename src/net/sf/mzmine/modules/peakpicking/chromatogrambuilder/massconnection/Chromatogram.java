@@ -83,7 +83,7 @@ public class Chromatogram implements ChromatographicPeak {
         buildingSegment.add(scanNumber);
     }
 
-    public MzPeak getMzPeak(int scanNumber) {
+    public MzPeak getDataPoint(int scanNumber) {
         return dataPointsMap.get(scanNumber);
     }
 

@@ -48,7 +48,7 @@ class ManualPeak implements ChromatographicPeak {
     private Range rtRange, mzRange, intensityRange;
 
     // Map of scan number and data point
-    private TreeMap<Integer, MzPeak> mzPeakMap;
+	private TreeMap<Integer, MzDataPoint> dataPointMap;
 
     // Number of most intense fragment scan
     private int fragmentScanNumber, representativeScan;
@@ -58,7 +58,7 @@ class ManualPeak implements ChromatographicPeak {
      */
     ManualPeak(RawDataFile dataFile) {
         this.dataFile = dataFile;
-        mzPeakMap = new TreeMap<Integer, MzPeak>();
+        dataPointMap = new TreeMap<Integer, MzDataPoint>();
     }
 
     /**
@@ -100,15 +100,15 @@ class ManualPeak implements ChromatographicPeak {
      * This method returns numbers of scans that contain this peak
      */
     public int[] getScanNumbers() {
-        return CollectionUtils.toIntArray(mzPeakMap.keySet());
+        return CollectionUtils.toIntArray(dataPointMap.keySet());
     }
 
     /**
      * This method returns a representative datapoint of this peak in a given
      * scan
      */
-    public MzPeak getMzPeak(int scanNumber) {
-        return mzPeakMap.get(scanNumber);
+    public MzDataPoint getDataPoint(int scanNumber) {
+		return dataPointMap.get(scanNumber);
     }
 
     public Range getRawDataPointsIntensityRange() {
@@ -145,7 +145,7 @@ class ManualPeak implements ChromatographicPeak {
 
         double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
-        if (mzPeakMap.isEmpty()) {
+        if (dataPointMap.isEmpty()) {
             rtRange = new Range(rt);
             mzRange = new Range(dataPoint.getMZ());
             intensityRange = new Range(dataPoint.getIntensity());
@@ -157,38 +157,39 @@ class ManualPeak implements ChromatographicPeak {
 
         MzPeak mzPeak = new SimpleMzPeak(dataPoint);
 
-        mzPeakMap.put(scanNumber, mzPeak);
+        dataPointMap.put(scanNumber, mzPeak);
 
     }
 
     void finalizePeak() {
 
         // Trim the zero-intensity data points from the beginning and end
-        while (!mzPeakMap.isEmpty()) {
-            int scanNumber = mzPeakMap.firstKey();
-            if (mzPeakMap.get(scanNumber).getIntensity() > 0)
+		while (!dataPointMap.isEmpty()) {
+			int scanNumber = dataPointMap.firstKey();
+			if (dataPointMap.get(scanNumber).getIntensity() > 0)
                 break;
-            mzPeakMap.remove(scanNumber);
+            dataPointMap.remove(scanNumber);
         }
-        while (!mzPeakMap.isEmpty()) {
-            int scanNumber = mzPeakMap.lastKey();
-            if (mzPeakMap.get(scanNumber).getIntensity() > 0)
+        while (!dataPointMap.isEmpty()) {
+			int scanNumber = dataPointMap.lastKey();
+			if (dataPointMap.get(scanNumber).getIntensity() > 0)
                 break;
-            mzPeakMap.remove(scanNumber);
+            dataPointMap.remove(scanNumber);
         }
 
         // Check if we have any data points
-        if (mzPeakMap.isEmpty()) {
+		if (dataPointMap.isEmpty()) {
             throw (new IllegalStateException(
                     "Peak can not be finalized without any data points"));
         }
 
         // Get all scan numbers
-        int allScanNumbers[] = CollectionUtils.toIntArray(mzPeakMap.keySet());
+		int allScanNumbers[] = CollectionUtils
+				.toIntArray(dataPointMap.keySet());
 
         // Find the data point with top intensity and use its RT and height
         for (int i = 0; i < allScanNumbers.length; i++) {
-            MzDataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
+            MzDataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
             double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
             if (dataPoint.getIntensity() > height) {
                 height = dataPoint.getIntensity();
@@ -207,8 +208,10 @@ class ManualPeak implements ChromatographicPeak {
             double rtDifference = thisRT - previousRT;
 
             // Intensity at the beginning and end of the interval
-            double previousIntensity = mzPeakMap.get(allScanNumbers[i - 1]).getIntensity();
-            double thisIntensity = mzPeakMap.get(allScanNumbers[i]).getIntensity();
+			double previousIntensity = dataPointMap.get(allScanNumbers[i - 1])
+					.getIntensity();
+			double thisIntensity = dataPointMap.get(allScanNumbers[i])
+					.getIntensity();
             double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
             // Calculate area of the interval
@@ -219,7 +222,7 @@ class ManualPeak implements ChromatographicPeak {
         // Calculate median MZ
         double mzArray[] = new double[allScanNumbers.length];
         for (int i = 0; i < allScanNumbers.length; i++) {
-            mzArray[i] = mzPeakMap.get(allScanNumbers[i]).getMZ();
+            mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
         }
         this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
@@ -240,7 +243,7 @@ class ManualPeak implements ChromatographicPeak {
         // Find the data point with top intensity and use its RT and height
         MzDataPoint dataPoint;
         for (Scan fragment : fragmentScans) {
-            dataPoint = mzPeakMap.get(fragment.getParentScanNumber());
+            dataPoint = dataPointMap.get(fragment.getParentScanNumber());
             if (dataPoint == null)
                 continue;
             if (dataPoint.getIntensity() == height) {
@@ -249,10 +252,6 @@ class ManualPeak implements ChromatographicPeak {
             }
         }
 
-    }
-
-    public void setMZ(double mz) {
-        this.mz = mz;
     }
 
     public int getRepresentativeScanNumber() {

@@ -59,7 +59,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
         Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
         for (ChromatographicPeak peak : peaks) {
-            MzDataPoint peakDataPoint = peak.getMzPeak(scanNumber);
+            MzDataPoint peakDataPoint = peak.getDataPoint(scanNumber);
             if (peakDataPoint != null)
                 candidates.add(peak);
         }
@@ -69,8 +69,9 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         intensityValues = new double[displayedPeaks.length];
 
         for (int i = 0; i < displayedPeaks.length; i++) {
-            mzValues[i] = displayedPeaks[i].getMzPeak(scanNumber).getMZ();
-            intensityValues[i] = displayedPeaks[i].getMzPeak(scanNumber).getIntensity();
+            mzValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getMZ();
+			intensityValues[i] = displayedPeaks[i].getDataPoint(scanNumber)
+					.getIntensity();
         }
         
         isotopeFlag = false;

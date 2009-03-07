@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.io.xmlexport;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,7 +34,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
@@ -203,16 +204,18 @@ public class XMLExportTask implements Task {
 				fillRowElement(row, newElement);
 				processedRows++;
 			}
+			
 
 			// write the saving file
-            FileOutputStream fos = new FileOutputStream(fileName);
+			File outputFile = new File(fileName);
+			FileOutputStream fos = new FileOutputStream(outputFile);
             
             OutputStream finalStream = fos;
             
             if (compression) {
                 ZipOutputStream zos = new ZipOutputStream(fos);
                 zos.setLevel(9);
-                zos.putNextEntry(new ZipEntry(fileName));
+                zos.putNextEntry(new ZipEntry(outputFile.getName()));
                 finalStream = zos;
             }
              
@@ -376,7 +379,6 @@ public class XMLExportTask implements Task {
 		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
 				String.valueOf(scanNumbers.length));
 
-		MzPeak mzPeak;
 
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
@@ -393,7 +395,7 @@ public class XMLExportTask implements Task {
 			try {
 				dataScanStream.writeInt(scan);
 				dataScanStream.flush();
-				mzPeak = peak.getMzPeak(scan);
+				MzDataPoint mzPeak = peak.getDataPoint(scan);
 				if (mzPeak != null) {
 					mass = (float) mzPeak.getMZ();
 					height = (float) mzPeak.getIntensity();

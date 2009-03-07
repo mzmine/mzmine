@@ -409,7 +409,7 @@ public class RelatedPeaksSearchTask implements Task {
 
 		// Get the shape in terms of intensity
 		for (int i = 0; i < scanNumbers.length; i++) {
-			MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
+			MzDataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
 			if (dataPoint == null) {
 				intensities[i] = 0;
 			} else {

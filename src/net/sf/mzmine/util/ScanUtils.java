@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
@@ -331,4 +332,37 @@ public class ScanUtils {
 		return centroid;
 
 	}
+
+	/**
+	 * Finds the MS/MS scan with highest intensity, within given retention time
+	 * range and with precursor m/z within given m/z range
+	 */
+	public static int findBestFragmentScan(RawDataFile dataFile, Range rtRange,
+			Range mzRange) {
+
+		int bestFragmentScan = -1;
+		double topBasePeak = 0;
+
+		int[] fragmentScanNumbers = dataFile.getScanNumbers(2, rtRange);
+
+		for (int number : fragmentScanNumbers) {
+
+			Scan scan = dataFile.getScan(number);
+
+			if (mzRange.contains(scan.getPrecursorMZ())) {
+
+				MzDataPoint basePeak = scan.getBasePeak();
+
+				if (basePeak.getIntensity() > topBasePeak) {
+					bestFragmentScan = scan.getScanNumber();
+					topBasePeak = basePeak.getIntensity();
+				}
+			}
+
+		}
+
+		return bestFragmentScan;
+
+	}
+
 }

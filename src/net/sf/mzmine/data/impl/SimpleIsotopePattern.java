@@ -26,10 +26,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -167,8 +166,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	/**
 	 * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
 	 */
-	public MzPeak getMzPeak(int scanNumber) {
-		return representativePeak.getMzPeak(scanNumber);
+	public MzDataPoint getDataPoint(int scanNumber) {
+		return representativePeak.getDataPoint(scanNumber);
 	}
 
 	/**
@@ -232,7 +231,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	}
 
 	public Range getIsotopeMzRange() {
-		
+
 		Iterator<ChromatographicPeak> itr = peaks.iterator();
 		ChromatographicPeak cp;
 		double repRT = representativePeak.getMZ(), H = 1.0078f;
@@ -267,30 +266,31 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	}
 
 	public MzDataPoint[] getIsotopes() {
-		
+
 		TreeSet<MzDataPoint> dataPoints = new TreeSet<MzDataPoint>(
 				new DataPointSorter(true, true));
 		ChromatographicPeak cp;
 		Iterator<ChromatographicPeak> itr = peaks.iterator();
-		
+
 		while (itr.hasNext()) {
 			cp = itr.next();
 			dataPoints.add(new SimpleDataPoint(cp.getMZ(), cp.getHeight()));
 		}
-		
+
 		return dataPoints.toArray(new MzDataPoint[0]);
 	}
 
 	public int getMostIntenseFragmentScanNumber() {
 		return representativePeak.getMostIntenseFragmentScanNumber();
 	}
-    
-    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
-        return ScanUtils.selectDataPointsByMass(getDataPoints(), mzRange);
-    }
 
-    public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
-        return ScanUtils.selectDataPointsOverIntensity(getDataPoints(), intensity);
-    }
+	public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+		return ScanUtils.selectDataPointsByMass(getDataPoints(), mzRange);
+	}
+
+	public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+		return ScanUtils.selectDataPointsOverIntensity(getDataPoints(),
+				intensity);
+	}
 
 }

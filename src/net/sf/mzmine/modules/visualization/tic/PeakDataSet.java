@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 
@@ -47,7 +47,7 @@ public class PeakDataSet extends AbstractXYDataset {
 
         for (int i = 0; i < scanNumbers.length; i++) {
             Scan scan = dataFile.getScan(scanNumbers[i]);
-            MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
+            MzDataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
             retentionTimes[i] = scan.getRetentionTime();
             if (dataPoint == null)
                 intensities[i] = 0;

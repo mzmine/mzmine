@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.peakrecognition;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.RawDataFile;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -50,7 +50,7 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
 	}
 
 	public Number getY(int series, int index) {
-		MzPeak mzPeak = chromatogram.getMzPeak(scanNumbers[index]);
+		MzDataPoint mzPeak = chromatogram.getDataPoint(scanNumbers[index]);
 		if (mzPeak == null)
 			return 0;
 		return mzPeak.getIntensity();

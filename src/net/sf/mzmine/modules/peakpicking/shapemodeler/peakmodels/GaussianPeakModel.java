@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -43,7 +44,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	private int representativeScan = -1, fragmentScan = -1;
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
-	private TreeMap<Integer, MzPeak> dataPointsMap;
+	private TreeMap<Integer, MzDataPoint> dataPointsMap;
 
 	private static float CONST = 2.354820045f;
 
@@ -67,7 +68,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		return fragmentScan;
 	}
 
-	public MzPeak getMzPeak(int scanNumber) {
+	public MzDataPoint getDataPoint(int scanNumber) {
 		return dataPointsMap.get(scanNumber);
 	}
 
@@ -114,7 +115,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		rawDataPointsIntensityRange = originalDetectedShape
 				.getRawDataPointsIntensityRange();
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
-		dataPointsMap = new TreeMap<Integer, MzPeak>();
+		dataPointsMap = new TreeMap<Integer, MzDataPoint>();
 		status = originalDetectedShape.getPeakStatus();
 
 		// FWFM (Full Width at Half Maximum)

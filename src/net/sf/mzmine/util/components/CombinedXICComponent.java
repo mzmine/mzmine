@@ -120,7 +120,7 @@ public class CombinedXICComponent extends JComponent{
             for (int i = 0; i < scanNumbers.length; i++) {
 
                 double dataPointIntensity = 0;
-                MzDataPoint dataPoint = peak.getMzPeak(scanNumbers[i]);
+                MzDataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
 
                 if (dataPoint != null)
                     dataPointIntensity = dataPoint.getIntensity();

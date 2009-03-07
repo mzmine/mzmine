@@ -24,14 +24,15 @@ package net.sf.mzmine.data;
  * and getIntensity() methods of MzPeak return the best m/z and intensity
  * values, which do not necessarily match any raw data points within the scan.
  * Instead, MzPeak provides the getRawDataPoints() method which returns those
- * data points that were considered to form this MzPeak.
+ * data points that were considered to form this MzPeak. This class is used
+ * during peak detection process.
  */
 public interface MzPeak extends MzDataPoint {
 
-    /**
-     * This method returns an array of raw data points that form this peak,
-     * sorted in m/z order.
-     */
-    public MzDataPoint[] getRawDataPoints();
-    
+	/**
+	 * This method returns an array of raw data points that form this peak,
+	 * sorted in m/z order.
+	 */
+	public MzDataPoint[] getRawDataPoints();
+
 }

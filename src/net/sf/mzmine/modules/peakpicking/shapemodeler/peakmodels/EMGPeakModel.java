@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -52,7 +53,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 	private int representativeScan = -1, fragmentScan = -1;
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
-	private TreeMap<Integer, MzPeak> dataPointsMap;
+	private TreeMap<Integer, MzDataPoint> dataPointsMap;
 
 	public double getArea() {
 		return area;
@@ -74,7 +75,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 		return fragmentScan;
 	}
 
-	public MzPeak getMzPeak(int scanNumber) {
+	public MzDataPoint getDataPoint(int scanNumber) {
 		return dataPointsMap.get(scanNumber);
 	}
 
@@ -123,7 +124,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 				.getRawDataPointsIntensityRange();
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
-		dataPointsMap = new TreeMap<Integer, MzPeak>();
+		dataPointsMap = new TreeMap<Integer, MzDataPoint>();
 		status = originalDetectedShape.getPeakStatus();
 
 		// Initialize EMG parameters base on intensities and retention times

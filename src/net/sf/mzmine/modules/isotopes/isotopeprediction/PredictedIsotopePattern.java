@@ -21,10 +21,9 @@
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.MzDataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -53,7 +52,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	}
 
 	public String getIsotopeInfo() {
-		return " Pattern of " + formula + " Charge=" + charge;
+		return " Pattern of " + formula + " charge=" + charge;
 	}
 
 	public double getIsotopeMass() {
@@ -102,7 +101,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return dataPoints[index];
 	}
 
-	public MzPeak getMzPeak(int scanNumber) {
+	public MzDataPoint getDataPoint(int scanNumber) {
 		return null;
 	}
 

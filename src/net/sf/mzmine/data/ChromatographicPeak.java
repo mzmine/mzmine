@@ -66,11 +66,12 @@ public interface ChromatographicPeak {
      */
     public int getRepresentativeScanNumber();
 
-    /**
-     * This method returns m/z and intensity of this peak in a given scan. This
-     * m/z and intensity does not need to match any actual raw data point.
-     */
-    public MzPeak getMzPeak(int scanNumber);
+	/**
+	 * This method returns m/z and intensity of this peak in a given scan. This
+	 * m/z and intensity does not need to match any actual raw data point. May
+	 * return null, if there is no data point in given scan.
+	 */
+    public MzDataPoint getDataPoint(int scanNumber);
 
     /**
      * Returns the retention time range of all raw data points used to detect
