@@ -19,7 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder;
 
-import java.util.TreeMap;
+import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -44,7 +45,7 @@ public class Chromatogram implements ChromatographicPeak {
 	private RawDataFile dataFile;
 
 	// Data points of the chromatogram (map of scan number -> m/z peak)
-	private TreeMap<Integer, DataPoint> dataPointsMap;
+	private Hashtable<Integer, DataPoint> dataPointsMap;
 
 	// Chromatogram m/z, RT, height, area
 	private double mz, rt, height, area;
@@ -58,6 +59,9 @@ public class Chromatogram implements ChromatographicPeak {
 	// A set of scan numbers of a segment which is currently being connected
 	private Vector<Integer> buildingSegment;
 
+	// Keep track of last added data point
+	private DataPoint lastMzPeak;
+
 	// Number of connected segments, which have been committed by
 	// commitBuildingSegment()
 	private int numOfCommittedSegments = 0;
@@ -67,7 +71,7 @@ public class Chromatogram implements ChromatographicPeak {
 	 */
 	public Chromatogram(RawDataFile dataFile) {
 		this.dataFile = dataFile;
-		dataPointsMap = new TreeMap<Integer, DataPoint>();
+		dataPointsMap = new Hashtable<Integer, DataPoint>();
 		buildingSegment = new Vector<Integer>(128);
 	}
 
@@ -79,6 +83,7 @@ public class Chromatogram implements ChromatographicPeak {
 	 */
 	public void addMzPeak(int scanNumber, MzPeak mzValue) {
 		dataPointsMap.put(scanNumber, mzValue);
+		lastMzPeak = mzValue;
 		buildingSegment.add(scanNumber);
 	}
 
@@ -90,7 +95,7 @@ public class Chromatogram implements ChromatographicPeak {
 	 * Returns m/z value of last added data point
 	 */
 	public DataPoint getLastMzPeak() {
-		return dataPointsMap.get(dataPointsMap.lastKey());
+		return lastMzPeak;
 	}
 
 	/**
@@ -158,6 +163,7 @@ public class Chromatogram implements ChromatographicPeak {
 
 		int allScanNumbers[] = CollectionUtils.toIntArray(dataPointsMap
 				.keySet());
+		Arrays.sort(allScanNumbers);
 
 		// Calculate median m/z
 		double allMzValues[] = new double[allScanNumbers.length];
@@ -210,11 +216,12 @@ public class Chromatogram implements ChromatographicPeak {
 		}
 
 		// Update fragment scan
-		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
-				dataFile.getDataRTRange(1), rawDataPointsMZRange);
-		
-		// Discard the buildingSegment
+		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, dataFile
+				.getDataRTRange(1), rawDataPointsMZRange);
+
+		// Discard the fields we don't need anymore
 		buildingSegment = null;
+		lastMzPeak = null;
 
 	}
 
