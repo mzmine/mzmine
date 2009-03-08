@@ -22,7 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
@@ -39,12 +39,12 @@ public class SimpleScan implements Scan {
     private int msLevel;
     private int parentScan;
     private int fragmentScans[];
-    private MzDataPoint dataPoints[];
+    private DataPoint dataPoints[];
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
     private Range mzRange;
-    private MzDataPoint basePeak;
+    private DataPoint basePeak;
     private double totalIonCurrent;
     private boolean centroided;
 
@@ -63,7 +63,7 @@ public class SimpleScan implements Scan {
      */
     public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
             double retentionTime, int parentScan, double precursorMZ,
-            int fragmentScans[], MzDataPoint[] dataPoints, boolean centroided) {
+            int fragmentScans[], DataPoint[] dataPoints, boolean centroided) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
@@ -84,14 +84,14 @@ public class SimpleScan implements Scan {
     /**
      * @return Returns scan datapoints
      */
-    public MzDataPoint[] getDataPoints() {
+    public DataPoint[] getDataPoints() {
         return dataPoints;
     }
 
     /**
      * @return Returns scan datapoints within a given range
      */
-    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+    public DataPoint[] getDataPointsByMass(Range mzRange) {
 
         int startIndex, endIndex;
         for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -104,7 +104,7 @@ public class SimpleScan implements Scan {
                 break;
         }
 
-        MzDataPoint pointsWithinRange[] = new MzDataPoint[endIndex - startIndex];
+        DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
 
         // Copy the relevant points
         System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
@@ -116,16 +116,16 @@ public class SimpleScan implements Scan {
     /**
      * @return Returns scan datapoints over certain intensity
      */
-    public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+    public DataPoint[] getDataPointsOverIntensity(double intensity) {
         int index;
-        Vector<MzDataPoint> points = new Vector<MzDataPoint>();
+        Vector<DataPoint> points = new Vector<DataPoint>();
 
         for (index = 0; index < dataPoints.length; index++) {
             if (dataPoints[index].getIntensity() >= intensity)
                 points.add(dataPoints[index]);
         }
 
-        MzDataPoint pointsOverIntensity[] = points.toArray(new MzDataPoint[0]);
+        DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
         return pointsOverIntensity;
     }
@@ -134,7 +134,7 @@ public class SimpleScan implements Scan {
      * @param mzValues m/z values to set
      * @param intensityValues Intensity values to set
      */
-    public void setDataPoints(MzDataPoint[] dataPoints) {
+    public void setDataPoints(DataPoint[] dataPoints) {
 
         this.dataPoints = dataPoints;
 
@@ -144,7 +144,7 @@ public class SimpleScan implements Scan {
             basePeak = dataPoints[0];
             mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
 
-            for (MzDataPoint dp : dataPoints) {
+            for (DataPoint dp : dataPoints) {
 
                 if (dp.getIntensity() > basePeak.getIntensity())
                     basePeak = dp;
@@ -251,7 +251,7 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
      */
-    public MzDataPoint getBasePeak() {
+    public DataPoint getBasePeak() {
         return basePeak;
     }
 

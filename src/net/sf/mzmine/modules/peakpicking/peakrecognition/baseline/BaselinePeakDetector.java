@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.peakrecognition.baseline;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
 import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
 
@@ -62,7 +62,7 @@ public class BaselinePeakDetector implements PeakResolver {
 		while (currentRegionStart < scanNumbers.length) {
 
 			// Find a start of the region
-			MzDataPoint startPeak = chromatogram
+			DataPoint startPeak = chromatogram
 					.getDataPoint(scanNumbers[currentRegionStart]);
 			if ((startPeak == null)
 					|| (startPeak.getIntensity() < baselineLevel)) {
@@ -75,7 +75,7 @@ public class BaselinePeakDetector implements PeakResolver {
 			// Search for end of the region
 			currentRegionEnd = currentRegionStart + 1;
 			while (currentRegionEnd < scanNumbers.length) {
-				MzDataPoint endPeak = chromatogram
+				DataPoint endPeak = chromatogram
 						.getDataPoint(scanNumbers[currentRegionEnd]);
 				if ((endPeak == null)
 						|| (endPeak.getIntensity() < baselineLevel)) {

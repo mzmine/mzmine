@@ -22,7 +22,7 @@ package net.sf.mzmine.data.impl;
 import java.util.Arrays;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
@@ -36,11 +36,12 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	private PeakStatus peakStatus;
 	private RawDataFile dataFile;
 
+	// Scan numbers
 	private int scanNumbers[];
 
 	// We store the values of data points as double[] arrays in order to save
 	// memory, which would be wasted by keeping a lot of instances of
-	// MzDataPoint
+	// SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
 	private double dataPointMZValues[], dataPointIntensityValues[];
 
 	// M/Z, RT, Height and Area
@@ -61,7 +62,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	 */
 	public SimpleChromatographicPeak(RawDataFile dataFile, double MZ,
 			double RT, double height, double area, int[] scanNumbers,
-			MzDataPoint[] dataPointsPerScan, PeakStatus peakStatus,
+			DataPoint[] dataPointsPerScan, PeakStatus peakStatus,
 			int representativeScan, int fragmentScanNumber, Range rtRange,
 			Range mzRange, Range intensityRange) {
 
@@ -86,7 +87,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 		this.dataPointMZValues = new double[scanNumbers.length];
 		this.dataPointIntensityValues = new double[scanNumbers.length];
 		for (int i = 0; i < scanNumbers.length; i++) {
-			MzDataPoint dp = dataPointsPerScan[i];
+			DataPoint dp = dataPointsPerScan[i];
 			if (dp != null) {
 				dataPointMZValues[i] = dp.getMZ();
 				dataPointIntensityValues[i] = dp.getIntensity();
@@ -116,7 +117,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 		this.dataPointMZValues = new double[scanNumbers.length];
 		this.dataPointIntensityValues = new double[scanNumbers.length];
 		for (int i = 0; i < scanNumbers.length; i++) {
-			MzDataPoint dp = p.getDataPoint(scanNumbers[i]);
+			DataPoint dp = p.getDataPoint(scanNumbers[i]);
 			if (dp != null) {
 				dataPointMZValues[i] = dp.getMZ();
 				dataPointIntensityValues[i] = dp.getIntensity();
@@ -200,7 +201,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	 * This method returns a representative datapoint of this peak in a given
 	 * scan
 	 */
-	public MzDataPoint getDataPoint(int scanNumber) {
+	public DataPoint getDataPoint(int scanNumber) {
 		int index = Arrays.binarySearch(scanNumbers, scanNumber);
 		if (index < 0)
 			return null;

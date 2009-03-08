@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.rawdata.savitzkygolay;
 import java.io.IOException;
 import java.util.Hashtable;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -169,7 +169,7 @@ class SGFilterTask implements Task {
         int marginSize = (numOfDataPoints + 1) / 2 - 1;
         double sumOfInts;
 
-        MzDataPoint oldDataPoints[] = sc.getDataPoints();
+        DataPoint oldDataPoints[] = sc.getDataPoints();
         int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
 
         // only process scans with datapoints
@@ -178,7 +178,7 @@ class SGFilterTask implements Task {
             return;
         }
 
-        MzDataPoint newDataPoints[] = new MzDataPoint[newDataPointsLength];
+        DataPoint newDataPoints[] = new DataPoint[newDataPointsLength];
 
         for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 

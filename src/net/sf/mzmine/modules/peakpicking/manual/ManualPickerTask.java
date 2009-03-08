@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peakpicking.manual;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -107,14 +107,14 @@ class ManualPickerTask implements Task {
                 Scan scan = dataFile.getScan(scanNumber);
 
                 // Find most intense m/z peak
-                MzDataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+                DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
                 if (basePeak != null) {
                     if (basePeak.getIntensity() > 0)
                         dataPointFound = true;
                     newPeak.addDatapoint(scan.getScanNumber(), basePeak);
                 } else {
-                    MzDataPoint fakeDataPoint = new SimpleDataPoint(
+                    DataPoint fakeDataPoint = new SimpleDataPoint(
                             mzRange.getAverage(), 0);
                     newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
                 }

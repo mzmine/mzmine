@@ -21,10 +21,9 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.cent
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 
 public class CentroidMassDetector implements MassDetector {
@@ -41,7 +40,7 @@ public class CentroidMassDetector implements MassDetector {
 		
         ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
         
-        MzDataPoint dataPoints[] = scan.getDataPoints();
+        DataPoint dataPoints[] = scan.getDataPoints();
 
 		// Find possible mzPeaks
 		for (int j = 0; j < dataPoints.length; j++) {
@@ -49,7 +48,7 @@ public class CentroidMassDetector implements MassDetector {
 			// Is intensity above the noise level?
 			if (dataPoints[j].getIntensity() >= noiseLevel) {
 				// Yes, then mark this index as mzPeak
-				mzPeaks.add(new SimpleMzPeak(dataPoints[j]));
+				mzPeaks.add(new MzPeak(dataPoints[j]));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);

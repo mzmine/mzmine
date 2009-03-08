@@ -20,13 +20,13 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.HashSet;
 
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.Chromatogram;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.DataPointSorter;

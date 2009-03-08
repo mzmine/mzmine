@@ -24,7 +24,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -226,7 +226,7 @@ public class XcaliburRawFileReadTask implements Task {
         parentTreeValue[msLevel] = scanNumber;
 
         buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
-                parentScan, 0f, null, new MzDataPoint[0], false);
+                parentScan, 0f, null, new DataPoint[0], false);
 
         /*
          * The common fields mz and intensity have the list of peaks for the
@@ -240,8 +240,8 @@ public class XcaliburRawFileReadTask implements Task {
         }
 
         // Copy m/z and intensity data
-        MzDataPoint completeDataPoints[] = new MzDataPoint[peaksCount];
-        MzDataPoint tempDataPoints[] = new MzDataPoint[peaksCount];
+        DataPoint completeDataPoints[] = new DataPoint[peaksCount];
+        DataPoint tempDataPoints[] = new DataPoint[peaksCount];
 
         for (int i = 0; i < completeDataPoints.length; i++) {
             completeDataPoints[i] = new SimpleDataPoint(mz[i], intensity[i]);
@@ -284,7 +284,7 @@ public class XcaliburRawFileReadTask implements Task {
             buildingScan.setDataPoints(tempDataPoints);
         } else {
             int sizeArray = j;
-            MzDataPoint[] dataPoints = new MzDataPoint[j];
+            DataPoint[] dataPoints = new DataPoint[j];
 
             System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
             buildingScan.setDataPoints(dataPoints);

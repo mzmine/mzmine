@@ -24,7 +24,6 @@ import javax.swing.DefaultListModel;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
@@ -37,69 +36,68 @@ import com.thoughtworks.xstream.XStream;
  */
 public class MZmineXStream extends XStream {
 
-    private ReferenceConverter referenceConverter;
+	private ReferenceConverter referenceConverter;
 
-    /**
-     * Create an XStream instance and set its parameters
-     */
-    public MZmineXStream() {
+	/**
+	 * Create an XStream instance and set its parameters
+	 */
+	public MZmineXStream() {
 
-        // Register aliases
-        alias("simpleScan", SimpleScan.class);
-        alias("peakListRow", SimplePeakListRow.class);
-        alias("storableScan", StorableScan.class);
-        alias("dataPoint", SimpleDataPoint.class);
-        alias("mzPeak", SimpleMzPeak.class);
-        alias("rawDataFile", RawDataFileImpl.class);
-        alias("isotopePattern", SimpleIsotopePattern.class);
-        alias("chromatographicPeak", SimpleChromatographicPeak.class);
+		// Register aliases
+		alias("simpleScan", SimpleScan.class);
+		alias("peakListRow", SimplePeakListRow.class);
+		alias("storableScan", StorableScan.class);
+		alias("dataPoint", SimpleDataPoint.class);
+		alias("rawDataFile", RawDataFileImpl.class);
+		alias("isotopePattern", SimpleIsotopePattern.class);
+		alias("chromatographicPeak", SimpleChromatographicPeak.class);
 
-        // Set referencing mode to IDs, to avoid evaluating complicated XPath expressions
-        setMode(XStream.ID_REFERENCES);
+		// Set referencing mode to IDs, to avoid evaluating complicated XPath
+		// expressions
+		setMode(XStream.ID_REFERENCES);
 
-        omitField(DefaultListModel.class, "listenerList");
-        
-        // Create a referencing converter
-        referenceConverter = new ReferenceConverter(getMapper(),
-                getReflectionProvider());
+		omitField(DefaultListModel.class, "listenerList");
 
-        // Register our custom converters
-        registerConverter(referenceConverter);
-        registerConverter(new RangeConverter());
-        registerConverter(new IntArrayConverter());
-        registerConverter(new SimpleMzPeakConverter());
-        registerConverter(new SimpleDataPointConverter());
+		// Create a referencing converter
+		referenceConverter = new ReferenceConverter(getMapper(),
+				getReflectionProvider());
 
-    }
+		// Register our custom converters
+		registerConverter(referenceConverter);
+		registerConverter(new RangeConverter());
+		registerConverter(new IntArrayConverter());
+		registerConverter(new SimpleDataPointConverter());
 
-    /**
-     * Returns the number of serialized Scan instances
-     */
-    public int getNumOfSerializedScans() {
-        return referenceConverter.getNumOfSerializedScans();
+	}
 
-    }
+	/**
+	 * Returns the number of serialized Scan instances
+	 */
+	public int getNumOfSerializedScans() {
+		return referenceConverter.getNumOfSerializedScans();
 
-    /**
-     * Returns the number of serialized PeakListRow instances
-     */
-    public int getNumOfSerializedRows() {
-        return referenceConverter.getNumOfSerializedRows();
-    }
-    
-    /**
-     * Returns the number of serialized Scan instances
-     */
-    public int getNumOfDeserializedScans() {
-        return referenceConverter.getNumOfDeserializedScans();
+	}
 
-    }
+	/**
+	 * Returns the number of serialized PeakListRow instances
+	 */
+	public int getNumOfSerializedRows() {
+		return referenceConverter.getNumOfSerializedRows();
+	}
 
-    /**
-     * Returns the number of serialized PeakListRow instances
-     */
-    public int getNumOfDeserializedRows() {
-        return referenceConverter.getNumOfDeserializedRows();
-    }
+	/**
+	 * Returns the number of serialized Scan instances
+	 */
+	public int getNumOfDeserializedScans() {
+		return referenceConverter.getNumOfDeserializedScans();
+
+	}
+
+	/**
+	 * Returns the number of serialized PeakListRow instances
+	 */
+	public int getNumOfDeserializedRows() {
+		return referenceConverter.getNumOfDeserializedRows();
+	}
 
 }

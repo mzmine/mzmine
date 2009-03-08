@@ -19,12 +19,12 @@
 
 package net.sf.mzmine.modules.gapfilling.peakfinder;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 
 /**
  * DataPoint implementation extended with retention time and scan number
  */
-class GapDataPoint implements MzDataPoint {
+class GapDataPoint implements DataPoint {
 
     private int scanNumber;
     private double mz, rt, intensity;

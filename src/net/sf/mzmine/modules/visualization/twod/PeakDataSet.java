@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.twod;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -59,7 +59,7 @@ class PeakDataSet extends AbstractXYDataset {
 			for (int scan : scanNumbers) {
 
 				double rt = dataFile.getScan(scan).getRetentionTime();
-				MzDataPoint dp = peak.getDataPoint(scan);
+				DataPoint dp = peak.getDataPoint(scan);
 				if (dp != null) {
 					if (rtRange.contains(rt) && mzRange.contains(dp.getMZ())) {
 						PeakDataPoint newDP = new PeakDataPoint(scan, rt, dp);

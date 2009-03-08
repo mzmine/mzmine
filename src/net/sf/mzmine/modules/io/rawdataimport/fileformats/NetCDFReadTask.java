@@ -25,7 +25,7 @@ import java.util.Hashtable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -404,7 +404,7 @@ public class NetCDFReadTask implements Task {
         if (scanLength[0] == 0) {
             scanNum++;
             return new SimpleScan(null, scanNum, 1, retentionTime.doubleValue(), -1,
-                    0, null, new MzDataPoint[0], false);
+                    0, null, new DataPoint[0], false);
         }
 
         // Read mass and intensity values
@@ -436,8 +436,8 @@ public class NetCDFReadTask implements Task {
             intensityValues[j] = intensityValueArray.getDouble(intensityValuesIndex.set0(j));
         }
 
-        MzDataPoint completeDataPoints[] = new MzDataPoint[massValues.length];
-        MzDataPoint tempDataPoints[] = new MzDataPoint[massValues.length];
+        DataPoint completeDataPoints[] = new DataPoint[massValues.length];
+        DataPoint tempDataPoints[] = new DataPoint[massValues.length];
         for (int i = 0; i < massValues.length; i++) {
             completeDataPoints[i] = new SimpleDataPoint(massValues[i],
                     intensityValues[i]);
@@ -474,7 +474,7 @@ public class NetCDFReadTask implements Task {
         scanNum++;
 
         SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
-                retentionTime.doubleValue(), -1, 0, null, new MzDataPoint[0],
+                retentionTime.doubleValue(), -1, 0, null, new DataPoint[0],
                 false);
         
 
@@ -484,7 +484,7 @@ public class NetCDFReadTask implements Task {
             buildingScan.setDataPoints(tempDataPoints);
         } else {
             int sizeArray = j;
-            MzDataPoint[] dataPoints = new MzDataPoint[sizeArray];
+            DataPoint[] dataPoints = new DataPoint[sizeArray];
             System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
             buildingScan.setDataPoints(dataPoints);
         }

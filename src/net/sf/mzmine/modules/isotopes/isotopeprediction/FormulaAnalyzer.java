@@ -27,7 +27,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.util.DataPointSorter;
@@ -39,7 +39,7 @@ import org.openscience.cdk.interfaces.IIsotope;
 public class FormulaAnalyzer {
 
 	private IsotopeFactory isoFactory;
-	private MzDataPoint[] abundanceAndMass = null;
+	private DataPoint[] abundanceAndMass = null;
 	private String errorMessage;
 	private static double ELECTRON_MASS = 0.00054857d;
 	// This value is the average from difference of masses between isotopes.
@@ -224,10 +224,10 @@ public class FormulaAnalyzer {
 		double mass, previousMass, abundance, totalAbundance, newAbundance;
 
 		HashMap<Double, Double> isotopeMassAndAbundance = new HashMap<Double, Double>();
-		TreeSet<MzDataPoint> dataPoints = new TreeSet<MzDataPoint>(
+		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
-		MzDataPoint[] currentElementPattern = new MzDataPoint[isotopes.length];
+		DataPoint[] currentElementPattern = new DataPoint[isotopes.length];
 
 		// Generate isotopes for the current atom (element)
 		for (int i = 0; i < isotopes.length; i++) {
@@ -237,7 +237,7 @@ public class FormulaAnalyzer {
 
 		}
 
-		currentElementPattern = dataPoints.toArray(new MzDataPoint[0]);
+		currentElementPattern = dataPoints.toArray(new DataPoint[0]);
 		dataPoints.clear();
 
 		// Verify if there is a previous calculation. If it exists, add the new
@@ -286,14 +286,14 @@ public class FormulaAnalyzer {
 
 			Iterator<Double> itr = isotopeMassAndAbundance.keySet().iterator();
 			int i = 0;
-			abundanceAndMass = new MzDataPoint[isotopeMassAndAbundance.size()];
+			abundanceAndMass = new DataPoint[isotopeMassAndAbundance.size()];
 			while (itr.hasNext()) {
 				mass = itr.next();
 				dataPoints.add(new SimpleDataPoint(mass,
 						isotopeMassAndAbundance.get(mass)));
 				i++;
 			}
-			abundanceAndMass = dataPoints.toArray(new MzDataPoint[0]);
+			abundanceAndMass = dataPoints.toArray(new DataPoint[0]);
 		}
 
 		return true;
@@ -687,15 +687,15 @@ public class FormulaAnalyzer {
 	 * @param dataPoints
 	 * @return
 	 */
-	private static MzDataPoint[] normalizeArray(MzDataPoint[] dataPoints,
+	private static DataPoint[] normalizeArray(DataPoint[] dataPoints,
 			double minAbundance) {
 
-		TreeSet<MzDataPoint> sortedDataPoints = new TreeSet<MzDataPoint>(
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
 		double intensity, biggestIntensity = 0.0f;
 
-		for (MzDataPoint dp : dataPoints) {
+		for (DataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
 			if (intensity > biggestIntensity)
@@ -703,7 +703,7 @@ public class FormulaAnalyzer {
 
 		}
 
-		for (MzDataPoint dp : dataPoints) {
+		for (DataPoint dp : dataPoints) {
 
 			intensity = dp.getIntensity();
 			intensity /= biggestIntensity;
@@ -714,12 +714,12 @@ public class FormulaAnalyzer {
 
 		}
 
-		for (MzDataPoint dp : dataPoints) {
+		for (DataPoint dp : dataPoints) {
 			if (dp.getIntensity() >= (minAbundance ))
 				sortedDataPoints.add(dp);
 		}
 
-		return sortedDataPoints.toArray(new MzDataPoint[0]);
+		return sortedDataPoints.toArray(new DataPoint[0]);
 
 	}
 
@@ -730,7 +730,7 @@ public class FormulaAnalyzer {
 	 * @param positiveCharge
 	 * @return
 	 */
-	private static MzDataPoint[] loadChargeDistribution(MzDataPoint[] dataPoints,
+	private static DataPoint[] loadChargeDistribution(DataPoint[] dataPoints,
 			int charge, boolean positiveCharge) {
 
 		if (charge == 0) {
@@ -744,7 +744,7 @@ public class FormulaAnalyzer {
 			else
 				sign = 1;
 
-			for (MzDataPoint dp : dataPoints) {
+			for (DataPoint dp : dataPoints) {
 
 				mass = (dp.getMZ() + (charge * sign * ELECTRON_MASS)) / charge;
 				((SimpleDataPoint) dp).setMZ(mass);
@@ -776,7 +776,7 @@ public class FormulaAnalyzer {
 	 * @param positiveCharge
 	 * @return
 	 */
-	private static MzDataPoint[] createSingleIsotopePeaks(MzDataPoint[] dataPoints,
+	private static DataPoint[] createSingleIsotopePeaks(DataPoint[] dataPoints,
 			int charge) {
 
 		double distance;
@@ -787,28 +787,28 @@ public class FormulaAnalyzer {
 			distance = ISOTOPE_DISTANCE / charge;
 		}
 
-		TreeSet<MzDataPoint> sortedDataPoints = new TreeSet<MzDataPoint>(
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(true, true));
 
-		for (MzDataPoint localDp : dataPoints) {
+		for (DataPoint localDp : dataPoints) {
 			sortedDataPoints.add(localDp);
 		}
 
-		dataPoints = sortedDataPoints.toArray(new MzDataPoint[0]);
+		dataPoints = sortedDataPoints.toArray(new DataPoint[0]);
 		sortedDataPoints.clear();
 		sortedDataPoints.add(dataPoints[0]);
 
 		double localMass, nextIsotopeMass;
 		nextIsotopeMass = dataPoints[0].getMZ() + distance;
 
-		for (MzDataPoint localDp : dataPoints) {
+		for (DataPoint localDp : dataPoints) {
 			localMass = localDp.getMZ();
 			if (localMass > nextIsotopeMass)
 				sortedDataPoints
 						.add(getGroupedDataPoint(localMass, dataPoints));
 		}
 
-		return sortedDataPoints.toArray(new MzDataPoint[0]);
+		return sortedDataPoints.toArray(new DataPoint[0]);
 	}
 
 	/**
@@ -819,15 +819,15 @@ public class FormulaAnalyzer {
 	 * @param dataPoints
 	 * @return DataPoint
 	 */
-	private static MzDataPoint getGroupedDataPoint(double mass,
-			MzDataPoint[] dataPoints) {
+	private static DataPoint getGroupedDataPoint(double mass,
+			DataPoint[] dataPoints) {
 
 		double diff, tolerance = ISOTOPE_DISTANCE / 4.0d;
-		MzDataPoint dp;
-		TreeSet<MzDataPoint> sortedDataPoints = new TreeSet<MzDataPoint>(
+		DataPoint dp;
+		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
 				new DataPointSorter(false, false));
 
-		for (MzDataPoint localDp : dataPoints) {
+		for (DataPoint localDp : dataPoints) {
 			diff = Math.abs(mass - localDp.getMZ());
 			if (diff <= tolerance) {
 				sortedDataPoints.add(localDp);
@@ -835,7 +835,7 @@ public class FormulaAnalyzer {
 		}
 
 		double averageWeightMass = 0, totalIntensity = 0;
-		Iterator<MzDataPoint> itr = sortedDataPoints.iterator();
+		Iterator<DataPoint> itr = sortedDataPoints.iterator();
 		while (itr.hasNext()) {
 			dp = itr.next();
 			averageWeightMass += dp.getMZ() * dp.getIntensity();

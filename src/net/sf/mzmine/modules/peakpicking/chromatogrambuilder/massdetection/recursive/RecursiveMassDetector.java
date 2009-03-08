@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.recu
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
 
@@ -32,8 +32,8 @@ public class RecursiveMassDetector implements MassDetector {
 
     // Parameter values
     private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
-    private TreeSet<SimpleMzPeak> mzPeaks;
-    private MzDataPoint[] dataPoints;
+    private TreeSet<MzPeak> mzPeaks;
+    private DataPoint[] dataPoints;
 
     // private Scan scan;
 
@@ -43,16 +43,16 @@ public class RecursiveMassDetector implements MassDetector {
         maximumMZPeakWidth = (Double) parameters.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
     }
 
-    public SimpleMzPeak[] getMassValues(Scan scan) {
+    public MzPeak[] getMassValues(Scan scan) {
 
         // this.scan = scan;
         dataPoints = scan.getDataPoints();
-        mzPeaks = new TreeSet<SimpleMzPeak>(new DataPointSorter(true,
+        mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(true,
                 true));
 
         // Find MzPeaks
         recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
-        return mzPeaks.toArray(new SimpleMzPeak[0]);
+        return mzPeaks.toArray(new MzPeak[0]);
     }
 
     /**
@@ -63,7 +63,7 @@ public class RecursiveMassDetector implements MassDetector {
 
         // logger.finest(" Level of recursion " + recuLevel);
 
-        Vector<MzDataPoint> RawDataPointsInds = new Vector<MzDataPoint>();
+        Vector<DataPoint> RawDataPointsInds = new Vector<DataPoint>();
         int peakStartInd, peakStopInd, peakMaxInd;
         double peakWidthMZ;
 
@@ -114,8 +114,8 @@ public class RecursiveMassDetector implements MassDetector {
 
                 // Declare a new MzPeak with intensity equal to max intensity
                 // data point
-                mzPeaks.add(new SimpleMzPeak(dataPoints[peakMaxInd],
-                        RawDataPointsInds.toArray(new MzDataPoint[0])));
+                mzPeaks.add(new MzPeak(dataPoints[peakMaxInd],
+                        RawDataPointsInds.toArray(new DataPoint[0])));
 
                 if (recuLevel > 0) {
                     // return stop index and beginning of the next peak

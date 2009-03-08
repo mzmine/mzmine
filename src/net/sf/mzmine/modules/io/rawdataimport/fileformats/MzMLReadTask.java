@@ -31,7 +31,7 @@ import java.util.zip.Inflater;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -372,8 +372,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
                 throw new SAXException("Parsing Cancelled");
             }
 
-            MzDataPoint completeDataPoints[] = new MzDataPoint[peaksCount];
-            MzDataPoint tempDataPoints[] = new MzDataPoint[peaksCount];
+            DataPoint completeDataPoints[] = new DataPoint[peaksCount];
+            DataPoint tempDataPoints[] = new DataPoint[peaksCount];
 
             // Copy m/z and intensity data
             for (int i = 0; i < completeDataPoints.length; i++) {
@@ -414,7 +414,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
             buildingScan = new SimpleScan(null, scanNumber, msLevel,
                     retentionTime, parentScan, precursorMz, null,
-                    new MzDataPoint[0], false);
+                    new DataPoint[0], false);
 
             buildingScan.setCentroided(centroided);
             buildingScan.setPrecursorCharge(precursorCharge);
@@ -424,7 +424,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
                 buildingScan.setDataPoints(tempDataPoints);
             } else {
                 int sizeArray = j;
-                MzDataPoint[] dataPoints = new MzDataPoint[j];
+                DataPoint[] dataPoints = new DataPoint[j];
 
                 System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
                 buildingScan.setDataPoints(dataPoints);

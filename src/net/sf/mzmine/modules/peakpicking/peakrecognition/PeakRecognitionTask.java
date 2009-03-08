@@ -23,7 +23,7 @@ import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
@@ -158,7 +158,7 @@ class PeakRecognitionTask implements Task {
 
             // Load the intensities into array
             for (int i = 0; i < scanNumbers.length; i++) {
-            	MzDataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
+            	DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
 				if (dp != null)
 					intensities[i] = dp.getIntensity();
                 else

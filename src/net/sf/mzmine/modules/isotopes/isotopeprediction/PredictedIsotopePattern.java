@@ -23,7 +23,7 @@ package net.sf.mzmine.modules.isotopes.isotopeprediction;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.Range;
@@ -31,7 +31,7 @@ import net.sf.mzmine.util.ScanUtils;
 
 public class PredictedIsotopePattern implements IsotopePattern {
 	
-	private MzDataPoint[] dataPoints;
+	private DataPoint[] dataPoints;
 	private String formula;
 	private int charge;
 	private Range range;
@@ -39,7 +39,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 	private double height = 0.0f;
 
 	
-	public PredictedIsotopePattern (MzDataPoint[] dataPoints, String formula, int charge){
+	public PredictedIsotopePattern (DataPoint[] dataPoints, String formula, int charge){
 		this.dataPoints = dataPoints;
 		this.formula = formula;
 		this.charge = charge;
@@ -87,7 +87,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return getMostIntenseDataPoint().getMZ();
 	}
 	
-	private MzDataPoint getMostIntenseDataPoint(){
+	private DataPoint getMostIntenseDataPoint(){
 		int index = 0;
 		double intensity = 0;
 		
@@ -101,7 +101,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return dataPoints[index];
 	}
 
-	public MzDataPoint getDataPoint(int scanNumber) {
+	public DataPoint getDataPoint(int scanNumber) {
 		return null;
 	}
 
@@ -133,7 +133,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return null;
 	}
 
-	public MzDataPoint[] getDataPoints() {
+	public DataPoint[] getDataPoints() {
 		return dataPoints;
 	}
 
@@ -141,7 +141,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return dataPoints.length;
 	}
 	
-	private Range calculateMzRange(MzDataPoint[] dataPoints){
+	private Range calculateMzRange(DataPoint[] dataPoints){
 		double H = 1.0078f;
 		Range range = new Range(dataPoints[0].getMZ());
 		for (int i=1; i<dataPoints.length; i++){
@@ -179,7 +179,7 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return dataPoints.length;
 	}
 
-	public MzDataPoint[] getIsotopes() {
+	public DataPoint[] getIsotopes() {
 		return dataPoints;
 	}
 
@@ -187,11 +187,11 @@ public class PredictedIsotopePattern implements IsotopePattern {
 		return 0;
 	}
 
-    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+    public DataPoint[] getDataPointsByMass(Range mzRange) {
         return ScanUtils.selectDataPointsByMass(getDataPoints(), mzRange);
     }
 
-    public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+    public DataPoint[] getDataPointsOverIntensity(double intensity) {
         return ScanUtils.selectDataPointsOverIntensity(getDataPoints(), intensity);
     }
 

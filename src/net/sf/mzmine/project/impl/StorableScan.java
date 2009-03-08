@@ -27,7 +27,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -46,7 +46,7 @@ public class StorableScan implements Scan {
     private int precursorCharge;
     private double retentionTime;
     private Range mzRange;
-    private MzDataPoint basePeak;
+    private DataPoint basePeak;
     private double totalIonCurrent;
     private boolean centroided;
 
@@ -70,7 +70,7 @@ public class StorableScan implements Scan {
      */
     public StorableScan(int scanNumber, int msLevel, double retentionTime,
             int parentScan, double precursorMZ, int fragmentScans[],
-            MzDataPoint[] dataPoints, boolean centroided, RawDataFileImpl rawDataFile) {
+            DataPoint[] dataPoints, boolean centroided, RawDataFileImpl rawDataFile) {
 
         // check assumptions about proper scan data
         assert (msLevel == 1) || (parentScan > 0);
@@ -94,7 +94,7 @@ public class StorableScan implements Scan {
     /**
      * @return Scan's datapoints from temporary file.
      */
-    public MzDataPoint[] getDataPoints() {
+    public DataPoint[] getDataPoints() {
 
         ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
         RandomAccessFile storageFile = rawDataFile.getScanDataFile();
@@ -105,13 +105,13 @@ public class StorableScan implements Scan {
             } catch (IOException e) {
                 logger.log(Level.SEVERE,
                         "Could not read data from temporary file", e);
-                return new MzDataPoint[0];
+                return new DataPoint[0];
             }
         }
 
         DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
 
-        MzDataPoint dataPoints[] = new MzDataPoint[numberOfDataPoints];
+        DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
 
         for (int i = 0; i < numberOfDataPoints; i++) {
             double mz = doubleBuffer.get();
@@ -126,9 +126,9 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Returns scan datapoints within a given range
 	 */
-    public MzDataPoint[] getDataPointsByMass(Range mzRange) {
+    public DataPoint[] getDataPointsByMass(Range mzRange) {
 
-        MzDataPoint dataPoints[] = getDataPoints();
+        DataPoint dataPoints[] = getDataPoints();
 
         int startIndex, endIndex;
         for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -141,7 +141,7 @@ public class StorableScan implements Scan {
                 break;
         }
 
-        MzDataPoint pointsWithinRange[] = new MzDataPoint[endIndex - startIndex];
+        DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
 
         // Copy the relevant points
         System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
@@ -153,17 +153,17 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public MzDataPoint[] getDataPointsOverIntensity(double intensity) {
+	public DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
-		Vector<MzDataPoint> points = new Vector<MzDataPoint>();
-        MzDataPoint dataPoints[] = getDataPoints();
+		Vector<DataPoint> points = new Vector<DataPoint>();
+        DataPoint dataPoints[] = getDataPoints();
 		
 		for (index = 0; index < dataPoints.length; index++) {
 			if (dataPoints[index].getIntensity() >= intensity)
 				points.add(dataPoints[index]);
 		}
 
-		MzDataPoint pointsOverIntensity[] = points.toArray(new MzDataPoint[0]);
+		DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
 		return pointsOverIntensity;
 	}
@@ -172,7 +172,7 @@ public class StorableScan implements Scan {
     /**
      * @param dataPoints New datapoints
      */
-    void setDataPoints(MzDataPoint[] dataPoints) {
+    void setDataPoints(DataPoint[] dataPoints) {
 
         numberOfDataPoints = dataPoints.length;
 
@@ -189,7 +189,7 @@ public class StorableScan implements Scan {
                 storageFileOffset = storageFile.length();
                 storageFile.seek(storageFileOffset);
 
-                for (MzDataPoint dp : dataPoints) {
+                for (DataPoint dp : dataPoints) {
                     doubleBuffer.put(dp.getMZ());
                     doubleBuffer.put(dp.getIntensity());
                 }
@@ -209,7 +209,7 @@ public class StorableScan implements Scan {
             mzRange = new Range(dataPoints[0].getMZ(),
                     dataPoints[0].getMZ());
 
-            for (MzDataPoint dp : dataPoints) {
+            for (DataPoint dp : dataPoints) {
 
                 if (dp.getIntensity() > basePeak.getIntensity())
                     basePeak = dp;
@@ -281,7 +281,7 @@ public class StorableScan implements Scan {
     /**
      * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
      */
-    public MzDataPoint getBasePeak() {
+    public DataPoint getBasePeak() {
         return basePeak;
     }
 

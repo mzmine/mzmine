@@ -26,7 +26,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.GroupRelatedPeaks;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -409,7 +409,7 @@ public class RelatedPeaksSearchTask implements Task {
 
 		// Get the shape in terms of intensity
 		for (int i = 0; i < scanNumbers.length; i++) {
-			MzDataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+			DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
 			if (dataPoint == null) {
 				intensities[i] = 0;
 			} else {

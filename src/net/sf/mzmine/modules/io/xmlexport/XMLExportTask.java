@@ -34,7 +34,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
@@ -395,7 +395,7 @@ public class XMLExportTask implements Task {
 			try {
 				dataScanStream.writeInt(scan);
 				dataScanStream.flush();
-				MzDataPoint mzPeak = peak.getDataPoint(scan);
+				DataPoint mzPeak = peak.getDataPoint(scan);
 				if (mzPeak != null) {
 					mass = (float) mzPeak.getMZ();
 					height = (float) mzPeak.getIntensity();

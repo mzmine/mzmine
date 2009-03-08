@@ -20,10 +20,10 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -74,7 +74,7 @@ class MassDetectorPreviewPeak implements ChromatographicPeak {
 		return 0;
 	}
 
-	public MzDataPoint[] getRawDataPoints(int scanNumber) {
+	public DataPoint[] getRawDataPoints(int scanNumber) {
 		return null;
 	}
 

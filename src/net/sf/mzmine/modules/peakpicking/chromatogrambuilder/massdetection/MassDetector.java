@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
 
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 
 /**
  * 

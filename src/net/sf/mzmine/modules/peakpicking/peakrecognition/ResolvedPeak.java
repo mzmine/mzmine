@@ -19,16 +19,17 @@
 
 package net.sf.mzmine.modules.peakpicking.peakrecognition;
 
-import java.util.Hashtable;
+import java.util.Arrays;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * ResolvedPeak
@@ -45,7 +46,10 @@ public class ResolvedPeak implements ChromatographicPeak {
 	// Scan numbers
 	private int scanNumbers[];
 
-	private Hashtable<Integer, MzDataPoint> dataPointMap;
+	// We store the values of data points as double[] arrays in order to save
+	// memory, which would be wasted by keeping a lot of instances of
+	// SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
+	private double dataPointMZValues[], dataPointIntensityValues[];
 
 	// Top intensity scan, fragment scan
 	private int representativeScan, fragmentScan;
@@ -69,26 +73,26 @@ public class ResolvedPeak implements ChromatographicPeak {
 		System.arraycopy(dataFile.getScanNumbers(1), regionStart, scanNumbers,
 				0, regionEnd - regionStart + 1);
 
-		dataPointMap = new Hashtable<Integer, MzDataPoint>();
+		dataPointMZValues = new double[regionEnd - regionStart + 1];
+		dataPointIntensityValues = new double[regionEnd - regionStart + 1];
 
 		// We keep the m/z range specified by the chromatogram, instead of
 		// determining it from the m/z data points. The reason is that in
 		// continuous raw data, each m/z peak has a width. That width is
-		// remembered in chromatogram.getRawDataPointsMZRange()
+		// remembered in chromatogram.getRawDataPointsMZRange(), the width of
+		// detected m/z values may be smaller
 		rawDataPointsMZRange = chromatogram.getRawDataPointsMZRange();
 
 		// Set raw data point ranges, height, rt and representative scan
 		height = Double.MIN_VALUE;
-		double allMzValues[] = new double[scanNumbers.length];
 		for (int i = 0; i < scanNumbers.length; i++) {
 
-			MzDataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
+			DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
 			if (dp == null)
 				continue;
 
-			dataPointMap.put(scanNumbers[i], dp);
-
-			allMzValues[i] = dp.getMZ();
+			dataPointMZValues[i] = dp.getMZ();
+			dataPointIntensityValues[i] = dp.getIntensity();
 
 			if (rawDataPointsIntensityRange == null) {
 				rawDataPointsIntensityRange = new Range(dp.getIntensity());
@@ -108,47 +112,38 @@ public class ResolvedPeak implements ChromatographicPeak {
 		}
 
 		// Calculate median m/z
-		mz = MathUtils.calcQuantile(allMzValues, 0.5f);
+		mz = MathUtils.calcQuantile(dataPointMZValues, 0.5f);
 
 		// Update area
 		area = 0;
 		for (int i = 1; i < scanNumbers.length; i++) {
-			MzDataPoint previousPeak = dataPointMap.get(scanNumbers[i - 1]);
-			MzDataPoint currentPeak = dataPointMap.get(scanNumbers[i]);
 			double previousRT = dataFile.getScan(scanNumbers[i - 1])
 					.getRetentionTime();
 			double currentRT = dataFile.getScan(scanNumbers[i])
 					.getRetentionTime();
-			double previousHeight = previousPeak != null ? previousPeak
-					.getIntensity() : 0;
-			double currentHeight = currentPeak != null ? currentPeak
-					.getIntensity() : 0;
+			double previousHeight = dataPointIntensityValues[i - 1];
+			double currentHeight = dataPointIntensityValues[i];
 			area += (currentRT - previousRT) * (currentHeight + previousHeight)
 					/ 2;
 		}
 
 		// Update fragment scan
-		fragmentScan = -1;
-		double topBasePeak = 0;
-		int[] fragmentScanNumbers = dataFile.getScanNumbers(2,
-				rawDataPointsRTRange);
-		for (int number : fragmentScanNumbers) {
-			Scan scan = dataFile.getScan(number);
-			if (scan.getBasePeak() == null)
-				continue;
-			if (rawDataPointsMZRange.contains(scan.getPrecursorMZ())) {
-				if ((fragmentScan == -1)
-						|| (scan.getBasePeak().getIntensity() > topBasePeak)) {
-					fragmentScan = number;
-					topBasePeak = scan.getBasePeak().getIntensity();
-				}
-			}
-		}
+		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
+				rawDataPointsRTRange, rawDataPointsMZRange);
 
 	}
 
-	public MzDataPoint getDataPoint(int scanNumber) {
-		return dataPointMap.get(scanNumber);
+	/**
+	 * This method returns a representative datapoint of this peak in a given
+	 * scan
+	 */
+	public DataPoint getDataPoint(int scanNumber) {
+		int index = Arrays.binarySearch(scanNumbers, scanNumber);
+		if (index < 0)
+			return null;
+		SimpleDataPoint dp = new SimpleDataPoint(dataPointMZValues[index],
+				dataPointIntensityValues[index]);
+		return dp;
 	}
 
 	/**

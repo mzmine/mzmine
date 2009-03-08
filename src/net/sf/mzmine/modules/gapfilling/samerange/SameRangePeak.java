@@ -20,19 +20,16 @@
 package net.sf.mzmine.modules.gapfilling.samerange;
 
 import java.util.TreeMap;
-import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
 
 /**
  * This class represents a manually picked chromatographic peak.
@@ -48,7 +45,7 @@ class SameRangePeak implements ChromatographicPeak {
 	private Range rtRange, mzRange, intensityRange;
 
 	// Map of scan number and data point
-	private TreeMap<Integer, MzDataPoint> mzPeakMap;
+	private TreeMap<Integer, DataPoint> mzPeakMap;
 
 	// Number of most intense fragment scan
 	private int fragmentScanNumber, representativeScan;
@@ -58,7 +55,7 @@ class SameRangePeak implements ChromatographicPeak {
 	 */
 	SameRangePeak(RawDataFile dataFile) {
 		this.dataFile = dataFile;
-		mzPeakMap = new TreeMap<Integer, MzDataPoint>();
+		mzPeakMap = new TreeMap<Integer, DataPoint>();
 	}
 
 	/**
@@ -107,7 +104,7 @@ class SameRangePeak implements ChromatographicPeak {
 	 * This method returns a representative datapoint of this peak in a given
 	 * scan
 	 */
-	public MzDataPoint getDataPoint(int scanNumber) {
+	public DataPoint getDataPoint(int scanNumber) {
 		return mzPeakMap.get(scanNumber);
 	}
 
@@ -141,7 +138,7 @@ class SameRangePeak implements ChromatographicPeak {
 	 * @param dataPoints
 	 * @param rawDataPoints
 	 */
-	void addDatapoint(int scanNumber, MzDataPoint dataPoint) {
+	void addDatapoint(int scanNumber, DataPoint dataPoint) {
 
 		double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
@@ -155,9 +152,7 @@ class SameRangePeak implements ChromatographicPeak {
 			intensityRange.extendRange(dataPoint.getIntensity());
 		}
 
-		MzPeak mzPeak = new SimpleMzPeak(dataPoint);
-
-		mzPeakMap.put(scanNumber, mzPeak);
+		mzPeakMap.put(scanNumber, dataPoint);
 
 	}
 
@@ -188,7 +183,7 @@ class SameRangePeak implements ChromatographicPeak {
 
 		// Find the data point with top intensity and use its RT and height
 		for (int i = 0; i < allScanNumbers.length; i++) {
-			MzDataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
+			DataPoint dataPoint = mzPeakMap.get(allScanNumbers[i]);
 			double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
 			if (dataPoint.getIntensity() > height) {
 				height = dataPoint.getIntensity();
@@ -227,31 +222,8 @@ class SameRangePeak implements ChromatographicPeak {
 		}
 		this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
-		updateFragmentscanNumber();
-
-	}
-
-	private void updateFragmentscanNumber() {
-		Scan scan;
-		Vector<Scan> fragmentScans = new Vector<Scan>();
-		int[] scanNumbers = dataFile.getScanNumbers(2, rtRange);
-		for (int number : scanNumbers) {
-			scan = dataFile.getScan(number);
-			if (mzRange.contains(scan.getPrecursorMZ()))
-				fragmentScans.add(scan);
-		}
-
-		// Find the data point with top intensity and use its RT and height
-		MzDataPoint dataPoint;
-		for (Scan fragment : fragmentScans) {
-			dataPoint = mzPeakMap.get(fragment.getParentScanNumber());
-			if (dataPoint == null)
-				continue;
-			if (dataPoint.getIntensity() == height) {
-				fragmentScanNumber = fragment.getScanNumber();
-				break;
-			}
-		}
+		fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile, rtRange,
+				mzRange);
 
 	}
 

@@ -37,7 +37,7 @@ public interface MzDataTable {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public MzDataPoint[] getDataPoints();
+    public DataPoint[] getDataPoints();
 
     /**
      * Returns data points in given m/z range, sorted in m/z order.
@@ -48,7 +48,7 @@ public interface MzDataTable {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public MzDataPoint[] getDataPointsByMass(Range mzRange);
+    public DataPoint[] getDataPointsByMass(Range mzRange);
 
     /**
      * Returns data points over given intensity, sorted in m/z order.
@@ -59,6 +59,6 @@ public interface MzDataTable {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public MzDataPoint[] getDataPointsOverIntensity(double intensity);
+    public DataPoint[] getDataPointsOverIntensity(double intensity);
 
 }

@@ -23,7 +23,7 @@ import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
@@ -68,12 +68,12 @@ public class ScanUtils {
 	 *            m/z range maximum
 	 * @return double[2] containing base peak m/z and intensity
 	 */
-	public static MzDataPoint findBasePeak(Scan scan, Range mzRange) {
+	public static DataPoint findBasePeak(Scan scan, Range mzRange) {
 
-		MzDataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
-		MzDataPoint basePeak = null;
+		DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
+		DataPoint basePeak = null;
 
-		for (MzDataPoint dp : dataPoints) {
+		for (DataPoint dp : dataPoints) {
 			if ((basePeak == null)
 					|| (dp.getIntensity() > basePeak.getIntensity()))
 				basePeak = dp;
@@ -86,28 +86,28 @@ public class ScanUtils {
 	 * Selects data points within given m/z range
 	 * 
 	 */
-	public static MzDataPoint[] selectDataPointsByMass(
-			MzDataPoint dataPoints[], Range mzRange) {
-		ArrayList<MzDataPoint> goodPoints = new ArrayList<MzDataPoint>();
-		for (MzDataPoint dp : dataPoints) {
+	public static DataPoint[] selectDataPointsByMass(
+			DataPoint dataPoints[], Range mzRange) {
+		ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+		for (DataPoint dp : dataPoints) {
 			if (mzRange.contains(dp.getMZ()))
 				goodPoints.add(dp);
 		}
-		return goodPoints.toArray(new MzDataPoint[0]);
+		return goodPoints.toArray(new DataPoint[0]);
 	}
 
 	/**
 	 * Selects data points with intensity >= given intensity
 	 * 
 	 */
-	public static MzDataPoint[] selectDataPointsOverIntensity(
-			MzDataPoint dataPoints[], double minIntensity) {
-		ArrayList<MzDataPoint> goodPoints = new ArrayList<MzDataPoint>();
-		for (MzDataPoint dp : dataPoints) {
+	public static DataPoint[] selectDataPointsOverIntensity(
+			DataPoint dataPoints[], double minIntensity) {
+		ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
+		for (DataPoint dp : dataPoints) {
 			if (dp.getIntensity() >= minIntensity)
 				goodPoints.add(dp);
 		}
-		return goodPoints.toArray(new MzDataPoint[0]);
+		return goodPoints.toArray(new DataPoint[0]);
 	}
 
 	/**
@@ -299,7 +299,7 @@ public class ScanUtils {
 
 	}
 
-	public static boolean isCentroided(MzDataPoint[] dataPoints) {
+	public static boolean isCentroided(DataPoint[] dataPoints) {
 
 		boolean centroid = false;
 		Range mzRange = null;
@@ -308,7 +308,7 @@ public class ScanUtils {
 
 		if (dataPoints.length > 0) {
 			mzRange = new Range(dataPoints[0].getMZ());
-			for (MzDataPoint dp : dataPoints) {
+			for (DataPoint dp : dataPoints) {
 				mzRange.extendRange(dp.getMZ());
 			}
 		} else {
@@ -317,7 +317,7 @@ public class ScanUtils {
 
 		double massStep = mzRange.getSize() / dataPoints.length;
 		double tempdiff, diff = 0, previousMass = dataPoints[0].getMZ();
-		for (MzDataPoint dp : dataPoints) {
+		for (DataPoint dp : dataPoints) {
 			tempdiff = Math.abs(dp.getMZ() - previousMass);
 			previousMass = dp.getMZ();
 			if (dp.getIntensity() == 0)
@@ -351,7 +351,7 @@ public class ScanUtils {
 
 			if (mzRange.contains(scan.getPrecursorMZ())) {
 
-				MzDataPoint basePeak = scan.getBasePeak();
+				DataPoint basePeak = scan.getBasePeak();
 
 				if (basePeak.getIntensity() > topBasePeak) {
 					bestFragmentScan = scan.getScanNumber();

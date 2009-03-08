@@ -22,18 +22,16 @@ package net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 public class TrianglePeakModel implements ChromatographicPeak {
 
-    // Model information
+	// Model information
 	private double rtRight = -1, rtLeft = -1;
 	private double alpha, beta;
 
@@ -45,7 +43,7 @@ public class TrianglePeakModel implements ChromatographicPeak {
 	private int representativeScan = -1, fragmentScan = -1;
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
-	private TreeMap<Integer, MzDataPoint> dataPointsMap;
+	private TreeMap<Integer, DataPoint> dataPointsMap;
 
 	public double getArea() {
 		return area;
@@ -67,7 +65,7 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		return fragmentScan;
 	}
 
-	public MzDataPoint getDataPoint(int scanNumber) {
+	public DataPoint getDataPoint(int scanNumber) {
 		return dataPointsMap.get(scanNumber);
 	}
 
@@ -98,8 +96,8 @@ public class TrianglePeakModel implements ChromatographicPeak {
 	public int[] getScanNumbers() {
 		return scanNumbers;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		return "Triangle peak " + PeakUtils.peakToString(this);
 	}
 
@@ -116,27 +114,26 @@ public class TrianglePeakModel implements ChromatographicPeak {
 				.getRawDataPointsIntensityRange();
 		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
-		dataPointsMap = new TreeMap<Integer, MzDataPoint>();
+		dataPointsMap = new TreeMap<Integer, DataPoint>();
 		status = originalDetectedShape.getPeakStatus();
 
 		rtRight = retentionTimes[retentionTimes.length - 1];
 		rtLeft = retentionTimes[0];
-		
+
 		alpha = (double) Math.atan(height / (rt - rtLeft));
 		beta = (double) Math.atan(height / (rtRight - rt));
 
 		// Calculate intensity of each point in the shape.
 		double shapeHeight, currentRT, previousRT, previousHeight;
-		MzPeak mzPeak;
 
 		previousHeight = calculateIntensity(retentionTimes[0]);
 		previousRT = retentionTimes[0];
 
 		for (int i = 0; i < retentionTimes.length; i++) {
-			
+
 			currentRT = retentionTimes[i];
 			shapeHeight = calculateIntensity(currentRT);
-			mzPeak = new SimpleMzPeak(new SimpleDataPoint(mz, shapeHeight));
+			SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
 			dataPointsMap.put(scanNumbers[i], mzPeak);
 
 			area += (currentRT - previousRT) * (shapeHeight + previousHeight)

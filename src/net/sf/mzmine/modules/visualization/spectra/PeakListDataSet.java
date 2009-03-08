@@ -26,7 +26,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 
@@ -59,7 +59,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
 
         Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
         for (ChromatographicPeak peak : peaks) {
-            MzDataPoint peakDataPoint = peak.getDataPoint(scanNumber);
+            DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
             if (peakDataPoint != null)
                 candidates.add(peak);
         }
@@ -86,7 +86,7 @@ public class PeakListDataSet extends AbstractXYDataset implements IntervalXYData
         mzValues = new double[numberIsotopes];
         intensityValues = new double[numberIsotopes];
 
-        MzDataPoint[] dataPoints = isotopePattern.getIsotopes();
+        DataPoint[] dataPoints = isotopePattern.getIsotopes();
         for (int i = 0; i < numberIsotopes; i++) {
             mzValues[i] = dataPoints[i].getMZ();
             intensityValues[i] = dataPoints[i].getIntensity();

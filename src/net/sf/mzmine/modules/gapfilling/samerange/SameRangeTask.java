@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.gapfilling.samerange;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -171,14 +171,14 @@ class SameRangeTask implements Task {
             Scan scan = column.getScan(scanNumber);
 
             // Find most intense m/z peak
-            MzDataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+            DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
             if (basePeak != null) {
                 if (basePeak.getIntensity() > 0)
                     dataPointFound = true;
                 newPeak.addDatapoint(scan.getScanNumber(), basePeak);
             } else {
-                MzDataPoint fakeDataPoint = new SimpleDataPoint(
+                DataPoint fakeDataPoint = new SimpleDataPoint(
                         mzRange.getAverage(), 0);
                 newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
             }

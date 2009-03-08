@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.gapfilling.peakfinder;
 import java.util.List;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -83,7 +83,7 @@ class Gap {
 			return;
 
 		// Find top m/z peak in our range
-		MzDataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+		DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
 		GapDataPoint currentDataPoint;
 		if (basePeak != null) {
@@ -132,7 +132,7 @@ class Gap {
 
 			double area = 0, height = 0, mz = 0, rt = 0;
 			int scanNumbers[] = new int[bestPeakDataPoints.size()];
-			MzDataPoint finalDataPoint[] = new MzDataPoint[bestPeakDataPoints
+			DataPoint finalDataPoint[] = new DataPoint[bestPeakDataPoints
 					.size()];
 			Range finalRTRange = null, finalMZRange = null, finalIntensityRange = null;
 			int representativeScan = 0;

@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import java.util.Arrays;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -44,7 +44,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
 	private double retentionTimes[];
 	private double basePeaks[];
-	private MzDataPoint dataPointMatrix[][];
+	private DataPoint dataPointMatrix[][];
 
 	private Range totalRTRange, totalMZRange;
 	private int loadedScans = 0;
@@ -60,7 +60,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
 		assert scanNumbers != null;
 
-		dataPointMatrix = new MzDataPoint[scanNumbers.length][];
+		dataPointMatrix = new DataPoint[scanNumbers.length][];
 		retentionTimes = new double[scanNumbers.length];
 		basePeaks = new double[scanNumbers.length];
 
@@ -77,7 +77,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 	 */
 	public void addScan(Scan scan, int index, int total) {
 
-		MzDataPoint scanBasePeak = scan.getBasePeak();
+		DataPoint scanBasePeak = scan.getBasePeak();
 		retentionTimes[index] = scan.getRetentionTime();
 		basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
 				.getIntensity());
@@ -193,11 +193,11 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
 	}
 
-	double getMaxIntensity(MzDataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
+	double getMaxIntensity(DataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
 
         double maxIntensity = 0;
 
-        MzDataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
+        DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
         int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
                 new DataPointSorter(true, true));
         if (startMZIndex < 0)

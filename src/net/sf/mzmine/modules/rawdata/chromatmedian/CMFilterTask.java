@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.rawdata.chromatmedian;
 import java.io.IOException;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -157,8 +157,8 @@ class CMFilterTask implements Task {
 
                     int[] dataPointIndices = new int[scanBuffer.length];
 
-                    MzDataPoint oldDataPoints[] = sc.getDataPoints();
-                    MzDataPoint newDataPoints[] = new MzDataPoint[oldDataPoints.length];
+                    DataPoint oldDataPoints[] = sc.getDataPoints();
+                    DataPoint newDataPoints[] = new DataPoint[oldDataPoints.length];
 
                     for (int datapointIndex = 0; datapointIndex < oldDataPoints.length; datapointIndex++) {
 
@@ -246,7 +246,7 @@ class CMFilterTask implements Task {
     private Object[] findClosestDatapointIntensity(double mzValue, Scan s,
             int startIndex) {
 
-        MzDataPoint dataPoints[] = s.getDataPoints();
+        DataPoint dataPoints[] = s.getDataPoints();
 
         Integer closestIndex = null;
 

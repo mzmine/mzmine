@@ -71,7 +71,7 @@ public interface ChromatographicPeak {
 	 * m/z and intensity does not need to match any actual raw data point. May
 	 * return null, if there is no data point in given scan.
 	 */
-    public MzDataPoint getDataPoint(int scanNumber);
+    public DataPoint getDataPoint(int scanNumber);
 
     /**
      * Returns the retention time range of all raw data points used to detect

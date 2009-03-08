@@ -22,10 +22,9 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.loca
 import java.util.ArrayList;
 import java.util.Vector;
 
-import net.sf.mzmine.data.MzDataPoint;
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 
 /**
@@ -33,68 +32,70 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassD
  */
 public class LocalMaxMassDetector implements MassDetector {
 
-    // Parameter value
-    private double noiseLevel;
+	// Parameter value
+	private double noiseLevel;
 
-    public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
-        noiseLevel = (Double) parameters.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
-    }
+	public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
+		noiseLevel = (Double) parameters
+				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+	}
 
-    public MzPeak[] getMassValues(Scan scan) {
+	public MzPeak[] getMassValues(Scan scan) {
 
-        // List of found mz peaks
-        ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
+		// List of found mz peaks
+		ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
 
-        MzDataPoint dataPoints[] = scan.getDataPoints();
+		DataPoint dataPoints[] = scan.getDataPoints();
 
-        // All data points of current m/z peak
-        Vector<MzDataPoint> currentMzPeakDataPoints = new Vector<MzDataPoint>();
+		// All data points of current m/z peak
+		Vector<DataPoint> currentMzPeakDataPoints = new Vector<DataPoint>();
 
-        // Top data point of current m/z peak
-        MzDataPoint currentMzPeakTop = null;
+		// Top data point of current m/z peak
+		DataPoint currentMzPeakTop = null;
 
-        // True if we haven't reached the current local maximum yet
-        boolean ascending = true;
+		// True if we haven't reached the current local maximum yet
+		boolean ascending = true;
 
-        // Iterate through all data points
-        for (int i = 0; i < dataPoints.length - 1; i++) {
+		// Iterate through all data points
+		for (int i = 0; i < dataPoints.length - 1; i++) {
 
-            boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i].getIntensity();
-            boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
-            boolean currentIsZero = dataPoints[i].getIntensity() == 0;
+			boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i]
+					.getIntensity();
+			boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
+			boolean currentIsZero = dataPoints[i].getIntensity() == 0;
 
-            // Ignore zero intensity regions
-            if (currentIsZero)
-                continue;
+			// Ignore zero intensity regions
+			if (currentIsZero)
+				continue;
 
-            // Add current (non-zero) data point to the current m/z peak
-            currentMzPeakDataPoints.add(dataPoints[i]);
+			// Add current (non-zero) data point to the current m/z peak
+			currentMzPeakDataPoints.add(dataPoints[i]);
 
-            // Check for local maximum
-            if (ascending && (!nextIsBigger)) {
-                currentMzPeakTop = dataPoints[i];
-                ascending = false;
-                continue;
-            }
+			// Check for local maximum
+			if (ascending && (!nextIsBigger)) {
+				currentMzPeakTop = dataPoints[i];
+				ascending = false;
+				continue;
+			}
 
-            // Check for the end of the peak
-            if ((!ascending) && (nextIsBigger || nextIsZero)) {
+			// Check for the end of the peak
+			if ((!ascending) && (nextIsBigger || nextIsZero)) {
 
-                // Add the m/z peak if it is above the noise level
-                if (currentMzPeakTop.getIntensity() > noiseLevel) {
-                    SimpleMzPeak newMzPeak = new SimpleMzPeak(currentMzPeakTop,
-                            currentMzPeakDataPoints.toArray(new MzDataPoint[0]));
-                    mzPeaks.add(newMzPeak);
-                }
+				// Add the m/z peak if it is above the noise level
+				if (currentMzPeakTop.getIntensity() > noiseLevel) {
+					MzPeak newMzPeak = new MzPeak(currentMzPeakTop,
+							currentMzPeakDataPoints.toArray(new DataPoint[0]));
+					mzPeaks.add(newMzPeak);
+				}
 
-                // Reset and start with new peak
-                ascending = true;
-                currentMzPeakDataPoints.clear();
+				// Reset and start with new peak
+				ascending = true;
+				currentMzPeakDataPoints.clear();
 
-            }
+			}
 
-        }
-        return mzPeaks.toArray(new SimpleMzPeak[0]);
-    }
+		}
+		return mzPeaks.toArray(new MzPeak[0]);
+	}
 
 }

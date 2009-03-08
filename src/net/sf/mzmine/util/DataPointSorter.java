@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 
 
 /**
@@ -31,7 +31,7 @@ import net.sf.mzmine.data.MzDataPoint;
  * constructor.
  * 
  */
-public class DataPointSorter implements Comparator<MzDataPoint> {
+public class DataPointSorter implements Comparator<DataPoint> {
 
 	private boolean sortByMZ, ascending;
 
@@ -48,7 +48,7 @@ public class DataPointSorter implements Comparator<MzDataPoint> {
 		this.ascending = ascending;
 	}
 
-	public int compare(MzDataPoint dp1, MzDataPoint dp2) {
+	public int compare(DataPoint dp1, DataPoint dp2) {
         
 		Double value1, value2;
 

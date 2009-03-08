@@ -33,7 +33,7 @@ import java.util.zip.ZipInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -529,7 +529,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		// <PEAK>
 		if (qName.equals(PeakListElementName.PEAK.getElementName())) {
 
-			MzDataPoint[] mzPeaks = new MzDataPoint[quantity];
+			DataPoint[] mzPeaks = new DataPoint[quantity];
 			Range peakRTRange = null, peakMZRange = null, peakIntensityRange = null;
 			for (int i = 0; i < quantity; i++) {
 				double rt = buildingArrayRawDataFiles.get(peakColumnID)
@@ -584,7 +584,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				for (int i = 0; i < quantity; i++) {
 					SimpleScan newScan = new SimpleScan(buildingRawDataFile,
 							scanNumbers[i], 1, retentionTimes[i], -1, 0f, null,
-							new MzDataPoint[0], false);
+							new DataPoint[0], false);
 					buildingRawDataFile.addScan(newScan);
 				}
 				scanFlag = false;

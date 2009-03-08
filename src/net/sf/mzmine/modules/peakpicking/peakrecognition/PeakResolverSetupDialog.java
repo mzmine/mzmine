@@ -39,7 +39,7 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.MzDataPoint;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -203,7 +203,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
             retentionTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
         double intensities[] = new double[scanNumbers.length];
         for (int i = 0; i < scanNumbers.length; i++) {
-        	MzDataPoint dp = previewPeak.getDataPoint(scanNumbers[i]);
+        	DataPoint dp = previewPeak.getDataPoint(scanNumbers[i]);
 			if (dp != null)
 				intensities[i] = dp.getIntensity();
             else

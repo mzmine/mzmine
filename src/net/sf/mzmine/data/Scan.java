@@ -63,7 +63,7 @@ public interface Scan extends MzDataTable {
      * 
      * @return Base peak
      */
-    public MzDataPoint getBasePeak();
+    public DataPoint getBasePeak();
 
     /**
      * Returns the sum of intensities of all data points.
