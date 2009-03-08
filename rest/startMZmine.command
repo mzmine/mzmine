@@ -24,7 +24,7 @@ JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
 LOGGING_CONFIG_FILE=conf/logging.properties
-JAVA_PARAMETERS="-Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Dapple.laf.useScreenMenuBar=true -Djava.util.logging.config.file=$LOGGING_CONFIG_FILE -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
+JAVA_PARAMETERS="-Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png $USE_64_BIT -Dapple.laf.useScreenMenuBar=true -Djava.util.logging.config.file=$LOGGING_CONFIG_FILE -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
 CLASS_PATH=MZmine2.jar
 MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
 
