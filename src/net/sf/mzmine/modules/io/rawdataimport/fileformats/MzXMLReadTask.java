@@ -43,7 +43,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ScanUtils;
 
-import org.jfree.xml.util.Base64;
+import org.apache.axis.encoding.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -63,10 +63,11 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	private int peaksCount = 0;
 	private String errorMessage;
 	private StringBuilder charBuffer;
+	private char charBufferArray[];
 	private Boolean compressFlag = false;
 	private Inflater decompresser;
 	private byte decompressedBuffer[];
-	
+
 	/*
 	 * This variables are used to set the number of fragments that one single
 	 * scan can have. The initial size of array is set to 10, but it depends of
@@ -92,6 +93,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 		originalFile = fileToOpen;
 		// 256 kilo-chars buffer
 		charBuffer = new StringBuilder(1 << 18);
+		charBufferArray = new char[1 << 18];
 		parentStack = new LinkedList<SimpleScan>();
 	}
 
@@ -214,7 +216,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 							.newInstance();
 					Duration dur = dataTypeFactory
 							.newDuration(retentionTimeStr);
-					retentionTime = dur.getTimeInMillis(currentDate) / 1000f;
+					retentionTime = dur.getTimeInMillis(currentDate) / 1000;
 				} catch (DatatypeConfigurationException e) {
 					throw new SAXException("Could not read retention time: "
 							+ e);
@@ -329,11 +331,13 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 		// <peak>
 		if (qName.equalsIgnoreCase("peaks")) {
 
-			//
-			DataPoint completeDataPoints[] = new DataPoint[peaksCount];
-			DataPoint tempDataPoints[] = new DataPoint[peaksCount];
-			byte[] peakBytes = Base64.decode(charBuffer.toString()
-					.toCharArray());
+			// extend the size of char[] buffer, if necessary
+			if (charBufferArray.length < charBuffer.length())
+				charBufferArray = new char[charBuffer.length() * 2];
+			charBuffer.getChars(0, charBuffer.length(), charBufferArray, 0);
+
+			byte[] peakBytes = Base64.decode(charBufferArray, 0, charBuffer
+					.length());
 
 			/*
 			 * This section provides support for decompression ZLIB compression
@@ -352,6 +356,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				decompresser.setInput(peakBytes);
 
 				try {
+
 					int decompressedLength = decompresser
 							.inflate(decompressedBuffer);
 					while (!decompresser.finished()) {
@@ -363,6 +368,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 								decompressedBuffer, decompressedLength,
 								decompressedBuffer.length - decompressedLength);
 					}
+
 					decompresser.reset();
 
 					peakBytes = decompressedBuffer;
@@ -376,6 +382,10 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			// make a data input stream
 			DataInputStream peakStream = new DataInputStream(
 					new ByteArrayInputStream(peakBytes));
+
+			DataPoint completeDataPoints[] = new DataPoint[peaksCount];
+			DataPoint tempDataPoints[] = new DataPoint[peaksCount];
+
 			try {
 				for (int i = 0; i < completeDataPoints.length; i++) {
 
@@ -402,29 +412,24 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 			int i, j;
 			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				double intensity = completeDataPoints[i].getIntensity();
-				double mz = completeDataPoints[i].getMZ();
 				if (completeDataPoints[i].getIntensity() > 0) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+					tempDataPoints[j] = completeDataPoints[i];
 					j++;
 					continue;
 				}
 				if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+					tempDataPoints[j] = completeDataPoints[i];
 					j++;
 					continue;
 				}
 				if ((i < completeDataPoints.length - 1)
 						&& (completeDataPoints[i + 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
+					tempDataPoints[j] = completeDataPoints[i];
 					j++;
 					continue;
 				}
 			}
 
-			// If we have no peaks with intensity of 0, we assume the scan is
-			// centroided
-			// if ((i == j) && (centroid)){
 			if (ScanUtils.isCentroided(completeDataPoints)) {
 				buildingScan.setCentroided(true);
 				buildingScan.setDataPoints(tempDataPoints);
@@ -433,10 +438,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 				DataPoint[] dataPoints = new DataPoint[j];
 
 				System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
-				/*
-				 * for (int i = 0; i < j; i++){ dataPoints[i]=tempDataPoints[i];
-				 * }
-				 */
+
 				buildingScan.setDataPoints(dataPoints);
 			}
 
