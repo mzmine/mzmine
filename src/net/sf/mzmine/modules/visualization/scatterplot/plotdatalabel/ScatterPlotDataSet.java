@@ -330,8 +330,7 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 				}
 				break;
 			case NAME:
-				searchName = searchObject.toString();
-				searchName = searchName.toUpperCase();
+				searchName = searchObject.toString().toUpperCase();
 
 				if (searchName.length() == 0) {
 					invalid = true;
@@ -362,12 +361,12 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 		if (items.size() > 0) {
 			colorVector.add(Color.ORANGE);
-			arraySeriesAndItemsConstruction = new Integer[2][0];
+			arraySeriesAndItemsConstruction = new Integer[2][];
 			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
 			arraySeriesAndItemsConstruction[1] = items.toArray(new Integer[0]);
 			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
 		} else {
-			arraySeriesAndItemsConstruction = new Integer[1][0];
+			arraySeriesAndItemsConstruction = new Integer[1][];
 			arraySeriesAndItemsConstruction[0] = arraySeriesAndItemsSelection[0];
 			arraySeriesAndItemsSelection = arraySeriesAndItemsConstruction;
 		}
@@ -385,8 +384,16 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 	public String getDisplayedCount(int fold) {
 		String display = "<HTML>" + peakList.getNumberOfRows()
 				+ " total peaks, " + +this.getItemCount(0) + " displayed, "
-				+ this.getPercentageOfItemsWithinFold(fold) + "% within "
-				+ fold + "-fold margin<BR>" + presentOnlyX + " peaks only in "
+				+ this.getPercentageOfItemsWithinFold(0, fold) + "% within "
+				+ fold + "-fold margin";
+
+		// If we have a selection, show it
+		if (getSeriesCount() > 1) {
+			display += " (" + this.getPercentageOfItemsWithinFold(1, fold)
+					+ "% of selected)";
+		}
+
+		display += "<BR>" + presentOnlyX + " peaks only in "
 				+ rawDataFiles[domainX].getName() + ", " + presentOnlyY
 				+ " peaks only in " + rawDataFiles[domainY].getName();
 		return display;
@@ -438,9 +445,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 	 * @param fold
 	 * @return
 	 */
-	public int getPercentageOfItemsWithinFold(int fold) {
+	public int getPercentageOfItemsWithinFold(int series, int fold) {
 
-		int totalItems = getItemCount(0);
+		int totalItems = getItemCount(series);
 		if (totalItems == 0)
 			return 100;
 
@@ -449,8 +456,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 		final double thresholdMax = fold, thresholdMin = (1.0 / fold);
 
 		for (int i = 0; i < totalItems; i++) {
-			x = getX(0, i).doubleValue();
-			y = getY(0, i).doubleValue();
+			x = getX(series, i).doubleValue();
+			y = getY(series, i).doubleValue();
 			if (y == 0)
 				continue;
 			ratio = x / y;

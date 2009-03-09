@@ -328,6 +328,8 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			setLabelItems(labeledItems.isSelected());
 			updateSelection();
 			plot.setSeriesColor(dataSet);
+			numOfDisplayedItems.setText(dataSet
+					.getDisplayedCount(selectedFold()));
 			return;
 
 		}
