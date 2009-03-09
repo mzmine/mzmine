@@ -303,7 +303,8 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			int y = comboY.getSelectedIndex();
 			dataSet.setDomainsIndexes(x, y);
 			updateSelection();
-			numOfDisplayedItems.setText(dataSet.getDisplayedCount());
+			numOfDisplayedItems.setText(dataSet
+					.getDisplayedCount(selectedFold()));
 			plot.setAxisNames(comboX.getSelectedItem().toString(), comboY
 					.getSelectedItem().toString());
 			plot.getXYPlot().datasetChanged(
@@ -314,6 +315,8 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		if (command.equals("FOLD")) {
 			plot.startDatasetCounter();
 			plot.drawDiagonalLines(dataSet);
+			numOfDisplayedItems.setText(dataSet
+					.getDisplayedCount(selectedFold()));
 			return;
 		}
 
@@ -455,7 +458,7 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 		enableButtons();
 		plot.startDatasetCounter();
 		plot.addDataset(dataSet);
-		numOfDisplayedItems.setText(dataSet.getDisplayedCount());
+		numOfDisplayedItems.setText(dataSet.getDisplayedCount(selectedFold()));
 
 	}
 
