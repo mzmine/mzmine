@@ -16,9 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.project.impl;
 
+import com.sun.java.ExampleFileFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,259 +27,333 @@ import java.io.ObjectInputStream;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
+
+import javax.swing.JFileChooser;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzMLReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
+import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTask;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskGroup;
+import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.UnclosableInputStream;
 
 /**
  * Project opening task using XStream library
  */
-public class ProjectOpeningTask implements Task {
+public class ProjectOpeningTask implements Task, TaskListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
+	private MZmineXStream xstream;
+	private File openFile;
+	private ZipInputStream zipStream;
+	private UnclosableInputStream unclosableZipStream;
+	private StoredProjectDescription description;
+	private int currentStage;
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	public ProjectOpeningTask(File openFile) {
+		this.openFile = openFile;
+		xstream = new MZmineXStream();
+	}
 
-    private MZmineXStream xstream;
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		String taskDescription = "Opening project " + openFile;
+		switch (currentStage) {
+			case 2:
+				return taskDescription + " (raw data points)";
+			case 3:
+				return taskDescription + " (peak list objects)";
+			default:
+				return taskDescription;
+		}
 
-    private File openFile;
-    private ZipInputStream zipStream;
-    private UnclosableInputStream unclosableZipStream;
-    private StoredProjectDescription description;
-    private File scanDataFiles[];
+	}
 
-    private MZmineProjectImpl loadedProject;
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		switch (currentStage) {
+			case 3:
+				if (description.getNumOfPeakListRows() == 0) {
+					return 0;
+				} else {
+					return (double) xstream.getNumOfDeserializedRows() / description.getNumOfPeakListRows();
+				}
+			case 4:
+				return 1f;
+			default:
+				return 0f;
+		}
+	}
 
-    private int currentStage;
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    private long readBytes;
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public ProjectOpeningTask(File openFile) {
-        this.openFile = openFile;
-        xstream = new MZmineXStream();
-    }
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        String taskDescription = "Opening project " + openFile;
-        switch (currentStage) {
-        case 3:
-            return taskDescription + " (raw data points)";
-        case 4:
-            return taskDescription + " (scan objects)";
-        case 5:
-            return taskDescription + " (peak list objects)";
-        default:
-            return taskDescription;
-        }
+		try {
 
-    }
+			logger.info("Started opening project " + openFile);
+			status = TaskStatus.PROCESSING;
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        switch (currentStage) {
-        case 3:
-            if (description.getTotalNumOfScanFileBytes() == 0)
-                return 0;
-            else
-                return (double) readBytes
-                        / description.getTotalNumOfScanFileBytes();
-        case 4:
-            if (description.getNumOfScans() == 0)
-                return 0;
-            else
-                return (double) xstream.getNumOfDeserializedScans()
-                        / description.getNumOfScans();
-        case 5:
-            if (description.getNumOfPeakListRows() == 0)
-                return 0;
-            else
-                return (double) xstream.getNumOfDeserializedRows()
-                        / description.getNumOfPeakListRows();
-        case 6:
-            return 1f;
-        default:
-            return 0f;
-        }
-    }
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+			// Get project ZIP stream
+			FileInputStream fileStream = new FileInputStream(openFile);
+			zipStream = new ZipInputStream(fileStream);
+			unclosableZipStream = new UnclosableInputStream(zipStream);
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+			//remove previous data
+			MZmineProject project = MZmineCore.getCurrentProject();
+			for (RawDataFile data : project.getDataFiles()) {
+				project.removeFile(data);
+			}
+			for (PeakList data : project.getPeakLists()) {
+				project.removePeakList(data);
+			}
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+			// Stage 1 - load project description
+			currentStage++;
+			description = loadProjectDescription();
 
-        try {
+			// Stage 2 - load configuration
+			currentStage++;
+			loadConfiguration();
 
-            logger.info("Started opening project " + openFile);
-            status = TaskStatus.PROCESSING;
+			// Stage 3 - load RawDataFile objects
+			currentStage++;
+			loadRawDataObjects();
 
-            // Get project ZIP stream
-            FileInputStream fileStream = new FileInputStream(openFile);
-            zipStream = new ZipInputStream(fileStream);
-            unclosableZipStream = new UnclosableInputStream(zipStream);
+			// Stage 4 - load PeakList objects
+			currentStage++;
+			loadPeakListObjects();
 
-            // Stage 1 - load project description
-            currentStage++;
-            description = loadProjectDescription();
 
-            // Stage 2 - load configuration
-            currentStage++;
-            loadConfiguration();
+			// Finish and close the project ZIP file
+			zipStream.close();
 
-            // Stage 3 - load scan data files
-            currentStage++;
-            scanDataFiles = new File[description.getNumOfScanFiles()];
-            for (int i = 0; i < scanDataFiles.length; i++) {
-                scanDataFiles[i] = File.createTempFile("mzmine", ".scans");
-                scanDataFiles[i].deleteOnExit();
-                loadScanDataFile(scanDataFiles[i]);
-            }
+			// Final check for cancel
+			if (status == TaskStatus.CANCELED) {
+				return;
+			}				
+			((MZmineProjectImpl)project).setProjectFile(openFile);
+			
+			logger.info("Finished opening project " + openFile);
+			status = TaskStatus.FINISHED;
 
-            // Stage 4 - load RawDataFile objects
-            currentStage++;
-            loadRawDataObjects();
+		} catch (Throwable e) {
+			status = TaskStatus.ERROR;
+			errorMessage = "Failed opening project: " + ExceptionUtils.exceptionToString(e);
+		}
+	}
 
-            // Stage 5 - load PeakList objects
-            currentStage++;
-            loadPeakListObjects();
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		logger.info("Canceling opening of project " + openFile);
+		status = TaskStatus.CANCELED;
+	}
 
-            // Stage 6 - load MZmineProjectImpl instance
-            currentStage++;
-            loadMZmineProject();
+	private StoredProjectDescription loadProjectDescription()
+			throws IOException, ClassNotFoundException {
+		zipStream.getNextEntry();
+		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
+		StoredProjectDescription projectDescription = (StoredProjectDescription) objectStream.readObject();
+		objectStream.close();
+		return projectDescription;
+	}
 
-            // Finish and close the project ZIP file
-            zipStream.close();
+	private void loadConfiguration() throws IOException {
+		zipStream.getNextEntry();
+		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+		int len;
+		byte buffer[] = new byte[1 << 10]; // 1 MB buffer
+		while ((len = zipStream.read(buffer)) > 0) {
+			if (status == TaskStatus.CANCELED) {
+				return;
+			}
+			fileStream.write(buffer, 0, len);
+		}
+		fileStream.close();
+		MZmineCore.loadConfiguration(tempConfigFile);
+		tempConfigFile.delete();
+	}
 
-            // Final check for cancel
-            if (status == TaskStatus.CANCELED)
-                return;
+	private void loadRawDataObjects() throws IOException,
+			ClassNotFoundException {
+		zipStream.getNextEntry();
+		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
+		File[] file = new File[description.getNumOfDataFiles()];
+		for (int i = 0; i < description.getNumOfDataFiles(); i++) {
+			file[i] = new File((String) objectStream.readObject());
+			if(!file[i].exists()){
+				this.getNewPath();
+			}
+		}
+		objectStream.close();
 
-            // Set the project
-            ProjectManagerImpl projectManager = ProjectManagerImpl.getInstance();
-            projectManager.setCurrentProject(loadedProject);
+		this.openRawData(file);
+	}
 
-            logger.info("Finished opening project " + openFile);
-            status = TaskStatus.FINISHED;
 
-        } catch (Throwable e) {
-            status = TaskStatus.ERROR;
-            errorMessage = "Failed opening project: "
-                    + ExceptionUtils.exceptionToString(e);
-        }
-    }
+	private void getNewPath(){
+		DesktopParameters parameters = (DesktopParameters) MZmineCore
+				.getDesktop().getParameterSet();
+		String lastPath = parameters.getLastOpenProjectPath();
+		JFileChooser chooser = new JFileChooser();
+		chooser.setDialogType(JFileChooser.DIRECTORIES_ONLY);
+		if (lastPath != null)
+			chooser.setCurrentDirectory(new File(lastPath));
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        logger.info("Canceling opening of project " + openFile);
-        status = TaskStatus.CANCELED;
-    }
+		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
+				.getMainFrame());
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			String selectedFile = chooser.getSelectedFile().getPath();
+			
+		}
+	}
 
-    private StoredProjectDescription loadProjectDescription()
-            throws IOException, ClassNotFoundException {
-        zipStream.getNextEntry();
-        ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-        StoredProjectDescription description = (StoredProjectDescription) objectStream.readObject();
-        objectStream.close();
-        return description;
-    }
+	private void openRawData(File[] file) {
+		Task openTasks[] = new Task[file.length];
 
-    private void loadConfiguration() throws IOException {
-        zipStream.getNextEntry();
-        File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
-        FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-        int len;
-        byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-        while ((len = zipStream.read(buffer)) > 0) {
-            if (status == TaskStatus.CANCELED)
-                return;
-            fileStream.write(buffer, 0, len);
-        }
-        fileStream.close();
-        MZmineCore.loadConfiguration(tempConfigFile);
-        tempConfigFile.delete();
-    }
+		for (int i = 0; i < file.length; i++) {
+			String extension = file[i].getName().substring(
+					file[i].getName().lastIndexOf(".") + 1).toLowerCase();
 
-    private void loadScanDataFile(File targetFile) throws IOException,
-            ClassNotFoundException {
-        zipStream.getNextEntry();
-        FileOutputStream fileStream = new FileOutputStream(targetFile);
-        int len;
-        byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-        while ((len = zipStream.read(buffer)) > 0) {
-            if (status == TaskStatus.CANCELED)
-                return;
-            fileStream.write(buffer, 0, len);
-            readBytes += len;
-        }
-        fileStream.close();
-    }
+			if (extension.endsWith("mzdata")) {
+				openTasks[i] = new MzDataReadTask(file[i]);
+			}
+			if (extension.endsWith("mzxml")) {
+				openTasks[i] = new MzXMLReadTask(file[i]);
+			}
+			if (extension.endsWith("mzml")) {
+				openTasks[i] = new MzMLReadTask(file[i]);
+			}
+			if (extension.endsWith("cdf")) {
+				openTasks[i] = new NetCDFReadTask(file[i]);
+			}
+			if (extension.endsWith("raw")) {
+				openTasks[i] = new XcaliburRawFileReadTask(file[i]);
+			}
+			if (openTasks[i] == null) {
+				logger.finest("Cannot determine file type of file " + file[i]);
+			}
+		}
+		TaskGroup newGroup = new TaskGroup(openTasks, this, null);
 
-    private void loadRawDataObjects() throws IOException,
-            ClassNotFoundException {
-        zipStream.getNextEntry();
-        ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
+		// start this group
+		newGroup.start();
+		while (newGroup.getStatus() != TaskGroupStatus.FINISHED) {
+			//System.out.println(newGroup.getStatus());
+		}
+	}
 
-        int scanDataFileIndex = 0;
-        for (int i = 0; i < description.getNumOfDataFiles(); i++) {
-            RawDataFileImpl rawDataFile = (RawDataFileImpl) objectStream.readObject();
-            File scanDataFile = scanDataFiles[scanDataFileIndex];
-            scanDataFileIndex++;
-            rawDataFile.setScanDataFile(scanDataFile);
-        }
-        objectStream.close();
-    }
+	private synchronized void loadPeakListObjects() throws IOException,
+			ClassNotFoundException {
+		zipStream.getNextEntry();
+		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
+		RawDataFile[] dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 
-    private void loadPeakListObjects() throws IOException,
-            ClassNotFoundException {
-        zipStream.getNextEntry();
-        ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
+		for (int i = 0; i < description.getNumOfPeakLists(); i++) {
 
-        for (int i = 0; i < description.getNumOfPeakLists(); i++) {
+			StoredPeakListDescription peakListDescription = (StoredPeakListDescription) objectStream.readObject();
+			// Create new peak list
+			SimplePeakList newPeakList = new SimplePeakList(
+					peakListDescription.getName(), this.getDataFilesByName(dataFiles, peakListDescription.getRawDataFiles()));
 
-            // Read the number of rows
-            int numOfRows = objectStream.readInt();
+			//Create rows
+			int numberRows = peakListDescription.getNumberRows();
 
-            // Read the PeakListRow instances
-            for (int row = 0; row < numOfRows; row++) {
-                objectStream.readObject();
-            }
+			for (int j = 0; j < numberRows; j++) {
+				int rowId = objectStream.readInt();
+				PeakListRow row = new SimplePeakListRow(rowId);
+				int numberPeaks = objectStream.readInt();
+				for (int e = 0; e < numberPeaks; e++) {
+					StoredChromatographicPeakDescription storedPeak = (StoredChromatographicPeakDescription) objectStream.readObject();
+					String dataFileName = storedPeak.getDataFileName();
+					RawDataFile rawData = this.getDataFileByName(dataFiles, dataFileName);
+					if (rawData != null) {
+						row.addPeak(rawData, storedPeak.getPeak());
+					}
+				}
+				newPeakList.addRow(row);
+			}
+			MZmineCore.getCurrentProject().addPeakList(newPeakList);
+		}
+		objectStream.close();
+	}
 
-            // Read the actual PeakList object
-            objectStream.readObject();
-        }
-        objectStream.close();
-    }
+	private RawDataFile[] getDataFilesByName(RawDataFile[] dataFiles, String[] rawDataNames) {
+		RawDataFile[] realDataFiles = new RawDataFile[rawDataNames.length];
+		int cont = 0;
+		for (String rawDataName : rawDataNames) {
+			for (RawDataFile file : dataFiles) {
+				if (rawDataName.compareTo(file.getName()) == 0) {
+					realDataFiles[cont++] = file;
+					break;
+				}
+			}
+		}
+		return realDataFiles;
+	}
 
-    private void loadMZmineProject() throws IOException, ClassNotFoundException {
-        zipStream.getNextEntry();
-        ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-        loadedProject = (MZmineProjectImpl) objectStream.readObject();
-        objectStream.close();
-        // we need to update the project's location
-        loadedProject.setProjectFile(openFile);
-    }
+	private RawDataFile getDataFileByName(RawDataFile[] dataFiles, String rawDataNames) {
 
+		for (RawDataFile file : dataFiles) {
+			if (rawDataNames.compareTo(file.getName()) == 0) {
+				return file;
+			}
+		}
+
+		return null;
+	}
+
+	public void taskStarted(Task task) {
+		Task openTask = task;
+		logger.info("Started action of " + openTask.getTaskDescription());
+	}
+
+	public void taskFinished(Task task) {
+		if (task.getStatus() == Task.TaskStatus.FINISHED) {
+			logger.info("Finished action of " + task.getTaskDescription());
+		}
+
+		if (task.getStatus() == Task.TaskStatus.ERROR) {
+			String msg = "Error while trying to " + task.getTaskDescription() + ": " + task.getErrorMessage();
+			logger.severe(msg);
+		}
+	}
 }

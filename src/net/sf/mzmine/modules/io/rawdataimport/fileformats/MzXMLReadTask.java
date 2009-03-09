@@ -138,7 +138,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newRawDataFile = MZmineCore.createNewFile(originalFile.getName());
+			newRawDataFile = MZmineCore.createNewFile(originalFile.getPath());
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);

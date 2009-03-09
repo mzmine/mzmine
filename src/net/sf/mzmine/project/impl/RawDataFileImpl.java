@@ -49,6 +49,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 			.getName());
 
 	private String fileName; // this is just a name of this object
+	private String filePath;
 
 	private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
 			dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
@@ -63,8 +64,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 	private Hashtable<Integer, Scan> scans;
 
 	public RawDataFileImpl(String fileName) throws IOException {
+		this.filePath = fileName;
 
-		this.fileName = fileName;
+		int separationLen = 0;
+		if((separationLen = this.filePath.lastIndexOf("/")) < 0){
+			separationLen = this.filePath.lastIndexOf("\\");
+		}
+		this.fileName = this.filePath.substring(separationLen + 1);
+
 		// create temporary file for scan data
 		File tmpFile = File.createTempFile("mzmine", ".scans");
 		tmpFile.deleteOnExit();
@@ -92,6 +99,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 	 */
 	public String getName() {
 		return this.fileName;
+	}
+	
+	/**
+	 * @see net.sf.mzmine.data.RawDataFile#getFilePath()
+	 */
+	public String getPath() {
+		return this.filePath;
 	}
 
 	/**
@@ -571,5 +585,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 			return 1;
 		return comparedScanFile.compareTo(scanFile);
 	}
+	
 
 }

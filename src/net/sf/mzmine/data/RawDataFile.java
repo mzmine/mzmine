@@ -24,6 +24,8 @@ import net.sf.mzmine.util.Range;
 public interface RawDataFile {
 
     public String getName();
+
+	public String getPath();
     
     public int getNumOfScans();
 
