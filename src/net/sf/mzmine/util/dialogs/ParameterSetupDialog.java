@@ -26,6 +26,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -303,7 +304,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				multipleValues = p.getPossibleValues();
 			if (multipleValues == null)
 				multipleValues = new Object[0];
-				
+
 			for (Object genericObject : multipleValues) {
 
 				ecb = new ExtendedCheckBox<Object>(genericObject, false);
@@ -327,7 +328,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 
 		case FILE_NAME:
-			JTextField txtFilename = new JTextField();
+			final JTextField txtFilename = new JTextField();
 			txtFilename.setColumns(TEXTFIELD_COLUMNS);
 			txtFilename.setFont(smallFont);
 			JButton btnFileBrowser = new JButton("...");
@@ -336,6 +337,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 				public void actionPerformed(ActionEvent e) {
 					JFileChooser fileChooser = new JFileChooser();
+					File currentFile = new File(txtFilename.getText());
+					File currentDir = currentFile.getParentFile();
+					if (currentDir.exists())
+						fileChooser.setCurrentDirectory(currentDir);
 					fileChooser.setMultiSelectionEnabled(false);
 					int returnVal = fileChooser.showDialog(MZmineCore
 							.getDesktop().getMainFrame(), "Select");
