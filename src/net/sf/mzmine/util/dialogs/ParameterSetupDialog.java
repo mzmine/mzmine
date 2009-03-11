@@ -291,10 +291,11 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 
 		case MULTIPLE_SELECTION:
-			JPanel peakCheckBoxesPanel = new JPanel();
-			peakCheckBoxesPanel.setBackground(Color.white);
-			peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
+			JPanel checkBoxesPanel = new JPanel();
+			checkBoxesPanel.setBackground(Color.white);
+			checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
 					BoxLayout.Y_AXIS));
+			
 
 			int vertSize = 0,
 			numCheckBoxes = 0;
@@ -309,18 +310,18 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 				ecb = new ExtendedCheckBox<Object>(genericObject, false);
 				ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
-				peakCheckBoxesPanel.add(ecb);
+				checkBoxesPanel.add(ecb);
 
 				if (numCheckBoxes < 7)
-					vertSize += (int) ecb.getPreferredSize().getHeight();
+					vertSize += (int) ecb.getPreferredSize().getHeight() + 2;
 
 				numCheckBoxes++;
 			}
 
 			if (numCheckBoxes < 3)
-				vertSize += 10;
+				vertSize += 30;
 
-			JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
+			JScrollPane peakPanelScroll = new JScrollPane(checkBoxesPanel,
 					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 			peakPanelScroll.setPreferredSize(new Dimension(0, vertSize));
