@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.twod;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -44,7 +45,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
 	private double retentionTimes[];
 	private double basePeaks[];
-	private DataPoint dataPointMatrix[][];
+	private HashMap<Integer, Scan> dataPointMatrix;
 
 	private Range totalRTRange, totalMZRange;
 	private int loadedScans = 0;
@@ -60,7 +61,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
 		assert scanNumbers != null;
 
-		dataPointMatrix = new DataPoint[scanNumbers.length][];
+		dataPointMatrix = new HashMap<Integer, Scan>(scanNumbers.length);
 		retentionTimes = new double[scanNumbers.length];
 		basePeaks = new double[scanNumbers.length];
 
@@ -81,7 +82,7 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		retentionTimes[index] = scan.getRetentionTime();
 		basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
 				.getIntensity());
-		dataPointMatrix[index] = scan.getDataPointsByMass(totalMZRange);
+		dataPointMatrix.put(index, scan);
 		loadedScans++;
 
 		// redraw when we add last value
@@ -158,8 +159,8 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 				return 0;
 
 			if (startScanIndex == searchRetentionTimes.length - 1)
-				return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-						mzRange, plotMode);
+				return getMaxIntensity(dataPointMatrix.get(startScanIndex - 1)
+						.getDataPoints(), mzRange, plotMode);
 
 			// find which scan point is closer
 			double diffNext = searchRetentionTimes[startScanIndex]
@@ -168,11 +169,11 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 					- searchRetentionTimes[startScanIndex - 1];
 
 			if (diffPrev < diffNext)
-				return getMaxIntensity(dataPointMatrix[startScanIndex - 1],
-						mzRange, plotMode);
+				return getMaxIntensity(dataPointMatrix.get(startScanIndex - 1)
+						.getDataPoints(), mzRange, plotMode);
 			else
-				return getMaxIntensity(dataPointMatrix[startScanIndex],
-						mzRange, plotMode);
+				return getMaxIntensity(dataPointMatrix.get(startScanIndex)
+						.getDataPoints(), mzRange, plotMode);
 		}
 
 		for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange
@@ -182,8 +183,9 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 			if (basePeaks[scanIndex] < maxIntensity)
 				continue;
 
-			double scanMax = getMaxIntensity(dataPointMatrix[scanIndex],
-					mzRange, plotMode);
+			double scanMax = getMaxIntensity(dataPointMatrix.get(scanIndex)
+					.getDataPoints(), mzRange, plotMode);
+			;
 			if (scanMax > maxIntensity)
 				maxIntensity = scanMax;
 
@@ -193,48 +195,50 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 
 	}
 
-	double getMaxIntensity(DataPoint dataPoints[], Range mzRange, PlotMode plotMode) {
+	double getMaxIntensity(DataPoint dataPoints[], Range mzRange,
+			PlotMode plotMode) {
 
-        double maxIntensity = 0;
+		double maxIntensity = 0;
 
-        DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
-        int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
-                new DataPointSorter(true, true));
-        if (startMZIndex < 0)
-            startMZIndex = (startMZIndex * -1) - 1;
+		DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
+		int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
+				new DataPointSorter(true, true));
+		if (startMZIndex < 0)
+			startMZIndex = (startMZIndex * -1) - 1;
 
-        if (startMZIndex >= dataPoints.length)
-            return 0;
+		if (startMZIndex >= dataPoints.length)
+			return 0;
 
-        if (dataPoints[startMZIndex].getMZ() > mzRange.getMax()) {
-        	if (plotMode != PlotMode.CENTROID) {
-	            if (startMZIndex == 0)
-	                return 0;
-	            if (startMZIndex == dataPoints.length - 1)
-	                return dataPoints[startMZIndex - 1].getIntensity();
-	
-	            // find which data point is closer
-	            double diffNext = dataPoints[startMZIndex].getMZ()
-	                    - mzRange.getMax();
-	            double diffPrev = mzRange.getMin()
-	                    - dataPoints[startMZIndex - 1].getMZ();
-	
-	            if (diffPrev < diffNext)
-	                return dataPoints[startMZIndex - 1].getIntensity();
-	            else
-	                return dataPoints[startMZIndex].getIntensity();
-        	} else {
-        		return 0;
-        	}
+		if (dataPoints[startMZIndex].getMZ() > mzRange.getMax()) {
+			if (plotMode != PlotMode.CENTROID) {
+				if (startMZIndex == 0)
+					return 0;
+				if (startMZIndex == dataPoints.length - 1)
+					return dataPoints[startMZIndex - 1].getIntensity();
 
-        }
+				// find which data point is closer
+				double diffNext = dataPoints[startMZIndex].getMZ()
+						- mzRange.getMax();
+				double diffPrev = mzRange.getMin()
+						- dataPoints[startMZIndex - 1].getMZ();
 
-        for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex].getMZ() <= mzRange.getMax())); mzIndex++) {
-            if (dataPoints[mzIndex].getIntensity() > maxIntensity)
-                maxIntensity = dataPoints[mzIndex].getIntensity();
-        }
+				if (diffPrev < diffNext)
+					return dataPoints[startMZIndex - 1].getIntensity();
+				else
+					return dataPoints[startMZIndex].getIntensity();
+			} else {
+				return 0;
+			}
 
-        return maxIntensity;
+		}
 
-    }
+		for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex]
+				.getMZ() <= mzRange.getMax())); mzIndex++) {
+			if (dataPoints[mzIndex].getIntensity() > maxIntensity)
+				maxIntensity = dataPoints[mzIndex].getIntensity();
+		}
+
+		return maxIntensity;
+
+	}
 }

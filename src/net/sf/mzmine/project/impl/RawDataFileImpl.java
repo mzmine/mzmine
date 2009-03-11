@@ -67,7 +67,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 		this.filePath = fileName;
 
 		int separationLen = 0;
-		if((separationLen = this.filePath.lastIndexOf("/")) < 0){
+		if ((separationLen = this.filePath.lastIndexOf("/")) < 0) {
 			separationLen = this.filePath.lastIndexOf("\\");
 		}
 		this.fileName = this.filePath.substring(separationLen + 1);
@@ -100,7 +100,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 	public String getName() {
 		return this.fileName;
 	}
-	
+
 	/**
 	 * @see net.sf.mzmine.data.RawDataFile#getFilePath()
 	 */
@@ -447,7 +447,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 		int scanNumber = newScan.getScanNumber();
 
 		// Store the scan data
-		StorableScan storedScan = new StorableScan(newScan, this);
+		CachedStorableScan storedScan = new CachedStorableScan(newScan, this);
 		scans.put(scanNumber, storedScan);
 
 	}
@@ -585,6 +585,5 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 			return 1;
 		return comparedScanFile.compareTo(scanFile);
 	}
-	
 
 }
