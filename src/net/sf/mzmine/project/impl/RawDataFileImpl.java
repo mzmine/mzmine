@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.NameChangeable;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -42,8 +41,7 @@ import net.sf.mzmine.util.Range;
  * RawDataFile implementation
  * 
  */
-public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
-		NameChangeable {
+public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	private transient Logger logger = Logger.getLogger(this.getClass()
 			.getName());

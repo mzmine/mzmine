@@ -27,30 +27,31 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
-import net.sf.mzmine.data.NameChangeable;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 
 class ProjectTreeEditor extends DefaultCellEditor {
 
-    private JTree projectTree;
-    private Object editedObject;
+	private JTree projectTree;
+	private Object editedObject;
 
-    ProjectTreeEditor(JTree projectTree) {
-        super(new JTextField());
-        this.projectTree = projectTree;
-        this.getComponent().setFont(ProjectTreeRenderer.smallerFont);
-    }
+	ProjectTreeEditor(JTree projectTree) {
+		super(new JTextField());
+		this.projectTree = projectTree;
+		this.getComponent().setFont(ProjectTreeRenderer.smallerFont);
+	}
 
-    public boolean isCellEditable(EventObject e) {
-        if (e instanceof MouseEvent) {
-            MouseEvent me = (MouseEvent) e;
-            TreePath clickedPath = projectTree.getPathForLocation(me.getX(),
-                    me.getY());
-            if (clickedPath == null)
-                return false;
-            editedObject = clickedPath.getLastPathComponent();
-            return (editedObject instanceof NameChangeable);
-        }
-        return true;
-    }
+	public boolean isCellEditable(EventObject e) {
+		if (e instanceof MouseEvent) {
+			MouseEvent me = (MouseEvent) e;
+			TreePath clickedPath = projectTree.getPathForLocation(me.getX(), me
+					.getY());
+			if (clickedPath == null)
+				return false;
+			editedObject = clickedPath.getLastPathComponent();
+			return ((editedObject instanceof RawDataFile) || (editedObject instanceof PeakList));
+		}
+		return true;
+	}
 
 }

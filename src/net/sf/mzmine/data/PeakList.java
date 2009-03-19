@@ -31,6 +31,11 @@ public interface PeakList {
      * @return Short descriptive name for the peak list
      */
     public String getName();
+    
+    /**
+	 * Change the name of this peak list
+	 */
+	public void setName(String name);
 
     /**
      * Returns number of raw data files participating in the peak list
