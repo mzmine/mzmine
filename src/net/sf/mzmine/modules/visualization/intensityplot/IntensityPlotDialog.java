@@ -48,7 +48,9 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
+import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -192,7 +194,8 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
         peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
         minimumHorizSize = 0;
         PeakListRow rows[] = alignedPeakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorterByMZ());
+        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
+				SortingDirection.Ascending));
         for (int i = 0; i < rows.length; i++) {
             ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
                     rows[i], selectedRows.contains(rows[i]));

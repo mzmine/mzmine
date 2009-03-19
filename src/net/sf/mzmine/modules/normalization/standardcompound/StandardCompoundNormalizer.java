@@ -38,7 +38,9 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskGroup;
 import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.util.PeakListRowSorterByMZ;
+import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
+import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -110,7 +112,8 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
         for (PeakList pl : selectedPeakLists) {
 
             PeakListRow rows[] = pl.getRows();
-            Arrays.sort(rows, new PeakListRowSorterByMZ());
+            Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
+					SortingDirection.Ascending));
             parameters.setMultipleSelection(
                     StandardCompoundNormalizerParameters.standardCompounds,
                     rows);
