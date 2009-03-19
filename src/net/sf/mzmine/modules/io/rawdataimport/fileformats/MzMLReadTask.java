@@ -155,7 +155,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 		try {
 
-			newMZmineFile = MZmineCore.createNewFile(originalFile.getPath());
+			newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(originalFile, this);

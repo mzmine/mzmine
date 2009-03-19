@@ -109,7 +109,7 @@ public class NetCDFReadTask implements Task {
 
         try {
             // Create new RawDataFile instance
-            newMZmineFile = MZmineCore.createNewFile(originalFile.getPath());
+            newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
             // Open file
             this.startReading();

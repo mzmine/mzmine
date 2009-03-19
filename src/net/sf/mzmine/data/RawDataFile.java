@@ -32,9 +32,7 @@ public interface RawDataFile {
 	/**
 	 * Change the name of this data file
 	 */
-	public void setName(String name);
-
-	public String getPath();
+	public void setName(String name);	
 
 	public int getNumOfScans();
 

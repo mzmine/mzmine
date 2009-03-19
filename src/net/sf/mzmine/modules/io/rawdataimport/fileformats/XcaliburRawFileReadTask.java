@@ -138,7 +138,7 @@ public class XcaliburRawFileReadTask implements Task {
         }
 
         try {
-            newMZmineFile = MZmineCore.createNewFile(originalFile.getPath());
+            newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
             logger.finest("Calling native function openFile "
                     + originalFile.getPath());
             int result = openFile(originalFile.getPath());
