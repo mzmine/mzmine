@@ -214,7 +214,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
         // <spectrum>
         if (qName.equalsIgnoreCase("spectrum")) {
-            retentionTime = 0f;
+            retentionTime = 0;
             parentScan = -1;
             precursorMz = 0f;
             precision = null;
@@ -279,7 +279,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
                     String value = attrs.getValue("value");
                     if ((unitAccession != null) && (value != null)) {
                         if (unitAccession.equals("MS:1000038"))
-                            retentionTime = Double.parseDouble(value) * 60f;
+                            retentionTime = Double.parseDouble(value) * 60d;
                         else
                             retentionTime = Double.parseDouble(value);
                     } else

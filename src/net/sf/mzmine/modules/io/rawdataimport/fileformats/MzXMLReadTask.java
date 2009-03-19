@@ -216,7 +216,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 							.newInstance();
 					Duration dur = dataTypeFactory
 							.newDuration(retentionTimeStr);
-					retentionTime = dur.getTimeInMillis(currentDate) / 1000;
+					retentionTime = dur.getTimeInMillis(currentDate) / 1000d;
 				} catch (DatatypeConfigurationException e) {
 					throw new SAXException("Could not read retention time: "
 							+ e);
