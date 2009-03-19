@@ -115,7 +115,7 @@ class ResampleFilterTask implements Task {
 		try {
 
 			// Create new temporary file
-			String newName = dataFile.getName() + " " + suffix + "_" + binSize;
+			String newName = dataFile.getName() + " " + suffix;
 			RawDataFileWriter rawDataFileWriter = MZmineCore
 					.createNewFile(newName);
 
@@ -129,32 +129,36 @@ class ResampleFilterTask implements Task {
 				// Check if we are not canceled
 				if (status == TaskStatus.CANCELED)
 					return;
-				
+
 				// Get scan
 				Scan oldScan = dataFile.getScan(scanNumbers[scanIndex]);
 				Range mzRange = oldScan.getMZRange();
-				int numberOfBins = (int) Math.round((mzRange.getMax()-mzRange.getMin())/binSize);
+				int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange
+						.getMin())
+						/ binSize);
 				if (numberOfBins == 0) {
 					numberOfBins++;
 				}
-				
-				//ScanUtils.binValues needs arrays
-				double[] x = new double[oldScan.getNumberOfDataPoints()];				
-				double[] y = new double[oldScan.getNumberOfDataPoints()];
-				for (int i = 0; i < oldScan.getNumberOfDataPoints(); i++) {
-					DataPoint p = oldScan.getDataPoints()[i];
-					x[i]=p.getMZ();
-					y[i]=p.getIntensity();
+
+				// ScanUtils.binValues needs arrays
+				DataPoint dps[] = oldScan.getDataPoints();
+				double[] x = new double[dps.length];
+				double[] y = new double[dps.length];
+				for (int i = 0; i < dps.length; i++) {
+					x[i] = dps[i].getMZ();
+					y[i] = dps[i].getIntensity();
 				}
 				// the new intensity values
-				double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins, !oldScan.isCentroided(), ScanUtils.BinningType.AVG);
+				double[] newY = ScanUtils.binValues(x, y, mzRange,
+						numberOfBins, !oldScan.isCentroided(),
+						ScanUtils.BinningType.AVG);
 				SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
-				
+
 				// set the new m/z value in the middle of the bin
-				double newX = mzRange.getMin()+ binSize/2.0;
+				double newX = mzRange.getMin() + binSize / 2.0;
 				// creates new DataPoints
 				for (int i = 0; i < newY.length; i++) {
-					newPoints[i] = new SimpleDataPoint(newX,newY[i]);
+					newPoints[i] = new SimpleDataPoint(newX, newY[i]);
 					newX += binSize;
 				}
 
@@ -163,7 +167,7 @@ class ResampleFilterTask implements Task {
 				newScan.setDataPoints(newPoints);
 
 				// Write the updated scan to new file
-				rawDataFileWriter.addScan(newScan);				
+				rawDataFileWriter.addScan(newScan);
 				filteredScans++;
 			}
 

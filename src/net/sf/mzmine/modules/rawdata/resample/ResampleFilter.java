@@ -151,8 +151,8 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
 	 */
 	public void taskStarted(Task task) {
-		ResampleFilterTask cropTask = (ResampleFilterTask) task;
-		logger.info("Running resample filter on " + cropTask.getDataFile());
+		ResampleFilterTask rsplTask = (ResampleFilterTask) task;
+		logger.info("Running resample filter on " + rsplTask.getDataFile());
 	}
 
 	/**
@@ -163,9 +163,8 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 		ResampleFilterTask cropTask = (ResampleFilterTask) task;
 
 		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger
-					.info("Finished m/z resample filter on "
-							+ cropTask.getDataFile());
+			logger.info("Finished m/z resample filter on "
+					+ cropTask.getDataFile());
 		}
 
 		if (task.getStatus() == Task.TaskStatus.ERROR) {

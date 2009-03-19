@@ -27,26 +27,23 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class ResampleFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Filename suffix",
-            "Suffix to be added to filename", null, "resampled", null);
+	public static final Parameter suffix = new SimpleParameter(
+			ParameterType.STRING, "Filename suffix",
+			"Suffix to be added to filename", null, "resampled", null);
 
-    public static final Parameter binSize = new SimpleParameter(
-            ParameterType.DOUBLE, "m/z bin length",
-            "The length of on m/z bin", "m/z", new Double(1.0),
-            new Double(0.00001), new Double(10.0), MZmineCore.getMZFormat());
+	public static final Parameter binSize = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z bin length", "The length of on m/z bin",
+			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
+			MZmineCore.getMZFormat());
 
+	public static final Parameter autoRemove = new SimpleParameter(
+			ParameterType.BOOLEAN,
+			"Remove source file",
+			"If checked, original file will be removed and only resampled version remains",
+			new Boolean(true));
 
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove source file",
-            "If checked, original file will be removed and only resampled version remains",
-            new Boolean(true));
-
-    public ResampleFilterParameters() {
-        super(
-                new Parameter[] { suffix, binSize,
-                        autoRemove });
-    }
+	public ResampleFilterParameters() {
+		super(new Parameter[] { suffix, binSize, autoRemove });
+	}
 
 }
