@@ -340,7 +340,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 					JFileChooser fileChooser = new JFileChooser();
 					File currentFile = new File(txtFilename.getText());
 					File currentDir = currentFile.getParentFile();
-					if (currentDir.exists())
+					if (currentDir != null && currentDir.exists())
 						fileChooser.setCurrentDirectory(currentDir);
 					fileChooser.setMultiSelectionEnabled(false);
 					int returnVal = fileChooser.showDialog(MZmineCore

@@ -114,7 +114,7 @@ public class ScanUtils {
 	 * Binning modes
 	 */
 	public static enum BinningType {
-		SUM, MAX, MIN
+		SUM, MAX, MIN, AVG
 	};
 
 	/**
@@ -136,7 +136,7 @@ public class ScanUtils {
 	 *            using other bins
 	 * @param binningType
 	 *            Type of binning (sum of all 'y' within a bin, max of 'y', min
-	 *            of 'y')
+	 *            of 'y', avg of 'y')
 	 * @return Values for each bin
 	 */
 	public static double[] binValues(double[] x, double[] y, Range binRange,
@@ -149,6 +149,9 @@ public class ScanUtils {
 		double beforeY = 0.0f;
 		double afterX = Double.MAX_VALUE;
 		double afterY = 0.0f;
+		
+		double[] noOfEntries = null;
+		
 
 		// Binnings
 		for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
@@ -197,6 +200,19 @@ public class ScanUtils {
 					}
 				}
 				break;
+			case AVG:
+				if (noOfEntries == null) {
+					noOfEntries = new double[binValues.length];
+				}
+				if (binValues[binIndex] == null) {
+					noOfEntries[binIndex] = 1;
+					binValues[binIndex] = y[valueIndex];
+				} else {
+					noOfEntries[binIndex] ++;
+					binValues[binIndex] += y[valueIndex];
+				}
+			break;
+				
 			case SUM:
 			default:
 				if (binValues[binIndex] == null) {
@@ -210,6 +226,15 @@ public class ScanUtils {
 
 		}
 
+		// calculate the AVG
+		if (binningType.equals(BinningType.AVG)) {
+			for (int binIndex = 0; binIndex < binValues.length; binIndex++) {
+				if (binValues[binIndex] != null) {
+					binValues[binIndex] /= noOfEntries[binIndex];
+				}
+			}
+		}
+		
 		// Interpolation
 		if (interpolate) {
 

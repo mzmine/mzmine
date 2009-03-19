@@ -111,7 +111,7 @@ public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
     private boolean setValuesToPlot() {
 
-        double thickness = Double.parseDouble(fieldThickness.getText());
+        double thickness = Double.parseDouble(fieldThickness.getValue().toString());
 
         if (thickness >= MIN_THICKNESS) {
             plot.setBarThickness(thickness);
