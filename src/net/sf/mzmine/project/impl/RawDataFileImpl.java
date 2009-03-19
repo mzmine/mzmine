@@ -79,7 +79,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 
 		// prepare new Hashtable for scans
 		scans = new Hashtable<Integer, Scan>();
-		scanNumbersCache = new Hashtable<Integer, int[]>();
 
 	}
 
@@ -297,8 +296,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 	public int[] getScanNumbers(int msLevel) {
 		if (scanNumbersCache.containsKey(msLevel))
 			return scanNumbersCache.get(msLevel);
-		int scanNumbers[] = getScanNumbers(msLevel, new Range(Double.MIN_VALUE,
-				Double.MAX_VALUE));
+		int scanNumbers[] = getScanNumbers(msLevel, new Range(
+				Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
 		scanNumbersCache.put(msLevel, scanNumbers);
 		return scanNumbers;
 	}
@@ -473,6 +472,11 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 		// instance of MZmine exits.
 		scanDataFile.getChannel().lock(0L, Long.MAX_VALUE, true);
 
+		// Prepare the cache for scan numbers. This cache must not be used until
+		// the data file is finished, that's why we create it here, after
+		// calling finishWriting()
+		scanNumbersCache = new Hashtable<Integer, int[]>();
+
 		return this;
 
 	}
@@ -550,14 +554,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter,
 	}
 
 	public int getNumOfScans(int msLevel) {
-		int numOfScans = 0;
-		Enumeration<Scan> scansEnum = scans.elements();
-		while (scansEnum.hasMoreElements()) {
-			Scan scan = scansEnum.nextElement();
-			if (scan.getMSLevel() == msLevel)
-				numOfScans++;
-		}
-		return numOfScans;
+		return getScanNumbers(msLevel).length;
 	}
 
 	public void close() {
