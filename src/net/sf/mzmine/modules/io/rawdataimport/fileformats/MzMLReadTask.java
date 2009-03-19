@@ -278,7 +278,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
                     String unitAccession = attrs.getValue("unitAccession");
                     String value = attrs.getValue("value");
                     if ((unitAccession != null) && (value != null)) {
-                        if (unitAccession.equals("MS:1000038"))
+                        if (unitAccession.equals("MS:1000038")
+								|| unitAccession.equals("UO:0000031"))
                             retentionTime = Double.parseDouble(value) * 60d;
                         else
                             retentionTime = Double.parseDouble(value);
@@ -312,7 +313,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
                 }
                 if (accession.equals("MS:1000574")) {
                     compressFlag = true;
-                    logger.finest("Activate compressed flag ");
                 }
             }
         }
