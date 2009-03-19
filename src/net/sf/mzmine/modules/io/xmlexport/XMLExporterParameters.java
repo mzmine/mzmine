@@ -16,29 +16,35 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.io.xmlexport;
 
+import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public class XMLExporterParameters extends SimpleParameterSet{
-	
-    public static final Parameter filename = new SimpleParameter(
-            ParameterType.FILE_NAME,
-            "Filename",
-            "Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
+public class XMLExporterParameters extends SimpleParameterSet {
 
-    public static final Parameter compression = new SimpleParameter(
+	public static final Parameter filename = new SimpleParameter(
+			ParameterType.FILE_NAME,
+			"Filename",
+			"Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
+	public static final Parameter compression = new SimpleParameter(
 			ParameterType.BOOLEAN, "Compressed file",
 			"Generates a compressed file (.zip)", null, true,
 			null, null, null);
-	
-    public XMLExporterParameters() {
-        super(new Parameter[] { filename, compression });
-    }
+	private ZipOutputStream zipStream = null;
 
+	public XMLExporterParameters() {
+		super(new Parameter[]{filename, compression});
+	}
 
+	public void setZipStream(ZipOutputStream zipStream) {
+		this.zipStream = zipStream;
+	}
+
+	public ZipOutputStream getZipStream() {
+		return this.zipStream;
+	}
 }

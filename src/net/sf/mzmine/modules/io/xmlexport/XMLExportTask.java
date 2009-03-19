@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.io.xmlexport;
 
 import java.io.ByteArrayOutputStream;
@@ -54,19 +53,18 @@ import com.Ostermiller.util.Base64;
 public class XMLExportTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	private PeakList peakList;
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	private int processedRows, totalRows;
+	private int processedRows,  totalRows;
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
-
 	public static DateFormat dateFormat = new SimpleDateFormat(
 			"yyyy/MM/dd HH:mm:ss");
 
 	// parameter values
 	private String fileName;
 	private boolean compression;
+	private ZipOutputStream zipStream;
 
 	/**
 	 * @param peakList
@@ -76,10 +74,9 @@ public class XMLExportTask implements Task {
 			XMLExporterParameters parameters) {
 		this.peakList = peakList;
 
-		fileName = (String) parameters
-				.getParameterValue(XMLExporterParameters.filename);
-		compression = (Boolean) parameters
-				.getParameterValue(XMLExporterParameters.compression);
+		fileName = (String) parameters.getParameterValue(XMLExporterParameters.filename);
+		compression = (Boolean) parameters.getParameterValue(XMLExporterParameters.compression);
+		zipStream = parameters.getZipStream();
 
 		this.peakList = peakList;
 
@@ -138,53 +135,44 @@ public class XMLExportTask implements Task {
 
 			Element newElement;
 			Document document = DocumentFactory.getInstance().createDocument();
-			Element saveRoot = document.addElement(PeakListElementName.PEAKLIST
-					.getElementName());
+			Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
 
 			// <NAME>
-			newElement = saveRoot.addElement(PeakListElementName.NAME
-					.getElementName());
+			newElement = saveRoot.addElement(PeakListElementName.NAME.getElementName());
 			newElement.addText(peakList.getName());
 
 			// <PEAKLIST_DATE>
 			String dateText = "";
-			if (((SimplePeakList)peakList).getDateCreated() == null){
-				dateText = ((SimplePeakList)peakList).getDateCreated();
-			}
-			else {
+			if (((SimplePeakList) peakList).getDateCreated() == null) {
+				dateText = ((SimplePeakList) peakList).getDateCreated();
+			} else {
 				Date date = new Date();
 				dateText = dateFormat.format(date);
 			}
-			newElement = saveRoot.addElement(PeakListElementName.PEAKLIST_DATE
-					.getElementName());
+			newElement = saveRoot.addElement(PeakListElementName.PEAKLIST_DATE.getElementName());
 			newElement.addText(dateText);
 
 			// <QUANTITY>
-			newElement = saveRoot.addElement(PeakListElementName.QUANTITY
-					.getElementName());
+			newElement = saveRoot.addElement(PeakListElementName.QUANTITY.getElementName());
 			newElement.addText(String.valueOf(peakList.getNumberOfRows()));
-			
+
 			// <PROCESS>
 			PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
-			for (PeakListAppliedMethod proc: processes){
-				newElement = saveRoot.addElement(PeakListElementName.PROCESS
-						.getElementName());
+			for (PeakListAppliedMethod proc : processes) {
+				newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
 				newElement.addText(proc.getDescription());
 			}
 			// Add local task
-			newElement = saveRoot.addElement(PeakListElementName.PROCESS
-					.getElementName());
+			newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
 			newElement.addText("Saved to file" + fileName);
 
 			// <RAWFILE>
 			RawDataFile[] dataFiles = peakList.getRawDataFiles();
 
 			for (int i = 1; i <= dataFiles.length; i++) {
-				newElement = saveRoot.addElement(PeakListElementName.RAWFILE
-						.getElementName());
+				newElement = saveRoot.addElement(PeakListElementName.RAWFILE.getElementName());
 				newElement.addAttribute(
-						PeakListElementName.ID.getElementName(), String
-								.valueOf(i));
+						PeakListElementName.ID.getElementName(), String.valueOf(i));
 				fillRawDataFileElement(dataFiles[i - 1], newElement);
 				dataFilesIDMap.put(dataFiles[i - 1], i);
 			}
@@ -199,42 +187,48 @@ public class XMLExportTask implements Task {
 				}
 
 				row = peakList.getRow(i);
-				newElement = saveRoot.addElement(PeakListElementName.ROW
-						.getElementName());
+				newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
 				fillRowElement(row, newElement);
 				processedRows++;
 			}
-			
+
 
 			// write the saving file
-			File outputFile = new File(fileName);
-			FileOutputStream fos = new FileOutputStream(outputFile);
-            
-            OutputStream finalStream = fos;
-            
-            if (compression) {
-                ZipOutputStream zos = new ZipOutputStream(fos);
-                zos.setLevel(9);
-                zos.putNextEntry(new ZipEntry(outputFile.getName()));
-                finalStream = zos;
-            }
-             
-            OutputFormat format = OutputFormat.createPrettyPrint();
-            XMLWriter writer = new XMLWriter(finalStream, format);
-            writer.write(document);
-            writer.close();
+			OutputStream finalStream = null;
+			if (zipStream == null) {
+				File outputFile = new File(fileName);
+				FileOutputStream fos = new FileOutputStream(outputFile);
+
+				finalStream = fos;
+
+				if (compression) {
+					ZipOutputStream zos = new ZipOutputStream(fos);
+					zos.setLevel(9);
+					zos.putNextEntry(new ZipEntry(outputFile.getName()));
+					finalStream = zos;
+				}
+
+			} else {
+				zipStream.putNextEntry(new ZipEntry(peakList.getName()));
+				finalStream = zipStream;
+			}
+
+			OutputFormat format = OutputFormat.createPrettyPrint();
+			XMLWriter writer = new XMLWriter(finalStream, format);
+			writer.write(document);
+			writer.close();
 
 		} catch (Exception e) {
 			/* we may already have set the status to CANCELED */
-			if (status == TaskStatus.PROCESSING)
+			if (status == TaskStatus.PROCESSING) {
 				status = TaskStatus.ERROR;
+			}
 			errorMessage = e.toString();
 			e.printStackTrace();
 			return;
 		}
 
-		logger.info("Finished saving " + peakList.getName() + ", saved "
-				+ processedRows + " rows");
+		logger.info("Finished saving " + peakList.getName() + ", saved " + processedRows + " rows");
 		status = TaskStatus.FINISHED;
 	}
 
@@ -245,29 +239,24 @@ public class XMLExportTask implements Task {
 	private void fillRawDataFileElement(RawDataFile file, Element element) {
 
 		// <NAME>
-		Element newElement = element.addElement(PeakListElementName.NAME
-				.getElementName());
+		Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
 		newElement.addText(file.getName());
 
 		// <RTRANGE>
-		newElement = element.addElement(PeakListElementName.RTRANGE
-				.getElementName());
+		newElement = element.addElement(PeakListElementName.RTRANGE.getElementName());
 		newElement.addText(String.valueOf(file.getDataRTRange(1)));
 
 		// <MZRANGE>
-		newElement = element.addElement(PeakListElementName.MZRANGE
-				.getElementName());
+		newElement = element.addElement(PeakListElementName.MZRANGE.getElementName());
 		newElement.addText(String.valueOf(file.getDataMZRange(1)));
 
 		// <SCAN>
 		int[] scanNumbers = file.getScanNumbers(1);
 		StringBuilder stringIDBuilder = null, stringRTBuilder = null;
-		newElement = element.addElement(PeakListElementName.SCAN
-				.getElementName());
+		newElement = element.addElement(PeakListElementName.SCAN.getElementName());
 		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
 				String.valueOf(scanNumbers.length));
-		Element secondNewElement = newElement
-				.addElement(PeakListElementName.SCAN_ID.getElementName());
+		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
 		for (int scan : scanNumbers) {
 			if (stringIDBuilder == null) {
 				// Scan's id
@@ -286,8 +275,7 @@ public class XMLExportTask implements Task {
 			}
 		}
 		secondNewElement.addText(stringIDBuilder.toString());
-		secondNewElement = newElement.addElement(PeakListElementName.RT
-				.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.RT.getElementName());
 		secondNewElement.addText(stringRTBuilder.toString());
 
 	}
@@ -297,8 +285,7 @@ public class XMLExportTask implements Task {
 	 * @param element
 	 */
 	private void fillRowElement(PeakListRow row, Element element) {
-		element.addAttribute(PeakListElementName.ID.getElementName(), String
-				.valueOf(row.getID()));
+		element.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(row.getID()));
 		Element newElement;
 
 		// <PEAK_IDENTITY>
@@ -306,13 +293,10 @@ public class XMLExportTask implements Task {
 		PeakIdentity[] identities = row.getPeakIdentities();
 
 		for (int i = 0; i < identities.length; i++) {
-			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY
-					.getElementName());
+			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY.getElementName());
 			newElement.addAttribute(PeakListElementName.ID.getElementName(),
 					String.valueOf(i));
-			newElement.addAttribute(PeakListElementName.PREFERRED
-					.getElementName(), String
-					.valueOf(identities[i] == preferredIdentity));
+			newElement.addAttribute(PeakListElementName.PREFERRED.getElementName(), String.valueOf(identities[i] == preferredIdentity));
 			fillIdentityElement(identities[i], newElement);
 		}
 
@@ -320,8 +304,7 @@ public class XMLExportTask implements Task {
 		int dataFileID = 0;
 		ChromatographicPeak[] peaks = row.getPeaks();
 		for (ChromatographicPeak p : peaks) {
-			newElement = element.addElement(PeakListElementName.PEAK
-					.getElementName());
+			newElement = element.addElement(PeakListElementName.PEAK.getElementName());
 			dataFileID = dataFilesIDMap.get(p.getDataFile());
 			fillPeakElement(p, newElement, dataFileID);
 		}
@@ -335,18 +318,15 @@ public class XMLExportTask implements Task {
 	private void fillIdentityElement(PeakIdentity identity, Element element) {
 
 		// <NAME>
-		Element newElement = element.addElement(PeakListElementName.NAME
-				.getElementName());
+		Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
 		newElement.addText(identity.getName() != null ? identity.getName() : " ");
 
 		// <FORMULA>
-		newElement = element.addElement(PeakListElementName.FORMULA
-				.getElementName());
+		newElement = element.addElement(PeakListElementName.FORMULA.getElementName());
 		newElement.addText(identity.getCompoundFormula() != null ? identity.getCompoundFormula() : " ");
 
 		// <IDENTIFICATION>
-		newElement = element.addElement(PeakListElementName.IDENTIFICATION
-				.getElementName());
+		newElement = element.addElement(PeakListElementName.IDENTIFICATION.getElementName());
 		newElement.addText(identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ");
 
 	}
@@ -361,21 +341,16 @@ public class XMLExportTask implements Task {
 
 		element.addAttribute(PeakListElementName.COLUMN.getElementName(),
 				String.valueOf(dataFileID));
-		element.addAttribute(PeakListElementName.MASS.getElementName(), String
-				.valueOf(peak.getMZ()));
-		element.addAttribute(PeakListElementName.RT.getElementName(), String
-				.valueOf(peak.getRT()));
+		element.addAttribute(PeakListElementName.MASS.getElementName(), String.valueOf(peak.getMZ()));
+		element.addAttribute(PeakListElementName.RT.getElementName(), String.valueOf(peak.getRT()));
 		element.addAttribute(PeakListElementName.HEIGHT.getElementName(),
 				String.valueOf(peak.getHeight()));
-		element.addAttribute(PeakListElementName.AREA.getElementName(), String
-				.valueOf(peak.getArea()));
-		element.addAttribute(PeakListElementName.STATUS.getElementName(), peak
-				.getPeakStatus().toString());
+		element.addAttribute(PeakListElementName.AREA.getElementName(), String.valueOf(peak.getArea()));
+		element.addAttribute(PeakListElementName.STATUS.getElementName(), peak.getPeakStatus().toString());
 
 		// <MZPEAK>
 		int scanNumbers[] = peak.getScanNumbers();
-		Element newElement = element.addElement(PeakListElementName.MZPEAK
-				.getElementName());
+		Element newElement = element.addElement(PeakListElementName.MZPEAK.getElementName());
 		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
 				String.valueOf(scanNumbers.length));
 
@@ -414,20 +389,16 @@ public class XMLExportTask implements Task {
 		}
 
 		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
-		Element secondNewElement = newElement
-				.addElement(PeakListElementName.SCAN_ID.getElementName());
+		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 		bytes = Base64.encode(byteMassStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.MASS
-				.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 		bytes = Base64.encode(byteHeightStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT
-				.getElementName());
+		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
 		secondNewElement.addText(new String(bytes));
 
 	}
-
 }

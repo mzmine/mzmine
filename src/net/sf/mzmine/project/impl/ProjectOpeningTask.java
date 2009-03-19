@@ -18,34 +18,19 @@
  */
 package net.sf.mzmine.project.impl;
 
-import com.sun.java.ExampleFileFilter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 
-import javax.swing.JFileChooser;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzDataReadTask;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzMLReadTask;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
-import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTask;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.UnclosableInputStream;
@@ -135,13 +120,13 @@ public class ProjectOpeningTask implements Task, TaskListener {
 			unclosableZipStream = new UnclosableInputStream(zipStream);
 
 			//remove previous data
-			MZmineProject project = MZmineCore.getCurrentProject();
+			/*MZmineProject project = MZmineCore.getCurrentProject();
 			for (RawDataFile data : project.getDataFiles()) {
-				project.removeFile(data);
+			project.removeFile(data);
 			}
 			for (PeakList data : project.getPeakLists()) {
-				project.removePeakList(data);
-			}
+			project.removePeakList(data);
+			}*/
 
 			// Stage 1 - load project description
 			currentStage++;
@@ -166,9 +151,9 @@ public class ProjectOpeningTask implements Task, TaskListener {
 			// Final check for cancel
 			if (status == TaskStatus.CANCELED) {
 				return;
-			}				
-			((MZmineProjectImpl)project).setProjectFile(openFile);
-			
+			}
+			//	((MZmineProjectImpl) project).setProjectFile(openFile);
+
 			logger.info("Finished opening project " + openFile);
 			status = TaskStatus.FINISHED;
 
@@ -214,133 +199,42 @@ public class ProjectOpeningTask implements Task, TaskListener {
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
-		zipStream.getNextEntry();
-		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
 		File[] file = new File[description.getNumOfDataFiles()];
 		for (int i = 0; i < description.getNumOfDataFiles(); i++) {
-			file[i] = new File((String) objectStream.readObject());
-			if(!file[i].exists()){
-				this.getNewPath();
+			ZipEntry entry = zipStream.getNextEntry();
+			File tempConfigFile = File.createTempFile(entry.getName()+"_", "tmp");
+			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+			int len;
+			byte buffer[] = new byte[1 << 10]; // 1 MB buffer
+			while ((len = zipStream.read(buffer)) > 0) {
+				if (status == TaskStatus.CANCELED) {
+					return;
+				}
+				fileStream.write(buffer, 0, len);
 			}
+			fileStream.close();
+
+
+
+			 RawDataFileImpl raw = new RawDataFileImpl(tempConfigFile.getPath());
+
+
+			 raw.setScanDataFile(tempConfigFile);
+
+			 MZmineCore.getCurrentProject().addFile(raw.finishWriting());
 		}
-		objectStream.close();
 
-		this.openRawData(file);
-	}
-
-
-	private void getNewPath(){
-		DesktopParameters parameters = (DesktopParameters) MZmineCore
-				.getDesktop().getParameterSet();
-		String lastPath = parameters.getLastOpenProjectPath();
-		JFileChooser chooser = new JFileChooser();
-		chooser.setDialogType(JFileChooser.DIRECTORIES_ONLY);
-		if (lastPath != null)
-			chooser.setCurrentDirectory(new File(lastPath));
-
-		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainFrame());
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			String selectedFile = chooser.getSelectedFile().getPath();
-			
-		}
-	}
-
-	private void openRawData(File[] file) {
-		Task openTasks[] = new Task[file.length];
-
-		for (int i = 0; i < file.length; i++) {
-			String extension = file[i].getName().substring(
-					file[i].getName().lastIndexOf(".") + 1).toLowerCase();
-
-			if (extension.endsWith("mzdata")) {
-				openTasks[i] = new MzDataReadTask(file[i]);
-			}
-			if (extension.endsWith("mzxml")) {
-				openTasks[i] = new MzXMLReadTask(file[i]);
-			}
-			if (extension.endsWith("mzml")) {
-				openTasks[i] = new MzMLReadTask(file[i]);
-			}
-			if (extension.endsWith("cdf")) {
-				openTasks[i] = new NetCDFReadTask(file[i]);
-			}
-			if (extension.endsWith("raw")) {
-				openTasks[i] = new XcaliburRawFileReadTask(file[i]);
-			}
-			if (openTasks[i] == null) {
-				logger.finest("Cannot determine file type of file " + file[i]);
-			}
-		}
-		TaskGroup newGroup = new TaskGroup(openTasks, this, null);
-
-		// start this group
-		newGroup.start();
-		while (newGroup.getStatus() != TaskGroupStatus.FINISHED) {
-			//System.out.println(newGroup.getStatus());
-		}
-	}
-
+		
+	}	
+	
 	private synchronized void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
 		zipStream.getNextEntry();
-		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-		RawDataFile[] dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);		
 
-		for (int i = 0; i < description.getNumOfPeakLists(); i++) {
-
-			StoredPeakListDescription peakListDescription = (StoredPeakListDescription) objectStream.readObject();
-			// Create new peak list
-			SimplePeakList newPeakList = new SimplePeakList(
-					peakListDescription.getName(), this.getDataFilesByName(dataFiles, peakListDescription.getRawDataFiles()));
-
-			//Create rows
-			int numberRows = peakListDescription.getNumberRows();
-
-			for (int j = 0; j < numberRows; j++) {
-				int rowId = objectStream.readInt();
-				PeakListRow row = new SimplePeakListRow(rowId);
-				int numberPeaks = objectStream.readInt();
-				for (int e = 0; e < numberPeaks; e++) {
-					StoredChromatographicPeakDescription storedPeak = (StoredChromatographicPeakDescription) objectStream.readObject();
-					String dataFileName = storedPeak.getDataFileName();
-					RawDataFile rawData = this.getDataFileByName(dataFiles, dataFileName);
-					if (rawData != null) {
-						row.addPeak(rawData, storedPeak.getPeak());
-					}
-				}
-				newPeakList.addRow(row);
-			}
-			MZmineCore.getCurrentProject().addPeakList(newPeakList);
-		}
 		objectStream.close();
 	}
-
-	private RawDataFile[] getDataFilesByName(RawDataFile[] dataFiles, String[] rawDataNames) {
-		RawDataFile[] realDataFiles = new RawDataFile[rawDataNames.length];
-		int cont = 0;
-		for (String rawDataName : rawDataNames) {
-			for (RawDataFile file : dataFiles) {
-				if (rawDataName.compareTo(file.getName()) == 0) {
-					realDataFiles[cont++] = file;
-					break;
-				}
-			}
-		}
-		return realDataFiles;
-	}
-
-	private RawDataFile getDataFileByName(RawDataFile[] dataFiles, String rawDataNames) {
-
-		for (RawDataFile file : dataFiles) {
-			if (rawDataNames.compareTo(file.getName()) == 0) {
-				return file;
-			}
-		}
-
-		return null;
-	}
-
+	
 	public void taskStarted(Task task) {
 		Task openTask = task;
 		logger.info("Started action of " + openTask.getTaskDescription());
