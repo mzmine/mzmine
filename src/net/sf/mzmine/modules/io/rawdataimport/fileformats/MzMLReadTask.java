@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Logger;
-import java.util.zip.Inflater;
+import java.util.zip.DataFormatException;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -38,6 +38,7 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.CompressionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.xml.util.Base64;
@@ -46,7 +47,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This class reads MZML 1.0 files.
+ * This class reads mzML 1.0 and 1.1 files.
  * (http://www.psidev.info/index.php?q=node/257)
  */
 public class MzMLReadTask extends DefaultHandler implements Task {
@@ -56,21 +57,18 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private File originalFile;
 	private RawDataFileWriter newMZmineFile;
 	private TaskStatus status = TaskStatus.WAITING;
-	private int totalScans;
-	private int parsedScans;
+	private int totalScans = 0, parsedScans;
 	private int peaksCount = 0;
 	private String errorMessage;
 	private StringBuilder charBuffer;
 	private boolean precursorFlag = false;
 	private boolean spectrumFlag = false;
-	private boolean spectrumDescriptionFlag = false;
 	private boolean spectrumListFlag = false;
 	private boolean scanFlag = false;
 	private boolean ionSelectionFlag = false;
 	private boolean binaryDataArrayFlag = false;
 	private boolean mzArrayBinaryFlag = false;
 	private boolean intenArrayBinaryFlag = false;
-	private boolean centroided = false;
 	private boolean compressFlag = false;
 	private String precision;
 	private int scanNumber;
@@ -86,8 +84,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	 * The information of "m/z" & "int" is content in two arrays because the
 	 * mzData standard manages this information in two different tags.
 	 */
-	private double[] mzDataPoints = new double[0];
-	private double[] intensityDataPoints = new double[0];
+	private double[] mzDataPoints;
+	private double[] intensityDataPoints;
 
 	/*
 	 * This variable hold the current scan or fragment, it is send to the stack
@@ -108,8 +106,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 	public MzMLReadTask(File fileToOpen) {
 		originalFile = fileToOpen;
-
-		charBuffer = new StringBuilder(2048);
+		// 256 kilo-chars buffer
+		charBuffer = new StringBuilder(1 << 18);
 		parentStack = new LinkedList<SimpleScan>();
 
 	}
@@ -219,6 +217,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precursorMz = 0f;
 			precision = null;
 			precursorCharge = 0;
+			compressFlag = false;
 			String index = attrs.getValue("index");
 			String id = attrs.getValue("id");
 			String defaultArrayLength = attrs.getValue("defaultArrayLength");
@@ -229,11 +228,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			peaksCount = Integer.parseInt(defaultArrayLength);
 			scanId.put(id, (Integer) scanNumber);
 			spectrumFlag = true;
-		}
-
-		// <spectrumDescription>
-		if (qName.equalsIgnoreCase("spectrumDescription")) {
-			spectrumDescriptionFlag = true;
 		}
 
 		// <scan>
@@ -261,11 +255,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		// <cvParam>
 		if (qName.equalsIgnoreCase("cvParam")) {
 			String accession = attrs.getValue("accession");
-			if (spectrumDescriptionFlag) {
-				if (accession.equals("MS:1000127")) {
-					centroided = true;
-				}
-			}
 
 			if (spectrumFlag) {
 				if (accession.equals("MS:1000511")) {
@@ -344,11 +333,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			spectrumFlag = false;
 		}
 
-		// <spectrumDescription>
-		if (qName.equalsIgnoreCase("spectrumDescription")) {
-			spectrumDescriptionFlag = false;
-		}
-
 		// <scan>
 		if (qName.equalsIgnoreCase("scan")) {
 			scanFlag = false;
@@ -375,7 +359,6 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			}
 
 			DataPoint completeDataPoints[] = new DataPoint[peaksCount];
-			DataPoint tempDataPoints[] = new DataPoint[peaksCount];
 
 			// Copy m/z and intensity data
 			for (int i = 0; i < completeDataPoints.length; i++) {
@@ -383,59 +366,23 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 						(double) mzDataPoints[i],
 						(double) intensityDataPoints[i]);
 			}
-			/*
-			 * This section verifies DataPoints with intensity="0" and exclude
-			 * them from tempDataPoints array. Only accept some of these points
-			 * because they are part the left/right part of the peak.
-			 */
 
-			int i, j;
-			for (i = 0, j = 0; i < completeDataPoints.length; i++) {
-				double intensity = completeDataPoints[i].getIntensity();
-				double mz = completeDataPoints[i].getMZ();
-				if (completeDataPoints[i].getIntensity() > 0) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-				if ((i > 0) && (completeDataPoints[i - 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-				if ((i < completeDataPoints.length - 1)
-						&& (completeDataPoints[i + 1].getIntensity() > 0)) {
-					tempDataPoints[j] = new SimpleDataPoint(mz, intensity);
-					j++;
-					continue;
-				}
-			}
+			// Auto-detect whether this scan is centroided
+			boolean centroided = ScanUtils.isCentroided(completeDataPoints);
 
-			// If we have no peaks with intensity of 0, we assume the scan is
-			// centroided
+			// Remove zero data points
+			DataPoint optimizedDataPoints[] = ScanUtils.removeZeroDataPoints(
+					completeDataPoints, centroided);
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
 					retentionTime, parentScan, precursorMz, null,
-					new DataPoint[0], false);
+					optimizedDataPoints, centroided);
 
-			buildingScan.setCentroided(centroided);
 			buildingScan.setPrecursorCharge(precursorCharge);
-
-			if (ScanUtils.isCentroided(completeDataPoints)) {
-				buildingScan.setCentroided(true);
-				buildingScan.setDataPoints(tempDataPoints);
-			} else {
-				int sizeArray = j;
-				DataPoint[] dataPoints = new DataPoint[j];
-
-				System.arraycopy(tempDataPoints, 0, dataPoints, 0, sizeArray);
-				buildingScan.setDataPoints(dataPoints);
-			}
 
 			/*
 			 * Update of fragmentScanNumbers of each Scan in the parentStack
 			 */
-
 			for (SimpleScan s : parentStack) {
 				if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
 					s.addFragmentScan(buildingScan.getScanNumber());
@@ -476,7 +423,13 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 			if (compressFlag) {
 				// Uncompress the bytes
-				peakBytes = unCompress(peakBytes);
+				try {
+					peakBytes = CompressionUtils.decompress(peakBytes);
+				} catch (DataFormatException e) {
+					status = TaskStatus.ERROR;
+					errorMessage = "Corrupt compressed peak: " + e.toString();
+					throw new SAXException("Parsing Cancelled");
+				}
 			}
 
 			ByteBuffer currentBytes = ByteBuffer.wrap(peakBytes);
@@ -536,47 +489,4 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		}
 	}
 
-	/**
-	 * This function provides support for decompression ZLIB compression
-	 * library.
-	 * 
-	 * @param peakBytes
-	 */
-	private byte[] unCompress(byte[] peakBytes) throws SAXException {
-		// Uncompress the bytes
-		Inflater decompresser = new Inflater();
-
-		decompresser.setInput(peakBytes);
-
-		byte[] resultCompressed = new byte[1024];
-		byte[] resultTotal = new byte[0];
-
-		try {
-
-			int resultLength = decompresser.inflate(resultCompressed);
-
-			while (!decompresser.finished()) {
-				byte buffer[] = resultTotal;
-				resultTotal = new byte[resultTotal.length + resultLength];
-				System.arraycopy(buffer, 0, resultTotal, 0, buffer.length);
-				System.arraycopy(resultCompressed, 0, resultTotal,
-						buffer.length, resultLength);
-				resultLength = decompresser.inflate(resultCompressed);
-			}
-			byte buffer[] = resultTotal;
-			resultTotal = new byte[resultTotal.length + resultLength];
-			System.arraycopy(buffer, 0, resultTotal, 0, buffer.length);
-			System.arraycopy(resultCompressed, 0, resultTotal, buffer.length,
-					resultLength);
-			decompresser.end();
-			peakBytes = resultTotal;
-
-		} catch (Exception eof) {
-			status = TaskStatus.ERROR;
-			errorMessage = "Corrupt compressed peak";
-			throw new SAXException("Parsing Cancelled");
-		}
-		compressFlag = false;
-		return peakBytes;
-	}
 }

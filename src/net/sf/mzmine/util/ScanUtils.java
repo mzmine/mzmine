@@ -86,8 +86,8 @@ public class ScanUtils {
 	 * Selects data points within given m/z range
 	 * 
 	 */
-	public static DataPoint[] selectDataPointsByMass(
-			DataPoint dataPoints[], Range mzRange) {
+	public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[],
+			Range mzRange) {
 		ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
 		for (DataPoint dp : dataPoints) {
 			if (mzRange.contains(dp.getMZ()))
@@ -149,9 +149,8 @@ public class ScanUtils {
 		double beforeY = 0.0f;
 		double afterX = Double.MAX_VALUE;
 		double afterY = 0.0f;
-		
+
 		double[] noOfEntries = null;
-		
 
 		// Binnings
 		for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
@@ -208,11 +207,11 @@ public class ScanUtils {
 					noOfEntries[binIndex] = 1;
 					binValues[binIndex] = y[valueIndex];
 				} else {
-					noOfEntries[binIndex] ++;
+					noOfEntries[binIndex]++;
 					binValues[binIndex] += y[valueIndex];
 				}
-			break;
-				
+				break;
+
 			case SUM:
 			default:
 				if (binValues[binIndex] == null) {
@@ -234,7 +233,7 @@ public class ScanUtils {
 				}
 			}
 		}
-		
+
 		// Interpolation
 		if (interpolate) {
 
@@ -324,20 +323,21 @@ public class ScanUtils {
 
 	}
 
+	/**
+	 * Determines if the spectrum represented by given array of data points is
+	 */
 	public static boolean isCentroided(DataPoint[] dataPoints) {
+
+		// If the spectrum has less than 10 data points, it must be centroid
+		if (dataPoints.length <= 10)
+			return true;
 
 		boolean centroid = false;
 		Range mzRange = null;
-		if (dataPoints.length == 1)
-			return true;
 
-		if (dataPoints.length > 0) {
-			mzRange = new Range(dataPoints[0].getMZ());
-			for (DataPoint dp : dataPoints) {
-				mzRange.extendRange(dp.getMZ());
-			}
-		} else {
-			return false;
+		mzRange = new Range(dataPoints[0].getMZ());
+		for (DataPoint dp : dataPoints) {
+			mzRange.extendRange(dp.getMZ());
 		}
 
 		double massStep = mzRange.getSize() / dataPoints.length;
@@ -387,6 +387,66 @@ public class ScanUtils {
 		}
 
 		return bestFragmentScan;
+
+	}
+
+	/**
+	 * Removes zero-intensity data points from the given array. This function
+	 * doesn't remove ALL zero data points. In case the spectrum is continuous,
+	 * one zero data point is required to form a correct border of the peak.
+	 * This function may return the original array (same instance) in case
+	 * nothing was removed. Otherwise, it returns a new array.
+	 * 
+	 */
+	public static DataPoint[] removeZeroDataPoints(DataPoint dataPoints[],
+			boolean centroided) {
+
+		// First, check if we actually have any zero data point
+		boolean haveZeroDP = false;
+		for (DataPoint dp : dataPoints) {
+			if (dp.getIntensity() == 0)
+				haveZeroDP = true;
+		}
+
+		// If no zero data point was found, return the original array
+		if (!haveZeroDP)
+			return dataPoints;
+
+		// Prepare a list of good data points
+		ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>(
+				dataPoints.length);
+
+		for (int i = 0; i < dataPoints.length; i++) {
+
+			// If the data point is > 0, add it
+			if (dataPoints[i].getIntensity() > 0) {
+				newDataPoints.add(dataPoints[i]);
+				continue;
+			}
+
+			// Check the neighbouring data points, but only if the scan is not
+			// centroided
+			if (!centroided) {
+				if ((i > 0) && (dataPoints[i - 1].getIntensity() > 0)) {
+					newDataPoints.add(dataPoints[i]);
+					continue;
+				}
+				if ((i < dataPoints.length - 1)
+						&& (dataPoints[i + 1].getIntensity() > 0)) {
+					newDataPoints.add(dataPoints[i]);
+					continue;
+				}
+			}
+		}
+
+		// If no data point was removed, return the original array
+		if (newDataPoints.size() == dataPoints.length)
+			return dataPoints;
+
+		DataPoint[] newDataPointsArray = newDataPoints
+				.toArray(new DataPoint[0]);
+
+		return newDataPointsArray;
 
 	}
 
