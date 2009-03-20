@@ -38,6 +38,10 @@ Batch mode
 * It need to be redesigned. (Tomas)
 * Bug: it can not be used again if during its running any process hasn't finished correctly. 
 
+Project data files
+* Project must not contain two data files with same name, otherwise project saving will fail.
+  This must be checked when data files are added to the project, and also when data file is being renamed.
+
 
 ***** Raw data import *****
 
