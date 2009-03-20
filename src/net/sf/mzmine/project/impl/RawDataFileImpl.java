@@ -47,7 +47,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 			.getName());
 
 	private String fileName; // this is just a name of this object
-	
+
 	private Hashtable<Integer, Double> dataMinMZ, dataMaxMZ, dataMinRT,
 			dataMaxRT, dataMaxBasePeakIntensity, dataMaxTIC;
 	private Hashtable<Integer, int[]> scanNumbersCache;
@@ -56,12 +56,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	private transient RandomAccessFile scanDataFile;
 
 	/**
-	 * Preloaded scans
+	 * Scans
 	 */
 	private Hashtable<Integer, Scan> scans;
 
 	public RawDataFileImpl(String fileName) throws IOException {
-		
+
 		this.fileName = fileName;
 
 		// create temporary file for scan data
@@ -91,7 +91,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	public String getName() {
 		return this.fileName;
 	}
-	
+
 	/**
 	 * @see net.sf.mzmine.data.RawDataFile#getScanDataFile()
 	 */
@@ -550,6 +550,20 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 			logger.warning("Could not close file " + scanFile + ": "
 					+ e.toString());
 		}
+
+		// Clear the scans array, to the garbage collector can collect it.
+		// It may take time until this RawDataFileImpl instance is
+		// garbage-collected, because there may be references to it from various
+		// lists, parameter sets etc. But we can clean up the memory now,
+		// because the data file is closed.
+		scans = null;
+		scanNumbersCache = null;
+		dataMinMZ = null;
+		dataMaxMZ = null;
+		dataMinRT = null;
+		dataMaxRT = null;
+		dataMaxBasePeakIntensity = null;
+		dataMaxTIC = null;
 
 	}
 
