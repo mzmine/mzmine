@@ -55,6 +55,10 @@ RAW file import using Thermo XCalibur DLL
   finished, but importing one file may consume >500MB RAM during the process.
 * Binding to XCalibur DLL doesn't work when MZmine is running 64-bit
 
+mzXML parsing
+* MS/MS scans (<scan> elements) can be nested or not. Currently, MZmine only 
+  recognizes nested version
+
 
 ***** Raw data filtering *****
 
