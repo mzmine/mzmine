@@ -126,6 +126,7 @@ public class StandardCompoundNormalizerTask implements Task {
                 }
             }
 
+            // Copy comment and identification
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
             normalizedRow.setComment(row.getComment());
             for (PeakIdentity ident : row.getPeakIdentities())
