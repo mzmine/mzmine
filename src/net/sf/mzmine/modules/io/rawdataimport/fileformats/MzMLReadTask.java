@@ -206,9 +206,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 		// <spectrumList>
 		if (qName.equals("spectrumList")) {
-			String s = attrs.getValue("count");
-			if (s != null)
-				totalScans = Integer.parseInt(s);
+			String count = attrs.getValue("count");
+			if (count != null)
+				totalScans = Integer.parseInt(count);
 			spectrumListFlag = true;
 		}
 
@@ -225,7 +225,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			String defaultArrayLength = attrs.getValue("defaultArrayLength");
 			if ((id == null) || (defaultArrayLength == null))
 				throw new SAXException(
-						"File does not comply with the mzML standard");
+						"Missing spectrum id or defaultArrayLength");
 
 			Pattern pattern = Pattern.compile("scan=([0-9]+)");
 			Matcher matcher = pattern.matcher(id);
@@ -236,7 +236,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 			scanNumber = Integer.parseInt(matcher.group(1)) + 1;
 			peaksCount = Integer.parseInt(defaultArrayLength);
-			scanId.put(id, (Integer) scanNumber);
+			scanId.put(id, scanNumber);
 			spectrumFlag = true;
 		}
 
@@ -254,7 +254,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			String parent = attrs.getValue("spectrumRef");
 			if (parent != null) {
 				if (scanId.containsKey(parent))
-					parentScan = (int) scanId.get(parent);
+					parentScan = scanId.get(parent);
 				else
 					parentScan = -1;
 			} else

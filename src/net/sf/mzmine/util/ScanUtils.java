@@ -328,17 +328,24 @@ public class ScanUtils {
 	 */
 	public static boolean isCentroided(DataPoint[] dataPoints) {
 
-		// If the spectrum has less than 10 data points, it must be centroid
+		// If the spectrum has less than 10 data points, it should be centroid
 		if (dataPoints.length <= 10)
 			return true;
 
 		boolean centroid = false;
 		Range mzRange = null;
+		boolean hasZeroDP = false;
 
 		mzRange = new Range(dataPoints[0].getMZ());
 		for (DataPoint dp : dataPoints) {
 			mzRange.extendRange(dp.getMZ());
+			if (dp.getIntensity() == 0)
+				hasZeroDP = true;
 		}
+
+		// If the spectrum has no zero data points, it should be centroid
+		if (!hasZeroDP)
+			return true;
 
 		double massStep = mzRange.getSize() / dataPoints.length;
 		double tempdiff, diff = 0, previousMass = dataPoints[0].getMZ();
