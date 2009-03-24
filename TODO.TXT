@@ -59,14 +59,6 @@ mzXML parsing
 * MS/MS scans (<scan> elements) can be nested or not. Currently, MZmine only 
   recognizes nested version
 
-Improve support for mzML 1.1 and mzXML 3.0 
-* these files contain equal information, but MZmine doesn't parse them all correctly:
-  http://proteowizard.sourceforge.net/example_data/tiny.pwiz.1.1.mzML
-  http://db.systemsbiology.net/projects/PSI/mzML/tiny1.mzData1.05.xml
-  http://db.systemsbiology.net/projects/PSI/mzML/tiny1.mzXML2.0.mzXML
-  http://db.systemsbiology.net/projects/PSI/mzML/tiny1.mzXML3.0.mzXML
-
-
 ***** Raw data filtering *****
 
 These algorithms are almost unchanged since original MZmine 1.
