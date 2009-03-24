@@ -72,7 +72,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private boolean mzArrayBinaryFlag = false;
 	private boolean intenArrayBinaryFlag = false;
 	private boolean compressFlag = false;
-	private String precision;
+	private int precision;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
@@ -217,7 +217,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			retentionTime = 0;
 			parentScan = -1;
 			precursorMz = 0f;
-			precision = null;
+			precision = 32;
 			precursorCharge = 0;
 			compressFlag = false;
 
@@ -293,7 +293,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			if ((precursorFlag) && (ionSelectionFlag)) {
 				String value = attrs.getValue("value");
 				if (value != null) {
-					if (accession.equals("MS:1000040"))
+					// MS:1000040 is used in mzML 1.0, MS:1000744 is used in
+					// mzML 1.1.0
+					if (accession.equals("MS:1000040")
+							|| accession.equals("MS:1000744"))
 						precursorMz = Double.parseDouble(value);
 					if (accession.equals("MS:1000041"))
 						precursorCharge = Integer.parseInt(value);
@@ -307,10 +310,10 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 				if (accession.equals("MS:1000515"))
 					intenArrayBinaryFlag = true;
 				if (accession.equals("MS:1000521")) {
-					precision = "32";
+					precision = 32;
 				}
 				if (accession.equals("MS:1000523")) {
-					precision = "64";
+					precision = 64;
 				}
 				if (accession.equals("MS:1000574")) {
 					compressFlag = true;
@@ -451,7 +454,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 				mzDataPoints = new double[peaksCount];
 
 				for (int i = 0; i < mzDataPoints.length; i++) {
-					if (precision == null || precision.equals("32"))
+					if (precision == 32)
 						mzDataPoints[i] = (double) currentBytes.getFloat();
 					else
 						mzDataPoints[i] = currentBytes.getDouble();
@@ -464,7 +467,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 				intensityDataPoints = new double[peaksCount];
 
 				for (int i = 0; i < intensityDataPoints.length; i++) {
-					if (precision == null || precision.equals("32"))
+					if (precision == 32)
 						intensityDataPoints[i] = (double) currentBytes
 								.getFloat();
 					else

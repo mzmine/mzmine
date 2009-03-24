@@ -250,7 +250,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		}
 
-		// <peak>
+		// <peaks>
 		if (qName.equalsIgnoreCase("peaks")) {
 			// clean the current char buffer for the new element
 			charBuffer.setLength(0);
@@ -323,7 +323,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			return;
 		}
 
-		// <peak>
+		// <peaks>
 		if (qName.equalsIgnoreCase("peaks")) {
 
 			String charBufferString = charBuffer.toString();
@@ -338,7 +338,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 					throw new SAXException("Parsing Cancelled");
 				}
 			}
-
+			
 			// make a data input stream
 			DataInputStream peakStream = new DataInputStream(
 					new ByteArrayInputStream(peakBytes));
