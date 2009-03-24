@@ -49,7 +49,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 /**
- * This class reads mzML 1.0 and 1.1 files.
+ * This class reads mzML 1.0 and 1.1.0 files.
  * (http://www.psidev.info/index.php?q=node/257)
  */
 public class MzMLReadTask extends DefaultHandler implements Task {
@@ -245,10 +245,12 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			scanFlag = true;
 		}
 
-		// <ionSelection>
-		if (qName.equalsIgnoreCase("selectedIon")) {
+		// <selectedIon> (mzML 1.1.0) or <ionSelection> (mzML 1.0)
+		if (qName.equalsIgnoreCase("ionSelection")
+				|| qName.equalsIgnoreCase("selectedIon")) {
 			ionSelectionFlag = true;
 		}
+
 		// <precursor>
 		if (qName.equalsIgnoreCase("precursor")) {
 			String parent = attrs.getValue("spectrumRef");
@@ -286,7 +288,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 							retentionTime = Double.parseDouble(value);
 					} else
 						throw new SAXException(
-								"File does not comply with the mzML standard");
+								"Corrupted retention time information");
 				}
 			}
 
@@ -301,8 +303,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 					if (accession.equals("MS:1000041"))
 						precursorCharge = Integer.parseInt(value);
 				} else
-					throw new SAXException(
-							"File does not comply with the mzML standard");
+					throw new SAXException("Corrupted precursor information");
 			}
 			if (binaryDataArrayFlag) {
 				if (accession.equals("MS:1000514"))
@@ -356,8 +357,9 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precursorFlag = false;
 		}
 
-		// <ionSelection>
-		if (qName.equalsIgnoreCase("ionSelection")) {
+		// <selectedIon> (mzML 1.1.0) or <ionSelection> (mzML 1.0)
+		if (qName.equalsIgnoreCase("ionSelection")
+				|| qName.equalsIgnoreCase("selectedIon")) {
 			ionSelectionFlag = false;
 		}
 
