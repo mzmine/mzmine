@@ -26,6 +26,8 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.DataFormatException;
 
 import javax.xml.parsers.SAXParser;
@@ -218,13 +220,21 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			precision = null;
 			precursorCharge = 0;
 			compressFlag = false;
-			String index = attrs.getValue("index");
+
 			String id = attrs.getValue("id");
 			String defaultArrayLength = attrs.getValue("defaultArrayLength");
-			if ((index == null) || (id == null) || (defaultArrayLength == null))
+			if ((id == null) || (defaultArrayLength == null))
 				throw new SAXException(
-						"File does not comply with the standard mzML 1.0");
-			scanNumber = Integer.parseInt(index) + 1;
+						"File does not comply with the mzML standard");
+
+			Pattern pattern = Pattern.compile("scan=([0-9]+)");
+			Matcher matcher = pattern.matcher(id);
+			boolean scanNumberFound = matcher.find();
+
+			if (!scanNumberFound)
+				throw new SAXException("Scan number not found in scan id " + id);
+
+			scanNumber = Integer.parseInt(matcher.group(1)) + 1;
 			peaksCount = Integer.parseInt(defaultArrayLength);
 			scanId.put(id, (Integer) scanNumber);
 			spectrumFlag = true;
@@ -276,7 +286,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 							retentionTime = Double.parseDouble(value);
 					} else
 						throw new SAXException(
-								"File does not comply with the standard mzML 1.0");
+								"File does not comply with the mzML standard");
 				}
 			}
 
@@ -289,7 +299,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 						precursorCharge = Integer.parseInt(value);
 				} else
 					throw new SAXException(
-							"File does not comply with the standard mzML 1.0");
+							"File does not comply with the mzML standard");
 			}
 			if (binaryDataArrayFlag) {
 				if (accession.equals("MS:1000514"))
