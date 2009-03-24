@@ -59,6 +59,10 @@ mzXML parsing
 * MS/MS scans (<scan> elements) can be nested or not. Currently, MZmine only 
   recognizes nested version
 
+Polarity support
+* polarity attribute (+/-/?) should be added to Scan interface and import modules
+  should recognize polarity
+
 ***** Raw data filtering *****
 
 These algorithms are almost unchanged since original MZmine 1.
