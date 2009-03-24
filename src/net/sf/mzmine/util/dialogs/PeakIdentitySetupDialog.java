@@ -40,7 +40,7 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public class CompoundIdentitySetupDialog extends JDialog implements ActionListener{
+public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
 	
 	public static final int TEXTFIELD_COLUMNS = 20;
 	
@@ -61,11 +61,11 @@ public class CompoundIdentitySetupDialog extends JDialog implements ActionListen
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
 
-    public CompoundIdentitySetupDialog (PeakListRow peakListRow){
+    public PeakIdentitySetupDialog (PeakListRow peakListRow){
         this(peakListRow, null);
     }
     
-	public CompoundIdentitySetupDialog (PeakListRow peakListRow, PeakIdentity editIdentity){
+	public PeakIdentitySetupDialog (PeakListRow peakListRow, PeakIdentity editIdentity){
 
 		// Make dialog modal
 		super(MZmineCore.getDesktop().getMainFrame(), true);

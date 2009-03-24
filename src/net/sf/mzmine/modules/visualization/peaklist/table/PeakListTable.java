@@ -47,7 +47,7 @@ import net.sf.mzmine.util.components.ComponentToolTipProvider;
 import net.sf.mzmine.util.components.GroupableTableHeader;
 import net.sf.mzmine.util.components.PeakSummaryComponent;
 import net.sf.mzmine.util.components.PopupListener;
-import net.sf.mzmine.util.dialogs.CompoundIdentitySetupDialog;
+import net.sf.mzmine.util.dialogs.PeakIdentitySetupDialog;
 
 import com.sun.java.TableSorter;
 
@@ -183,13 +183,13 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 					Object item = combo.getSelectedItem();
 					if (item != null) {
 						if (item.toString() == NEW_IDENTITY) {
-							CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
+							PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(
 									peakListRow);
 							dialog.setVisible(true);
 							return;
 						}
 						if (item.toString() == EDIT_IDENTITY) {
-                            CompoundIdentitySetupDialog dialog = new CompoundIdentitySetupDialog(
+                            PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(
                                     peakListRow, peakListRow.getPreferredPeakIdentity());
                             dialog.setVisible(true);
                             return;
