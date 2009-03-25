@@ -131,6 +131,9 @@ Spectra visualizer
 * Bug: sometimes fragment scans are shown twice in MS/MS combo
 (Fixed 2009/2/2 Alex, Really fixed 2009/2/26 Tomas)
 
+* Bug: opening a spectra with a non-existent scan number throws an exception  
+
+
 Peak list row summary visualizer (new)
 * We should implement a new simple visualizer "Peak list row summary" with
   easy binding to all other visualizers and manual peak detection. This visualizer 
