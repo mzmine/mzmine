@@ -26,6 +26,7 @@ Desktop
 * ItemSelector should be replaced with a JTree which allows unfolding raw data 
   files into individual scans and peak lists into individual rows (Finished Tomas)
 * JTree needs support for drag&drop reordering of data files/peak lists  (Tomas)
+* Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
 
 Task controller
 * Tasks with high priority (e.g. visualization) should never wait and always 
