@@ -4,8 +4,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Users/plusik</parameter>
-        <parameter name="Files to import" type="STRING">070308_STD_19_profile.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">/Users/plusik/Documents/Metabolome paper 2/Tranche upload/Schizosaccharomyces pombe metabolome/Raw data mzML/WT 972 26C vs 36C</parameter>
+        <parameter name="Files to import" type="STRING">WT_36C_num1_pos.mzML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -67,7 +67,7 @@
         </peakbuilder>
         <parameter name="Peak Resolver type" type="INTEGER">3</parameter>
         <parameter name="Suffix" type="STRING">resolved</parameter>
-        <parameter name="Remove original peak list" type="BOOLEAN">true</parameter>
+        <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.shapemodeler.ShapeModeler"> 
@@ -80,25 +80,25 @@
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
-        <parameter name="Raw data files" type="MULTIPLE_SELECTION">070308_STD_19_profile.mzXML</parameter>
+        <parameter name="Raw data files" type="MULTIPLE_SELECTION">WT_36C_num1_neg.mzML</parameter>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.0-2399.0</parameter>
-        <parameter name="m/z range" type="RANGE">99.99966430664062-1000.0100708007812</parameter>
-        <parameter name="Selected peaks" type="MULTIPLE_SELECTION"></parameter>
+        <parameter name="Retention time" type="RANGE">0.7595999999999999-2397.69</parameter>
+        <parameter name="m/z range" type="RANGE">168.98783301573053-168.9933342356205</parameter>
+        <parameter name="Selected peaks" type="MULTIPLE_SELECTION">168.9903 m/z @12:14 [WT_36C_num1_neg.mzML]</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
-        <parameter name="Scan number" type="INTEGER">502</parameter>
+        <parameter name="Scan number" type="INTEGER">1</parameter>
         <parameter name="thickness" type="DOUBLE">1.0E-5</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.0-2399.0</parameter>
-        <parameter name="m/z range" type="RANGE">99.99966430664062-1000.0100708007812</parameter>
+        <parameter name="Retention time" type="RANGE">0.7595999999999999-2400.0</parameter>
+        <parameter name="m/z range" type="RANGE">100.0-1000.0</parameter>
         <parameter name="Intensity threshold" type="DOUBLE">0.0</parameter>
         <parameter name="Top peaks threshold" type="INTEGER">0</parameter>
         <parameter name="Top peaks threshold in the displayed area" type="INTEGER">0</parameter>
@@ -108,9 +108,9 @@
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">544.2510375976562-882.260986328125</parameter>
+        <parameter name="Retention time" type="RANGE">2400.0-4259.0</parameter>
         <parameter name="Retention time resolution" type="INTEGER">700</parameter>
-        <parameter name="m/z range" type="RANGE">258.10748291015625-258.1145324707031</parameter>
+        <parameter name="m/z range" type="RANGE">600.1123-1200.9998</parameter>
         <parameter name="m/z resolution" type="INTEGER">700</parameter>
       </parameters> 
     </module>  
@@ -138,7 +138,7 @@
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
-          <width>175</width>
+          <width>442</width>
         </column>
         <column type="common" name="COMMENT">
           <visible>false</visible>
@@ -146,7 +146,7 @@
         </column>
         <column type="common" name="PEAKSHAPE">
           <visible>true</visible>
-          <width>361</width>
+          <width>340</width>
         </column>
         <column type="datafile" name="STATUS">
           <visible>true</visible>
@@ -369,41 +369,50 @@
       <parameters>
         <parameter name="Database file" type="FILE_NAME">/Volumes/Documents/peakid.csv</parameter>
         <parameter name="Field separator" type="STRING">,</parameter>
-        <parameter name="Field order" type="ORDERED_LIST">m/z,ID,Retention time,Identity,Formula</parameter>
+        <parameter name="Field order" type="ORDERED_LIST">ID,m/z,Retention time,Identity,Formula</parameter>
         <parameter name="Ignore first line" type="BOOLEAN">true</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">0.0050</parameter>
-        <parameter name="Time tolerance" type="DOUBLE">60.0</parameter>
+        <parameter name="Time tolerance" type="DOUBLE">80.0</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.identification.fragmentation.InSourceFragmentationSearch"/>  
+    <module class="net.sf.mzmine.modules.identification.fragmentsearch.FragmentSearch"> 
+      <parameters>
+        <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
+        <parameter name="m/z tolerance of MS2 data" type="DOUBLE">0.0050</parameter>
+        <parameter name="Max fragment peak height" type="DOUBLE">0.6</parameter>
+        <parameter name="Min MS2 peak height" type="DOUBLE">5000.0</parameter>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.modules.identification.adductsearch.AdductSearch" />
+    <module class="net.sf.mzmine.modules.identification.complexsearch.ComplexSearch" /> 
     <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch"> 
       <parameters>
         <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
-        <parameter name="Shape tolerance" type="DOUBLE">0.1</parameter>
-        <parameter name="Sharing points" type="DOUBLE">0.85</parameter>
-        <parameter name="Adducts" type="MULTIPLE_SELECTION"></parameter>
-        <parameter name="m/z adduct tolerance" type="DOUBLE">0.1</parameter>
+        <parameter name="Shape tolerance" type="DOUBLE">0.3</parameter>
+        <parameter name="Sharing points" type="DOUBLE">0.5</parameter>
+        <parameter name="Adducts" type="MULTIPLE_SELECTION">[M+Na-H], 21.9825 m/z,[M+K-H], 37.9559 m/z,[M+Mg-2H], 21.9694 m/z,[M+NH4-H], 17.0270 m/z,[M+H3PO4], 97.9770 m/z</parameter>
+        <parameter name="m/z adduct tolerance" type="DOUBLE">0.0030</parameter>
         <parameter name="Custom adduct name" type="STRING">Custom</parameter>
         <parameter name="Custom adduct value" type="DOUBLE">1.007825</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"> 
       <parameters>
-        <parameter name="Peak mass" type="DOUBLE">588.1906585069283</parameter>
+        <parameter name="Peak mass" type="DOUBLE">709.1097889368305</parameter>
         <parameter name="Charge" type="INTEGER">1</parameter>
-        <parameter name="Ionization method" type="STRING">No ionization</parameter>
-        <parameter name="Neutral mass" type="DOUBLE">588.1906585069283</parameter>
+        <parameter name="Ionization method" type="STRING">-H</parameter>
+        <parameter name="Neutral mass" type="DOUBLE">710.1177289907703</parameter>
         <parameter name="Molecule with charge" type="BOOLEAN">true</parameter>
         <parameter name="Number of results" type="INTEGER">50</parameter>
-        <parameter name="Mass tolerance" type="DOUBLE">0.0010</parameter>
+        <parameter name="Mass tolerance" type="DOUBLE">0.0020</parameter>
         <parameter name="Isotope pattern filter" type="BOOLEAN">false</parameter>
         <parameter name="Isotope pattern score threshold" type="DOUBLE">0.65</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.io.csvexport.CSVExporter"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">/tmp/mts3neg.csv</parameter>
+        <parameter name="Filename" type="FILE_NAME">/tmp/pos.csv</parameter>
         <parameter name="Field separator" type="STRING">,</parameter>
         <parameter name="Export elements" type="MULTIPLE_SELECTION">Export row m/z,Export row retention time,Export row compound name,Export peak area</parameter>
       </parameters> 
@@ -416,16 +425,21 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.xmlimport.XMLImporter"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">/Users/plusik/Documents/Metabolome paper 2/MZviewer/data/hcs1_pos.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">/Users/plusik/Documents/Metabolome paper 2/Tranche upload/Schizosaccharomyces pombe metabolome/MZviewer/data/negative_all.mpl</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.rawdata.resample.ResampleFilter">
+    <module class="net.sf.mzmine.modules.rawdata.resample.ResampleFilter"> 
       <parameters>
         <parameter name="Filename suffix" type="STRING">resampled</parameter>
         <parameter name="m/z bin length" type="DOUBLE">0.01</parameter>
         <parameter name="Remove source file" type="BOOLEAN">false</parameter>
-      </parameters>
-    </module>
+      </parameters> 
+    </module>  
+    <module class="net.sf.mzmine.modules.peakpicking.msms.MsMsPeakPicker"> 
+      <parameters>
+        <parameter name="m/z window" type="DOUBLE">0.0050</parameter>
+      </parameters> 
+    </module> 
   </modules>  
   <desktop>
     <format type="m/z">
