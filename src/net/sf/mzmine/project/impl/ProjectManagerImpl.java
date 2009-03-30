@@ -154,7 +154,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		listeners.remove(listener);
 	}
 
-	public void fireProjectListeners(ProjectEvent event) {
+	public synchronized void fireProjectListeners(ProjectEvent event) {
 		for (ProjectListener listener : listeners)
 			listener.projectModified(event);
 	}

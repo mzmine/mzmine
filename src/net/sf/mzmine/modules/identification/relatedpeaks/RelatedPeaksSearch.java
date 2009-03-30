@@ -104,18 +104,26 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener,
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] peaklists = desktop.getSelectedPeakLists();
+        PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-        if (peaklists.length == 0) {
+        if (peakLists.length == 0) {
             desktop.displayErrorMessage("Please select a peak lists to process");
             return;
         }
+        
+		for (int i = 0; i < peakLists.length; i++) {
+			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
+				desktop
+						.displayErrorMessage("Related peak search can only be performed on peak lists which have a single column");
+				return;
+			}
+		}
 
         ExitCode exitCode = setupParameters(parameters);
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, peaklists, parameters.clone(), null);
+        runModule(null, peakLists, parameters.clone(), null);
 
     }
 

@@ -25,12 +25,18 @@ import net.sf.mzmine.data.PeakListRow;
 public class FragmentIdentity implements PeakIdentity {
 
 	private PeakListRow mainPeakListRow;
+	private String fragmentName;
 
 	/**
 	 */
 	public FragmentIdentity(PeakListRow mainPeakListRow,
 			PeakListRow fragmentPeakListRow) {
 		this.mainPeakListRow = mainPeakListRow;
+
+		// We have to save the copy of the name here. If we ask
+		// mainPeakListRow.getName() everytime we are asked for a name, we may
+		// create an infinite loop if two rows depend on each other
+		this.fragmentName = "Fragment of " + mainPeakListRow;
 	}
 
 	/**
@@ -44,7 +50,11 @@ public class FragmentIdentity implements PeakIdentity {
 	 * @return Returns the Name
 	 */
 	public String getName() {
-		return "Fragment of " + mainPeakListRow;
+		return fragmentName;
+	}
+
+	public PeakListRow getMainPeak() {
+		return mainPeakListRow;
 	}
 
 	/**
