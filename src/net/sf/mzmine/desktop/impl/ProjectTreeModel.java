@@ -67,15 +67,8 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 			return ((PeakList) parent).getRow(num);
 		}
 		if (parent instanceof RawDataFile) {
-			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers(1);
+			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
 			return ((RawDataFile) parent).getScan(scanNumbers[num]);
-		}
-		if (parent instanceof Scan) {
-			Scan parentScan = (Scan) parent;
-			int fragments[] = parentScan.getFragmentScanNumbers();
-			RawDataFile dataFile = parentScan.getDataFile();
-			Scan fragmentScan = dataFile.getScan(fragments[num]);
-			return fragmentScan;
 		}
 		throw (new IllegalArgumentException("Unknown parent " + parent));
 	}
@@ -94,11 +87,7 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 			return ((PeakList) parent).getNumberOfRows();
 		}
 		if (parent instanceof RawDataFile) {
-			return ((RawDataFile) parent).getNumOfScans(1);
-		}
-		if (parent instanceof Scan) {
-			int fragmentScans[] = ((Scan) parent).getFragmentScanNumbers();
-			return fragmentScans.length;
+			return ((RawDataFile) parent).getNumOfScans();
 		}
 
 		throw (new IllegalArgumentException("Unknown parent " + parent));
@@ -132,17 +121,10 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 					return i;
 		}
 		if (parent instanceof RawDataFile) {
-			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers(1);
+			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
 			int num = ((Scan) child).getScanNumber();
 			for (int i = 0; i < scanNumbers.length; i++)
 				if (scanNumbers[i] == num)
-					return i;
-		}
-		if (parent instanceof Scan) {
-			Scan parentScan = (Scan) parent, childScan = (Scan) child;
-			int fragments[] = parentScan.getFragmentScanNumbers();
-			for (int i = 0; i < fragments.length; i++)
-				if (fragments[i] == childScan.getScanNumber())
 					return i;
 		}
 		throw (new IllegalArgumentException("Unknown parent " + parent));
@@ -153,13 +135,7 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 	}
 
 	public boolean isLeaf(Object element) {
-		if (element instanceof PeakListRow)
-			return true;
-		if (element instanceof Scan) {
-			int fragments[] = ((Scan) element).getFragmentScanNumbers();
-			return fragments == null;
-		}
-		return false;
+		return ((element instanceof PeakListRow) || (element instanceof Scan));
 	}
 
 	public void addTreeModelListener(TreeModelListener l) {
