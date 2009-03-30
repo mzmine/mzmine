@@ -234,7 +234,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			if (!scanNumberFound)
 				throw new SAXException("Scan number not found in scan id " + id);
 
-			scanNumber = Integer.parseInt(matcher.group(1)) + 1;
+			scanNumber = Integer.parseInt(matcher.group(1));
 			peaksCount = Integer.parseInt(defaultArrayLength);
 			scanId.put(id, scanNumber);
 			spectrumFlag = true;
