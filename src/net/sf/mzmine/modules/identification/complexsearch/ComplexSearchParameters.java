@@ -45,8 +45,8 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 	
 	public static final Parameter maxComplexHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Max fragment peak height",
-			"Maximum height of the recognized fragment peak, relative to the main peak",
+			"Max complex peak height",
+			"Maximum height of the recognized complex peak, relative to the main peak",
 			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
 	public ComplexSearchParameters() {

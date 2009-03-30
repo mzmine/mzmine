@@ -29,6 +29,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
 import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
 
@@ -117,25 +118,35 @@ public class ComplexSearchTask implements Task {
 		PeakListRow rows[] = peakList.getRows();
 		totalRows = rows.length;
 
+		// Sort the array by m/z so we start with biggest peak (possible
+		// complex)
+		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
+				SortingDirection.Descending));
+
 		// Compare each three rows against each other
 		for (int i = 0; i < totalRows; i++) {
-			for (int j = i + 1; j < rows.length; j++) {
-				for (int k = j + 1; k < rows.length; k++) {
+
+			Range testRTRange = new Range(rows[i].getAverageRT() - rtTolerance,
+					rows[i].getAverageRT() + rtTolerance);
+			PeakListRow testRows[] = peakList
+					.getRowsInsideScanRange(testRTRange);
+
+			for (int j = 0; j < testRows.length; j++) {
+
+				if (j == i)
+					continue;
+
+				for (int k = j + 1; k < testRows.length; k++) {
+
+					if (k == i)
+						continue;
 
 					// Task canceled?
 					if (status == TaskStatus.CANCELED)
 						return;
 
-					// We have three rows to consider
-					PeakListRow threeRows[] = new PeakListRow[] { rows[i],
-							rows[j], rows[k] };
-
-					// Sort them according to m/z
-					Arrays.sort(threeRows, new PeakListRowSorter(
-							SortingProperty.MZ, SortingDirection.Descending));
-
-					if (checkComplex(threeRows))
-						addComplexInfo(threeRows);
+					if (checkComplex(rows[i], testRows[j], testRows[k]))
+						addComplexInfo(rows[i], testRows[j], testRows[k]);
 
 				}
 
@@ -160,11 +171,12 @@ public class ComplexSearchTask implements Task {
 	 * Check if candidate peak may be a possible complex of given two peaks
 	 * 
 	 */
-	private boolean checkComplex(PeakListRow threeRows[]) {
+	private boolean checkComplex(PeakListRow complexRow, PeakListRow row1,
+			PeakListRow row2) {
 
-		ChromatographicPeak complexPeak = threeRows[0].getPeak(dataFile);
-		ChromatographicPeak peak1 = threeRows[1].getPeak(dataFile);
-		ChromatographicPeak peak2 = threeRows[2].getPeak(dataFile);
+		ChromatographicPeak complexPeak = complexRow.getPeak(dataFile);
+		ChromatographicPeak peak1 = row1.getPeak(dataFile);
+		ChromatographicPeak peak2 = row2.getPeak(dataFile);
 
 		// Check retention time condition
 		double rtDifference1 = Math.abs(complexPeak.getRT() - peak1.getRT());
@@ -194,10 +206,10 @@ public class ComplexSearchTask implements Task {
 	 * @param mainRow
 	 * @param fragmentRow
 	 */
-	private void addComplexInfo(PeakListRow[] threeRows) {
-		PeakListRow complexRow = threeRows[0];
-		ComplexIdentity newIdentity = new ComplexIdentity(complexRow,
-				threeRows[1], threeRows[2]);
+	private void addComplexInfo(PeakListRow complexRow, PeakListRow row1,
+			PeakListRow row2) {
+		ComplexIdentity newIdentity = new ComplexIdentity(complexRow, row1,
+				row2);
 		complexRow.addPeakIdentity(newIdentity, false);
 	}
 
