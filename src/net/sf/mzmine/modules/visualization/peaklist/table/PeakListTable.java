@@ -197,7 +197,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 						if (item.toString() == REMOVE_IDENTITY) {
 							PeakIdentity identity = peakListRow
 									.getPreferredPeakIdentity();
-							if (identity != PeakIdentity.UNKNOWN_IDENTITY) {
+							if (identity != null) {
 								peakListRow.removePeakIdentity(identity);
 								DefaultComboBoxModel comboModel = (DefaultComboBoxModel) combo
 										.getModel();

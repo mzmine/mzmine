@@ -24,10 +24,10 @@ import net.sf.mzmine.data.PeakIdentity;
 /**
  * Simple CompoundIdentity implementation;
  */
-public class SimplePeakIdentity implements PeakIdentity, Comparable {
+public class SimplePeakIdentity implements PeakIdentity {
 
     private String compoundID, compoundName, alternateNames[], compoundFormula;
-    private String databaseEntryURL, identificationMethod, scopeNote;
+    private String databaseEntryURL, identificationMethod;
 
     /**
      * @param compoundID
@@ -40,7 +40,7 @@ public class SimplePeakIdentity implements PeakIdentity, Comparable {
      */
     public SimplePeakIdentity(String compoundID, String compoundName,
             String[] alternateNames, String compoundFormula,
-            String databaseEntryURL, String identificationMethod, String scopeNote) {
+            String databaseEntryURL, String identificationMethod) {
         this.compoundID = compoundID;
         this.compoundName = compoundName;
         this.alternateNames = alternateNames;
@@ -55,7 +55,6 @@ public class SimplePeakIdentity implements PeakIdentity, Comparable {
         
         this.databaseEntryURL = databaseEntryURL;
         this.identificationMethod = identificationMethod;
-        this.scopeNote = scopeNote;
     }
 
     /**
@@ -141,29 +140,12 @@ public class SimplePeakIdentity implements PeakIdentity, Comparable {
     public void setIdentificationMethod(String identificationMethod) {
         this.identificationMethod = identificationMethod;
     }
-    
-    /**
-     * @param scopeNote The scope note to set
-     */
-    public void setScopeNote(String scopeNote){
-    	this.scopeNote = scopeNote;
-    }
-    
-    /**
-     * @return Returns scopeNote The scope note
-     */
-    public String getScopeNote(){
-    	return scopeNote;
-    }
-    
  
     /**
      * @see java.lang.Object#toString()
      */
     public String toString() {
-    	String ret;
-		ret = compoundName + " (" + compoundFormula + ") identification method: " + identificationMethod;
-        return ret;
+        return getDescription();
     }
 
     /**
@@ -171,13 +153,19 @@ public class SimplePeakIdentity implements PeakIdentity, Comparable {
      */
     public int compareTo(Object value) {
         
-        if (value == UNKNOWN_IDENTITY) return 1;
+        if (value == null)
+			return 1;
         
         PeakIdentity identityValue = (PeakIdentity) value;
         String valueName = identityValue.getName();
         if (valueName == null) return 1;
         return valueName.compareTo(compoundName);
     }
+
+	public String getDescription() {
+		return compoundName + " (" + compoundFormula
+				+ ") identification method: " + identificationMethod;
+	}
 
 
 }

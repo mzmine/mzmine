@@ -62,47 +62,33 @@ public class CollectionUtils {
         return newArray;
     }
 
-    /**
-     * Returns an array of doubles consisting of the elements of the specified
-     * collection.
-     * 
-     * @param collection Collection of Doubles
-     * @return Array of doubles
-     */
-    public static float[] toFloatArray(Collection<Float> collection) {
-        float array[] = new float[collection.size()];
-        int index = 0;
-        Iterator<Float> it = collection.iterator();
-        while (it.hasNext()) {
-            array[index++] = it.next();
-        }
-        return array;
-    }
+	/**
+	 * Returns an array of doubles consisting of the elements of the specified
+	 * collection.
+	 * 
+	 * @param collection
+	 *            Collection of Doubles
+	 * @return Array of doubles
+	 */
+	public static double[] toDoubleArray(Collection<Double> collection) {
+		double array[] = new double[collection.size()];
+		int index = 0;
+		Iterator<Double> it = collection.iterator();
+		while (it.hasNext()) {
+			array[index++] = it.next();
+		}
+		return array;
+	}
 
-    /**
-     * Returns an array of doubles consisting of the elements of the specified
-     * collection.
-     * 
-     * @param collection Collection of Doubles
-     * @return Array of doubles
-     */
-    public static double[] toDoubleArray(Collection<Double> collection) {
-        double array[] = new double[collection.size()];
-        int index = 0;
-        Iterator<Double> it = collection.iterator();
-        while (it.hasNext()) {
-            array[index++] = it.next();
-        }
-        return array;
-    }
-
-    /**
-     * Checks if the haystack array contains all elements of needles array
-     * 
-     * @param haystack array of ints
-     * @param needles array of ints
-     * @return true if haystack contains all elements of needles
-     */
+	/**
+	 * Checks if the haystack array contains all elements of needles array
+	 * 
+	 * @param haystack
+	 *            array of ints
+	 * @param needles
+	 *            array of ints
+	 * @return true if haystack contains all elements of needles
+	 */
     public static boolean isSubset(int haystack[], int needles[]) {
         needleTraversal: for (int i = 0; i < needles.length; i++) {
             for (int j = 0; j < haystack.length; j++) {

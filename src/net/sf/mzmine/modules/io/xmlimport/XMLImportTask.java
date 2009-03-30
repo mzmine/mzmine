@@ -562,8 +562,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
 			SimplePeakIdentity identity = new SimplePeakIdentity(identityID,
-					name, new String[0], formula, null, identificationMethod,
-					null);
+					name, new String[0], formula, null, identificationMethod);
 			buildingRow.addPeakIdentity(identity, preferred);
 		}
 

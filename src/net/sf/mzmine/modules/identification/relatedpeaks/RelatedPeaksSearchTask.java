@@ -25,8 +25,8 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.GroupRelatedPeaks;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -36,6 +36,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.CollectionUtils;
 
 public class RelatedPeaksSearchTask implements Task {
 
@@ -68,8 +69,10 @@ public class RelatedPeaksSearchTask implements Task {
 		sharingPoints = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
 
-        
-        selectedAdducts = (CommonAdducts[]) parameters.getParameterValue(RelatedPeaksSearchParameters.adducts);
+        Object adductObjects[] = (Object[]) parameters
+				.getParameterValue(RelatedPeaksSearchParameters.adducts);
+		selectedAdducts = CollectionUtils.changeArrayType(adductObjects,
+				CommonAdducts.class);
 
 		double customMassDifference = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.customAdductValue);
@@ -113,7 +116,7 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Identification of related peaks throw " + peakList.toString();
+		return "Identification of related peaks in " + peakList.toString();
 	}
 
 	/**
@@ -235,7 +238,6 @@ public class RelatedPeaksSearchTask implements Task {
 							identity = new RelatedPeakIdentity(currentRow,
 									comparedRow, adduct);
 							comparedRow.addPeakIdentity(identity, false);
-							// currentRow.addCompoundIdentity(identity, false);
 							peaksGroups.add(currentGroup);
 							numOfGroups++;
 						}

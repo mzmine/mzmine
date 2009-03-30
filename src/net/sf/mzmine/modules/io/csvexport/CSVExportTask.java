@@ -26,6 +26,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.CollectionUtils;
 
@@ -38,19 +39,21 @@ class CSVExportTask implements Task {
 
 	// parameter values
 	private String fileName, fieldSeparator;
-	private ExportRowElement[] elements;       
+	private ExportRowElement[] elements;
 
 	CSVExportTask(PeakList peakList, CSVExporterParameters parameters) {
 
 		this.peakList = peakList;
 
 		fileName = (String) parameters
-		.getParameterValue(CSVExporterParameters.filename);
+				.getParameterValue(CSVExporterParameters.filename);
 		fieldSeparator = (String) parameters
-		.getParameterValue(CSVExporterParameters.fieldSeparator);
+				.getParameterValue(CSVExporterParameters.fieldSeparator);
 
-		Object elementsObjects[] = (Object[]) parameters.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
-		elements = CollectionUtils.changeArrayType(elementsObjects, ExportRowElement.class);        
+		Object elementsObjects[] = (Object[]) parameters
+				.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
+		elements = CollectionUtils.changeArrayType(elementsObjects,
+				ExportRowElement.class);
 
 	}
 
@@ -92,7 +95,7 @@ class CSVExportTask implements Task {
 		// Get number of rows
 		totalRows = peakList.getNumberOfRows();
 
-		RawDataFile rawDataFiles[] = peakList.getRawDataFiles(); 
+		RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 
 		// Buffer for writing
 		StringBuffer line = new StringBuffer();
@@ -149,8 +152,8 @@ class CSVExportTask implements Task {
 						break;
 					case ROW_MZ:
 						line
-						.append(peakListRow.getAverageMZ()
-								+ fieldSeparator);
+								.append(peakListRow.getAverageMZ()
+										+ fieldSeparator);
 						break;
 					case ROW_RT:
 						line.append((peakListRow.getAverageRT() / 60)
@@ -169,9 +172,9 @@ class CSVExportTask implements Task {
 							line.append(fieldSeparator);
 						} else {
 
-							line.append("\"" + peakListRow
-									.getPreferredPeakIdentity().getName()
-									+ "\"" + fieldSeparator);
+							line.append("\""
+									+ peakListRow.getPreferredPeakIdentity()
+											.getName() + "\"" + fieldSeparator);
 						}
 						break;
 					case ROW_ALL_NAME:
@@ -180,7 +183,7 @@ class CSVExportTask implements Task {
 						} else {
 							name = "";
 							PeakIdentity[] compoundIdentities = peakListRow
-							.getPeakIdentities();
+									.getPeakIdentities();
 							for (PeakIdentity compoundIdentity : compoundIdentities) {
 								name += compoundIdentity.getName() + " // ";
 							}
@@ -188,14 +191,14 @@ class CSVExportTask implements Task {
 						}
 						break;
 					case ROW_FORMULA:
-						if (peakListRow.getPreferredPeakIdentity() == null) {
-							line.append(fieldSeparator);
-						} else {
-							line.append(peakListRow
-									.getPreferredPeakIdentity()
-									.getCompoundFormula()
-									+ fieldSeparator);
+						String formula = "";
+						if (peakListRow.getPreferredPeakIdentity() instanceof SimplePeakIdentity) {
+							SimplePeakIdentity id = (SimplePeakIdentity) peakListRow
+									.getPreferredPeakIdentity();
+							formula = id.getCompoundFormula();
 						}
+						line.append(formula + fieldSeparator);
+
 						break;
 					case ROW_PEAK_NUMBER:
 						int numDetected = 0;
@@ -214,7 +217,7 @@ class CSVExportTask implements Task {
 				for (int i = 0; i < length; i++) {
 					if (!elements[i].isCommon()) {
 						ChromatographicPeak peak = peakListRow
-						.getPeak(dataFile);
+								.getPeak(dataFile);
 						if (peak != null) {
 							switch (elements[i]) {
 							case PEAK_STATUS:

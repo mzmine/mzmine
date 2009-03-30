@@ -24,8 +24,6 @@ package net.sf.mzmine.data;
  */
 public interface PeakIdentity {
 
-	public static final PeakIdentity UNKNOWN_IDENTITY = null;
-
 	/**
 	 * Returns description of identification method, e.g. which database was
 	 * searched.
@@ -35,33 +33,17 @@ public interface PeakIdentity {
 	public String getIdentificationMethod();
 
 	/**
-	 * Returns ID of identified compound, e.g. ID of this compound in a given
-	 * database.
+	 * Returns name of the identified peak
 	 * 
-	 * @return Compound ID
-	 */
-	public String getID();
-
-	/**
-	 * Returns compound name
-	 * 
-	 * @return Compound name
+	 * @return Peak name
 	 */
 	public String getName();
-
+	
 	/**
-	 * Returns compound formula
+	 * Returns full, multi-line description of this identity
 	 * 
-	 * @return Formula
+	 * @return Description
 	 */
-	public String getCompoundFormula();
-
-
-	/**
-	 * Returns a String with information about this compound.
-	 * 
-	 * @return String
-	 */
-	public String toString();
+	public String getDescription();
 
 }

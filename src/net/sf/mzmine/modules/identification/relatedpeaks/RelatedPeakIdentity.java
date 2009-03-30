@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.identification.relatedpeaks;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 
-public class RelatedPeakIdentity implements PeakIdentity, Comparable {
+public class RelatedPeakIdentity implements PeakIdentity {
 
     private PeakListRow originalPeakListRow;
     private PeakListRow relatedPeakListRow;
@@ -58,13 +58,7 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @return Returns the Name
      */
     public String getName() {
-    	String adductName = adduct.getName();
-    	if (adductName.equals(CommonAdducts.ALLRELATED.getName())){
-    		return " Fragment of peak: #" + originalPeakListRow;
-    	}
-    	else{
-    		return adduct.getName() + " adduct of " + originalPeakListRow;
-    	}
+    	return adduct.getName() + " adduct of " + originalPeakListRow;
     }
 
     /**
@@ -106,11 +100,11 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        return this.getName();
+        return getName();
     }
 
     public int compareTo(Object value) {
-        if (value == UNKNOWN_IDENTITY) {
+        if (value == null) {
             return 1;
         }
 
@@ -121,4 +115,8 @@ public class RelatedPeakIdentity implements PeakIdentity, Comparable {
         }
         return valueName.compareTo(this.getName());
     }
+
+	public String getDescription() {
+		return getName();
+	}
 }

@@ -19,185 +19,165 @@
 
 package net.sf.mzmine.modules.identification.pubchem;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakIdentity;
 
 public class PubChemCompound implements PeakIdentity, Comparable {
 
-    private String compoundID, compoundName, alternateNames[], compoundFormula;
-    private String databaseEntryURL, identificationMethod, scopeNote;
-    private String exactMass = "", isotopePatternScore = "";
-    private IsotopePattern isotopePattern;
-    private String structure;
-    private static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
+	private String compoundID, compoundName, alternateNames[], compoundFormula;
+	private String databaseEntryURL;
+	private String exactMass = "", isotopePatternScore = "";
+	private IsotopePattern isotopePattern;
+	private String structure;
+	public static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
 
-    /**
-     * @param compoundID
-     * @param compoundName
-     * @param alternateNames
-     * @param compoundFormula
-     * @param databaseEntryURL
-     * @param identificationMethod
-     * @param scopeNote
-     */
-    public PubChemCompound(String compoundID, String compoundName,
-            String[] alternateNames, String compoundFormula,
-            String databaseEntryURL, String identificationMethod, String scopeNote) {
-        this.compoundName = compoundName;
-        this.compoundFormula = compoundFormula;
-        
-        if (compoundName == null){
-            this.compoundName = compoundFormula;
-        }
-        else if (compoundName.equals("")){
-            this.compoundName = compoundFormula;
-        }
-        
-        this.compoundID = compoundID;
-        this.alternateNames = alternateNames;
-        if (databaseEntryURL == null){
-        	this.databaseEntryURL =  pubchemAddress + compoundID;
-        }
-        else{
-            this.databaseEntryURL = databaseEntryURL;
-        }
-        this.identificationMethod = identificationMethod;
-        this.scopeNote = scopeNote;
-    }
-	
-    /**
-     * @return Returns the alternateNames.
-     */
-    public String[] getAlternateNames() {
-        return alternateNames;
-    }
+	/**
+	 * @param compoundID
+	 * @param compoundName
+	 * @param alternateNames
+	 * @param compoundFormula
+	 * @param databaseEntryURL
+	 * @param identificationMethod
+	 * @param scopeNote
+	 */
+	public PubChemCompound(String compoundID, String compoundName,
+			String[] alternateNames, String compoundFormula,
+			String databaseEntryURL) {
+		this.compoundName = compoundName;
+		this.compoundFormula = compoundFormula;
 
-    /**
-     * @param alternateNames The alternateNames to set.
-     */
-    public void setAlternateNames(String[] alternateNames) {
-        this.alternateNames = alternateNames;
-    }
+		if (compoundName == null) {
+			this.compoundName = compoundFormula;
+		} else if (compoundName.equals("")) {
+			this.compoundName = compoundFormula;
+		}
 
-    /**
-     * @return Returns the compoundFormula.
-     */
-    public String getCompoundFormula() {
-        return compoundFormula;
-    }
+		this.compoundID = compoundID;
+		this.alternateNames = alternateNames;
+		if (databaseEntryURL == null) {
+			this.databaseEntryURL = pubchemAddress + compoundID;
+		} else {
+			this.databaseEntryURL = databaseEntryURL;
+		}
+	}
 
-    /**
-     * @param compoundFormula The compoundFormula to set.
-     */
-    public void setCompoundFormula(String compoundFormula) {
-        this.compoundFormula = compoundFormula;
-    }
+	/**
+	 * @return Returns the alternateNames.
+	 */
+	public String[] getAlternateNames() {
+		return alternateNames;
+	}
 
-    /**
-     * @return Returns the compoundID.
-     */
-    public String getID() {
-        return compoundID;
-    }
+	/**
+	 * @param alternateNames
+	 *            The alternateNames to set.
+	 */
+	public void setAlternateNames(String[] alternateNames) {
+		this.alternateNames = alternateNames;
+	}
 
-    /**
-     * @param compoundID The compoundID to set.
-     */
-    public void setCompoundID(String compoundID) {
-        this.compoundID = compoundID;
-    }
+	/**
+	 * @return Returns the compoundFormula.
+	 */
+	public String getCompoundFormula() {
+		return compoundFormula;
+	}
 
-    /**
-     * @return Returns the compoundName.
-     */
-    public String getName() {
-        return compoundName;
-    }
+	/**
+	 * @param compoundFormula
+	 *            The compoundFormula to set.
+	 */
+	public void setCompoundFormula(String compoundFormula) {
+		this.compoundFormula = compoundFormula;
+	}
 
-    /**
-     * @param compoundName The compoundName to set.
-     */
-    public void setCompoundName(String compoundName) {
-        this.compoundName = compoundName;
-    }
+	/**
+	 * @return Returns the compoundID.
+	 */
+	public String getID() {
+		return compoundID;
+	}
 
-    /**
-     * @return Returns the databaseEntryURL.
-     */
-    public String getDatabaseEntryURL() {
-        return databaseEntryURL;
-    }
+	/**
+	 * @param compoundID
+	 *            The compoundID to set.
+	 */
+	public void setCompoundID(String compoundID) {
+		this.compoundID = compoundID;
+	}
 
-    /**
-     * @param databaseEntryURL The databaseEntryURL to set.
-     */
-    public void setDatabaseEntryURL(String databaseEntryURL) {
-        this.databaseEntryURL = databaseEntryURL;
-    }
+	/**
+	 * @return Returns the compoundName.
+	 */
+	public String getName() {
+		return compoundName;
+	}
 
-    /**
-     * @return Returns the identificationMethod.
-     */
-    public String getIdentificationMethod() {
-        return identificationMethod;
-    }
+	/**
+	 * @param compoundName
+	 *            The compoundName to set.
+	 */
+	public void setCompoundName(String compoundName) {
+		this.compoundName = compoundName;
+	}
 
-    /**
-     * @param identificationMethod The identificationMethod to set.
-     */
-    public void setIdentificationMethod(String identificationMethod) {
-        this.identificationMethod = identificationMethod;
-    }
-    
-    /**
-     * @param scopeNote The scope note to set
-     */
-    public void setScopeNote(String scopeNote){
-    	this.scopeNote = scopeNote;
-    }
-    
-    /**
-     * @return Returns scopeNote The scope note
-     */
-    public String getScopeNote(){
-    	return scopeNote;
-    }
-    
+	/**
+	 * @return Returns the databaseEntryURL.
+	 */
+	public String getDatabaseEntryURL() {
+		return databaseEntryURL;
+	}
+
+	/**
+	 * @param databaseEntryURL
+	 *            The databaseEntryURL to set.
+	 */
+	public void setDatabaseEntryURL(String databaseEntryURL) {
+		this.databaseEntryURL = databaseEntryURL;
+	}
+
+	/**
+	 * @return Returns the identificationMethod.
+	 */
+	public String getIdentificationMethod() {
+		return "PubChem compound database";
+	}
+
 	/**
 	 * Set the difference between this compound and the detected peak
 	 * 
 	 * @return String exact mass
 	 */
-    public void setExactMassDifference (String exactMass){
-    	this.exactMass = exactMass;
-    }
-    
+	public void setExactMassDifference(String exactMass) {
+		this.exactMass = exactMass;
+	}
+
 	/**
 	 * Returns the difference between this compound and the detected peak
 	 * 
 	 * @return String exact mass
 	 */
-    public String getExactMassDifference(){
-    	return exactMass;
-    }
-    
+	public String getExactMassDifference() {
+		return exactMass;
+	}
+
 	/**
 	 * Set the isotope pattern (predicted) of this compound
 	 * 
 	 * @return String exact mass
 	 */
-    public void setIsotopePatterScore(String score){
-    	this.isotopePatternScore = score;
-    }
-    
+	public void setIsotopePatterScore(String score) {
+		this.isotopePatternScore = score;
+	}
+
 	/**
 	 * Returns the isotope pattern (predicted) of this compound
 	 * 
 	 * @return IsotopePattern
 	 */
-    public String getIsotopePatternScore(){
-    	return isotopePatternScore;
-    }
+	public String getIsotopePatternScore() {
+		return isotopePatternScore;
+	}
 
 	/**
 	 * Returns the isotope pattern of this compound identity.
@@ -208,7 +188,6 @@ public class PubChemCompound implements PeakIdentity, Comparable {
 		return isotopePattern;
 	}
 
-	
 	/**
 	 * Assign an isotope pattern to this compound identity.
 	 * 
@@ -217,14 +196,14 @@ public class PubChemCompound implements PeakIdentity, Comparable {
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
 	}
-	
+
 	/**
 	 * Assign the structure (SDF format) of this compound.
 	 * 
 	 * @param structure
 	 */
-	public void  setStructure(String structure){
-		this.structure =  structure;
+	public void setStructure(String structure) {
+		this.structure = structure;
 	}
 
 	/**
@@ -232,30 +211,35 @@ public class PubChemCompound implements PeakIdentity, Comparable {
 	 * 
 	 * @return structure
 	 */
-	public String getStructure(){
+	public String getStructure() {
 		return structure;
 	}
 
-    /**
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-    	String ret;
-		ret = compoundName + " (" + compoundFormula + 
-			") CID" + compoundID + " identification method: " + identificationMethod;
-        return ret;
-    }
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return getDescription();
+	}
 
-    /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(Object value) {
-        
-        if (value == UNKNOWN_IDENTITY) return 1;
-        
-        PeakIdentity identityValue = (PeakIdentity) value;
-        String valueName = identityValue.getName();
-        if (valueName == null) return 1;
-        return valueName.compareTo(compoundName);
-    }
+	/**
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	public int compareTo(Object value) {
+
+		if (value == null)
+			return 1;
+
+		PeakIdentity identityValue = (PeakIdentity) value;
+		String valueName = identityValue.getName();
+		if (valueName == null)
+			return 1;
+		return valueName.compareTo(compoundName);
+	}
+
+	public String getDescription() {
+		return compoundName + " (" + compoundFormula + ")\n" + "CID"
+				+ compoundID + "\n" + "Identification method: "
+				+ getIdentificationMethod();
+	}
 }

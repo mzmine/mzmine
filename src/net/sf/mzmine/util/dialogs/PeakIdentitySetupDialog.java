@@ -17,7 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.util.dialogs;
 
 import java.awt.BorderLayout;
@@ -40,38 +39,39 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
-	
+public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
+
 	public static final int TEXTFIELD_COLUMNS = 20;
-	
-	//TextField
+
+	// TextField
 	private JTextField compoundName, compoundFormula, compoundID;
-	
-	//TextArea
+
+	// TextArea
 	private JTextArea comments;
-	
+
 	// Buttons
 	private JButton btnOK, btnCancel;
-	
-    private PeakListRow peakListRow;
-    private PeakIdentity editIdentity;
-	
+
+	private PeakListRow peakListRow;
+	private PeakIdentity editIdentity;
+
 	private ExitCode exitCode = ExitCode.UNKNOWN;
-	
+
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
 
-    public PeakIdentitySetupDialog (PeakListRow peakListRow){
-        this(peakListRow, null);
-    }
-    
-	public PeakIdentitySetupDialog (PeakListRow peakListRow, PeakIdentity editIdentity){
+	public PeakIdentitySetupDialog(PeakListRow peakListRow) {
+		this(peakListRow, null);
+	}
+
+	public PeakIdentitySetupDialog(PeakListRow peakListRow,
+			PeakIdentity editIdentity) {
 
 		// Make dialog modal
 		super(MZmineCore.getDesktop().getMainFrame(), true);
-		
+
 		this.peakListRow = peakListRow;
-		
+
 		JPanel pnlLabels, pnlFields, pnlButtons, labelsAndFields, pnlAll;
 
 		// panels for labels, text fields and units
@@ -87,7 +87,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
 		pnlLabels.add(lblFormula);
 		JLabel lblID = new JLabel("ID");
 		pnlLabels.add(lblID);
-		
+
 		compoundName = new JTextField();
 		compoundName.setColumns(TEXTFIELD_COLUMNS);
 		pnlFields.add(compoundName);
@@ -97,27 +97,31 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
 		compoundID = new JTextField();
 		compoundFormula.setColumns(TEXTFIELD_COLUMNS);
 		pnlFields.add(compoundID);
-		
-		comments = new JTextArea(5,TEXTFIELD_COLUMNS);
-        comments.setText(peakListRow.getComment());
+
+		comments = new JTextArea(5, TEXTFIELD_COLUMNS);
+		comments.setText(peakListRow.getComment());
 		JScrollPane scrollPane = new JScrollPane(comments);
-		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPane
+				.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPane
+				.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setSize(300, 200);
-		
+
 		JPanel pnlComments = new JPanel(new BorderLayout());
 		pnlComments.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 		pnlComments.add(new JLabel("Comments"), BorderLayout.NORTH);
 		pnlComments.add(scrollPane, BorderLayout.CENTER);
-        
-        if (editIdentity != null) {
-            this.editIdentity = editIdentity;
-            compoundName.setText(editIdentity.getName());
-            compoundFormula.setText(editIdentity.getCompoundFormula());
-            compoundID.setText(editIdentity.getID());
-        }
-        
-		
+
+		if (editIdentity != null) {
+			this.editIdentity = editIdentity;
+			compoundName.setText(editIdentity.getName());
+			if (editIdentity instanceof SimplePeakIdentity) {
+				SimplePeakIdentity sid = (SimplePeakIdentity) editIdentity;
+				compoundFormula.setText(sid.getCompoundFormula());
+				compoundID.setText(sid.getID());
+			}
+		}
+
 		// Buttons
 		pnlButtons = new JPanel();
 		btnOK = new JButton("OK");
@@ -135,43 +139,44 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
 		// Panel where everything is collected
 		pnlAll = new JPanel(new BorderLayout());
 		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		
+
 		pnlAll.add(labelsAndFields, BorderLayout.NORTH);
 		pnlAll.add(pnlComments, BorderLayout.CENTER);
 		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
-		
+
 		add(pnlAll);
 		setTitle("Compound Identity setup dialog");
 		pack();
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-	
+
 	}
-	
+
 	public void actionPerformed(ActionEvent e) {
 		Object src = e.getSource();
 
 		if (src == btnOK) {
-			
+
 			String name = null, id = null, formula = null, note = null;
 			name = compoundName.getText();
 			formula = compoundFormula.getText();
 			id = compoundID.getText();
 			note = comments.getText();
 
-			if ((name == null) || (name.length() == 0)){
+			if ((name == null) || (name.length() == 0)) {
 				String message = "Name not valid";
 				desktop.displayErrorMessage(message);
 				return;
 			}
-				
-			SimplePeakIdentity compound;
-			compound = new SimplePeakIdentity(id, name, null,
-					formula, null, "User defined", note);
 
-            if (editIdentity != null) peakListRow.removePeakIdentity(editIdentity);
+			SimplePeakIdentity compound;
+			compound = new SimplePeakIdentity(id, name, null, formula, null,
+					"User defined");
+
+			if (editIdentity != null)
+				peakListRow.removePeakIdentity(editIdentity);
 			peakListRow.addPeakIdentity(compound, true);
 			peakListRow.setComment(note);
-			
+
 			exitCode = ExitCode.OK;
 			dispose();
 		}
@@ -181,7 +186,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener{
 			dispose();
 		}
 	}
-	
+
 	/**
 	 * Method for reading exit code
 	 * 

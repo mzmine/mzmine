@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.desktop.helpsystem;
 
 import java.util.Comparator;
 

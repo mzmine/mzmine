@@ -177,7 +177,7 @@ class CustomDBSearchTask implements Task {
 
         File dbFile = new File(dataBaseFile);
         SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineID,
-                lineName, null, lineFormula, null, dbFile.getName(), null);
+                lineName, null, lineFormula, null, dbFile.getName());
 
         for (PeakListRow peakRow : peakList.getRows()) {
 

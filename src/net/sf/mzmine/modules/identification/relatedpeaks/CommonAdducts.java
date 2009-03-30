@@ -16,37 +16,40 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public enum CommonAdducts {
 
-    ALLRELATED("All related peaks", 0.0),
-    NAH("[M+Na-H]", 21.9825),
-    MNH4("[M+NH4-H]", 17.027),
-    MK("[M+K-H]", 37.9559),
-    MMg("[M+Mg-2H]", 21.9694),
-    DEUTERIUM("[(Deuterium)]glycerol", 5.0),
-    CUSTOM("Custom", 0.0);
-    
-    private final String name;
-    private final double massDifference;
+	ALLRELATED("All related peaks", 0.0),
+	Na("[M+Na-H]", 21.9825),
+	K("[M+K-H]", 37.9559),
+	Mg("[M+Mg-2H]", 21.9694),
+	NH4("[M+NH4-H]", 17.027),
+	H3PO4("[M+H3PO4]", 97.977),
+	Glycerol("[(Deuterium)]glycerol", 5.0),
+	CUSTOM("Custom", 0.0);
 
-    CommonAdducts(String name, double massDifference) {
-        this.name = name;
-        this.massDifference = massDifference;
-    }
+	private final String name;
+	private final double massDifference;
 
-    public String getName() {
-        return this.name;
-    }
+	CommonAdducts(String name, double massDifference) {
+		this.name = name;
+		this.massDifference = massDifference;
+	}
 
-    public double getMassDifference() {
-        return this.massDifference;
-    }
-    
-    public String toString(){
-    	return this.name + ", " + MZmineCore.getMZFormat().format(this.massDifference) + " m/z";
-    }
+	public String getName() {
+		return this.name;
+	}
+
+	public double getMassDifference() {
+		return this.massDifference;
+	}
+
+	public String toString() {
+		return this.name + ", "
+				+ MZmineCore.getMZFormat().format(this.massDifference) + " m/z";
+	}
 }

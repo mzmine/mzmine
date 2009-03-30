@@ -30,6 +30,7 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.project.ProjectEvent;
 
 /**
  * 
@@ -47,7 +48,6 @@ public class SimplePeakListRow implements PeakListRow {
         this.myID = myID;
         peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
         identities = new HashSet<PeakIdentity>();
-        preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
     }
 
     /**
@@ -178,7 +178,7 @@ public class SimplePeakListRow implements PeakListRow {
 
         if (!exists) {
             identities.add(identity);
-            if ((preferredIdentity == PeakIdentity.UNKNOWN_IDENTITY)
+            if ((preferredIdentity == null)
                     || (preferred)) {
                 setPreferredPeakIdentity(identity);
             }
@@ -195,7 +195,7 @@ public class SimplePeakListRow implements PeakListRow {
                 PeakIdentity[] identitiesArray = identities.toArray(new PeakIdentity[0]);
                 setPreferredPeakIdentity(identitiesArray[0]);
             } else
-                preferredIdentity = PeakIdentity.UNKNOWN_IDENTITY;
+                preferredIdentity = null;
         }
     }
 
@@ -235,6 +235,11 @@ public class SimplePeakListRow implements PeakListRow {
                 identities.add(identity);
             }
         }
+        
+        // Notify the project manager that peaklist contents have changed
+		MZmineCore.getProjectManager().fireProjectListeners(
+				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+
     }
 
     /**

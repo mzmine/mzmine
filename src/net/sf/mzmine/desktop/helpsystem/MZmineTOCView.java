@@ -41,7 +41,6 @@ import javax.help.TreeItem;
 import javax.help.Map.ID;
 import javax.swing.tree.DefaultMutableTreeNode;
 
-import net.sf.mzmine.util.TOCItemSorterByName;
 
 public class MZmineTOCView extends TOCView {
 

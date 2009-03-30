@@ -39,6 +39,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.taskcontrol.Task;
 
@@ -323,7 +324,12 @@ public class XMLExportTask implements Task {
 
 		// <FORMULA>
 		newElement = element.addElement(PeakListElementName.FORMULA.getElementName());
-		newElement.addText(identity.getCompoundFormula() != null ? identity.getCompoundFormula() : " ");
+		String formula = "";
+		if (identity instanceof SimplePeakIdentity) {
+			SimplePeakIdentity id = (SimplePeakIdentity) identity;
+			formula = id.getCompoundFormula();
+		}
+		newElement.addText(formula);
 
 		// <IDENTIFICATION>
 		newElement = element.addElement(PeakListElementName.IDENTIFICATION.getElementName());

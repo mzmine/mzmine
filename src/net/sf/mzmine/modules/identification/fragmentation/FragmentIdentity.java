@@ -19,36 +19,43 @@
 
 package net.sf.mzmine.modules.identification.fragmentation;
 
-import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.PeakListRow;
 
-/**
- * Module for identification of peaks produced by in-source fragmentation 
- */
-public class InSourceFragmentationSearch implements MZmineModule {
+public class FragmentIdentity implements PeakIdentity {
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        // TODO Auto-generated method stub
-        return null;
-    }
+	private PeakListRow mainPeakListRow;
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 */
+	public FragmentIdentity(PeakListRow mainPeakListRow,
+			PeakListRow fragmentPeakListRow) {
+		this.mainPeakListRow = mainPeakListRow;
+	}
 
-    }
+	/**
+	 * @return Returns the identificationMethod
+	 */
+	public String getIdentificationMethod() {
+		return "Fragment search";
+	}
 
+	/**
+	 * @return Returns the Name
+	 */
+	public String getName() {
+		return "Fragment of " + mainPeakListRow;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        // TODO Auto-generated method stub
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return getName();
+	}
 
-    }
+	public String getDescription() {
+		return getName();
+	}
 
 }

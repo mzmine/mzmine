@@ -211,7 +211,7 @@ public class PubChemSearchTask implements Task {
 
 					pubChemID = resSearch.getIdList()[i];
 					compound = new PubChemCompound(pubChemID, null, null, null,
-							null, "PubChem", null);
+							null);
 
 					getSummary(compound, valueOfQuery);
 					getName(pubChemID, compound);
@@ -271,7 +271,7 @@ public class PubChemSearchTask implements Task {
 					for (int i = 0; i < numIDs; i++) {
 						pubChemID = resSearch.getIdList()[i];
 						compound = new PubChemCompound(pubChemID, null, null,
-								null, null, "PubChem", null);
+								null, null);
 						getSummary(compound, valueOfQuery);
 						getName(pubChemID, compound);
 
