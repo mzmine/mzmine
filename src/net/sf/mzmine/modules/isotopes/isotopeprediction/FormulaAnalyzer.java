@@ -26,10 +26,10 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.util.DataPointSorter;
 
 import org.openscience.cdk.ChemObject;
@@ -70,7 +70,7 @@ public class FormulaAnalyzer {
 	public IsotopePattern getIsotopePattern(String originalFormula,
 			double minAbundance, int charge, boolean positiveCharge,
 			double isotopeHeight, boolean autoHeight, boolean sumOfMasses,
-			TypeOfIonization ionization) throws Exception {
+			IonizationType ionization) throws Exception {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
 		
@@ -754,10 +754,11 @@ public class FormulaAnalyzer {
 	}
 	
 	
-	private static HashMap<String, Integer> loadIonization(HashMap<String, Integer> tokens, TypeOfIonization ionization){
+	private static HashMap<String, Integer> loadIonization(
+			HashMap<String, Integer> tokens, IonizationType ionization) {
 
 		String ion = ionization.getElement();
-		int quantity = ionization.getSign() * (-1);
+		int quantity = ionization.isPositiveCharge() ? 1 : -1;
 		
 		if (tokens.containsKey(ion)){
 			int atomCount = tokens.get(ion);

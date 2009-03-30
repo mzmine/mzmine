@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -45,9 +46,8 @@ public class ComplexSearchTask implements Task {
 	private RawDataFile dataFile;
 
 	private double rtTolerance, mzTolerance, maxComplexHeight;
+	private IonizationType ionType;
 	private ComplexSearchParameters parameters;
-
-	public static final double hydrogenMass = 1.007825;
 
 	/**
 	 * @param parameters
@@ -60,6 +60,8 @@ public class ComplexSearchTask implements Task {
 		this.parameters = parameters;
 		this.dataFile = peakList.getRawDataFile(0);
 
+		ionType = (IonizationType) parameters
+				.getParameterValue(ComplexSearchParameters.ionizationMethod);
 		rtTolerance = (Double) parameters
 				.getParameterValue(ComplexSearchParameters.rtTolerance);
 		mzTolerance = (Double) parameters
@@ -185,8 +187,10 @@ public class ComplexSearchTask implements Task {
 			return false;
 
 		// Check mass condition
-		double expectedMass = peak1.getMZ() + peak2.getMZ() - hydrogenMass;
-		double mzDifference = Math.abs(complexPeak.getMZ() - expectedMass);
+		double expectedMass = peak1.getMZ() + peak2.getMZ()
+				- (2 * ionType.getAddedMass());
+		double detectedMass = complexPeak.getMZ() - ionType.getAddedMass();
+		double mzDifference = Math.abs(detectedMass - expectedMass);
 		if (mzDifference > mzTolerance)
 			return false;
 

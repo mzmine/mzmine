@@ -29,95 +29,89 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PubChemSearchDialog extends ParameterSetupDialog implements
-        ActionListener, PropertyChangeListener {
+		ActionListener, PropertyChangeListener {
 
-    private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
-    private double rawMassValue;
-    private JTextField chargeField;
-    private JFormattedTextField neutralMassField;
-    private JComboBox ionizationMethodCombo;
+	private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
+	private double rawMassValue;
+	private JTextField chargeField;
+	private JFormattedTextField neutralMassField;
+	private JComboBox ionizationMethodCombo;
 
-    /**
+	/**
      * 
      */
-    public PubChemSearchDialog(PubChemSearchParameters parameters,
-            double massValue) {
+	public PubChemSearchDialog(PubChemSearchParameters parameters,
+			double massValue) {
 
-        // Make dialog modal
-        super("PubChem search setup dialog ", parameters);
+		// Make dialog modal
+		super("PubChem search setup dialog ", parameters);
 
-        this.rawMassValue = massValue;
+		this.rawMassValue = massValue;
 
-        chargeField = (JTextField) getComponentForParameter(PubChemSearchParameters.charge);
-        chargeField.addPropertyChangeListener("value", this);
+		chargeField = (JTextField) getComponentForParameter(PubChemSearchParameters.charge);
+		chargeField.addPropertyChangeListener("value", this);
 
-        neutralMassField = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.neutralMass);
-        neutralMassField.setEditable(false);
-        neutralMassField.setBackground(BACKGROUND_COLOR);
+		neutralMassField = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.neutralMass);
+		neutralMassField.setEditable(false);
+		neutralMassField.setBackground(BACKGROUND_COLOR);
 
-        JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.rawMass);
-        peakMass.setEditable(false);
-        peakMass.setBackground(BACKGROUND_COLOR);
-        peakMass.setValue(massValue);
+		JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.rawMass);
+		peakMass.setEditable(false);
+		peakMass.setBackground(BACKGROUND_COLOR);
+		peakMass.setValue(massValue);
 
-        ionizationMethodCombo = (JComboBox) getComponentForParameter(PubChemSearchParameters.ionizationMethod);
-        ionizationMethodCombo.addActionListener(this);
+		ionizationMethodCombo = (JComboBox) getComponentForParameter(PubChemSearchParameters.ionizationMethod);
+		ionizationMethodCombo.addActionListener(this);
 
-        setNeutralMassValue();
+		setNeutralMassValue();
 
-        setResizable(false);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setResizable(false);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
-    /**
-     * Implementation for ActionListener interface
-     */
-    public void actionPerformed(ActionEvent ae) {
+	/**
+	 * Implementation for ActionListener interface
+	 */
+	public void actionPerformed(ActionEvent ae) {
 
-        super.actionPerformed(ae);
+		super.actionPerformed(ae);
 
-        Object src = ae.getSource();
-        if (src instanceof JComboBox) {
-            setNeutralMassValue();
-        }
+		Object src = ae.getSource();
+		if (src instanceof JComboBox) {
+			setNeutralMassValue();
+		}
 
-    }
+	}
 
-    /**
-     * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-     */
-    public void propertyChange(PropertyChangeEvent pro) {
-        if (pro.getPropertyName() == "value") {
-            setNeutralMassValue();
-        }
-    }
+	/**
+	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
+	 */
+	public void propertyChange(PropertyChangeEvent pro) {
+		if (pro.getPropertyName() == "value") {
+			setNeutralMassValue();
+		}
+	}
 
-    /**
-     * Update the field of neutral mass according with the rest of parameters.
-     */
-    private void setNeutralMassValue() {
-        int chargeLevel = 1;
-        double ion = 0.0f;
-        double neutral = rawMassValue;
-        int sign = 1;
+	/**
+	 * Update the field of neutral mass according with the rest of parameters.
+	 */
+	private void setNeutralMassValue() {
 
-        chargeLevel = Integer.parseInt(chargeField.getText());
+		int charge = Integer.parseInt(chargeField.getText());
 
-        Object a = ionizationMethodCombo.getSelectedItem();
-        ion = ((TypeOfIonization) a).getMass();
-        sign = ((TypeOfIonization) a).getSign();
-        ion *= sign;
+		IonizationType ionType = (IonizationType) ionizationMethodCombo
+				.getSelectedItem();
 
-        neutral /= chargeLevel;
-        neutral += ion;
+		double neutral = (rawMassValue * charge) - ionType.getAddedMass();
 
-        neutralMassField.setValue(neutral);
-        
-    }
+		neutralMassField.setValue(neutral);
+
+	}
 
 }

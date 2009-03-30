@@ -20,6 +20,7 @@ package net.sf.mzmine.modules.identification.complexsearch;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -30,6 +31,11 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
+
+	public static final Parameter ionizationMethod = new SimpleParameter(
+			ParameterType.STRING, "Ionization method",
+			"Type of ion used to calculate the neutral mass", null,
+			IonizationType.values());
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
@@ -42,7 +48,7 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE, "m/z tolerance",
 			"Tolerance value of the m/z difference between peaks", "m/z",
 			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
-	
+
 	public static final Parameter maxComplexHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Max complex peak height",
@@ -50,7 +56,8 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
 	public ComplexSearchParameters() {
-		super(new Parameter[] { rtTolerance, mzTolerance, maxComplexHeight });
+		super(new Parameter[] { ionizationMethod, rtTolerance, mzTolerance,
+				maxComplexHeight });
 	}
 
 }

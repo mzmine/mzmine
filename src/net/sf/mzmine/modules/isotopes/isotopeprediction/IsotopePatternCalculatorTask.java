@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.modules.identification.pubchem.TypeOfIonization;
 import net.sf.mzmine.taskcontrol.Task;
 
 public class IsotopePatternCalculatorTask implements Task {
@@ -90,7 +90,7 @@ public class IsotopePatternCalculatorTask implements Task {
 		try {
 			isotopePattern = analyzer.getIsotopePattern(formula, minAbundance,
 					charge, positiveCharge, isotopeHeight, autoHeight,
-					sumOfMasses, TypeOfIonization.NO_IONIZATION);
+					sumOfMasses, IonizationType.NO_IONIZATION);
 
 		} catch (Exception e) {
 			// e.printStackTrace();

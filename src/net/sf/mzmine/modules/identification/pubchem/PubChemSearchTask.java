@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -61,7 +62,7 @@ public class PubChemSearchTask implements Task {
 	private int numOfResults;
 	private PubChemSearchWindow window;
 	private PeakList peakList;
-	private TypeOfIonization ionName;
+	private IonizationType ionName;
 	private boolean singleRow = false, chargedMol = false,
 			isotopeFilter = false;
 	private double isotopeScoreThreshold;
@@ -109,11 +110,10 @@ public class PubChemSearchTask implements Task {
 
 		isotopeScoreThreshold = (Double) parameters
 				.getParameterValue(PubChemSearchParameters.isotopeScoreTolerance);
-		ionName = (TypeOfIonization) parameters
+		ionName = (IonizationType) parameters
 				.getParameterValue(PubChemSearchParameters.ionizationMethod);
 
-		ion = ionName.getMass();
-		ion *= ionName.getSign();
+		ion = ionName.getAddedMass();
 
 	}
 
@@ -178,7 +178,7 @@ public class PubChemSearchTask implements Task {
 			int numIDs;
 
 			if ((chargedMol)
-					&& (ionName.equals(TypeOfIonization.NO_IONIZATION)))
+					&& (ionName.equals(IonizationType.NO_IONIZATION)))
 				complementQuery = " AND NOT 0[CHRG]";
 			else
 				complementQuery = "";
@@ -257,8 +257,8 @@ public class PubChemSearchTask implements Task {
 				for (PeakListRow row : peakListRows) {
 
 					valueOfQuery = row.getAverageMZ();
-					valueOfQuery /= charge;
-					valueOfQuery += ion;
+					valueOfQuery *= charge;
+					valueOfQuery -= ion;
 
 					reqSearch.setTerm(String.valueOf(valueOfQuery - range)
 							+ ":" + String.valueOf(valueOfQuery + range)

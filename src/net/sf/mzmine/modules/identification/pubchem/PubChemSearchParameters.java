@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.identification.pubchem;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -44,7 +45,7 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 	public static final Parameter ionizationMethod = new SimpleParameter(
 			ParameterType.STRING, "Ionization method",
 			"Type of ion used to calculate the neutral mass", null,
-			TypeOfIonization.values());
+			IonizationType.values());
 
 	public static final Parameter neutralMass = new SimpleParameter(
 			ParameterType.DOUBLE, "Neutral mass",
