@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.relatedpeaks;
+package net.sf.mzmine.modules.identification.adductsearch;
 
 import java.text.NumberFormat;
 
@@ -26,7 +26,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public class RelatedPeaksSearchParameters extends SimpleParameterSet {
+public class AdductSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -38,22 +38,31 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
-	public static final Parameter shapeTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"Shape tolerance",
-			"Maximum allowed difference between peak's shapes to set a related condition",
-			"%", new Double(0.1), new Double(0.0), new Double(1.0),
-			percentFormat);
+	public static final Parameter adducts = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION,
+			"Adducts",
+			"List of adducts, each one refers a specific distance in m/z axis between related peaks",
+			null, AdductType.values());
 
-	public static final Parameter sharingPoints = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"Sharing points",
-			"Minimum percentage (number of scans in common) to set a related condition",
-			"%", new Double(0.85), new Double(0.0), new Double(1.0),
-			percentFormat);
+	public static final Parameter customAdductValue = new SimpleParameter(
+			ParameterType.DOUBLE, "Custom adduct value",
+			"Mass value (m/z difference) for custom adduct", "m/z", new Double(
+					0.0), new Double(0.0), null, MZmineCore.getMZFormat());
 
-	public RelatedPeaksSearchParameters() {
-		super(new Parameter[] { rtTolerance, shapeTolerance, sharingPoints });
+	public static final Parameter mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Tolerance value of the m/z difference between peaks", "m/z",
+			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+
+	public static final Parameter maxAdductHeight = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Max adduct peak height",
+			"Maximum height of the recognized adductpeak, relative to the main peak",
+			"%", new Double(0.20), new Double(0.0), null, percentFormat);
+
+	public AdductSearchParameters() {
+		super(new Parameter[] { rtTolerance, adducts, customAdductValue,
+				mzTolerance, maxAdductHeight });
 	}
 
 }

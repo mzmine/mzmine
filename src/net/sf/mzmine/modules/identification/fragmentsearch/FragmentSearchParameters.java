@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.relatedpeaks;
+package net.sf.mzmine.modules.identification.fragmentsearch;
 
 import java.text.NumberFormat;
 
@@ -26,7 +26,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public class RelatedPeaksSearchParameters extends SimpleParameterSet {
+public class FragmentSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -34,26 +34,30 @@ public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Time tolerance",
-			"Maximum allowed difference of time to set a relationship between peaks",
+			"Maximum allowed retention time difference to set a relationship between peaks",
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
-	public static final Parameter shapeTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"Shape tolerance",
-			"Maximum allowed difference between peak's shapes to set a related condition",
-			"%", new Double(0.1), new Double(0.0), new Double(1.0),
-			percentFormat);
+	public static final Parameter ms2mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance of MS2 data",
+			"Tolerance value of the m/z difference between peaks", "m/z",
+			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
 
-	public static final Parameter sharingPoints = new SimpleParameter(
+	public static final Parameter maxFragmentHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Sharing points",
-			"Minimum percentage (number of scans in common) to set a related condition",
-			"%", new Double(0.85), new Double(0.0), new Double(1.0),
-			percentFormat);
+			"Max fragment peak height",
+			"Maximum height of the recognized fragment peak, relative to the main peak",
+			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
-	public RelatedPeaksSearchParameters() {
-		super(new Parameter[] { rtTolerance, shapeTolerance, sharingPoints });
+	public static final Parameter minMS2peakHeight = new SimpleParameter(
+			ParameterType.DOUBLE, "Min MS2 peak height",
+			"Minimum absolute intensity of the MS2 fragment peak", null,
+			new Double(100), new Double(0.0), null, MZmineCore
+					.getIntensityFormat());
+
+	public FragmentSearchParameters() {
+		super(new Parameter[] { rtTolerance, ms2mzTolerance, maxFragmentHeight,
+				minMS2peakHeight });
 	}
 
 }

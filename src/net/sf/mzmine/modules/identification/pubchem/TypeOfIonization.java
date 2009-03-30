@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.identification.pubchem;
 
 public enum TypeOfIonization {
     NO_IONIZATION("No ionization", "", 0, 0), 
-    POSITIVE_HYDROGEN("+H", "H", -1, 1.00794f), 
-    NEGATIVE_HYDROGEN("-H", "H", 1, 1.00794f), 
-    POSITIVE_POTASIO("+K", "K", -1, 39.0983f), 
-    POSITIVE_SODIUM("+Na", "Na", -1, 22.98976928f);
+    POSITIVE_HYDROGEN("+H", "H", -1, 1.00794),
+	NEGATIVE_HYDROGEN("-H", "H", 1, 1.00794),
+	POSITIVE_POTASIO("+K", "K", -1, 39.0983),
+	POSITIVE_SODIUM("+Na", "Na", -1, 22.98976928);
 
     private final String name, element;
     private final int sign;

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.identification.fragmentation;
+package net.sf.mzmine.modules.identification.fragmentsearch;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
@@ -34,7 +34,7 @@ public class FragmentIdentity implements PeakIdentity {
 		this.mainPeakListRow = mainPeakListRow;
 
 		// We have to save the copy of the name here. If we ask
-		// mainPeakListRow.getName() everytime we are asked for a name, we may
+		// mainPeakListRow.getName() every time we are asked for a name, we may
 		// create an infinite loop if two rows depend on each other
 		this.fragmentName = "Fragment of " + mainPeakListRow;
 	}

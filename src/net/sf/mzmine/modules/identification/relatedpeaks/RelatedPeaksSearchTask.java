@@ -18,36 +18,33 @@
  */
 package net.sf.mzmine.modules.identification.relatedpeaks;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.GroupRelatedPeaks;
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimpleGroupRelatedPeaks;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.CollectionUtils;
 
 public class RelatedPeaksSearchTask implements Task {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	private int finishedRows = 0, numRows;
+
+	private int finishedRows, totalRows;
 	private PeakList peakList;
-	private int numOfGroups;
-	private double shapeTolerance, rtTolerance, mzAdductTolerance,
-			sharingPoints;
-	private CommonAdducts[] selectedAdducts;
+	private RawDataFile dataFile;
+
+	private double shapeTolerance, rtTolerance, sharingPoints;
 	private RelatedPeaksSearchParameters parameters;
 
 	/**
@@ -59,28 +56,14 @@ public class RelatedPeaksSearchTask implements Task {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
-		
-		numRows = peakList.getNumberOfRows();
-		numOfGroups = 0;
+		this.dataFile = peakList.getRawDataFile(0);
+
 		shapeTolerance = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.shapeTolerance);
 		rtTolerance = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.rtTolerance);
 		sharingPoints = (Double) parameters
 				.getParameterValue(RelatedPeaksSearchParameters.sharingPoints);
-
-        Object adductObjects[] = (Object[]) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.adducts);
-		selectedAdducts = CollectionUtils.changeArrayType(adductObjects,
-				CommonAdducts.class);
-
-		double customMassDifference = (Double) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.customAdductValue);
-		String customAdductName = (String) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.customAdductName);
-
-		mzAdductTolerance = (Double) parameters
-				.getParameterValue(RelatedPeaksSearchParameters.mzAdductTolerance);
 
 	}
 
@@ -102,7 +85,9 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
-		return ((double) finishedRows) / numRows;
+		if (totalRows == 0)
+			return 0;
+		return ((double) finishedRows) / totalRows;
 	}
 
 	/**
@@ -126,123 +111,34 @@ public class RelatedPeaksSearchTask implements Task {
 
 		status = TaskStatus.PROCESSING;
 
-		Iterator itr;
-		PeakListRow comparedRow;
-		ChromatographicPeak currentPeak, comparedPeak;
-		PeakIdentity identity;
-		boolean alreadyRelated = false, goodCandidate = false;
-		GroupRelatedPeaks currentGroup = null;
-		Vector<GroupRelatedPeaks> peaksGroups = new Vector<GroupRelatedPeaks>();
-		HashSet<PeakListRow> comparissonPeaks = new HashSet<PeakListRow>(Arrays
-				.asList(peakList.getRows()));
+		logger.info("Running related peaks search in " + peakList);
 
-		for (PeakListRow currentRow : peakList.getRows()) {
+		PeakListRow rows[] = peakList.getRows();
+		totalRows = rows.length;
 
-			if (status == TaskStatus.CANCELED) {
-				return;
-			}
+		// Compare each two rows against each other
+		for (int i = 0; i < totalRows; i++) {
 
-			// Verify if the current row already belongs to one group
-			for (GroupRelatedPeaks group : peaksGroups) {
-				if (group.containsRow(currentRow)) {
-					alreadyRelated = true;
-					break;
-				}
-			}
+			ChromatographicPeak peak1 = rows[i].getPeak(dataFile);
 
-			if (alreadyRelated) {
-				alreadyRelated = false;
-				continue;
-			}
+			for (int j = i + 1; j < rows.length; j++) {
 
-			// Get the biggest peak in the row for comparison
-			currentPeak = getBiggestPeak(currentRow);
-
-			currentGroup = null;
-			itr = comparissonPeaks.iterator();
-
-			// Compare the current row against the complete peak list over the
-			// same raw data file
-			while (itr.hasNext()) {
-
-				comparedRow = (PeakListRow) itr.next();
-				if (comparedRow == null) {
-					break;
+				if (status == TaskStatus.CANCELED) {
+					return;
 				}
 
-				// Always the comparison is against peaks from the same raw data
-				comparedPeak = comparedRow.getPeak(currentPeak.getDataFile());
+				ChromatographicPeak peak2 = rows[j].getPeak(dataFile);
 
-				// Verify if there is not peak in the same retention time in
-				// this row
-				if (comparedPeak == null) {
-					continue;
-				}
+				if (areRelatedPeaks(peak1, peak2)) {
 
-				// Avoid compare the same peak
-				if (currentPeak == comparedPeak) {
-					continue;
-				}
+					RelatedPeakIdentity identity1 = new RelatedPeakIdentity(
+							rows[i], rows[j]);
+					rows[j].addPeakIdentity(identity1, false);
 
-				// set the group of the peak looking the mass differences of
-				// each selected adduct
-				for (CommonAdducts adduct : selectedAdducts) {
-					// Verify if the compared peak is related to the current
-					// peak
-					goodCandidate = areRelatedPeaks(currentPeak, comparedPeak,
-							shapeTolerance, adduct, rtTolerance,
-							mzAdductTolerance, sharingPoints);
+					RelatedPeakIdentity identity2 = new RelatedPeakIdentity(
+							rows[j], rows[i]);
+					rows[i].addPeakIdentity(identity2, false);
 
-					if (goodCandidate) {
-
-						goodCandidate = false;
-						alreadyRelated = false;
-
-						// If the current peak already belongs to one group, 
-						// add the compared peak to that group
-						/*if (currentGroup != null) {
-							currentGroup.addRow(comparedRow);
-							identity = new RelatedPeakIdentity(currentRow,
-									comparedRow, adduct, currentGroup);
-							comparedRow.addCompoundIdentity(identity, true);
-
-							alreadyRelated = true;
-							continue;
-						}*/
-
-						// If the compared peak belongs to any group, add the
-						// current peak to that group
-
-						/*for (GroupRelatedPeaks group : peaksGroups) {
-							if (group.containsRow(comparedRow)) {
-								group.addRow(currentRow);
-								identity = new RelatedPeakIdentity(currentRow,
-										comparedRow, adduct, group);
-								currentRow.addCompoundIdentity(identity, true);
-								currentGroup = group;
-
-								alreadyRelated = true;
-								break;
-							}
-						}*/
-
-						// If the current peak doesn't belong to any group
-						// neither
-						// the compared, then initializes a new group
-						if (alreadyRelated) {
-							alreadyRelated = false;
-						} else {
-							String name = "Group " + numOfGroups;
-							currentGroup = new SimpleGroupRelatedPeaks(name,
-									currentRow, comparedRow);
-							identity = new RelatedPeakIdentity(currentRow,
-									comparedRow, adduct);
-							comparedRow.addPeakIdentity(identity, false);
-							peaksGroups.add(currentGroup);
-							numOfGroups++;
-						}
-
-					}
 				}
 
 			}
@@ -250,37 +146,20 @@ public class RelatedPeaksSearchTask implements Task {
 			finishedRows++;
 
 		}
-		
-        // Add task description to peakList
-        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Identification of related peaks", parameters));
 
-        // Notify the project manager that peaklist contents have changed
-        MZmineCore.getProjectManager().fireProjectListeners(
-                ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
-        
+		// Add task description to peakList
+		((SimplePeakList) peakList)
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+						"Identification of related peaks", parameters));
+
+		// Notify the project manager that peaklist contents have changed
+		MZmineCore.getProjectManager().fireProjectListeners(
+				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+
 		status = TaskStatus.FINISHED;
 
-	}
+		logger.info("Finished related peaks search in " + peakList);
 
-	/**
-	 * Retrieve the biggest peak of the peak list row parameter
-	 * 
-	 * @param row
-	 * @return
-	 */
-	private static ChromatographicPeak getBiggestPeak(PeakListRow row) {
-		ChromatographicPeak peak = null;
-
-		double intensity = Double.MIN_VALUE;
-
-		for (ChromatographicPeak p : row.getPeaks()) {
-			if (p.getHeight() > intensity) {
-				peak = p;
-				intensity = p.getHeight();
-			}
-		}
-
-		return peak;
 	}
 
 	/**
@@ -294,9 +173,8 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @param sharingPoints
 	 * @return boolean
 	 */
-	private static boolean areRelatedPeaks(ChromatographicPeak p1,
-			ChromatographicPeak p2, double shapeTolerance, CommonAdducts adduct,
-			double rtTolerance, double mzAdductTolerance, double sharingPoints) {
+	private boolean areRelatedPeaks(ChromatographicPeak p1,
+			ChromatographicPeak p2) {
 
 		// Verify proximity in retention time axis
 		double diffRT = Math.abs(p1.getRT() - p2.getRT());
@@ -304,18 +182,8 @@ public class RelatedPeaksSearchTask implements Task {
 			return false;
 		}
 
-		// Verify the distance between peaks in m/z axis. This help to identify
-		// false hits for adducts.
-		double mzDistance = adduct.getMassDifference();
-		double diffMZ = p2.getMZ() - p1.getMZ();
-		if ((adduct != CommonAdducts.ALLRELATED)
-				&& ((diffMZ > mzDistance + mzAdductTolerance) || (diffMZ < mzDistance
-						- mzAdductTolerance))) {
-			return false;
-		}
-
 		// Verify % of sharing points
-		if (!hasSharedPoints(p1, p2, sharingPoints)) {
+		if (!hasSharedPoints(p1, p2)) {
 			return false;
 		}
 
@@ -357,8 +225,8 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @param sharingPoints
 	 * @return boolean
 	 */
-	private static boolean hasSharedPoints(ChromatographicPeak p1,
-			ChromatographicPeak p2, double sharingPoints) {
+	private boolean hasSharedPoints(ChromatographicPeak p1,
+			ChromatographicPeak p2) {
 
 		int numOfHits = 0;
 		double sharedPercentage = 0;
@@ -400,7 +268,7 @@ public class RelatedPeaksSearchTask implements Task {
 	 * @param peak
 	 * @return Hashtable<Integer, Double>
 	 */
-	private static Hashtable<Integer, Double> getNormalizedShapePoints(
+	private Hashtable<Integer, Double> getNormalizedShapePoints(
 			ChromatographicPeak peak) {
 
 		double biggestIntensity = Double.MIN_VALUE;

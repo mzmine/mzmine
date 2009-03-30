@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.fragmentation;
+package net.sf.mzmine.modules.identification.fragmentsearch;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -119,16 +119,16 @@ public class FragmentSearchTask implements Task {
 		logger.info("Starting fragments search in " + peakList);
 
 		PeakListRow rows[] = peakList.getRows();
-		
+		totalRows = rows.length;
+
+		// Start with the highest peaks
 		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 
 		// Compare each two rows against each other
-		for (int i = 0; i < rows.length; i++) {
+		for (int i = 0; i < totalRows; i++) {
 
 			ChromatographicPeak peak1 = rows[i].getPeak(dataFile);
-			if (peak1 == null)
-				continue;
 
 			for (int j = i + 1; j < rows.length; j++) {
 
@@ -137,9 +137,6 @@ public class FragmentSearchTask implements Task {
 					return;
 
 				ChromatographicPeak peak2 = rows[j].getPeak(dataFile);
-
-				if (peak2 == null)
-					continue;
 
 				// Treat the higher m/z peak as main peak and check if the
 				// smaller one may be a fragment

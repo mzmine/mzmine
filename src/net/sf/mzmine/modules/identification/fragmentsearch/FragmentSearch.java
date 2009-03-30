@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.relatedpeaks;
+package net.sf.mzmine.modules.identification.fragmentsearch;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,12 +40,11 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class RelatedPeaksSearch implements BatchStep, ActionListener {
+public class FragmentSearch implements BatchStep, ActionListener {
 
-	public static final String MODULE_NAME = "Related peaks search";
-
+	public static final String MODULE_NAME = "Fragment search";
 	private Desktop desktop;
-	private RelatedPeaksSearchParameters parameters;
+	private FragmentSearchParameters parameters;
 
 	/**
 	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
@@ -60,14 +59,11 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 	public void initModule() {
 		this.desktop = MZmineCore.getDesktop();
 
-		parameters = new RelatedPeaksSearchParameters();
+		parameters = new FragmentSearchParameters();
 
-		desktop
-				.addMenuItem(
-						MZmineMenu.IDENTIFICATION,
-						MODULE_NAME,
-						"Identification of related peaks by comparing the m/z and retention time values and the shape of the peaks",
-						KeyEvent.VK_R, false, this, null);
+		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
+				"Identification of in-source fragmentation peaks",
+				KeyEvent.VK_F, false, this, null);
 
 	}
 
@@ -75,7 +71,7 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (RelatedPeaksSearchParameters) parameterValues;
+		this.parameters = (FragmentSearchParameters) parameterValues;
 	}
 
 	/**
@@ -112,7 +108,7 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
 				desktop
-						.displayErrorMessage("Related peak search can only be performed on peak lists which have a single column");
+						.displayErrorMessage("Fragment search can only be performed on peak lists which have a single column");
 				return;
 			}
 		}
@@ -138,10 +134,10 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 		}
 
 		// prepare a new sequence of tasks
-		Task tasks[] = new RelatedPeaksSearchTask[peakLists.length];
+		Task tasks[] = new FragmentSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new RelatedPeaksSearchTask(
-					(RelatedPeaksSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new FragmentSearchTask(
+					(FragmentSearchParameters) parameters, peakLists[i]);
 		}
 		TaskGroup newSequence = new TaskGroup(tasks, null, taskGroupListener);
 

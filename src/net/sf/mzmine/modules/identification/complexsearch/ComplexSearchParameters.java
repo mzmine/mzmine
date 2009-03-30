@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.fragmentation;
+package net.sf.mzmine.modules.identification.complexsearch;
 
 import java.text.NumberFormat;
 
@@ -26,7 +26,7 @@ import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public class FragmentSearchParameters extends SimpleParameterSet {
+public class ComplexSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -38,26 +38,19 @@ public class FragmentSearchParameters extends SimpleParameterSet {
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
-	public static final Parameter ms2mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance of MS2 data",
+	public static final Parameter mzTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance",
 			"Tolerance value of the m/z difference between peaks", "m/z",
 			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter maxFragmentHeight = new SimpleParameter(
+	
+	public static final Parameter maxComplexHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Max fragment peak height",
 			"Maximum height of the recognized fragment peak, relative to the main peak",
 			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
-	public static final Parameter minMS2peakHeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Min MS2 peak height",
-			"Minimum absolute intensity of the MS2 fragment peak", null,
-			new Double(100), new Double(0.0), null, MZmineCore
-					.getIntensityFormat());
-
-	public FragmentSearchParameters() {
-		super(new Parameter[] { rtTolerance, ms2mzTolerance, maxFragmentHeight,
-				minMS2peakHeight });
+	public ComplexSearchParameters() {
+		super(new Parameter[] { rtTolerance, mzTolerance, maxComplexHeight });
 	}
 
 }

@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.identification.fragmentation;
+package net.sf.mzmine.modules.identification.adductsearch;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,11 +40,12 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * 
  */
-public class FragmentSearch implements BatchStep, ActionListener {
+public class AdductSearch implements BatchStep, ActionListener {
 
-	public static final String MODULE_NAME = "Fragment search";
+	public static final String MODULE_NAME = "Adduct search";
+
 	private Desktop desktop;
-	private FragmentSearchParameters parameters;
+	private AdductSearchParameters parameters;
 
 	/**
 	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
@@ -57,13 +58,17 @@ public class FragmentSearch implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
 	 */
 	public void initModule() {
+
 		this.desktop = MZmineCore.getDesktop();
 
-		parameters = new FragmentSearchParameters();
+		parameters = new AdductSearchParameters();
 
-		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-				"Identification of in-source fragmentation peaks",
-				KeyEvent.VK_F, false, this, null);
+		desktop
+				.addMenuItem(
+						MZmineMenu.IDENTIFICATION,
+						MODULE_NAME,
+						"Identification of adduct peaks by mass difference and same retention time",
+						KeyEvent.VK_A, false, this, null);
 
 	}
 
@@ -71,7 +76,7 @@ public class FragmentSearch implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (FragmentSearchParameters) parameterValues;
+		this.parameters = (AdductSearchParameters) parameterValues;
 	}
 
 	/**
@@ -108,7 +113,7 @@ public class FragmentSearch implements BatchStep, ActionListener {
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
 				desktop
-						.displayErrorMessage("Fragment search can only be performed on peak lists which have a single column");
+						.displayErrorMessage("Adduct search can only be performed on peak lists which have a single column");
 				return;
 			}
 		}
@@ -134,10 +139,10 @@ public class FragmentSearch implements BatchStep, ActionListener {
 		}
 
 		// prepare a new sequence of tasks
-		Task tasks[] = new FragmentSearchTask[peakLists.length];
+		Task tasks[] = new AdductSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new FragmentSearchTask(
-					(FragmentSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new AdductSearchTask(
+					(AdductSearchParameters) parameters, peakLists[i]);
 		}
 		TaskGroup newSequence = new TaskGroup(tasks, null, taskGroupListener);
 
@@ -151,7 +156,7 @@ public class FragmentSearch implements BatchStep, ActionListener {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return "Fragments search";
+		return "Adduct search";
 	}
 
 }

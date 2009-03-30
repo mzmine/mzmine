@@ -17,25 +17,27 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.identification.relatedpeaks;
+package net.sf.mzmine.modules.identification.adductsearch;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
-public enum CommonAdducts {
+public enum AdductType {
 
 	ALLRELATED("All related peaks", 0.0),
 	Na("[M+Na-H]", 21.9825),
 	K("[M+K-H]", 37.9559),
 	Mg("[M+Mg-2H]", 21.9694),
-	NH4("[M+NH4-H]", 17.027),
-	H3PO4("[M+H3PO4]", 97.977),
+	NH3("[M+NH3]", 17.0265),
+	Phosphate("[M+H3PO4]", 97.9769),
+	Sulfate("[M+H2SO4]", 97.9674),
+	Carbonate("[M+CH2O3]", 62.0004),
 	Glycerol("[(Deuterium)]glycerol", 5.0),
 	CUSTOM("Custom", 0.0);
 
 	private final String name;
 	private final double massDifference;
 
-	CommonAdducts(String name, double massDifference) {
+	AdductType(String name, double massDifference) {
 		this.name = name;
 		this.massDifference = massDifference;
 	}
