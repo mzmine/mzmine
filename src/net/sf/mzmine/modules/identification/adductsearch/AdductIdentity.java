@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.identification.adductsearch;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class AdductIdentity implements PeakIdentity {
 
@@ -36,15 +39,18 @@ public class AdductIdentity implements PeakIdentity {
 	 */
 	public AdductIdentity(PeakListRow originalPeakListRow,
 			PeakListRow adductPeakListRow, AdductType adduct) {
+		
 		this.originalPeakListRow = originalPeakListRow;
 		this.adductPeakListRow = adductPeakListRow;
 		this.adduct = adduct;
+		
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 		// We have to save the copy of the name here. If we ask
 		// originalPeakListRow.getName() every time we are asked for a name, we
 		// may create an infinite loop if two rows depend on each other
 		this.adductName = adduct.getName() + " adduct of "
-				+ originalPeakListRow;
+				+ mzFormat.format(originalPeakListRow.getAverageMZ()) + " m/z";
 	}
 
 	/**

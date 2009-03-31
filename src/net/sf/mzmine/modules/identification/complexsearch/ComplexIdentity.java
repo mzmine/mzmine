@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.identification.complexsearch;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class ComplexIdentity implements PeakIdentity {
 
@@ -36,10 +39,14 @@ public class ComplexIdentity implements PeakIdentity {
 		this.peak1 = peak1;
 		this.peak2 = peak2;
 
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
+
 		// We have to save the copy of the name here. If we ask
 		// mainPeakListRow.getName() every time we are asked for a name, we may
 		// create an infinite loop if two rows depend on each other
-		this.complexName = "Complex of " + peak1 + " and " + peak2;
+		this.complexName = "Complex of "
+				+ mzFormat.format(peak1.getAverageMZ()) + " and "
+				+ mzFormat.format(peak2.getAverageMZ()) + " m/z";
 	}
 
 	/**

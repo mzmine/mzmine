@@ -19,8 +19,11 @@
 
 package net.sf.mzmine.modules.identification.fragmentsearch;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
 
 public class FragmentIdentity implements PeakIdentity {
 
@@ -31,12 +34,16 @@ public class FragmentIdentity implements PeakIdentity {
 	 */
 	public FragmentIdentity(PeakListRow mainPeakListRow,
 			PeakListRow fragmentPeakListRow) {
+
 		this.mainPeakListRow = mainPeakListRow;
+
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 		// We have to save the copy of the name here. If we ask
 		// mainPeakListRow.getName() every time we are asked for a name, we may
 		// create an infinite loop if two rows depend on each other
-		this.fragmentName = "Fragment of " + mainPeakListRow;
+		this.fragmentName = "Fragment of "
+				+ mzFormat.format(mainPeakListRow.getAverageMZ()) + " m/z";
 	}
 
 	/**
