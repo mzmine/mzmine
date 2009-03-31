@@ -133,13 +133,18 @@ public class ComplexSearchTask implements Task {
 			PeakListRow testRows[] = peakList
 					.getRowsInsideScanRange(testRTRange);
 
-			for (int j = i + 1; j < testRows.length; j++) {
+			for (int j = 0; j < testRows.length; j++) {
 
 				for (int k = j; k < testRows.length; k++) {
 
 					// Task canceled?
 					if (status == TaskStatus.CANCELED)
 						return;
+
+					// To avoid finding a complex of the peak itself and another
+					// very small m/z peak
+					if ((rows[i] == testRows[j]) || (rows[i] == testRows[k]))
+						continue;
 
 					if (checkComplex(rows[i], testRows[j], testRows[k]))
 						addComplexInfo(rows[i], testRows[j], testRows[k]);
