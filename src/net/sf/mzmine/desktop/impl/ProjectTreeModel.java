@@ -22,6 +22,7 @@ package net.sf.mzmine.desktop.impl;
 import java.util.Vector;
 
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -159,54 +160,63 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 		}
 	}
 
-	public void projectModified(ProjectEvent event) {
+	/**
+	 * ProjectListner implementation
+	 */
+	public void projectModified(final ProjectEvent event) {
 
-		if (event == ProjectEvent.ALL_CHANGED) {
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(new TreeModelEvent(this,
-						new Object[] { getRoot() }));
-			}
-			projectTree.expandPath(new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.dataFilesItem }));
-			projectTree.expandPath(new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.peakListsItem }));
-		}
+		// We have to notify listeners in the Swing event thread, to avoid
+		// thread conflicts when re-painting
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (event == ProjectEvent.ALL_CHANGED) {
+					for (TreeModelListener l : listeners) {
+						l.treeStructureChanged(new TreeModelEvent(this,
+								new Object[] { getRoot() }));
+					}
+					projectTree.expandPath(new TreePath(new Object[] {
+							getRoot(), ProjectTreeModel.dataFilesItem }));
+					projectTree.expandPath(new TreePath(new Object[] {
+							getRoot(), ProjectTreeModel.peakListsItem }));
+				}
 
-		if (event == ProjectEvent.PROJECT_NAME_CHANGED) {
-			for (TreeModelListener l : listeners) {
-				l.treeNodesChanged(new TreeModelEvent(this,
-						new Object[] { getRoot() }));
-			}
-		}
+				if (event == ProjectEvent.PROJECT_NAME_CHANGED) {
+					for (TreeModelListener l : listeners) {
+						l.treeNodesChanged(new TreeModelEvent(this,
+								new Object[] { getRoot() }));
+					}
+				}
 
-		if ((event == ProjectEvent.DATAFILE_ADDED)
-				|| (event == ProjectEvent.DATAFILE_REMOVED)) {
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(new TreeModelEvent(this, new Object[] {
-						getRoot(), dataFilesItem }));
-			}
-		}
+				if ((event == ProjectEvent.DATAFILE_ADDED)
+						|| (event == ProjectEvent.DATAFILE_REMOVED)) {
+					for (TreeModelListener l : listeners) {
+						l.treeStructureChanged(new TreeModelEvent(this,
+								new Object[] { getRoot(), dataFilesItem }));
+					}
+				}
 
-		if ((event == ProjectEvent.PEAKLIST_ADDED)
-				|| (event == ProjectEvent.PEAKLIST_REMOVED)) {
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(new TreeModelEvent(this, new Object[] {
-						getRoot(), peakListsItem }));
-			}
-		}
+				if ((event == ProjectEvent.PEAKLIST_ADDED)
+						|| (event == ProjectEvent.PEAKLIST_REMOVED)) {
+					for (TreeModelListener l : listeners) {
+						l.treeStructureChanged(new TreeModelEvent(this,
+								new Object[] { getRoot(), peakListsItem }));
+					}
+				}
 
-		if (event == ProjectEvent.PEAKLIST_CONTENTS_CHANGED) {
-			PeakList peakLists[] = MZmineCore.getCurrentProject()
-					.getPeakLists();
-			for (PeakList peakList : peakLists) {
-				for (TreeModelListener l : listeners) {
-					l
-							.treeStructureChanged(new TreeModelEvent(this,
+				if (event == ProjectEvent.PEAKLIST_CONTENTS_CHANGED) {
+					PeakList peakLists[] = MZmineCore.getCurrentProject()
+							.getPeakLists();
+					for (PeakList peakList : peakLists) {
+						for (TreeModelListener l : listeners) {
+							l.treeStructureChanged(new TreeModelEvent(this,
 									new Object[] { getRoot(), peakListsItem,
 											peakList }));
+						}
+					}
 				}
+
 			}
-		}
+		});
 
 	}
 

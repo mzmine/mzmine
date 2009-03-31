@@ -155,6 +155,10 @@ public class RelatedPeaksSearchTask implements Task {
 		// Notify the project manager that peaklist contents have changed
 		MZmineCore.getProjectManager().fireProjectListeners(
 				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+		
+        // Notify the project manager that peaklist contents have changed
+		MZmineCore.getProjectManager().fireProjectListeners(
+				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
 
 		status = TaskStatus.FINISHED;
 

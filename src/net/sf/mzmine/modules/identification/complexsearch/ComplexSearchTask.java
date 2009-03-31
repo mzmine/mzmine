@@ -28,6 +28,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.Range;
@@ -161,6 +163,10 @@ public class ComplexSearchTask implements Task {
 		((SimplePeakList) peakList)
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of complexes", parameters));
+		
+        // Notify the project manager that peaklist contents have changed
+		MZmineCore.getProjectManager().fireProjectListeners(
+				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
 
 		status = TaskStatus.FINISHED;
 

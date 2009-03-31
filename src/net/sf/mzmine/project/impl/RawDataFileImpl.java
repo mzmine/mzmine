@@ -314,10 +314,15 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	 */
 	public int[] getScanNumbers() {
 
+		if (scanNumbersCache.containsKey(0))
+			return scanNumbersCache.get(0);
+		
 		Set<Integer> allScanNumbers = scans.keySet();
 		int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
 		Arrays.sort(numbersArray);
 
+		scanNumbersCache.put(0, numbersArray);
+		
 		return numbersArray;
 
 	}

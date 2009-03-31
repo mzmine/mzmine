@@ -30,7 +30,6 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.project.ProjectEvent;
 
 /**
  * 
@@ -235,11 +234,6 @@ public class SimplePeakListRow implements PeakListRow {
                 identities.add(identity);
             }
         }
-        
-        // Notify the project manager that peaklist contents have changed
-		MZmineCore.getProjectManager().fireProjectListeners(
-				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
-
     }
 
     /**
