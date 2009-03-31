@@ -20,6 +20,7 @@
 package net.sf.mzmine.data;
 
 public enum IonizationType {
+	
 	NO_IONIZATION("No ionization", "", 0),
 	POSITIVE_HYDROGEN("+H", "H", 1.00794),
 	NEGATIVE_HYDROGEN("-H", "H", -1.00794),
