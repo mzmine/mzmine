@@ -133,15 +133,9 @@ public class ComplexSearchTask implements Task {
 			PeakListRow testRows[] = peakList
 					.getRowsInsideScanRange(testRTRange);
 
-			for (int j = 0; j < testRows.length; j++) {
+			for (int j = i + 1; j < testRows.length; j++) {
 
-				if (j == i)
-					continue;
-
-				for (int k = j + 1; k < testRows.length; k++) {
-
-					if (k == i)
-						continue;
+				for (int k = j; k < testRows.length; k++) {
 
 					// Task canceled?
 					if (status == TaskStatus.CANCELED)
