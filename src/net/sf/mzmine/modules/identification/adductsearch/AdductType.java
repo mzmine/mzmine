@@ -30,7 +30,7 @@ public enum AdductType {
 	NH3("[M+NH3]", 17.0265),
 	Phosphate("[M+H3PO4]", 97.9769),
 	Sulfate("[M+H2SO4]", 97.9674),
-	Carbonate("[M+CH2O3]", 62.0004),
+	Carbonate("[M+H2CO3]", 62.0004),
 	Glycerol("[(Deuterium)]glycerol", 5.0),
 	CUSTOM("Custom", 0.0);
 
