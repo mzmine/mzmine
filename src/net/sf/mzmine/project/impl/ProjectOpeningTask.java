@@ -23,13 +23,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.ByteBuffer;
+import java.nio.DoubleBuffer;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -43,7 +48,6 @@ public class ProjectOpeningTask implements Task, TaskListener {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	private MZmineXStream xstream;
 	private File openFile;
 	private ZipInputStream zipStream;
 	private UnclosableInputStream unclosableZipStream;
@@ -52,7 +56,6 @@ public class ProjectOpeningTask implements Task, TaskListener {
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
-		xstream = new MZmineXStream();
 	}
 
 	/**
@@ -80,7 +83,7 @@ public class ProjectOpeningTask implements Task, TaskListener {
 				if (description.getNumOfPeakListRows() == 0) {
 					return 0;
 				} else {
-					return (double) xstream.getNumOfDeserializedRows() / description.getNumOfPeakListRows();
+					//return (double) xstream.getNumOfDeserializedRows() / description.getNumOfPeakListRows();
 				}
 			case 4:
 				return 1f;
@@ -174,10 +177,9 @@ public class ProjectOpeningTask implements Task, TaskListener {
 	private StoredProjectDescription loadProjectDescription()
 			throws IOException, ClassNotFoundException {
 		zipStream.getNextEntry();
-		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);
-		StoredProjectDescription projectDescription = (StoredProjectDescription) objectStream.readObject();
-		objectStream.close();
-		return projectDescription;
+		ObjectInputStream in = new ObjectInputStream(zipStream);
+		StoredProjectDescription obj = (StoredProjectDescription) in.readObject();		
+		return obj;
 	}
 
 	private void loadConfiguration() throws IOException {
@@ -198,43 +200,48 @@ public class ProjectOpeningTask implements Task, TaskListener {
 	}
 
 	private void loadRawDataObjects() throws IOException,
-			ClassNotFoundException {
-		File[] file = new File[description.getNumOfDataFiles()];
+			ClassNotFoundException {		
 		for (int i = 0; i < description.getNumOfDataFiles(); i++) {
 			ZipEntry entry = zipStream.getNextEntry();
-			File tempConfigFile = File.createTempFile(entry.getName()+"_", "tmp");
+			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(entry.getName().substring(0, entry.getName().lastIndexOf("-")));
+			File tempConfigFile = File.createTempFile("mzmine", ".scans");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+			ByteBuffer buffer = ByteBuffer.allocate((int)entry.getSize());
+
 			int len;
-			byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-			while ((len = zipStream.read(buffer)) > 0) {
+			//byte buffer[] = new byte[1 << 10]; // 1 MB buffer
+			while ((len = zipStream.read(buffer.array())) > 0) {
 				if (status == TaskStatus.CANCELED) {
 					return;
 				}
-				fileStream.write(buffer, 0, len);
+				DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
+				for(int j = 0; j < doubleBuffer.capacity(); j++){
+					DataPoint dp = new SimpleDataPoint(doubleBuffer.get(j),doubleBuffer.get(j++));
+				}
+
+
+				//fileStream.write(buffer, 0, len);
 			}
-			fileStream.close();
 
 
 
-			 RawDataFileImpl raw = new RawDataFileImpl(tempConfigFile.getPath());
 
 
-			 raw.setScanDataFile(tempConfigFile);
-
-			 MZmineCore.getCurrentProject().addFile(raw.finishWriting());
+			//DataPoint[]
+			fileStream.close();	
+		    
+           
+			RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+            MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 		}
+	}
 
-		
-	}	
-	
-	private synchronized void loadPeakListObjects() throws IOException,
+	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
 		zipStream.getNextEntry();
-		ObjectInputStream objectStream = xstream.createObjectInputStream(unclosableZipStream);		
 
-		objectStream.close();
 	}
-	
+
 	public void taskStarted(Task task) {
 		Task openTask = task;
 		logger.info("Started action of " + openTask.getTaskDescription());

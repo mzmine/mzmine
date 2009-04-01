@@ -29,21 +29,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.io.xmlexport.XMLExportTask;
 import net.sf.mzmine.modules.io.xmlexport.XMLExporterParameters;
-import net.sf.mzmine.project.impl.xstream.MZmineXStream;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.UnclosableOutputStream;
 
 /**
  * Project saving task using XStream library
  */
-public class ProjectSavingTask implements Task, TaskGroupListener {
+public class ProjectSavingTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private TaskStatus status = TaskStatus.WAITING;
@@ -51,16 +46,14 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 	private File saveFile;
 	private MZmineProjectImpl project;
 	private ZipOutputStream zipStream;
-	private UnclosableOutputStream unclosableZipStream;
-	private MZmineXStream xstream;
 	private int currentStage;
 	private int progress;
 	private StoredProjectDescription description;
 	private File tempFile;
+	private ScanFilesSaving saving;
 
 	public ProjectSavingTask(File saveFile) {
 		this.saveFile = saveFile;
-		xstream = new MZmineXStream();		
 	}
 
 	/**
@@ -69,6 +62,10 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 	public String getTaskDescription() {
 		String taskDescription = "Saving project to " + saveFile;
 		switch (currentStage) {
+			case 1:
+				return taskDescription + " (project description)";
+			case 2:
+				return taskDescription + " (project parameters)";
 			case 3:
 				return taskDescription + " (raw data points)";
 			case 4:
@@ -83,13 +80,24 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
+		int total = -1;
+		if (description != null) {
+			total = (int) description.getTotalNumOfScanFileBytes() + description.getNumOfPeakListRows();
+		}
 		switch (currentStage) {
+			case 1:
+				return 0.1f;
+			case 2:
+				return 0.15f;
 			case 3:
-				//raw data
-				return (double) progress / description.getTotalNumOfScanFileBytes();
+				if(this.saving != null){
+					this.progress += this.saving.getscansbytes();
+					System.out.println(this.progress + " - " + total);
+				}
+				return 0.15 + (((double) progress / total) * 0.85);
+
 			case 4:
-				//peak list
-				return 1;
+				return 0.15 + ((double) progress / total) * 0.85;
 			default:
 				return 0f;
 		}
@@ -134,7 +142,6 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 			tempFile = File.createTempFile("mzmineproject", ".tmp");
 			FileOutputStream tempStream = new FileOutputStream(tempFile);
 			zipStream = new ZipOutputStream(tempStream);
-			unclosableZipStream = new UnclosableOutputStream(zipStream);
 
 
 			// Stage 1 - save project description
@@ -160,14 +167,21 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 
 			// Stage 4 - save PeakList objects
 			currentStage++;
-			int peakListNumber = savePeakListObjects();
+			savePeakListObjects();
 			if (status == TaskStatus.CANCELED) {
 				return;
 			}
 
-			if (peakListNumber == 0) {
-				this.taskGroupFinished(null);
+			// Finish and close the temporary ZIP file
+			zipStream.close();
+
+			// Final check for cancel
+			if (status == TaskStatus.CANCELED) {
+				return;
 			}
+
+			// Move the temporary ZIP file to the final location
+			tempFile.renameTo(saveFile);
 
 			logger.info("Finished saving project to " + saveFile);
 			status = TaskStatus.FINISHED;
@@ -180,10 +194,9 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 
 	private void saveProjectDescription() throws IOException {
 		description = new StoredProjectDescription(project);
-		zipStream.putNextEntry(new ZipEntry("info.xml"));
-		ObjectOutputStream objectStream = xstream.createObjectOutputStream(unclosableZipStream);
-		objectStream.writeObject(description);
-		objectStream.close();
+		zipStream.putNextEntry(new ZipEntry("info"));
+		ObjectOutputStream oos = new ObjectOutputStream(zipStream);
+		oos.writeObject(description);
 	}
 
 	private void saveConfiguration() throws IOException {
@@ -200,75 +213,23 @@ public class ProjectSavingTask implements Task, TaskGroupListener {
 		tempConfigFile.delete();
 	}
 
-	private void saveRawDataObjects() throws IOException {
-		// Serialize datafiles
-		for (RawDataFile dataFile : project.getDataFiles()) {
-			if (status == TaskStatus.CANCELED) {
-				return;
-			}
-			try {
-				zipStream.putNextEntry(new ZipEntry(dataFile.getName()));
-				copyFile(((RawDataFileImpl) dataFile).getScanDataFileasFile(), zipStream);
-			} catch (Exception ex) {
-				Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
-			}
-		}
-	}
-
-	public void copyFile(File in, ZipOutputStream zipStream) throws Exception {
-		FileInputStream fis = new FileInputStream(in);
+	private void saveRawDataObjects() {		
+		saving = new ScanFilesSaving(this.zipStream, project.getDataFiles());
 		try {
-			byte[] buffer = new byte[4096];
-			int bytesRead;
-			while ((bytesRead = fis.read(buffer)) != -1) {
-				zipStream.write(buffer, 0, bytesRead);
-				progress += bytesRead;
-			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (fis != null) {
-				fis.close();
-			}
-		}
-	}
-
-	private int savePeakListObjects() throws IOException, Exception {
-		PeakList[] peakLists = project.getPeakLists();
-
-		// Write all peak list rows
-		Task[] tasks = new Task[peakLists.length];
-
-		for (int i = 0; i < peakLists.length; i++) {
-			XMLExporterParameters parameters = new XMLExporterParameters();
-			parameters.setParameterValue(XMLExporterParameters.filename, this.saveFile.getAbsolutePath());
-			parameters.setZipStream(zipStream);
-			tasks[i] = new XMLExportTask(peakLists[i], parameters);
-		}
-		TaskGroup newGroup = new TaskGroup(tasks, null, this);
-		// start this group
-		newGroup.start();
-		return peakLists.length;
-	}
-
-	public void taskGroupStarted(TaskGroup group) {
-		logger.finest("Project saving peak lists task started.");
-	}
-
-	public void taskGroupFinished(TaskGroup group) {
-		try {
-			// Finish and close the temporary ZIP file
-			zipStream.close();
+			saving.saveScanObjects();			
 		} catch (IOException ex) {
 			Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		}		
+	}
 
-		// Final check for cancel
-		if (status == TaskStatus.CANCELED) {
-			return;
+	private void savePeakListObjects() throws IOException, Exception {
+		PeakList[] peakLists = project.getPeakLists();
+		XMLExporterParameters parameters = new XMLExporterParameters();
+		parameters.setParameterValue(XMLExporterParameters.filename, "peak lists");
+		parameters.setZipStream(zipStream);
+		for (int i = 0; i < peakLists.length; i++) {
+			XMLExportTask saving = new XMLExportTask(peakLists[i], parameters);
+			saving.run();
 		}
-
-		// Move the temporary ZIP file to the final location
-		tempFile.renameTo(saveFile);
 	}
 }
