@@ -51,7 +51,7 @@ public enum AdductType {
 	}
 
 	public String toString() {
-		return this.name + ", "
+		return this.name + " "
 				+ MZmineCore.getMZFormat().format(this.massDifference) + " m/z";
 	}
 }
