@@ -150,7 +150,7 @@ public class PubChemSearchTask implements Task {
 	 */
 	public String getTaskDescription() {
 		return "Peak identification of " + massFormater.format(valueOfQuery)
-				+ " using PubChem databases";
+				+ " using PubChem Compound database";
 	}
 
 	/**

@@ -63,8 +63,8 @@ public class ScatterPlotChart extends ChartPanel implements ComponentToolTipProv
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
 			-2.5f, 5, 5);
 
-	private static final Shape dataPointsShape2 = new Ellipse2D.Float(-3.5f,
-			-3.5f, 7, 7);
+	private static final Shape dataPointsShape2 = new Ellipse2D.Float(-3f, -3f,
+			6, 6);
 
 	private static final Shape diagonalPointsShape = new Rectangle2D.Float(-3,
 			-3, 6, 6);

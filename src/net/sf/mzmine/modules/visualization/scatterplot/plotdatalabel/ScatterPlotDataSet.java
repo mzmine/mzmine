@@ -343,8 +343,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 					originalName = identity.getName();
 				}
 
-				if ((originalName == null) || (originalName == "")) {
-					continue;
+				if (originalName == null) {
+					originalName = "";
 				}
 
 				originalName = originalName.toUpperCase();
