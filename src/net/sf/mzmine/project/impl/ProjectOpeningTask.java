@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
@@ -38,7 +37,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.UnclosableInputStream;
 
 /**
  * Project opening task using XStream library
@@ -50,7 +48,7 @@ public class ProjectOpeningTask implements Task, TaskListener {
 	private String errorMessage;
 	private File openFile;
 	private ZipInputStream zipStream;
-	private UnclosableInputStream unclosableZipStream;
+	// private UnclosableInputStream unclosableZipStream;
 	private StoredProjectDescription description;
 	private int currentStage;
 
@@ -120,7 +118,7 @@ public class ProjectOpeningTask implements Task, TaskListener {
 			// Get project ZIP stream
 			FileInputStream fileStream = new FileInputStream(openFile);
 			zipStream = new ZipInputStream(fileStream);
-			unclosableZipStream = new UnclosableInputStream(zipStream);
+			// unclosableZipStream = new UnclosableInputStream(zipStream);
 
 			//remove previous data
 			/*MZmineProject project = MZmineCore.getCurrentProject();
