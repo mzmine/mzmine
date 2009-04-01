@@ -154,7 +154,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		addDialogComponents();
 
 		pack();
-		setResizable(false);
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
 	}
