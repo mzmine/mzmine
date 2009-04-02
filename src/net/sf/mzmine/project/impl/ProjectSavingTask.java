@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2009 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
@@ -19,19 +19,14 @@
 package net.sf.mzmine.project.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.modules.io.xmlexport.XMLExportTask;
-import net.sf.mzmine.modules.io.xmlexport.XMLExporterParameters;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExceptionUtils;
 
@@ -48,9 +43,8 @@ public class ProjectSavingTask implements Task {
 	private ZipOutputStream zipStream;
 	private int currentStage;
 	private int progress;
-	private StoredProjectDescription description;
 	private File tempFile;
-	private ScanFilesSaving saving;
+
 
 	public ProjectSavingTask(File saveFile) {
 		this.saveFile = saveFile;
@@ -63,12 +57,10 @@ public class ProjectSavingTask implements Task {
 		String taskDescription = "Saving project to " + saveFile;
 		switch (currentStage) {
 			case 1:
-				return taskDescription + " (project description)";
+				return taskDescription + " (project information)";
 			case 2:
-				return taskDescription + " (project parameters)";
-			case 3:
 				return taskDescription + " (raw data points)";
-			case 4:
+			case 3:
 				return taskDescription + " (peak list objects)";
 			default:
 				return taskDescription;
@@ -80,24 +72,14 @@ public class ProjectSavingTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
-		int total = -1;
-		if (description != null) {
-			total = (int) description.getTotalNumOfScanFileBytes() + description.getNumOfPeakListRows();
-		}
+
 		switch (currentStage) {
 			case 1:
-				return 0.1f;
-			case 2:
-				return 0.15f;
-			case 3:
-				if(this.saving != null){
-					this.progress += this.saving.getscansbytes();
-					System.out.println(this.progress + " - " + total);
-				}
-				return 0.15 + (((double) progress / total) * 0.85);
 
-			case 4:
-				return 0.15 + ((double) progress / total) * 0.85;
+			case 2:
+
+			case 3:
+
 			default:
 				return 0f;
 		}
@@ -143,29 +125,21 @@ public class ProjectSavingTask implements Task {
 			FileOutputStream tempStream = new FileOutputStream(tempFile);
 			zipStream = new ZipOutputStream(tempStream);
 
-
-			// Stage 1 - save project description
-			currentStage++;
-			saveProjectDescription();
-			if (status == TaskStatus.CANCELED) {
-				return;
-			}
-
-			// Stage 2 - save configuration
+			// Stage 1 - save configuration
 			currentStage++;
 			saveConfiguration();
 			if (status == TaskStatus.CANCELED) {
 				return;
 			}
 
-			// Stage 3 - save RawDataFile objects
+			// Stage 2 - save RawDataFile objects
 			currentStage++;
 			saveRawDataObjects();
 			if (status == TaskStatus.CANCELED) {
 				return;
 			}
 
-			// Stage 4 - save PeakList objects
+			// Stage 3 - save PeakList objects
 			currentStage++;
 			savePeakListObjects();
 			if (status == TaskStatus.CANCELED) {
@@ -192,44 +166,25 @@ public class ProjectSavingTask implements Task {
 		}
 	}
 
-	private void saveProjectDescription() throws IOException {
-		description = new StoredProjectDescription(project);
-		zipStream.putNextEntry(new ZipEntry("info"));
-		ObjectOutputStream oos = new ObjectOutputStream(zipStream);
-		oos.writeObject(description);
-	}
+
 
 	private void saveConfiguration() throws IOException {
-		zipStream.putNextEntry(new ZipEntry("config.xml"));
-		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
-		MZmineCore.saveConfiguration(tempConfigFile);
-		FileInputStream configInputStream = new FileInputStream(tempConfigFile);
-		byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-		int len;
-		while ((len = configInputStream.read(buffer)) > 0) {
-			zipStream.write(buffer, 0, len);
-		}
-		configInputStream.close();
-		tempConfigFile.delete();
+		ProjectSerializer projectSerializer = new ProjectSerializer(zipStream);
+		projectSerializer.saveProjectDescription(project);
+		projectSerializer.saveConfiguration();
 	}
 
-	private void saveRawDataObjects() {		
-		saving = new ScanFilesSaving(this.zipStream, project.getDataFiles());
-		try {
-			saving.saveScanObjects();			
-		} catch (IOException ex) {
-			Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
-		}		
+	private void saveRawDataObjects() {
+		RawDataFileSerializer rawDataFileSerializer = new RawDataFileSerializer(zipStream);
+		for (RawDataFile rawDataFile : project.getDataFiles()) {
+			rawDataFileSerializer.writeRawDataFiles(rawDataFile);
+		}
 	}
 
 	private void savePeakListObjects() throws IOException, Exception {
-		PeakList[] peakLists = project.getPeakLists();
-		XMLExporterParameters parameters = new XMLExporterParameters();
-		parameters.setParameterValue(XMLExporterParameters.filename, "peak lists");
-		parameters.setZipStream(zipStream);
-		for (int i = 0; i < peakLists.length; i++) {
-			XMLExportTask saving = new XMLExportTask(peakLists[i], parameters);
-			saving.run();
+		PeakListSerializer peakListSerializer = new PeakListSerializer(zipStream);
+		for (PeakList peakList : project.getPeakLists()) {
+			peakListSerializer.savePeakList(peakList);
 		}
 	}
 }

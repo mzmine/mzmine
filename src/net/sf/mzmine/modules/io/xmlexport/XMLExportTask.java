@@ -64,20 +64,17 @@ public class XMLExportTask implements Task {
 
 	// parameter values
 	private String fileName;
-	private boolean compression;
-	private ZipOutputStream zipStream;
+	private boolean compression;	
 
 	/**
 	 * @param peakList
 	 * @param parameters
 	 */
 	public XMLExportTask(PeakList peakList,
-			XMLExporterParameters parameters) {
-		this.peakList = peakList;
+			XMLExporterParameters parameters) {		
 
 		fileName = (String) parameters.getParameterValue(XMLExporterParameters.filename);
-		compression = (Boolean) parameters.getParameterValue(XMLExporterParameters.compression);
-		zipStream = parameters.getZipStream();
+		compression = (Boolean) parameters.getParameterValue(XMLExporterParameters.compression);		
 
 		this.peakList = peakList;
 
@@ -195,29 +192,24 @@ public class XMLExportTask implements Task {
 
 
 			// write the saving file
-			OutputStream finalStream = null;
-			if (zipStream == null) {
-				File outputFile = new File(fileName);
-				FileOutputStream fos = new FileOutputStream(outputFile);
+			File outputFile = new File(fileName);
+			FileOutputStream fos = new FileOutputStream(outputFile);
+			OutputStream finalStream = fos;
 
-				finalStream = fos;
+			if (compression) {
+				ZipOutputStream zos = new ZipOutputStream(fos);
+				zos.setLevel(9);
+				zos.putNextEntry(new ZipEntry(outputFile.getName()));
+				finalStream = zos;
 
-				if (compression) {
-					ZipOutputStream zos = new ZipOutputStream(fos);
-					zos.setLevel(9);
-					zos.putNextEntry(new ZipEntry(outputFile.getName()));
-					finalStream = zos;
-				}
-
-			} else {
-				zipStream.putNextEntry(new ZipEntry(peakList.getName()));
-				finalStream = zipStream;
 			}
 
 			OutputFormat format = OutputFormat.createPrettyPrint();
 			XMLWriter writer = new XMLWriter(finalStream, format);
 			writer.write(document);
 			writer.close();
+
+
 
 		} catch (Exception e) {
 			/* we may already have set the status to CANCELED */

@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.io.xmlexport;
 
-import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -33,18 +32,9 @@ public class XMLExporterParameters extends SimpleParameterSet {
 	public static final Parameter compression = new SimpleParameter(
 			ParameterType.BOOLEAN, "Compressed file",
 			"Generates a compressed file (.zip)", null, true,
-			null, null, null);
-	private ZipOutputStream zipStream = null;
+			null, null, null);	
 
 	public XMLExporterParameters() {
 		super(new Parameter[]{filename, compression});
-	}
-
-	public void setZipStream(ZipOutputStream zipStream) {
-		this.zipStream = zipStream;
-	}
-
-	public ZipOutputStream getZipStream() {
-		return this.zipStream;
-	}
+	}	
 }
