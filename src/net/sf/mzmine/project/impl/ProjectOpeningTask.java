@@ -20,7 +20,6 @@ package net.sf.mzmine.project.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.logging.Level;
@@ -28,7 +27,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.ExceptionUtils;

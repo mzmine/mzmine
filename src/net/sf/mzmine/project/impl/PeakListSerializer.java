@@ -22,9 +22,9 @@ import java.io.ByteArrayInputStream;
 
 
 
+import java.io.ByteArrayOutputStream;
 import org.jfree.xml.util.Base64;
 import org.xml.sax.Attributes;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -140,7 +140,9 @@ public class PeakListSerializer extends DefaultHandler {
 			newElement = saveRoot.addElement(PeakListElementName.RAWFILE.getElementName());
 			newElement.addAttribute(
 					PeakListElementName.ID.getElementName(), String.valueOf(i));
-			fillRawDataFileElement(dataFiles[i - 1], newElement);
+			// <NAME>
+			newElement = saveRoot.addElement(PeakListElementName.NAME.getElementName());
+			newElement.addText(dataFiles[i - 1].getName());
 			dataFilesIDMap.put(dataFiles[i - 1], i);
 		}
 
@@ -152,6 +154,7 @@ public class PeakListSerializer extends DefaultHandler {
 			newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
 			fillRowElement(row, newElement);
 		}
+
 		zipOutputStream.putNextEntry(new ZipEntry(peakList.getName()));
 		OutputStream finalStream = zipOutputStream;
 		OutputFormat format = OutputFormat.createPrettyPrint();
@@ -159,54 +162,7 @@ public class PeakListSerializer extends DefaultHandler {
 		writer.write(document);
 	}
 
-	/**
-	 * @param file
-	 * @param element
-	 */
-	private void fillRawDataFileElement(RawDataFile file, Element element) {
-
-		// <NAME>
-		Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
-		newElement.addText(file.getName());
-
-		// <RTRANGE>
-		newElement = element.addElement(PeakListElementName.RTRANGE.getElementName());
-		newElement.addText(String.valueOf(file.getDataRTRange(1)));
-
-		// <MZRANGE>
-		newElement = element.addElement(PeakListElementName.MZRANGE.getElementName());
-		newElement.addText(String.valueOf(file.getDataMZRange(1)));
-
-		// <SCAN>
-		int[] scanNumbers = file.getScanNumbers(1);
-		StringBuilder stringIDBuilder = null, stringRTBuilder = null;
-		newElement = element.addElement(PeakListElementName.SCAN.getElementName());
-		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
-				String.valueOf(scanNumbers.length));
-		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
-		for (int scan : scanNumbers) {
-			if (stringIDBuilder == null) {
-				// Scan's id
-				stringIDBuilder = new StringBuilder();
-				stringIDBuilder.append(scan);
-				// Scan's rt
-				stringRTBuilder = new StringBuilder();
-				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
-			} else {
-				// Scan's id
-				stringIDBuilder.append(PeakListElementName.SEPARATOR.getElementName());
-				stringIDBuilder.append(scan);
-				// Scan's rt
-				stringRTBuilder.append(PeakListElementName.SEPARATOR.getElementName());
-				stringRTBuilder.append(file.getScan(scan).getRetentionTime());
-			}
-		}
-		secondNewElement.addText(stringIDBuilder.toString());
-		secondNewElement = newElement.addElement(PeakListElementName.RT.getElementName());
-		secondNewElement.addText(stringRTBuilder.toString());
-
-	}
-
+	
 	/**
 	 * @param row
 	 * @param element
@@ -290,31 +246,11 @@ public class PeakListSerializer extends DefaultHandler {
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
 
-		ByteArrayOutputStream byteMassStream = new ByteArrayOutputStream();
-		DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
 
-		ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
-		DataOutputStream dataHeightStream = new DataOutputStream(
-				byteHeightStream);
-
-		float mass, height;
 		for (int scan : scanNumbers) {
 			try {
 				dataScanStream.writeInt(scan);
 				dataScanStream.flush();
-				DataPoint mzPeak = peak.getDataPoint(scan);
-				if (mzPeak != null) {
-					mass = (float) mzPeak.getMZ();
-					height = (float) mzPeak.getIntensity();
-				} else {
-					mass = (float) peak.getMZ();
-					height = 0f;
-				}
-				dataMassStream.writeFloat(mass);
-				dataMassStream.flush();
-				dataHeightStream.writeFloat(height);
-				dataHeightStream.flush();
-
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -323,16 +259,17 @@ public class PeakListSerializer extends DefaultHandler {
 		char[] bytes = Base64.encode(byteScanStream.toByteArray());
 		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
 		secondNewElement.addText(new String(bytes));
-
-		bytes = Base64.encode(byteMassStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
-		secondNewElement.addText(new String(bytes));
-
-		bytes = Base64.encode(byteHeightStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
-		secondNewElement.addText(new String(bytes));
-
 	}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -749,7 +686,7 @@ public class PeakListSerializer extends DefaultHandler {
 
 	private void initializePeakList() {
 		RawDataFile[] dataFiles = buildingArrayRawDataFiles.values().toArray(
-				new RawDataFile[0]);	
+				new RawDataFile[0]);
 		buildingPeakList = new SimplePeakList(peakListName, dataFiles);
 		String[] process = appliedProcess.toArray(new String[0]);
 		for (String description : process) {
