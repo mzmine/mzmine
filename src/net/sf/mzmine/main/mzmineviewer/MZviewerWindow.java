@@ -70,7 +70,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
     private JMenuBar menuBar;
     private JMenu fileMenu, visualizationMenu;
-    private ProjectTree itemSelector;
+    private ProjectTree projectTree;
     private TaskProgressWindow taskList;
     private MainPanel mainPanel;
 
@@ -164,7 +164,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public PeakList[] getSelectedPeakLists() {
-        return itemSelector.getSelectedObjects(PeakList.class);
+        return projectTree.getSelectedObjects(PeakList.class);
     }
 
     /**
@@ -182,6 +182,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         }
 
         mainPanel = new MainPanel();
+        projectTree = mainPanel.getProjectTree();
 
         Container c = getContentPane();
         c.setLayout(new BorderLayout());
