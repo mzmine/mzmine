@@ -32,6 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;

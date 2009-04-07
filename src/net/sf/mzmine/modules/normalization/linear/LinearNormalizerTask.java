@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.normalization.linear;
 
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
@@ -35,10 +36,13 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class LinearNormalizerTask implements Task {
 
-    public static final double maximumOverallPeakHeightAfterNormalization = 100000.0f;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	public static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
     private PeakList originalPeakList;
 
@@ -91,6 +95,7 @@ class LinearNormalizerTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running linear normalizer");
 
         // This hashtable maps rows from original alignment result to rows of
         // the normalized alignment
@@ -263,7 +268,9 @@ class LinearNormalizerTask implements Task {
         if (removeOriginal)
             currentProject.removePeakList(originalPeakList);
 
+        logger.info("Finished linear normalizer");
         status = TaskStatus.FINISHED;
+        
     }
 
 }

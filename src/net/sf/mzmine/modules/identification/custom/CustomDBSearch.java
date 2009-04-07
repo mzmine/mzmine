@@ -33,8 +33,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -93,17 +91,17 @@ public class CustomDBSearch implements BatchStep, ActionListener {
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
+        runModule(null, selectedPeakLists, parameters.clone());
 
     }
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener methodListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         if (peakLists == null) {
             throw new IllegalArgumentException(
@@ -116,12 +114,11 @@ public class CustomDBSearch implements BatchStep, ActionListener {
             tasks[i] = new CustomDBSearchTask(peakLists[i],
                     (CustomDBSearchParameters) parameters);
         }
-        TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
 
         // execute the sequence
-        newSequence.start();
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        return newSequence;
+        return tasks;
 
     }
 

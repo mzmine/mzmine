@@ -31,10 +31,10 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 
-class ConcatenateFragmentsTask implements Task, TaskListener {
+class ConcatenateFragmentsTask implements Task {
 
     private TaskStatus status;
     private String errorMessage;

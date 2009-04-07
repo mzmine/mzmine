@@ -32,8 +32,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -122,17 +120,17 @@ public class AdductSearch implements BatchStep, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(null, peakLists, parameters.clone(), null);
+		runModule(null, peakLists, parameters.clone());
 
 	}
 
 	/**
 	 * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
 	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 		if (peakLists == null) {
 			throw new IllegalArgumentException(
 					"Cannot run identification without a peak list");
@@ -144,12 +142,10 @@ public class AdductSearch implements BatchStep, ActionListener {
 			tasks[i] = new AdductSearchTask(
 					(AdductSearchParameters) parameters, peakLists[i]);
 		}
-		TaskGroup newSequence = new TaskGroup(tasks, null, taskGroupListener);
+		
+		MZmineCore.getTaskController().addTasks(tasks);
 
-		// execute the sequence
-		newSequence.start();
-
-		return newSequence;
+		return tasks;
 	}
 
 	/**

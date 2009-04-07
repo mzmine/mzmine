@@ -40,9 +40,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.Range;
 import visad.ProjectionControl;
 import visad.java3d.MouseBehaviorJ3D;
@@ -51,7 +49,7 @@ import visad.java3d.MouseBehaviorJ3D;
  * 3D visualizer frame
  */
 public class ThreeDVisualizerWindow extends JInternalFrame implements
-        TaskListener, MouseWheelListener, ActionListener {
+        MouseWheelListener, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -123,8 +121,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers,
                 rtRange, mzRange, rtResolution, mzResolution, display);
 
-        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
-                this);
+        MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH);
 
         // After we have constructed everything, load the peak lists into the
         // bottom panel
@@ -146,25 +143,6 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 
         titleLabel.setText(title.toString());
 
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == TaskStatus.FINISHED) {
-            // Add this window to desktop
-            desktop.addInternalFrame(this);
-        }
-
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // do nothing
     }
 
     /**

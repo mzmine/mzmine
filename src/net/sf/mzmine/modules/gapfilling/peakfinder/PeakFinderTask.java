@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.gapfilling.peakfinder;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
@@ -33,9 +34,12 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class PeakFinderTask implements Task {
 
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
@@ -66,6 +70,7 @@ class PeakFinderTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running gap filler on " + peakList);
 
         // Calculate total number of scans in all files
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
@@ -169,7 +174,7 @@ class PeakFinderTask implements Task {
         // Add task description to peakList
         processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
 
-
+        logger.info("Finished gap-filling on " + peakList);
         status = TaskStatus.FINISHED;
 
     }

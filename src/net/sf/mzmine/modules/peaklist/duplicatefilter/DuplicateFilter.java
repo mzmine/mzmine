@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peaklist.duplicatefilter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,9 +33,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -53,11 +49,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class DuplicateFilter implements BatchStep, TaskListener, ActionListener {
+public class DuplicateFilter implements BatchStep, ActionListener {
 
     private DuplicateFilterParameters parameters;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
 
@@ -85,9 +80,9 @@ public class DuplicateFilter implements BatchStep, TaskListener, ActionListener 
      */
     public void actionPerformed(ActionEvent e) {
 
-        PeakList[] peaklists = desktop.getSelectedPeakLists();
+        PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-        if (peaklists.length == 0) {
+        if (peakLists.length == 0) {
             desktop.displayErrorMessage("Please select peak lists to filter");
             return;
         }
@@ -96,31 +91,10 @@ public class DuplicateFilter implements BatchStep, TaskListener, ActionListener 
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, peaklists, parameters.clone(), null);
+        runModule(null, peakLists, parameters.clone());
     }
 
-    public void taskStarted(Task task) {
-        DuplicateFilterTask ftTask = (DuplicateFilterTask) task;
-        logger.info("Running " + toString() + " on " + ftTask.getPeakList());
-    }
-
-    public void taskFinished(Task task) {
-
-        DuplicateFilterTask ftTask = (DuplicateFilterTask) task;
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished " + toString() + " on "
-                    + ftTask.getPeakList());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while filtering peaklist "
-                    + ftTask.getPeakList() + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
-
-    }
+  
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#toString()
@@ -150,10 +124,10 @@ public class DuplicateFilter implements BatchStep, TaskListener, ActionListener 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         // check peak lists
         if ((peakLists == null) || (peakLists.length == 0)) {
@@ -167,13 +141,10 @@ public class DuplicateFilter implements BatchStep, TaskListener, ActionListener 
             tasks[i] = new DuplicateFilterTask(peakLists[i],
                     (DuplicateFilterParameters) parameters);
         }
+        
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
-
-        // start the group
-        newGroup.start();
-
-        return newGroup;
+        return tasks;
 
     }
 

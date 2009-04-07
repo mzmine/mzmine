@@ -46,6 +46,7 @@ import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCal
 import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class PubChemSearchTask implements Task {
 

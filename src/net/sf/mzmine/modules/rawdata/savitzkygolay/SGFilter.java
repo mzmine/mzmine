@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.rawdata.savitzkygolay;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,149 +33,115 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class SGFilter implements BatchStep, TaskListener, ActionListener {
+public class SGFilter implements BatchStep, ActionListener {
 
-    private SGFilterParameters parameters;
+	private SGFilterParameters parameters;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Desktop desktop;
 
-    private Desktop desktop;
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 */
+	public void initModule() {
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
-     */
-    public void initModule() {
+		this.desktop = MZmineCore.getDesktop();
 
-        this.desktop = MZmineCore.getDesktop();
+		parameters = new SGFilterParameters();
 
-        parameters = new SGFilterParameters();
+		desktop
+				.addMenuItem(
+						MZmineMenu.RAWDATAFILTERING,
+						"Savitzky-Golay filter",
+						"Smoothing filter for each individual spectrum, using Savitzky-Golay method",
+						KeyEvent.VK_S, false, this, null);
 
-        desktop.addMenuItem(
-                MZmineMenu.RAWDATAFILTERING,
-                "Savitzky-Golay filter",
-                "Smoothing filter for each individual spectrum, using Savitzky-Golay method",
-                KeyEvent.VK_S, false, this, null);
+	}
 
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
+		if (dataFiles.length == 0) {
+			desktop.displayErrorMessage("Please select at least one data file");
+			return;
+		}
 
-        RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
-            return;
-        }
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		runModule(dataFiles, null, parameters.clone());
 
-        runModule(dataFiles, null, parameters.clone(), null);
+	}
 
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return "Savitzky-Golay filter";
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Savitzky-Golay filter";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters()
+	 */
+	public ExitCode setupParameters(ParameterSet currentParameters) {
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(SimpleParameterSet) currentParameters);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters()
-     */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles,
+			PeakList[] alignmentResults, ParameterSet parameters) {
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-     */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener taskGroupListener) {
+		// check data files
+		if ((dataFiles == null) || (dataFiles.length == 0)) {
+			desktop
+					.displayErrorMessage("Please select data files for filtering");
+			return null;
+		}
 
-        // check data files
-        if ((dataFiles == null) || (dataFiles.length == 0)) {
-            desktop.displayErrorMessage("Please select data files for filtering");
-            return null;
-        }
+		// prepare a new task group
+		Task tasks[] = new SGFilterTask[dataFiles.length];
+		for (int i = 0; i < dataFiles.length; i++) {
+			tasks[i] = new SGFilterTask(dataFiles[i],
+					(SGFilterParameters) parameters);
+		}
 
-        // prepare a new task group
-        Task tasks[] = new SGFilterTask[dataFiles.length];
-        for (int i = 0; i < dataFiles.length; i++) {
-            tasks[i] = new SGFilterTask(dataFiles[i],
-                    (SGFilterParameters) parameters);
-        }
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+		MZmineCore.getTaskController().addTasks(tasks);
 
-        // start this group
-        newGroup.start();
+		return tasks;
 
-        return newGroup;
+	}
 
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (SGFilterParameters) parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (SGFilterParameters) parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        SGFilterTask sgTask = (SGFilterTask) task;
-        logger.info("Running Savitzky-Golay filter on " + sgTask.getDataFile());
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-
-        SGFilterTask sgTask = (SGFilterTask) task;
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished Savitzky-Golay filter on "
-                    + sgTask.getDataFile());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while running Savitzky-Golay filter on "
-                    + sgTask.getDataFile() + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
-
-    }
-
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.RAWDATAPROCESSING;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.RAWDATAPROCESSING;
+	}
 
 }

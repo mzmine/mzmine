@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Arrays;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -35,9 +34,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
 import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
@@ -47,10 +43,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 /**
  * Normalization module using selected internal standards
  */
-public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
+public class StandardCompoundNormalizer implements MZmineModule, 
         ActionListener {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private StandardCompoundNormalizerParameters parameters;
 
@@ -124,28 +118,7 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
             }
 
             runModule(null, new PeakList[] { pl },
-                    (StandardCompoundNormalizerParameters) parameters.clone(),
-                    null);
-        }
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Running standard compound normalizer");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished standard compound normalizer");
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while normalizing peak list: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
+                    (StandardCompoundNormalizerParameters) parameters.clone());
         }
 
     }
@@ -153,12 +126,11 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
+    public Task[] runModule(RawDataFile[] dataFiles,
             PeakList[] alignmentResults,
-            StandardCompoundNormalizerParameters parameters,
-            TaskGroupListener taskGroupListener) {
+            StandardCompoundNormalizerParameters parameters) {
 
         // prepare a new group of tasks
 
@@ -167,12 +139,10 @@ public class StandardCompoundNormalizer implements MZmineModule, TaskListener,
             tasks[i] = new StandardCompoundNormalizerTask(alignmentResults[i],
                     parameters);
         }
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // start the group
-        newGroup.start();
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        return newGroup;
+        return tasks;
 
     }
 

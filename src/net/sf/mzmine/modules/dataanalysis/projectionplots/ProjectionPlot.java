@@ -30,13 +30,9 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class ProjectionPlot implements MZmineModule, ActionListener,
-        TaskListener {
+public class ProjectionPlot implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -123,27 +119,8 @@ public class ProjectionPlot implements MZmineModule, ActionListener,
             if (command.equals("SAMMON_PLOT"))
                 dataset = new SammonDataset(parameters);
 
-            new TaskGroup(dataset, this).start();
-
-        }
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Computing projection plot");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished computing projection plot.");
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while computing projection plot: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
+            MZmineCore.getTaskController().addTask(dataset);
+            
 
         }
 

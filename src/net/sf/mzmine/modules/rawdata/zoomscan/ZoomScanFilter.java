@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.rawdata.zoomscan;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,17 +33,12 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
+public class ZoomScanFilter implements BatchStep, ActionListener {
 
     private ZoomScanFilterParameters parameters;
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private Desktop desktop;
 
@@ -78,7 +72,7 @@ public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(dataFiles, null, parameters.clone(), null);
+        runModule(dataFiles, null, parameters.clone());
 
     }
 
@@ -103,11 +97,10 @@ public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles,
-            PeakList[] alignmentResults, ParameterSet parameters,
-            TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles,
+            PeakList[] alignmentResults, ParameterSet parameters) {
 
         // check data files
         if ((dataFiles == null) || (dataFiles.length == 0)) {
@@ -121,12 +114,10 @@ public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
             tasks[i] = new ZoomScanFilterTask(dataFiles[i],
                     (ZoomScanFilterParameters) parameters);
         }
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+        
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        // start this group
-        newGroup.start();
-
-        return newGroup;
+		return tasks;
 
     }
 
@@ -142,35 +133,6 @@ public class ZoomScanFilter implements BatchStep, TaskListener, ActionListener {
      */
     public void setParameters(ParameterSet parameters) {
         this.parameters = (ZoomScanFilterParameters) parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        ZoomScanFilterTask zoomTask = (ZoomScanFilterTask) task;
-        logger.info("Running zoom scan filter on " + zoomTask.getDataFile());
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-
-        ZoomScanFilterTask zoomTask = (ZoomScanFilterTask) task;
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished zoom scan filter on "
-                    + zoomTask.getDataFile());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while running zoom scan filter on "
-                    + zoomTask.getDataFile() + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
-
     }
 
     public BatchStepCategory getBatchStepCategory() {

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.rawdata.resample;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -29,6 +30,7 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -37,6 +39,8 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class ResampleFilterTask implements Task {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private RawDataFile dataFile;
 
 	private TaskStatus status = TaskStatus.WAITING;
@@ -94,10 +98,6 @@ class ResampleFilterTask implements Task {
 		return errorMessage;
 	}
 
-	public RawDataFile getDataFile() {
-		return dataFile;
-	}
-
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
@@ -111,6 +111,7 @@ class ResampleFilterTask implements Task {
 	public void run() {
 
 		status = TaskStatus.PROCESSING;
+		logger.info("Running resample filter on " + dataFile);
 
 		try {
 
@@ -180,6 +181,7 @@ class ResampleFilterTask implements Task {
 				MZmineCore.getCurrentProject().removeFile(dataFile);
 
 			status = TaskStatus.FINISHED;
+			logger.info("Finished m/z resample filter on " + dataFile);
 
 		} catch (IOException e) {
 			status = TaskStatus.ERROR;

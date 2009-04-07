@@ -32,8 +32,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class PeakRecognition implements BatchStep, ActionListener {
@@ -78,7 +76,7 @@ public class PeakRecognition implements BatchStep, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(null, peakLists, parameters.clone(), null);
+		runModule(null, peakLists, parameters.clone());
 
 	}
 
@@ -115,10 +113,10 @@ public class PeakRecognition implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
 	 *      net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 		// check peak lists
 		if ((peakLists == null) || (peakLists.length == 0)) {
 			desktop
@@ -140,12 +138,10 @@ public class PeakRecognition implements BatchStep, ActionListener {
 			tasks[i] = new PeakRecognitionTask(peakLists[i],
 					(PeakRecognitionParameters) parameters);
 		}
-		TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
+		
+		MZmineCore.getTaskController().addTasks(tasks);
 
-		// start the group
-		newGroup.start();
-
-		return newGroup;
+		return tasks;
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class ShapeModelerTask implements Task {
 

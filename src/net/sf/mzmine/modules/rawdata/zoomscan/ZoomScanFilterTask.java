@@ -20,17 +20,21 @@
 package net.sf.mzmine.modules.rawdata.zoomscan;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * 
  */
 class ZoomScanFilterTask implements Task {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private RawDataFile dataFile;
 
@@ -86,10 +90,6 @@ class ZoomScanFilterTask implements Task {
         return errorMessage;
     }
 
-    public RawDataFile getDataFile() {
-        return dataFile;
-    }
-
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
@@ -103,7 +103,8 @@ class ZoomScanFilterTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
-
+        logger.info("Running zoom scan filter on " + dataFile);
+        
         try {
 
             // Create new temporary file
@@ -142,6 +143,7 @@ class ZoomScanFilterTask implements Task {
                 MZmineCore.getCurrentProject().removeFile(dataFile);
 
             status = TaskStatus.FINISHED;
+            logger.info("Finished zoom scan filter on " + dataFile);
 
         } catch (IOException e) {
             status = TaskStatus.ERROR;

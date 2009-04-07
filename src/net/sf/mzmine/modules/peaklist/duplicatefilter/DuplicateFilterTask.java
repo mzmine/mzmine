@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklist.duplicatefilter;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -30,6 +31,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
 import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
@@ -39,7 +41,9 @@ import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
  */
 class DuplicateFilterTask implements Task {
 
-    private PeakList peaklist;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	private PeakList peakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -57,9 +61,9 @@ class DuplicateFilterTask implements Task {
      * @param rawDataFile
      * @param parameters
      */
-    DuplicateFilterTask(PeakList peaklist, DuplicateFilterParameters parameters) {
+    DuplicateFilterTask(PeakList peakList, DuplicateFilterParameters parameters) {
 
-        this.peaklist = peaklist;
+        this.peakList = peakList;
         this.parameters = parameters;
 
         // Get parameter values for easier use
@@ -75,7 +79,7 @@ class DuplicateFilterTask implements Task {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Duplicate peak filter on " + peaklist;
+        return "Duplicate peak filter on " + peakList;
     }
 
     /**
@@ -102,7 +106,7 @@ class DuplicateFilterTask implements Task {
     }
 
     public PeakList getPeakList() {
-        return peaklist;
+        return peakList;
     }
 
     /**
@@ -118,30 +122,33 @@ class DuplicateFilterTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running duplicate peaka filter on " + peakList);
 
-        SimplePeakList filteredPeakList = new SimplePeakList(peaklist + " "
-                + suffix, peaklist.getRawDataFiles());
+        SimplePeakList filteredPeakList = new SimplePeakList(peakList + " "
+				+ suffix, peakList.getRawDataFiles());
        
-        PeakListRow[] peaklistRows = peaklist.getRows();
+        PeakListRow[] peakListRows = peakList.getRows();
         
-        totalRows = peaklistRows.length;
+        totalRows = peakListRows.length;
         
-        Arrays.sort(peaklistRows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+        Arrays.sort(peakListRows, new PeakListRowSorter(SortingProperty.Area,
+				SortingDirection.Descending));
 
         // Loop through all peak list rows
-        for (int firstRowIndex = 0; firstRowIndex < peaklistRows.length; firstRowIndex++) {
+		for (int firstRowIndex = 0; firstRowIndex < peakListRows.length; firstRowIndex++) {
         	        	       
-        	if (peaklistRows[firstRowIndex]==null) {
+        	if (peakListRows[firstRowIndex] == null) {
                 processedRows++;
                 continue;
             }
         	        	
         	// Search for duplicate rows with smaller peak area
-        	for (int secondRowIndex = (firstRowIndex + 1); secondRowIndex < peaklistRows.length; secondRowIndex++) {
+			for (int secondRowIndex = (firstRowIndex + 1); secondRowIndex < peakListRows.length; secondRowIndex++) {
 
         		if (status == TaskStatus.CANCELED) return;
         		
-        		if (peaklistRows[secondRowIndex]==null) continue;
+        		if (peakListRows[secondRowIndex] == null)
+					continue;
         		
         		// Compare identifications
         		boolean sameID = true;
@@ -150,8 +157,10 @@ class DuplicateFilterTask implements Task {
         			// Use preferred identifications if available instead of all identifications
         			// Use CompoundIDs if available instead of CompoundNames
         			
-       				PeakIdentity[] firstIdentities = peaklistRows[firstRowIndex].getPeakIdentities();
-       				PeakIdentity[] secondIdentities = peaklistRows[secondRowIndex].getPeakIdentities();
+       				PeakIdentity[] firstIdentities = peakListRows[firstRowIndex]
+							.getPeakIdentities();
+					PeakIdentity[] secondIdentities = peakListRows[secondRowIndex]
+							.getPeakIdentities();
        				
        				if ( (firstIdentities.length==0) && (secondIdentities.length==0) )
        					sameID = true;
@@ -172,23 +181,25 @@ class DuplicateFilterTask implements Task {
       				
         		// Compare m/z
         		boolean sameMZ = false;
-        		double firstMZ = peaklistRows[firstRowIndex].getAverageMZ();
-        		double secondMZ = peaklistRows[secondRowIndex].getAverageMZ();
+        		double firstMZ = peakListRows[firstRowIndex].getAverageMZ();
+				double secondMZ = peakListRows[secondRowIndex].getAverageMZ();
         		if (Math.abs(firstMZ-secondMZ) < mzDifferenceMax) {
         			sameMZ = true;
         		}
         		
         		// Compare rt
         		boolean sameRT = false;
-        		double firstRT = peaklistRows[firstRowIndex].getAverageRT();
-        		double secondRT = peaklistRows[secondRowIndex].getAverageRT();
+        		double firstRT = peakListRows[firstRowIndex].getAverageRT();
+				double secondRT = peakListRows[secondRowIndex].getAverageRT();
         		if (Math.abs(firstRT-secondRT) < rtDifferenceMax) {
         			sameRT = true;
         		}
         		
         		if (sameID && sameMZ && sameRT) {
-        			//System.out.println("Duplicate for ID " + peaklistRows[firstRowIndex].getID() + " is ID " + peaklistRows[secondRowIndex].getID());
-        			peaklistRows[secondRowIndex] = null;
+        			// System.out.println("Duplicate for ID " +
+					// peakListRows[firstRowIndex].getID() + " is ID " +
+					// peakListRows[secondRowIndex].getID());
+					peakListRows[secondRowIndex] = null;
         		}
 
         		
@@ -199,18 +210,18 @@ class DuplicateFilterTask implements Task {
         }
         
         // Add all remaining rows to a new peak list
-        for (PeakListRow peaklistRow : peaklistRows) {
-        	if (peaklistRow != null) 
-        		filteredPeakList.addRow(peaklistRow);
+		for (PeakListRow peakListRow : peakListRows) {
+			if (peakListRow != null)
+				filteredPeakList.addRow(peakListRow);
         }
 
 
-        // Add new peaklist to the project
+        // Add new peakList to the project
         MZmineProject currentProject = MZmineCore.getCurrentProject();
         currentProject.addPeakList(filteredPeakList);
         
 		// Load previous applied methods
-		for (PeakListAppliedMethod proc: peaklist.getAppliedMethods()){
+		for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
 			filteredPeakList.addDescriptionOfAppliedTask(proc);
 		}
         
@@ -218,10 +229,11 @@ class DuplicateFilterTask implements Task {
         filteredPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Duplicate peak filter", parameters));
 
 
-        // Remove the original peaklist if requested
+        // Remove the original peakList if requested
         if (removeOriginal)
-            currentProject.removePeakList(peaklist);
+            currentProject.removePeakList(peakList);
 
+        logger.info("Finished duplicate peak filter on " + peakList);
         status = TaskStatus.FINISHED;
 
     }

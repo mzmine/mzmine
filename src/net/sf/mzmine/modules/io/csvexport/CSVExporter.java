@@ -32,8 +32,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -80,7 +78,7 @@ public class CSVExporter implements MZmineModule, ActionListener,
             return;
         }
 
-        runModule(null, selectedPeakLists, parameters, null);
+        runModule(null, selectedPeakLists, parameters);
 
     }
 
@@ -95,19 +93,16 @@ public class CSVExporter implements MZmineModule, ActionListener,
         return BatchStepCategory.PROJECT;
     }
 
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         CSVExportTask task = new CSVExportTask(peakLists[0],
                 (CSVExporterParameters) parameters);
 
-        TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
-                taskGroupListener);
-
         // start this group
-        newGroup.start();
+		MZmineCore.getTaskController().addTask(task);
 
-        return newGroup;
+        return new Task[] { task };
 
     }
 

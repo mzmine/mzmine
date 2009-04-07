@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.gapfilling.peakfinder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -33,15 +32,11 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class PeakFinder implements BatchStep, TaskListener, ActionListener {
+public class PeakFinder implements BatchStep, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakFinderParameters parameters;
 
@@ -81,30 +76,7 @@ public class PeakFinder implements BatchStep, TaskListener, ActionListener {
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Running gap filler");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished gap-filling on "
-                    + ((PeakFinderTask) task).getPeakList());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-
-            String msg = "Error while gap filling peak list "
-                    + ((PeakFinderTask) task).getPeakList() + ": "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
-        }
+        runModule(null, selectedPeakLists, parameters.clone());
 
     }
 
@@ -133,10 +105,10 @@ public class PeakFinder implements BatchStep, TaskListener, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
         if (peakLists == null || peakLists.length < 1) {
             throw new IllegalArgumentException(
@@ -150,10 +122,9 @@ public class PeakFinder implements BatchStep, TaskListener, ActionListener {
                     (PeakFinderParameters) parameters);
         }
 
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
-        newGroup.start();
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        return newGroup;
+        return tasks;
 
     }
 

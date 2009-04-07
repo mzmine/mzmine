@@ -23,8 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
 /**
@@ -78,15 +77,7 @@ class WorkerThread extends Thread {
 
             try {
 
-                TaskListener listener = currentTask.getListener();
-
-                if (listener != null)
-                    listener.taskStarted(currentTask.getTask());
-
                 currentTask.getTask().run();
-
-                if (listener != null)
-                    listener.taskFinished(currentTask.getTask());
 
                 // Task finished with an error
                 if (currentTask.getTask().getStatus() == TaskStatus.ERROR) {

@@ -33,6 +33,7 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.Mass
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * @see

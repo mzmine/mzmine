@@ -31,8 +31,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -74,22 +72,18 @@ public class XMLExporter implements MZmineModule, ActionListener {
             return;
         }
 
-        runModule(null, selectedPeakLists, parameters, null);
+        runModule(null, selectedPeakLists, parameters);
 	}
 
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
         
 		XMLExportTask task = new XMLExportTask(peakLists[0],
                 (XMLExporterParameters) parameters);
 
-        TaskGroup newGroup = new TaskGroup(new Task[]{task}, null,
-                taskGroupListener);
+		MZmineCore.getTaskController().addTask(task);
 
-        // start this group
-        newGroup.start();
-
-        return newGroup;
+        return new Task[] { task };
     
 	}
 

@@ -32,8 +32,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ChromatogramBuilder implements BatchStep, ActionListener {
@@ -74,7 +72,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(dataFiles, null, parameters.clone(), null);
+		runModule(dataFiles, null, parameters.clone());
 
 	}
 
@@ -111,10 +109,10 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
 	 *      net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 		// check data files
 		if ((dataFiles == null) || (dataFiles.length == 0)) {
 			desktop
@@ -128,12 +126,10 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 			tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
 					(ChromatogramBuilderParameters) parameters);
 		}
-		TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
+		
+		MZmineCore.getTaskController().addTasks(tasks);
 
-		// start the group
-		newGroup.start();
-
-		return newGroup;
+		return tasks;
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

@@ -33,6 +33,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -83,9 +84,10 @@ public class MsMsPeakPickingTask implements Task {
 	}
 
 	public void run() {
+		
 		status = TaskStatus.PROCESSING;
 
-		logger.finest("Start building ...");
+		logger.info("Start MS/MS peak builder on " + dataFile);
 		int[] scanNumbers = dataFile.getScanNumbers(2);
 		totalScans = scanNumbers.length;
 		for (int scanNumber : scanNumbers) {
@@ -130,7 +132,7 @@ public class MsMsPeakPickingTask implements Task {
 
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(peakList);
-		logger.finest("Finished peaklist builder based on MS/MS"
+		logger.info("Finished MS/MS peak builder on " + dataFile + ", "
 				+ processedScans + " scans processed");
 
 		status = TaskStatus.FINISHED;

@@ -20,9 +20,9 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import java.util.Date;
+
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 
 /**
  * Wrapper class for Tasks that stores additional information
@@ -31,14 +31,12 @@ class WrappedTask implements Comparable {
 
     private Task task;
     private Date addedTime;
-    private TaskListener listener;
     private TaskPriority priority;
     private WorkerThread assignedTo;
 
-    WrappedTask(Task task, TaskPriority priority, TaskListener listener) {
+    WrappedTask(Task task, TaskPriority priority) {
         addedTime = new Date();
         this.task = task;
-        this.listener = listener;
         this.priority = priority;
     }
 
@@ -57,13 +55,6 @@ class WrappedTask implements Comparable {
             result = addedTime.compareTo(t.addedTime);
         return result;
 
-    }
-
-    /**
-     * @return Returns the listener.
-     */
-    TaskListener getListener() {
-        return listener;
     }
 
     /**

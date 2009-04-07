@@ -20,6 +20,7 @@
 package net.sf.mzmine.taskcontrol.impl;
 
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * This class serves as a replacement for Task within the task controller queue,

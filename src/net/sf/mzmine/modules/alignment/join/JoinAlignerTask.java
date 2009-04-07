@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -34,6 +35,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
@@ -42,6 +44,8 @@ import net.sf.mzmine.util.Range;
  */
 class JoinAlignerTask implements Task {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
     private PeakList[] peakLists;
 
     private TaskStatus status = TaskStatus.WAITING;
@@ -145,6 +149,7 @@ class JoinAlignerTask implements Task {
         }
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running join aligner");
 
         // Remember how many rows we need to process. Each row will be processed
         // twice, first for score calculation, second for actual alignment.
@@ -300,7 +305,7 @@ class JoinAlignerTask implements Task {
         // Add task description to peakList
         alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Join aligner", parameters));
 
-
+        logger.info("Finished join aligner");
         status = TaskStatus.FINISHED;
 
     }

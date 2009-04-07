@@ -20,23 +20,27 @@
 package net.sf.mzmine.modules.dataanalysis.projectionplots;
 
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import jmprojection.Sammons;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class SammonDataset extends AbstractXYDataset implements
 		ProjectionPlotDataset {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private double[] component1Coords;
 	private double[] component2Coords;
 
@@ -177,6 +181,8 @@ public class SammonDataset extends AbstractXYDataset implements
 	public void run() {
 		
 		status = TaskStatus.PROCESSING;
+
+		logger.info("Computing projection plot");
 		
 		// Generate matrix of raw data (input to Sammon's projection)
 		boolean useArea = true;
@@ -220,12 +226,13 @@ public class SammonDataset extends AbstractXYDataset implements
 		component1Coords = result[xAxisDimension-1];
 		component2Coords = result[yAxisDimension-1];
 
-		status = TaskStatus.FINISHED;
-
 		Desktop desktop = MZmineCore.getDesktop();
 		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
 				parameters);
-		desktop.addInternalFrame(newFrame);		
+		desktop.addInternalFrame(newFrame);
+
+		status = TaskStatus.FINISHED;
+		logger.info("Finished computing projection plot.");
 		
 	}
 		

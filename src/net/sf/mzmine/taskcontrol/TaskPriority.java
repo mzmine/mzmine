@@ -17,21 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util;
+package net.sf.mzmine.taskcontrol;
 
-import net.sf.mzmine.data.Scan;
+public enum TaskPriority {
 
-/**
- * Interface for classes that accept scans for processing, visualization etc.
- */
-public interface RawDataAcceptor {
+	HIGH, NORMAL, LOW
 
-    /**
-     * Process a scan
-     * @param scan Scan to process 
-     * @param index Index of this scan in the array of requested scans (0..total - 1)
-     * @param total Total number of requested scans
-     */
-    void addScan(Scan scan, int index, int total);
-    
 }

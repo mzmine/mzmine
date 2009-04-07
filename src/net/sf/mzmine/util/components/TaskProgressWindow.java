@@ -32,8 +32,8 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.GUIUtils;
 

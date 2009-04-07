@@ -28,11 +28,6 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -40,7 +35,7 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-        ActionListener, TaskListener {
+        ActionListener {
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
@@ -51,15 +46,11 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     private RawDataFile dataFile;
     private int msLevel;
 
-    private Desktop desktop;
-
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
             Range rtRange, Range mzRange,
             PeakThresholdParameters peakThresholdParameters) {
 
         super(dataFile.toString(), true, true, true, true);
-
-        this.desktop = MZmineCore.getDesktop();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
@@ -182,28 +173,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
         twoDPlot.loadPeakList(selectedPeakList);
 
         bottomPanel.revalidate();
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage("Error while updating 2D visualizer: "
-                    + task.getErrorMessage());
-        }
-
-        if (task.getStatus() == TaskStatus.FINISHED) {
-            // Add this window to desktop
-            desktop.addInternalFrame(this);
-        }
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // ignore
     }
 
     TwoDPlot getPlot() {

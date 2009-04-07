@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.isotopes.deisotoper;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,9 +33,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -46,141 +42,117 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * 
  */
 
-public class IsotopeGrouper implements BatchStep, TaskListener, ActionListener {
+public class IsotopeGrouper implements BatchStep, ActionListener {
 
-    private IsotopeGrouperParameters parameters;
+	private IsotopeGrouperParameters parameters;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Desktop desktop;
 
-    private Desktop desktop;
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 */
+	public void initModule() {
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
-     */
-    public void initModule() {
+		this.desktop = MZmineCore.getDesktop();
 
-        this.desktop = MZmineCore.getDesktop();
+		parameters = new IsotopeGrouperParameters();
 
-        parameters = new IsotopeGrouperParameters();
+		desktop.addMenuItem(MZmineMenu.ISOTOPES, "Isotopic peaks grouper",
+				"Grouping of isotopic peaks into one representative peak",
+				KeyEvent.VK_I, false, this, null);
 
-        desktop.addMenuItem(MZmineMenu.ISOTOPES, "Isotopic peaks grouper",
-                "Grouping of isotopic peaks into one representative peak",
-                KeyEvent.VK_I, false, this, null);
+	}
 
-    }
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (IsotopeGrouperParameters) parameters;
+	}
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (IsotopeGrouperParameters) parameters;
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-        PeakList[] peaklists = desktop.getSelectedPeakLists();
+		if (peakLists.length == 0) {
+			desktop
+					.displayErrorMessage("Please select peak lists to deisotope");
+			return;
+		}
 
-        if (peaklists.length == 0) {
-            desktop.displayErrorMessage("Please select peak lists to deisotope");
-            return;
-        }
+		for (PeakList peaklist : peakLists) {
+			if (peaklist.getNumberOfRawDataFiles() > 1) {
+				desktop
+						.displayErrorMessage("Peak list "
+								+ peaklist
+								+ " cannot be deisotoped, because it contains more than one data file");
+				return;
+			}
+		}
 
-        for (PeakList peaklist : peaklists) {
-            if (peaklist.getNumberOfRawDataFiles() > 1) {
-                desktop.displayErrorMessage("Peak list "
-                        + peaklist
-                        + " cannot be deisotoped, because it contains more than one data file");
-                return;
-            }
-        }
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		runModule(null, peakLists, parameters.clone());
+	}
 
-        runModule(null, peaklists, parameters.clone(), null);
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return "Isotopic peaks grouper";
+	}
 
-    public void taskStarted(Task task) {
-        IsotopeGrouperTask igTask = (IsotopeGrouperTask) task;
-        logger.info("Running isotopic peak grouper on " + igTask.getPeakList());
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet currentParameters) {
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(SimpleParameterSet) currentParameters);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    public void taskFinished(Task task) {
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-        IsotopeGrouperTask igTask = (IsotopeGrouperTask) task;
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished isotopic peak grouper on "
-                    + igTask.getPeakList());
-        }
+		// check peak lists
+		if ((peakLists == null) || (peakLists.length == 0)) {
+			desktop
+					.displayErrorMessage("Please select peak lists for deisotoping");
+			return null;
+		}
 
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while deisotoping peaklist "
-                    + igTask.getPeakList() + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
+		// prepare a new group of tasks
+		Task tasks[] = new IsotopeGrouperTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new IsotopeGrouperTask(peakLists[i],
+					(IsotopeGrouperParameters) parameters);
+		}
 
-    }
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Isotopic peaks grouper";
-    }
+		return tasks;
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-     */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
-
-        // check peak lists
-        if ((peakLists == null) || (peakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for deisotoping");
-            return null;
-        }
-
-        // prepare a new group of tasks
-        Task tasks[] = new IsotopeGrouperTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new IsotopeGrouperTask(peakLists[i],
-                    (IsotopeGrouperParameters) parameters);
-        }
-
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
-
-        // start the group
-        newGroup.start();
-
-        return newGroup;
-
-    }
-
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PEAKLISTPROCESSING;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PEAKLISTPROCESSING;
+	}
 
 }

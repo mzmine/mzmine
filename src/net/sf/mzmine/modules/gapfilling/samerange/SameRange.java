@@ -32,8 +32,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -79,7 +77,7 @@ public class SameRange implements BatchStep, ActionListener {
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
+        runModule(null, selectedPeakLists, parameters.clone());
 
     }
 
@@ -108,10 +106,10 @@ public class SameRange implements BatchStep, ActionListener {
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
         if (peakLists == null || peakLists.length < 1) {
             throw new IllegalArgumentException(
@@ -125,10 +123,9 @@ public class SameRange implements BatchStep, ActionListener {
                     (SameRangeParameters) parameters);
         }
 
-        TaskGroup newGroup = new TaskGroup(tasks, null, taskGroupListener);
-        newGroup.start();
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        return newGroup;
+		return tasks;
 
     }
 

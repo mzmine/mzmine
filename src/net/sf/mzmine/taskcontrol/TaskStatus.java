@@ -19,13 +19,22 @@
 
 package net.sf.mzmine.taskcontrol;
 
-/**
- *
- */
-public interface TaskListener {
-    
-    public void taskStarted(Task task);
+public enum TaskStatus {
 
-    public void taskFinished(Task task);
-    
+	/**
+	 * WAITING - task is ready and waiting to start
+	 * 
+	 * PROCESSING - task is running
+	 * 
+	 * FINISHED - task finished succesfully, results can be obtained by
+	 * getResult()
+	 * 
+	 * CANCELED - task was canceled by user
+	 * 
+	 * ERROR - task finished with error, error message can be obtained by
+	 * getErrorMessage()
+	 * 
+	 */
+	WAITING, PROCESSING, FINISHED, CANCELED, ERROR
+
 }

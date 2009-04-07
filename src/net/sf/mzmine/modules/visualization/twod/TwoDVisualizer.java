@@ -62,7 +62,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
 		peakThresholdParameters = new PeakThresholdParameters();
 
-		parameters = new TwoDParameters();   
+		parameters = new TwoDParameters();
 
 		desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "2D plot",
 				"2D visualization", KeyEvent.VK_2, false, this, null);
@@ -82,28 +82,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 			return;
 		}
 
-		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
-		autoValues.put(TwoDParameters.msLevel, 1);
-		autoValues.put(TwoDParameters.retentionTimeRange,
-				dataFiles[0].getDataRTRange(1));
-		autoValues.put(TwoDParameters.mzRange, dataFiles[0].getDataMZRange(1));
-
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(), parameters,
-				autoValues);
-
-		dialog.setVisible(true);
-
-		if (dialog.getExitCode() != ExitCode.OK)
-			return;
-
-		int msLevel = (Integer) parameters.getParameterValue(TwoDParameters.msLevel);
-		Range rtRange = (Range) parameters.getParameterValue(TwoDParameters.retentionTimeRange);
-		Range mzRange = (Range) parameters.getParameterValue(TwoDParameters.mzRange);
-
-		// Create a window, but do not add it to the desktop. It will be added
-		// automatically after finishing the sampling task.
-		new TwoDVisualizerWindow(dataFiles[0], msLevel, rtRange, mzRange, peakThresholdParameters);
+		show2DVisualizerSetupDialog(dataFiles[0], null, null);
 
 	}
 
@@ -128,7 +107,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 		this.parameters = (TwoDParameters) parameters;
 	}
 
-	static PeakThresholdParameters getThresholdParameters(){
+	static PeakThresholdParameters getThresholdParameters() {
 		return peakThresholdParameters;
 	}
 
@@ -137,13 +116,16 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
 		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
 		autoValues.put(TwoDParameters.msLevel, 1);
-		autoValues.put(TwoDParameters.retentionTimeRange,
-				dataFile.getDataRTRange(1));
+		autoValues.put(TwoDParameters.retentionTimeRange, dataFile
+				.getDataRTRange(1));
 		autoValues.put(TwoDParameters.mzRange, dataFile.getDataMZRange(1));
 
-		myInstance.parameters.setParameterValue(
-				TwoDParameters.retentionTimeRange, rtRange);
-		myInstance.parameters.setParameterValue(TwoDParameters.mzRange, mzRange);
+		if (rtRange != null)
+			myInstance.parameters.setParameterValue(
+					TwoDParameters.retentionTimeRange, rtRange);
+		if (mzRange != null)
+			myInstance.parameters.setParameterValue(TwoDParameters.mzRange,
+					mzRange);
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for 2D visualizer",
@@ -154,13 +136,17 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 		if (dialog.getExitCode() != ExitCode.OK)
 			return;
 
-		int msLevel = (Integer) myInstance.parameters.getParameterValue(TwoDParameters.msLevel);
-		rtRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.retentionTimeRange);
-		mzRange = (Range) myInstance.parameters.getParameterValue(TwoDParameters.mzRange);
+		int msLevel = (Integer) myInstance.parameters
+				.getParameterValue(TwoDParameters.msLevel);
+		rtRange = (Range) myInstance.parameters
+				.getParameterValue(TwoDParameters.retentionTimeRange);
+		mzRange = (Range) myInstance.parameters
+				.getParameterValue(TwoDParameters.mzRange);
 
-		// Create a window, but do not add it to the desktop. It will be added
-		// automatically after finishing the sampling task.
-		new TwoDVisualizerWindow(dataFile, msLevel, rtRange, mzRange, getThresholdParameters());
+		TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
+				msLevel, rtRange, mzRange, peakThresholdParameters);
+
+		MZmineCore.getDesktop().addInternalFrame(newWindow);
 
 	}
 

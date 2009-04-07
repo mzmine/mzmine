@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklist.rowsfilter;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
@@ -29,8 +31,11 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class RowsFilterTask implements Task {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakList peakList;
 
@@ -89,6 +94,7 @@ class RowsFilterTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running peak list rows filter");
 
         totalRows = peakList.getNumberOfRows();
         processedRows = 0;
@@ -152,6 +158,7 @@ class RowsFilterTask implements Task {
         if (removeOriginal)
             currentProject.removePeakList(peakList);
 
+        logger.info("Finished peak list rows filter");
         status = TaskStatus.FINISHED;
 
     }

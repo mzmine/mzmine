@@ -42,9 +42,6 @@ import net.sf.mzmine.modules.io.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.NetCDFReadTask;
 import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTask;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 import com.sun.java.ExampleFileFilter;
@@ -53,7 +50,7 @@ import com.sun.java.ExampleFileFilter;
  * Raw data import module
  */
 public class RawDataImporter implements MZmineModule, ActionListener,
-        TaskListener, BatchStep {
+        BatchStep {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -105,7 +102,7 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             return;
         }
 
-        runModule(null, null, parameters, null);
+        runModule(null, null, parameters);
 
     }
 
@@ -113,8 +110,8 @@ public class RawDataImporter implements MZmineModule, ActionListener,
         return BatchStepCategory.PROJECT;
     }
 
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
         File file[] = rawDataImporterParameters.getFileNames();
@@ -147,11 +144,10 @@ public class RawDataImporter implements MZmineModule, ActionListener,
                 return null;
             }
         }
-        TaskGroup newGroup = new TaskGroup(openTasks, this, taskGroupListener);
+        
+        MZmineCore.getTaskController().addTasks(openTasks);
 
-        // start this group
-        newGroup.start();
-        return newGroup;
+        return openTasks;
     }
 
     public ExitCode setupParameters(ParameterSet parameterSet) {
@@ -213,26 +209,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
             return ExitCode.OK;
         } else
             return ExitCode.CANCEL;
-
-    }
-
-    public void taskStarted(Task task) {
-        Task openTask = task;
-        logger.info("Started action of " + openTask.getTaskDescription());
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished action of " + task.getTaskDescription());
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while trying to " + task.getTaskDescription()
-                    + ": " + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
 
     }
 

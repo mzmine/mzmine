@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.xml.util.Base64;

@@ -25,6 +25,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
@@ -48,7 +49,7 @@ class ThreeDSamplingTask implements Task {
     private int rtResolution, mzResolution;
 
     private int retrievedScans = 0;
-    private TaskStatus status;
+    private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
     // The 3D display
@@ -67,8 +68,6 @@ class ThreeDSamplingTask implements Task {
     ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange,
             Range mzRange, int rtResolution, int mzResolution,
             ThreeDDisplay display) {
-
-        status = TaskStatus.WAITING;
 
         this.dataFile = dataFile;
         this.scanNumbers = scanNumbers;

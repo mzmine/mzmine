@@ -35,9 +35,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -47,7 +44,7 @@ import org.jfree.chart.axis.NumberTickUnit;
  * Total ion chromatogram visualizer using JFreeChart library
  */
 public class TICVisualizerWindow extends JInternalFrame implements
-        TaskListener, ActionListener {
+        ActionListener {
 
     private TICToolBar toolBar;
     private TICPlot ticPlot;
@@ -258,26 +255,6 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 newPosition.getRetentionTime(), false);
         ticPlot.getXYPlot().setRangeCrosshairValue(
                 newPosition.getIntensityValue());
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskFinished(Task task) {
-        if (task.getStatus() == TaskStatus.ERROR) {
-            desktop.displayErrorMessage("Error while updating TIC visualizer: "
-                    + task.getErrorMessage());
-        }
-
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-     */
-    public void taskStarted(Task task) {
-        // if we have not added this frame before, do it now
-        if (getParent() == null)
-            desktop.addInternalFrame(this);
     }
 
     /**

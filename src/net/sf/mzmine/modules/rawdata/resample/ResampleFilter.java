@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.rawdata.resample;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,15 +33,10 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+public class ResampleFilter implements BatchStep, ActionListener {
 
 	private ResampleFilterParameters parameters;
 
@@ -78,7 +72,7 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(dataFiles, null, parameters.clone(), null);
+		runModule(dataFiles, null, parameters.clone());
 
 	}
 
@@ -106,10 +100,10 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
 	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
 		// check data files
 		if ((dataFiles == null) || (dataFiles.length == 0)) {
@@ -124,12 +118,10 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 			tasks[i] = new ResampleFilterTask(dataFiles[i],
 					(ResampleFilterParameters) parameters);
 		}
-		TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-		// start this group
-		newGroup.start();
+		MZmineCore.getTaskController().addTasks(tasks);
 
-		return newGroup;
+		return tasks;
 
 	}
 
@@ -145,35 +137,6 @@ public class ResampleFilter implements BatchStep, TaskListener, ActionListener {
 	 */
 	public void setParameters(ParameterSet parameters) {
 		this.parameters = (ResampleFilterParameters) parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskStarted(Task task) {
-		ResampleFilterTask rsplTask = (ResampleFilterTask) task;
-		logger.info("Running resample filter on " + rsplTask.getDataFile());
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskFinished(Task task) {
-
-		ResampleFilterTask cropTask = (ResampleFilterTask) task;
-
-		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished m/z resample filter on "
-					+ cropTask.getDataFile());
-		}
-
-		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while running m/z resample filter on "
-					+ cropTask.getDataFile() + ": " + task.getErrorMessage();
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
-		}
-
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

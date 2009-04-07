@@ -36,8 +36,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -104,23 +102,19 @@ public class XMLImporter implements MZmineModule, ActionListener {
                 return;
             }
 
-            runModule(null, null, parameters, null);
+            runModule(null, null, parameters);
         }
     }
 
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         XMLImportTask task = new XMLImportTask(
                 (XMLImporterParameters) parameters);
 
-        TaskGroup newGroup = new TaskGroup(new Task[] { task }, null,
-                taskGroupListener);
+        MZmineCore.getTaskController().addTask(task);
 
-        // start this group
-        newGroup.start();
-
-        return newGroup;
+		return new Task[] { task };
 
     }
 
@@ -142,7 +136,7 @@ public class XMLImporter implements MZmineModule, ActionListener {
             parameterSet = new XMLImporterParameters();
             filename = parameterSet.getParameter("Filename");
             parameterSet.setParameterValue(filename, name);
-            runModule(null, null, parameterSet, null);
+            runModule(null, null, parameterSet);
         }
 
     }

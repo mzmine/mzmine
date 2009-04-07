@@ -38,10 +38,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.Task.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
 import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
@@ -53,7 +49,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * each fragment independently.
  * 
  */
-public class FragmentAligner implements BatchStep, TaskListener, ActionListener {
+public class FragmentAligner implements BatchStep, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -65,10 +61,10 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
 
     private ArrayList<Task> startedTasks;
 
-    // This task and taskgroup concatenate fragment results and signal
+    // This task and Task[] concatenate fragment results and signal
     // completion of the whole alignment method to caller
     private ConcatenateFragmentsTask concatenateFragmentsTask;
-    private TaskGroup concatenateFragmentsTaskGroup;
+    // private Task[] concatenateFragmentsTask[];
 
     private final String helpID = "net/sf/mzmine/modules/alignment/fragment/help/FragmentAlignment.html";
 
@@ -130,7 +126,7 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, peakLists, parameters.clone(), null);
+        runModule(null, peakLists, parameters.clone());
 
     }
 
@@ -143,56 +139,49 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
 
         startedTasks.remove(task);
 
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-
-            // Check if a task has been canceled
-            for (Task t : startedTasks)
-                // If yes, then cancel all tasks
-                if (t.getStatus() == TaskStatus.CANCELED) {
-                    for (Task tt : startedTasks) {
-                        tt.cancel();
-                    }
-                    break;
-                }
-
-            // All fragments done?
-            if (startedTasks.size() == 0) {
-
-                // Run a task to concatenate fragment results
-                concatenateFragmentsTaskGroup.start();
-
-            }
-
-        }
-
-        if (task.getStatus() == Task.TaskStatus.CANCELED) {
-
-            logger.info("Fragment aliger canceled.");
-
-            // Cancel tasks for all other fragments
-            for (Task t : startedTasks)
-                t.cancel();
-
-            // Run task just to signal finishing the task group.
-            concatenateFragmentsTaskGroup.start();
-
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-
-            // Cancel tasks for all other fragments
-            for (Task t : startedTasks)
-                t.cancel();
-
-            String msg = "Error while aligning peak lists: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
-            // Run task just to signal finishing the task group.
-            concatenateFragmentsTaskGroup.start();
-
-        }
+		/*
+		 * if (task.getStatus() == Task.TaskStatus.FINISHED) {
+		 * 
+		 * // Check if a task has been canceled for (Task t : startedTasks) //
+		 * If yes, then cancel all tasks if (t.getStatus() ==
+		 * TaskStatus.CANCELED) { for (Task tt : startedTasks) { tt.cancel(); }
+		 * break; }
+		 * 
+		 * // All fragments done? if (startedTasks.size() == 0) {
+		 * 
+		 * // Run a task to concatenate fragment results //
+		 * concatenateFragmentsTask[].start();
+		 * 
+		 * }
+		 * 
+		 * }
+		 * 
+		 * if (task.getStatus() == Task.TaskStatus.CANCELED) {
+		 * 
+		 * logger.info("Fragment aliger canceled.");
+		 * 
+		 * // Cancel tasks for all other fragments for (Task t : startedTasks)
+		 * t.cancel();
+		 * 
+		 * // Run task just to signal finishing the task group. //
+		 * concatenateFragmentsTask[].start();
+		 * 
+		 * }
+		 * 
+		 * if (task.getStatus() == Task.TaskStatus.ERROR) {
+		 * 
+		 * // Cancel tasks for all other fragments for (Task t : startedTasks)
+		 * t.cancel();
+		 * 
+		 * String msg = "Error while aligning peak lists: " +
+		 * task.getErrorMessage(); logger.severe(msg);
+		 * desktop.displayErrorMessage(msg);
+		 * 
+		 * // Run task just to signal finishing the task group. //
+		 * concatenateFragmentsTask[].start();
+		 * 
+		 * }
+		 */
 
     }
 
@@ -203,10 +192,10 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
         this.parameters = (FragmentAlignerParameters) parameters;
 
@@ -331,31 +320,27 @@ public class FragmentAligner implements BatchStep, TaskListener, ActionListener 
         fragmentResults = new ArrayList<PeakList>();
         concatenateFragmentsTask = new ConcatenateFragmentsTask(
                 fragmentResults, this.parameters);
-        concatenateFragmentsTaskGroup = new TaskGroup(concatenateFragmentsTask,
-                null, taskGroupListener);
-
-        // Start a task for each fragment
-        startedTasks = new ArrayList<Task>();
-        for (int mzFragmentIndex = 0; mzFragmentIndex < (mzFragmentLimits.length + 1); mzFragmentIndex++) {
-            peakLists = peakListsForFragments[mzFragmentIndex];
-            String name;
-            if (mzFragmentIndex < mzFragmentLimits.length) {
-                name = "m/z up to " + mzFragmentLimits[mzFragmentIndex];
-            } else {
-                if (mzFragmentLimits.length > 0)
-                    name = "m/z after "
-                            + mzFragmentLimits[mzFragmentLimits.length - 1];
-                else
-                    name = "single fragment";
-            }
-
-            Task t = new AlignFragmentTask(peakLists, this.parameters, name,
-                    this);
-            startedTasks.add(t);
-            MZmineCore.getTaskController().addTask(t, this);
-        }
-
-        return concatenateFragmentsTaskGroup;
+        return null;
+		/*
+		 * concatenateFragmentsTask[] = new
+		 * Task[](concatenateFragmentsTask, null, Task[]Listener);
+		 * 
+		 * // Start a task for each fragment startedTasks = new
+		 * ArrayList<Task>(); for (int mzFragmentIndex = 0; mzFragmentIndex <
+		 * (mzFragmentLimits.length + 1); mzFragmentIndex++) { peakLists =
+		 * peakListsForFragments[mzFragmentIndex]; String name; if
+		 * (mzFragmentIndex < mzFragmentLimits.length) { name = "m/z up to " +
+		 * mzFragmentLimits[mzFragmentIndex]; } else { if
+		 * (mzFragmentLimits.length > 0) name = "m/z after " +
+		 * mzFragmentLimits[mzFragmentLimits.length - 1]; else name =
+		 * "single fragment"; }
+		 * 
+		 * Task t = new AlignFragmentTask(peakLists, this.parameters, name,
+		 * this); startedTasks.add(t); MZmineCore.getTaskController().addTask(t,
+		 * this); }
+		 * 
+		 * return concatenateFragmentsTask[];
+		 */
     }
 
     public BatchStepCategory getBatchStepCategory() {

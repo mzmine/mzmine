@@ -34,8 +34,6 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -43,129 +41,129 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class PubChemSearch implements BatchStep, ActionListener {
 
-    public static final String MODULE_NAME = "PubChem online search";
+	public static final String MODULE_NAME = "PubChem online search";
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    private PubChemSearchParameters parameters;
+	private PubChemSearchParameters parameters;
 
-    private static PubChemSearch myInstance;
+	private static PubChemSearch myInstance;
 
-    private double rawMass;
+	private double rawMass;
 
-    private PeakListRow row;
-    private ChromatographicPeak peak;
+	private PeakListRow row;
+	private ChromatographicPeak peak;
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
-     */
-    public void initModule() {
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 */
+	public void initModule() {
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new PubChemSearchParameters();
+		parameters = new PubChemSearchParameters();
 
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-                "Identification by searching in PubChem databases",
-                KeyEvent.VK_P, false, this, null);
+		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
+				"Identification by searching in PubChem databases",
+				KeyEvent.VK_P, false, this, null);
 
-        myInstance = this;
+		myInstance = this;
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (PubChemSearchParameters) parameterValues;
-    }
+	/**
+	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (PubChemSearchParameters) parameterValues;
+	}
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.IDENTIFICATION;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.IDENTIFICATION;
+	}
 
-    public ExitCode setupParameters(ParameterSet parameters) {
-        PubChemSearchDialog dialog = new PubChemSearchDialog(
-                (PubChemSearchParameters) parameters, rawMass);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	public ExitCode setupParameters(ParameterSet parameters) {
+		PubChemSearchDialog dialog = new PubChemSearchDialog(
+				(PubChemSearchParameters) parameters, rawMass);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    public void actionPerformed(ActionEvent arg0) {
+	public void actionPerformed(ActionEvent arg0) {
 
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select a peak list");
-            return;
-        }
+		if (selectedPeakLists.length < 1) {
+			desktop.displayErrorMessage("Please select a peak list");
+			return;
+		}
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-        this.row = null;
-        this.peak = null;
+		this.row = null;
+		this.peak = null;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
-    }
+		runModule(null, selectedPeakLists, parameters.clone());
+	}
 
-    public void showPubChemSearchDialog(PeakList peakList, PeakListRow row,
-            ChromatographicPeak peak) {
+	public void showPubChemSearchDialog(PeakList peakList, PeakListRow row,
+			ChromatographicPeak peak) {
 
-        this.row = row;
-        this.peak = peak;
+		this.row = row;
+		this.peak = peak;
 
-        PeakList[] selectedPeakLists = new PeakList[] { peakList };
-        this.rawMass = peak.getMZ();// rawMass;
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		PeakList[] selectedPeakLists = new PeakList[] { peakList };
+		this.rawMass = peak.getMZ();// rawMass;
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
-    }
+		runModule(null, selectedPeakLists, parameters.clone());
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
-     */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener methodListener) {
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        if (peakLists == null) {
-            throw new IllegalArgumentException(
-                    "Cannot run identification without a peak list");
-        }
+		if (peakLists == null) {
+			throw new IllegalArgumentException(
+					"Cannot run identification without a peak list");
+		}
 
-        // prepare a new sequence of tasks
-        Task tasks[] = new PubChemSearchTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new PubChemSearchTask(
-                    (PubChemSearchParameters) parameters, peakLists[i], row,
-                    peak);
-        }
-        TaskGroup newSequence = new TaskGroup(tasks, null, methodListener);
+		// prepare a new sequence of tasks
+		Task tasks[] = new PubChemSearchTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new PubChemSearchTask(
+					(PubChemSearchParameters) parameters, peakLists[i], row,
+					peak);
+		}
 
-        // execute the sequence
-        newSequence.start();
+		// execute the sequence
+		MZmineCore.getTaskController().addTasks(tasks);
 
-        return newSequence;
+		return tasks;
 
-    }
+	}
 
-    public static PubChemSearch getInstance() {
-        return myInstance;
-    }
+	public static PubChemSearch getInstance() {
+		return myInstance;
+	}
 
-    public String toString() {
-        return MODULE_NAME;
-    }
+	public String toString() {
+		return MODULE_NAME;
+	}
 
 }

@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.msms;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,16 +33,10 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class MsMsPeakPicker implements BatchStep, TaskListener,
-		ActionListener {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+public class MsMsPeakPicker implements BatchStep, ActionListener {
 
 	private Desktop desktop;
 	private MsMsPeakPickerParameters parameters;
@@ -77,7 +70,7 @@ public class MsMsPeakPicker implements BatchStep, TaskListener,
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(dataFiles, null, parameters.clone(), null);
+		runModule(dataFiles, null, parameters.clone());
 	}
 
 	/**
@@ -88,12 +81,13 @@ public class MsMsPeakPicker implements BatchStep, TaskListener,
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters, TaskGroupListener taskGroupListener) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
 		// check data files
 		if ((dataFiles == null) || (dataFiles.length == 0)) {
@@ -108,12 +102,10 @@ public class MsMsPeakPicker implements BatchStep, TaskListener,
 			tasks[i] = new MsMsPeakPickingTask(dataFiles[i],
 					(MsMsPeakPickerParameters) parameters);
 		}
-		TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-		// start this group
-		newGroup.start();
+		MZmineCore.getTaskController().addTasks(tasks);
 
-		return newGroup;
+		return tasks;
 
 	}
 
@@ -129,36 +121,6 @@ public class MsMsPeakPicker implements BatchStep, TaskListener,
 	 */
 	public void setParameters(ParameterSet parameters) {
 		this.parameters = (MsMsPeakPickerParameters) parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskStarted(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskStarted(Task task) {
-		MsMsPeakPickingTask cropTask = (MsMsPeakPickingTask) task;
-		logger.info("Running MS/MS Peaklist builder on "
-				+ cropTask.getDataFile());
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.TaskListener#taskFinished(net.sf.mzmine.taskcontrol.Task)
-	 */
-	public void taskFinished(Task task) {
-
-		MsMsPeakPickingTask cropTask = (MsMsPeakPickingTask) task;
-
-		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished MS/MS Peaklist builder on "
-					+ cropTask.getDataFile());
-		}
-
-		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while running MS/MS Peaklist builder on "
-					+ cropTask.getDataFile() + ": " + task.getErrorMessage();
-			logger.severe(msg);
-			desktop.displayErrorMessage(msg);
-		}
-
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

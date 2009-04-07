@@ -28,18 +28,17 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.RawDataAcceptor;
-import net.sf.mzmine.util.RawDataRetrievalTask;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * 
  */
-class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
+class TwoDDataSet extends AbstractXYDataset implements Task {
 
 	private RawDataFile rawDataFile;
 
@@ -48,7 +47,9 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 	private HashMap<Integer, Scan> dataPointMatrix;
 
 	private Range totalRTRange, totalMZRange;
-	private int loadedScans = 0;
+	private int scanNumbers[], totalScans, processedScans;
+
+	private TaskStatus taskStatus = TaskStatus.WAITING;
 
 	TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
 			Range mzRange, TwoDVisualizerWindow visualizer) {
@@ -58,37 +59,42 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		totalRTRange = rtRange;
 		totalMZRange = mzRange;
 
-		int scanNumbers[] = rawDataFile.getScanNumbers(msLevel, rtRange);
-		assert scanNumbers != null;
+		scanNumbers = rawDataFile.getScanNumbers(msLevel, rtRange);
+
+		totalScans = scanNumbers.length;
 
 		dataPointMatrix = new HashMap<Integer, Scan>(scanNumbers.length);
 		retentionTimes = new double[scanNumbers.length];
 		basePeaks = new double[scanNumbers.length];
 
-		Task updateTask = new RawDataRetrievalTask(rawDataFile, scanNumbers,
-				"Updating 2D visualizer of " + rawDataFile, this);
-
-		MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH,
-				visualizer);
+		MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
 
 	}
 
 	/**
-	 * @see net.sf.mzmine.io.RawDataAcceptor#addScan(net.sf.mzmine.data.Scan)
 	 */
-	public void addScan(Scan scan, int index, int total) {
+	public void run() {
 
-		DataPoint scanBasePeak = scan.getBasePeak();
-		retentionTimes[index] = scan.getRetentionTime();
-		basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
-				.getIntensity());
-		dataPointMatrix.put(index, scan);
-		loadedScans++;
+		taskStatus = TaskStatus.PROCESSING;
 
-		// redraw when we add last value
-		if (index == total - 1) {
-			fireDatasetChanged();
+		for (int index = 0; index < scanNumbers.length; index++) {
+
+			// Cancel?
+			if (taskStatus == TaskStatus.CANCELED)
+				return;
+
+			Scan scan = rawDataFile.getScan(scanNumbers[index]);
+			DataPoint scanBasePeak = scan.getBasePeak();
+			retentionTimes[index] = scan.getRetentionTime();
+			basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
+					.getIntensity());
+			dataPointMatrix.put(index, scan);
+			processedScans++;
 		}
+
+		fireDatasetChanged();
+
+		taskStatus = TaskStatus.FINISHED;
 
 	}
 
@@ -138,8 +144,8 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		double maxIntensity = 0;
 
 		double searchRetentionTimes[] = retentionTimes;
-		if (loadedScans < retentionTimes.length) {
-			searchRetentionTimes = new double[loadedScans];
+		if (processedScans < totalScans) {
+			searchRetentionTimes = new double[processedScans];
 			System.arraycopy(retentionTimes, 0, searchRetentionTimes, 0,
 					searchRetentionTimes.length);
 		}
@@ -241,4 +247,27 @@ class TwoDDataSet extends AbstractXYDataset implements RawDataAcceptor {
 		return maxIntensity;
 
 	}
+
+	public void cancel() {
+		taskStatus = TaskStatus.CANCELED;
+	}
+
+	public String getErrorMessage() {
+		return null;
+	}
+
+	public double getFinishedPercentage() {
+		if (totalScans == 0)
+			return 0;
+		return (double) processedScans / totalScans;
+	}
+
+	public TaskStatus getStatus() {
+		return taskStatus;
+	}
+
+	public String getTaskDescription() {
+		return "Updating 2D visualizer of " + rawDataFile;
+	}
+
 }

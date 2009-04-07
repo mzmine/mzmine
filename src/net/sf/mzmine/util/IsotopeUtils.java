@@ -26,7 +26,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
-public class IsotopePatternScoreCalculator {
+public class IsotopeUtils {
 
 	// A quarter of Hydrogen's mass
 	private static double TOLERANCE = 0.25195625d;
@@ -42,10 +42,10 @@ public class IsotopePatternScoreCalculator {
 	 *            Isotope pattern to be compared
 	 * @return score a calculated double value
 	 */
-	public static double getScore(IsotopePattern ip1, IsotopePattern ip2) {
+	public static double getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2) {
 
-		double diffMass, diffAbun, factor, totalFactor = 0d;
-		double score = 0d, tempScore;
+		double diffMass, diffAbun, factor, totalFactor = 0;
+		double score = 0, tempScore;
 		DataPoint closestDp;
 		int numIsotopes1 = ip1.getNumberOfIsotopes();
 		int numIsotopes2 = ip1.getNumberOfIsotopes();

@@ -35,6 +35,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.normalization.linear.LinearNormalizerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 
 public class StandardCompoundNormalizerTask implements Task {
@@ -273,6 +274,7 @@ public class StandardCompoundNormalizerTask implements Task {
         if (removeOriginal)
             currentProject.removePeakList(originalPeakList);
 
+        logger.info("Finished standard compound normalizer");
         taskStatus = TaskStatus.FINISHED;
 
     }

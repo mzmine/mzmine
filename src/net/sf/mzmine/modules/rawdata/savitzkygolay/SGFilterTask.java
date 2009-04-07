@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdata.savitzkygolay;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -30,11 +31,14 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * 
  */
 class SGFilterTask implements Task {
+
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private RawDataFile dataFile;
 
@@ -76,7 +80,7 @@ class SGFilterTask implements Task {
      */
     public double getFinishedPercentage() {
         if (totalScans == 0)
-            return 0.0f;
+            return 0;
         return (double) filteredScans / totalScans;
     }
 
@@ -94,10 +98,6 @@ class SGFilterTask implements Task {
         return errorMessage;
     }
 
-    public RawDataFile getDataFile() {
-        return dataFile;
-    }
-
     /**
      * @see net.sf.mzmine.taskcontrol.Task#cancel()
      */
@@ -111,6 +111,7 @@ class SGFilterTask implements Task {
     public void run() {
 
         status = TaskStatus.PROCESSING;
+        logger.info("Running Savitzky-Golay filter on " + dataFile);
 
         try {
 
@@ -148,6 +149,7 @@ class SGFilterTask implements Task {
                 MZmineCore.getCurrentProject().removeFile(dataFile);
 
             status = TaskStatus.FINISHED;
+            logger.info("Finished Savitzky-Golay filter on " + dataFile);
 
         } catch (IOException e) {
             status = TaskStatus.ERROR;

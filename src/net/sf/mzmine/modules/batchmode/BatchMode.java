@@ -34,15 +34,12 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskGroup.TaskGroupStatus;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * Batch mode module
  */
-public class BatchMode implements MZmineModule, TaskGroupListener,
+public class BatchMode implements MZmineModule, 
         ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -114,55 +111,6 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         return "Batch mode";
     }
 
-    public void taskGroupStarted(TaskGroup sequence) {
-        logger.finest("Batch mode received task sequence started call");
-    }
-
-    public void taskGroupFinished(TaskGroup sequence) {
-
-        logger.finest("Batch mode received task sequence finished call");
-
-        if ((sequence.getStatus() == TaskGroupStatus.ERROR)
-                || (sequence.getStatus() == TaskGroupStatus.CANCELED)) {
-            desktop.displayErrorMessage("Batch processing canceled.");
-            batchRunning = false;
-            return;
-        }
-
-        if (sequence.getStatus() == TaskGroupStatus.FINISHED) {
-            if (currentStep < currentBatchSteps.size()) {
-
-                // Get current project state
-                MZmineProject project = MZmineCore.getCurrentProject();
-                Vector<RawDataFile> currentProjectDataFiles = new Vector<RawDataFile>(
-                        Arrays.asList(project.getDataFiles()));
-                Vector<PeakList> currentProjectPeakLists = new Vector<PeakList>(
-                        Arrays.asList(project.getPeakLists()));
-
-                // Check if we have any newly added files or peaklists
-                Vector<RawDataFile> newProjectDataFiles = new Vector<RawDataFile>(
-                        currentProjectDataFiles);
-                newProjectDataFiles.removeAll(previousProjectDataFiles);
-                if (!newProjectDataFiles.isEmpty())
-                    selectedDataFiles = newProjectDataFiles.toArray(new RawDataFile[0]);
-                Vector<PeakList> newProjectPeakLists = new Vector<PeakList>(
-                        currentProjectPeakLists);
-                newProjectPeakLists.removeAll(previousProjectPeakLists);
-                if (!newProjectPeakLists.isEmpty())
-                    selectedPeakLists = newProjectPeakLists.toArray(new PeakList[0]);
-
-                // Memorize current state of the project for batch processing
-                previousProjectDataFiles = currentProjectDataFiles;
-                previousProjectPeakLists = currentProjectPeakLists;
-
-                runNextStep();
-
-            } else {
-                desktop.displayMessage("Batch processing done.");
-                batchRunning = false;
-            }
-        }
-    }
 
     private void runNextStep() {
 
@@ -171,13 +119,14 @@ public class BatchMode implements MZmineModule, TaskGroupListener,
         BatchStepWrapper newStep = currentBatchSteps.get(currentStep);
         BatchStep method = newStep.getMethod();
 
-        TaskGroup newSequence = method.runModule(selectedDataFiles,
-                selectedPeakLists, newStep.getParameters(), this);
-
-        if (newSequence == null) {
-            desktop.displayErrorMessage("Batch processing cannot continue.");
-            batchRunning = false;
-        }
+        /*
+		 * Task[] newSequence = method.runModule(selectedDataFiles,
+		 * selectedPeakLists, newStep.getParameters(), this);
+		 * 
+		 * if (newSequence == null) {
+		 * desktop.displayErrorMessage("Batch processing cannot continue.");
+		 * batchRunning = false; }
+		 */
 
         currentStep++;
 

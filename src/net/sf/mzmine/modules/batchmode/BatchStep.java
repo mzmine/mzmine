@@ -23,8 +23,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -47,13 +46,10 @@ public interface BatchStep extends MZmineModule {
      * 
      * @param dataFiles Data files to be processed
      * @param alignmentResult AlignmentResults to be processed
-     * @param methodListener A method listener whose methodFinished method is
-     *            called after whole method has been completed on all given
-     *            files/peak lists.
      * 
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener);
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters);
 
     /**
      * Returns the category of the batch step (e.g. raw data processing, peak

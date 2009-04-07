@@ -19,13 +19,20 @@
 
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.SpectraDataSet;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class IsotopePatternCalculatorTask implements Task {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage, description, formula;
@@ -35,9 +42,12 @@ public class IsotopePatternCalculatorTask implements Task {
 	private IsotopePattern isotopePattern;
 	private boolean autoHeight = false, sumOfMasses = false;
 	private boolean positiveCharge;
+	private SpectraPlot plot;
 
 	public IsotopePatternCalculatorTask(
-			IsotopePatternCalculatorParameters parameters) {
+			IsotopePatternCalculatorParameters parameters, SpectraPlot plot) {
+
+		this.plot = plot;
 
 		formula = (String) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.formula);
@@ -81,7 +91,10 @@ public class IsotopePatternCalculatorTask implements Task {
 	}
 
 	public void run() {
+
 		status = TaskStatus.PROCESSING;
+		logger.info("Running isotope pattern calculation of "
+				+ formula);
 
 		FormulaAnalyzer analyzer = new FormulaAnalyzer();
 
@@ -96,13 +109,34 @@ public class IsotopePatternCalculatorTask implements Task {
 			// e.printStackTrace();
 			status = TaskStatus.ERROR;
 			errorMessage = analyzer.getMessageError();// "Chemical formula or common organic compound not valid"
-														// ;
+			// ;
 		}
 
 		if (isotopePattern == null) {
 			status = TaskStatus.ERROR;
 			errorMessage = analyzer.getMessageError();
 			return;
+		}
+
+		if (plot == null) {
+			SpectraVisualizer.showIsotopePattern(isotopePattern);
+		} else {
+			PeakListDataSet predictedPeakDataSet = new PeakListDataSet(
+					isotopePattern);
+			SpectraDataSet rawSpectraDataSet = (SpectraDataSet) plot
+					.getXYPlot().getDataset(0);
+			double increase = predictedPeakDataSet.getIncrease();
+			if (predictedPeakDataSet.isAutoIncrease()) {
+				if (rawSpectraDataSet != null) {
+					increase = rawSpectraDataSet
+							.getBiggestIntensity(isotopePattern
+							.getDataPoints());
+				} else {
+					increase = Math.pow(10, 6);
+				}
+			}
+			predictedPeakDataSet.setIncreaseIntensity(increase);
+			plot.addPeaksDataSet(predictedPeakDataSet);
 		}
 
 		status = TaskStatus.FINISHED;

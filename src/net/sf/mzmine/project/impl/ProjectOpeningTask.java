@@ -26,15 +26,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
-
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
 /**
  * Project opening task using XStream library
  */
-public class ProjectOpeningTask implements Task, TaskListener {
+public class ProjectOpeningTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private TaskStatus status = TaskStatus.WAITING;
@@ -186,20 +185,4 @@ public class ProjectOpeningTask implements Task, TaskListener {
 		}
 	}
 
-
-	public void taskStarted(Task task) {
-		Task openTask = task;
-		logger.info("Started action of " + openTask.getTaskDescription());
-	}
-
-	public void taskFinished(Task task) {
-		if (task.getStatus() == Task.TaskStatus.FINISHED) {
-			logger.info("Finished action of " + task.getTaskDescription());
-		}
-
-		if (task.getStatus() == Task.TaskStatus.ERROR) {
-			String msg = "Error while trying to " + task.getTaskDescription() + ": " + task.getErrorMessage();
-			logger.severe(msg);
-		}
-	}
 }

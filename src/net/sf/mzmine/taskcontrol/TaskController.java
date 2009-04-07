@@ -19,21 +19,19 @@
 
 package net.sf.mzmine.taskcontrol;
 
-import net.sf.mzmine.taskcontrol.Task.TaskPriority;
 
 /**
  * 
  */
 public interface TaskController {
 
-    
     public void addTask(Task task);
+    
+    public void addTasks(Task tasks[]);
         
     public void addTask(Task task, TaskPriority priority);
-
-    public void addTask(Task task, TaskListener listener);
-
-    public void addTask(Task task, TaskPriority priority, TaskListener listener);
+    
+    public void addTasks(Task tasks[], TaskPriority priority);
 
     public void setTaskPriority(Task task, TaskPriority priority);
     

@@ -35,6 +35,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
 class RTNormalizerTask implements Task {
@@ -100,6 +101,7 @@ class RTNormalizerTask implements Task {
 	public void run() {
 
 		status = TaskStatus.PROCESSING;
+		logger.info("Running retention time normalizer");
 
 		// First we need to find standards by iterating through first peak list
 		totalRows = originalPeakLists[0].getNumberOfRows();
@@ -235,6 +237,7 @@ class RTNormalizerTask implements Task {
 
 		}
 
+		logger.info("Finished retention time normalizer");
 		status = TaskStatus.FINISHED;
 
 	}

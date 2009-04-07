@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.alignment.join;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,18 +33,13 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
  */
-public class JoinAligner implements BatchStep, TaskListener, ActionListener {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+public class JoinAligner implements BatchStep, ActionListener {
 
     private JoinAlignerParameters parameters;
 
@@ -111,37 +105,17 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, peakLists, parameters.clone(), null);
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Running join aligner");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished join aligner");
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while aligning peak lists: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-
-        }
+        runModule(null, peakLists, parameters.clone());
 
     }
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
         // check peak lists
         if ((peakLists == null) || (peakLists.length == 0)) {
@@ -150,15 +124,12 @@ public class JoinAligner implements BatchStep, TaskListener, ActionListener {
         }
 
         // prepare a new group with just one task
-        Task tasks[] = new JoinAlignerTask[1];
-        tasks[0] = new JoinAlignerTask(peakLists,
+		Task task = new JoinAlignerTask(peakLists,
                 (JoinAlignerParameters) parameters);
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
+        
+        MZmineCore.getTaskController().addTask(task);
 
-        // start the group
-        newGroup.start();
-
-        return newGroup;
+        return new Task[] { task };
 
     }
 

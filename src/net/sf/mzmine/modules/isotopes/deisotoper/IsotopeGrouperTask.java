@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.isotopes.deisotoper;
 
 import java.util.Arrays;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
@@ -33,6 +34,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorterByDescendingHeight;
 
 /**
@@ -40,332 +42,350 @@ import net.sf.mzmine.util.PeakSorterByDescendingHeight;
  */
 class IsotopeGrouperTask implements Task {
 
-    /**
-     * The isotopeDistance constant defines expected distance between isotopes.
-     * Actual weight of 1 neutron is 1.008665 Da, but part of this mass is
-     * consumed as binding energy to other protons/neutrons. Actual mass
-     * increase of isotopes depends on chemical formula of the molecule. Since
-     * we don't know the formula, we can assume the distance to be ~1.0033 Da,
-     * with user-defined tolerance.
-     */
-    private static final double isotopeDistance = 1.0033;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peaklist;
+	/**
+	 * The isotopeDistance constant defines expected distance between isotopes.
+	 * Actual weight of 1 neutron is 1.008665 Da, but part of this mass is
+	 * consumed as binding energy to other protons/neutrons. Actual mass
+	 * increase of isotopes depends on chemical formula of the molecule. Since
+	 * we don't know the formula, we can assume the distance to be ~1.0033 Da,
+	 * with user-defined tolerance.
+	 */
+	private static final double isotopeDistance = 1.0033;
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	private PeakList peakList;
 
-    // peaks counter
-    private int processedPeaks, totalPeaks;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
 
-    // parameter values
-    private String suffix;
-    private double mzTolerance, rtTolerance;
-    private boolean monotonicShape, removeOriginal, chooseMostIntense;
-    private int maximumCharge;
-    private IsotopeGrouperParameters parameters;
+	// peaks counter
+	private int processedPeaks, totalPeaks;
 
-    /**
-     * @param rawDataFile
-     * @param parameters
-     */
-    IsotopeGrouperTask(PeakList peaklist, IsotopeGrouperParameters parameters) {
+	// parameter values
+	private String suffix;
+	private double mzTolerance, rtTolerance;
+	private boolean monotonicShape, removeOriginal, chooseMostIntense;
+	private int maximumCharge;
+	private IsotopeGrouperParameters parameters;
 
-        this.peaklist = peaklist;
-        this.parameters = parameters;
+	/**
+	 * @param rawDataFile
+	 * @param parameters
+	 */
+	IsotopeGrouperTask(PeakList peakList, IsotopeGrouperParameters parameters) {
 
-        // Get parameter values for easier use
-        suffix = (String) parameters.getParameterValue(IsotopeGrouperParameters.suffix);
-        mzTolerance = (Double) parameters.getParameterValue(IsotopeGrouperParameters.mzTolerance);
-        rtTolerance = (Double) parameters.getParameterValue(IsotopeGrouperParameters.rtTolerance);
-        monotonicShape = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.monotonicShape);
-        maximumCharge = (Integer) parameters.getParameterValue(IsotopeGrouperParameters.maximumCharge);
-        chooseMostIntense = (parameters.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
-        removeOriginal = (Boolean) parameters.getParameterValue(IsotopeGrouperParameters.autoRemove);
+		this.peakList = peakList;
+		this.parameters = parameters;
 
-    }
+		// Get parameter values for easier use
+		suffix = (String) parameters
+				.getParameterValue(IsotopeGrouperParameters.suffix);
+		mzTolerance = (Double) parameters
+				.getParameterValue(IsotopeGrouperParameters.mzTolerance);
+		rtTolerance = (Double) parameters
+				.getParameterValue(IsotopeGrouperParameters.rtTolerance);
+		monotonicShape = (Boolean) parameters
+				.getParameterValue(IsotopeGrouperParameters.monotonicShape);
+		maximumCharge = (Integer) parameters
+				.getParameterValue(IsotopeGrouperParameters.maximumCharge);
+		chooseMostIntense = (parameters
+				.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
+		removeOriginal = (Boolean) parameters
+				.getParameterValue(IsotopeGrouperParameters.autoRemove);
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Isotopic peaks grouper on " + peaklist;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        if (totalPeaks == 0)
-            return 0.0f;
-        return (double) processedPeaks / (double) totalPeaks;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Isotopic peaks grouper on " + peakList;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		if (totalPeaks == 0)
+			return 0.0f;
+		return (double) processedPeaks / (double) totalPeaks;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    public PeakList getPeakList() {
-        return peaklist;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+	public PeakList getPeakList() {
+		return peakList;
+	}
 
-    /**
-     * @see Runnable#run()
-     */
-    public void run() {
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-        status = TaskStatus.PROCESSING;
+	/**
+	 * @see Runnable#run()
+	 */
+	public void run() {
 
-        // We assume source peaklist contains one datafile
-        RawDataFile dataFile = peaklist.getRawDataFile(0);
+		status = TaskStatus.PROCESSING;
+		logger.info("Running isotopic peak grouper on " + peakList);
 
-        // Create new deisotoped peaklist
-        SimplePeakList deisotopedPeakList = new SimplePeakList(peaklist + " "
-                + suffix, peaklist.getRawDataFiles());
+		// We assume source peakList contains one datafile
+		RawDataFile dataFile = peakList.getRawDataFile(0);
 
-        // Collect all selected charge states
-        int charges[] = new int[maximumCharge];
-        for (int i = 0; i < maximumCharge; i++)
-            charges[i] = (i + 1);
+		// Create new deisotoped peakList
+		SimplePeakList deisotopedPeakList = new SimplePeakList(peakList + " "
+				+ suffix, peakList.getRawDataFiles());
 
-        // Sort peaks
-        ChromatographicPeak[] sortedPeaks = peaklist.getPeaks(dataFile);
-        Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
+		// Collect all selected charge states
+		int charges[] = new int[maximumCharge];
+		for (int i = 0; i < maximumCharge; i++)
+			charges[i] = (i + 1);
 
-        // Loop through all peaks in the order of descending intensity
-        totalPeaks = sortedPeaks.length;
+		// Sort peaks
+		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
+		Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
 
-        for (int ind = 0; ind < totalPeaks; ind++) {
+		// Loop through all peaks in the order of descending intensity
+		totalPeaks = sortedPeaks.length;
 
-            if (status == TaskStatus.CANCELED)
-                return;
+		for (int ind = 0; ind < totalPeaks; ind++) {
 
-            ChromatographicPeak aPeak = sortedPeaks[ind];
+			if (status == TaskStatus.CANCELED)
+				return;
 
-            // Check if peak was already deleted
-            if (aPeak == null) {
-                processedPeaks++;
-                continue;
-            }
+			ChromatographicPeak aPeak = sortedPeaks[ind];
 
-            // Check which charge state fits best around this peak
-            int bestFitCharge = 0;
-            int bestFitScore = -1;
-            Vector<ChromatographicPeak> bestFitPeaks = null;
-            for (int charge : charges) {
+			// Check if peak was already deleted
+			if (aPeak == null) {
+				processedPeaks++;
+				continue;
+			}
 
-                Vector<ChromatographicPeak> fittedPeaks = new Vector<ChromatographicPeak>();
-                fittedPeaks.add(aPeak);
-                fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
+			// Check which charge state fits best around this peak
+			int bestFitCharge = 0;
+			int bestFitScore = -1;
+			Vector<ChromatographicPeak> bestFitPeaks = null;
+			for (int charge : charges) {
 
-                int score = fittedPeaks.size();
-                if ((score > bestFitScore)
-                        || ((score == bestFitScore) && (bestFitCharge > charge))) {
-                    bestFitScore = score;
-                    bestFitCharge = charge;
-                    bestFitPeaks = fittedPeaks;
-                }
+				Vector<ChromatographicPeak> fittedPeaks = new Vector<ChromatographicPeak>();
+				fittedPeaks.add(aPeak);
+				fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
 
-            }
+				int score = fittedPeaks.size();
+				if ((score > bestFitScore)
+						|| ((score == bestFitScore) && (bestFitCharge > charge))) {
+					bestFitScore = score;
+					bestFitCharge = charge;
+					bestFitPeaks = fittedPeaks;
+				}
 
-            // Verify the number of detected isotopes. If there is only one
-            // isotope, we skip this left the original peak in the peak list.
-            if (bestFitPeaks.size() == 1) {
-                deisotopedPeakList.addRow(peaklist.getPeakRow(aPeak));
-                processedPeaks++;
-                continue;
-            }
+			}
 
-            // Assign peaks in best fitted pattern to same isotope pattern
-            SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
-            isotopePattern.setCharge(bestFitCharge);
+			// Verify the number of detected isotopes. If there is only one
+			// isotope, we skip this left the original peak in the peak list.
+			if (bestFitPeaks.size() == 1) {
+				deisotopedPeakList.addRow(peakList.getPeakRow(aPeak));
+				processedPeaks++;
+				continue;
+			}
 
-            double maxHeight = Double.MIN_VALUE, minMZ = Double.MAX_VALUE;
+			// Assign peaks in best fitted pattern to same isotope pattern
+			SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
+			isotopePattern.setCharge(bestFitCharge);
 
-            for (ChromatographicPeak p : bestFitPeaks) {
-                isotopePattern.addPeak(p);
-                if (p.getHeight() > maxHeight) {
-                    if (chooseMostIntense)
-                        isotopePattern.setRepresentativePeak(p);
-                    maxHeight = p.getHeight();
-                }
-                if (p.getMZ() < minMZ) {
-                    if (!chooseMostIntense)
-                        isotopePattern.setRepresentativePeak(p);
-                    minMZ = p.getMZ();
-                }
-            }
+			double maxHeight = Double.MIN_VALUE, minMZ = Double.MAX_VALUE;
 
-            // keep old ID
-            int oldID = peaklist.getPeakRow(
-                    isotopePattern.getRepresentativePeak()).getID();
-            SimplePeakListRow newRow = new SimplePeakListRow(oldID);
-            newRow.addPeak(dataFile, isotopePattern);
+			for (ChromatographicPeak p : bestFitPeaks) {
+				isotopePattern.addPeak(p);
+				if (p.getHeight() > maxHeight) {
+					if (chooseMostIntense)
+						isotopePattern.setRepresentativePeak(p);
+					maxHeight = p.getHeight();
+				}
+				if (p.getMZ() < minMZ) {
+					if (!chooseMostIntense)
+						isotopePattern.setRepresentativePeak(p);
+					minMZ = p.getMZ();
+				}
+			}
 
-            deisotopedPeakList.addRow(newRow);
+			// keep old ID
+			int oldID = peakList.getPeakRow(
+					isotopePattern.getRepresentativePeak()).getID();
+			SimplePeakListRow newRow = new SimplePeakListRow(oldID);
+			newRow.addPeak(dataFile, isotopePattern);
 
-            // remove all peaks already assigned to isotope pattern
-            for (int i = 0; i < sortedPeaks.length; i++) {
-                if (bestFitPeaks.contains(sortedPeaks[i]))
-                    sortedPeaks[i] = null;
-            }
+			deisotopedPeakList.addRow(newRow);
 
-            // Update completion rate
-            processedPeaks++;
+			// remove all peaks already assigned to isotope pattern
+			for (int i = 0; i < sortedPeaks.length; i++) {
+				if (bestFitPeaks.contains(sortedPeaks[i]))
+					sortedPeaks[i] = null;
+			}
 
-        }
+			// Update completion rate
+			processedPeaks++;
 
-        // Add new peaklist to the project
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        currentProject.addPeakList(deisotopedPeakList);
-        
+		}
+
+		// Add new peakList to the project
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(deisotopedPeakList);
+
 		// Load previous applied methods
-		for (PeakListAppliedMethod proc: peaklist.getAppliedMethods()){
+		for (PeakListAppliedMethod proc : peakList.getAppliedMethods()) {
 			deisotopedPeakList.addDescriptionOfAppliedTask(proc);
 		}
-        
-        // Add task description to peakList
-        deisotopedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Isotopic peaks grouper", parameters));
 
+		// Add task description to peakList
+		deisotopedPeakList
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+						"Isotopic peaks grouper", parameters));
 
-        // Remove the original peaklist if requested
-        if (removeOriginal)
-            currentProject.removePeakList(peaklist);
+		// Remove the original peakList if requested
+		if (removeOriginal)
+			currentProject.removePeakList(peakList);
 
-        status = TaskStatus.FINISHED;
+		logger.info("Finished isotopic peak grouper on " + peakList);
+		status = TaskStatus.FINISHED;
 
-    }
+	}
 
-    /**
-     * Fits isotope pattern around one peak.
-     * 
-     * @param p Pattern is fitted around this peak
-     * @param charge Charge state of the fitted pattern
-     */
-    private void fitPattern(Vector<ChromatographicPeak> fittedPeaks,
-            ChromatographicPeak p, int charge, ChromatographicPeak[] sortedPeaks) {
+	/**
+	 * Fits isotope pattern around one peak.
+	 * 
+	 * @param p
+	 *            Pattern is fitted around this peak
+	 * @param charge
+	 *            Charge state of the fitted pattern
+	 */
+	private void fitPattern(Vector<ChromatographicPeak> fittedPeaks,
+			ChromatographicPeak p, int charge, ChromatographicPeak[] sortedPeaks) {
 
-        if (charge == 0) {
-            return;
-        }
+		if (charge == 0) {
+			return;
+		}
 
-        // Search for peaks before the start peak
-        if (!monotonicShape) {
-            fitHalfPattern(p, charge, -1, fittedPeaks, sortedPeaks);
-        }
+		// Search for peaks before the start peak
+		if (!monotonicShape) {
+			fitHalfPattern(p, charge, -1, fittedPeaks, sortedPeaks);
+		}
 
-        // Search for peaks after the start peak
-        fitHalfPattern(p, charge, 1, fittedPeaks, sortedPeaks);
+		// Search for peaks after the start peak
+		fitHalfPattern(p, charge, 1, fittedPeaks, sortedPeaks);
 
-    }
+	}
 
-    /**
-     * Helper method for fitPattern. Fits only one half of the pattern.
-     * 
-     * @param p Pattern is fitted around this peak
-     * @param charge Charge state of the fitted pattern
-     * @param direction Defines which half to fit: -1=fit to peaks before start
-     *            M/Z, +1=fit to peaks after start M/Z
-     * @param fittedPeaks All matching peaks will be added to this set
-     */
-    private void fitHalfPattern(ChromatographicPeak p, int charge,
-            int direction, Vector<ChromatographicPeak> fittedPeaks,
-            ChromatographicPeak[] sortedPeaks) {
+	/**
+	 * Helper method for fitPattern. Fits only one half of the pattern.
+	 * 
+	 * @param p
+	 *            Pattern is fitted around this peak
+	 * @param charge
+	 *            Charge state of the fitted pattern
+	 * @param direction
+	 *            Defines which half to fit: -1=fit to peaks before start M/Z,
+	 *            +1=fit to peaks after start M/Z
+	 * @param fittedPeaks
+	 *            All matching peaks will be added to this set
+	 */
+	private void fitHalfPattern(ChromatographicPeak p, int charge,
+			int direction, Vector<ChromatographicPeak> fittedPeaks,
+			ChromatographicPeak[] sortedPeaks) {
 
-        // Use M/Z and RT of the strongest peak of the pattern (peak 'p')
-        double mainMZ = p.getMZ();
-        double mainRT = p.getRT();
+		// Use M/Z and RT of the strongest peak of the pattern (peak 'p')
+		double mainMZ = p.getMZ();
+		double mainRT = p.getRT();
 
-        // Variable n is the number of peak we are currently searching. 1=first
-        // peak before/after start peak, 2=peak before/after previous, 3=...
-        boolean followingPeakFound;
-        int n = 1;
-        do {
+		// Variable n is the number of peak we are currently searching. 1=first
+		// peak before/after start peak, 2=peak before/after previous, 3=...
+		boolean followingPeakFound;
+		int n = 1;
+		do {
 
-            // Assume we don't find match for n:th peak in the pattern (which
-            // will end the loop)
-            followingPeakFound = false;
+			// Assume we don't find match for n:th peak in the pattern (which
+			// will end the loop)
+			followingPeakFound = false;
 
-            // Loop through all peaks, and collect candidates for the n:th peak
-            // in the pattern
-            Vector<ChromatographicPeak> goodCandidates = new Vector<ChromatographicPeak>();
-            for (int ind = 0; ind < sortedPeaks.length; ind++) {
+			// Loop through all peaks, and collect candidates for the n:th peak
+			// in the pattern
+			Vector<ChromatographicPeak> goodCandidates = new Vector<ChromatographicPeak>();
+			for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-                ChromatographicPeak candidatePeak = sortedPeaks[ind];
+				ChromatographicPeak candidatePeak = sortedPeaks[ind];
 
-                if (candidatePeak == null)
-                    continue;
+				if (candidatePeak == null)
+					continue;
 
-                // Get properties of the candidate peak
-                double candidatePeakMZ = candidatePeak.getMZ();
-                double candidatePeakRT = candidatePeak.getRT();
+				// Get properties of the candidate peak
+				double candidatePeakMZ = candidatePeak.getMZ();
+				double candidatePeakRT = candidatePeak.getRT();
 
-                // Does this peak fill all requirements of a candidate?
-                // - within tolerances from the expected location (M/Z and RT)
-                // - not already a fitted peak (only necessary to avoid
-                // conflicts when parameters are set too wide)
+				// Does this peak fill all requirements of a candidate?
+				// - within tolerances from the expected location (M/Z and RT)
+				// - not already a fitted peak (only necessary to avoid
+				// conflicts when parameters are set too wide)
 
-                if ((Math.abs((candidatePeakMZ - isotopeDistance * direction
-                        * n / (double) charge)
-                        - mainMZ) <= mzTolerance)
-                        && (Math.abs(candidatePeakRT - mainRT) < rtTolerance)
-                        && (!fittedPeaks.contains(candidatePeak))) {
-                    goodCandidates.add(candidatePeak);
+				if ((Math.abs((candidatePeakMZ - isotopeDistance * direction
+						* n / (double) charge)
+						- mainMZ) <= mzTolerance)
+						&& (Math.abs(candidatePeakRT - mainRT) < rtTolerance)
+						&& (!fittedPeaks.contains(candidatePeak))) {
+					goodCandidates.add(candidatePeak);
 
-                }
+				}
 
-            }
+			}
 
-            // If there are some candidates for n:th peak, then select the one
-            // with biggest intensity
-            // We collect all candidates, because we might want to do something
-            // more sophisticated at this step. For example, we might want to
-            // remove all other candidates. However, currently nothing is done
-            // with other candidates.
-            ChromatographicPeak bestCandidate = null;
-            for (ChromatographicPeak candidatePeak : goodCandidates) {
-                if (bestCandidate != null) {
-                    if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
-                        bestCandidate = candidatePeak;
-                    }
-                } else {
-                    bestCandidate = candidatePeak;
-                }
+			// If there are some candidates for n:th peak, then select the one
+			// with biggest intensity
+			// We collect all candidates, because we might want to do something
+			// more sophisticated at this step. For example, we might want to
+			// remove all other candidates. However, currently nothing is done
+			// with other candidates.
+			ChromatographicPeak bestCandidate = null;
+			for (ChromatographicPeak candidatePeak : goodCandidates) {
+				if (bestCandidate != null) {
+					if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
+						bestCandidate = candidatePeak;
+					}
+				} else {
+					bestCandidate = candidatePeak;
+				}
 
-            }
+			}
 
-            // If best candidate was found, then assign it to this isotope
-            // pattern
-            if (bestCandidate != null) {
+			// If best candidate was found, then assign it to this isotope
+			// pattern
+			if (bestCandidate != null) {
 
-                // Add best candidate to fitted peaks of the pattern
-                fittedPeaks.add(bestCandidate);
+				// Add best candidate to fitted peaks of the pattern
+				fittedPeaks.add(bestCandidate);
 
-                // n:th peak was found, so let's move on to n+1
-                n++;
-                followingPeakFound = true;
+				// n:th peak was found, so let's move on to n+1
+				n++;
+				followingPeakFound = true;
 
-            }
+			}
 
-        } while (followingPeakFound);
+		} while (followingPeakFound);
 
-    }
+	}
 
 }

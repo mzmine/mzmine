@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.normalization.linear;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -34,19 +33,14 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskGroup;
-import net.sf.mzmine.taskcontrol.TaskGroupListener;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
  */
-public class LinearNormalizer implements BatchStep, TaskListener,
+public class LinearNormalizer implements BatchStep, 
         ActionListener {
-
-    private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private LinearNormalizerParameters parameters;
 
@@ -110,36 +104,17 @@ public class LinearNormalizer implements BatchStep, TaskListener,
         if (exitCode != ExitCode.OK)
             return;
 
-        runModule(null, selectedPeakLists, parameters.clone(), null);
-
-    }
-
-    public void taskStarted(Task task) {
-        logger.info("Running linear normalizer");
-    }
-
-    public void taskFinished(Task task) {
-
-        if (task.getStatus() == Task.TaskStatus.FINISHED) {
-            logger.info("Finished linear normalizer");
-        }
-
-        if (task.getStatus() == Task.TaskStatus.ERROR) {
-            String msg = "Error while normalizing peaklist: "
-                    + task.getErrorMessage();
-            logger.severe(msg);
-            desktop.displayErrorMessage(msg);
-        }
+        runModule(null, selectedPeakLists, parameters.clone());
 
     }
 
     /**
      * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
      *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.TaskGroupListener)
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
      */
-    public TaskGroup runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters, TaskGroupListener taskGroupListener) {
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
         // check peak lists
         if ((peakLists == null) || (peakLists.length == 0)) {
@@ -153,12 +128,10 @@ public class LinearNormalizer implements BatchStep, TaskListener,
             tasks[i] = new LinearNormalizerTask(peakLists[i],
                     (LinearNormalizerParameters) parameters);
         }
-        TaskGroup newGroup = new TaskGroup(tasks, this, taskGroupListener);
 
-        // start the group
-        newGroup.start();
+        MZmineCore.getTaskController().addTasks(tasks);
 
-        return newGroup;
+        return tasks;
 
     }
 

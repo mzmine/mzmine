@@ -78,13 +78,10 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 			"20", "50", "100", "200", "1000" };
 	private ScatterPlotToolBar toolbar;
 	private ScatterPlotChart plot;
-	private ActionListener scatterPlotWindow;
 	private ScatterPlotDataSet dataSet;
 	private PeakList peakList;
 
-	public ScatterPlotPanel(ActionListener scatterPlotWindow) {
-
-		this.scatterPlotWindow = scatterPlotWindow;
+	public ScatterPlotPanel() {
 
 		// Utility
 		DefaultListCellRenderer centeredRenderer = new DefaultListCellRenderer() {
@@ -288,10 +285,6 @@ public class ScatterPlotPanel extends JPanel implements ActionListener {
 
 	public ScatterPlotChart getPlot() {
 		return plot;
-	}
-
-	public ActionListener getMaster() {
-		return scatterPlotWindow;
 	}
 
 	public void actionPerformed(ActionEvent event) {
