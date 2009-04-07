@@ -26,8 +26,8 @@ import java.awt.image.BufferedImage;
 import java.util.Date;
 import java.util.logging.Logger;
 
-
 import net.sf.mzmine.util.Range;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -178,7 +178,11 @@ class TwoDXYPlot extends XYPlot {
 	}
 
 	void setPlotMode(PlotMode plotMode) {
-		this.plotMode = plotMode; 
+		this.plotMode = plotMode;
+
+		// clear the zoom out image cache
+		zoomOutBitmap = null;
+		
 		datasetChanged(new DatasetChangeEvent(dataset, dataset));
 	}
 
