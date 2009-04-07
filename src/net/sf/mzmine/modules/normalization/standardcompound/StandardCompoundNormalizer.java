@@ -35,8 +35,8 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakListRowSorter;
-import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
-import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 

@@ -26,9 +26,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -36,6 +36,8 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /**
  * Simple implementation of IsotopePattern interface
@@ -268,7 +270,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
 	public DataPoint[] getIsotopes() {
 
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(true, true));
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 		ChromatographicPeak cp;
 		Iterator<ChromatographicPeak> itr = peaks.iterator();
 

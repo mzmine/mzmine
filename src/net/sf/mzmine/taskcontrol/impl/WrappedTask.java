@@ -94,7 +94,7 @@ class WrappedTask implements Comparable {
     }
 
     synchronized void removeTaskReference() {
-        task = new DummyTask(task);
+        task = new FinishedTask(task);
     }
 
 }

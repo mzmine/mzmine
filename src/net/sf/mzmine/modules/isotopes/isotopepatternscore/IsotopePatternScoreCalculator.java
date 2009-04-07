@@ -26,6 +26,8 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 public class IsotopePatternScoreCalculator {
 
@@ -65,13 +67,14 @@ public class IsotopePatternScoreCalculator {
 
 		for (int i = 0; i < length; i++) {
 
-			factor = dp1[i].getIntensity();//1.0d;// Math.pow(2.0d, i);
+			factor = dp1[i].getIntensity();// 1.0d;// Math.pow(2.0d, i);
 			totalFactor += factor;
-			
-			// Search for the closest isotope in the second pattern (detected) to the
+
+			// Search for the closest isotope in the second pattern (detected)
+			// to the
 			// current isotope (predicted pattern)
 			closestDp = getClosestDataPoint(dp1[i], dp2);
-			
+
 			if (closestDp == null)
 				continue;
 
@@ -119,7 +122,8 @@ public class IsotopePatternScoreCalculator {
 
 		double intensity, biggestIntensity = Double.MIN_VALUE;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		for (DataPoint dp : dataPoints) {
 
@@ -158,7 +162,8 @@ public class IsotopePatternScoreCalculator {
 
 		double diff;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		for (DataPoint localDp : dataPoints) {
 			diff = Math.abs(dp.getMZ() - localDp.getMZ());
@@ -166,10 +171,10 @@ public class IsotopePatternScoreCalculator {
 				sortedDataPoints.add(localDp);
 			}
 		}
-		
+
 		if (sortedDataPoints.size() > 0)
 			return sortedDataPoints.first();
-		
+
 		return null;
 
 	}

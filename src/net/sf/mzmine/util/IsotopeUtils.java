@@ -115,7 +115,8 @@ public class IsotopeUtils {
 
 		double intensity, biggestIntensity = Double.MIN_VALUE;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		for (DataPoint dp : dataPoints) {
 
@@ -154,7 +155,8 @@ public class IsotopeUtils {
 
 		double diff;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		for (DataPoint localDp : dataPoints) {
 			diff = Math.abs(dp.getMZ() - localDp.getMZ());

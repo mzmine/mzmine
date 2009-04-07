@@ -27,13 +27,13 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  * after the Task is finished. This allows the garbage collector to remove the
  * memory occupied by the actual Task.
  */
-public class DummyTask implements Task {
+public class FinishedTask implements Task {
 
     private String description, errorMessage;
     private TaskStatus status;
     private double finishedPercentage;
 
-    public DummyTask(Task task) {
+    public FinishedTask(Task task) {
         description = task.getTaskDescription();
         errorMessage = task.getErrorMessage();
         status = task.getStatus();

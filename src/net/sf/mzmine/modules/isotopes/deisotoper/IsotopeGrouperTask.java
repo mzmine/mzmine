@@ -35,7 +35,9 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.PeakSorterByDescendingHeight;
+import net.sf.mzmine.util.PeakSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /**
  * 
@@ -155,7 +157,8 @@ class IsotopeGrouperTask implements Task {
 
 		// Sort peaks
 		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
-		Arrays.sort(sortedPeaks, new PeakSorterByDescendingHeight());
+		Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height,
+				SortingDirection.Descending));
 
 		// Loop through all peaks in the order of descending intensity
 		totalPeaks = sortedPeaks.length;

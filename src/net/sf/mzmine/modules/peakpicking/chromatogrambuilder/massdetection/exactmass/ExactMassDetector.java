@@ -31,6 +31,8 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
@@ -86,13 +88,14 @@ public class ExactMassDetector implements MassDetector {
 	public MzPeak[] getMassValues(Scan scan) {
 
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
-		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(
-				new DataPointSorter(true, true));
+		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(
+				SortingProperty.MZ, SortingDirection.Ascending));
 
 		// Create a tree set of candidate mzPeaks sorted by intensity in
 		// descending order.
 		TreeSet<MzPeak> candidatePeaks = new TreeSet<MzPeak>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		// First get all candidate peaks (local maximum)
 		getLocalMaxima(scan, candidatePeaks);
@@ -174,8 +177,7 @@ public class ExactMassDetector implements MassDetector {
 
 					DataPoint[] rawDataPoints = rangeDataPoints
 							.toArray(new DataPoint[0]);
-					candidatePeaks.add(new MzPeak(localMaximum,
-							rawDataPoints));
+					candidatePeaks.add(new MzPeak(localMaximum, rawDataPoints));
 				}
 
 				// Reset and start with new peak

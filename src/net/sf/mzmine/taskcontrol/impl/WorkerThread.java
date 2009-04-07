@@ -105,12 +105,13 @@ class WorkerThread extends Thread {
                 logger.log(Level.SEVERE, "Unhandled exception " + e
                         + " while processing task " + currentTask, e);
 
-                if (MZmineCore.getDesktop() != null) {
-                    MZmineCore.getDesktop().displayErrorMessage(
+                MZmineCore.getDesktop().displayErrorMessage(
                             "Unhandled exception in task "
                                     + currentTask.getTask().getTaskDescription() + ": " + 
                             ExceptionUtils.exceptionToString(e));
-                }
+                
+                e.printStackTrace();
+                
 
             }
 

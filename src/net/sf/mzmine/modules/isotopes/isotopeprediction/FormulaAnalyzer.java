@@ -31,6 +31,8 @@ import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 import org.openscience.cdk.ChemObject;
 import org.openscience.cdk.config.IsotopeFactory;
@@ -73,7 +75,7 @@ public class FormulaAnalyzer {
 			IonizationType ionization) throws Exception {
 
 		int numOpenParenthesis = 0, numCloseParenthesis = 0;
-		
+
 		String mf = originalFormula.trim();
 		charge = Math.abs(charge);
 		mf = removeSpaces(mf);
@@ -126,7 +128,7 @@ public class FormulaAnalyzer {
 		// Divide the chemical formula into tokens (element and coefficients)
 		HashMap<String, Integer> tokens;
 		tokens = getFormulaInTokens(mf);
-		
+
 		// Load or remove ions depending of ionization type
 		tokens = loadIonization(tokens, ionization);
 
@@ -141,7 +143,7 @@ public class FormulaAnalyzer {
 					+ mf + " . Please remove special characters";
 			throw new Exception();
 		}
-		
+
 		// Calculate abundance and mass
 		Iterator<String> itr = tokens.keySet().iterator();
 		String elementSymbol;
@@ -190,7 +192,7 @@ public class FormulaAnalyzer {
 		// Form the IsotopePattern to be displayed.
 		PredictedIsotopePattern isotopePattern = new PredictedIsotopePattern(
 				abundanceAndMass, finalFormula, chargeDistribution);
-		
+
 		abundanceAndMass = null;
 
 		if (!autoHeight)
@@ -225,7 +227,8 @@ public class FormulaAnalyzer {
 
 		HashMap<Double, Double> isotopeMassAndAbundance = new HashMap<Double, Double>();
 		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(true, true));
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		DataPoint[] currentElementPattern = new DataPoint[isotopes.length];
 
@@ -691,7 +694,8 @@ public class FormulaAnalyzer {
 			double minAbundance) {
 
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(true, true));
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		double intensity, biggestIntensity = 0.0f;
 
@@ -715,7 +719,7 @@ public class FormulaAnalyzer {
 		}
 
 		for (DataPoint dp : dataPoints) {
-			if (dp.getIntensity() >= (minAbundance ))
+			if (dp.getIntensity() >= (minAbundance))
 				sortedDataPoints.add(dp);
 		}
 
@@ -752,20 +756,19 @@ public class FormulaAnalyzer {
 			return dataPoints;
 		}
 	}
-	
-	
+
 	private static HashMap<String, Integer> loadIonization(
 			HashMap<String, Integer> tokens, IonizationType ionization) {
 
 		String ion = ionization.getElement();
 		int quantity = ionization.isPositiveCharge() ? 1 : -1;
-		
-		if (tokens.containsKey(ion)){
+
+		if (tokens.containsKey(ion)) {
 			int atomCount = tokens.get(ion);
 			atomCount += quantity;
 			tokens.put(ion, atomCount);
 		}
-		
+
 		return tokens;
 
 	}
@@ -789,7 +792,8 @@ public class FormulaAnalyzer {
 		}
 
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(true, true));
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		for (DataPoint localDp : dataPoints) {
 			sortedDataPoints.add(localDp);
@@ -826,7 +830,8 @@ public class FormulaAnalyzer {
 		double diff, tolerance = ISOTOPE_DISTANCE / 4.0d;
 		DataPoint dp;
 		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(false, false));
+				new DataPointSorter(SortingProperty.Intensity,
+						SortingDirection.Descending));
 
 		for (DataPoint localDp : dataPoints) {
 			diff = Math.abs(mass - localDp.getMZ());
@@ -862,18 +867,18 @@ public class FormulaAnalyzer {
 			t += st.nextElement();
 		return t;
 	}
-	
-	private static String removeSymbols(String s){
-		
-		for (int i=0; i< s.length(); i++){
-			if ((s.charAt(i) == '+') || (s.charAt(i) == '-')){
+
+	private static String removeSymbols(String s) {
+
+		for (int i = 0; i < s.length(); i++) {
+			if ((s.charAt(i) == '+') || (s.charAt(i) == '-')) {
 				s = replaceWithSpaceAt(s, i, i);
 			}
 		}
-		
+
 		s = removeSpaces(s);
 		return s;
-		
+
 	}
 
 }

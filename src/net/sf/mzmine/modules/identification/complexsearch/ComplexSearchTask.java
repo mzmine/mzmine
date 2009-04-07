@@ -34,8 +34,8 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.PeakListRowSorter.SortingDirection;
-import net.sf.mzmine.util.PeakListRowSorter.SortingProperty;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 public class ComplexSearchTask implements Task {
 

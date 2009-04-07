@@ -19,23 +19,8 @@
 
 package net.sf.mzmine.util;
 
-import java.util.Comparator;
+public enum SortingDirection {
 
-import net.sf.mzmine.data.ChromatographicPeak;
-
-/**
- * This is a helper class required for sorting peaks in order of decreasing
- * intensity.
- */
-public class PeakSorterByDescendingHeight implements Comparator<ChromatographicPeak> {
-
-    public int compare(ChromatographicPeak p1, ChromatographicPeak p2) {
-
-        Double p1Height = p1.getHeight();
-        Double p2Height = p2.getHeight();
-
-        return p2Height.compareTo(p1Height);
-
-    }
+	Ascending, Descending
 
 }

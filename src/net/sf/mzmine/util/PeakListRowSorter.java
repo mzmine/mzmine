@@ -30,14 +30,6 @@ import net.sf.mzmine.data.PeakListRow;
  */
 public class PeakListRowSorter implements Comparator<PeakListRow> {
 
-	public enum SortingProperty {
-		MZ, ID, Height, Area
-	};
-
-	public enum SortingDirection {
-		Ascending, Descending
-	}
-
 	private SortingProperty property;
 	private SortingDirection direction;
 
@@ -49,88 +41,42 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
 
 	public int compare(PeakListRow row1, PeakListRow row2) {
 
-		int intermediateResult;
-		switch (property) {
-		case MZ:
-		default:
-			intermediateResult = compareMZ(row1, row2);
-			break;
-
-		case ID:
-			intermediateResult = compareID(row1, row2);
-			break;
-
-		case Height:
-			intermediateResult = compareHeight(row1, row2);
-			break;
-
-		case Area:
-			intermediateResult = compareArea(row1, row2);
-			break;
-
-		}
+		Double row1Value = getValue(row1);
+		Double row2Value = getValue(row2);
 
 		if (direction == SortingDirection.Ascending)
-			return intermediateResult;
+			return row1Value.compareTo(row2Value);
 		else
-			return -intermediateResult;
+			return row2Value.compareTo(row1Value);
 
 	}
 
-	private int compareMZ(PeakListRow row1, PeakListRow row2) {
-		Double mz1 = row1.getAverageMZ();
-		Double mz2 = row2.getAverageMZ();
-		return mz1.compareTo(mz2);
-	}
+	private double getValue(PeakListRow row) {
+		switch (property) {
+		case Area:
+			ChromatographicPeak[] areaPeaks = row.getPeaks();
+			double[] peakAreas = new double[areaPeaks.length];
+			for (int i = 0; i < peakAreas.length; i++)
+				peakAreas[i] = areaPeaks[i].getArea();
+			double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
+			return medianArea;
+		case Height:
+			ChromatographicPeak[] heightPeaks = row.getPeaks();
+			double[] peakHeights = new double[heightPeaks.length];
+			for (int i = 0; i < peakHeights.length; i++)
+				peakHeights[i] = heightPeaks[i].getHeight();
+			double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
+			return medianHeight;
+		case MZ:
+			return row.getAverageMZ();
+		case RT:
+			return row.getAverageRT();
+		case ID:
+			return row.getID();
+		}
 
-	private int compareID(PeakListRow row1, PeakListRow row2) {
-		Integer id1 = row1.getID();
-		Integer id2 = row2.getID();
-		return id1.compareTo(id2);
-	}
-
-	/**
-	 * Compares peak list rows by median height of peaks on each row
-	 * 
-	 */
-	private int compareHeight(PeakListRow row1, PeakListRow row2) {
-
-		ChromatographicPeak[] peaks1 = row1.getPeaks();
-		double[] peakHeights1 = new double[peaks1.length];
-		for (int peakInd = 0; peakInd < peakHeights1.length; peakInd++)
-			peakHeights1[peakInd] = peaks1[peakInd].getHeight();
-		Double medianPeakHeights1 = MathUtils.calcQuantile(peakHeights1, 0.5f);
-
-		ChromatographicPeak[] peaks2 = row2.getPeaks();
-		double[] peakHeights2 = new double[peaks2.length];
-		for (int peakInd = 0; peakInd < peakHeights2.length; peakInd++)
-			peakHeights2[peakInd] = peaks2[peakInd].getHeight();
-		Double medianPeakHeights2 = MathUtils.calcQuantile(peakHeights2, 0.5f);
-
-		return medianPeakHeights1.compareTo(medianPeakHeights2);
-
-	}
-
-	/**
-	 * Compares peak list rows by median area of peaks on each row
-	 * 
-	 */
-	private int compareArea(PeakListRow row1, PeakListRow row2) {
-
-		ChromatographicPeak[] peaks1 = row1.getPeaks();
-		double[] peakAreas1 = new double[peaks1.length];
-		for (int peakInd = 0; peakInd < peakAreas1.length; peakInd++)
-			peakAreas1[peakInd] = peaks1[peakInd].getArea();
-		Double medianPeakAreas1 = MathUtils.calcQuantile(peakAreas1, 0.5f);
-
-		ChromatographicPeak[] peaks2 = row2.getPeaks();
-		double[] peakAreas2 = new double[peaks2.length];
-		for (int peakInd = 0; peakInd < peakAreas2.length; peakInd++)
-			peakAreas2[peakInd] = peaks2[peakInd].getArea();
-		Double medianPeakAreas2 = MathUtils.calcQuantile(peakAreas2, 0.5f);
-
-		return medianPeakAreas1.compareTo(medianPeakAreas2);
-
+		// We should never get here, so throw exception
+		throw (new IllegalStateException());
 	}
 
 }

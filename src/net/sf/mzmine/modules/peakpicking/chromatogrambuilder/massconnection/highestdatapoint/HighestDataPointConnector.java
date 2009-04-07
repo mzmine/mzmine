@@ -30,158 +30,165 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 public class HighestDataPointConnector implements MassConnector {
 
-    private double mzTolerance, minimumTimeSpan, minimumHeight;
+	private double mzTolerance, minimumTimeSpan, minimumHeight;
 
-    // Mapping of last data point m/z --> chromatogram
-    private TreeMap<Double, Chromatogram> buildingChromatograms;
+	// Mapping of last data point m/z --> chromatogram
+	private TreeMap<Double, Chromatogram> buildingChromatograms;
 
-    // Mapping of last data point m/z --> chromatogram, used in each iteration
-    // for connected chromatograms
-    private TreeMap<Double, Chromatogram> connectedChromatograms;
+	// Mapping of last data point m/z --> chromatogram, used in each iteration
+	// for connected chromatograms
+	private TreeMap<Double, Chromatogram> connectedChromatograms;
 
-    // Set of already connected chromatograms in each iteration, for speeding up
-    // (searching the connectedChromatograms TreeMap is too slow)
-    private HashSet<Chromatogram> connectedChromatogramsSet;
+	// Set of already connected chromatograms in each iteration, for speeding up
+	// (searching the connectedChromatograms TreeMap is too slow)
+	private HashSet<Chromatogram> connectedChromatogramsSet;
 
-    public HighestDataPointConnector(
-            HighestDataPointConnectorParameters parameters) {
+	public HighestDataPointConnector(
+			HighestDataPointConnectorParameters parameters) {
 
-        minimumTimeSpan = (Double) parameters.getParameterValue(HighestDataPointConnectorParameters.minimumTimeSpan);
-        minimumHeight = (Double) parameters.getParameterValue(HighestDataPointConnectorParameters.minimumHeight);
-        mzTolerance = (Double) parameters.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
+		minimumTimeSpan = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumTimeSpan);
+		minimumHeight = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumHeight);
+		mzTolerance = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
 
-        buildingChromatograms = new TreeMap<Double, Chromatogram>();
-        connectedChromatogramsSet = new HashSet<Chromatogram>();
+		buildingChromatograms = new TreeMap<Double, Chromatogram>();
+		connectedChromatogramsSet = new HashSet<Chromatogram>();
 
-    }
+	}
 
-    public void addScan(RawDataFile dataFile, int scanNumber, MzPeak[] mzValues) {
+	public void addScan(RawDataFile dataFile, int scanNumber, MzPeak[] mzValues) {
 
-        // Sort m/z peaks by descending intensity
-        Arrays.sort(mzValues, new DataPointSorter(false, false));
+		// Sort m/z peaks by descending intensity
+		Arrays.sort(mzValues, new DataPointSorter(SortingProperty.Intensity,
+				SortingDirection.Descending));
 
-        // Empty the collection of connected chromatograms
-        connectedChromatograms = new TreeMap<Double, Chromatogram>();
-        connectedChromatogramsSet.clear();
+		// Empty the collection of connected chromatograms
+		connectedChromatograms = new TreeMap<Double, Chromatogram>();
+		connectedChromatogramsSet.clear();
 
-        for (MzPeak mzPeak : mzValues) {
+		for (MzPeak mzPeak : mzValues) {
 
-            // Use binary search to find chromatograms within m/z tolerance
-            double mzKeys[] = CollectionUtils.toDoubleArray(buildingChromatograms.keySet());
-            int index = Arrays.binarySearch(mzKeys, mzPeak.getMZ()
-                    - mzTolerance);
-            if (index < 0)
-                index = (index + 1) * -1;
+			// Use binary search to find chromatograms within m/z tolerance
+			double mzKeys[] = CollectionUtils
+					.toDoubleArray(buildingChromatograms.keySet());
+			int index = Arrays.binarySearch(mzKeys, mzPeak.getMZ()
+					- mzTolerance);
+			if (index < 0)
+				index = (index + 1) * -1;
 
-            // Search for best chromatogram, which has highest last data point
-            Chromatogram bestChromatogram = null;
+			// Search for best chromatogram, which has highest last data point
+			Chromatogram bestChromatogram = null;
 
-            while (index < mzKeys.length) {
+			while (index < mzKeys.length) {
 
-                if (mzKeys[index] > mzPeak.getMZ() + mzTolerance)
-                    break;
+				if (mzKeys[index] > mzPeak.getMZ() + mzTolerance)
+					break;
 
-                Chromatogram chrom = buildingChromatograms.get(mzKeys[index]);
-                if ((bestChromatogram == null)
-                        || (chrom.getLastMzPeak().getIntensity() > bestChromatogram.getLastMzPeak().getIntensity())) {
-                    bestChromatogram = chrom;
-                }
+				Chromatogram chrom = buildingChromatograms.get(mzKeys[index]);
+				if ((bestChromatogram == null)
+						|| (chrom.getLastMzPeak().getIntensity() > bestChromatogram
+								.getLastMzPeak().getIntensity())) {
+					bestChromatogram = chrom;
+				}
 
-                index++;
+				index++;
 
-            }
+			}
 
-            // If we found best chromatogram, check if it is already connected.
-            // In such case, we may discard this mass and continue. If we
-            // haven't found a chromatogram, we may create a new one.
-            if (bestChromatogram != null) {
-                if (connectedChromatogramsSet.contains(bestChromatogram))
-                    continue;
-            } else {
-                bestChromatogram = new Chromatogram(dataFile);
-            }
+			// If we found best chromatogram, check if it is already connected.
+			// In such case, we may discard this mass and continue. If we
+			// haven't found a chromatogram, we may create a new one.
+			if (bestChromatogram != null) {
+				if (connectedChromatogramsSet.contains(bestChromatogram))
+					continue;
+			} else {
+				bestChromatogram = new Chromatogram(dataFile);
+			}
 
-            // Add this mzPeak to the chromatogram
-            bestChromatogram.addMzPeak(scanNumber, mzPeak);
+			// Add this mzPeak to the chromatogram
+			bestChromatogram.addMzPeak(scanNumber, mzPeak);
 
-            // Move the chromatogram to the set of connected chromatograms
-            connectedChromatograms.put(mzPeak.getMZ(), bestChromatogram);
-            connectedChromatogramsSet.add(bestChromatogram);
+			// Move the chromatogram to the set of connected chromatograms
+			connectedChromatograms.put(mzPeak.getMZ(), bestChromatogram);
+			connectedChromatogramsSet.add(bestChromatogram);
 
-        }
+		}
 
-        // Process those chromatograms which were not connected to any m/z peak
-        for (Chromatogram testChrom : buildingChromatograms.values()) {
+		// Process those chromatograms which were not connected to any m/z peak
+		for (Chromatogram testChrom : buildingChromatograms.values()) {
 
-            // Skip those which were connected
-            if (connectedChromatogramsSet.contains(testChrom))
-                continue;
+			// Skip those which were connected
+			if (connectedChromatogramsSet.contains(testChrom))
+				continue;
 
-            // Check if we just finished a long-enough segment
-            if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
-                testChrom.commitBuildingSegment();
+			// Check if we just finished a long-enough segment
+			if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
+				testChrom.commitBuildingSegment();
 
-                // Move the chromatogram to the set of connected chromatograms
-                connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
-                        testChrom);
-                connectedChromatogramsSet.add(testChrom);
-                continue;
-            }
+				// Move the chromatogram to the set of connected chromatograms
+				connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
+						testChrom);
+				connectedChromatogramsSet.add(testChrom);
+				continue;
+			}
 
-            // Check if we have any committed segments in the chromatogram
-            if (testChrom.getNumberOfCommittedSegments() > 0) {
-                testChrom.removeBuildingSegment();
+			// Check if we have any committed segments in the chromatogram
+			if (testChrom.getNumberOfCommittedSegments() > 0) {
+				testChrom.removeBuildingSegment();
 
-                // Move the chromatogram to the set of connected chromatograms
-                connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
-                        testChrom);
-            }
+				// Move the chromatogram to the set of connected chromatograms
+				connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
+						testChrom);
+			}
 
-        }
+		}
 
-        // All remaining chromatograms in buildingChromatograms are discarded
-        // and buildingChromatograms is replaced with connectedChromatograms
-        buildingChromatograms = connectedChromatograms;
-        
-        
+		// All remaining chromatograms in buildingChromatograms are discarded
+		// and buildingChromatograms is replaced with connectedChromatograms
+		buildingChromatograms = connectedChromatograms;
 
-    }
+	}
 
-    public Chromatogram[] finishChromatograms() {
+	public Chromatogram[] finishChromatograms() {
 
-        // Iterate through current chromatograms and remove those which do not
-        // contain any committed segment nor long-enough building segment
-        Iterator<Chromatogram> chromIterator = buildingChromatograms.values().iterator();
-        while (chromIterator.hasNext()) {
+		// Iterate through current chromatograms and remove those which do not
+		// contain any committed segment nor long-enough building segment
+		Iterator<Chromatogram> chromIterator = buildingChromatograms.values()
+				.iterator();
+		while (chromIterator.hasNext()) {
 
-            Chromatogram chromatogram = chromIterator.next();
+			Chromatogram chromatogram = chromIterator.next();
 
-            if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
-                chromatogram.commitBuildingSegment();
-                chromatogram.finishChromatogram();
-            } else {
-                if (chromatogram.getNumberOfCommittedSegments() == 0) {
-                    chromIterator.remove();
-                    continue;
-                } else {
-                    chromatogram.removeBuildingSegment();
-                    chromatogram.finishChromatogram();
-                }
-            }
+			if (chromatogram.getBuildingSegmentLength() >= minimumTimeSpan) {
+				chromatogram.commitBuildingSegment();
+				chromatogram.finishChromatogram();
+			} else {
+				if (chromatogram.getNumberOfCommittedSegments() == 0) {
+					chromIterator.remove();
+					continue;
+				} else {
+					chromatogram.removeBuildingSegment();
+					chromatogram.finishChromatogram();
+				}
+			}
 
-            // Remove chromatograms smaller then minimum height
-            if (chromatogram.getHeight() < minimumHeight)
-                chromIterator.remove();
+			// Remove chromatograms smaller then minimum height
+			if (chromatogram.getHeight() < minimumHeight)
+				chromIterator.remove();
 
-        }
+		}
 
-        // All remaining chromatograms are good, so we can return them
-        Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
-                new Chromatogram[0]);
-        return chromatograms;
-    }
+		// All remaining chromatograms are good, so we can return them
+		Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
+				new Chromatogram[0]);
+		return chromatograms;
+	}
 
 }

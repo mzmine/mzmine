@@ -23,46 +23,42 @@ import java.util.Comparator;
 
 import net.sf.mzmine.data.DataPoint;
 
-
 /**
- * This class implements Comparator class to provide a comparison between to
- * MzPeak. This comparison could be by MZ or intensity values, and also could be
- * less than or bigger than. This behavior is defined by the two booleans in the
- * constructor.
+ * This class implements Comparator class to provide a comparison between two
+ * DataPoints.
  * 
  */
 public class DataPointSorter implements Comparator<DataPoint> {
 
-	private boolean sortByMZ, ascending;
+	private SortingProperty property;
+	private SortingDirection direction;
 
-	/**
-	 * This constructor receives two booleans to define the behavior of this
-	 * comparator. Comparison based on MZ or intensity values, and "less than"
-	 * or "bigger than"
-	 * 
-	 * @param sortByMZ
-	 * @param ascending
-	 */
-	public DataPointSorter(boolean sortByMZ, boolean ascending) {
-		this.sortByMZ = sortByMZ;
-		this.ascending = ascending;
+	public DataPointSorter(SortingProperty property, SortingDirection direction) {
+		this.property = property;
+		this.direction = direction;
 	}
 
 	public int compare(DataPoint dp1, DataPoint dp2) {
-        
-		Double value1, value2;
 
-		if (sortByMZ) {
-            value1 = dp1.getMZ();
-            value2 = dp2.getMZ();
-		} else {
-            value1 = dp1.getIntensity();
-            value2 = dp2.getIntensity();
+		Double peak1Value = getValue(dp1);
+		Double peak2Value = getValue(dp2);
+
+		if (direction == SortingDirection.Ascending)
+			return peak1Value.compareTo(peak2Value);
+		else
+			return peak2Value.compareTo(peak1Value);
+
+	}
+
+	private double getValue(DataPoint dp) {
+		switch (property) {
+		case MZ:
+			return dp.getMZ();
+		case Intensity:
+			return dp.getIntensity();
 		}
 
-		if (ascending)
-			return value1.compareTo(value2);
-		else
-			return value2.compareTo(value1);
+		// We should never get here, so throw exception
+		throw (new IllegalStateException());
 	}
 }

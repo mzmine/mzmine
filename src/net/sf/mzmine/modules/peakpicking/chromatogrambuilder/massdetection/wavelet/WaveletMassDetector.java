@@ -28,6 +28,8 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /*
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat,
@@ -38,175 +40,179 @@ import net.sf.mzmine.util.DataPointSorter;
 
 public class WaveletMassDetector implements MassDetector {
 
-    // Parameter value
-    private int scaleLevel;
-    private double waveletWindow, noiseLevel;
-    private TreeSet<MzPeak> mzPeaks;
+	// Parameter value
+	private int scaleLevel;
+	private double waveletWindow, noiseLevel;
+	private TreeSet<MzPeak> mzPeaks;
 
-    /**
-     * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
-     * The WAVELET_ESL & WAVELET_ESL indicates the Effective Support boundaries
-     */
-    private static final double NPOINTS = 60000;
-    private static final int WAVELET_ESL = -5;
-    private static final int WAVELET_ESR = 5;
+	/**
+	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
+	 * The WAVELET_ESL & WAVELET_ESL indicates the Effective Support boundaries
+	 */
+	private static final double NPOINTS = 60000;
+	private static final int WAVELET_ESL = -5;
+	private static final int WAVELET_ESR = 5;
 
-    public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
-        noiseLevel = (Double) parameters.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
-        scaleLevel = (Integer) parameters.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
-        waveletWindow = (Double) parameters.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
-    }
+	public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
+		noiseLevel = (Double) parameters
+				.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
+		scaleLevel = (Integer) parameters
+				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
+		waveletWindow = (Double) parameters
+				.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
+	}
 
-    public MzPeak[] getMassValues(Scan scan) {
-        DataPoint[] originalDataPoints = scan.getDataPoints();
-        mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(true,
-                true));
+	public MzPeak[] getMassValues(Scan scan) {
+		DataPoint[] originalDataPoints = scan.getDataPoints();
+		mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(SortingProperty.MZ,
+				SortingDirection.Ascending));
 
-        DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
+		DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
 
-        getMzPeaks(originalDataPoints, waveletDataPoints);
+		getMzPeaks(originalDataPoints, waveletDataPoints);
 
-        return mzPeaks.toArray(new MzPeak[0]);
-    }
+		return mzPeaks.toArray(new MzPeak[0]);
+	}
 
-    /**
-     * Perform the CWT over raw data points in the selected scale level
-     * 
-     * @param dataPoints
-     */
-    private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
-        int length = dataPoints.length;
-        SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
-        double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
-        double[] W = new double[(int) NPOINTS];
+	/**
+	 * Perform the CWT over raw data points in the selected scale level
+	 * 
+	 * @param dataPoints
+	 */
+	private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
+		int length = dataPoints.length;
+		SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
+		double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
+		double[] W = new double[(int) NPOINTS];
 
-        double waveletIndex = WAVELET_ESL;
-        for (int j = 0; j < NPOINTS; j++) {
-            // Pre calculate the values of the wavelet
-            W[j] = cwtMEXHATreal(waveletIndex, waveletWindow, 0.0);
-            waveletIndex += wstep;
-        }
+		double waveletIndex = WAVELET_ESL;
+		for (int j = 0; j < NPOINTS; j++) {
+			// Pre calculate the values of the wavelet
+			W[j] = cwtMEXHATreal(waveletIndex, waveletWindow, 0.0);
+			waveletIndex += wstep;
+		}
 
-        /*
-         * We only perform Translation of the wavelet in the selected scale
-         */
-        int d = (int) NPOINTS / (WAVELET_ESR - WAVELET_ESL);
-        int a_esl = scaleLevel * WAVELET_ESL;
-        int a_esr = scaleLevel * WAVELET_ESR;
-        double sqrtScaleLevel = Math.sqrt(scaleLevel);
-        for (int dx = 0; dx < length; dx++) {
+		/*
+		 * We only perform Translation of the wavelet in the selected scale
+		 */
+		int d = (int) NPOINTS / (WAVELET_ESR - WAVELET_ESL);
+		int a_esl = scaleLevel * WAVELET_ESL;
+		int a_esr = scaleLevel * WAVELET_ESR;
+		double sqrtScaleLevel = Math.sqrt(scaleLevel);
+		for (int dx = 0; dx < length; dx++) {
 
-            /* Compute wavelet boundaries */
-            int t1 = a_esl + dx;
-            if (t1 < 0)
-                t1 = 0;
-            int t2 = a_esr + dx;
-            if (t2 >= length)
-                t2 = (length - 1);
+			/* Compute wavelet boundaries */
+			int t1 = a_esl + dx;
+			if (t1 < 0)
+				t1 = 0;
+			int t2 = a_esr + dx;
+			if (t2 >= length)
+				t2 = (length - 1);
 
-            /* Perform convolution */
-            double intensity = 0.0;
-            for (int i = t1; i <= t2; i++) {
-                int ind = (int) (NPOINTS / 2)
-                        - (((int) d * (i - dx) / scaleLevel) * (-1));
-                if (ind < 0)
-                    ind = 0;
-                if (ind >= NPOINTS)
-                    ind = (int) NPOINTS - 1;
-                intensity += dataPoints[i].getIntensity() * W[ind];
-            }
-            intensity /= sqrtScaleLevel;
-            // Eliminate the negative part of the wavelet map
-            if (intensity < 0)
-                intensity = 0;
-            cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(),
-                    (double) intensity);
-        }
+			/* Perform convolution */
+			double intensity = 0.0;
+			for (int i = t1; i <= t2; i++) {
+				int ind = (int) (NPOINTS / 2)
+						- (((int) d * (i - dx) / scaleLevel) * (-1));
+				if (ind < 0)
+					ind = 0;
+				if (ind >= NPOINTS)
+					ind = (int) NPOINTS - 1;
+				intensity += dataPoints[i].getIntensity() * W[ind];
+			}
+			intensity /= sqrtScaleLevel;
+			// Eliminate the negative part of the wavelet map
+			if (intensity < 0)
+				intensity = 0;
+			cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(),
+					(double) intensity);
+		}
 
-        return cwtDataPoints;
-    }
+		return cwtDataPoints;
+	}
 
-    /**
-     * This function calculates the wavelets's coefficients in Time domain
-     * 
-     * @param double x Step of the wavelet
-     * @param double a Window Width of the wavelet
-     * @param double b Offset from the center of the peak
-     */
-    private double cwtMEXHATreal(double x, double a, double b) {
-        /* c = 2 / ( sqrt(3) * pi^(1/4) ) */
-        double c = 0.8673250705840776;
-        double TINY = 1E-200;
-        double x2;
+	/**
+	 * This function calculates the wavelets's coefficients in Time domain
+	 * 
+	 * @param double x Step of the wavelet
+	 * @param double a Window Width of the wavelet
+	 * @param double b Offset from the center of the peak
+	 */
+	private double cwtMEXHATreal(double x, double a, double b) {
+		/* c = 2 / ( sqrt(3) * pi^(1/4) ) */
+		double c = 0.8673250705840776;
+		double TINY = 1E-200;
+		double x2;
 
-        if (a == 0.0)
-            a = TINY;
-        x = (x - b) / a;
-        x2 = x * x;
-        return c * (1.0 - x2) * Math.exp(-x2 / 2);
-    }
+		if (a == 0.0)
+			a = TINY;
+		x = (x - b) / a;
+		x2 = x * x;
+		return c * (1.0 - x2) * Math.exp(-x2 / 2);
+	}
 
-    /**
-     * This function searches for maximums from wavelet data points
-     */
-    private void getMzPeaks(DataPoint[] originalDataPoints,
-            DataPoint[] waveletDataPoints) {
+	/**
+	 * This function searches for maximums from wavelet data points
+	 */
+	private void getMzPeaks(DataPoint[] originalDataPoints,
+			DataPoint[] waveletDataPoints) {
 
-        Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
-        int peakMaxInd = 0;
-        int stopInd = waveletDataPoints.length - 1;
+		Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
+		int peakMaxInd = 0;
+		int stopInd = waveletDataPoints.length - 1;
 
-        for (int ind = 0; ind <= stopInd; ind++) {
+		for (int ind = 0; ind <= stopInd; ind++) {
 
-            while ((ind <= stopInd)
-                    && (waveletDataPoints[ind].getIntensity() == 0)) {
-                ind++;
-            }
-            peakMaxInd = ind;
-            if (ind >= stopInd) {
-                break;
-            }
+			while ((ind <= stopInd)
+					&& (waveletDataPoints[ind].getIntensity() == 0)) {
+				ind++;
+			}
+			peakMaxInd = ind;
+			if (ind >= stopInd) {
+				break;
+			}
 
-            // While peak is on
-            while ((ind <= stopInd)
-                    && (waveletDataPoints[ind].getIntensity() > 0)) {
-                // Check if this is the maximum point of the peak
-                if (waveletDataPoints[ind].getIntensity() > waveletDataPoints[peakMaxInd].getIntensity()) {
-                    peakMaxInd = ind;
-                }
-                rawDataPoints.add(originalDataPoints[ind]);
-                ind++;
-            }
+			// While peak is on
+			while ((ind <= stopInd)
+					&& (waveletDataPoints[ind].getIntensity() > 0)) {
+				// Check if this is the maximum point of the peak
+				if (waveletDataPoints[ind].getIntensity() > waveletDataPoints[peakMaxInd]
+						.getIntensity()) {
+					peakMaxInd = ind;
+				}
+				rawDataPoints.add(originalDataPoints[ind]);
+				ind++;
+			}
 
-            if (ind >= stopInd) {
-                break;
-            }
+			if (ind >= stopInd) {
+				break;
+			}
 
-            rawDataPoints.add(originalDataPoints[ind]);
+			rawDataPoints.add(originalDataPoints[ind]);
 
-            if (originalDataPoints[peakMaxInd].getIntensity() > noiseLevel) {
-                SimpleDataPoint peakDataPoint = new SimpleDataPoint(
-                        originalDataPoints[peakMaxInd].getMZ(),
-                        calcAproxIntensity(rawDataPoints));
+			if (originalDataPoints[peakMaxInd].getIntensity() > noiseLevel) {
+				SimpleDataPoint peakDataPoint = new SimpleDataPoint(
+						originalDataPoints[peakMaxInd].getMZ(),
+						calcAproxIntensity(rawDataPoints));
 
-                mzPeaks.add(new MzPeak(peakDataPoint,
-                        rawDataPoints.toArray(new DataPoint[0])));
+				mzPeaks.add(new MzPeak(peakDataPoint, rawDataPoints
+						.toArray(new DataPoint[0])));
 
-            }
-            rawDataPoints.clear();
-        }
+			}
+			rawDataPoints.clear();
+		}
 
-    }
+	}
 
-    private double calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
+	private double calcAproxIntensity(Vector<DataPoint> rawDataPoints) {
 
-        double aproxIntensity = 0;
+		double aproxIntensity = 0;
 
-        for (DataPoint d : rawDataPoints) {
-            if (d.getIntensity() > aproxIntensity)
-                aproxIntensity = d.getIntensity();
-        }
-        return aproxIntensity;
-    }
+		for (DataPoint d : rawDataPoints) {
+			if (d.getIntensity() > aproxIntensity)
+				aproxIntensity = d.getIntensity();
+		}
+		return aproxIntensity;
+	}
 
 }
