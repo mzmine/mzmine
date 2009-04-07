@@ -39,7 +39,7 @@ class CropFilterTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private RawDataFile dataFile;
+    private RawDataFile dataFile, filteredRawDataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -159,7 +159,7 @@ class CropFilterTask implements Task {
             }
 
             // Finalize writing
-            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+			filteredRawDataFile = rawDataFileWriter.finishWriting();
             MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
             // Remove the original file if requested
@@ -176,4 +176,9 @@ class CropFilterTask implements Task {
         }
 
     }
+    
+	public Object[] getCreatedObjects() {
+		return new Object[] { filteredRawDataFile };
+	}
+	
 }

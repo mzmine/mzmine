@@ -188,4 +188,8 @@ public class ProjectSavingTask implements Task {
 			peakListSerializer.savePeakList(peakList);
 		}
 	}
+
+	public Object[] getCreatedObjects() {
+		return null;
+	}
 }

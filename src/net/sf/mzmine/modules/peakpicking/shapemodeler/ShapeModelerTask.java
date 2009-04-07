@@ -56,6 +56,8 @@ class ShapeModelerTask implements Task {
 	private String shapeModelerType;
 	private double resolution;
 
+	private SimplePeakList newPeakList;
+
 	public ShapeModelerTask(PeakList peakList, ShapeModelerParameters parameters) {
 		this.originalPeakList = peakList;
 
@@ -145,8 +147,8 @@ class ShapeModelerTask implements Task {
 		RawDataFile dataFile = originalPeakList.getRawDataFile(0);
 
 		// Create new peak list
-		SimplePeakList newPeakList = new SimplePeakList(originalPeakList + " "
-				+ suffix, dataFile);
+		newPeakList = new SimplePeakList(originalPeakList + " " + suffix,
+				dataFile);
 
 		totalRows = originalPeakList.getNumberOfRows();
 		int[] scanNumbers;
@@ -224,6 +226,10 @@ class ShapeModelerTask implements Task {
 
 		status = TaskStatus.FINISHED;
 
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { newPeakList };
 	}
 
 }

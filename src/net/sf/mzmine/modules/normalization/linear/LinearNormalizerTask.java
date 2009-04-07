@@ -44,7 +44,7 @@ class LinearNormalizerTask implements Task {
 
 	public static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
-    private PeakList originalPeakList;
+    private PeakList originalPeakList, normalizedPeakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -102,7 +102,8 @@ class LinearNormalizerTask implements Task {
         Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
         // Create new peak list
-        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList
+		normalizedPeakList = new SimplePeakList(
+				originalPeakList
                 + " " + suffix, originalPeakList.getRawDataFiles());
 
         // Loop through all raw data files, and find the peak with biggest
@@ -272,5 +273,9 @@ class LinearNormalizerTask implements Task {
         status = TaskStatus.FINISHED;
         
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { normalizedPeakList };
+	}
 
 }

@@ -42,7 +42,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList originalPeakList;
+    private PeakList originalPeakList, normalizedPeakList;
 
     private TaskStatus taskStatus = TaskStatus.WAITING;
     private String errorMessage;
@@ -104,7 +104,8 @@ public class StandardCompoundNormalizerTask implements Task {
                 + standardRows.length + " standard peaks)");
 
         // Initialize new alignment result for the normalized result
-        SimplePeakList normalizedPeakList = new SimplePeakList(originalPeakList
+		normalizedPeakList = new SimplePeakList(
+				originalPeakList
                 + " " + suffix, originalPeakList.getRawDataFiles());
 
         // Copy raw data files from original alignment result to new alignment
@@ -278,5 +279,9 @@ public class StandardCompoundNormalizerTask implements Task {
         taskStatus = TaskStatus.FINISHED;
 
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { normalizedPeakList };
+	}
 
 }

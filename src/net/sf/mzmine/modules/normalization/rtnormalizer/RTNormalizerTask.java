@@ -42,7 +42,7 @@ class RTNormalizerTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakList[] originalPeakLists;
+	private PeakList originalPeakLists[], normalizedPeakLists[];
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
@@ -107,7 +107,7 @@ class RTNormalizerTask implements Task {
 		totalRows = originalPeakLists[0].getNumberOfRows();
 
 		// Create new peak lists
-		SimplePeakList normalizedPeakLists[] = new SimplePeakList[originalPeakLists.length];
+		normalizedPeakLists = new SimplePeakList[originalPeakLists.length];
 		for (int i = 0; i < originalPeakLists.length; i++) {
 			normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i]
 					+ " " + suffix, originalPeakLists[i].getRawDataFiles());
@@ -368,4 +368,8 @@ class RTNormalizerTask implements Task {
 
 	}
 
+	public Object[] getCreatedObjects() {
+		return normalizedPeakLists;
+	}
+	
 }

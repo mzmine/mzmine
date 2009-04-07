@@ -305,4 +305,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 		return "Updating TIC visualizer of " + dataFile;
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

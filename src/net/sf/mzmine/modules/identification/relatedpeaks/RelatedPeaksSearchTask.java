@@ -305,4 +305,8 @@ public class RelatedPeaksSearchTask implements Task {
 		return shapePoints;
 
 	}
+
+	public Object[] getCreatedObjects() {
+		return null;
+	}
 }

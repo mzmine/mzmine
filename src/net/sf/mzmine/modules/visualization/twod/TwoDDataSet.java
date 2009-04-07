@@ -270,4 +270,8 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 		return "Updating 2D visualizer of " + rawDataFile;
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

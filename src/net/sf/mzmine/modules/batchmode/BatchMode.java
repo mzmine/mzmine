@@ -22,8 +22,6 @@ package net.sf.mzmine.modules.batchmode;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.util.Arrays;
-import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -33,7 +31,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -46,15 +44,10 @@ public class BatchMode implements MZmineModule,
 
     private Desktop desktop;
 
-    private BatchQueue currentBatchSteps;
-    private boolean batchRunning = false;
-    private int currentStep;
+    private BatchQueue currentBatchConfiguration;
 
     private RawDataFile selectedDataFiles[];
     private PeakList selectedPeakLists[];
-
-    private Vector<RawDataFile> previousProjectDataFiles;
-    private Vector<PeakList> previousProjectPeakLists;
 
     /**
      * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
@@ -63,7 +56,7 @@ public class BatchMode implements MZmineModule,
 
         this.desktop = MZmineCore.getDesktop();
 
-        currentBatchSteps = new BatchQueue();
+        currentBatchConfiguration = new BatchQueue();
 
         desktop.addMenuItem(MZmineMenu.PROJECT, "Run batch...",
                 "Configure and run a batch of tasks", KeyEvent.VK_B, true,
@@ -76,30 +69,24 @@ public class BatchMode implements MZmineModule,
      */
     public void actionPerformed(ActionEvent e) {
 
-        if (batchRunning) {
-            desktop.displayErrorMessage("Batch is already running");
-            return;
-        }
-
         logger.finest("Showing batch mode setup dialog");
 
-        BatchModeDialog setupDialog = new BatchModeDialog(currentBatchSteps);
+        BatchModeDialog setupDialog = new BatchModeDialog(
+				currentBatchConfiguration);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
-            batchRunning = true;
-            currentStep = 0;
+            
+        	BatchQueue newBatchRun = currentBatchConfiguration.clone();
 
             selectedDataFiles = desktop.getSelectedDataFiles();
             selectedPeakLists = desktop.getSelectedPeakLists();
 
-            MZmineProject project = MZmineCore.getCurrentProject();
-            previousProjectDataFiles = new Vector<RawDataFile>(
-                    Arrays.asList(project.getDataFiles()));
-            previousProjectPeakLists = new Vector<PeakList>(
-                    Arrays.asList(project.getPeakLists()));
+            BatchTask newTask = new BatchTask(newBatchRun, selectedDataFiles,
+					selectedPeakLists);
 
-            runNextStep();
+			MZmineCore.getTaskController().addTask(newTask, TaskPriority.HIGH);
+
         }
 
     }
@@ -111,39 +98,18 @@ public class BatchMode implements MZmineModule,
         return "Batch mode";
     }
 
-
-    private void runNextStep() {
-
-        logger.finest("Batch mode runNextStep");
-
-        BatchStepWrapper newStep = currentBatchSteps.get(currentStep);
-        BatchStep method = newStep.getMethod();
-
-        /*
-		 * Task[] newSequence = method.runModule(selectedDataFiles,
-		 * selectedPeakLists, newStep.getParameters(), this);
-		 * 
-		 * if (newSequence == null) {
-		 * desktop.displayErrorMessage("Batch processing cannot continue.");
-		 * batchRunning = false; }
-		 */
-
-        currentStep++;
-
-    }
-
     /**
      * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
-        return currentBatchSteps;
+        return currentBatchConfiguration;
     }
 
     /**
      * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
-        currentBatchSteps = (BatchQueue) parameters;
+    	currentBatchConfiguration = (BatchQueue) parameters;
     }
 
 }

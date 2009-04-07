@@ -41,181 +41,188 @@ import net.sf.mzmine.util.ScanUtils;
 
 class SameRangeTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
 
-    private PeakList peakList;
+	private PeakList peakList, processedPeakList;
 
-    private String suffix;
+	private String suffix;
 
-    private int processedRows, totalRows;
-    
-    private SameRangeParameters parameters;
+	private int processedRows, totalRows;
 
-    SameRangeTask(PeakList peakList, SameRangeParameters parameters) {
+	private SameRangeParameters parameters;
 
-        this.peakList = peakList;
-        this.parameters = parameters;
+	SameRangeTask(PeakList peakList, SameRangeParameters parameters) {
 
-        suffix = (String) parameters.getParameterValue(SameRangeParameters.suffix);
+		this.peakList = peakList;
+		this.parameters = parameters;
 
-    }
+		suffix = (String) parameters
+				.getParameterValue(SameRangeParameters.suffix);
 
-    public void run() {
+	}
 
-        logger.info("Started gap-filling " + peakList);
+	public void run() {
 
-        status = TaskStatus.PROCESSING;
+		logger.info("Started gap-filling " + peakList);
 
-        // Get total number of rows
-        totalRows = peakList.getNumberOfRows();
+		status = TaskStatus.PROCESSING;
 
-        // Get peak list columns
-        RawDataFile columns[] = peakList.getRawDataFiles();
+		// Get total number of rows
+		totalRows = peakList.getNumberOfRows();
 
-        // Create new peak list
-        SimplePeakList processedPeakList = new SimplePeakList(peakList + " "
-                + suffix, columns);
+		// Get peak list columns
+		RawDataFile columns[] = peakList.getRawDataFiles();
 
-        // Fill gaps in given column
-        for (int row = 0; row < totalRows; row++) {
+		// Create new peak list
+		processedPeakList = new SimplePeakList(peakList + " " + suffix, columns);
 
-            // Canceled?
-            if (status == TaskStatus.CANCELED)
-                return;
+		// Fill gaps in given column
+		for (int row = 0; row < totalRows; row++) {
 
-            PeakListRow sourceRow = peakList.getRow(row);
-            PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+			// Canceled?
+			if (status == TaskStatus.CANCELED)
+				return;
 
-            // Copy comment
-            newRow.setComment(sourceRow.getComment());
+			PeakListRow sourceRow = peakList.getRow(row);
+			PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
 
-            // Copy identities
-            for (PeakIdentity ident : sourceRow.getPeakIdentities())
-                newRow.addPeakIdentity(ident, false);
-            if (sourceRow.getPreferredPeakIdentity() != null)
-                newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
+			// Copy comment
+			newRow.setComment(sourceRow.getComment());
 
-            // Copy each peaks and fill gaps
-            for (RawDataFile column : columns) {
+			// Copy identities
+			for (PeakIdentity ident : sourceRow.getPeakIdentities())
+				newRow.addPeakIdentity(ident, false);
+			if (sourceRow.getPreferredPeakIdentity() != null)
+				newRow.setPreferredPeakIdentity(sourceRow
+						.getPreferredPeakIdentity());
 
-                // Canceled?
-                if (status == TaskStatus.CANCELED)
-                    return;
+			// Copy each peaks and fill gaps
+			for (RawDataFile column : columns) {
 
-                // Get current peak
-                ChromatographicPeak currentPeak = sourceRow.getPeak(column);
+				// Canceled?
+				if (status == TaskStatus.CANCELED)
+					return;
 
-                // If there is a gap, try to fill it
-                if (currentPeak == null)
-                    currentPeak = fillGap(sourceRow, column);
+				// Get current peak
+				ChromatographicPeak currentPeak = sourceRow.getPeak(column);
 
-                // If a peak was found or created, add it
-                if (currentPeak != null)
-                    newRow.addPeak(column, currentPeak);
+				// If there is a gap, try to fill it
+				if (currentPeak == null)
+					currentPeak = fillGap(sourceRow, column);
 
-            }
+				// If a peak was found or created, add it
+				if (currentPeak != null)
+					newRow.addPeak(column, currentPeak);
 
-            processedPeakList.addRow(newRow);
-            
-            processedRows++;
+			}
 
-        }
+			processedPeakList.addRow(newRow);
 
-        // Append processed peak list to the project
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        currentProject.addPeakList(processedPeakList);
-        
-        // Add task description to peakList
-        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling using RT and m/z range", parameters));
+			processedRows++;
 
+		}
 
-        status = TaskStatus.FINISHED;
+		// Append processed peak list to the project
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(processedPeakList);
 
-        logger.info("Finished gap-filling " + peakList);
+		// Add task description to peakList
+		processedPeakList
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+						"Gap filling using RT and m/z range", parameters));
 
-    }
+		status = TaskStatus.FINISHED;
 
-    private ChromatographicPeak fillGap(PeakListRow row, RawDataFile column) {
+		logger.info("Finished gap-filling " + peakList);
 
-        SameRangePeak newPeak = new SameRangePeak(column);
+	}
 
-        Range mzRange = null, rtRange = null;
+	private ChromatographicPeak fillGap(PeakListRow row, RawDataFile column) {
 
-        // Check the peaks for selected data files
-        for (RawDataFile dataFile : row.getRawDataFiles()) {
-            ChromatographicPeak peak = row.getPeak(dataFile);
-            if (peak == null)
-                continue;
-            if (mzRange == null) {
-                mzRange = new Range(peak.getRawDataPointsMZRange());
-                rtRange = new Range(peak.getRawDataPointsRTRange());
-            } else {
-                mzRange.extendRange(peak.getRawDataPointsMZRange());
-                rtRange.extendRange(peak.getRawDataPointsRTRange());
-            }
-        }
+		SameRangePeak newPeak = new SameRangePeak(column);
 
-        // Get scan numbers
-        int[] scanNumbers = column.getScanNumbers(1, rtRange);
+		Range mzRange = null, rtRange = null;
 
-        boolean dataPointFound = false;
+		// Check the peaks for selected data files
+		for (RawDataFile dataFile : row.getRawDataFiles()) {
+			ChromatographicPeak peak = row.getPeak(dataFile);
+			if (peak == null)
+				continue;
+			if (mzRange == null) {
+				mzRange = new Range(peak.getRawDataPointsMZRange());
+				rtRange = new Range(peak.getRawDataPointsRTRange());
+			} else {
+				mzRange.extendRange(peak.getRawDataPointsMZRange());
+				rtRange.extendRange(peak.getRawDataPointsRTRange());
+			}
+		}
 
-        for (int scanNumber : scanNumbers) {
+		// Get scan numbers
+		int[] scanNumbers = column.getScanNumbers(1, rtRange);
 
-            if (status == TaskStatus.CANCELED)
-                return null;
+		boolean dataPointFound = false;
 
-            // Get next scan
-            Scan scan = column.getScan(scanNumber);
+		for (int scanNumber : scanNumbers) {
 
-            // Find most intense m/z peak
-            DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+			if (status == TaskStatus.CANCELED)
+				return null;
 
-            if (basePeak != null) {
-                if (basePeak.getIntensity() > 0)
-                    dataPointFound = true;
-                newPeak.addDatapoint(scan.getScanNumber(), basePeak);
-            } else {
-                DataPoint fakeDataPoint = new SimpleDataPoint(
-                        mzRange.getAverage(), 0);
-                newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
-            }
+			// Get next scan
+			Scan scan = column.getScan(scanNumber);
 
-        }
+			// Find most intense m/z peak
+			DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
 
-        if (dataPointFound) {
-            newPeak.finalizePeak();
-            if (newPeak.getArea() == 0) return null;
-            return newPeak;
-        }
+			if (basePeak != null) {
+				if (basePeak.getIntensity() > 0)
+					dataPointFound = true;
+				newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+			} else {
+				DataPoint fakeDataPoint = new SimpleDataPoint(mzRange
+						.getAverage(), 0);
+				newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
+			}
 
-        return null;
-    }
+		}
 
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+		if (dataPointFound) {
+			newPeak.finalizePeak();
+			if (newPeak.getArea() == 0)
+				return null;
+			return newPeak;
+		}
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+		return null;
+	}
 
-    public double getFinishedPercentage() {
-        if (totalRows == 0)
-            return 0;
-        return (double) processedRows / (double) totalRows;
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    }
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public TaskStatus getStatus() {
-        return status;
-    }
+	public double getFinishedPercentage() {
+		if (totalRows == 0)
+			return 0;
+		return (double) processedRows / (double) totalRows;
 
-    public String getTaskDescription() {
-        return "Gap filling " + peakList + " using RT and m/z range";
-    }
+	}
+
+	public TaskStatus getStatus() {
+		return status;
+	}
+
+	public String getTaskDescription() {
+		return "Gap filling " + peakList + " using RT and m/z range";
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { processedPeakList };
+	}
 
 }

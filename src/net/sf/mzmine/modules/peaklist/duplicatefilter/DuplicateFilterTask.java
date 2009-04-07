@@ -43,7 +43,7 @@ class DuplicateFilterTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakList peakList;
+	private PeakList peakList, filteredPeakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -124,7 +124,7 @@ class DuplicateFilterTask implements Task {
         status = TaskStatus.PROCESSING;
         logger.info("Running duplicate peaka filter on " + peakList);
 
-        SimplePeakList filteredPeakList = new SimplePeakList(peakList + " "
+        filteredPeakList = new SimplePeakList(peakList + " "
 				+ suffix, peakList.getRawDataFiles());
        
         PeakListRow[] peakListRows = peakList.getRows();
@@ -237,5 +237,9 @@ class DuplicateFilterTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { filteredPeakList };
+	}
 
 }

@@ -40,105 +40,111 @@ public class CDADataset extends AbstractXYDataset implements
 		ProjectionPlotDataset {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
+
 	private double[] component1Coords;
 	private double[] component2Coords;
 
 	private ProjectionPlotParameters parameters;
-	
+
 	private Parameter selectedParameter;
-	
+
 	private RawDataFile[] selectedRawDataFiles;
 	private PeakListRow[] selectedRows;
-	
+
 	private int[] groupsForSelectedRawDataFiles;
 	private Object[] parameterValuesForGroups;
 	int numberOfGroups;
-	
+
 	private String datasetTitle;
 	private int xAxisDimension;
 	private int yAxisDimension;
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	
+
 	private ProjectionStatus projectionStatus;
 
 	public CDADataset(ProjectionPlotParameters parameters) {
 
 		this.parameters = parameters;
-		
-		this.xAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.xAxisComponent);
-		this.yAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.yAxisComponent);
+
+		this.xAxisDimension = (Integer) parameters
+				.getParameterValue(ProjectionPlotParameters.xAxisComponent);
+		this.yAxisDimension = (Integer) parameters
+				.getParameterValue(ProjectionPlotParameters.yAxisComponent);
 
 		selectedParameter = parameters.getSelectedParameter();
 		selectedRawDataFiles = parameters.getSelectedDataFiles();
 		selectedRows = parameters.getSelectedRows();
 
 		datasetTitle = "Curvilinear distance analysis";
-		
+
 		// Determine groups for selected raw data files
 		groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
-		
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeSingleColor) {
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeSingleColor) {
 			// All files to a single group
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = 0;
-			
-			numberOfGroups = 1;	
+
+			numberOfGroups = 1;
 		}
 
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByFile) {
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByFile) {
 			// Each file to own group
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = ind;
-			
+
 			numberOfGroups = selectedRawDataFiles.length;
-		}		
-		
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByParameterValue) {
+		}
+
+		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType) == ProjectionPlotParameters.ColoringTypeByParameterValue) {
 			// Group files with same parameter value to same group
 			MZmineProject project = MZmineCore.getCurrentProject();
-			Vector<Object> availableParameterValues = new Vector<Object>(); 
+			Vector<Object> availableParameterValues = new Vector<Object>();
 			for (RawDataFile rawDataFile : selectedRawDataFiles) {
-				Object paramValue = project.getParameterValue(selectedParameter, rawDataFile);
+				Object paramValue = project.getParameterValue(
+						selectedParameter, rawDataFile);
 				if (!availableParameterValues.contains(paramValue))
 					availableParameterValues.add(paramValue);
 			}
-			
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++) {
-				Object paramValue = project.getParameterValue(selectedParameter, selectedRawDataFiles[ind]);
-				groupsForSelectedRawDataFiles[ind] = availableParameterValues.indexOf(paramValue);  
+
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
+				Object paramValue = project.getParameterValue(
+						selectedParameter, selectedRawDataFiles[ind]);
+				groupsForSelectedRawDataFiles[ind] = availableParameterValues
+						.indexOf(paramValue);
 			}
 			parameterValuesForGroups = availableParameterValues.toArray();
-			
+
 			numberOfGroups = parameterValuesForGroups.length;
 		}
-		
+
 	}
-
-
-	
 
 	public String toString() {
 		return datasetTitle;
 	}
 
-
 	public String getXLabel() {
-		if (xAxisDimension==1) return "1st projected dimension";
-		if (xAxisDimension==2) return "2nd projected dimension";
-		if (xAxisDimension==3) return "3rd projected dimension";
+		if (xAxisDimension == 1)
+			return "1st projected dimension";
+		if (xAxisDimension == 2)
+			return "2nd projected dimension";
+		if (xAxisDimension == 3)
+			return "3rd projected dimension";
 		return "" + xAxisDimension + "th projected dimension";
 	}
 
 	public String getYLabel() {
-		if (yAxisDimension==1) return "1st projected dimension";
-		if (yAxisDimension==2) return "2nd projected dimension";
-		if (yAxisDimension==3) return "3rd projected dimension";
+		if (yAxisDimension == 1)
+			return "1st projected dimension";
+		if (yAxisDimension == 2)
+			return "2nd projected dimension";
+		if (yAxisDimension == 3)
+			return "3rd projected dimension";
 		return "" + yAxisDimension + "th projected dimension";
 	}
-
 
 	@Override
 	public int getSeriesCount() {
@@ -171,35 +177,39 @@ public class CDADataset extends AbstractXYDataset implements
 	}
 
 	public Object getGroupParameterValue(int groupNumber) {
-		if (parameterValuesForGroups==null) return null;
-		if ((parameterValuesForGroups.length-1)<groupNumber) return null;		
+		if (parameterValuesForGroups == null)
+			return null;
+		if ((parameterValuesForGroups.length - 1) < groupNumber)
+			return null;
 		return parameterValuesForGroups[groupNumber];
 	}
 
 	public int getNumberOfGroups() {
 		return numberOfGroups;
-	}	
-	
+	}
+
 	public void run() {
 
 		status = TaskStatus.PROCESSING;
 
 		logger.info("Computing projection plot");
-		
+
 		// Generate matrix of raw data (input to CDA)
 		boolean useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
+		if (parameters
+				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
 			useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
+		if (parameters
+				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
 			useArea = false;
-		
+
 		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
+		for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
 			PeakListRow peakListRow = selectedRows[rowIndex];
-			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
+			for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
 				ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
-				if (p!=null) {
+				if (p != null) {
 					if (useArea)
 						rawData[fileIndex][rowIndex] = p.getArea();
 					else
@@ -209,34 +219,38 @@ public class CDADataset extends AbstractXYDataset implements
 		}
 
 		int numComponents = xAxisDimension;
-		if (yAxisDimension>numComponents) numComponents = yAxisDimension;
+		if (yAxisDimension > numComponents)
+			numComponents = yAxisDimension;
 
 		// Scale data and do CDA
 		Preprocess.scaleToUnityVariance(rawData);
 		CDA cdaProj = new CDA(rawData);
 		cdaProj.iterate(100);
-		
-		if (status == TaskStatus.CANCELED) return;
+
+		if (status == TaskStatus.CANCELED)
+			return;
 
 		double[][] result = cdaProj.getState();
-		
-		if (status == TaskStatus.CANCELED) return;
 
-		component1Coords = result[xAxisDimension-1];
-		component2Coords = result[yAxisDimension-1];
+		if (status == TaskStatus.CANCELED)
+			return;
+
+		component1Coords = result[xAxisDimension - 1];
+		component2Coords = result[yAxisDimension - 1];
 
 		Desktop desktop = MZmineCore.getDesktop();
 		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
 				parameters);
 		desktop.addInternalFrame(newFrame);
-		
+
 		status = TaskStatus.FINISHED;
 		logger.info("Finished computing projection plot.");
 
 	}
 
 	public void cancel() {
-		if (projectionStatus != null) projectionStatus.cancel();
+		if (projectionStatus != null)
+			projectionStatus.cancel();
 		status = TaskStatus.CANCELED;
 	}
 
@@ -249,14 +263,19 @@ public class CDADataset extends AbstractXYDataset implements
 	}
 
 	public String getTaskDescription() {
-		if ( (parameters==null) || (parameters.getSourcePeakList()==null) ) 
+		if ((parameters == null) || (parameters.getSourcePeakList() == null))
 			return "CDA projection";
-		return "CDA projection " + parameters.getSourcePeakList(); 
-	}	
-	
+		return "CDA projection " + parameters.getSourcePeakList();
+	}
+
 	public double getFinishedPercentage() {
-		if (projectionStatus==null) return 0.0f;
+		if (projectionStatus == null)
+			return 0;
 		return projectionStatus.getFinishedPercentage();
 	}
-	
+
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

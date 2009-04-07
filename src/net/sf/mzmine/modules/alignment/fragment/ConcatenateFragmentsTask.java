@@ -142,4 +142,9 @@ class ConcatenateFragmentsTask implements Task {
 
     }
 
+	public Object[] getCreatedObjects() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

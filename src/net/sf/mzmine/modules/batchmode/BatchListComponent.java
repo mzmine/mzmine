@@ -26,9 +26,9 @@ import javax.swing.JList;
 
 import net.sf.mzmine.data.ParameterSet;
 
-public class BatchList extends JList {
+public class BatchListComponent extends JList {
 
-    BatchList(Vector<BatchStepWrapper> batchSteps) {
+    BatchListComponent(Vector<BatchStepWrapper> batchSteps) {
         super(batchSteps);
     }
 

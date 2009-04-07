@@ -66,7 +66,7 @@ class ManualPickerTask implements Task {
 
     public double getFinishedPercentage() {
         if (totalScans == 0)
-            return 0f;
+            return 0;
         return (double) processedScans / totalScans;
     }
 
@@ -139,4 +139,8 @@ class ManualPickerTask implements Task {
 
     }
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+	
 }

@@ -56,5 +56,13 @@ public class RawDataImporterParameters extends SimpleParameterSet {
         }
         this.setParameterValue(lastFileNames, files);
     }
+    
+    public RawDataImporterParameters clone() {
+		RawDataImporterParameters newParams = (RawDataImporterParameters) super
+				.clone();
+		if (fileNames != null)
+			newParams.fileNames = fileNames.clone();
+		return newParams;
+	}
 
 }

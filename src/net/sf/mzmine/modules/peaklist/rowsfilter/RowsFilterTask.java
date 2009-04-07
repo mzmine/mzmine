@@ -37,7 +37,7 @@ class RowsFilterTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peakList;
+    private PeakList peakList, filteredPeakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -100,7 +100,7 @@ class RowsFilterTask implements Task {
         processedRows = 0;
 
         // Create new peaklist
-        SimplePeakList filteredPeakList = new SimplePeakList(
+		filteredPeakList = new SimplePeakList(
                 peakList.toString() + " " + suffix, peakList.getRawDataFiles());
 
         // Copy rows with enough peaks to new alignment result
@@ -162,5 +162,9 @@ class RowsFilterTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { filteredPeakList };
+	}
 
 }

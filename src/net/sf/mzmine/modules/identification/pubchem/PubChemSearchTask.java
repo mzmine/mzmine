@@ -402,4 +402,8 @@ public class PubChemSearchTask implements Task {
 		}
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

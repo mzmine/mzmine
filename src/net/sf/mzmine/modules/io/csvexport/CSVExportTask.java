@@ -271,4 +271,8 @@ class CSVExportTask implements Task {
 		status = TaskStatus.FINISHED;
 
 	}
+
+	public Object[] getCreatedObjects() {
+		return null;
+	}
 }

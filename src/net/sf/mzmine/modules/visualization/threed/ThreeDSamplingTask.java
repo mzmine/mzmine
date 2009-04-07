@@ -241,4 +241,8 @@ class ThreeDSamplingTask implements Task {
 
     }
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

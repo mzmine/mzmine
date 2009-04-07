@@ -59,6 +59,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 
 	private File originalFile;
 	private RawDataFileWriter newMZmineFile;
+	private RawDataFile finalRawDataFile;
 	private TaskStatus status = TaskStatus.WAITING;
 	private int totalScans = 0, parsedScans;
 	private int peaksCount = 0;
@@ -162,7 +163,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 			saxParser.parse(originalFile, this);
 
 			// Close file
-			RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			finalRawDataFile = newMZmineFile.finishWriting();
 			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
@@ -505,4 +506,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		}
 	}
 
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
+	}
+	
 }

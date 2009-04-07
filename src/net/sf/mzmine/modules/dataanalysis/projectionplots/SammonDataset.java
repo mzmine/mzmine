@@ -256,8 +256,13 @@ public class SammonDataset extends AbstractXYDataset implements
 	}	
 	
 	public double getFinishedPercentage() {
-		if (projectionStatus==null) return 0.0f;
+		if (projectionStatus == null)
+			return 0;
 		return projectionStatus.getFinishedPercentage();
+	}
+
+	public Object[] getCreatedObjects() {
+		return null;
 	}	
 	
 }

@@ -400,4 +400,8 @@ public class XMLExportTask implements Task {
 		secondNewElement.addText(new String(bytes));
 
 	}
+
+	public Object[] getCreatedObjects() {
+		return null;
+	}
 }

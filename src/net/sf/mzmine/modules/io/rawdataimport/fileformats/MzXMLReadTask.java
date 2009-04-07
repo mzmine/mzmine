@@ -59,6 +59,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 	private File originalFile;
 	private RawDataFileWriter newRawDataFile;
+	private RawDataFile finalRawDataFile;
 	private TaskStatus status = TaskStatus.WAITING;
 	private int totalScans = 0, parsedScans;
 	private int peaksCount = 0;
@@ -141,7 +142,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			saxParser.parse(originalFile, this);
 
 			// Close file
-			RawDataFile finalRawDataFile = newRawDataFile.finishWriting();
+			finalRawDataFile = newRawDataFile.finishWriting();
 			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
@@ -388,6 +389,10 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	 */
 	public void characters(char buf[], int offset, int len) throws SAXException {
 		charBuffer = charBuffer.append(buf, offset, len);
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
 	}
 
 }

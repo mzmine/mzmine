@@ -226,4 +226,8 @@ public class FragmentSearchTask implements Task {
 		fragmentRow.addPeakIdentity(newIdentity, false);
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

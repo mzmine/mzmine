@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.peakpicking.msms;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
@@ -46,15 +45,15 @@ public class MsMsPeakPickingTask implements Task {
 	private int processedScans, totalScans;
 
 	private RawDataFile dataFile;
-	private PeakList peakList;
 	private double binSize;
+	
+	private SimplePeakList newPeakList;
 
 	public MsMsPeakPickingTask(RawDataFile dataFile, MsMsPeakPickerParameters parameters) {
 		this.dataFile = dataFile;
 		binSize = (Double) parameters
 				.getParameterValue(MsMsPeakPickerParameters.mzRange);
-		this.peakList = new SimplePeakList(dataFile.getName(), dataFile);
-
+		newPeakList = new SimplePeakList(dataFile.getName(), dataFile);
 	}
 
 	public RawDataFile getDataFile() {
@@ -126,16 +125,20 @@ public class MsMsPeakPickingTask implements Task {
 			PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
 			entry.addPeak(dataFile, c);
 
-			peakList.addRow(entry);
+			newPeakList.addRow(entry);
 			processedScans++;
 		}
 
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(peakList);
+		currentProject.addPeakList(newPeakList);
 		logger.info("Finished MS/MS peak builder on " + dataFile + ", "
 				+ processedScans + " scans processed");
 
 		status = TaskStatus.FINISHED;
 	}
 
+	public Object[] getCreatedObjects() {
+		return new Object[] { newPeakList };
+	}
+	
 }

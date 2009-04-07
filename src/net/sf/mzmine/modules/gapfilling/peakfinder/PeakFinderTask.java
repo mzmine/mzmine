@@ -38,172 +38,184 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class PeakFinderTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
-    
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peakList;
+	private TaskStatus status = TaskStatus.WAITING;
+	private String errorMessage;
 
-    private String suffix;
-    private double intTolerance, mzTolerance;
-    private boolean rtToleranceUseAbs;
-    private double rtToleranceValueAbs, rtToleranceValuePercent;
-    private PeakFinderParameters parameters;
+	private PeakList peakList, processedPeakList;
 
-    private int processedScans, totalScans;
+	private String suffix;
+	private double intTolerance, mzTolerance;
+	private boolean rtToleranceUseAbs;
+	private double rtToleranceValueAbs, rtToleranceValuePercent;
+	private PeakFinderParameters parameters;
 
-    PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
+	private int processedScans, totalScans;
 
-        this.peakList = peakList;
-        this.parameters = parameters;
+	PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
-        suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
-        intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
-        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
-        if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute)
-            rtToleranceUseAbs = true;
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
-    }
+		this.peakList = peakList;
+		this.parameters = parameters;
 
-    public void run() {
+		suffix = (String) parameters
+				.getParameterValue(PeakFinderParameters.suffix);
+		intTolerance = (Double) parameters
+				.getParameterValue(PeakFinderParameters.intTolerance);
+		mzTolerance = (Double) parameters
+				.getParameterValue(PeakFinderParameters.MZTolerance);
+		if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute)
+			rtToleranceUseAbs = true;
+		rtToleranceValueAbs = (Double) parameters
+				.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
+		rtToleranceValuePercent = (Double) parameters
+				.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
+	}
 
-        status = TaskStatus.PROCESSING;
-        logger.info("Running gap filler on " + peakList);
+	public void run() {
 
-        // Calculate total number of scans in all files
-        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-            totalScans += dataFile.getNumOfScans(1);
-        }
+		status = TaskStatus.PROCESSING;
+		logger.info("Running gap filler on " + peakList);
 
-        // Create new peak list
-        SimplePeakList processedPeakList = new SimplePeakList(peakList + " "
-                + suffix, peakList.getRawDataFiles());
+		// Calculate total number of scans in all files
+		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+			totalScans += dataFile.getNumOfScans(1);
+		}
 
-        // Fill new peak list with empty rows
-        for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-            PeakListRow sourceRow = peakList.getRow(row);
-            PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
-            newRow.setComment(sourceRow.getComment());
-            for (PeakIdentity ident : sourceRow.getPeakIdentities())
-                newRow.addPeakIdentity(ident, false);
-            if (sourceRow.getPreferredPeakIdentity() != null)
-                newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
-            processedPeakList.addRow(newRow);
-        }
+		// Create new peak list
+		processedPeakList = new SimplePeakList(peakList + " " + suffix,
+				peakList.getRawDataFiles());
 
-        // Process all raw data files
-        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+		// Fill new peak list with empty rows
+		for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+			PeakListRow sourceRow = peakList.getRow(row);
+			PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+			newRow.setComment(sourceRow.getComment());
+			for (PeakIdentity ident : sourceRow.getPeakIdentities())
+				newRow.addPeakIdentity(ident, false);
+			if (sourceRow.getPreferredPeakIdentity() != null)
+				newRow.setPreferredPeakIdentity(sourceRow
+						.getPreferredPeakIdentity());
+			processedPeakList.addRow(newRow);
+		}
 
-            // Canceled?
-            if (status == TaskStatus.CANCELED)
-                return;
+		// Process all raw data files
+		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-            Vector<Gap> gaps = new Vector<Gap>();
+			// Canceled?
+			if (status == TaskStatus.CANCELED)
+				return;
 
-            // Fill each row of this raw data file column, create new empty gaps
-            // if necessary
-            for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-                PeakListRow sourceRow = peakList.getRow(row);
-                PeakListRow newRow = processedPeakList.getRow(row);
+			Vector<Gap> gaps = new Vector<Gap>();
 
-                ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
+			// Fill each row of this raw data file column, create new empty gaps
+			// if necessary
+			for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+				PeakListRow sourceRow = peakList.getRow(row);
+				PeakListRow newRow = processedPeakList.getRow(row);
 
-                if (sourcePeak == null) {
+				ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
 
-                    // Create a new gap
+				if (sourcePeak == null) {
 
-                    double mz = sourceRow.getAverageMZ();
-                    double rt = sourceRow.getAverageRT();
-                    double rtTolerance;
-                    if (rtToleranceUseAbs)
-                        rtTolerance = rtToleranceValueAbs;
-                    else
-                        rtTolerance = rt * rtToleranceValuePercent;
+					// Create a new gap
 
-                    Gap newGap = new Gap(newRow, dataFile, mz, rt,
-                            intTolerance, mzTolerance, rtTolerance);
+					double mz = sourceRow.getAverageMZ();
+					double rt = sourceRow.getAverageRT();
+					double rtTolerance;
+					if (rtToleranceUseAbs)
+						rtTolerance = rtToleranceValueAbs;
+					else
+						rtTolerance = rt * rtToleranceValuePercent;
 
-                    gaps.add(newGap);
+					Gap newGap = new Gap(newRow, dataFile, mz, rt,
+							intTolerance, mzTolerance, rtTolerance);
 
-                } else {
-                    newRow.addPeak(dataFile, sourcePeak);
-                }
+					gaps.add(newGap);
 
-            }
+				} else {
+					newRow.addPeak(dataFile, sourcePeak);
+				}
 
-            // Stop processing this file if there are no gaps
-            if (gaps.size() == 0) {
-                processedScans += dataFile.getNumOfScans();
-                continue;
-            }
+			}
 
-            // Get all scans of this data file
-            int scanNumbers[] = dataFile.getScanNumbers(1);
+			// Stop processing this file if there are no gaps
+			if (gaps.size() == 0) {
+				processedScans += dataFile.getNumOfScans();
+				continue;
+			}
 
-            // Process each scan
-            for (int scanNumber : scanNumbers) {
+			// Get all scans of this data file
+			int scanNumbers[] = dataFile.getScanNumbers(1);
 
-                // Canceled?
-                if (status == TaskStatus.CANCELED)
-                    return;
+			// Process each scan
+			for (int scanNumber : scanNumbers) {
 
-                // Get the scan
-                Scan scan = dataFile.getScan(scanNumber);
+				// Canceled?
+				if (status == TaskStatus.CANCELED)
+					return;
 
-                // Feed this scan to all gaps
-                for (Gap gap : gaps) {
-                    gap.offerNextScan(scan);
-                }
+				// Get the scan
+				Scan scan = dataFile.getScan(scanNumber);
 
-                processedScans++;
-            }
+				// Feed this scan to all gaps
+				for (Gap gap : gaps) {
+					gap.offerNextScan(scan);
+				}
 
-            // Finalize gaps
-            for (Gap gap : gaps) {
-                gap.noMoreOffers();
-            }
+				processedScans++;
+			}
 
-        }
+			// Finalize gaps
+			for (Gap gap : gaps) {
+				gap.noMoreOffers();
+			}
 
-        // Append processed peak list to the project
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        currentProject.addPeakList(processedPeakList);
-        
-        // Add task description to peakList
-        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Gap filling ", parameters));
+		}
 
-        logger.info("Finished gap-filling on " + peakList);
-        status = TaskStatus.FINISHED;
+		// Append processed peak list to the project
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(processedPeakList);
 
-    }
+		// Add task description to peakList
+		processedPeakList
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+						"Gap filling ", parameters));
 
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+		logger.info("Finished gap-filling on " + peakList);
+		status = TaskStatus.FINISHED;
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	}
 
-    public double getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0;
-        return (double) processedScans / (double) totalScans;
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    }
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public TaskStatus getStatus() {
-        return status;
-    }
+	public double getFinishedPercentage() {
+		if (totalScans == 0)
+			return 0;
+		return (double) processedScans / (double) totalScans;
 
-    public String getTaskDescription() {
-        return "Gap filling " + peakList;
-    }
+	}
 
-    PeakList getPeakList() {
-        return peakList;
-    }
+	public TaskStatus getStatus() {
+		return status;
+	}
+
+	public String getTaskDescription() {
+		return "Gap filling " + peakList;
+	}
+
+	PeakList getPeakList() {
+		return peakList;
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { processedPeakList };
+	}
 
 }

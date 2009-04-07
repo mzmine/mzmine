@@ -54,7 +54,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
 	// dialog components
 	private JComboBox methodsCombo;
-	private BatchList currentStepsList;
+	private BatchListComponent currentStepsList;
 	private JButton btnAdd, btnConfig, btnRemove, btnOK, btnCancel, btnHelp;
 
 	public BatchModeDialog(Vector<BatchStepWrapper> batchSteps) {
@@ -64,7 +64,7 @@ class BatchModeDialog extends JDialog implements ActionListener {
 
 		this.batchSteps = batchSteps;
 
-		currentStepsList = new BatchList(batchSteps);
+		currentStepsList = new BatchListComponent(batchSteps);
 		currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		methodsCombo = new JComboBox();

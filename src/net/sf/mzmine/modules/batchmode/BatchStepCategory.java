@@ -28,9 +28,7 @@ public enum BatchStepCategory {
     PEAKLISTPROCESSING("Peak list processing"), 
     ALIGNMENT("Alignment"),
     NORMALIZATION("Normalization"),
-    IDENTIFICATION("Identification"),
-    VISUALIZATION("Visualization"),
-    DATAANALYSIS("Data analysis");
+    IDENTIFICATION("Identification");
 
     private final String categoryName;
 

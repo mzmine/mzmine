@@ -63,6 +63,8 @@ class ChromatogramBuilderTask implements Task {
 	private MassConnector massConnector;
 
 	private ParameterSet mdParameters, mcParameters;
+	
+	private SimplePeakList newPeakList;
 
 	/**
 	 * @param dataFile
@@ -170,7 +172,7 @@ class ChromatogramBuilderTask implements Task {
 		}
 
 		// Create new peak list
-		SimplePeakList newPeakList = new SimplePeakList(
+		newPeakList = new SimplePeakList(
 				dataFile + " " + suffix, dataFile);
 
 		MzPeak[] mzValues;
@@ -207,6 +209,10 @@ class ChromatogramBuilderTask implements Task {
 
 		logger.info("Finished chromatogram builder on " + dataFile);
 
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { newPeakList };
 	}
 
 }

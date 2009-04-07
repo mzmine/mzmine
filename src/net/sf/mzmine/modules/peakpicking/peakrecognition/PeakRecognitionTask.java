@@ -62,6 +62,8 @@ class PeakRecognitionTask implements Task {
     private PeakResolver peakResolver;
 
     private ParameterSet pbParameters;
+    
+	private SimplePeakList newPeakList;
 
     /**
      * @param dataFile
@@ -147,7 +149,7 @@ class PeakRecognitionTask implements Task {
         double intensities[] = new double[scanNumbers.length];
 
         // Create new peak list
-        SimplePeakList newPeakList = new SimplePeakList(
+		newPeakList = new SimplePeakList(
                 originalPeakList + " " + suffix, dataFile);
 
         totalRows = originalPeakList.getNumberOfRows();
@@ -205,4 +207,8 @@ class PeakRecognitionTask implements Task {
 
     }
 
+	public Object[] getCreatedObjects() {
+		return new Object[] { newPeakList };
+	}
+	
 }

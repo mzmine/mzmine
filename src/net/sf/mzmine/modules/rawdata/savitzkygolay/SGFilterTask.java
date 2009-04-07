@@ -40,7 +40,7 @@ class SGFilterTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private RawDataFile dataFile;
+    private RawDataFile dataFile, filteredRawDataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -141,7 +141,7 @@ class SGFilterTask implements Task {
             }
 
             // Finalize writing
-            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+			filteredRawDataFile = rawDataFileWriter.finishWriting();
             MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
             // Remove the original file if requested
@@ -255,4 +255,8 @@ class SGFilterTask implements Task {
         Hvalues.put(25, 5175);
     }
 
+	public Object[] getCreatedObjects() {
+		return new Object[] { filteredRawDataFile };
+	}
+	
 }

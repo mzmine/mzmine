@@ -54,7 +54,7 @@ class IsotopeGrouperTask implements Task {
 	 */
 	private static final double isotopeDistance = 1.0033;
 
-	private PeakList peakList;
+	private PeakList peakList, deisotopedPeakList;
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
@@ -126,10 +126,6 @@ class IsotopeGrouperTask implements Task {
 		return errorMessage;
 	}
 
-	public PeakList getPeakList() {
-		return peakList;
-	}
-
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
@@ -149,7 +145,7 @@ class IsotopeGrouperTask implements Task {
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
 		// Create new deisotoped peakList
-		SimplePeakList deisotopedPeakList = new SimplePeakList(peakList + " "
+		deisotopedPeakList = new SimplePeakList(peakList + " "
 				+ suffix, peakList.getRawDataFiles());
 
 		// Collect all selected charge states
@@ -386,6 +382,10 @@ class IsotopeGrouperTask implements Task {
 
 		} while (followingPeakFound);
 
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { deisotopedPeakList };
 	}
 
 }

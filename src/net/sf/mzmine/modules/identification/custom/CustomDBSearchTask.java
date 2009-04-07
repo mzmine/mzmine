@@ -198,4 +198,8 @@ class CustomDBSearchTask implements Task {
 
     }
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

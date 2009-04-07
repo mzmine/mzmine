@@ -151,4 +151,8 @@ public class IsotopePatternCalculatorTask implements Task {
 		return isotopePattern;
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

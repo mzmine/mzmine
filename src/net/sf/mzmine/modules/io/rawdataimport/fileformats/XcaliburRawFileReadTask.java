@@ -43,6 +43,7 @@ public class XcaliburRawFileReadTask implements Task {
 
     private File originalFile;
     private RawDataFileWriter newMZmineFile;
+    private RawDataFile finalRawDataFile;
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
 
@@ -154,7 +155,7 @@ public class XcaliburRawFileReadTask implements Task {
             }
 
             // Close file
-            RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			finalRawDataFile = newMZmineFile.finishWriting();
             MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
         } catch (Throwable e) {
@@ -333,4 +334,9 @@ public class XcaliburRawFileReadTask implements Task {
         precursorCharge = 0;
         peaksCount = 0;
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
+	}
+
 }

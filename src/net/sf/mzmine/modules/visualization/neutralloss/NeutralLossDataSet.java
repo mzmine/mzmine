@@ -250,4 +250,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 		return "Updating neutral loss visualizer of " + rawDataFile;
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

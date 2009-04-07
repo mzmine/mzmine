@@ -185,4 +185,8 @@ public class ProjectOpeningTask implements Task {
 		}
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

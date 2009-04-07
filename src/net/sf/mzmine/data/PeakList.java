@@ -177,6 +177,9 @@ public interface PeakList {
      */
     public PeakListRow getPeakRow(ChromatographicPeak peak);
     
+    
+    public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod);
+    	
     /**
      * Returns all tasks (descriptions) applied to this peak list
      */
@@ -191,5 +194,6 @@ public interface PeakList {
      * Returns the whole retention time range of the peak list 
      */
     public Range getRowsRTRange();
+   
 
 }

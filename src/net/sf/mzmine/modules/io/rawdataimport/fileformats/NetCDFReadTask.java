@@ -60,6 +60,7 @@ public class NetCDFReadTask implements Task {
 	private Hashtable<Integer, Double> scansRetentionTimes;
 
 	private RawDataFileWriter newMZmineFile;
+	private RawDataFile finalRawDataFile;
 
 	private Variable massValueVariable;
 	private Variable intensityValueVariable;
@@ -131,7 +132,7 @@ public class NetCDFReadTask implements Task {
 
 			// Close file
 			this.finishReading();
-			RawDataFile finalRawDataFile = newMZmineFile.finishWriting();
+			finalRawDataFile = newMZmineFile.finishWriting();
 			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
@@ -475,6 +476,10 @@ public class NetCDFReadTask implements Task {
 	public void cancel() {
 		logger.info("Cancelling opening of NETCDF file " + originalFile);
 		status = TaskStatus.CANCELED;
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
 	}
 
 }

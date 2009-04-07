@@ -244,4 +244,8 @@ public class AdductSearchTask implements Task {
 		adductRow.addPeakIdentity(newIdentity, false);
 	}
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

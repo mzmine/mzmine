@@ -647,4 +647,8 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		((SimplePeakList) buildingPeakList).setDateCreated(dateCreated);
 	}
 
+	public Object[] getCreatedObjects() {
+		return new Object[] { buildingPeakList };
+	}
+
 }

@@ -35,6 +35,12 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
+/**
+ * 
+ * Currently this class is broken - we need to think more about the
+ * implementation...
+ * 
+ */
 class AlignFragmentTask implements Task {
 
     private PeakList[] peakLists;
@@ -271,5 +277,10 @@ class AlignFragmentTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
+
+	public Object[] getCreatedObjects() {
+		// TODO
+		return null;
+	}
 
 }

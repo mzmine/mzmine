@@ -40,7 +40,7 @@ class MeanFilterTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
-    private RawDataFile dataFile;
+    private RawDataFile dataFile, filteredRawDataFile;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -141,7 +141,7 @@ class MeanFilterTask implements Task {
             }
 
             // Finalize writing
-            RawDataFile filteredRawDataFile = rawDataFileWriter.finishWriting();
+			filteredRawDataFile = rawDataFileWriter.finishWriting();
             MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
             // Remove the original file if requested
@@ -224,5 +224,9 @@ class MeanFilterTask implements Task {
         writer.addScan(newScan);
 
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { filteredRawDataFile };
+	}
 
 }

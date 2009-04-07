@@ -63,4 +63,8 @@ public class DummyTask implements Task {
         throw new IllegalStateException();
     }
 
+	public Object[] getCreatedObjects() {
+		return null;
+	}
+
 }

@@ -46,7 +46,7 @@ class JoinAlignerTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
-    private PeakList[] peakLists;
+    private PeakList peakLists[], alignedPeakList;
 
     private TaskStatus status = TaskStatus.WAITING;
     private String errorMessage;
@@ -176,7 +176,7 @@ class JoinAlignerTask implements Task {
         }
 
         // Create a new aligned peak list
-        SimplePeakList alignedPeakList = new SimplePeakList(peakListName,
+		alignedPeakList = new SimplePeakList(peakListName,
                 allDataFiles.toArray(new RawDataFile[0]));
 
         // Iterate source peak lists
@@ -309,5 +309,9 @@ class JoinAlignerTask implements Task {
         status = TaskStatus.FINISHED;
 
     }
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { alignedPeakList };
+	}
 
 }
