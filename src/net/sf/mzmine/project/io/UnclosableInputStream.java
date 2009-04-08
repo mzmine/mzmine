@@ -17,32 +17,23 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+package net.sf.mzmine.project.io;
 
-package net.sf.mzmine.project.impl;
+import java.io.FilterInputStream;
+import java.io.InputStream;
 
-public enum RawDataElementName {
+/**
+ * Simple InputStream filter which does not propagate close() to its underlying
+ * stream
+ */
+public class UnclosableInputStream extends FilterInputStream {
 
-	RAWDATA ("rawdata"),	
-	NAME ("name"),
-	QUANTITY_SCAN("quantity_scan"),
-	ID ("id"),	
-	SCAN ("scan"),
-	SCAN_ID ("scan_id"),
-	MS_LEVEL("msLevel"),
-	QUANTITY_FRANGMENT_SCAN ("quantity_fragment_scan"),
-	PARENT_SCAN ("parent_scan"),
-	PRECURSOR_MZ ("precursor_mz"),	
-	RETENTION_TIME("retention_time"),
-	CENTROIDED ("centroided"),
-	QUANTITY_DATAPOINTS ("quantity_datapoints");
+    public UnclosableInputStream(InputStream in) {
+        super(in);
+    }
 
-	private String elementName;
+    public void close() {
+        // ignore close
+    }
 
-	private RawDataElementName(String itemName){
-		this.elementName = itemName;
-	}
-
-	public String getElementName(){
-		return elementName;
-	}
 }

@@ -16,14 +16,16 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.io;
 
+import com.Ostermiller.util.Base64;
+import net.sf.mzmine.project.impl.*;
 import java.io.ByteArrayInputStream;
 
 
 
 import java.io.ByteArrayOutputStream;
-import org.jfree.xml.util.Base64;
+
 import org.xml.sax.Attributes;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -85,7 +87,7 @@ public class PeakListSerializer extends DefaultHandler {
 	private double mass,  rt,  height,  area;
 	private int[] scanNumbers;
 	private double[] retentionTimes,  masses,  intensities;
-	private String peakStatus,  peakListName,  name,  formula,  identificationMethod,  identityID;
+	private String peakStatus,  peakListName,  name,  formula,  identificationMethod,  identityID,  rawDataName;
 	private boolean preferred;
 	private String dateCreated;
 	private Range rtRange,  mzRange;
@@ -132,6 +134,9 @@ public class PeakListSerializer extends DefaultHandler {
 			newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
 			newElement.addText(proc.getDescription());
 		}
+		// Add local task
+		//newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
+		//	newElement.addText("Saved to file" + fileName);
 
 		// <RAWFILE>
 		RawDataFile[] dataFiles = peakList.getRawDataFiles();
@@ -140,9 +145,7 @@ public class PeakListSerializer extends DefaultHandler {
 			newElement = saveRoot.addElement(PeakListElementName.RAWFILE.getElementName());
 			newElement.addAttribute(
 					PeakListElementName.ID.getElementName(), String.valueOf(i));
-			// <NAME>
-			newElement = saveRoot.addElement(PeakListElementName.NAME.getElementName());
-			newElement.addText(dataFiles[i - 1].getName());
+			fillRawDataFileElement(dataFiles[i - 1], newElement);
 			dataFilesIDMap.put(dataFiles[i - 1], i);
 		}
 
@@ -150,9 +153,12 @@ public class PeakListSerializer extends DefaultHandler {
 		int numOfRows = peakList.getNumberOfRows();
 		PeakListRow row;
 		for (int i = 0; i < numOfRows; i++) {
+
+
 			row = peakList.getRow(i);
 			newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
 			fillRowElement(row, newElement);
+
 		}
 
 		zipOutputStream.putNextEntry(new ZipEntry(peakList.getName()));
@@ -162,7 +168,6 @@ public class PeakListSerializer extends DefaultHandler {
 		writer.write(document);
 	}
 
-	
 	/**
 	 * @param row
 	 * @param element
@@ -195,10 +200,30 @@ public class PeakListSerializer extends DefaultHandler {
 	}
 
 	/**
+	 * @param file
+	 * @param element
+	 */
+	private void fillRawDataFileElement(RawDataFile file, Element element) {
+
+		// <NAME>
+		Element newElement = element.addElement("rawdata_name");
+		newElement.addText(file.getName());
+
+		// <RTRANGE>
+		newElement = element.addElement(PeakListElementName.RTRANGE.getElementName());
+		newElement.addText(String.valueOf(file.getDataRTRange(1)));
+
+		// <MZRANGE>
+		newElement = element.addElement(PeakListElementName.MZRANGE.getElementName());
+		newElement.addText(String.valueOf(file.getDataMZRange(1)));
+	}
+
+	/**
 	 * @param identity
 	 * @param element
 	 */
 	private void fillIdentityElement(PeakIdentity identity, Element element) {
+
 
 		// <NAME>
 		Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
@@ -246,39 +271,65 @@ public class PeakListSerializer extends DefaultHandler {
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
 
+		ByteArrayOutputStream byteMassStream = new ByteArrayOutputStream();
+		DataOutputStream dataMassStream = new DataOutputStream(byteMassStream);
 
+		ByteArrayOutputStream byteHeightStream = new ByteArrayOutputStream();
+		DataOutputStream dataHeightStream = new DataOutputStream(
+				byteHeightStream);
+
+		float mass, height;
 		for (int scan : scanNumbers) {
 			try {
 				dataScanStream.writeInt(scan);
 				dataScanStream.flush();
+				DataPoint mzPeak = peak.getDataPoint(scan);
+				if (mzPeak != null) {
+					mass = (float) mzPeak.getMZ();
+					height = (float) mzPeak.getIntensity();
+				} else {
+					mass = (float) peak.getMZ();
+					height = 0f;
+				}
+				dataMassStream.writeFloat(mass);
+				dataMassStream.flush();
+				dataHeightStream.writeFloat(height);
+				dataHeightStream.flush();
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 
-		char[] bytes = Base64.encode(byteScanStream.toByteArray());
+		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
 		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
 		secondNewElement.addText(new String(bytes));
+
+		bytes = Base64.encode(byteMassStream.toByteArray());
+		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
+		secondNewElement.addText(new String(bytes));
+
+		bytes = Base64.encode(byteHeightStream.toByteArray());
+		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
+		secondNewElement.addText(new String(bytes));
+
+
 	}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	/*if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
+	for (RawDataFile rawDataFile : MZmineCore.getCurrentProject().getDataFiles()) {
+	if (rawDataFile.getName().matches(name)) {
+	buildingRawDataFile = (RawDataFileImpl) rawDataFile;
+	buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
+	break;
+	}
+	}
+	/*buildingRawDataFile.setRTRange(1, rtRange);
+	buildingRawDataFile.setMZRange(1, mzRange);
+	buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
+	buildingRawDataFile = null;
+	}
+	 */
 	public void readPeakList() {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		try {
@@ -287,7 +338,7 @@ public class PeakListSerializer extends DefaultHandler {
 			charBuffer = new StringBuffer();
 			appliedProcess = new Vector<String>();
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(zipInputStream, this);
+			saxParser.parse(new UnclosableInputStream(zipInputStream), this);
 
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -322,9 +373,10 @@ public class PeakListSerializer extends DefaultHandler {
 		// <RAWFILE>
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
 			try {
-				rawDataFileID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
+				rawDataFileID = Integer.parseInt(attrs
+						.getValue(PeakListElementName.ID.getElementName()));
 				peakListFlag = false;
-			} catch (Exception e) {
+			} catch (Exception e) {				
 				throw new SAXException(
 						"Could not read scan attributes information");
 			}
@@ -338,6 +390,7 @@ public class PeakListSerializer extends DefaultHandler {
 				scanFlag = true;
 
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read scan attributes information");
 			}
@@ -354,6 +407,7 @@ public class PeakListSerializer extends DefaultHandler {
 				int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
 				buildingRow = new SimplePeakListRow(rowID);
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read row attributes information");
 			}
@@ -365,6 +419,7 @@ public class PeakListSerializer extends DefaultHandler {
 				identityID = attrs.getValue(PeakListElementName.ID.getElementName());
 				preferred = Boolean.parseBoolean(attrs.getValue(PeakListElementName.PREFERRED.getElementName()));
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read identity attributes information");
 			}
@@ -381,6 +436,7 @@ public class PeakListSerializer extends DefaultHandler {
 				area = Double.parseDouble(attrs.getValue(PeakListElementName.AREA.getElementName()));
 				peakStatus = attrs.getValue(PeakListElementName.STATUS.getElementName());
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read peak attributes information");
 			}
@@ -395,6 +451,7 @@ public class PeakListSerializer extends DefaultHandler {
 				mzPeakFlag = true;
 
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read mzPeak attributes information");
 			}
@@ -411,7 +468,6 @@ public class PeakListSerializer extends DefaultHandler {
 			String qName // qualified name
 			) throws SAXException {
 
-
 		// <NAME>
 		if (qName.equals(PeakListElementName.NAME.getElementName())) {
 			name = getTextOfElement();
@@ -427,6 +483,7 @@ public class PeakListSerializer extends DefaultHandler {
 				// String text = getTextOfElement();
 				dateCreated = getTextOfElement();
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read peak list date of creation");
 			}
@@ -437,7 +494,6 @@ public class PeakListSerializer extends DefaultHandler {
 			try {
 				String text = getTextOfElement();
 				text = text.trim();
-			//totalRows = Integer.parseInt(text);
 			} catch (Exception e) {
 				throw new SAXException("Could not read quantity");
 			}
@@ -462,7 +518,7 @@ public class PeakListSerializer extends DefaultHandler {
 						scanNumbers[i] = Integer.parseInt(values[i]);
 					}
 				} else if (mzPeakFlag) {
-					byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
+					byte[] bytes = Base64.decodeToBytes(getTextOfElement());
 					// make a data input stream
 					DataInputStream dataInputStream = new DataInputStream(
 							new ByteArrayInputStream(bytes));
@@ -473,6 +529,7 @@ public class PeakListSerializer extends DefaultHandler {
 				}
 
 			} catch (Exception e) {
+
 				e.printStackTrace();
 				throw new SAXException("Could not read list of scan numbers");
 			}
@@ -488,6 +545,7 @@ public class PeakListSerializer extends DefaultHandler {
 					retentionTimes[i] = Double.parseDouble(values[i]);
 				}
 			} catch (Exception e) {
+
 				e.printStackTrace();
 				throw new SAXException("Could not read list of retention times");
 			}
@@ -496,7 +554,7 @@ public class PeakListSerializer extends DefaultHandler {
 		// <MASS>
 		if (qName.equals(PeakListElementName.MASS.getElementName())) {
 			try {
-				byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
+				byte[] bytes = Base64.decodeToBytes(getTextOfElement());
 				// make a data input stream
 				DataInputStream dataInputStream = new DataInputStream(
 						new ByteArrayInputStream(bytes));
@@ -506,6 +564,7 @@ public class PeakListSerializer extends DefaultHandler {
 				}
 
 			} catch (Exception e) {
+
 				e.printStackTrace();
 				throw new SAXException("Could not read list of masses");
 			}
@@ -515,7 +574,7 @@ public class PeakListSerializer extends DefaultHandler {
 		// <HEIGHT>
 		if (qName.equals(PeakListElementName.HEIGHT.getElementName())) {
 			try {
-				byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
+				byte[] bytes = Base64.decodeToBytes(getTextOfElement());
 				// make a data input stream
 				DataInputStream dataInputStream = new DataInputStream(
 						new ByteArrayInputStream(bytes));
@@ -525,6 +584,7 @@ public class PeakListSerializer extends DefaultHandler {
 				}
 
 			} catch (Exception e) {
+
 				e.printStackTrace();
 				throw new SAXException("Could not read list of intensities");
 			}
@@ -550,6 +610,7 @@ public class PeakListSerializer extends DefaultHandler {
 				double max = Double.parseDouble(values[1]);
 				rtRange = new Range(min, max);
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read retention time range form raw data file");
 			}
@@ -564,6 +625,7 @@ public class PeakListSerializer extends DefaultHandler {
 				double max = Double.parseDouble(values[1]);
 				mzRange = new Range(min, max);
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not read m/z range from raw data file");
 			}
@@ -636,27 +698,32 @@ public class PeakListSerializer extends DefaultHandler {
 				scanFlag = false;
 
 			} catch (Exception e) {
+
 				throw new SAXException(
 						"Could not create scans for temporary raw data file");
 			}
 		}
-
-		RawDataFile NewRawDataFile = buildingRawDataFile;
-
-		for (RawDataFile rawDataFile : MZmineCore.getCurrentProject().getDataFiles()) {
-
-			if (buildingRawDataFile != null && rawDataFile.getName().matches(buildingRawDataFile.getName())) {
-				NewRawDataFile = (RawDataFileImpl) rawDataFile;
-			}
-			break;
-
-		}
-
+		
 		// <RAWFILE>
+		if (qName.equals("rawdata_name")) {
+			rawDataName = getTextOfElement();
+		}
+		
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
-			buildingRawDataFile.setRTRange(1, rtRange);
-			buildingRawDataFile.setMZRange(1, mzRange);
-			buildingArrayRawDataFiles.put(rawDataFileID, NewRawDataFile);
+			for (RawDataFile rawDataFile : MZmineCore.getCurrentProject().getDataFiles()) {
+				System.out.println(rawDataFile.getName() + " - " + rawDataName);
+				if (rawDataFile.getName().matches(rawDataName)) {
+					System.out.println("holaaaa");
+					buildingRawDataFile = (RawDataFileImpl) rawDataFile;
+					buildingRawDataFile.setRTRange(1, rtRange);
+					buildingRawDataFile.setMZRange(1, mzRange);
+					buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
+					break;
+				}
+			}
+			//buildingRawDataFile.setRTRange(1, rtRange);
+			//buildingRawDataFile.setMZRange(1, mzRange);
+			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
 			buildingRawDataFile = null;
 		}
 

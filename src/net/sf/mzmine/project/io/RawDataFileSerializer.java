@@ -16,8 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.io;
 
+import net.sf.mzmine.project.impl.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -59,30 +61,39 @@ public class RawDataFileSerializer extends DefaultHandler {
 
 	private ZipOutputStream zipOutputStream;
 	private ZipInputStream zipInputStream;
-	private int scanDataFileBytes;
 	private StringBuffer charBuffer;
-	RawDataFileWriter rawDataFileWriter;
-	DoubleBuffer doubleBuffer;
-	int ScanNumber;
-	int msLevel;
-	int parentScan;
-	int[] fragmentScan;
-	int fragmentScanNumber;
-	double precursorMZ;
-	double retentionTime;	
-	boolean centroided;
-	int dataPointsNumber;
+	private RawDataFileWriter rawDataFileWriter;
+	private DoubleBuffer doubleBuffer;
+	private int scansReaded;
+	private Double progress;
+	private int numberOfScans;
+	private int ScanNumber;
+	private int msLevel;
+	private int parentScan;
+	private int[] fragmentScan;
+	private double precursorMZ;
+	private double retentionTime;
+	private boolean centroided;
+	private int dataPointsNumber;
 
 	public RawDataFileSerializer(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
 	}
 
 	public RawDataFileSerializer(ZipInputStream zipInputStream) {
-		this.zipInputStream = zipInputStream;
+		this.zipInputStream = zipInputStream;		
+	}
+
+	public Double getProgress() {
+		return progress;
 	}
 
 	public void writeRawDataFiles(RawDataFile rawDataFile) {
 		try {
+
+			this.progress = new Double(0);
+			this.scansReaded = 0;
+			
 			int cont = 0;
 			String newName = rawDataFile.getName() + "-" + cont++;
 
@@ -109,7 +120,6 @@ public class RawDataFileSerializer extends DefaultHandler {
 			int bytesRead;
 			while ((bytesRead = fis.read(buffer)) != -1) {
 				zipStream.write(buffer, 0, bytesRead);
-				this.scanDataFileBytes += bytesRead;
 			}
 		} catch (Exception e) {
 			throw e;
@@ -118,10 +128,6 @@ public class RawDataFileSerializer extends DefaultHandler {
 				fis.close();
 			}
 		}
-	}
-
-	public int getscansbytes() {
-		return this.scanDataFileBytes;
 	}
 
 	public void readRawDataFile() throws ClassNotFoundException {
@@ -155,40 +161,19 @@ public class RawDataFileSerializer extends DefaultHandler {
 
 			doubleBuffer = bbuffer.asDoubleBuffer();
 
-
-
 			// Reads RawDataDescription
 			zipInputStream.getNextEntry();
+			InputStream InputStream = new UnclosableInputStream(zipInputStream);
 			charBuffer = new StringBuffer();
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(zipInputStream, this);
+			saxParser.parse(InputStream, this);
 
-
-
-
-
-			/*RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(rawDataDescription.getName());
-			for (int numScans = 0; numScans < rawDataDescription.getNumOfScans(); numScans++) {
-			DataPoint[] dataPoints = new DataPoint[rawDataDescription.getNumOfDataPoints(numScans)];
-			for (int j = 0; j < rawDataDescription.getNumOfDataPoints(numScans); j++) {
-			dataPoints[j] = new SimpleDataPoint(doubleBuffer.get(), doubleBuffer.get());
-			}
-			Scan scan = new SimpleScan((RawDataFileImpl) rawDataFileWriter, rawDataDescription.getScanNumber(numScans),
-			rawDataDescription.getMsLevel(numScans), rawDataDescription.getRetentionTime(numScans),
-			rawDataDescription.getParentScan(numScans), rawDataDescription.getPrecursorMZ(numScans),
-			rawDataDescription.getFragmentScans(numScans), dataPoints, rawDataDescription.isCentroided(numScans));
-			rawDataFileWriter.addScan(scan);
-			}
 			RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
-			MZmineCore.getCurrentProject().addFile(rawDataFile);*/
+			MZmineCore.getCurrentProject().addFile(rawDataFile);
 
 			tempConfigFile.delete();
-		} catch (ParserConfigurationException ex) {
-			Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (SAXException ex) {
-			Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
@@ -202,9 +187,9 @@ public class RawDataFileSerializer extends DefaultHandler {
 		newElement = saveRoot.addElement(RawDataElementName.NAME.getElementName());
 		newElement.addText(rawDataFile.getName());
 
-		// <SCAN>
-		//newElement = saveRoot.addElement(RawDataElementName.QUANTITY_SCAN.getElementName());
-		//newElement.addText(String.valueOf(rawDataFile.getNumOfScans()));
+		// <QUANTITY>
+		newElement = saveRoot.addElement(RawDataElementName.QUANTITY_SCAN.getElementName());
+		newElement.addText(String.valueOf(rawDataFile.getNumOfScans()));
 
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
 			newElement = saveRoot.addElement(RawDataElementName.SCAN.getElementName());
@@ -227,7 +212,7 @@ public class RawDataFileSerializer extends DefaultHandler {
 
 		newElement = element.addElement(RawDataElementName.PRECURSOR_MZ.getElementName());
 		newElement.addText(String.valueOf(scan.getPrecursorMZ()));
-		
+
 		newElement = element.addElement(RawDataElementName.RETENTION_TIME.getElementName());
 		newElement.addText(String.valueOf(scan.getRetentionTime()));
 
@@ -279,13 +264,22 @@ public class RawDataFileSerializer extends DefaultHandler {
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
 			try {
 				this.rawDataFileWriter = MZmineCore.createNewFile(getTextOfElement());
+				this.scansReaded = 0;
 			} catch (IOException ex) {
 				Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
 
+		if (qName.equals(RawDataElementName.QUANTITY_SCAN.getElementName())) {
+			numberOfScans = Integer.parseInt(getTextOfElement());
+		}
+
 		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
+
 			this.ScanNumber = Integer.parseInt(getTextOfElement());
+			progress = (double)scansReaded/numberOfScans;
+			scansReaded++;
+			System.out.println(progress + " - " + scansReaded + " - " + numberOfScans);
 		}
 
 		if (qName.equals(RawDataElementName.MS_LEVEL.getElementName())) {
@@ -298,7 +292,7 @@ public class RawDataFileSerializer extends DefaultHandler {
 
 		if (qName.equals(RawDataElementName.PRECURSOR_MZ.getElementName())) {
 			this.precursorMZ = Double.parseDouble(getTextOfElement());
-		}		
+		}
 		if (qName.equals(RawDataElementName.RETENTION_TIME.getElementName())) {
 			this.retentionTime = Double.parseDouble(getTextOfElement());
 		}

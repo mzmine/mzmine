@@ -16,15 +16,14 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.io;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
+
 
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -40,8 +39,11 @@ public class ProjectOpeningTask implements Task {
 	private String errorMessage;
 	private File openFile;
 	private ZipInputStream zipStream;
-	private StoredProjectDescription description;
+	ProjectSerializer projectSerializer;
+	RawDataFileSerializer rawDataFileSerializer;
 	private int currentStage;
+	
+	private double progress, numberOfDatasetsPercentage;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
@@ -69,11 +71,13 @@ public class ProjectOpeningTask implements Task {
 	public double getFinishedPercentage() {
 		switch (currentStage) {
 			case 2:
-				if (description.getNumOfPeakListRows() == 0) {
-					return 0;
-				} else {
-					//return (double) xstream.getNumOfDeserializedRows() / description.getNumOfPeakListRows();
+				try{
+					progress = numberOfDatasetsPercentage + (double)rawDataFileSerializer.getProgress()*1/this.projectSerializer.getNumOfRawDataFiles();
+					return progress;
+				}catch(Exception e){
+					return 0f;
 				}
+				
 			case 3:
 				return 1f;
 			default:
@@ -150,43 +154,30 @@ public class ProjectOpeningTask implements Task {
 		status = TaskStatus.CANCELED;
 	}
 
-	private void loadProjectInformation(){
-		try {
-			zipStream.getNextEntry();
-			ObjectInputStream in = new ObjectInputStream(zipStream);
-			try {
-				StoredProjectDescription obj = (StoredProjectDescription) in.readObject();
-			} catch (ClassNotFoundException ex) {
-				Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
-			}
-
-			ProjectSerializer projectSerializer = new ProjectSerializer(this.zipStream);
-			projectSerializer.openConfiguration();
-		} catch (IOException ex) {
-			Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
-		}
+	private void loadProjectInformation() {
+		projectSerializer = new ProjectSerializer(this.zipStream);
+		projectSerializer.openProjectDescription();
+		projectSerializer.openConfiguration();
 	}
-
-	
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
-			RawDataFileSerializer rawDataFileSerializer = new RawDataFileSerializer(this.zipStream);
-			for(int i = 0; i < this.description.getNumOfDataFiles(); i++){
-				rawDataFileSerializer.readRawDataFile();
-			}
+		rawDataFileSerializer = new RawDataFileSerializer(this.zipStream);	
+		for (int i = 0; i < this.projectSerializer.getNumOfRawDataFiles(); i++) {
+			rawDataFileSerializer.readRawDataFile();
+			numberOfDatasetsPercentage += (double)1/this.projectSerializer.getNumOfRawDataFiles();
+		}
 	}
 
 	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
-		for(int i = 0; i < this.description.getNumOfPeakLists(); i++){
+		for (int i = 0; i < this.projectSerializer.getNumOfPeakLists(); i++) {
 			PeakListSerializer peakListSerializer = new PeakListSerializer(zipStream);
 			peakListSerializer.readPeakList();
 		}
 	}
 
 	public Object[] getCreatedObjects() {
-		return null;
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
-
 }

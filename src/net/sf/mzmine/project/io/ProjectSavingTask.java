@@ -16,8 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.project.io;
 
+import net.sf.mzmine.project.impl.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -190,6 +191,6 @@ public class ProjectSavingTask implements Task {
 	}
 
 	public Object[] getCreatedObjects() {
-		return null;
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

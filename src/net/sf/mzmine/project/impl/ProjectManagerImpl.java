@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.project.impl;
 
+import net.sf.mzmine.project.io.ProjectSavingTask;
+import net.sf.mzmine.project.io.ProjectOpeningTask;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
