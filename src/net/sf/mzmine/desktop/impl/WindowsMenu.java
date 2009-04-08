@@ -36,7 +36,8 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * Dynamically-build windows menu. Originally based on code by Guy Davis.
+ * Dynamically-built windows menu. Tile() and cascade() methods originally based
+ * on code by Guy Davis (GPL).
  * 
  */
 public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
