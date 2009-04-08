@@ -25,8 +25,11 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.MZminePreferences;
+import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
@@ -66,14 +69,17 @@ public class MZviewer extends MZmineCore implements Runnable {
      */
     public void run() {
 
-        MZviewerWindow desktop = null;
+        MainWindow desktop = null;
         try {
 
             logger.info("MZviewer starting");
 
+			// create instance of preferences
+			MZmineCore.preferences = new MZminePreferences();
+
             // create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl();
-            desktop = new MZviewerWindow();
+            desktop = new MainWindow();
             ProjectManagerImpl projectManager = new ProjectManagerImpl();
 
             // save static references to MZmineCore
@@ -124,7 +130,7 @@ public class MZviewer extends MZmineCore implements Runnable {
         // Retrieving peak list arguments
         if (args.length > 0){
             logger.finer("Loading peak lists from arguments");
-        	desktop.addPeakLists(args);
+            XMLImporter.myInstance.loadPeakLists(args);
         }
 
     }

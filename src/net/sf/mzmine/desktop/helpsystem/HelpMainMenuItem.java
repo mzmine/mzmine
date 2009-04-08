@@ -49,7 +49,7 @@ public class HelpMainMenuItem {
                     null);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            // Ignore - help is disabled
         }
     }
 

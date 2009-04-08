@@ -121,9 +121,9 @@ public abstract class MZmineCore {
 	}
 
 	/**
-	 * Returns an array of all initialized MZmine modules
 	 * 
-	 * @return Array of all initialized MZmine modules
+	 * 
+	 * @return
 	 */
 	public static HelpImp getHelpImp() {
 		return help;
