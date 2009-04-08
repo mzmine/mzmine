@@ -6,38 +6,21 @@ TODO list for MZmine 2.0 release
 
 * Reduce memory footprint
 
-* Optimize the mass connector and mass detector algorithms for better speed
-
 * Temporary files containing raw data could be memory-mapped (using FileChannel.map()) for better performance.
 
-* Temporary files are (sometimes?) not removed after MZmine exits. (Solved 2009/3/6 Tomas)
-  
+* m/z and intensity pairs in temporary files should be stored as float pairs, not double 
+  (to reduce memory usage and increase reading speed)
+ 
 
 ***** Core modules *****
 
 Project manager
 * We need to reimplement project saving/loading using our own project file format. 
-  Saving using serialization is too slow (2 hr saving a ~1 GB size project)
-* Bug: projectParametersAndValues is indexed by String (filename), 
-  but should be indexed by RawDataFile (Fixed 2009/3/6 Tomas)
-
+  Saving using serialization is too slow (2 hr saving a ~1 GB size project) (Sandra)
 
 Desktop
-* ItemSelector should be replaced with a JTree which allows unfolding raw data 
-  files into individual scans and peak lists into individual rows (Finished Tomas)
 * JTree needs support for drag&drop reordering of data files/peak lists  (Tomas)
 * Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
-
-Task controller
-* Tasks with high priority (e.g. visualization) should never wait and always 
-  allocate a thread
-* Number of simultaneously running threads should be set in a configuration dialog,
-  not by editing config file
-* TaskListener and TaskGroup classes are obsolete and should be removed
-
-Batch mode
-* It need to be redesigned. (Tomas)
-* Bug: it can not be used again if during its running any process hasn't finished correctly. 
 
 Project data files
 * Project must not contain two data files with same name, otherwise project saving will fail.
@@ -46,15 +29,9 @@ Project data files
 
 ***** Raw data import *****
 
-Recognition of centroid/continuous scans is not perfect. 
-Control1.CDF scan 1027 is recognized as centroid which is not true.
-(Implemented new utility (ScanUtils.isCentroided). 
-Change applied to all raw data file importers 2009/2/3 Alex).
-
 RAW file import using Thermo XCalibur DLL
 * Raw file import is using too much memory. Memory is released when task is 
   finished, but importing one file may consume >500MB RAM during the process.
-* Binding to XCalibur DLL doesn't work when MZmine is running 64-bit
 
 mzXML parsing
 * MS/MS scans (<scan> elements) can be nested or not. Currently, MZmine only 
@@ -73,17 +50,6 @@ We may also consider implementing some preview mechanism, similar
 to peak detection.
 
 
-***** Peak detection *****
-
-Shape modeler
-* Under testing by users 
-(2009/2/2 Alex)
-
-Peak recognition
-* Add checkbox "remove original chromatogram"
-(Done 2009/2/2 Alex)
-
-
 ***** Visualizers *****
 
 2D visualizer
@@ -91,6 +57,8 @@ Peak recognition
 * Color scale should be editable, similar as color scale of RT/MZ plots
 * Intensity scale is now relative to the zoomed area. There should be a 
   setting to make it absolute (e.g. when comparing two files)
+* Loading of data should be properly implemented as a Task. Currently 
+  the task only loads Scans, but these are already in memory. 
 
 3D visualizer
 * Need to set threshold for how many peaks will be annotated
@@ -101,45 +69,20 @@ Peak recognition
   detail
 
 
-Peak list table
-* Combined XIC component should have a nicer tooltip showing which color is 
-  which data file
-(Done 2009/2/4 Alex)
-* PeakSummaryComponent may be integrated into the tooltip
-(Done 2009/2/4 Alex)
-
 Scatter plot
-* Currently user can search only for compound name, but should also be able
-  to search by mass/RT
-  (Done 2009/2/3 Alex)
-* Bug: Typing invalid regular expression in the search box will cause an
-  exception. 
-  (Fixed 2009/2/2 Alex)
+* Scatter plot should be able to show average value from a group of samples 
+  (defined by sample parameter)
 
-
-Isotope pattern visualizer
-* Bug: Show...isotope pattern invoked from peak list table doesn't highlight isotopes
-(Fixed 2009/2/2 Alex)
 
 TIC/XIC visualizer
-* Visualizer should be able to show several peaks from one peaklist column 
-  and allow a selection of data files to be shown
-* When showing a particular peak, the dialog should offer "smarter" retention
-  time range, same as 3D visualizer
 * Bug: NullPointerException when TIC visualizer setup dialog is opening. (ParameterSetupDialog.java:303)
 
-Spectra visualizer
-* Bug: sometimes fragment scans are shown twice in MS/MS combo
-(Fixed 2009/2/2 Alex, Really fixed 2009/2/26 Tomas)
-
+Spectrum visualizer
 * Bug: opening a spectra with a non-existent scan number throws an exception  
 
 
-Peak list row summary visualizer (new)
-* We should implement a new simple visualizer "Peak list row summary" with
-  easy binding to all other visualizers and manual peak detection. This visualizer 
-  can integrate the PeakSummaryComponent.
-(Done 2009/2/4 Alex)
+Peak list row summary visualizer
+* After changing the peak using manual picker, the row summary is not updated
 
 
 ***** Normalization *****
@@ -169,6 +112,9 @@ PCA plot
 * Bug: PCA plot may freeze if data contains Double.NaN
 
 
+***** MZviewer *****
+
+MZviewer needs better integration with MainWindow (window title etc.) and MainMenu.
 
 
 ***** Documentation *****
