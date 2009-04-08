@@ -19,42 +19,21 @@
 
 package net.sf.mzmine.taskcontrol.impl;
 
-import java.util.Date;
-
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 
 /**
  * Wrapper class for Tasks that stores additional information
  */
-class WrappedTask implements Comparable {
+class WrappedTask {
 
     private Task task;
-    private Date addedTime;
     private TaskPriority priority;
     private WorkerThread assignedTo;
 
     WrappedTask(Task task, TaskPriority priority) {
-        addedTime = new Date();
         this.task = task;
         this.priority = priority;
-    }
-
-    /**
-     * Tasks are sorted by priority order using this comparator method.
-     * 
-     * @see java.lang.Comparable#compareTo(T)
-     */
-    public int compareTo(Object arg) {
-
-        WrappedTask t = (WrappedTask) arg;
-        int result;
-
-        result = priority.compareTo(t.priority);
-        if (result == 0)
-            result = addedTime.compareTo(t.addedTime);
-        return result;
-
     }
 
     /**
@@ -69,6 +48,16 @@ class WrappedTask implements Comparable {
      */
     void setPriority(TaskPriority priority) {
         this.priority = priority;
+        if (assignedTo != null) {
+			switch (priority) {
+			case HIGH:
+				assignedTo.setPriority(Thread.MAX_PRIORITY);
+				break;
+			case NORMAL:
+				assignedTo.setPriority(Thread.NORM_PRIORITY);
+				break;
+			}
+		}
     }
 
     /**
@@ -85,7 +74,7 @@ class WrappedTask implements Comparable {
     /**
      * @return Returns the task.
      */
-    Task getTask() {
+    synchronized Task getActualTask() {
         return task;
     }
 

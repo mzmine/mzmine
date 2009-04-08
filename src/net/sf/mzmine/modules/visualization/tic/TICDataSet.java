@@ -68,6 +68,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 		this.mzRange = mzRange;
 		this.dataFile = dataFile;
 		this.scanNumbers = scanNumbers;
+		
+		totalScans = scanNumbers.length;
 
 		basePeakValues = new double[scanNumbers.length];
 		intensityValues = new double[scanNumbers.length];
@@ -165,9 +167,6 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
 			intensityValues[index] = totalIntensity;
 			rtValues[index] = scan.getRetentionTime();
-
-			// logger.info(" " + totalIntensity + " " +
-			// scan.getRetentionTime());
 
 			processedScans++;
 

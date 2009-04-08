@@ -19,8 +19,14 @@
 
 package net.sf.mzmine.taskcontrol;
 
+/**
+ * 
+ * This enum defines task priority. High priority tasks are always executed
+ * immediately. Normal priority tasks may wait until a thread is available.
+ * 
+ */
 public enum TaskPriority {
 
-	HIGH, NORMAL, LOW
+	HIGH, NORMAL
 
 }

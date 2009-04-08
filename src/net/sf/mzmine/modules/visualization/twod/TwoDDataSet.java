@@ -191,8 +191,13 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 			if (basePeaks[scanIndex] < maxIntensity)
 				continue;
 
-			double scanMax = getMaxIntensity(dataPointMatrix.get(scanIndex)
-					.getDataPoints(), mzRange, plotMode);
+			Scan scan = dataPointMatrix.get(scanIndex);
+
+			if (scan == null)
+				continue;
+
+			double scanMax = getMaxIntensity(scan.getDataPoints(), mzRange,
+					plotMode);
 			;
 			if (scanMax > maxIntensity)
 				maxIntensity = scanMax;

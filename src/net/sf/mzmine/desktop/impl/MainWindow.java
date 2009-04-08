@@ -43,10 +43,8 @@ import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
-import net.sf.mzmine.util.components.TaskProgressWindow;
 
 /**
  * This class is the main window of application
@@ -57,15 +55,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     private DesktopParameters parameters;
 
-    private TaskProgressWindow taskList;
-
     private HelpMainMenuItem help;
 
     private MainPanel mainPanel;
-
-    public TaskProgressWindow getTaskList() {
-        return taskList;
-    }
 
     private MainMenu menuBar;
 
@@ -182,11 +174,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         updateTitle();
 
-        taskList = new TaskProgressWindow(
-                (TaskControllerImpl) MZmineCore.getTaskController());
         
-        // Do not use addInternalFrame(), to avoid making the tasklist visible
-        mainPanel.getDesktopPane().add(taskList);
 
         MZmineCore.getProjectManager().addProjectListener(this);
 

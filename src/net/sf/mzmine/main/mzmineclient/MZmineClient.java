@@ -93,8 +93,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			for (File remainingTmpFile : remainingTmpFiles) {
 				if (remainingTmpFile.canWrite()) {
 					// Try to obtain a lock on the file
-					RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
-							"rw");
+					RandomAccessFile rac = new RandomAccessFile(
+							remainingTmpFile, "rw");
 
 					FileLock lock = rac.getChannel().tryLock();
 					rac.close();
@@ -102,12 +102,12 @@ public class MZmineClient extends MZmineCore implements Runnable {
 					if (lock != null) {
 						// We locked the file, which means nobody is using it
 						// anymore and it can be removed
-						logger.finest("Removing unused file " + remainingTmpFile);
+						logger.finest("Removing unused file "
+								+ remainingTmpFile);
 						remainingTmpFile.delete();
 					}
 				}
 			}
-
 
 			SAXReader reader = new SAXReader();
 			configuration = reader.read(CONFIG_FILE);
@@ -119,7 +119,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			String numberOfNodesConfigEntry = null;
 			Element nodesElement = configRoot.element(NODES_ELEMENT_NAME);
 			if (nodesElement != null) {
-				numberOfNodesConfigEntry = nodesElement.attributeValue(LOCAL_ATTRIBUTE_NAME);
+				numberOfNodesConfigEntry = nodesElement
+						.attributeValue(LOCAL_ATTRIBUTE_NAME);
 			}
 			if (numberOfNodesConfigEntry != null) {
 				numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
@@ -127,13 +128,13 @@ public class MZmineClient extends MZmineCore implements Runnable {
 				numberOfNodes = Runtime.getRuntime().availableProcessors();
 			}
 
-			logger.info("MZmine starting with " + numberOfNodes + " computation nodes");
+			logger.info("MZmine starting with " + numberOfNodes
+					+ " computation nodes");
 
 			logger.finer("Loading core classes");
 
 			// create instances of core modules
-			TaskControllerImpl taskController = new TaskControllerImpl(
-					numberOfNodes);
+			TaskControllerImpl taskController = new TaskControllerImpl();
 			projectManager = new ProjectManagerImpl();
 			desktop = new MainWindow();
 			help = new HelpImp();
@@ -144,24 +145,34 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			logger.finer("Initializing core classes");
 
-			taskController.initModule();
+			// First initialize project manager, because desktop needs to
+			// register project listener
 			projectManager.initModule();
+
+			// Second, initialize desktop, because task controller needs to add
+			// TaskProgressWindow to the desktop
 			desktop.initModule();
+
+			// Last, initialize task controller
+			taskController.initModule();
 
 			logger.finer("Loading modules");
 
 			moduleSet = new Vector<MZmineModule>();
 
-			Iterator<Element> modIter = configRoot.element(MODULES_ELEMENT_NAME).elementIterator(
-					MODULE_ELEMENT_NAME);
+			Iterator<Element> modIter = configRoot
+					.element(MODULES_ELEMENT_NAME).elementIterator(
+							MODULE_ELEMENT_NAME);
 
 			while (modIter.hasNext()) {
 				Element moduleElement = modIter.next();
-				String className = moduleElement.attributeValue(CLASS_ATTRIBUTE_NAME);
+				String className = moduleElement
+						.attributeValue(CLASS_ATTRIBUTE_NAME);
 				loadModule(className);
 			}
 
-			MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+			MZmineCore.initializedModules = moduleSet
+					.toArray(new MZmineModule[0]);
 
 			MZmineCore.isLightViewer = false;
 
@@ -169,7 +180,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			loadConfiguration(CONFIG_FILE);
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not parse configuration file " + CONFIG_FILE, e);
+			logger.log(Level.SEVERE, "Could not parse configuration file "
+					+ CONFIG_FILE, e);
 			System.exit(1);
 		}
 
@@ -196,7 +208,8 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			Class moduleClass = Class.forName(moduleClassName);
 
 			// create instance
-			MZmineModule moduleInstance = (MZmineModule) moduleClass.newInstance();
+			MZmineModule moduleInstance = (MZmineModule) moduleClass
+					.newInstance();
 
 			// init module
 			moduleInstance.initModule();

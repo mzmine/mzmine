@@ -30,7 +30,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.util.NumberFormatter;
-import net.sf.mzmine.util.components.TaskProgressWindow;
 
 /**
  * This interface represents the application GUI
@@ -145,13 +144,6 @@ public interface Desktop extends MZmineModule {
      * @return Array of selected peak lists
      */
     public PeakList[] getSelectedPeakLists();
-    
-    /**
-     * Returns the progress task bar window
-     * 
-     * @return TaskProgressWindow
-     */
-    public TaskProgressWindow getTaskList();
     
     /**
      * Returns the default formatter for intensities

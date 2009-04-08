@@ -23,110 +23,86 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
 /**
- * Task controller worker thread
+ * Task controller worker thread, this thread will process one task and then
+ * finish
  */
 class WorkerThread extends Thread {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private WrappedTask currentTask;
+	private WrappedTask wrappedTask;
+	private boolean finished = false;
 
-    WorkerThread(int workerNumber) {
-        super("Worker thread #" + workerNumber);
-    }
+	WorkerThread(WrappedTask wrappedTask) {
+		super("Thread executing task " + wrappedTask);
+		this.wrappedTask = wrappedTask;
+		wrappedTask.assignTo(this);
+	}
 
-    /**
-     * @return Returns the currentTask.
-     */
-    WrappedTask getCurrentTask() {
-        return currentTask;
-    }
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-    /**
-     * @param currentTask The currentTask to set.
-     */
-    void setCurrentTask(WrappedTask newTask) {
-        assert currentTask == null;
-        currentTask = newTask;
-        newTask.assignTo(this);
-        synchronized (this) {
-            notify();
-        }
-    }
+		Task actualTask = wrappedTask.getActualTask();
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+		logger.finest("Starting processing of task: "
+				+ actualTask.getTaskDescription());
+		
+		try {
+			
+			// Process the actual task
+			actualTask.run();
 
-        while (true) {
+			// Check if task finished with an error
+			if (actualTask.getStatus() == TaskStatus.ERROR) {
+				logger.severe("Task error: " + actualTask.getErrorMessage());
 
-            while (currentTask == null) {
-                try {
-                    synchronized (this) {
-                        wait();
-                    }
-                } catch (InterruptedException e) {
-                    // nothing happens
-                }
-            }
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Error of task " + actualTask.getTaskDescription(),
+						actualTask.getErrorMessage());
+			}
 
-            try {
+			/*
+			 * This is important to allow the garbage collector to remove the
+			 * task, while keeping the task description in the "Tasks in
+			 * progress" window
+			 */
+			wrappedTask.removeTaskReference();
 
-                currentTask.getTask().run();
+		} catch (Throwable e) {
 
-                // Task finished with an error
-                if (currentTask.getTask().getStatus() == TaskStatus.ERROR) {
-                    logger.severe("Task error: "
-                            + currentTask.getTask().getErrorMessage());
-                    if (MZmineCore.getDesktop() != null) {
-                        MZmineCore.getDesktop().displayErrorMessage(
-                                "Error of task "
-                                        + currentTask.getTask().getTaskDescription(),
-                                currentTask.getTask().getErrorMessage());
-                    }
-                }
+			/*
+			 * This should never happen, it means the task did not handle its
+			 * exception properly, or there was some severe error, like
+			 * OutOfMemoryError
+			 */
 
-                /*
-                 * This is important to allow the garbage collector to remove
-                 * the task, while keeping the task description in the "Tasks in
-                 * progress" window
-                 */
-                currentTask.removeTaskReference();
+			logger.log(Level.SEVERE, "Unhandled exception " + e
+					+ " while processing task "
+					+ actualTask.getTaskDescription(), e);
 
-            } catch (Throwable e) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Unhandled exception in task "
+							+ actualTask.getTaskDescription() + ": "
+							+ ExceptionUtils.exceptionToString(e));
 
-                // This should never happen!
+			e.printStackTrace();
 
-                logger.log(Level.SEVERE, "Unhandled exception " + e
-                        + " while processing task " + currentTask, e);
+		}
+		
+		// Mark this thread as finished
+		finished = true;
 
-                MZmineCore.getDesktop().displayErrorMessage(
-                            "Unhandled exception in task "
-                                    + currentTask.getTask().getTaskDescription() + ": " + 
-                            ExceptionUtils.exceptionToString(e));
-                
-                e.printStackTrace();
-                
-
-            }
-
-            /*
-             * Discard the reference to the task, so the garbage collecter can
-             * collect it
-             */
-            currentTask = null;
-
-        }
-
-    }
-
-    public String toString() {
-        return this.getName();
-    }
+	}
+	
+	boolean isFinished() {
+		return finished;
+	}
 
 }

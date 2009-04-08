@@ -56,11 +56,10 @@ import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
-import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.taskcontrol.impl.TaskProgressWindow;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
-import net.sf.mzmine.util.components.TaskProgressWindow;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
 import ca.guydavis.swing.desktop.CascadingWindowPositioner;
 import ca.guydavis.swing.desktop.JWindowsMenu;
@@ -228,8 +227,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
 
         setTitle("MZviewer");
 
-        taskList = new TaskProgressWindow(
-                (TaskControllerImpl) MZmineCore.getTaskController());
+        taskList = new TaskProgressWindow();
         mainPanel.getDesktopPane().add(taskList, JLayeredPane.DEFAULT_LAYER);
 
     }

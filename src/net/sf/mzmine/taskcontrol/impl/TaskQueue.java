@@ -19,14 +19,10 @@
 
 package net.sf.mzmine.taskcontrol.impl;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.logging.Logger;
 
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.TableModel;
+import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
@@ -34,230 +30,166 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.components.LabeledProgressBar;
 
 /**
- * Task queue
+ * This class stores all tasks (as WrappedTasks) in the queue of task controller
+ * and also provides data for TaskProgressWindow (as TableModel).
  */
-class TaskQueue implements TableModel {
+class TaskQueue extends AbstractTableModel {
 
-    private static final int DEFAULT_CAPACITY = 64;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private WrappedTask[] queue;
-    private int size, capacity;
+	private static final int DEFAULT_CAPACITY = 64;
 
-    private HashSet<TableModelListener> listeners;
-    private Hashtable<Integer, LabeledProgressBar> progressBars;
+	/**
+	 * This array stores the actual tasks
+	 */
+	private WrappedTask[] queue;
 
-    TaskQueue() {
+	/**
+	 * Current size of the queue
+	 */
+	private int size;
 
-        size = 0;
-        capacity = DEFAULT_CAPACITY;
-        queue = new WrappedTask[capacity];
-        listeners = new HashSet<TableModelListener>();
-        progressBars = new Hashtable<Integer, LabeledProgressBar>();
+	private Hashtable<Integer, LabeledProgressBar> progressBars;
 
-    }
+	TaskQueue() {
+		size = 0;
+		queue = new WrappedTask[DEFAULT_CAPACITY];
+		progressBars = new Hashtable<Integer, LabeledProgressBar>();
+	}
 
-    synchronized void addWrappedTask(WrappedTask task) {
+	synchronized void addWrappedTask(WrappedTask task) {
 
-        if (size == capacity) {
-            capacity *= 2;
-            WrappedTask[] temp = new WrappedTask[capacity];
-            // copy the old queue to the new one
-            for (int i = 0; i < queue.length; i++)
-                temp[i] = queue[i];
-            queue = temp;
-        }
+		logger.finest("Adding task \"" + task
+				+ "\" to the task controller queue");
 
-        queue[size] = task;
-        size++;
+		// If the queue is full, make a bigger queue
+		if (size == queue.length) {
+			WrappedTask[] newQueue = new WrappedTask[queue.length * 2];
+			System.arraycopy(queue, 0, newQueue, 0, size);
+			queue = newQueue;
+		}
 
-        resort();
-        fireRowsChanged();
+		queue[size] = task;
+		size++;
 
-    }
+		// Call fireTableDataChanged because we have a new row and order of rows
+		// may have changed
+		fireTableDataChanged();
 
-    synchronized void clear() {
-        size = 0;
-        capacity = DEFAULT_CAPACITY;
-        queue = new WrappedTask[capacity];
-        fireRowsChanged();
-    }
+	}
 
-    synchronized void resort() {
-        Arrays.sort(queue, 0, size);
-    }
+	synchronized void clear() {
+		size = 0;
+		queue = new WrappedTask[DEFAULT_CAPACITY];
+		fireTableDataChanged();
+	}
 
-    synchronized void refresh() {
+	/**
+	 * Refresh the queue (reorder the tasks according to priority) and send a
+	 * signal to Tasks in progress window to redraw updated data, such as task
+	 * status and finished percentages.
+	 */
+	synchronized void refresh() {
 
-        resort();
+		// We must not call fireTableDataChanged, because that would clear the
+		// selection in the task window
+		fireTableRowsUpdated(0, size - 1);
 
-        // We must not call fireRowsChanged, because that would clear the
-        // selection in the task window
-        TableModelEvent te = new TableModelEvent(this, 0, size - 1);
-        Iterator<TableModelListener> listenerIterator = listeners.iterator();
-        while (listenerIterator.hasNext()) {
-            TableModelListener eventListener = listenerIterator.next();
-            eventListener.tableChanged(te);
-        }
+	}
 
-    }
+	synchronized boolean isEmpty() {
+		return size == 0;
+	}
 
-    synchronized WrappedTask getWrappedTask(Task t) {
+	synchronized boolean allTasksFinished() {
+		for (int i = 0; i < size; i++) {
+			TaskStatus status = queue[i].getActualTask().getStatus();
+			if ((status == TaskStatus.PROCESSING)
+					|| (status == TaskStatus.WAITING))
+				return false;
+		}
+		return true;
+	}
 
-        for (int i = 0; i < size; i++)
-            if (queue[i].getTask() == t)
-                return queue[i];
+	synchronized WrappedTask[] getQueueSnapshot() {
+		WrappedTask[] snapshot = new WrappedTask[size];
+		System.arraycopy(queue, 0, snapshot, 0, size);
+		return snapshot;
+	}
 
-        return null;
+	/* TableModel implementation */
 
-    }
+	private static final String columns[] = { "Item", "Priority", "Status",
+			"% done" };
 
-    synchronized WrappedTask getWrappedTask(int index) {
+	/**
+	 * @see javax.swing.table.TableModel#getRowCount()
+	 */
+	public synchronized int getRowCount() {
+		return size;
+	}
 
-        if ((index < 0) || (index >= size))
-            return null;
-        else
-            return queue[index];
+	/**
+	 * @see javax.swing.table.TableModel#getColumnCount()
+	 */
+	public int getColumnCount() {
+		return columns.length;
+	}
 
-    }
+	public String getColumnName(int column) {
+		return columns[column];
+	}
 
-    synchronized boolean isEmpty() {
-        return size == 0;
-    }
+	/**
+	 * @see javax.swing.table.TableModel#getValueAt(int, int)
+	 */
+	public synchronized Object getValueAt(int row, int column) {
 
-    synchronized boolean allTasksFinished() {
-        for (int i = 0; i < size; i++) {
-            TaskStatus status = queue[i].getTask().getStatus();
-            if ((status == TaskStatus.PROCESSING)
-                    || (status == TaskStatus.WAITING))
-                return false;
-        }
-        return true;
-    }
+		if (row < size) {
 
-    synchronized WrappedTask[] getQueueSnapshot() {
+			WrappedTask wrappedTask = queue[row];
+			Task actualTask = wrappedTask.getActualTask();
 
-        WrappedTask[] snapshot = new WrappedTask[size];
-        for (int i = 0; i < size; i++)
-            snapshot[i] = queue[i];
-        return snapshot;
+			switch (column) {
+			case 0:
+				return actualTask.getTaskDescription();
+			case 1:
+				return wrappedTask.getPriority();
+			case 2:
+				return actualTask.getStatus();
+			case 3:
+				double finishedPercentage = actualTask.getFinishedPercentage();
+				LabeledProgressBar progressBar = progressBars.get(row);
+				if (progressBar == null) {
+					progressBar = new LabeledProgressBar(finishedPercentage);
+					progressBars.put(row, progressBar);
+				} else {
+					progressBar.setValue(finishedPercentage);
+				}
+				return progressBar;
+			}
+		}
 
-    }
+		return null;
 
-    private void fireRowsChanged() {
+	}
 
-        TableModelEvent te = new TableModelEvent(this);
+	/**
+	 * @see javax.swing.table.TableModel#getColumnClass(int)
+	 */
+	public Class<?> getColumnClass(int column) {
+		switch (column) {
+		case 0:
+			return String.class;
+		case 1:
+			return TaskPriority.class;
+		case 2:
+			return TaskStatus.class;
+		case 3:
+			return LabeledProgressBar.class;
+		}
+		return null;
 
-        Iterator<TableModelListener> listenerIterator = listeners.iterator();
-
-        while (listenerIterator.hasNext()) {
-
-            TableModelListener eventListener = listenerIterator.next();
-            eventListener.tableChanged(te);
-
-        }
-
-    }
-
-    /* TableModel implementation */
-
-    private static final String columns[] = { "Item", "Priority", "Status",
-            "% done" };
-
-    /**
-     * @see javax.swing.table.TableModel#getRowCount()
-     */
-    public int getRowCount() {
-        return size;
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#getColumnCount()
-     */
-    public int getColumnCount() {
-        return columns.length;
-    }
-
-    public String getColumnName(int column) {
-        return columns[column];
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#getValueAt(int, int)
-     */
-    public synchronized Object getValueAt(int row, int column) {
-
-        if (row < size) {
-
-            WrappedTask task = queue[row];
-
-            switch (column) {
-            case 0:
-                return task.getTask().getTaskDescription();
-            case 1:
-                return task.getPriority();
-            case 2:
-                return task.getTask().getStatus();
-            case 3:
-                LabeledProgressBar progressBar = progressBars.get(row);
-                if (progressBar == null) {
-                    progressBar = new LabeledProgressBar(
-                            task.getTask().getFinishedPercentage());
-                    progressBars.put(row, progressBar);
-                } else {
-                    progressBar.setValue(task.getTask().getFinishedPercentage());
-                }
-                return progressBar;
-            }
-        }
-
-        return null;
-
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#getColumnClass(int)
-     */
-    public Class<?> getColumnClass(int column) {
-        switch (column) {
-        case 0:
-            return String.class;
-        case 1:
-            return TaskPriority.class;
-        case 2:
-            return TaskStatus.class;
-        case 3:
-            return LabeledProgressBar.class;
-        }
-        return null;
-
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#isCellEditable(int, int)
-     */
-    public boolean isCellEditable(int row, int col) {
-        return false;
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#setValueAt(java.lang.Object, int, int)
-     */
-    public void setValueAt(Object val, int row, int col) {
-        // do nothing
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#addTableModelListener(javax.swing.event.TableModelListener)
-     */
-    public void addTableModelListener(TableModelListener listener) {
-        listeners.add(listener);
-    }
-
-    /**
-     * @see javax.swing.table.TableModel#removeTableModelListener(javax.swing.event.TableModelListener)
-     */
-    public void removeTableModelListener(TableModelListener listener) {
-        listeners.remove(listener);
-    }
+	}
 
 }

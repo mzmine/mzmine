@@ -72,7 +72,7 @@ public class MZviewer extends MZmineCore implements Runnable {
             logger.info("MZviewer starting");
 
             // create instances of core modules
-            TaskControllerImpl taskController = new TaskControllerImpl(1);
+			TaskControllerImpl taskController = new TaskControllerImpl();
             desktop = new MZviewerWindow();
             ProjectManagerImpl projectManager = new ProjectManagerImpl();
 
@@ -83,9 +83,17 @@ public class MZviewer extends MZmineCore implements Runnable {
 
             logger.finer("Initializing core classes");
 
-            taskController.initModule();
-            projectManager.initModule();
-            desktop.initModule();
+			// First initialize project manager, because desktop needs to
+			// register project listener
+			projectManager.initModule();
+
+			// Second, initialize desktop, because task controller needs to add
+			// TaskProgressWindow to the desktop
+			desktop.initModule();
+
+			// Last, initialize task controller
+			taskController.initModule();
+
             
             logger.finer("Loading modules");
 

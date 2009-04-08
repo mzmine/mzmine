@@ -25,43 +25,44 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 /**
  * This class serves as a replacement for Task within the task controller queue,
  * after the Task is finished. This allows the garbage collector to remove the
- * memory occupied by the actual Task.
+ * memory occupied by the actual Task while keeping the task description in the
+ * Tasks in progress window, until all tasks are finished.
  */
 public class FinishedTask implements Task {
 
-    private String description, errorMessage;
-    private TaskStatus status;
-    private double finishedPercentage;
+	private String description, errorMessage;
+	private TaskStatus status;
+	private double finishedPercentage;
 
-    public FinishedTask(Task task) {
-        description = task.getTaskDescription();
-        errorMessage = task.getErrorMessage();
-        status = task.getStatus();
-        finishedPercentage = task.getFinishedPercentage();
-    }
+	public FinishedTask(Task task) {
+		description = task.getTaskDescription();
+		errorMessage = task.getErrorMessage();
+		status = task.getStatus();
+		finishedPercentage = task.getFinishedPercentage();
+	}
 
-    public void cancel() {
-    }
+	public void cancel() {
+	}
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    public double getFinishedPercentage() {
-        return finishedPercentage;
-    }
+	public double getFinishedPercentage() {
+		return finishedPercentage;
+	}
 
-    public TaskStatus getStatus() {
-        return status;
-    }
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    public String getTaskDescription() {
-        return description;
-    }
+	public String getTaskDescription() {
+		return description;
+	}
 
-    public void run() {
-        throw new IllegalStateException();
-    }
+	public void run() {
+		throw new IllegalStateException();
+	}
 
 	public Object[] getCreatedObjects() {
 		return null;
