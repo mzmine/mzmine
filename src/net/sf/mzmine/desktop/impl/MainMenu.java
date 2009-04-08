@@ -24,7 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-import javax.swing.JDesktopPane;
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -37,8 +36,6 @@ import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
-import ca.guydavis.swing.desktop.JWindowsMenu;
-import ca.guydavis.swing.desktop.WindowPositioner;
 
 /**
  * This class represents the main menu of MZmine desktop
@@ -50,7 +47,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
             peakListFilteringMenu, alignmentMenu, normalizationMenu,
             identificationMenu, dataAnalysisMenu, peakListExportMenu;
 
-    private JWindowsMenu windowsMenu;
+    private WindowsMenu windowsMenu;
 
     private JMenuItem projectOpen, projectSave, projectSaveAs,
             projectSampleParameters, projectFormats, projectSaveParameters,
@@ -174,11 +171,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
          * Windows menu
          */
 
-        MainPanel mainPanel = ((MainWindow) MZmineCore.getDesktop()).getMainPanel();
-        JDesktopPane mainDesktopPane = mainPanel.getDesktopPane();
-        windowsMenu = new JWindowsMenu(mainDesktopPane);
-        WindowPositioner positioner = mainPanel.getWindowPositioner();
-        windowsMenu.setWindowPositioner(positioner);
+        windowsMenu = new WindowsMenu();
         windowsMenu.setMnemonic(KeyEvent.VK_W);
         this.add(windowsMenu);
 

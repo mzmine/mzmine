@@ -32,10 +32,8 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -53,6 +51,7 @@ import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.desktop.impl.MainPanel;
 import net.sf.mzmine.desktop.impl.ProjectTree;
 import net.sf.mzmine.desktop.impl.SwingParameters;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.mzmineclient.MZmineCore;
 import net.sf.mzmine.main.mzmineclient.MZmineModule;
 import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
@@ -61,8 +60,6 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
-import ca.guydavis.swing.desktop.CascadingWindowPositioner;
-import ca.guydavis.swing.desktop.JWindowsMenu;
 
 public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener, InternalFrameListener, ActionListener {
@@ -200,13 +197,7 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         visualizationMenu = new JMenu("Visualization");
         menuBar.add(visualizationMenu);
 
-        JDesktopPane mainDesktopPane = mainPanel.getDesktopPane();
-        JWindowsMenu windowsMenu = new JWindowsMenu(mainDesktopPane);
-        CascadingWindowPositioner positioner = new CascadingWindowPositioner(
-                mainDesktopPane);
-        windowsMenu.setWindowPositioner(positioner);
-        windowsMenu.getMenuComponent(2).setVisible(false);
-        windowsMenu.getMenuComponent(3).setVisible(false);
+        WindowsMenu windowsMenu = new WindowsMenu();
         windowsMenu.setMnemonic(KeyEvent.VK_W);
 
         menuBar.add(windowsMenu);
@@ -228,7 +219,8 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
         setTitle("MZviewer");
 
         taskList = new TaskProgressWindow();
-        mainPanel.getDesktopPane().add(taskList, JLayeredPane.DEFAULT_LAYER);
+        addInternalFrame(taskList);
+		taskList.setVisible(false);
 
     }
 
@@ -243,14 +235,14 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
      * @see net.sf.mzmine.desktop.Desktop#getSelectedFrame()
      */
     public JInternalFrame getSelectedFrame() {
-        return mainPanel.getDesktopPane().getSelectedFrame();
+        return mainPanel.getSelectedFrame();
     }
 
     /**
      * @see net.sf.mzmine.desktop.Desktop#getInternalFrames()
      */
     public JInternalFrame[] getInternalFrames() {
-        return mainPanel.getDesktopPane().getAllFrames();
+        return mainPanel.getInternalFrames();
     }
 
     /**

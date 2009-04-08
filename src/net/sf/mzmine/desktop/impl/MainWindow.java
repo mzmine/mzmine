@@ -264,11 +264,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     public JInternalFrame[] getInternalFrames() {
-        return mainPanel.getDesktopPane().getAllFrames();
+        return mainPanel.getInternalFrames();
     }
 
     public JInternalFrame getSelectedFrame() {
-        return mainPanel.getDesktopPane().getSelectedFrame();
+        return mainPanel.getSelectedFrame();
     }
 
 }

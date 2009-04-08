@@ -22,8 +22,7 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Point;
-import java.util.Arrays;
+import java.util.ArrayList;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
@@ -33,73 +32,108 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
 
-import ca.guydavis.swing.desktop.CascadingWindowPositioner;
-import ca.guydavis.swing.desktop.WindowPositioner;
-
 /**
  * This class is the main window of application
  * 
  */
 public class MainPanel extends JPanel {
 
-    private JDesktopPane desktopPane;
-    private CascadingWindowPositioner windowPositioner;
-    private JSplitPane split;
-    private ProjectTree projectTree;
-    private StatusBar statusBar;
+	private JDesktopPane desktopPane;
+	private JSplitPane split;
+	private ProjectTree projectTree;
+	private StatusBar statusBar;
 
-    /**
+	/**
      */
-    public MainPanel() {
+	public MainPanel() {
 
-        super(new BorderLayout());
+		super(new BorderLayout());
 
-        // Initialize item selector
-        projectTree = new ProjectTree();
+		// Initialize item selector
+		projectTree = new ProjectTree();
 
-        JScrollPane projectTreeScroll = new JScrollPane(projectTree);
-        projectTreeScroll.setMinimumSize(new Dimension(200, 200));
+		JScrollPane projectTreeScroll = new JScrollPane(projectTree);
+		projectTreeScroll.setMinimumSize(new Dimension(200, 200));
 
-        // Place objects on main window
-        desktopPane = new JDesktopPane();
-        desktopPane.setBackground(new Color(65, 105, 170));
-        desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-        desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+		// Place objects on main window
+		desktopPane = new JDesktopPane();
+		desktopPane.setBackground(new Color(65, 105, 170));
+		desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+		desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
 
-        windowPositioner = new CascadingWindowPositioner(desktopPane);
+		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectTreeScroll,
+				desktopPane);
 
-        split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectTreeScroll,
-                desktopPane);
+		add(split, BorderLayout.CENTER);
 
-        add(split, BorderLayout.CENTER);
+		statusBar = new StatusBar();
+		add(statusBar, BorderLayout.SOUTH);
 
-        statusBar = new StatusBar();
-        add(statusBar, BorderLayout.SOUTH);
+	}
 
-    }
+	public void addInternalFrame(JInternalFrame newFrame) {
 
-    public void addInternalFrame(JInternalFrame frame) {
-        desktopPane.add(frame, JLayeredPane.DEFAULT_LAYER);
-        frame.setVisible(true);
-        Point location = windowPositioner.getPosition(frame,
-                Arrays.asList(desktopPane.getAllFrames()));
-        frame.setLocation(location.x, location.y);
-    }
+		// Find optimal position for the new frame
+		int x = 0;
+		int y = 0;
 
-    public JDesktopPane getDesktopPane() {
-        return desktopPane;
-    }
+		JInternalFrame visibleFrames[] = getInternalFrames();
 
-    public ProjectTree getProjectTree() {
-        return projectTree;
-    }
+		if (visibleFrames.length > 0) {
 
-    public StatusBar getStatusBar() {
-        return statusBar;
-    }
+			outer: while (true) {
+				for (JInternalFrame f : visibleFrames) {
+					if ((f.getLocation().x == x) && (f.getLocation().y == y)) {
+						x += 30;
+						y += 30;
 
-    public WindowPositioner getWindowPositioner() {
-        return windowPositioner;
-    }
+						if ((x + newFrame.getWidth()) > desktopPane.getWidth())
+							x = 0;
+
+						if ((y + newFrame.getHeight()) > desktopPane
+								.getHeight())
+							y = 0;
+
+						if ((x == 0) && (y == 0)) {
+							break outer;
+						}
+
+						continue outer;
+					}
+				}
+				break outer;
+			}
+		}
+
+		desktopPane.add(newFrame, JLayeredPane.DEFAULT_LAYER);
+		newFrame.setLocation(x, y);
+		newFrame.setVisible(true);
+
+	}
+
+	public JInternalFrame[] getInternalFrames() {
+		ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
+		for (JInternalFrame frame : desktopPane.getAllFrames()) {
+			if (frame.isVisible())
+				visibleFrames.add(frame);
+		}
+		return visibleFrames.toArray(new JInternalFrame[0]);
+	}
+
+	public JInternalFrame getSelectedFrame() {
+		return desktopPane.getSelectedFrame();
+	}
+	
+	public JDesktopPane getDesktopPane() {
+		return desktopPane;
+	}
+
+	public ProjectTree getProjectTree() {
+		return projectTree;
+	}
+
+	public StatusBar getStatusBar() {
+		return statusBar;
+	}
 
 }

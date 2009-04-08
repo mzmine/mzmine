@@ -66,11 +66,11 @@ public interface Desktop extends MZmineModule {
      */
     public void addInternalFrame(JInternalFrame frame);
 
-    /**
-     * Returns all internal frames in the desktop pane
-     * 
-     * @return Array of all internal frames
-     */
+	/**
+	 * Returns all visible internal frames in the desktop pane
+	 * 
+	 * @return Array of all internal frames
+	 */
     public JInternalFrame[] getInternalFrames();
 
     /**
