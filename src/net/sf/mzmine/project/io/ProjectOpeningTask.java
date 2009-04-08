@@ -21,6 +21,7 @@ package net.sf.mzmine.project.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.DoubleBuffer;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
@@ -41,9 +42,7 @@ public class ProjectOpeningTask implements Task {
 	private ZipInputStream zipStream;
 	ProjectSerializer projectSerializer;
 	RawDataFileSerializer rawDataFileSerializer;
-	private int currentStage;
-	
-	private double progress, numberOfDatasetsPercentage;
+	private int currentStage,  rawDataCount;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
@@ -53,14 +52,14 @@ public class ProjectOpeningTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		String taskDescription = "Opening project " + openFile;
+		String taskDescription = "Opening project ";
 		switch (currentStage) {
 			case 2:
-				return taskDescription + " (raw data points)";
+				return taskDescription + "(raw data points) " + this.projectSerializer.getRawDataNames()[rawDataCount];
 			case 3:
-				return taskDescription + " (peak list objects)";
+				return taskDescription + "(peak list objects)";
 			default:
-				return taskDescription;
+				return taskDescription + openFile;
 		}
 
 	}
@@ -71,13 +70,12 @@ public class ProjectOpeningTask implements Task {
 	public double getFinishedPercentage() {
 		switch (currentStage) {
 			case 2:
-				try{
-					progress = numberOfDatasetsPercentage + (double)rawDataFileSerializer.getProgress()*1/this.projectSerializer.getNumOfRawDataFiles();
-					return progress;
-				}catch(Exception e){
+				try {
+					return (double) rawDataFileSerializer.getProgress();
+				} catch (Exception e) {
 					return 0f;
 				}
-				
+
 			case 3:
 				return 1f;
 			default:
@@ -162,10 +160,9 @@ public class ProjectOpeningTask implements Task {
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
-		rawDataFileSerializer = new RawDataFileSerializer(this.zipStream);	
-		for (int i = 0; i < this.projectSerializer.getNumOfRawDataFiles(); i++) {
+		rawDataFileSerializer = new RawDataFileSerializer(this.zipStream);
+		for (int i = 0; i < this.projectSerializer.getNumOfRawDataFiles(); i++, rawDataCount++) {
 			rawDataFileSerializer.readRawDataFile();
-			numberOfDatasetsPercentage += (double)1/this.projectSerializer.getNumOfRawDataFiles();
 		}
 	}
 

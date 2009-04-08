@@ -19,10 +19,6 @@
 package net.sf.mzmine.project.io;
 
 import net.sf.mzmine.project.impl.*;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,71 +33,49 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-
 import org.dom4j.Document;
-import org.dom4j.DocumentFactory;
-import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.jfree.xml.util.Base64;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
-public class RawDataFileSerializer extends DefaultHandler {
+public class RawDataFileSerializer {
 
 	private ZipOutputStream zipOutputStream;
 	private ZipInputStream zipInputStream;
-	private StringBuffer charBuffer;
-	private RawDataFileWriter rawDataFileWriter;
 	private DoubleBuffer doubleBuffer;
-	private int scansReaded;
-	private Double progress;
-	private int numberOfScans;
-	private int ScanNumber;
-	private int msLevel;
-	private int parentScan;
-	private int[] fragmentScan;
-	private double precursorMZ;
-	private double retentionTime;
-	private boolean centroided;
-	private int dataPointsNumber;
+	RawDataFileOpen rawDataFileOpen;
 
 	public RawDataFileSerializer(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
 	}
 
 	public RawDataFileSerializer(ZipInputStream zipInputStream) {
-		this.zipInputStream = zipInputStream;		
+		this.zipInputStream = zipInputStream;
 	}
 
-	public Double getProgress() {
-		return progress;
+	public double getProgress() {
+		if (rawDataFileOpen != null) {
+			return rawDataFileOpen.getProgress();
+		} else {
+			return 0.0;
+		}
 	}
 
 	public void writeRawDataFiles(RawDataFile rawDataFile) {
 		try {
 
-			this.progress = new Double(0);
-			this.scansReaded = 0;
-			
 			int cont = 0;
 			String newName = rawDataFile.getName() + "-" + cont++;
 
 			zipOutputStream.putNextEntry(new ZipEntry(newName));
 			copyFile(((RawDataFileImpl) rawDataFile).getScanDataFileasFile(), zipOutputStream);
 
-			Document document = this.saveRawDataInformation(rawDataFile);
+			RawDataFileSave rawDataFileSave = new RawDataFileSave();
+			Document document = rawDataFileSave.saveRawDataInformation(rawDataFile);
 
 			zipOutputStream.putNextEntry(new ZipEntry(newName + ".description"));
 			OutputStream finalStream = zipOutputStream;
@@ -163,12 +137,16 @@ public class RawDataFileSerializer extends DefaultHandler {
 			doubleBuffer = bbuffer.asDoubleBuffer();
 
 			// Reads RawDataDescription
+			rawDataFileOpen = new RawDataFileOpen(doubleBuffer);
+
 			zipInputStream.getNextEntry();
 			InputStream InputStream = new UnclosableInputStream(zipInputStream);
-			charBuffer = new StringBuffer();
+
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(InputStream, this);
+			saxParser.parse(InputStream, rawDataFileOpen);
+
+			RawDataFileWriter rawDataFileWriter = rawDataFileOpen.getRawDataFile();
 
 			RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
 			MZmineCore.getCurrentProject().addFile(rawDataFile);
@@ -177,181 +155,5 @@ public class RawDataFileSerializer extends DefaultHandler {
 		} catch (Exception ex) {
 			Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
 		}
-	}
-
-	private Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
-		Element newElement;
-		Document document = DocumentFactory.getInstance().createDocument();
-		Element saveRoot = document.addElement(RawDataElementName.RAWDATA.getElementName());
-
-		// <NAME>
-		newElement = saveRoot.addElement(RawDataElementName.NAME.getElementName());
-		newElement.addText(rawDataFile.getName());
-
-		// <QUANTITY>
-		newElement = saveRoot.addElement(RawDataElementName.QUANTITY_SCAN.getElementName());
-		newElement.addText(String.valueOf(rawDataFile.getNumOfScans()));
-
-		for (int scanNumber : rawDataFile.getScanNumbers()) {
-			newElement = saveRoot.addElement(RawDataElementName.SCAN.getElementName());
-			Scan scan = rawDataFile.getScan(scanNumber);
-			this.fillScanElement(scan, newElement);
-		}
-		return document;
-	}
-
-	private void fillScanElement(Scan scan, Element element) {
-		Element newElement;
-		newElement = element.addElement(RawDataElementName.SCAN_ID.getElementName());
-		newElement.addText(String.valueOf(scan.getScanNumber()));
-
-		newElement = element.addElement(RawDataElementName.MS_LEVEL.getElementName());
-		newElement.addText(String.valueOf(scan.getMSLevel()));
-
-		newElement = element.addElement(RawDataElementName.PARENT_SCAN.getElementName());
-		newElement.addText(String.valueOf(scan.getParentScanNumber()));
-
-		newElement = element.addElement(RawDataElementName.PRECURSOR_MZ.getElementName());
-		newElement.addText(String.valueOf(scan.getPrecursorMZ()));
-
-		newElement = element.addElement(RawDataElementName.RETENTION_TIME.getElementName());
-		newElement.addText(String.valueOf(scan.getRetentionTime()));
-
-		newElement = element.addElement(RawDataElementName.CENTROIDED.getElementName());
-		newElement.addText(String.valueOf(scan.isCentroided()));
-
-		newElement = element.addElement(RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
-		newElement.addText(String.valueOf(scan.getNumberOfDataPoints()));
-
-		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
-		if (scan.getFragmentScanNumbers() == null) {
-			newElement.addAttribute("quantity", "0");
-			return;
-		}
-		newElement.addAttribute("quantity", String.valueOf(scan.getFragmentScanNumbers().length));
-
-		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
-		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
-
-
-		for (int fragmentNumber : scan.getFragmentScanNumbers()) {
-			try {
-				dataScanStream.writeInt(fragmentNumber);
-				dataScanStream.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		char[] bytes = Base64.encode(byteScanStream.toByteArray());
-		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
-		newElement.addText(new String(bytes));
-	}
-
-	public void startElement(String namespaceURI, String lName, // local name
-			String qName, // qualified name
-			Attributes attrs) throws SAXException {
-
-		if (qName.equals(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName())) {
-			this.fragmentScan = new int[Integer.parseInt(attrs.getValue("quantity"))];
-		}
-	}
-
-	public void endElement(String namespaceURI, String sName, // simple name
-			String qName // qualified name
-			) throws SAXException {
-
-		// <NAME>
-		if (qName.equals(RawDataElementName.NAME.getElementName())) {
-			try {
-				this.rawDataFileWriter = MZmineCore.createNewFile(getTextOfElement());
-				this.scansReaded = 0;
-			} catch (IOException ex) {
-				Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
-			}
-		}
-
-		if (qName.equals(RawDataElementName.QUANTITY_SCAN.getElementName())) {
-			numberOfScans = Integer.parseInt(getTextOfElement());
-		}
-
-		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
-
-			this.ScanNumber = Integer.parseInt(getTextOfElement());
-			progress = (double)scansReaded/numberOfScans;
-			scansReaded++;
-			System.out.println(progress + " - " + scansReaded + " - " + numberOfScans);
-		}
-
-		if (qName.equals(RawDataElementName.MS_LEVEL.getElementName())) {
-			this.msLevel = Integer.parseInt(getTextOfElement());
-		}
-
-		if (qName.equals(RawDataElementName.PARENT_SCAN.getElementName())) {
-			this.parentScan = Integer.parseInt(getTextOfElement());
-		}
-
-		if (qName.equals(RawDataElementName.PRECURSOR_MZ.getElementName())) {
-			this.precursorMZ = Double.parseDouble(getTextOfElement());
-		}
-		if (qName.equals(RawDataElementName.RETENTION_TIME.getElementName())) {
-			this.retentionTime = Double.parseDouble(getTextOfElement());
-		}
-		if (qName.equals(RawDataElementName.CENTROIDED.getElementName())) {
-			this.centroided = Boolean.parseBoolean(getTextOfElement());
-		}
-		if (qName.equals(RawDataElementName.QUANTITY_DATAPOINTS.getElementName())) {
-			this.dataPointsNumber = Integer.parseInt(getTextOfElement());
-		}
-		if (qName.equals(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName())) {
-			byte[] bytes = Base64.decode(getTextOfElement().toCharArray());
-			// make a data input stream
-			DataInputStream dataInputStream = new DataInputStream(
-					new ByteArrayInputStream(bytes));
-			if (this.fragmentScan != null) {
-				for (int i = 0; i < this.fragmentScan.length; i++) {
-					try {
-						fragmentScan[i] = dataInputStream.readInt();
-					} catch (IOException ex) {
-						Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
-					}
-				}
-			}
-		}
-		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
-			try {
-				DataPoint[] dataPoints = new DataPoint[this.dataPointsNumber];
-				for (int j = 0; j < this.dataPointsNumber; j++) {
-					dataPoints[j] = new SimpleDataPoint(doubleBuffer.get(), doubleBuffer.get());
-				}
-				Scan scan = new SimpleScan((RawDataFileImpl) rawDataFileWriter, this.ScanNumber, this.msLevel, this.retentionTime, this.parentScan, this.precursorMZ, this.fragmentScan, dataPoints, this.centroided);
-				rawDataFileWriter.addScan(scan);
-			} catch (IOException ex) {
-				Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
-			}
-
-		}
-	}
-
-	/**
-	 * Return a string without tab an EOF characters
-	 *
-	 * @return String element text
-	 */
-	private String getTextOfElement() {
-		String text = charBuffer.toString();
-		text = text.replaceAll("[\n\r\t]+", "");
-		text = text.replaceAll("^\\s+", "");
-		charBuffer.delete(0, charBuffer.length());
-		return text;
-	}
-
-	/**
-	 * characters()
-	 *
-	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
-	 */
-	public void characters(char buf[], int offset, int len) throws SAXException {
-		charBuffer = charBuffer.append(buf, offset, len);
 	}
 }

@@ -18,16 +18,12 @@
  */
 package net.sf.mzmine.project.io;
 
-import java.io.BufferedInputStream;
-import javax.xml.parsers.ParserConfigurationException;
 import net.sf.mzmine.project.impl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,9 +32,8 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
@@ -51,9 +46,11 @@ import org.xml.sax.helpers.DefaultHandler;
 public class ProjectSerializer extends DefaultHandler {
 
 	private ZipOutputStream zipOutputStream;
-	ZipInputStream zipInputStream;
+	private ZipInputStream zipInputStream;
 	private StringBuffer charBuffer;
-	private int numRawDataFiles,  numPeakLists;	
+	private int numRawDataFiles,  numPeakLists;
+	private String[] names;
+	private int cont;
 
 	public ProjectSerializer(ZipOutputStream zipStream) {
 		this.zipOutputStream = zipStream;
@@ -110,7 +107,7 @@ public class ProjectSerializer extends DefaultHandler {
 	public void openProjectDescription() {
 		try {
 			zipInputStream.getNextEntry();
-			InputStream InputStream =  new UnclosableInputStream(zipInputStream);
+			InputStream InputStream = new UnclosableInputStream(zipInputStream);
 
 			charBuffer = new StringBuffer();
 			SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -126,9 +123,10 @@ public class ProjectSerializer extends DefaultHandler {
 		Document document = DocumentFactory.getInstance().createDocument();
 		Element saveRoot = document.addElement("project");
 
-		// <NUM_DATAFILES>
-		newElement = saveRoot.addElement("num_datafiles");
-		newElement.addText(String.valueOf(project.getDataFiles().length));
+		// <RAWDATAFILES>
+		newElement = saveRoot.addElement("rawdata");
+		newElement.addAttribute("quantity", String.valueOf(project.getDataFiles().length));
+		this.fillRawDataNames(newElement, project);
 
 		// <NUM_PEAKLISTS>
 		newElement = saveRoot.addElement("num_peaklist");
@@ -137,17 +135,31 @@ public class ProjectSerializer extends DefaultHandler {
 		return document;
 	}
 
+	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
+		Element newElement;
+		for (RawDataFile dataFile : project.getDataFiles()) {
+			// <NUM_DATAFILES>
+			newElement = element.addElement("name");
+			newElement.addText(dataFile.getName());
+		}
+	}
+
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
+		if (qName.equals("rawdata")) {
+			numRawDataFiles = Integer.parseInt(attrs.getValue("quantity"));
+			this.names = new String[numRawDataFiles];
+		}
+
 	}
 
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
 			) throws SAXException {
 
-		if (qName.equals("num_datafiles")) {
-			numRawDataFiles = Integer.parseInt(getTextOfElement());
+		if (qName.equals("name")) {
+			this.names[cont++] = getTextOfElement();
 		}
 
 		if (qName.equals("num_peaklist")) {
@@ -177,11 +189,15 @@ public class ProjectSerializer extends DefaultHandler {
 		charBuffer = charBuffer.append(buf, offset, len);
 	}
 
-	public int getNumOfRawDataFiles(){
+	public int getNumOfRawDataFiles() {
 		return numRawDataFiles;
 	}
 
-	public int getNumOfPeakLists(){
+	public int getNumOfPeakLists() {
 		return numPeakLists;
+	}
+
+	public String[] getRawDataNames(){
+		return this.names;
 	}
 }
