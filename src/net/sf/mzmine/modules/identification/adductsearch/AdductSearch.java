@@ -28,7 +28,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
@@ -46,14 +46,14 @@ public class AdductSearch implements BatchStep, ActionListener {
 	private AdductSearchParameters parameters;
 
 	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
 
@@ -71,7 +71,7 @@ public class AdductSearch implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
 		this.parameters = (AdductSearchParameters) parameterValues;

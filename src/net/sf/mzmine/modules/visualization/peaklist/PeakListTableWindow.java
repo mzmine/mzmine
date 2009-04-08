@@ -31,7 +31,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.util.dialogs.ExitCode;

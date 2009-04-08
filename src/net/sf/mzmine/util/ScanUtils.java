@@ -26,7 +26,7 @@ import java.util.Arrays;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Scan related utilities

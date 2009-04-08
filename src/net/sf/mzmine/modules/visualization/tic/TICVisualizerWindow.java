@@ -33,7 +33,7 @@ import javax.swing.JInternalFrame;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.util.Range;
 

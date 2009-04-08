@@ -31,11 +31,12 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
+import net.sf.mzmine.util.dialogs.PreferencesDialog;
 
 /**
  * This class represents the main menu of MZmine desktop
@@ -50,7 +51,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
     private WindowsMenu windowsMenu;
 
     private JMenuItem projectOpen, projectSave, projectSaveAs,
-            projectSampleParameters, projectFormats, projectSaveParameters,
+            projectSampleParameters, projectFormats, projectPreferences,
+			projectSaveParameters,
             projectLoadParameters, projectExit;
 
     private int projectMenuIndex = 4, rawDataMenuIndex = 0,
@@ -89,6 +91,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
         projectFormats = GUIUtils.addMenuItem(projectMenu,
                 "Set number formats...", this, KeyEvent.VK_F);
 
+        projectPreferences = GUIUtils.addMenuItem(projectMenu,
+				"Set preferences...", this, KeyEvent.VK_S);
+        
         projectMenu.addSeparator();
 
         projectSaveParameters = GUIUtils.addMenuItem(projectMenu,
@@ -314,6 +319,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
             FormatSetupDialog formatDialog = new FormatSetupDialog();
             formatDialog.setVisible(true);
         }
+        
+        if (src == projectPreferences) {
+			PreferencesDialog preferencesDialog = new PreferencesDialog();
+			preferencesDialog.setVisible(true);
+		}
 
     }
 }

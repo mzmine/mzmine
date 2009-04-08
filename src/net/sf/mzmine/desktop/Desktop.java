@@ -28,8 +28,7 @@ import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
-import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.main.MZmineModule;
 
 /**
  * This interface represents the application GUI
@@ -144,27 +143,5 @@ public interface Desktop extends MZmineModule {
      * @return Array of selected peak lists
      */
     public PeakList[] getSelectedPeakLists();
-    
-    /**
-     * Returns the default formatter for intensities
-     * 
-     * @return NumberFormatter
-     */
-    public NumberFormatter getIntensityFormat();
-    
-    /**
-     * Returns the default formatter for masses
-     * 
-     * @return NumberFormatter
-     */
-    public NumberFormatter getMZFormat();
-
-    /**
-     * Returns the default formatter for retention time
-     * 
-     * @return NumberFormatter
-     */
-    public NumberFormatter getRTFormat();
-    
 
 }

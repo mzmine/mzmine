@@ -33,7 +33,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
@@ -41,158 +41,147 @@ import net.sf.mzmine.util.components.HelpButton;
 
 public class FormatSetupDialog extends JDialog implements ActionListener {
 
-    public static final int TEXTFIELD_COLUMNS = 12;
+	public static final int TEXTFIELD_COLUMNS = 12;
 
-    private ExitCode exitCode = ExitCode.UNKNOWN;
+	// NumberFormatter instances
+	private NumberFormatter mzFormat, rtFormat, intensityFormat;
 
-    // NumberFormatter instances
-    private NumberFormatter mzFormat, rtFormat, intensityFormat;
+	// Dialog controls
+	private JButton btnOK, btnCancel, btnHelp;
+	private JTextField mzFormatField, rtFormatField, intensityFormatField;
+	private JRadioButton timeRadioButton, numberRadioButton;
 
-    // Dialog controles
-    private JButton btnOK, btnCancel, btnHelp;
-    private JTextField mzFormatField, rtFormatField, intensityFormatField;
-    private JRadioButton timeRadioButton, numberRadioButton;
+	/**
+	 * Constructor
+	 */
+	public FormatSetupDialog() {
 
-    /**
-     * Constructor
-     */
-    public FormatSetupDialog() {
+		// Make dialog modal
+		super(MZmineCore.getDesktop().getMainFrame(), "Format setting", true);
 
-        // Make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "Format setting", true);
+		this.mzFormat = MZmineCore.getMZFormat();
+		this.rtFormat = MZmineCore.getRTFormat();
+		this.intensityFormat = MZmineCore.getIntensityFormat();
 
-        
-        this.mzFormat = MZmineCore.getMZFormat();
-        this.rtFormat = MZmineCore.getRTFormat();
-        this.intensityFormat = MZmineCore.getIntensityFormat();
+		JLabel mzFormatLabel = new JLabel("m/z format");
+		JLabel rtFormatLabel = new JLabel("Retention time format");
+		JLabel intensityFormatLabel = new JLabel("Intensity format");
 
-        JLabel mzFormatLabel = new JLabel("m/z format");
-        JLabel rtFormatLabel = new JLabel("Retention time format");
-        JLabel intensityFormatLabel = new JLabel("Intensity format");
+		mzFormatField = new JTextField(TEXTFIELD_COLUMNS);
+		JPanel mzFormatFieldPanel = new JPanel();
+		mzFormatFieldPanel.add(mzFormatField);
+		rtFormatField = new JTextField(TEXTFIELD_COLUMNS);
+		JPanel rtFormatFieldPanel = new JPanel();
+		rtFormatFieldPanel.add(rtFormatField);
+		intensityFormatField = new JTextField(TEXTFIELD_COLUMNS);
+		JPanel intensityFormatFieldPanel = new JPanel();
+		intensityFormatFieldPanel.add(intensityFormatField);
 
-        mzFormatField = new JTextField(TEXTFIELD_COLUMNS);
-        JPanel mzFormatFieldPanel = new JPanel();
-        mzFormatFieldPanel.add(mzFormatField);
-        rtFormatField = new JTextField(TEXTFIELD_COLUMNS);
-        JPanel rtFormatFieldPanel = new JPanel();
-        rtFormatFieldPanel.add(rtFormatField);
-        intensityFormatField = new JTextField(TEXTFIELD_COLUMNS);
-        JPanel intensityFormatFieldPanel = new JPanel();
-        intensityFormatFieldPanel.add(intensityFormatField);
+		ButtonGroup radioButtons = new ButtonGroup();
+		timeRadioButton = new JRadioButton("Time");
+		numberRadioButton = new JRadioButton("Number");
+		radioButtons.add(timeRadioButton);
+		radioButtons.add(numberRadioButton);
+		JPanel radioButtonsPanel = new JPanel();
+		radioButtonsPanel.add(timeRadioButton);
+		radioButtonsPanel.add(numberRadioButton);
 
-        ButtonGroup radioButtons = new ButtonGroup();
-        timeRadioButton = new JRadioButton("Time");
-        numberRadioButton = new JRadioButton("Number");
-        radioButtons.add(timeRadioButton);
-        radioButtons.add(numberRadioButton);
-        JPanel radioButtonsPanel = new JPanel();
-        radioButtonsPanel.add(timeRadioButton);
-        radioButtonsPanel.add(numberRadioButton);
+		// Create panel with controls
+		JPanel pnlLabelsAndFields = new JPanel(new GridLayout(4, 2));
+		pnlLabelsAndFields.add(mzFormatLabel);
+		pnlLabelsAndFields.add(mzFormatFieldPanel);
+		pnlLabelsAndFields.add(rtFormatLabel);
+		pnlLabelsAndFields.add(radioButtonsPanel);
+		pnlLabelsAndFields.add(new JLabel());
+		pnlLabelsAndFields.add(rtFormatFieldPanel);
+		pnlLabelsAndFields.add(intensityFormatLabel);
+		pnlLabelsAndFields.add(intensityFormatFieldPanel);
 
-        // Create panel with controls
-        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(4, 2));
-        pnlLabelsAndFields.add(mzFormatLabel);
-        pnlLabelsAndFields.add(mzFormatFieldPanel);
-        pnlLabelsAndFields.add(rtFormatLabel);
-        pnlLabelsAndFields.add(radioButtonsPanel);
-        pnlLabelsAndFields.add(new JLabel());
-        pnlLabelsAndFields.add(rtFormatFieldPanel);
-        pnlLabelsAndFields.add(intensityFormatLabel);
-        pnlLabelsAndFields.add(intensityFormatFieldPanel);
+		// Create buttons
+		JPanel pnlButtons = new JPanel();
+		btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
+		btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
+		btnHelp = new HelpButton("net/sf/mzmine/util/help/Formats.html");
+		pnlButtons.add(btnHelp);
 
-        // Create buttons
-        JPanel pnlButtons = new JPanel();
-        btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
-        btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-        btnHelp = new HelpButton("net/sf/mzmine/util/help/Formats.html");
-        pnlButtons.add(btnHelp);
-        
-        // Put everything into a main panel
-        JPanel pnlAll = new JPanel(new BorderLayout());
-        GUIUtils.addMargin(pnlAll, 10);
-        pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
-        pnlAll.add(pnlButtons, BorderLayout.SOUTH);
-        add(pnlAll);
+		// Put everything into a main panel
+		JPanel pnlAll = new JPanel(new BorderLayout());
+		GUIUtils.addMargin(pnlAll, 10);
+		pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
+		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
+		add(pnlAll);
 
-        // Set values
-        mzFormatField.setText(mzFormat.getPattern());
-        rtFormatField.setText(rtFormat.getPattern());
-        intensityFormatField.setText(intensityFormat.getPattern());
-        if (rtFormat.getType() == FormatterType.TIME)
-            timeRadioButton.setSelected(true);
-        else
-            numberRadioButton.setSelected(true);
+		// Set values
+		mzFormatField.setText(mzFormat.getPattern());
+		rtFormatField.setText(rtFormat.getPattern());
+		intensityFormatField.setText(intensityFormat.getPattern());
+		if (rtFormat.getType() == FormatterType.TIME)
+			timeRadioButton.setSelected(true);
+		else
+			numberRadioButton.setSelected(true);
 
-        pack();
+		pack();
 
-        setResizable(false);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setResizable(false);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
-    /**
-     * Implementation for ActionListener interface
-     */
-    public void actionPerformed(ActionEvent ae) {
+	/**
+	 * Implementation for ActionListener interface
+	 */
+	public void actionPerformed(ActionEvent ae) {
 
-        Object src = ae.getSource();
-        Desktop desktop = MZmineCore.getDesktop();
+		Object src = ae.getSource();
+		Desktop desktop = MZmineCore.getDesktop();
 
-        if (src == btnOK) {
+		if (src == btnOK) {
 
-            try {
-                mzFormat.setFormat(FormatterType.NUMBER,
-                        mzFormatField.getText());
-            } catch (IllegalArgumentException e) {
-                desktop.displayErrorMessage("Error in m/z format string: "
-                        + e.getMessage());
-                return;
-            }
+			try {
+				mzFormat.setFormat(FormatterType.NUMBER, mzFormatField
+						.getText());
+			} catch (IllegalArgumentException e) {
+				desktop.displayErrorMessage("Error in m/z format string: "
+						+ e.getMessage());
+				return;
+			}
 
-            try {
-                if (timeRadioButton.isSelected()) {
-                    rtFormat.setFormat(FormatterType.TIME,
-                            rtFormatField.getText());
-                } else {
-                    rtFormat.setFormat(FormatterType.NUMBER,
-                            rtFormatField.getText());
-                }
-            } catch (IllegalArgumentException e) {
-                desktop.displayErrorMessage("Error in retention time format string: "
-                        + e.getMessage());
-                return;
-            }
+			try {
+				if (timeRadioButton.isSelected()) {
+					rtFormat.setFormat(FormatterType.TIME, rtFormatField
+							.getText());
+				} else {
+					rtFormat.setFormat(FormatterType.NUMBER, rtFormatField
+							.getText());
+				}
+			} catch (IllegalArgumentException e) {
+				desktop
+						.displayErrorMessage("Error in retention time format string: "
+								+ e.getMessage());
+				return;
+			}
 
-            try {
-                intensityFormat.setFormat(FormatterType.NUMBER,
-                        intensityFormatField.getText());
-            } catch (IllegalArgumentException e) {
-                desktop.displayErrorMessage("Error in intensity format string: "
-                        + e.getMessage());
-                return;
-            }
+			try {
+				intensityFormat.setFormat(FormatterType.NUMBER,
+						intensityFormatField.getText());
+			} catch (IllegalArgumentException e) {
+				desktop
+						.displayErrorMessage("Error in intensity format string: "
+								+ e.getMessage());
+				return;
+			}
 
-            exitCode = ExitCode.OK;
-            dispose();
+			dispose();
 
-            // repaint to update all formatted numbers
-            desktop.getMainFrame().repaint();
+			// repaint to update all formatted numbers
+			desktop.getMainFrame().repaint();
 
-        }
+		}
 
-        if (src == btnCancel) {
-            exitCode = ExitCode.CANCEL;
-            dispose();
-        }
+		if (src == btnCancel) {
+			dispose();
+		}
 
-    }
-
-    /**
-     * Method for reading exit code
-     * 
-     */
-    public ExitCode getExitCode() {
-        return exitCode;
-    }
+	}
 
 }

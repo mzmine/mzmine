@@ -42,7 +42,7 @@ import javax.swing.JTextField;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 public class AddProjectParameterDialog extends JDialog implements
 		ActionListener {

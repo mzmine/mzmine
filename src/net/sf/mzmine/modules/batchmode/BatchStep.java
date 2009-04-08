@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.batchmode;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 

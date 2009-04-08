@@ -31,6 +31,9 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.desktop.helpsystem.HelpImp;
 import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
@@ -84,54 +87,42 @@ public class MZmineClient extends MZmineCore implements Runnable {
 
 			// Find all files with the mask mzmine*.scans
 			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
-
 				public boolean accept(File dir, String name) {
 					return name.matches("mzmine.*\\.scans");
 				}
 			});
 
 			for (File remainingTmpFile : remainingTmpFiles) {
-				if (remainingTmpFile.canWrite()) {
-					// Try to obtain a lock on the file
-					RandomAccessFile rac = new RandomAccessFile(
-							remainingTmpFile, "rw");
+				
+				// Skip files created by someone else
+				if (!remainingTmpFile.canWrite())
+					continue;
 
-					FileLock lock = rac.getChannel().tryLock();
-					rac.close();
+				// Try to obtain a lock on the file
+				RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
+						"rw");
 
-					if (lock != null) {
-						// We locked the file, which means nobody is using it
-						// anymore and it can be removed
-						logger.finest("Removing unused file "
-								+ remainingTmpFile);
-						remainingTmpFile.delete();
-					}
+				FileLock lock = rac.getChannel().tryLock();
+				rac.close();
+
+				if (lock != null) {
+					// We locked the file, which means nobody is using it
+					// anymore and it can be removed
+					logger.finest("Removing unused file " + remainingTmpFile);
+					remainingTmpFile.delete();
 				}
+
 			}
 
 			SAXReader reader = new SAXReader();
 			configuration = reader.read(CONFIG_FILE);
 			Element configRoot = configuration.getRootElement();
 
-			// Get the configured number of computation nodes
-			int numberOfNodes;
+			logger.info("Starting MZmine 2");
+			logger.info("Loading core classes..");
 
-			String numberOfNodesConfigEntry = null;
-			Element nodesElement = configRoot.element(NODES_ELEMENT_NAME);
-			if (nodesElement != null) {
-				numberOfNodesConfigEntry = nodesElement
-						.attributeValue(LOCAL_ATTRIBUTE_NAME);
-			}
-			if (numberOfNodesConfigEntry != null) {
-				numberOfNodes = Integer.parseInt(numberOfNodesConfigEntry);
-			} else {
-				numberOfNodes = Runtime.getRuntime().availableProcessors();
-			}
-
-			logger.info("MZmine starting with " + numberOfNodes
-					+ " computation nodes");
-
-			logger.finer("Loading core classes");
+			// create instance of preferences
+			MZmineCore.preferences = new MZminePreferences();
 
 			// create instances of core modules
 			TaskControllerImpl taskController = new TaskControllerImpl();
@@ -143,7 +134,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			MZmineCore.taskController = taskController;
 			MZmineCore.desktop = desktop;
 
-			logger.finer("Initializing core classes");
+			logger.finer("Initializing core classes..");
 
 			// First initialize project manager, because desktop needs to
 			// register project listener
@@ -180,12 +171,11 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			loadConfiguration(CONFIG_FILE);
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not parse configuration file "
-					+ CONFIG_FILE, e);
+			logger.log(Level.SEVERE, "Could not start MZmine ", e);
 			System.exit(1);
 		}
 
-		// register the shutdown hook
+		// register shutdown hook
 		ShutDownHook shutDownHook = new ShutDownHook();
 		Runtime.getRuntime().addShutdownHook(shutDownHook);
 

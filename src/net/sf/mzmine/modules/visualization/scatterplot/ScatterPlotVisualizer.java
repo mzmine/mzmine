@@ -28,8 +28,8 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 
 public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
@@ -38,7 +38,7 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
     private Desktop desktop;
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
@@ -76,7 +76,7 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
+     * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
         return "Scatter plot";

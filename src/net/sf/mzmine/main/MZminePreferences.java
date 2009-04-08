@@ -17,18 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.impl;
+package net.sf.mzmine.main;
 
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.util.Iterator;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.NumberFormatter.FormatterType;
 
@@ -37,8 +34,7 @@ import org.dom4j.Element;
 /**
  * 
  */
-public class DesktopParameters implements StorableParameterSet,
-		ComponentListener {
+public class MZminePreferences implements StorableParameterSet {
 
 	public static final String FORMAT_ELEMENT_NAME = "format";
 	public static final String FORMAT_TYPE_ATTRIBUTE_NAME = "type";
@@ -51,6 +47,7 @@ public class DesktopParameters implements StorableParameterSet,
 	public static final String WIDTH_ELEMENT_NAME = "width";
 	public static final String HEIGHT_ELEMENT_NAME = "height";
 	public static final String LAST_PROJECT_PATH_ELEMENT_NAME = "lastProjectDirectory";
+	public static final String THREADS_ELEMENT_NAME = "threads";
 
 	public static final int MAXIMIZED = -1;
 
@@ -58,102 +55,35 @@ public class DesktopParameters implements StorableParameterSet,
 	private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
 	private String lastOpenProjectPath = "";
 
-	DesktopParameters() {
-		this(new NumberFormatter(FormatterType.NUMBER, "0.000"),
-				new NumberFormatter(FormatterType.TIME, "m:ss"),
-				new NumberFormatter(FormatterType.NUMBER, "0.00E0"));
-	}
+	private boolean autoNumberOfThreads = true;
+	private int manualNumberOfThreads = 2;
 
-	DesktopParameters(NumberFormatter mzFormat, NumberFormatter rtFormat,
-			NumberFormatter intensityFormat) {
-		this.mzFormat = mzFormat;
-		this.rtFormat = rtFormat;
-		this.intensityFormat = intensityFormat;
-
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		mainWindow.addComponentListener(this);
-
+	public MZminePreferences() {
+		this.mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
+		this.rtFormat = new NumberFormatter(FormatterType.TIME, "m:ss");
+		this.intensityFormat = new NumberFormatter(FormatterType.NUMBER,
+				"0.00E0");
 	}
 
 	/**
 	 * @return Returns the intensityFormat.
 	 */
-	NumberFormatter getIntensityFormat() {
+	public NumberFormatter getIntensityFormat() {
 		return intensityFormat;
 	}
 
 	/**
 	 * @return Returns the mzFormat.
 	 */
-	NumberFormatter getMZFormat() {
+	public NumberFormatter getMZFormat() {
 		return mzFormat;
 	}
 
 	/**
 	 * @return Returns the rtFormat.
 	 */
-	NumberFormatter getRTFormat() {
+	public NumberFormatter getRTFormat() {
 		return rtFormat;
-	}
-
-	/**
-	 * @return Returns the mainWindowHeight.
-	 */
-	int getMainWindowHeight() {
-		return mainWindowHeight;
-	}
-
-	/**
-	 * @param mainWindowHeight
-	 *            The mainWindowHeight to set.
-	 */
-	void setMainWindowHeight(int mainWindowHeight) {
-		this.mainWindowHeight = mainWindowHeight;
-	}
-
-	/**
-	 * @return Returns the mainWindowWidth.
-	 */
-	int getMainWindowWidth() {
-		return mainWindowWidth;
-	}
-
-	/**
-	 * @param mainWindowWidth
-	 *            The mainWindowWidth to set.
-	 */
-	void setMainWindowWidth(int mainWindowWidth) {
-		this.mainWindowWidth = mainWindowWidth;
-	}
-
-	/**
-	 * @return Returns the mainWindowX.
-	 */
-	int getMainWindowX() {
-		return mainWindowX;
-	}
-
-	/**
-	 * @param mainWindowX
-	 *            The mainWindowX to set.
-	 */
-	void setMainWindowX(int mainWindowX) {
-		this.mainWindowX = mainWindowX;
-	}
-
-	/**
-	 * @return Returns the mainWindowY.
-	 */
-	int getMainWindowY() {
-		return mainWindowY;
-	}
-
-	/**
-	 * @param mainWindowY
-	 *            The mainWindowY to set.
-	 */
-	void setMainWindowY(int mainWindowY) {
-		this.mainWindowY = mainWindowY;
 	}
 
 	/**
@@ -171,11 +101,26 @@ public class DesktopParameters implements StorableParameterSet,
 		return lastOpenProjectPath;
 	}
 
-
 	/**
 	 * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
 	 */
 	public void exportValuesToXML(Element element) {
+
+		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+		Point location = mainWindow.getLocation();
+		mainWindowX = location.x;
+		mainWindowY = location.y;
+		int state = mainWindow.getExtendedState();
+		Dimension size = mainWindow.getSize();
+		if ((state & Frame.MAXIMIZED_HORIZ) != 0)
+			mainWindowWidth = MAXIMIZED;
+		else
+			mainWindowWidth = size.width;
+		if ((state & Frame.MAXIMIZED_VERT) != 0)
+			mainWindowHeight = MAXIMIZED;
+		else
+			mainWindowHeight = size.height;
+
 		Element mzFormatElement = element.addElement(FORMAT_ELEMENT_NAME);
 		mzFormatElement.addAttribute(FORMAT_TYPE_ATTRIBUTE_NAME,
 				FORMAT_TYPE_ATTRIBUTE_MZ);
@@ -204,6 +149,11 @@ public class DesktopParameters implements StorableParameterSet,
 
 		element.addElement(LAST_PROJECT_PATH_ELEMENT_NAME).setText(
 				lastOpenProjectPath);
+
+		Element threadsElement = element.addElement(THREADS_ELEMENT_NAME);
+		if (autoNumberOfThreads)
+			threadsElement.addAttribute("auto", "true");
+		threadsElement.setText(String.valueOf(manualNumberOfThreads));
 
 	}
 
@@ -255,64 +205,33 @@ public class DesktopParameters implements StorableParameterSet,
 
 		lastOpenProjectPath = element
 				.elementText(LAST_PROJECT_PATH_ELEMENT_NAME);
+
+		Element threadsElement = element.element(THREADS_ELEMENT_NAME);
+		if (threadsElement != null) {
+			autoNumberOfThreads = (threadsElement.attributeValue("auto") != null);
+			manualNumberOfThreads = Integer.parseInt(threadsElement.getText());
+		}
+
 	}
 
-
-
-	public DesktopParameters clone() {
-		return new DesktopParameters(mzFormat.clone(), rtFormat.clone(),
-				intensityFormat.clone());
+	public MZminePreferences clone() {
+		return new MZminePreferences();
 	}
 
-	/**
-	 * @see java.awt.event.ComponentListener#componentHidden(java.awt.event.ComponentEvent)
-	 */
-	public void componentHidden(ComponentEvent arg0) {
+	public boolean isAutoNumberOfThreads() {
+		return autoNumberOfThreads;
 	}
 
-	/**
-	 * @see java.awt.event.ComponentListener#componentMoved(java.awt.event.ComponentEvent)
-	 */
-	public void componentMoved(ComponentEvent arg0) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		Point location = mainWindow.getLocation();
-		mainWindowX = location.x;
-		mainWindowY = location.y;
+	public void setAutoNumberOfThreads(boolean autoNumberOfThreads) {
+		this.autoNumberOfThreads = autoNumberOfThreads;
 	}
 
-	/**
-	 * @see java.awt.event.ComponentListener#componentResized(java.awt.event.ComponentEvent)
-	 */
-	public void componentResized(ComponentEvent arg0) {
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		int state = mainWindow.getExtendedState();
-		Dimension size = mainWindow.getSize();
-		if ((state & Frame.MAXIMIZED_HORIZ) != 0)
-			mainWindowWidth = MAXIMIZED;
-		else
-			mainWindowWidth = size.width;
-		if ((state & Frame.MAXIMIZED_VERT) != 0)
-			mainWindowHeight = MAXIMIZED;
-		else
-			mainWindowHeight = size.height;
+	public int getManualNumberOfThreads() {
+		return manualNumberOfThreads;
 	}
 
-	/**
-	 * @see java.awt.event.ComponentListener#componentShown(java.awt.event.ComponentEvent)
-	 */
-	public void componentShown(ComponentEvent arg0) {
-	}
-
-	public Object getParameterValue(Parameter parameter) {
-		return null;
-	}
-
-	public Parameter[] getParameters() {
-		return null;
-	}
-
-	public Object[] getCustomObjectArray() {
-		return null;
+	public void setManualNumberOfThreads(int manualNumberOfThreads) {
+		this.manualNumberOfThreads = manualNumberOfThreads;
 	}
 
 }

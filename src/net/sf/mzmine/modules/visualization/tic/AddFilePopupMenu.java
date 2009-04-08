@@ -30,7 +30,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * 

@@ -33,7 +33,7 @@ import javax.swing.table.TableColumn;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.util.NumberFormatter;

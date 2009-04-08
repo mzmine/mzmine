@@ -35,7 +35,7 @@ import javax.swing.JInternalFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.util.GUIUtils;

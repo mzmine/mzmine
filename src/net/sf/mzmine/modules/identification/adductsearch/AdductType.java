@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.identification.adductsearch;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 public enum AdductType {
 

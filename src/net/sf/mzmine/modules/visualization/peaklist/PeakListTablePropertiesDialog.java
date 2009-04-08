@@ -38,7 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.util.GUIUtils;

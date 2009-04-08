@@ -32,7 +32,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 
 /**

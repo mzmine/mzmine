@@ -23,8 +23,8 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -32,7 +32,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class ManualPeakPicker implements MZmineModule {
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 

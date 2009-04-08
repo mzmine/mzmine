@@ -30,7 +30,7 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 

@@ -27,7 +27,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;

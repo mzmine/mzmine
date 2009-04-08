@@ -29,8 +29,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -50,7 +50,7 @@ public class BatchMode implements MZmineModule,
     private PeakList selectedPeakLists[];
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
@@ -92,21 +92,21 @@ public class BatchMode implements MZmineModule,
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
+     * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
         return "Batch mode";
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
         return currentBatchConfiguration;
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
     	currentBatchConfiguration = (BatchQueue) parameters;

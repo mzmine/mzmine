@@ -32,7 +32,7 @@ import javax.swing.border.EmptyBorder;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.components.PeakXICComponent;
 
 public class PeakPreviewComboRenderer extends JPanel implements

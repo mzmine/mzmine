@@ -55,7 +55,7 @@ import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotDataSet;
 import net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel.ScatterPlotSearchDataType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;

@@ -29,7 +29,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 /**
  * 

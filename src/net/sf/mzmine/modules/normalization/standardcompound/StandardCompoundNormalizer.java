@@ -31,8 +31,8 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
@@ -51,7 +51,7 @@ public class StandardCompoundNormalizer implements MZmineModule,
     private Desktop desktop;
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
@@ -71,7 +71,7 @@ public class StandardCompoundNormalizer implements MZmineModule,
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public ParameterSet getParameterSet() {
         return parameters;

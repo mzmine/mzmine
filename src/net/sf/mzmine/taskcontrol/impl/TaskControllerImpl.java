@@ -23,7 +23,8 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskPriority;
@@ -47,7 +48,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	private TaskProgressWindow taskWindow;
 
 	private Vector<WorkerThread> runningThreads;
-	private int maxRunningThreads;
 
 	/**
 	 * Initialize the task controller
@@ -57,7 +57,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
 		taskQueue = new TaskQueue();
 
 		runningThreads = new Vector<WorkerThread>();
-		maxRunningThreads = Runtime.getRuntime().availableProcessors();
 
 		// Create a low-priority thread that will manage the queue and start
 		// worker threads for tasks
@@ -149,6 +148,15 @@ public class TaskControllerImpl implements TaskController, Runnable {
 			// Get a snapshot of the queue
 			WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
+			// Get the settings for maximum # of threads
+			MZminePreferences preferences = MZmineCore.getPreferences();
+			int maxRunningThreads;
+			if (preferences.isAutoNumberOfThreads()) {
+				maxRunningThreads = Runtime.getRuntime().availableProcessors();
+			} else {
+				maxRunningThreads = preferences.getManualNumberOfThreads();
+			}
+			
 			// Check all tasks in the queue
 			for (WrappedTask task : queueSnapshot) {
 

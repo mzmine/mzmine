@@ -36,7 +36,9 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+
+import net.sf.mzmine.main.MZmineCore;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;

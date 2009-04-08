@@ -24,7 +24,7 @@ import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 public class RelatedPeaksSearchParameters extends SimpleParameterSet {
 

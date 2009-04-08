@@ -36,7 +36,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 

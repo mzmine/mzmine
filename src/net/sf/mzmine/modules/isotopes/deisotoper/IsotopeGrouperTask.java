@@ -31,7 +31,7 @@ import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;

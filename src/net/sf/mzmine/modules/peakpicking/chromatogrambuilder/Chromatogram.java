@@ -28,7 +28,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.Range;

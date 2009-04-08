@@ -35,7 +35,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizer;

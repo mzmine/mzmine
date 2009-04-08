@@ -37,7 +37,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.PubChemSearch;
 import net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;

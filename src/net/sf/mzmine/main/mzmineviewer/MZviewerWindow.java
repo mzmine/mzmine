@@ -47,13 +47,13 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.impl.DesktopParameters;
 import net.sf.mzmine.desktop.impl.MainPanel;
 import net.sf.mzmine.desktop.impl.ProjectTree;
 import net.sf.mzmine.desktop.impl.SwingParameters;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
 import net.sf.mzmine.taskcontrol.impl.TaskProgressWindow;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -275,14 +275,14 @@ public class MZviewerWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public DesktopParameters getParameterSet() {
-        return null;
-    }
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public MZminePreferences getParameterSet() {
+		return null;
+	}
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
     }

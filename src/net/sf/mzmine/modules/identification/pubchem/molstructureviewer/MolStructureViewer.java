@@ -42,7 +42,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.PubChemCompound;
 
 import org.jmol.api.JmolViewer;

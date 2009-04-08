@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main.mzmineclient;
+package net.sf.mzmine.main;
 
 import net.sf.mzmine.data.ParameterSet;
 

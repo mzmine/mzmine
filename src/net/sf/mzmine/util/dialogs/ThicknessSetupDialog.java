@@ -32,7 +32,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 
 public class ThicknessSetupDialog extends JDialog implements ActionListener {

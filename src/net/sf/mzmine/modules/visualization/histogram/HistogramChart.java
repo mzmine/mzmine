@@ -24,7 +24,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 

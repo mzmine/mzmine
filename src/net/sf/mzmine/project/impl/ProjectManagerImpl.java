@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.project.impl;
 
-import net.sf.mzmine.project.io.ProjectSavingTask;
-import net.sf.mzmine.project.io.ProjectOpeningTask;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,12 +26,14 @@ import java.util.Vector;
 
 import javax.swing.JFileChooser;
 
-import net.sf.mzmine.desktop.impl.DesktopParameters;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.project.ProjectManager;
+import net.sf.mzmine.project.io.ProjectOpeningTask;
+import net.sf.mzmine.project.io.ProjectSavingTask;
 
 import com.sun.java.ExampleFileFilter;
 
@@ -50,7 +50,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 	MZmineProject currentProject;
 
 	/**
-	 * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
 		listeners = new Vector<ProjectListener>();
@@ -89,8 +89,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 	}
 
 	public void openProject() {
-		DesktopParameters parameters = (DesktopParameters) MZmineCore
-				.getDesktop().getParameterSet();
+		MZminePreferences parameters = MZmineCore.getPreferences();
 		String lastPath = parameters.getLastOpenProjectPath();
 		JFileChooser chooser = new JFileChooser();
 		if (lastPath != null)
@@ -106,9 +105,6 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 			File selectedFile = chooser.getSelectedFile();
 			ProjectOpeningTask task = new ProjectOpeningTask(selectedFile);
 			MZmineCore.getTaskController().addTask(task);
-			DesktopParameters newDesktopParams = (DesktopParameters) MZmineCore
-					.getDesktop().getParameterSet();
-			newDesktopParams.setLastOpenProjectPath(selectedFile.getParent());
 		}
 	}
 
@@ -123,8 +119,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 	}
 
 	public void saveProjectAs() {
-		DesktopParameters parameters = (DesktopParameters) MZmineCore
-				.getDesktop().getParameterSet();
+		MZminePreferences parameters = MZmineCore.getPreferences();
 		String lastPath = parameters.getLastOpenProjectPath();
 		JFileChooser chooser = new JFileChooser();
 		if (lastPath != null)

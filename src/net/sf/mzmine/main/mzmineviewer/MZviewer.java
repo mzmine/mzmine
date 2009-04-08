@@ -25,8 +25,8 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 

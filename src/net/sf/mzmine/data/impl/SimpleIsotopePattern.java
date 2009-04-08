@@ -32,7 +32,7 @@ import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;

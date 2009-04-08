@@ -22,7 +22,7 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;

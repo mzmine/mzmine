@@ -24,8 +24,8 @@ import java.awt.event.ActionListener;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 
 /**
  * 
@@ -33,7 +33,7 @@ import net.sf.mzmine.main.mzmineclient.MZmineModule;
 public class PeakSummaryVisualizer implements MZmineModule, ActionListener {
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#initModule(net.sf.mzmine.main.mzmineclient.MZmineCore)
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
     public void initModule() {
 
@@ -51,21 +51,21 @@ public class PeakSummaryVisualizer implements MZmineModule, ActionListener {
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#toString()
+     * @see net.sf.mzmine.main.MZmineModule#toString()
      */
     public String toString() {
         return "Peak list row summary";
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
     public ParameterSet getParameterSet() {
         return null;
     }
 
     /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameters) {
     }

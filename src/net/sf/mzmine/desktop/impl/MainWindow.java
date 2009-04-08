@@ -39,12 +39,11 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
-import net.sf.mzmine.main.mzmineclient.MZmineModule;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.NumberFormatter;
 
 /**
  * This class is the main window of application
@@ -52,8 +51,6 @@ import net.sf.mzmine.util.NumberFormatter;
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
         WindowListener, ProjectListener {
-
-    private DesktopParameters parameters;
 
     private HelpMainMenuItem help;
 
@@ -141,8 +138,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
         SwingParameters.initSwingParameters();
 
-        parameters = new DesktopParameters();
-
         try {
             BufferedImage MZmineIcon = ImageIO.read(new File(
                     "icons/MZmineIcon.png"));
@@ -217,38 +212,16 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     /**
-     * @see net.sf.mzmine.desktop.Desktop#getMZFormatProvider()
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
      */
-    public NumberFormatter getMZFormat() {
-        return parameters.getMZFormat();
+    public ParameterSet getParameterSet() {
+		return null;
     }
 
     /**
-     * @see net.sf.mzmine.desktop.Desktop#getRTFormatProvider()
-     */
-    public NumberFormatter getRTFormat() {
-        return parameters.getRTFormat();
-    }
-
-    /**
-     * @see net.sf.mzmine.desktop.Desktop#getIntensityFormatProvider()
-     */
-    public NumberFormatter getIntensityFormat() {
-        return parameters.getIntensityFormat();
-    }
-
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#getParameterSet()
-     */
-    public DesktopParameters getParameterSet() {
-        return parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.mzmineclient.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
      */
     public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (DesktopParameters) parameterValues;
     }
 
     public void projectModified(ProjectEvent event) {

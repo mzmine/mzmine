@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;

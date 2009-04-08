@@ -29,7 +29,7 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.mzmineclient.MZmineCore;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.ChartPanel;

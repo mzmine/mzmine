@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.main.mzmineclient;
+package net.sf.mzmine.main;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,7 +32,6 @@ import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.helpsystem.HelpImp;
-import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
@@ -59,11 +58,11 @@ public abstract class MZmineCore {
 	public static final String MODULES_ELEMENT_NAME = "modules";
 	public static final String MODULE_ELEMENT_NAME = "module";
 	public static final String CLASS_ATTRIBUTE_NAME = "class";
-	public static final String NODES_ELEMENT_NAME = "nodes";
-	public static final String LOCAL_ATTRIBUTE_NAME = "local";
-	public static final String DESKTOP_ELEMENT_NAME = "desktop";
+	public static final String PREFERENCES_ELEMENT_NAME = "preferences";
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+
+	protected static MZminePreferences preferences;
 
 	protected static TaskController taskController;
 	protected static Desktop desktop;
@@ -97,12 +96,19 @@ public abstract class MZmineCore {
 	public static ProjectManager getProjectManager() {
 		return projectManager;
 	}
-	
+
 	/**
      * 
      */
 	public static MZmineProject getCurrentProject() {
 		return projectManager.getCurrentProject();
+	}
+
+	/**
+     * 
+     */
+	public static MZminePreferences getPreferences() {
+		return preferences;
 	}
 
 	/**
@@ -159,20 +165,18 @@ public abstract class MZmineCore {
 			Element configRoot = configuration.getRootElement();
 
 			// save desktop configuration
-			StorableParameterSet desktopParameters = ((MainWindow) desktop)
-					.getParameterSet();
-			Element desktopConfigElement = configRoot
-					.element(DESKTOP_ELEMENT_NAME);
-			if (desktopConfigElement == null) {
-				desktopConfigElement = configRoot
-						.addElement(DESKTOP_ELEMENT_NAME);
+
+			Element preferencesConfigElement = configRoot
+					.element(PREFERENCES_ELEMENT_NAME);
+			if (preferencesConfigElement == null) {
+				preferencesConfigElement = configRoot
+						.addElement(PREFERENCES_ELEMENT_NAME);
 			}
-			desktopConfigElement.clearContent();
+			preferencesConfigElement.clearContent();
 			try {
-				desktopParameters.exportValuesToXML(desktopConfigElement);
+				preferences.exportValuesToXML(preferencesConfigElement);
 			} catch (Exception e) {
-				logger.log(Level.SEVERE,
-						"Could not save desktop configuration", e);
+				logger.log(Level.SEVERE, "Could not save preferences", e);
 			}
 
 			// traverse modules
@@ -234,12 +238,10 @@ public abstract class MZmineCore {
 
 			logger.finest("Loading desktop configuration");
 
-			StorableParameterSet desktopParameters = (StorableParameterSet) desktop
-					.getParameterSet();
-			Element desktopConfigElement = configRoot
-					.element(DESKTOP_ELEMENT_NAME);
-			if (desktopConfigElement != null)
-				desktopParameters.importValuesFromXML(desktopConfigElement);
+			Element preferencesConfigElement = configRoot
+					.element(PREFERENCES_ELEMENT_NAME);
+			if (preferencesConfigElement != null)
+				preferences.importValuesFromXML(preferencesConfigElement);
 
 			logger.finest("Loading modules configuration");
 
@@ -277,18 +279,15 @@ public abstract class MZmineCore {
 
 	// Number formatting functions
 	public static NumberFormatter getIntensityFormat() {
-		// return ((MainWindow) desktop).getIntensityFormat();
-		return desktop.getIntensityFormat();
+		return preferences.getIntensityFormat();
 	}
 
 	public static NumberFormatter getMZFormat() {
-		// return ((MainWindow) desktop).getMZFormat();
-		return desktop.getMZFormat();
+		return preferences.getMZFormat();
 	}
 
 	public static NumberFormatter getRTFormat() {
-		// return ((MainWindow) desktop).getRTFormat();
-		return desktop.getRTFormat();
+		return preferences.getRTFormat();
 	}
 
 	public static RawDataFileWriter createNewFile(String name)
