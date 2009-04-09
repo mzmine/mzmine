@@ -20,7 +20,8 @@
 package net.sf.mzmine.util.logging;
 
 import java.awt.Color;
-import java.util.logging.Formatter;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -33,69 +34,68 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class StatusBarHandler extends Handler {
 
-    private static final Formatter statusBarFormatter = new StatusBarFormatter();
-    private static final int infoLevel = Level.INFO.intValue();
-    
-    /**
-     * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
-     */
-    public void publish(LogRecord record) {
+	static final DateFormat timeFormat = DateFormat.getTimeInstance();
 
-        // if the event level is below INFO, just return
-        if (record.getLevel().intValue() < infoLevel) return;
-        
-        // get Desktop instance from MainWindow
-        Desktop desktop = MZmineCore.getDesktop();
-        if (desktop != null) {
+	static final int infoLevel = Level.INFO.intValue();
 
-            // format the message
-            String formattedMessage = statusBarFormatter.format(record);
+	/**
+	 * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
+	 */
+	public void publish(LogRecord record) {
 
-            // default color is black
-            Color messageColor = Color.black;
-            
-            // display severe errors in red
-            if (record.getLevel().equals(Level.SEVERE)) messageColor = Color.red;
-            
-            // set status bar text
-            desktop.setStatusBarText(formattedMessage, messageColor);
-        }
+		// if the event level is below INFO, ignore it
+		if (record.getLevel().intValue() < infoLevel)
+			return;
 
-    }
+		// get Desktop instance from MainWindow
+		Desktop desktop = MZmineCore.getDesktop();
+		if (desktop != null) {
 
-    /**
-     * @see java.util.logging.Handler#flush()
-     */
-    public void flush() {
-        // do nothing
-    }
+			Date recordTime = new Date(record.getMillis());
 
-    /**
-     * @see java.util.logging.Handler#close()
-     */
-    public void close() throws SecurityException {
-        // do nothing
-    }
+			// format the message
+			String formattedMessage = "[" + timeFormat.format(recordTime)
+					+ "]: " + record.getMessage();
 
-    /**
-     * @see java.util.logging.Handler#getFormatter()
-     */
-    public Formatter getFormatter() {
-        return statusBarFormatter;
-    }
-    
-    /**
-     * @see java.util.logging.Handler#isLoggable(java.util.logging.LogRecord)
-     */
-    public boolean isLoggable(LogRecord record) {
-        return (record.getLevel().intValue() >= infoLevel); 
-    }
-        
-    /**
-     * @see java.util.logging.Handler#getLevel()
-     */
-    public Level getLevel() {
-        return Level.INFO;
-    }
+			// default color is black
+			Color messageColor = Color.black;
+
+			// display severe errors in red
+			if (record.getLevel().equals(Level.SEVERE))
+				messageColor = Color.red;
+
+			// set status bar text
+			desktop.setStatusBarText(formattedMessage, messageColor);
+		}
+
+	}
+
+	/**
+	 * @see java.util.logging.Handler#flush()
+	 */
+	public void flush() {
+		// do nothing
+	}
+
+	/**
+	 * @see java.util.logging.Handler#close()
+	 */
+	public void close() throws SecurityException {
+		// do nothing
+	}
+
+	/**
+	 * @see java.util.logging.Handler#isLoggable(java.util.logging.LogRecord)
+	 */
+	public boolean isLoggable(LogRecord record) {
+		return (record.getLevel().intValue() >= infoLevel);
+	}
+
+	/**
+	 * @see java.util.logging.Handler#getLevel()
+	 */
+	public Level getLevel() {
+		return Level.INFO;
+	}
 
 }
