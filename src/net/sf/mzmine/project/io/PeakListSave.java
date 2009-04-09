@@ -26,7 +26,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakIdentity;
@@ -47,16 +46,20 @@ public class PeakListSave {
 			"yyyy/MM/dd HH:mm:ss");
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
 	private Document document;
+	private int numberOfRows,  rowsCount;
+	private double progress;
 
-	public PeakListSave(){
-		dataFilesIDMap = new Hashtable<RawDataFile, Integer>();		
+	public PeakListSave() {
+		dataFilesIDMap = new Hashtable<RawDataFile, Integer>();
 	}
 
-	public Document getDocument(){
+	public Document getDocument() {
 		return this.document;
 	}
 
 	public void savePeakList(PeakList peakList) throws IOException {
+		numberOfRows = peakList.getNumberOfRows();
+
 		Element newElement;
 		document = DocumentFactory.getInstance().createDocument();
 		Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
@@ -78,7 +81,7 @@ public class PeakListSave {
 
 		// <QUANTITY>
 		newElement = saveRoot.addElement(PeakListElementName.QUANTITY.getElementName());
-		newElement.addText(String.valueOf(peakList.getNumberOfRows()));
+		newElement.addText(String.valueOf(numberOfRows));
 
 		// <PROCESS>
 		PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
@@ -86,7 +89,7 @@ public class PeakListSave {
 			newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
 			newElement.addText(proc.getDescription());
 		}
-		
+
 		// <RAWFILE>
 		RawDataFile[] dataFiles = peakList.getRawDataFiles();
 
@@ -98,19 +101,15 @@ public class PeakListSave {
 			dataFilesIDMap.put(dataFiles[i - 1], i);
 		}
 
-		// <ROW>
-		int numOfRows = peakList.getNumberOfRows();
+		// <ROW>		
 		PeakListRow row;
-		for (int i = 0; i < numOfRows; i++) {
-
-
+		for (int i = 0; i < numberOfRows; i++, rowsCount++) {
 			row = peakList.getRow(i);
 			newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
 			fillRowElement(row, newElement);
-
+			progress = (double) rowsCount / numberOfRows;
 		}
 
-		
 	}
 
 	/**
@@ -259,5 +258,9 @@ public class PeakListSave {
 		secondNewElement.addText(new String(bytes));
 
 
+	}
+
+	public double getProgress() {
+		return progress;
 	}
 }

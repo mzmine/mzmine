@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.project.io;
 
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.ZipEntry;
@@ -33,28 +32,39 @@ import org.dom4j.Document;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 
-public class PeakListSerializer{
+public class PeakListSerializer {
 
 	private ZipOutputStream zipOutputStream;
 	private ZipInputStream zipInputStream;
-	
 	private PeakList buildingPeakList;
-	
+	PeakListOpen peakListOpen;
+	PeakListSave peakListSave;
+
 	public PeakListSerializer(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
-		
+
 	}
 
 	public PeakListSerializer(ZipInputStream zipInputStream) {
 		this.zipInputStream = zipInputStream;
 	}
 
-	public void savePeakList(PeakList peakList) throws IOException {
-		PeakListSave peakListWriter = new PeakListSave();
-		peakListWriter.savePeakList(peakList);
-		Document document = peakListWriter.getDocument();
+	public double getProgress() {
+		if (peakListOpen != null) {
+			return peakListOpen.getProgress();
+		} else if (peakListSave != null) {
+			return peakListSave.getProgress();
+		} else {
+			return 0.0;
+		}
+	}
 
-		if(document == null){
+	public void savePeakList(PeakList peakList) throws IOException {
+		peakListSave = new PeakListSave();
+		peakListSave.savePeakList(peakList);
+		Document document = peakListSave.getDocument();
+
+		if (document == null) {
 			return;
 		}
 		zipOutputStream.putNextEntry(new ZipEntry(peakList.getName()));
@@ -64,29 +74,25 @@ public class PeakListSerializer{
 		writer.write(document);
 	}
 
-	
 	public void readPeakList() {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		try {
 			zipInputStream.getNextEntry();
-			PeakListOpen peakListReader = new PeakListOpen();
+			peakListOpen = new PeakListOpen();
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(new UnclosableInputStream(zipInputStream), peakListReader);
-			buildingPeakList = peakListReader.getPeakList();
+			saxParser.parse(new UnclosableInputStream(zipInputStream), peakListOpen);
+			buildingPeakList = peakListOpen.getPeakList();
 
 		} catch (Throwable e) {
 			e.printStackTrace();
 			return;
 		}
 
-		if(buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0){
+		if (buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0) {
 			return;
-		}		
+		}
 		// Add new peaklist to the project or MZviewer.desktop
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(buildingPeakList);
 	}
-
-	
-	
 }

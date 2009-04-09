@@ -32,6 +32,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import org.dom4j.Document;
@@ -49,8 +50,8 @@ public class ProjectSerializer extends DefaultHandler {
 	private ZipInputStream zipInputStream;
 	private StringBuffer charBuffer;
 	private int numRawDataFiles,  numPeakLists;
-	private String[] names;
-	private int cont;
+	private String[] rawDataNames,  peakListNames;
+	private int rawDataCont,  peakListCont;
 
 	public ProjectSerializer(ZipOutputStream zipStream) {
 		this.zipOutputStream = zipStream;
@@ -129,8 +130,9 @@ public class ProjectSerializer extends DefaultHandler {
 		this.fillRawDataNames(newElement, project);
 
 		// <NUM_PEAKLISTS>
-		newElement = saveRoot.addElement("num_peaklist");
-		newElement.addText(String.valueOf(project.getPeakLists().length));
+		newElement = saveRoot.addElement("peaklist");
+		newElement.addAttribute("quantity", String.valueOf(project.getPeakLists().length));
+		this.fillPeakListNames(newElement, project);
 
 		return document;
 	}
@@ -138,8 +140,15 @@ public class ProjectSerializer extends DefaultHandler {
 	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
 		Element newElement;
 		for (RawDataFile dataFile : project.getDataFiles()) {
-			// <NUM_DATAFILES>
-			newElement = element.addElement("name");
+			newElement = element.addElement("rawdata_name");
+			newElement.addText(dataFile.getName());
+		}
+	}
+
+	private void fillPeakListNames(Element element, MZmineProjectImpl project) {
+		Element newElement;
+		for (PeakList dataFile : project.getPeakLists()) {
+			newElement = element.addElement("peaklist_name");
 			newElement.addText(dataFile.getName());
 		}
 	}
@@ -149,7 +158,12 @@ public class ProjectSerializer extends DefaultHandler {
 			Attributes attrs) throws SAXException {
 		if (qName.equals("rawdata")) {
 			numRawDataFiles = Integer.parseInt(attrs.getValue("quantity"));
-			this.names = new String[numRawDataFiles];
+			rawDataNames = new String[numRawDataFiles];
+		}
+
+		if (qName.equals("peaklist")) {
+			numPeakLists = Integer.parseInt(attrs.getValue("quantity"));
+			peakListNames = new String[numPeakLists];
 		}
 
 	}
@@ -158,12 +172,12 @@ public class ProjectSerializer extends DefaultHandler {
 			String qName // qualified name
 			) throws SAXException {
 
-		if (qName.equals("name")) {
-			this.names[cont++] = getTextOfElement();
+		if (qName.equals("rawdata_name")) {
+			rawDataNames[rawDataCont++] = getTextOfElement();
 		}
 
-		if (qName.equals("num_peaklist")) {
-			numPeakLists = Integer.parseInt(getTextOfElement());
+		if (qName.equals("peaklist_name")) {
+			peakListNames[peakListCont++] = getTextOfElement();
 		}
 	}
 
@@ -197,7 +211,11 @@ public class ProjectSerializer extends DefaultHandler {
 		return numPeakLists;
 	}
 
-	public String[] getRawDataNames(){
-		return this.names;
+	public String[] getRawDataNames() {
+		return rawDataNames;
+	}
+
+	public String[] getPeakListNames() {
+		return peakListNames;
 	}
 }

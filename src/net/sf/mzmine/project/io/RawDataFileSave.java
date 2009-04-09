@@ -16,8 +16,8 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.project.io;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -28,10 +28,14 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.jfree.xml.util.Base64;
 
-
 public class RawDataFileSave {
 
+	private double progress;
+	private int numOfScans,  scanCount;
+
 	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
+		numOfScans = rawDataFile.getNumOfScans();
+
 		Element newElement;
 		Document document = DocumentFactory.getInstance().createDocument();
 		Element saveRoot = document.addElement(RawDataElementName.RAWDATA.getElementName());
@@ -42,12 +46,14 @@ public class RawDataFileSave {
 
 		// <QUANTITY>
 		newElement = saveRoot.addElement(RawDataElementName.QUANTITY_SCAN.getElementName());
-		newElement.addText(String.valueOf(rawDataFile.getNumOfScans()));
+		newElement.addText(String.valueOf(numOfScans));
 
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
 			newElement = saveRoot.addElement(RawDataElementName.SCAN.getElementName());
 			Scan scan = rawDataFile.getScan(scanNumber);
 			this.fillScanElement(scan, newElement);
+			progress = (double) scanCount / numOfScans;
+			scanCount++;
 		}
 		return document;
 	}
@@ -98,5 +104,9 @@ public class RawDataFileSave {
 		char[] bytes = Base64.encode(byteScanStream.toByteArray());
 		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
 		newElement.addText(new String(bytes));
+	}
+
+	public double getProgress() {
+		return progress;
 	}
 }

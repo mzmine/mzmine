@@ -21,18 +21,14 @@ package net.sf.mzmine.project.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.DoubleBuffer;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
-
 
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
-/**
- * Project opening task using XStream library
- */
+
 public class ProjectOpeningTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -42,7 +38,8 @@ public class ProjectOpeningTask implements Task {
 	private ZipInputStream zipStream;
 	ProjectSerializer projectSerializer;
 	RawDataFileSerializer rawDataFileSerializer;
-	private int currentStage,  rawDataCount;
+	PeakListSerializer peakListSerializer;
+	private int currentStage,  rawDataCount,  peakListCount;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
@@ -57,7 +54,7 @@ public class ProjectOpeningTask implements Task {
 			case 2:
 				return taskDescription + "(raw data points) " + this.projectSerializer.getRawDataNames()[rawDataCount];
 			case 3:
-				return taskDescription + "(peak list objects)";
+				return taskDescription + "(peak list objects)" + this.projectSerializer.getPeakListNames()[peakListCount];
 			default:
 				return taskDescription + openFile;
 		}
@@ -77,7 +74,11 @@ public class ProjectOpeningTask implements Task {
 				}
 
 			case 3:
-				return 1f;
+				try {
+					return (double) peakListSerializer.getProgress();
+				} catch (Exception e) {
+					return 0f;
+				}
 			default:
 				return 0f;
 		}
@@ -168,8 +169,8 @@ public class ProjectOpeningTask implements Task {
 
 	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
-		for (int i = 0; i < this.projectSerializer.getNumOfPeakLists(); i++) {
-			PeakListSerializer peakListSerializer = new PeakListSerializer(zipStream);
+		for (int i = 0; i < this.projectSerializer.getNumOfPeakLists(); i++, peakListCount++) {
+			peakListSerializer = new PeakListSerializer(zipStream);
 			peakListSerializer.readPeakList();
 		}
 	}

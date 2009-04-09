@@ -62,6 +62,8 @@ public class PeakListOpen extends DefaultHandler {
 	private TreeMap<Integer, RawDataFile> buildingArrayRawDataFiles;
 	private Vector<String> appliedProcess;
 	private int parsedRows;
+	private int totalRows;
+	private double progress;
 
 	public PeakListOpen() {
 		buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
@@ -72,6 +74,11 @@ public class PeakListOpen extends DefaultHandler {
 	public PeakList getPeakList() {
 		return buildingPeakList;
 	}
+
+	public double getProgress(){
+		return progress;
+	}
+
 
 	/**
 	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,
@@ -121,7 +128,8 @@ public class PeakListOpen extends DefaultHandler {
 
 			try {
 				int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
-				buildingRow = new SimplePeakListRow(rowID);
+				buildingRow = new SimplePeakListRow(rowID);		
+			
 			} catch (Exception e) {
 
 				throw new SAXException(
@@ -210,6 +218,7 @@ public class PeakListOpen extends DefaultHandler {
 			try {
 				String text = getTextOfElement();
 				text = text.trim();
+				totalRows = Integer.parseInt(text);
 			} catch (Exception e) {
 				throw new SAXException("Could not read quantity");
 			}
@@ -395,6 +404,7 @@ public class PeakListOpen extends DefaultHandler {
 		if (qName.equals(PeakListElementName.ROW.getElementName())) {
 			buildingPeakList.addRow(buildingRow);
 			buildingRow = null;
+			progress = (double)parsedRows / totalRows;
 			parsedRows++;
 		}
 

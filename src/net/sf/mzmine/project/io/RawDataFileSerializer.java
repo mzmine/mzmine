@@ -48,6 +48,7 @@ public class RawDataFileSerializer {
 	private ZipInputStream zipInputStream;
 	private DoubleBuffer doubleBuffer;
 	RawDataFileOpen rawDataFileOpen;
+	RawDataFileSave rawDataFileSave;
 
 	public RawDataFileSerializer(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
@@ -60,6 +61,8 @@ public class RawDataFileSerializer {
 	public double getProgress() {
 		if (rawDataFileOpen != null) {
 			return rawDataFileOpen.getProgress();
+		} else if (rawDataFileSave != null) {
+			return rawDataFileSave.getProgress();
 		} else {
 			return 0.0;
 		}
@@ -74,7 +77,7 @@ public class RawDataFileSerializer {
 			zipOutputStream.putNextEntry(new ZipEntry(newName));
 			copyFile(((RawDataFileImpl) rawDataFile).getScanDataFileasFile(), zipOutputStream);
 
-			RawDataFileSave rawDataFileSave = new RawDataFileSave();
+			rawDataFileSave = new RawDataFileSave();
 			Document document = rawDataFileSave.saveRawDataInformation(rawDataFile);
 
 			zipOutputStream.putNextEntry(new ZipEntry(newName + ".description"));
