@@ -28,7 +28,6 @@ import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 
-import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.parsers.SAXParser;
@@ -43,6 +42,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CompressionUtils;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.apache.axis.encoding.Base64;
@@ -66,6 +66,9 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	private String errorMessage;
 	private StringBuilder charBuffer;
 	private boolean compressFlag = false;
+
+	// Retention time parser
+	private DatatypeFactory dataTypeFactory;
 
 	/*
 	 * This variables are used to set the number of fragments that one single
@@ -136,6 +139,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 		try {
 
+			dataTypeFactory = DatatypeFactory.newInstance();
+
 			newRawDataFile = MZmineCore.createNewFile(originalFile.getName());
 
 			SAXParser saxParser = factory.newSAXParser();
@@ -149,7 +154,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			/* we may already have set the status to CANCELED */
 			if (status == TaskStatus.PROCESSING) {
 				status = TaskStatus.ERROR;
-				errorMessage = e.toString();
+				errorMessage = ExceptionUtils.exceptionToString(e);
 			}
 			return;
 		}
@@ -209,16 +214,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			String retentionTimeStr = attrs.getValue("retentionTime");
 			if (retentionTimeStr != null) {
 				Date currentDate = new Date();
-				try {
-					DatatypeFactory dataTypeFactory = DatatypeFactory
-							.newInstance();
-					Duration dur = dataTypeFactory
-							.newDuration(retentionTimeStr);
-					retentionTime = dur.getTimeInMillis(currentDate) / 1000d;
-				} catch (DatatypeConfigurationException e) {
-					throw new SAXException("Could not read retention time: "
-							+ e);
-				}
+				Duration dur = dataTypeFactory.newDuration(retentionTimeStr);
+				retentionTime = dur.getTimeInMillis(currentDate) / 1000d;
 			} else {
 				status = TaskStatus.ERROR;
 				errorMessage = "This file does not contain retentionTime for scans";
@@ -247,8 +244,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			parentTreeValue[msLevel] = scanNumber;
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
-					retentionTime, parentScan, 0, null, new DataPoint[0],
-					false);
+					retentionTime, parentScan, 0, null, new DataPoint[0], false);
 
 		}
 
@@ -330,7 +326,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 
 			String charBufferString = charBuffer.toString();
 			byte[] peakBytes = Base64.decode(charBufferString);
-
+			
 			if (compressFlag) {
 				try {
 					peakBytes = CompressionUtils.decompress(peakBytes);
@@ -340,7 +336,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 					throw new SAXException("Parsing Cancelled");
 				}
 			}
-			
+
 			// make a data input stream
 			DataInputStream peakStream = new DataInputStream(
 					new ByteArrayInputStream(peakBytes));
@@ -388,7 +384,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
 	 */
 	public void characters(char buf[], int offset, int len) throws SAXException {
-		charBuffer = charBuffer.append(buf, offset, len);
+		charBuffer.append(buf, offset, len);
 	}
 
 	public Object[] getCreatedObjects() {

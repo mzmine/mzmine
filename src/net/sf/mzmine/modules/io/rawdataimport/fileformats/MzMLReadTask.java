@@ -42,6 +42,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CompressionUtils;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.xml.util.Base64;
@@ -169,7 +170,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 		} catch (Throwable e) {
 			if (status == TaskStatus.PROCESSING) {
 				status = TaskStatus.ERROR;
-				errorMessage = e.toString();
+				errorMessage = ExceptionUtils.exceptionToString(e);
 			}
 			return;
 		}
@@ -489,7 +490,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
 	 */
 	public void characters(char buf[], int offset, int len) throws SAXException {
-		charBuffer = charBuffer.append(buf, offset, len);
+		charBuffer.append(buf, offset, len);
 	}
 
 	public void endDocument() throws SAXException {

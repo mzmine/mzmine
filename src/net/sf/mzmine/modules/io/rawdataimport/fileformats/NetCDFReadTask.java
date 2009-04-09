@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
@@ -139,7 +140,7 @@ public class NetCDFReadTask implements Task {
 			// e.printStackTrace();
 			logger.log(Level.SEVERE, "Could not open file "
 					+ originalFile.getPath(), e);
-			errorMessage = e.toString();
+			errorMessage = ExceptionUtils.exceptionToString(e);
 			status = TaskStatus.ERROR;
 			return;
 		}

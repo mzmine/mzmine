@@ -37,6 +37,7 @@ import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.xml.util.Base64;
@@ -160,7 +161,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			/* we may already have set the status to CANCELED */
 			if (status == TaskStatus.PROCESSING) {
 				status = TaskStatus.ERROR;
-				errorMessage = e.toString();
+				errorMessage = ExceptionUtils.exceptionToString(e);
 			}
 			return;
 		}
