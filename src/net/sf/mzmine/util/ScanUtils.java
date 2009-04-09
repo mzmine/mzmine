@@ -385,6 +385,10 @@ public class ScanUtils {
 
 				DataPoint basePeak = scan.getBasePeak();
 
+				// If there is no peak in the scan, basePeak can be null
+				if (basePeak == null)
+					continue;
+
 				if (basePeak.getIntensity() > topBasePeak) {
 					bestFragmentScan = scan.getScanNumber();
 					topBasePeak = basePeak.getIntensity();
