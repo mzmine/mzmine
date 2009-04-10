@@ -53,11 +53,11 @@
 		</copy>
 				
 		<copy todir="${dist}">
-			<fileset file="${rest}/startMZ*.*" />
+			<fileset file="${rest}/startMZ*" />
 		</copy>
 		
 		<chmod perm="a+x">
-			<fileset file="${dist}/startMZ*.*" />
+			<fileset file="${dist}/startMZ*" />
 		</chmod>
 		
 		<copy todir="${dist}/conf">
