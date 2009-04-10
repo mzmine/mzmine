@@ -48,6 +48,7 @@ import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
 
 public class PubChemSearchTask implements Task {
 
@@ -163,6 +164,10 @@ public class PubChemSearchTask implements Task {
 		status = TaskStatus.PROCESSING;
 
 		try {
+			
+			// TODO: use direct access through
+			// http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?usehistory=n&db=pccompound&term=100:101[MonoisotopicMass]
+			// instead of EUtilsServiceLocator
 
 			// connect and read PubChem database contents
 			EUtilsServiceLocator eutils_locator = new EUtilsServiceLocator();
@@ -299,8 +304,7 @@ public class PubChemSearchTask implements Task {
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Could not connect to PubChem ", e);
 			status = TaskStatus.ERROR;
-			errorMessage = e.toString();
-			e.printStackTrace();
+			errorMessage = ExceptionUtils.exceptionToString(e);
 			return;
 		}
 
@@ -388,7 +392,7 @@ public class PubChemSearchTask implements Task {
 			StringBuffer putBackTogether = new StringBuffer();
 			Reader reader = new InputStreamReader(is, "UTF-8");
 			char[] cb = new char[1024];
-
+			
 			int amtRead = reader.read(cb);
 			while (amtRead > 0) {
 				putBackTogether.append(cb, 0, amtRead);
