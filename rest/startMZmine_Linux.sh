@@ -4,7 +4,7 @@
 # The HEAP_SIZE variable line defines the Java heap size in MB. 
 # That is the total amount of memory available to MZmine 2.
 # Please adjust according to the amount of memory of your computer.
-# Maximum value on a 32-bit Linux system is about 2000. 
+# Maximum value on a 32-bit Linux system is about 1900. 
 HEAP_SIZE=1024
 
 # If you have a 64-bit CPU, 64-bit OS and 64-bit JVM installed, you 
