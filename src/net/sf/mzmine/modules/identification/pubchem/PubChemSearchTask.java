@@ -25,6 +25,7 @@ import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchRequest;
 import gov.nih.nlm.ncbi.www.soap.eutils.esearch.ESearchResult;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -180,7 +181,7 @@ public class PubChemSearchTask implements Task {
 
 			if ((chargedMol)
 					&& (ionName.equals(IonizationType.NO_IONIZATION)))
-				complementQuery = " AND NOT 0[CHRG]";
+				complementQuery = " NOT 0[CHRG]";
 			else
 				complementQuery = "";
 
@@ -282,7 +283,9 @@ public class PubChemSearchTask implements Task {
 				}
 				
 		        // Add task description to peakList
-		        ((SimplePeakList)peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak identification of using PubChem databases",
+				((SimplePeakList) peakList)
+						.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+								"Peak identification of using PubChem database",
 		        		parameters));
                 
 		        // Notify the project manager that peaklist contents have changed
@@ -379,7 +382,7 @@ public class PubChemSearchTask implements Task {
 
 			InputStream is = endpoint.openStream();
 			if (is == null) {
-				throw new Exception(
+				throw new IOException(
 						"Got a null PubChem input stream connection");
 			}
 			StringBuffer putBackTogether = new StringBuffer();
