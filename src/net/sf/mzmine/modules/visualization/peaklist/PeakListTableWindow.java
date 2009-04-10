@@ -23,12 +23,11 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.awt.print.PrinterException;
 
-import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
+import javax.swing.JTable.PrintMode;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -36,91 +35,81 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-import org.jfree.report.JFreeReport;
-import org.jfree.report.modules.gui.base.PreviewDialog;
-
 public class PeakListTableWindow extends JInternalFrame implements
-        ActionListener {
+		ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private JScrollPane scrollPane;
 
-    private JScrollPane scrollPane;
+	private PeakListTable table;
+	private PeakListTableParameters myParameters;
 
-    private PeakListTable table;
-    private PeakListTableParameters myParameters;
+	/**
+	 * Constructor: initializes an empty visualizer
+	 */
+	PeakListTableWindow(PeakList peakList) {
 
-    /**
-     * Constructor: initializes an empty visualizer
-     */
-    PeakListTableWindow(PeakList peakList) {
+		super(peakList.toString(), true, true, true, true);
 
-        super(peakList.toString(), true, true, true, true);
+		setResizable(true);
+		setIconifiable(true);
 
-        setResizable(true);
-        setIconifiable(true);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+		// Build toolbar
+		PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
+		add(toolBar, BorderLayout.EAST);
 
-        // Build toolbar
-        PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
-        add(toolBar, BorderLayout.EAST);
+		PeakListTableVisualizer visualizer = PeakListTableVisualizer
+				.getInstance();
 
-        PeakListTableVisualizer visualizer = PeakListTableVisualizer.getInstance();
-        
-        myParameters = visualizer.getParameterSet().clone();
+		myParameters = visualizer.getParameterSet().clone();
 
-        // Build table
-        table = new PeakListTable(visualizer, this, myParameters, peakList, MZmineCore.isLightViewer());
+		// Build table
+		table = new PeakListTable(visualizer, this, myParameters, peakList,
+				MZmineCore.isLightViewer());
 
-        scrollPane = new JScrollPane(table);
+		scrollPane = new JScrollPane(table);
 
-        add(scrollPane, BorderLayout.CENTER);
+		add(scrollPane, BorderLayout.CENTER);
 
-        pack();
+		pack();
 
-    }
+	}
 
-    /**
-     * Methods for ActionListener interface implementation
-     */
-    public void actionPerformed(ActionEvent event) {
+	/**
+	 * Methods for ActionListener interface implementation
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        String command = event.getActionCommand();
+		String command = event.getActionCommand();
 
-        if (command.equals("ZOOM_TO_PEAK")) {
-            // TODO
-        }
+		if (command.equals("ZOOM_TO_PEAK")) {
+			// TODO
+		}
 
-        if (command.equals("PROPERTIES")) {
+		if (command.equals("PROPERTIES")) {
 
-            PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(
-                    myParameters);
-            dialog.setVisible(true);
-            if (dialog.getExitCode() == ExitCode.OK) {
-                table.setRowHeight(myParameters.getRowHeight());
-                PeakListTableColumnModel cm = (PeakListTableColumnModel) table.getColumnModel();
-                cm.createColumns();
-                PeakListTableVisualizer visualizer = PeakListTableVisualizer.getInstance();
-                visualizer.setParameters(myParameters);
-            }
-        }
+			PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(
+					myParameters);
+			dialog.setVisible(true);
+			if (dialog.getExitCode() == ExitCode.OK) {
+				table.setRowHeight(myParameters.getRowHeight());
+				PeakListTableColumnModel cm = (PeakListTableColumnModel) table
+						.getColumnModel();
+				cm.createColumns();
+				PeakListTableVisualizer visualizer = PeakListTableVisualizer
+						.getInstance();
+				visualizer.setParameters(myParameters);
+			}
+		}
 
-        if (command.equals("PRINT")) {
-            try {
-                PeakListReportGenerator reportGenerator = new PeakListReportGenerator(
-                        table, myParameters);
-                JFreeReport report = reportGenerator.generateReport();
-
-                JDialog dial = new PreviewDialog(report);
-                dial.pack();
-                dial.setLocationRelativeTo(null);
-                dial.setVisible(true);
-            } catch (Exception ex) {
-                logger.log(Level.WARNING,
-                        "Could not generate report for printing", ex);
-            }
-        }
-
-    }
+		if (command.equals("PRINT")) {
+			try {
+				table.print(PrintMode.FIT_WIDTH);
+			} catch (PrinterException e) {
+				MZmineCore.getDesktop().displayException(e);
+			}
+		}
+	}
 }

@@ -31,8 +31,6 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 
-import org.jfree.report.JFreeReportBoot;
-
 public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
     private Desktop desktop;
@@ -48,20 +46,6 @@ public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
         this.desktop = MZmineCore.getDesktop();
         myInstance = this;
-
-        // Disable default logging of JFreeReport library
-        System.setProperty("org.jfree.base.NoDefaultDebug", "true");
-
-        // Boot the JFreeReport library in a new thread, because it may take a
-        // couple of seconds and we don't want to block MZmine startup
-        Thread bootThread = new Thread() {
-
-            public void run() {
-                JFreeReportBoot.getInstance().start();
-            }
-
-        };
-        bootThread.start();
 
         parameters = new PeakListTableParameters();
 
