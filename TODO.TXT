@@ -68,6 +68,8 @@ to peak detection.
   approximated - makes sense only for continuous mode when looking in high
   detail
 
+Peak list table
+* There should be another column "fold-change", user can select which samples/parameters are compared
 
 Scatter plot
 * Scatter plot should be able to show average value from a group of samples 
@@ -107,6 +109,7 @@ Custom database search
 RT/mz plots
 * Color axis needs more informative title - instead of "Logratio" it should say 
   e.g. "log2(avg peak area(file1, file2) / avg peak area (file3, file4))"
+* Setup dialog should use project parameters to split samples to groups
 
 PCA plot
 * Bug: PCA plot may freeze if data contains Double.NaN
