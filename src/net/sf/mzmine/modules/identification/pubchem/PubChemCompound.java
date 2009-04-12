@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.identification.pubchem;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 
-public class PubChemCompound implements PeakIdentity, Comparable {
+public class PubChemCompound implements PeakIdentity {
 
 	private String compoundID, compoundName, alternateNames[], compoundFormula;
 	private String databaseEntryURL;
@@ -220,21 +220,6 @@ public class PubChemCompound implements PeakIdentity, Comparable {
 	 */
 	public String toString() {
 		return getDescription();
-	}
-
-	/**
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	public int compareTo(Object value) {
-
-		if (value == null)
-			return 1;
-
-		PeakIdentity identityValue = (PeakIdentity) value;
-		String valueName = identityValue.getName();
-		if (valueName == null)
-			return 1;
-		return valueName.compareTo(compoundName);
 	}
 
 	public String getDescription() {
