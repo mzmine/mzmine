@@ -385,7 +385,6 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.adductsearch.AdductSearch" />
     <module class="net.sf.mzmine.modules.identification.complexsearch.ComplexSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.kegg.KEGGSearch"/>  
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch"> 
       <parameters>
         <parameter name="Time tolerance" type="DOUBLE">10.0</parameter>
