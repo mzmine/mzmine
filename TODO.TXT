@@ -91,6 +91,7 @@ TIC/XIC visualizer
 
 Spectrum visualizer
 * Bug: opening a spectra with a non-existent scan number throws an exception  
+* Bug: "Show isotope pattern" always opens the spectra visualizer in continuous mode
 
 
 Peak list row summary visualizer
