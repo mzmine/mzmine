@@ -29,6 +29,8 @@ Desktop
 * JTree needs support for drag&drop reordering of data files/peak lists (requires Java 6)  (Tomas)
 * Generating of JTree events should be improved, so that selection is not lost when peaklist is added
 * Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
+* Bug: JTree starts throwing exceptions when peak recognition is run on many peaklists with 
+  "automatically remove original peak list" set
 
 Project data files
 * Project must not contain two data files with same name, otherwise project saving will fail.
