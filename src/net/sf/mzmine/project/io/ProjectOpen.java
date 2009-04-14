@@ -18,62 +18,31 @@
  */
 package net.sf.mzmine.project.io;
 
-import net.sf.mzmine.project.impl.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import org.dom4j.Document;
-import org.dom4j.DocumentFactory;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class ProjectSerializer extends DefaultHandler {
+public class ProjectOpen extends DefaultHandler {
 
-	private ZipOutputStream zipOutputStream;
 	private ZipInputStream zipInputStream;
 	private StringBuffer charBuffer;
 	private int numRawDataFiles,  numPeakLists;
 	private String[] rawDataNames,  peakListNames;
 	private int rawDataCont,  peakListCont;
 
-	public ProjectSerializer(ZipOutputStream zipStream) {
-		this.zipOutputStream = zipStream;
-	}
-
-	public ProjectSerializer(ZipInputStream zipStream) {
+	public ProjectOpen(ZipInputStream zipStream) {
 		this.zipInputStream = zipStream;
 		charBuffer = new StringBuffer();
-	}
-
-	public void saveConfiguration() throws IOException {
-		zipOutputStream.putNextEntry(new ZipEntry("config.xml"));
-		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
-		MZmineCore.saveConfiguration(tempConfigFile);
-		FileInputStream configInputStream = new FileInputStream(tempConfigFile);
-		byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-		int len;
-		while ((len = configInputStream.read(buffer)) > 0) {
-			zipOutputStream.write(buffer, 0, len);
-		}
-		configInputStream.close();
-		tempConfigFile.delete();
 	}
 
 	public void openConfiguration() {
@@ -91,18 +60,8 @@ public class ProjectSerializer extends DefaultHandler {
 			MZmineCore.loadConfiguration(tempConfigFile);
 			tempConfigFile.delete();
 		} catch (IOException ex) {
-			Logger.getLogger(ProjectSerializer.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(ProjectOpen.class.getName()).log(Level.SEVERE, null, ex);
 		}
-	}
-
-	public void saveProjectDescription(MZmineProjectImpl project) throws IOException {
-		Document document = this.saveProjectInformation(project);
-
-		zipOutputStream.putNextEntry(new ZipEntry("project.description"));
-		OutputStream finalStream = zipOutputStream;
-		OutputFormat format = OutputFormat.createPrettyPrint();
-		XMLWriter writer = new XMLWriter(finalStream, format);
-		writer.write(document);
 	}
 
 	public void openProjectDescription() {
@@ -115,41 +74,7 @@ public class ProjectSerializer extends DefaultHandler {
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(InputStream, this);
 		} catch (Exception ex) {
-			Logger.getLogger(ProjectSerializer.class.getName()).log(Level.SEVERE, null, ex);
-		}
-	}
-
-	private Document saveProjectInformation(MZmineProjectImpl project) {
-		Element newElement;
-		Document document = DocumentFactory.getInstance().createDocument();
-		Element saveRoot = document.addElement("project");
-
-		// <RAWDATAFILES>
-		newElement = saveRoot.addElement("rawdata");
-		newElement.addAttribute("quantity", String.valueOf(project.getDataFiles().length));
-		this.fillRawDataNames(newElement, project);
-
-		// <NUM_PEAKLISTS>
-		newElement = saveRoot.addElement("peaklist");
-		newElement.addAttribute("quantity", String.valueOf(project.getPeakLists().length));
-		this.fillPeakListNames(newElement, project);
-
-		return document;
-	}
-
-	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
-		Element newElement;
-		for (RawDataFile dataFile : project.getDataFiles()) {
-			newElement = element.addElement("rawdata_name");
-			newElement.addText(dataFile.getName());
-		}
-	}
-
-	private void fillPeakListNames(Element element, MZmineProjectImpl project) {
-		Element newElement;
-		for (PeakList dataFile : project.getPeakLists()) {
-			newElement = element.addElement("peaklist_name");
-			newElement.addText(dataFile.getName());
+			Logger.getLogger(ProjectOpen.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 

@@ -175,9 +175,9 @@ public class ProjectSavingTask implements Task {
 	}
 
 	private void saveConfiguration() throws IOException {
-		ProjectSerializer projectSerializer = new ProjectSerializer(zipStream);
-		projectSerializer.saveProjectDescription(project);
-		projectSerializer.saveConfiguration();
+		ProjectSave projectSave = new ProjectSave(zipStream);
+		projectSave.saveProjectDescription(project);
+		projectSave.saveConfiguration();
 	}
 
 	private void saveRawDataObjects() {

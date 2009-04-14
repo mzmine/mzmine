@@ -36,7 +36,7 @@ public class ProjectOpeningTask implements Task {
 	private String errorMessage;
 	private File openFile;
 	private ZipInputStream zipStream;
-	ProjectSerializer projectSerializer;
+	ProjectOpen projectOpen;
 	RawDataFileOpen rawDataFileOpen;
 	PeakListOpen peakListOpen;
 	private int currentStage,  rawDataCount,  peakListCount;
@@ -54,7 +54,7 @@ public class ProjectOpeningTask implements Task {
 			case 2:
 				String rawDataName = "";
 				try{
-					rawDataName = this.projectSerializer.getRawDataNames()[rawDataCount];
+					rawDataName = this.projectOpen.getRawDataNames()[rawDataCount];
 				}catch(Exception e){
 					return taskDescription + "(raw data points) ";
 				}
@@ -62,7 +62,7 @@ public class ProjectOpeningTask implements Task {
 			case 3:
 				String peakListName = "";
 				try{
-					peakListName = this.projectSerializer.getPeakListNames()[peakListCount];
+					peakListName = this.projectOpen.getPeakListNames()[peakListCount];
 				}catch(Exception e){
 					return taskDescription + "(peak list objects)";
 				}
@@ -166,22 +166,22 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	private void loadProjectInformation() {
-		projectSerializer = new ProjectSerializer(this.zipStream);
-		projectSerializer.openProjectDescription();
-		projectSerializer.openConfiguration();
+		projectOpen = new ProjectOpen(this.zipStream);
+		projectOpen.openProjectDescription();
+		projectOpen.openConfiguration();
 	}
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
 		rawDataFileOpen = new RawDataFileOpen(this.zipStream);
-		for (int i = 0; i < this.projectSerializer.getNumOfRawDataFiles(); i++, rawDataCount++) {
+		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
 			rawDataFileOpen.readRawDataFile();
 		}
 	}
 
 	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
-		for (int i = 0; i < this.projectSerializer.getNumOfPeakLists(); i++, peakListCount++) {
+		for (int i = 0; i < this.projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
 			peakListOpen = new PeakListOpen(zipStream);
 			peakListOpen.readPeakList();
 		}
