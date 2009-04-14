@@ -20,11 +20,20 @@ package net.sf.mzmine.project.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipInputStream;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -52,15 +61,64 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int dataPointsNumber;
 	private int scansReaded;
 	private double progress;
-	DoubleBuffer doubleBuffer;
+	private DoubleBuffer doubleBuffer;
+	private ZipInputStream zipInputStream;
 
-	public RawDataFileOpen(DoubleBuffer doubleBuffer) {
-		this.doubleBuffer = doubleBuffer;
+	public RawDataFileOpen(ZipInputStream zipInputStream) {
+		this.zipInputStream = zipInputStream;
 		charBuffer = new StringBuffer();
 	}
 
 	public RawDataFileWriter getRawDataFile(){
 		return this.rawDataFileWriter;
+	}
+
+	public void readRawDataFile() throws ClassNotFoundException {
+		try {
+
+			// Writes the scan file into a temporal file
+			zipInputStream.getNextEntry();
+			File tempConfigFile = File.createTempFile("mzmine", ".scans");
+			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+			int cont = 0;
+			byte buffer[] = new byte[1 << 10]; // 1 MB buffer
+			int len;
+			while ((len = zipInputStream.read(buffer)) > 0) {
+				fileStream.write(buffer, 0, len);
+				cont += len;
+			}
+			fileStream.close();
+
+			// Creates the new RawDataFile reading the scans from the temporal file and adding them
+			// to the RawDataFile
+			ByteBuffer bbuffer = ByteBuffer.allocate(cont);
+			RandomAccessFile storageFile = new RandomAccessFile(tempConfigFile, "r");
+			synchronized (storageFile) {
+				try {
+					storageFile.seek(0);
+					storageFile.read(bbuffer.array(), 0, cont);
+				} catch (IOException e) {
+				}
+			}
+			storageFile.close();
+
+			doubleBuffer = bbuffer.asDoubleBuffer();
+
+
+			zipInputStream.getNextEntry();
+			InputStream InputStream = new UnclosableInputStream(zipInputStream);
+
+			SAXParserFactory factory = SAXParserFactory.newInstance();
+			SAXParser saxParser = factory.newSAXParser();
+			saxParser.parse(InputStream, this);
+
+			RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
+			MZmineCore.getCurrentProject().addFile(rawDataFile);
+
+			tempConfigFile.delete();
+		} catch (Exception ex) {
+			Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 
 	public double getProgress(){
@@ -86,7 +144,7 @@ public class RawDataFileOpen extends DefaultHandler {
 				this.rawDataFileWriter = MZmineCore.createNewFile(getTextOfElement());
 				this.scansReaded = 0;
 			} catch (IOException ex) {
-				Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
+				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
 
@@ -131,7 +189,7 @@ public class RawDataFileOpen extends DefaultHandler {
 					try {
 						fragmentScan[i] = dataInputStream.readInt();
 					} catch (IOException ex) {
-						Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
+						Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 					}
 				}
 			}
@@ -145,7 +203,7 @@ public class RawDataFileOpen extends DefaultHandler {
 				Scan scan = new SimpleScan((RawDataFileImpl) rawDataFileWriter, this.ScanNumber, this.msLevel, this.retentionTime, this.parentScan, this.precursorMZ, this.fragmentScan, dataPoints, this.centroided);
 				rawDataFileWriter.addScan(scan);
 			} catch (IOException ex) {
-				Logger.getLogger(RawDataFileSerializer.class.getName()).log(Level.SEVERE, null, ex);
+				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 			}
 
 		}

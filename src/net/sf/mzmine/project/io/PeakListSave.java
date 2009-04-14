@@ -22,10 +22,13 @@ import com.Ostermiller.util.Base64;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakIdentity;
@@ -39,6 +42,8 @@ import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
 
 public class PeakListSave {
 
@@ -46,18 +51,17 @@ public class PeakListSave {
 			"yyyy/MM/dd HH:mm:ss");
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
 	private Document document;
-	private int numberOfRows,  rowsCount;
+	private int numberOfRows;
 	private double progress;
+	private ZipOutputStream zipOutputStream;
 
-	public PeakListSave() {
+	public PeakListSave(ZipOutputStream zipStream) {
 		dataFilesIDMap = new Hashtable<RawDataFile, Integer>();
+		this.zipOutputStream = zipStream;
 	}
 
-	public Document getDocument() {
-		return this.document;
-	}
-
-	public void savePeakList(PeakList peakList) throws IOException {
+	public void savePeakList(PeakList peakList, String peakListSavedName) throws IOException {
+		progress = 0.0;
 		numberOfRows = peakList.getNumberOfRows();
 
 		Element newElement;
@@ -103,13 +107,18 @@ public class PeakListSave {
 
 		// <ROW>		
 		PeakListRow row;
-		for (int i = 0; i < numberOfRows; i++, rowsCount++) {
+		for (int i = 0; i < numberOfRows; i++) {
 			row = peakList.getRow(i);
 			newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
 			fillRowElement(row, newElement);
-			progress = (double) rowsCount / numberOfRows;
+			progress = (double) i / numberOfRows;
 		}
 
+		zipOutputStream.putNextEntry(new ZipEntry(peakListSavedName));
+		OutputStream finalStream = zipOutputStream;
+		OutputFormat format = OutputFormat.createPrettyPrint();
+		XMLWriter writer = new XMLWriter(finalStream, format);
+		writer.write(document);
 	}
 
 	/**

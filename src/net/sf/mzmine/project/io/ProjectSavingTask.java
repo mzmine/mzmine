@@ -32,7 +32,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
-
 public class ProjectSavingTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -43,10 +42,9 @@ public class ProjectSavingTask implements Task {
 	private ZipOutputStream zipStream;
 	private int currentStage;
 	private File tempFile;
-	private RawDataFileSerializer rawDataFileSerializer;
-	private PeakListSerializer peakListSerializer;
-	private String rawDataName, peakListName;
-
+	private RawDataFileSave rawDataFileSave;
+	private PeakListSave peakListSave;
+	private String rawDataName,  peakListName;
 
 	public ProjectSavingTask(File saveFile) {
 		this.saveFile = saveFile;
@@ -75,17 +73,17 @@ public class ProjectSavingTask implements Task {
 	 */
 	public double getFinishedPercentage() {
 
-		switch (currentStage) {			
+		switch (currentStage) {
 			case 2:
 				try {
-					return (double) rawDataFileSerializer.getProgress();
+					return (double) rawDataFileSave.getProgress();
 				} catch (Exception e) {
 					return 0f;
 				}
 
 			case 3:
 				try {
-					return (double) rawDataFileSerializer.getProgress();
+					return (double) peakListSave.getProgress();
 				} catch (Exception e) {
 					return 0f;
 				}
@@ -176,8 +174,6 @@ public class ProjectSavingTask implements Task {
 		}
 	}
 
-
-
 	private void saveConfiguration() throws IOException {
 		ProjectSerializer projectSerializer = new ProjectSerializer(zipStream);
 		projectSerializer.saveProjectDescription(project);
@@ -185,18 +181,20 @@ public class ProjectSavingTask implements Task {
 	}
 
 	private void saveRawDataObjects() {
-		rawDataFileSerializer = new RawDataFileSerializer(zipStream);
+		rawDataFileSave = new RawDataFileSave(zipStream);
+		int cont = 0;
 		for (RawDataFile rawDataFile : project.getDataFiles()) {
 			rawDataName = rawDataFile.getName();
-			rawDataFileSerializer.writeRawDataFiles(rawDataFile);			
+			rawDataFileSave.writeRawDataFiles(rawDataFile, rawDataName + "-" + cont++);
 		}
 	}
 
 	private void savePeakListObjects() throws IOException, Exception {
-		peakListSerializer = new PeakListSerializer(zipStream);
+		peakListSave = new PeakListSave(zipStream);
+		int cont = 0;
 		for (PeakList peakList : project.getPeakLists()) {
 			peakListName = peakList.getName();
-			peakListSerializer.savePeakList(peakList);			
+			peakListSave.savePeakList(peakList, peakListName + "-" + cont++);
 		}
 	}
 

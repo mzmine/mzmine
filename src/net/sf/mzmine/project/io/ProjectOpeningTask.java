@@ -37,8 +37,8 @@ public class ProjectOpeningTask implements Task {
 	private File openFile;
 	private ZipInputStream zipStream;
 	ProjectSerializer projectSerializer;
-	RawDataFileSerializer rawDataFileSerializer;
-	PeakListSerializer peakListSerializer;
+	RawDataFileOpen rawDataFileOpen;
+	PeakListOpen peakListOpen;
 	private int currentStage,  rawDataCount,  peakListCount;
 
 	public ProjectOpeningTask(File openFile) {
@@ -52,9 +52,21 @@ public class ProjectOpeningTask implements Task {
 		String taskDescription = "Opening project ";
 		switch (currentStage) {
 			case 2:
-				return taskDescription + "(raw data points) " + this.projectSerializer.getRawDataNames()[rawDataCount];
+				String rawDataName = "";
+				try{
+					rawDataName = this.projectSerializer.getRawDataNames()[rawDataCount];
+				}catch(Exception e){
+					return taskDescription + "(raw data points) ";
+				}
+				return taskDescription + "(raw data points) " + rawDataName;
 			case 3:
-				return taskDescription + "(peak list objects)" + this.projectSerializer.getPeakListNames()[peakListCount];
+				String peakListName = "";
+				try{
+					peakListName = this.projectSerializer.getPeakListNames()[peakListCount];
+				}catch(Exception e){
+					return taskDescription + "(peak list objects)";
+				}
+				return taskDescription + "(peak list objects)" + peakListName;
 			default:
 				return taskDescription + openFile;
 		}
@@ -68,14 +80,14 @@ public class ProjectOpeningTask implements Task {
 		switch (currentStage) {
 			case 2:
 				try {
-					return (double) rawDataFileSerializer.getProgress();
+					return (double) rawDataFileOpen.getProgress();
 				} catch (Exception e) {
 					return 0f;
 				}
 
 			case 3:
 				try {
-					return (double) peakListSerializer.getProgress();
+					return (double) peakListOpen.getProgress();
 				} catch (Exception e) {
 					return 0f;
 				}
@@ -161,17 +173,17 @@ public class ProjectOpeningTask implements Task {
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
-		rawDataFileSerializer = new RawDataFileSerializer(this.zipStream);
+		rawDataFileOpen = new RawDataFileOpen(this.zipStream);
 		for (int i = 0; i < this.projectSerializer.getNumOfRawDataFiles(); i++, rawDataCount++) {
-			rawDataFileSerializer.readRawDataFile();
+			rawDataFileOpen.readRawDataFile();
 		}
 	}
 
 	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
 		for (int i = 0; i < this.projectSerializer.getNumOfPeakLists(); i++, peakListCount++) {
-			peakListSerializer = new PeakListSerializer(zipStream);
-			peakListSerializer.readPeakList();
+			peakListOpen = new PeakListOpen(zipStream);
+			peakListOpen.readPeakList();
 		}
 	}
 

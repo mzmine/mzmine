@@ -23,6 +23,9 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.zip.ZipInputStream;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakStatus;
@@ -36,6 +39,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
+import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.util.Range;
 import org.xml.sax.Attributes;
@@ -64,16 +68,35 @@ public class PeakListOpen extends DefaultHandler {
 	private int parsedRows;
 	private int totalRows;
 	private double progress;
+	private ZipInputStream zipInputStream;
 
-	public PeakListOpen() {
+	public PeakListOpen(ZipInputStream zipInputStream) {
 		buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
 		charBuffer = new StringBuffer();
 		appliedProcess = new Vector<String>();
+		this.zipInputStream = zipInputStream;
 	}
 
-	public PeakList getPeakList() {
-		return buildingPeakList;
+	public void readPeakList() {
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		try {
+			zipInputStream.getNextEntry();
+			SAXParser saxParser = factory.newSAXParser();
+			saxParser.parse(new UnclosableInputStream(zipInputStream), this);
+
+		} catch (Throwable e) {
+			e.printStackTrace();
+			return;
+		}
+
+		if (buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0) {
+			return;
+		}
+		// Add new peaklist to the project or MZviewer.desktop
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
+		currentProject.addPeakList(buildingPeakList);
 	}
+	
 
 	public double getProgress(){
 		return progress;
@@ -152,7 +175,6 @@ public class PeakListOpen extends DefaultHandler {
 		// <PEAK>
 		if (qName.equals(PeakListElementName.PEAK.getElementName())) {
 			try {
-
 				peakColumnID = Integer.parseInt(attrs.getValue(PeakListElementName.COLUMN.getElementName()));
 				mass = Double.parseDouble(attrs.getValue(PeakListElementName.MASS.getElementName()));
 				rt = Double.parseDouble(attrs.getValue(PeakListElementName.RT.getElementName()));
