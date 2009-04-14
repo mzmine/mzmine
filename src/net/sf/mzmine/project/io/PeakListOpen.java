@@ -24,6 +24,7 @@ import java.io.DataInputStream;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.zip.ZipInputStream;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.DataPoint;

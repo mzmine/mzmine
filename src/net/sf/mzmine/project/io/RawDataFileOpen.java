@@ -25,8 +25,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
@@ -55,6 +56,7 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int msLevel;
 	private int parentScan;
 	private int[] fragmentScan;
+	private int numberOfFragments;
 	private double precursorMZ;
 	private double retentionTime;
 	private boolean centroided;
@@ -69,7 +71,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		charBuffer = new StringBuffer();
 	}
 
-	public RawDataFileWriter getRawDataFile(){
+	public RawDataFileWriter getRawDataFile() {
 		return this.rawDataFileWriter;
 	}
 
@@ -80,30 +82,22 @@ public class RawDataFileOpen extends DefaultHandler {
 			zipInputStream.getNextEntry();
 			File tempConfigFile = File.createTempFile("mzmine", ".scans");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-			int cont = 0;
+
 			byte buffer[] = new byte[1 << 10]; // 1 MB buffer
 			int len;
+
 			while ((len = zipInputStream.read(buffer)) > 0) {
 				fileStream.write(buffer, 0, len);
-				cont += len;
 			}
 			fileStream.close();
 
 			// Creates the new RawDataFile reading the scans from the temporal file and adding them
-			// to the RawDataFile
-			ByteBuffer bbuffer = ByteBuffer.allocate(cont);
+			// to the RawDataFile				
 			RandomAccessFile storageFile = new RandomAccessFile(tempConfigFile, "r");
-			synchronized (storageFile) {
-				try {
-					storageFile.seek(0);
-					storageFile.read(bbuffer.array(), 0, cont);
-				} catch (IOException e) {
-				}
-			}
+			MappedByteBuffer bbuffer = storageFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, storageFile.length());
 			storageFile.close();
 
 			doubleBuffer = bbuffer.asDoubleBuffer();
-
 
 			zipInputStream.getNextEntry();
 			InputStream InputStream = new UnclosableInputStream(zipInputStream);
@@ -121,7 +115,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		}
 	}
 
-	public double getProgress(){
+	public double getProgress() {
 		return progress;
 	}
 
@@ -130,7 +124,10 @@ public class RawDataFileOpen extends DefaultHandler {
 			Attributes attrs) throws SAXException {
 
 		if (qName.equals(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName())) {
-			this.fragmentScan = new int[Integer.parseInt(attrs.getValue("quantity"))];
+			this.numberOfFragments = Integer.parseInt(attrs.getValue(RawDataElementName.QUANTITY.getElementName()));
+			if (this.numberOfFragments > 0) {
+				this.fragmentScan = new int[this.numberOfFragments];
+			}
 		}
 	}
 
@@ -189,7 +186,6 @@ public class RawDataFileOpen extends DefaultHandler {
 					try {
 						fragmentScan[i] = dataInputStream.readInt();
 					} catch (IOException ex) {
-						Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 					}
 				}
 			}

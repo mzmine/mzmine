@@ -30,6 +30,7 @@ public enum RawDataElementName {
 	SCAN_ID ("id"),
 	MS_LEVEL("msLevel"),
 	QUANTITY_FRANGMENT_SCAN ("num_frag"),
+	QUANTITY ("quantity"),
 	PARENT_SCAN ("parent"),
 	PRECURSOR_MZ ("mz"),	
 	RETENTION_TIME("rt"),

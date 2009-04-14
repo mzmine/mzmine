@@ -135,10 +135,10 @@ public class RawDataFileSave {
 
 		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
 		if (scan.getFragmentScanNumbers() == null) {
-			newElement.addAttribute("quantity", "0");
+			newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), "0");
 			return;
 		}
-		newElement.addAttribute("quantity", String.valueOf(scan.getFragmentScanNumbers().length));
+		newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), String.valueOf(scan.getFragmentScanNumbers().length));
 
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
@@ -154,7 +154,6 @@ public class RawDataFileSave {
 		}
 
 		char[] bytes = Base64.encode(byteScanStream.toByteArray());
-		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
 		newElement.addText(new String(bytes));
 	}
 
