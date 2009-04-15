@@ -80,6 +80,8 @@ to peak detection.
 
 Peak list table
 * There should be another column "fold-change", user can select which samples/parameters are compared
+* We need a function to show a specific row of the peak list, this should be easy to activate from
+  other plots (e.g. scatter plot)
 
 Scatter plot
 * Scatter plot should be able to show average value from a group of samples 
