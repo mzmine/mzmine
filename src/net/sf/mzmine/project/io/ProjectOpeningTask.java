@@ -28,7 +28,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 
-
 public class ProjectOpeningTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -53,17 +52,17 @@ public class ProjectOpeningTask implements Task {
 		switch (currentStage) {
 			case 2:
 				String rawDataName = "";
-				try{
+				try {
 					rawDataName = this.projectOpen.getRawDataNames()[rawDataCount];
-				}catch(Exception e){
+				} catch (Exception e) {
 					return taskDescription + "(raw data points) ";
 				}
 				return taskDescription + "(raw data points) " + rawDataName;
 			case 3:
 				String peakListName = "";
-				try{
+				try {
 					peakListName = this.projectOpen.getPeakListNames()[peakListCount];
-				}catch(Exception e){
+				} catch (Exception e) {
 					return taskDescription + "(peak list objects)";
 				}
 				return taskDescription + "(peak list objects)" + peakListName;
@@ -175,7 +174,9 @@ public class ProjectOpeningTask implements Task {
 			ClassNotFoundException {
 		rawDataFileOpen = new RawDataFileOpen(this.zipStream);
 		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
-			rawDataFileOpen.readRawDataFile();
+			if (this.projectOpen.getRawDataNames()[i] != null) {
+				rawDataFileOpen.readRawDataFile(this.projectOpen.getRawDataNames()[i]);
+			}
 		}
 	}
 

@@ -74,7 +74,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	}
 
-	void setScanDataFile(File scanFile) throws IOException {
+	public RawDataFileImpl(){
+		// prepare new Hashtable for scans
+		scans = new Hashtable<Integer, Scan>();
+	}
+
+	public void setScanDataFile(File scanFile) throws IOException {
 		this.scanFile = scanFile;
 
 		scanDataFile = new RandomAccessFile(scanFile, "rw");
@@ -439,7 +444,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		CachedStorableScan storedScan = new CachedStorableScan(newScan, this);
 		scans.put(scanNumber, storedScan);
 
-	}
+	}	
 
 	public String toString() {
 		return fileName;

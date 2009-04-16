@@ -86,20 +86,28 @@ public class StorableScan implements Scan {
         this.precursorMZ = precursorMZ;
         this.fragmentScans = fragmentScans;
         this.centroided = centroided;
-
-        setDataPoints(dataPoints);
+	
+		if(dataPoints != null){
+			setDataPoints(dataPoints);
+		}
 
     }
+
+	public void setParameters(long storageFileOffset, int storageArrayByteLength, int numberOfDataPoints){
+		this.storageArrayByteLength = storageArrayByteLength;
+		this.storageFileOffset = storageFileOffset;
+		this.numberOfDataPoints = numberOfDataPoints;
+	}
 
     /**
      * @return Scan's datapoints from temporary file.
      */
     public DataPoint[] getDataPoints() {
-
-        ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
+		ByteBuffer buffer = ByteBuffer.allocate(storageArrayByteLength);
         RandomAccessFile storageFile = rawDataFile.getScanDataFile();
+		
         synchronized (storageFile) {
-            try {
+            try {				
                 storageFile.seek(storageFileOffset);
                 storageFile.read(buffer.array(), 0, storageArrayByteLength);
             } catch (IOException e) {
@@ -108,15 +116,40 @@ public class StorableScan implements Scan {
                 return new DataPoint[0];
             }
         }
-
+		
         DoubleBuffer doubleBuffer = buffer.asDoubleBuffer();
 
         DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
 
         for (int i = 0; i < numberOfDataPoints; i++) {
             double mz = doubleBuffer.get();
-            double intensity = doubleBuffer.get();
+            double intensity = doubleBuffer.get();		
             dataPoints[i] = new SimpleDataPoint(mz, intensity);
+        }
+
+		 // find m/z range and base peak
+        if (dataPoints.length > 0) {
+
+            basePeak = dataPoints[0];
+            mzRange = new Range(dataPoints[0].getMZ(),
+                    dataPoints[0].getMZ());
+
+            for (DataPoint dp : dataPoints) {
+
+                if (dp.getIntensity() > basePeak.getIntensity())
+                    basePeak = dp;
+
+                mzRange.extendRange(dp.getMZ());
+
+                totalIonCurrent += dp.getIntensity();
+
+            }
+
+        } else {
+            // Empty scan, so no m/z range or base peak
+            mzRange = new Range(0, 0);
+            basePeak = null;
+            totalIonCurrent = 0;
         }
 
         return dataPoints;
