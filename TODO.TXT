@@ -24,6 +24,12 @@ TODO list for MZmine 2.0 release
 Project manager
 * We need to reimplement project saving/loading using our own project file format. 
   Saving using serialization is too slow (2 hr saving a ~1 GB size project) (Sandra)
+* Project must not contain two data files with same name, otherwise project saving will fail.
+  This must be checked when data files are added to the project, and also when data file is being renamed.
+* When data file, which is present in a peak list, is removed from the project, lot of problems appear 
+  (e.g. exceptions when showing the XIC component). Maybe the easiest solution is not to allow removing 
+  of data files which are used in a peak list. 
+
 
 Desktop
 * JTree needs support for drag&drop reordering of data files/peak lists (requires Java 6)  (Tomas)
@@ -32,9 +38,6 @@ Desktop
 * Bug: JTree starts throwing exceptions when peak recognition is run on many peaklists with 
   "automatically remove original peak list" set
 
-Project data files
-* Project must not contain two data files with same name, otherwise project saving will fail.
-  This must be checked when data files are added to the project, and also when data file is being renamed.
 
 
 ***** Raw data import *****
