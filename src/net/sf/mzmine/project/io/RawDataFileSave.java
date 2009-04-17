@@ -18,12 +18,14 @@
  */
 package net.sf.mzmine.project.io;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -36,7 +38,6 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.jfree.xml.util.Base64;
 
 public class RawDataFileSave {
 
@@ -44,19 +45,19 @@ public class RawDataFileSave {
 	private int numOfScans;
 	private ZipOutputStream zipOutputStream;
 
-	public RawDataFileSave(ZipOutputStream zipOutputStream){
+	public RawDataFileSave(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
 	}
 
 	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) {
 		try {
 			progress = 0.0;
-			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName));
+			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 			copyFile(((RawDataFileImpl) rawDataFile).getScanDataFileasFile(), zipOutputStream);
-			
+
 			Document document = this.saveRawDataInformation(rawDataFile);
 
-			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".description"));
+			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
 			OutputStream finalStream = zipOutputStream;
 			OutputFormat format = OutputFormat.createPrettyPrint();
 			XMLWriter writer = new XMLWriter(finalStream, format);
@@ -67,27 +68,22 @@ public class RawDataFileSave {
 		}
 	}
 
-	private void copyFile(File in, ZipOutputStream zipStream) throws Exception {
-		FileInputStream fis = new FileInputStream(in);
-		int totalBytes = (int) in.length();
-		try {
-			byte[] buffer = new byte[4096];
-			int bytesRead;
-			int len = 0;
-			while ((bytesRead = fis.read(buffer)) != -1) {
-				zipStream.write(buffer, 0, bytesRead);
-				len += bytesRead;
-				progress = (double) len / totalBytes;
-			}
-		} catch (Exception e) {
-			throw e;
-		} finally {
-			if (fis != null) {
-				fis.close();
-			}
+	private void copyFile(File inputFile, ZipOutputStream zipStream) throws Exception {
+		FileInputStream fileStream = new FileInputStream(inputFile);
+		ReadableByteChannel in = Channels.newChannel(fileStream);
+		WritableByteChannel out = Channels.newChannel(zipStream);
+
+		ByteBuffer bbuffer = ByteBuffer.allocate(65536);
+
+		while (in.read(bbuffer) != -1) {
+			bbuffer.flip();
+			out.write(bbuffer);
+			bbuffer.clear();
 		}
+		in.close();		
 	}
-	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {		
+
+	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
 		numOfScans = rawDataFile.getNumOfScans();
 
 		Element newElement;
@@ -105,7 +101,7 @@ public class RawDataFileSave {
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
 			newElement = saveRoot.addElement(RawDataElementName.SCAN.getElementName());
 			Scan scan = rawDataFile.getScan(scanNumber);
-			this.fillScanElement(scan, newElement);			
+			this.fillScanElement(scan, newElement);
 		}
 		return document;
 	}
@@ -118,8 +114,10 @@ public class RawDataFileSave {
 		newElement = element.addElement(RawDataElementName.MS_LEVEL.getElementName());
 		newElement.addText(String.valueOf(scan.getMSLevel()));
 
-		newElement = element.addElement(RawDataElementName.PARENT_SCAN.getElementName());
-		newElement.addText(String.valueOf(scan.getParentScanNumber()));
+		if (scan.getParentScanNumber() > 0) {
+			newElement = element.addElement(RawDataElementName.PARENT_SCAN.getElementName());
+			newElement.addText(String.valueOf(scan.getParentScanNumber()));
+		}
 
 		newElement = element.addElement(RawDataElementName.PRECURSOR_MZ.getElementName());
 		newElement.addText(String.valueOf(scan.getPrecursorMZ()));
@@ -133,28 +131,16 @@ public class RawDataFileSave {
 		newElement = element.addElement(RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
 		newElement.addText(String.valueOf(scan.getNumberOfDataPoints()));
 
-		newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
-		if (scan.getFragmentScanNumbers() == null) {
-			newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), "0");
-			return;
-		}
-		newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), String.valueOf(scan.getFragmentScanNumbers().length));
-
-		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
-		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
-
-
-		for (int fragmentNumber : scan.getFragmentScanNumbers()) {
-			try {
-				dataScanStream.writeInt(fragmentNumber);
-				dataScanStream.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
+		if (scan.getFragmentScanNumbers() != null) {
+			int[] fragmentScans = scan.getFragmentScanNumbers();
+			newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
+			newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length));
+			Element fragmentElement;
+			for (int i : fragmentScans) {
+				fragmentElement = newElement.addElement(RawDataElementName.FRAGMENT_SCAN.getElementName());
+				fragmentElement.addText(String.valueOf(i));
 			}
 		}
-
-		char[] bytes = Base64.encode(byteScanStream.toByteArray());
-		newElement.addText(new String(bytes));
 	}
 
 	public double getProgress() {

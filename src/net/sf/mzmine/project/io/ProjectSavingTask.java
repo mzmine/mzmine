@@ -24,7 +24,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Logger;
 import java.util.zip.ZipOutputStream;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -45,6 +44,8 @@ public class ProjectSavingTask implements Task {
 	private RawDataFileSave rawDataFileSave;
 	private PeakListSave peakListSave;
 	private String rawDataName,  peakListName;
+	private RawDataFile[] rawDataFiles;
+	private PeakList[] peakLists;
 
 	public ProjectSavingTask(File saveFile) {
 		this.saveFile = saveFile;
@@ -142,6 +143,7 @@ public class ProjectSavingTask implements Task {
 
 			// Stage 2 - save RawDataFile objects
 			currentStage++;
+			rawDataFiles = project.getDataFiles();
 			saveRawDataObjects();
 			if (status == TaskStatus.CANCELED) {
 				return;
@@ -149,6 +151,7 @@ public class ProjectSavingTask implements Task {
 
 			// Stage 3 - save PeakList objects
 			currentStage++;
+			peakLists = project.getPeakLists();
 			savePeakListObjects();
 			if (status == TaskStatus.CANCELED) {
 				return;
@@ -164,7 +167,7 @@ public class ProjectSavingTask implements Task {
 
 			// Move the temporary ZIP file to the final location
 			tempFile.renameTo(saveFile);
-
+			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(saveFile);
 			logger.info("Finished saving project to " + saveFile);
 			status = TaskStatus.FINISHED;
 
@@ -183,18 +186,18 @@ public class ProjectSavingTask implements Task {
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
 		int cont = 0;
-		for (RawDataFile rawDataFile : project.getDataFiles()) {
+		for (RawDataFile rawDataFile : this.rawDataFiles) {
 			rawDataName = rawDataFile.getName();
-			rawDataFileSave.writeRawDataFiles(rawDataFile, rawDataName + "-" + cont++);
+			rawDataFileSave.writeRawDataFiles(rawDataFile, "Raw data file #" + cont++ + " " + rawDataName);
 		}
 	}
 
 	private void savePeakListObjects() throws IOException, Exception {
 		peakListSave = new PeakListSave(zipStream);
 		int cont = 0;
-		for (PeakList peakList : project.getPeakLists()) {
+		for (PeakList peakList : this.peakLists) {
 			peakListName = peakList.getName();
-			peakListSave.savePeakList(peakList, peakListName + "-" + cont++);
+			peakListSave.savePeakList(peakList, "Peak list #" + cont++ + " " + peakListName );
 		}
 	}
 

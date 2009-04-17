@@ -136,7 +136,7 @@ public class MZmineProjectImpl implements MZmineProject {
         return projectFile;
     }
 
-    void setProjectFile(File file) {
+    public void setProjectFile(File file) {
         this.projectFile = file;
         ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.PROJECT_NAME_CHANGED);

@@ -38,7 +38,6 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
@@ -114,7 +113,7 @@ public class PeakListSave {
 			progress = (double) i / numberOfRows;
 		}
 
-		zipOutputStream.putNextEntry(new ZipEntry(peakListSavedName));
+		zipOutputStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
 		OutputStream finalStream = zipOutputStream;
 		OutputFormat format = OutputFormat.createPrettyPrint();
 		XMLWriter writer = new XMLWriter(finalStream, format);

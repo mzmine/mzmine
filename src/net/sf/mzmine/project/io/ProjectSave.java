@@ -18,11 +18,16 @@
  */
 package net.sf.mzmine.project.io;
 
+
 import net.sf.mzmine.project.impl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.PeakList;
@@ -43,23 +48,29 @@ public class ProjectSave {
 	}
 
 	public void saveConfiguration() throws IOException {
-		zipOutputStream.putNextEntry(new ZipEntry("config.xml"));
+		zipOutputStream.putNextEntry(new ZipEntry("configuration.xml"));
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 		MZmineCore.saveConfiguration(tempConfigFile);
-		FileInputStream configInputStream = new FileInputStream(tempConfigFile);
-		byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-		int len;
-		while ((len = configInputStream.read(buffer)) > 0) {
-			zipOutputStream.write(buffer, 0, len);
+		FileInputStream fileStream = new FileInputStream(tempConfigFile);
+		ReadableByteChannel in = Channels.newChannel(fileStream);
+		WritableByteChannel out = Channels.newChannel(zipOutputStream);
+
+		ByteBuffer bbuffer = ByteBuffer.allocate(65536);
+
+		while (in.read(bbuffer) != -1) {
+			bbuffer.flip();
+			out.write(bbuffer);
+			bbuffer.clear();
 		}
-		configInputStream.close();
+		in.close();
+		
 		tempConfigFile.delete();
 	}
 
 	public void saveProjectDescription(MZmineProjectImpl project) throws IOException {
 		Document document = this.saveProjectInformation(project);
 
-		zipOutputStream.putNextEntry(new ZipEntry("project.description"));
+		zipOutputStream.putNextEntry(new ZipEntry("Project description.xml"));
 		OutputStream finalStream = zipOutputStream;
 		OutputFormat format = OutputFormat.createPrettyPrint();
 		XMLWriter writer = new XMLWriter(finalStream, format);
@@ -72,12 +83,12 @@ public class ProjectSave {
 		Element saveRoot = document.addElement("project");
 
 		// <RAWDATAFILES>
-		newElement = saveRoot.addElement("rawdata");
+		newElement = saveRoot.addElement("rawdatafiles");
 		newElement.addAttribute("quantity", String.valueOf(project.getDataFiles().length));
 		this.fillRawDataNames(newElement, project);
 
 		// <NUM_PEAKLISTS>
-		newElement = saveRoot.addElement("peaklist");
+		newElement = saveRoot.addElement("peaklists");
 		newElement.addAttribute("quantity", String.valueOf(project.getPeakLists().length));
 		this.fillPeakListNames(newElement, project);
 
@@ -86,17 +97,21 @@ public class ProjectSave {
 
 	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
 		Element newElement;
-		for (RawDataFile dataFile : project.getDataFiles()) {
-			newElement = element.addElement("rawdata_name");
-			newElement.addText(dataFile.getName());
+		RawDataFile[] dataFiles = project.getDataFiles();
+		for (int i = 0; i< dataFiles.length; i++) {
+			newElement = element.addElement("rawdata");
+			newElement.addAttribute("id", String.valueOf(i));
+			newElement.addText(dataFiles[i].getName());
 		}
 	}
 
 	private void fillPeakListNames(Element element, MZmineProjectImpl project) {
 		Element newElement;
-		for (PeakList dataFile : project.getPeakLists()) {
-			newElement = element.addElement("peaklist_name");
-			newElement.addText(dataFile.getName());
+		PeakList[] peakLists = project.getPeakLists();
+		for (int i = 0; i < peakLists.length; i++) {
+			newElement = element.addElement("peaklist");
+			newElement.addAttribute("id", String.valueOf(i));
+			newElement.addText(peakLists[i].getName());
 		}
 	}
 }

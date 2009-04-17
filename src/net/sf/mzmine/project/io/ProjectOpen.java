@@ -22,8 +22,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -35,27 +40,35 @@ import org.xml.sax.helpers.DefaultHandler;
 public class ProjectOpen extends DefaultHandler {
 
 	private ZipInputStream zipInputStream;
+	private ZipFile zipFile;
 	private StringBuffer charBuffer;
 	private int numRawDataFiles,  numPeakLists;
 	private String[] rawDataNames,  peakListNames;
 	private int rawDataCont,  peakListCont;
 
-	public ProjectOpen(ZipInputStream zipStream) {
+	public ProjectOpen(ZipInputStream zipStream, ZipFile zipFile) {
 		this.zipInputStream = zipStream;
+		this.zipFile = zipFile;
 		charBuffer = new StringBuffer();
 	}
 
 	public void openConfiguration() {
 		try {
 			zipInputStream.getNextEntry();
-
 			File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-			int len;
-			byte buffer[] = new byte[1 << 10]; // 1 MB buffer
-			while ((len = zipInputStream.read(buffer)) > 0) {
-				fileStream.write(buffer, 0, len);
+			ReadableByteChannel in = Channels.newChannel(zipInputStream);
+			WritableByteChannel out = Channels.newChannel(fileStream);
+
+
+			ByteBuffer bbuffer = ByteBuffer.allocate(65536);
+
+			while (in.read(bbuffer) != -1) {
+				bbuffer.flip();
+				out.write(bbuffer);
+				bbuffer.clear();
 			}
+			out.close();
 			fileStream.close();
 			MZmineCore.loadConfiguration(tempConfigFile);
 			tempConfigFile.delete();
@@ -65,10 +78,8 @@ public class ProjectOpen extends DefaultHandler {
 	}
 
 	public void openProjectDescription() {
-		try {
-			zipInputStream.getNextEntry();
-			InputStream InputStream = new UnclosableInputStream(zipInputStream);
-
+		try {			
+			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
 			charBuffer = new StringBuffer();
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
@@ -81,12 +92,12 @@ public class ProjectOpen extends DefaultHandler {
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
-		if (qName.equals("rawdata")) {
+		if (qName.equals("rawdatafiles")) {
 			numRawDataFiles = Integer.parseInt(attrs.getValue("quantity"));
 			rawDataNames = new String[numRawDataFiles];
 		}
 
-		if (qName.equals("peaklist")) {
+		if (qName.equals("peaklists")) {
 			numPeakLists = Integer.parseInt(attrs.getValue("quantity"));
 			peakListNames = new String[numPeakLists];
 		}
@@ -97,11 +108,11 @@ public class ProjectOpen extends DefaultHandler {
 			String qName // qualified name
 			) throws SAXException {
 
-		if (qName.equals("rawdata_name")) {
+		if (qName.equals("rawdata")) {
 			rawDataNames[rawDataCont++] = getTextOfElement();
 		}
 
-		if (qName.equals("peaklist_name")) {
+		if (qName.equals("peaklist")) {
 			peakListNames[peakListCont++] = getTextOfElement();
 		}
 	}

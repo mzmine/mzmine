@@ -21,9 +21,15 @@ package net.sf.mzmine.project.io;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -35,13 +41,20 @@ public class ProjectOpeningTask implements Task {
 	private String errorMessage;
 	private File openFile;
 	private ZipInputStream zipStream;
-	ProjectOpen projectOpen;
-	RawDataFileOpen rawDataFileOpen;
-	PeakListOpen peakListOpen;
+	private ProjectOpen projectOpen;
+	private RawDataFileOpen rawDataFileOpen;
+	private PeakListOpen peakListOpen;
+	private ZipFile zipFile;
 	private int currentStage,  rawDataCount,  peakListCount;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
+		try {
+			zipFile = new ZipFile(openFile);
+		} catch (IOException ex) {
+			Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		removeCurrentProjectFiles();
 	}
 
 	/**
@@ -145,7 +158,7 @@ public class ProjectOpeningTask implements Task {
 			if (status == TaskStatus.CANCELED) {
 				return;
 			}
-			//	((MZmineProjectImpl) project).setProjectFile(openFile);
+			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(openFile);
 
 			logger.info("Finished opening project " + openFile);
 			status = TaskStatus.FINISHED;
@@ -165,14 +178,14 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	private void loadProjectInformation() {
-		projectOpen = new ProjectOpen(this.zipStream);
+		projectOpen = new ProjectOpen(this.zipStream, this.zipFile);
 		projectOpen.openProjectDescription();
 		projectOpen.openConfiguration();
 	}
 
 	private void loadRawDataObjects() throws IOException,
 			ClassNotFoundException {
-		rawDataFileOpen = new RawDataFileOpen(this.zipStream);
+		rawDataFileOpen = new RawDataFileOpen(this.zipStream, this.zipFile);
 		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
 			if (this.projectOpen.getRawDataNames()[i] != null) {
 				rawDataFileOpen.readRawDataFile(this.projectOpen.getRawDataNames()[i]);
@@ -183,12 +196,24 @@ public class ProjectOpeningTask implements Task {
 	private void loadPeakListObjects() throws IOException,
 			ClassNotFoundException {
 		for (int i = 0; i < this.projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
-			peakListOpen = new PeakListOpen(zipStream);
+			peakListOpen = new PeakListOpen(zipStream, this.zipFile);
 			peakListOpen.readPeakList();
 		}
 	}
 
 	public Object[] getCreatedObjects() {
 		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	public void removeCurrentProjectFiles() {
+		MZmineProject project = MZmineCore.getCurrentProject();
+		RawDataFile[] rawDataFiles = project.getDataFiles();
+		PeakList[] peakLists = project.getPeakLists();
+		for (RawDataFile file : rawDataFiles) {
+			project.removeFile(file);
+		}
+		for (PeakList peakList : peakLists) {
+			project.removePeakList(peakList);
+		}
 	}
 }

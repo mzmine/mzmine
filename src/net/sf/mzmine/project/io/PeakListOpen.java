@@ -23,8 +23,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.DataPoint;
@@ -39,7 +39,6 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.io.xmlexport.PeakListElementName;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.util.Range;
@@ -70,20 +69,21 @@ public class PeakListOpen extends DefaultHandler {
 	private int totalRows;
 	private double progress;
 	private ZipInputStream zipInputStream;
+	private ZipFile zipFile;
 
-	public PeakListOpen(ZipInputStream zipInputStream) {
+	public PeakListOpen(ZipInputStream zipInputStream, ZipFile zipFile) {
 		buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
 		charBuffer = new StringBuffer();
 		appliedProcess = new Vector<String>();
 		this.zipInputStream = zipInputStream;
+		this.zipFile = zipFile;
 	}
 
 	public void readPeakList() {
 		SAXParserFactory factory = SAXParserFactory.newInstance();
-		try {
-			zipInputStream.getNextEntry();
+		try {			
 			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(new UnclosableInputStream(zipInputStream), this);
+			saxParser.parse(zipFile.getInputStream(zipInputStream.getNextEntry()), this);
 
 		} catch (Throwable e) {
 			e.printStackTrace();
