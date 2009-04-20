@@ -18,16 +18,11 @@
  */
 package net.sf.mzmine.project.io;
 
-
 import net.sf.mzmine.project.impl.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.PeakList;
@@ -52,18 +47,7 @@ public class ProjectSave {
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 		MZmineCore.saveConfiguration(tempConfigFile);
 		FileInputStream fileStream = new FileInputStream(tempConfigFile);
-		ReadableByteChannel in = Channels.newChannel(fileStream);
-		WritableByteChannel out = Channels.newChannel(zipOutputStream);
-
-		ByteBuffer bbuffer = ByteBuffer.allocate(65536);
-
-		while (in.read(bbuffer) != -1) {
-			bbuffer.flip();
-			out.write(bbuffer);
-			bbuffer.clear();
-		}
-		in.close();
-		
+		(new SaveFileUtils()).saveFile(fileStream, zipOutputStream, 0, SaveFileUtilsMode.CLOSE_IN);
 		tempConfigFile.delete();
 	}
 
@@ -83,35 +67,27 @@ public class ProjectSave {
 		Element saveRoot = document.addElement("project");
 
 		// <RAWDATAFILES>
-		newElement = saveRoot.addElement("rawdatafiles");
-		newElement.addAttribute("quantity", String.valueOf(project.getDataFiles().length));
+		newElement = XMLUtils.fillXMLValues(saveRoot, "rawdatafiles", "quantity", String.valueOf(project.getDataFiles().length), null);
 		this.fillRawDataNames(newElement, project);
 
 		// <NUM_PEAKLISTS>
-		newElement = saveRoot.addElement("peaklists");
-		newElement.addAttribute("quantity", String.valueOf(project.getPeakLists().length));
+		newElement = XMLUtils.fillXMLValues(saveRoot, "peaklists", "quantity", String.valueOf(project.getPeakLists().length), null);
 		this.fillPeakListNames(newElement, project);
 
 		return document;
 	}
 
 	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
-		Element newElement;
 		RawDataFile[] dataFiles = project.getDataFiles();
-		for (int i = 0; i< dataFiles.length; i++) {
-			newElement = element.addElement("rawdata");
-			newElement.addAttribute("id", String.valueOf(i));
-			newElement.addText(dataFiles[i].getName());
+		for (int i = 0; i < dataFiles.length; i++) {
+			XMLUtils.fillXMLValues(element, "rawdata", "id", String.valueOf(i), dataFiles[i].getName());
 		}
 	}
 
 	private void fillPeakListNames(Element element, MZmineProjectImpl project) {
-		Element newElement;
 		PeakList[] peakLists = project.getPeakLists();
 		for (int i = 0; i < peakLists.length; i++) {
-			newElement = element.addElement("peaklist");
-			newElement.addAttribute("id", String.valueOf(i));
-			newElement.addText(peakLists[i].getName());
+			XMLUtils.fillXMLValues(element, "peaklist", "id", String.valueOf(i), peakLists[i].getName());
 		}
 	}
 }

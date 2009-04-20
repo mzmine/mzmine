@@ -20,7 +20,6 @@
 
 package net.sf.mzmine.project.io;
 
-import net.sf.mzmine.modules.io.xmlexport.*;
 
 public enum PeakListElementName {
 	

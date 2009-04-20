@@ -21,10 +21,6 @@ package net.sf.mzmine.project.io;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipFile;
@@ -56,10 +52,12 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int dataPointsNumber;
 	private int scansReaded;
 	private double progress;
+	private int stepNumber;
 	private int storageFileOffset;
 	private ZipInputStream zipInputStream;
 	private ZipFile zipFile;
 	private int fragmentCount;
+	private SaveFileUtils saveFileUtils;
 
 	public RawDataFileOpen(ZipInputStream zipInputStream, ZipFile zipFile) {
 		this.zipInputStream = zipInputStream;
@@ -69,33 +67,22 @@ public class RawDataFileOpen extends DefaultHandler {
 
 	public void readRawDataFile(String Name) throws ClassNotFoundException {
 		try {
-
+			stepNumber = 0;
 			// Writes the scan file into a temporal file
 			String fileName = zipInputStream.getNextEntry().getName();
-		
+
 			File tempConfigFile = File.createTempFile("mzmine", ".scans");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+			stepNumber++;
+			this.saveFileUtils = new SaveFileUtils();
+			saveFileUtils.saveFile(zipInputStream, fileStream, this.zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+			fileStream.close();
 
-			ReadableByteChannel in = Channels.newChannel(zipInputStream);
-			WritableByteChannel out = Channels.newChannel(fileStream);
-			ByteBuffer bbuffer = ByteBuffer.allocate(65536);
-			
-			int len = 0;
-			int lenTotal =0;
-			while ((len = in.read(bbuffer) )!= -1) {
-				bbuffer.flip();
-				out.write(bbuffer);
-				bbuffer.clear();
-				lenTotal += len;
-				progress = ((double)lenTotal /this.zipFile.getEntry(fileName).getSize())*0.5;
-			}
-
-			out.close();
 			this.rawDataFileWriter = new RawDataFileImpl();
 			((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
 			this.rawDataFileWriter.setName(Name);
 
-
+			stepNumber++;
 			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
 
 			SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -113,7 +100,14 @@ public class RawDataFileOpen extends DefaultHandler {
 	}
 
 	public double getProgress() {
-		return progress;
+		switch (stepNumber) {
+			case 1:
+				return saveFileUtils.progress * 0.5;
+			case 2:
+				return progress;
+			default:
+				return 0.0;
+		}
 	}
 
 	public void startElement(String namespaceURI, String lName, // local name
@@ -134,7 +128,7 @@ public class RawDataFileOpen extends DefaultHandler {
 
 		// <NAME>
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
-			try {				
+			try {
 				getTextOfElement();
 				this.scansReaded = 0;
 			} catch (Exception ex) {
@@ -149,7 +143,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
 
 			this.ScanNumber = Integer.parseInt(getTextOfElement());
-			progress = ((double) scansReaded / numberOfScans)*0.5 + 0.5;
+			progress = ((double) scansReaded / numberOfScans) * 0.5 + 0.5;
 			scansReaded++;
 		}
 

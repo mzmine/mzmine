@@ -68,8 +68,7 @@ public class PeakListSave {
 		Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
 
 		// <NAME>
-		newElement = saveRoot.addElement(PeakListElementName.NAME.getElementName());
-		newElement.addText(peakList.getName());
+		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.NAME.getElementName(), null, null, peakList.getName());
 
 		// <PEAKLIST_DATE>
 		String dateText = "";
@@ -79,27 +78,24 @@ public class PeakListSave {
 			Date date = new Date();
 			dateText = dateFormat.format(date);
 		}
-		newElement = saveRoot.addElement(PeakListElementName.PEAKLIST_DATE.getElementName());
-		newElement.addText(dateText);
+		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PEAKLIST_DATE.getElementName(), null, null, dateText);
+
 
 		// <QUANTITY>
-		newElement = saveRoot.addElement(PeakListElementName.QUANTITY.getElementName());
-		newElement.addText(String.valueOf(numberOfRows));
+		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.QUANTITY.getElementName(), null, null, String.valueOf(numberOfRows));
+
 
 		// <PROCESS>
 		PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
 		for (PeakListAppliedMethod proc : processes) {
-			newElement = saveRoot.addElement(PeakListElementName.PROCESS.getElementName());
-			newElement.addText(proc.getDescription());
+			XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PROCESS.getElementName(), null, null, proc.getDescription());
 		}
 
 		// <RAWFILE>
 		RawDataFile[] dataFiles = peakList.getRawDataFiles();
 
 		for (int i = 1; i <= dataFiles.length; i++) {
-			newElement = saveRoot.addElement(PeakListElementName.RAWFILE.getElementName());
-			newElement.addAttribute(
-					PeakListElementName.ID.getElementName(), String.valueOf(i));
+			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.RAWFILE.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(i), null);
 			fillRawDataFileElement(dataFiles[i - 1], newElement);
 			dataFilesIDMap.put(dataFiles[i - 1], i);
 		}
@@ -108,7 +104,7 @@ public class PeakListSave {
 		PeakListRow row;
 		for (int i = 0; i < numberOfRows; i++) {
 			row = peakList.getRow(i);
-			newElement = saveRoot.addElement(PeakListElementName.ROW.getElementName());
+			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.ROW.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(row.getID()), null);
 			fillRowElement(row, newElement);
 			progress = (double) i / numberOfRows;
 		}
@@ -125,7 +121,6 @@ public class PeakListSave {
 	 * @param element
 	 */
 	private void fillRowElement(PeakListRow row, Element element) {
-		element.addAttribute(PeakListElementName.ID.getElementName(), String.valueOf(row.getID()));
 		Element newElement;
 
 		// <PEAK_IDENTITY>
@@ -133,9 +128,7 @@ public class PeakListSave {
 		PeakIdentity[] identities = row.getPeakIdentities();
 
 		for (int i = 0; i < identities.length; i++) {
-			newElement = element.addElement(PeakListElementName.PEAK_IDENTITY.getElementName());
-			newElement.addAttribute(PeakListElementName.ID.getElementName(),
-					String.valueOf(i));
+			newElement = XMLUtils.fillXMLValues(element, PeakListElementName.PEAK_IDENTITY.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(i), null);
 			newElement.addAttribute(PeakListElementName.PREFERRED.getElementName(), String.valueOf(identities[i] == preferredIdentity));
 			fillIdentityElement(identities[i], newElement);
 		}
@@ -144,7 +137,8 @@ public class PeakListSave {
 		int dataFileID = 0;
 		ChromatographicPeak[] peaks = row.getPeaks();
 		for (ChromatographicPeak p : peaks) {
-			newElement = element.addElement(PeakListElementName.PEAK.getElementName());
+			newElement = XMLUtils.fillXMLValues(element, PeakListElementName.PEAK.getElementName(), null, null, null);
+
 			dataFileID = dataFilesIDMap.get(p.getDataFile());
 			fillPeakElement(p, newElement, dataFileID);
 		}
@@ -158,16 +152,14 @@ public class PeakListSave {
 	private void fillRawDataFileElement(RawDataFile file, Element element) {
 
 		// <NAME>
-		Element newElement = element.addElement("rawdata_name");
-		newElement.addText(file.getName());
+		XMLUtils.fillXMLValues(element, "rawdata_name", null, null, file.getName());
 
 		// <RTRANGE>
-		newElement = element.addElement(PeakListElementName.RTRANGE.getElementName());
-		newElement.addText(String.valueOf(file.getDataRTRange(1)));
+		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(file.getDataRTRange(1)));
 
 		// <MZRANGE>
-		newElement = element.addElement(PeakListElementName.MZRANGE.getElementName());
-		newElement.addText(String.valueOf(file.getDataMZRange(1)));
+		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(file.getDataMZRange(1)));
+
 	}
 
 	/**
@@ -178,22 +170,19 @@ public class PeakListSave {
 
 
 		// <NAME>
-		Element newElement = element.addElement(PeakListElementName.NAME.getElementName());
-		newElement.addText(identity.getName() != null ? identity.getName() : " ");
+		XMLUtils.fillXMLValues(element, PeakListElementName.NAME.getElementName(), null, null, identity.getName() != null ? identity.getName() : " ");
 
+		
 		// <FORMULA>
-		newElement = element.addElement(PeakListElementName.FORMULA.getElementName());
 		String formula = "";
 		if (identity instanceof SimplePeakIdentity) {
 			SimplePeakIdentity id = (SimplePeakIdentity) identity;
 			formula = id.getCompoundFormula();
 		}
-		newElement.addText(formula);
+		XMLUtils.fillXMLValues(element, PeakListElementName.FORMULA.getElementName(), null, null, formula);
 
 		// <IDENTIFICATION>
-		newElement = element.addElement(PeakListElementName.IDENTIFICATION.getElementName());
-		newElement.addText(identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ");
-
+		XMLUtils.fillXMLValues(element, PeakListElementName.IDENTIFICATION.getElementName(), null, null, identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ");
 	}
 
 	/**
@@ -215,10 +204,7 @@ public class PeakListSave {
 
 		// <MZPEAK>
 		int scanNumbers[] = peak.getScanNumbers();
-		Element newElement = element.addElement(PeakListElementName.MZPEAK.getElementName());
-		newElement.addAttribute(PeakListElementName.QUANTITY.getElementName(),
-				String.valueOf(scanNumbers.length));
-
+		Element newElement = XMLUtils.fillXMLValues(element, PeakListElementName.MZPEAK.getElementName(), PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length), null);
 
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
@@ -254,16 +240,15 @@ public class PeakListSave {
 		}
 
 		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
-		Element secondNewElement = newElement.addElement(PeakListElementName.SCAN_ID.getElementName());
-		secondNewElement.addText(new String(bytes));
+		XMLUtils.fillXMLValues(newElement, PeakListElementName.SCAN_ID.getElementName(), null, null, new String(bytes));
 
+		
 		bytes = Base64.encode(byteMassStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.MASS.getElementName());
-		secondNewElement.addText(new String(bytes));
+		XMLUtils.fillXMLValues(newElement, PeakListElementName.MASS.getElementName(), null, null, new String(bytes));
 
+		
 		bytes = Base64.encode(byteHeightStream.toByteArray());
-		secondNewElement = newElement.addElement(PeakListElementName.HEIGHT.getElementName());
-		secondNewElement.addText(new String(bytes));
+		XMLUtils.fillXMLValues(newElement, PeakListElementName.HEIGHT.getElementName(), null, null, new String(bytes));
 
 
 	}

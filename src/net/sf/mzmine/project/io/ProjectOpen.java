@@ -22,10 +22,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipFile;
@@ -57,18 +53,7 @@ public class ProjectOpen extends DefaultHandler {
 			zipInputStream.getNextEntry();
 			File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-			ReadableByteChannel in = Channels.newChannel(zipInputStream);
-			WritableByteChannel out = Channels.newChannel(fileStream);
-
-
-			ByteBuffer bbuffer = ByteBuffer.allocate(65536);
-
-			while (in.read(bbuffer) != -1) {
-				bbuffer.flip();
-				out.write(bbuffer);
-				bbuffer.clear();
-			}
-			out.close();
+			(new SaveFileUtils()).saveFile(zipInputStream, fileStream, 0, SaveFileUtilsMode.CLOSE_OUT);
 			fileStream.close();
 			MZmineCore.loadConfiguration(tempConfigFile);
 			tempConfigFile.delete();

@@ -18,14 +18,9 @@
  */
 package net.sf.mzmine.project.io;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.channels.WritableByteChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -41,9 +36,9 @@ import org.dom4j.io.XMLWriter;
 
 public class RawDataFileSave {
 
-	private double progress;
 	private int numOfScans;
 	private ZipOutputStream zipOutputStream;
+	private SaveFileUtils saveFileUtils;
 
 	public RawDataFileSave(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
@@ -51,12 +46,14 @@ public class RawDataFileSave {
 
 	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) {
 		try {
-			progress = 0.0;
+			// step 1 - save scan file			
 			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
-			copyFile(((RawDataFileImpl) rawDataFile).getScanDataFileasFile(), zipOutputStream);
-
+			FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
+			saveFileUtils = new SaveFileUtils();
+			saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
 			Document document = this.saveRawDataInformation(rawDataFile);
 
+			// step 2 - save raw data description			
 			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
 			OutputStream finalStream = zipOutputStream;
 			OutputFormat format = OutputFormat.createPrettyPrint();
@@ -68,38 +65,20 @@ public class RawDataFileSave {
 		}
 	}
 
-	private void copyFile(File inputFile, ZipOutputStream zipStream) throws Exception {
-		FileInputStream fileStream = new FileInputStream(inputFile);
-		ReadableByteChannel in = Channels.newChannel(fileStream);
-		WritableByteChannel out = Channels.newChannel(zipStream);
-
-		ByteBuffer bbuffer = ByteBuffer.allocate(65536);
-
-		while (in.read(bbuffer) != -1) {
-			bbuffer.flip();
-			out.write(bbuffer);
-			bbuffer.clear();
-		}
-		in.close();		
-	}
-
 	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
 		numOfScans = rawDataFile.getNumOfScans();
 
-		Element newElement;
 		Document document = DocumentFactory.getInstance().createDocument();
 		Element saveRoot = document.addElement(RawDataElementName.RAWDATA.getElementName());
 
 		// <NAME>
-		newElement = saveRoot.addElement(RawDataElementName.NAME.getElementName());
-		newElement.addText(rawDataFile.getName());
+		XMLUtils.fillXMLValues(saveRoot, RawDataElementName.NAME.getElementName(), null, null, rawDataFile.getName());
 
 		// <QUANTITY>
-		newElement = saveRoot.addElement(RawDataElementName.QUANTITY_SCAN.getElementName());
-		newElement.addText(String.valueOf(numOfScans));
+		XMLUtils.fillXMLValues(saveRoot, RawDataElementName.QUANTITY_SCAN.getElementName(), null, null, String.valueOf(numOfScans));
 
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
-			newElement = saveRoot.addElement(RawDataElementName.SCAN.getElementName());
+			Element newElement = XMLUtils.fillXMLValues(saveRoot, RawDataElementName.SCAN.getElementName(), null, null, null);
 			Scan scan = rawDataFile.getScan(scanNumber);
 			this.fillScanElement(scan, newElement);
 		}
@@ -107,43 +86,29 @@ public class RawDataFileSave {
 	}
 
 	private void fillScanElement(Scan scan, Element element) {
-		Element newElement;
-		newElement = element.addElement(RawDataElementName.SCAN_ID.getElementName());
-		newElement.addText(String.valueOf(scan.getScanNumber()));
 
-		newElement = element.addElement(RawDataElementName.MS_LEVEL.getElementName());
-		newElement.addText(String.valueOf(scan.getMSLevel()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.SCAN_ID.getElementName(), null, null, String.valueOf(scan.getScanNumber()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.MS_LEVEL.getElementName(), null, null, String.valueOf(scan.getMSLevel()));
 
 		if (scan.getParentScanNumber() > 0) {
-			newElement = element.addElement(RawDataElementName.PARENT_SCAN.getElementName());
-			newElement.addText(String.valueOf(scan.getParentScanNumber()));
+			XMLUtils.fillXMLValues(element, RawDataElementName.PARENT_SCAN.getElementName(), null, null, String.valueOf(scan.getParentScanNumber()));
 		}
 
-		newElement = element.addElement(RawDataElementName.PRECURSOR_MZ.getElementName());
-		newElement.addText(String.valueOf(scan.getPrecursorMZ()));
-
-		newElement = element.addElement(RawDataElementName.RETENTION_TIME.getElementName());
-		newElement.addText(String.valueOf(scan.getRetentionTime()));
-
-		newElement = element.addElement(RawDataElementName.CENTROIDED.getElementName());
-		newElement.addText(String.valueOf(scan.isCentroided()));
-
-		newElement = element.addElement(RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
-		newElement.addText(String.valueOf(scan.getNumberOfDataPoints()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_MZ.getElementName(), null, null, String.valueOf(scan.getPrecursorMZ()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.RETENTION_TIME.getElementName(), null, null, String.valueOf(scan.getRetentionTime()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.CENTROIDED.getElementName(), null, null, String.valueOf(scan.isCentroided()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), null, null, String.valueOf((scan.getNumberOfDataPoints())));
 
 		if (scan.getFragmentScanNumbers() != null) {
 			int[] fragmentScans = scan.getFragmentScanNumbers();
-			newElement = element.addElement(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName());
-			newElement.addAttribute(RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length));
-			Element fragmentElement;
+			Element newElement = XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName(), RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length), null);
 			for (int i : fragmentScans) {
-				fragmentElement = newElement.addElement(RawDataElementName.FRAGMENT_SCAN.getElementName());
-				fragmentElement.addText(String.valueOf(i));
+				XMLUtils.fillXMLValues(newElement, RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), null, null, String.valueOf(i));
 			}
 		}
 	}
 
 	public double getProgress() {
-		return progress;
+		return saveFileUtils.progress;
 	}
 }
