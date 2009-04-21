@@ -114,10 +114,11 @@ public class RawDataFileOpen extends DefaultHandler {
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
 
-		if (qName.equals(RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName())) {
+		if (qName.equals(RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName())) {
 			this.numberOfFragments = Integer.parseInt(attrs.getValue(RawDataElementName.QUANTITY.getElementName()));
 			if (this.numberOfFragments > 0) {
 				this.fragmentScan = new int[this.numberOfFragments];
+				this.fragmentCount = 0;
 			}
 		}
 	}

@@ -101,9 +101,9 @@ public class RawDataFileSave {
 
 		if (scan.getFragmentScanNumbers() != null) {
 			int[] fragmentScans = scan.getFragmentScanNumbers();
-			Element newElement = XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_FRANGMENT_SCAN.getElementName(), RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length), null);
+			Element newElement = XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length), null);
 			for (int i : fragmentScans) {
-				XMLUtils.fillXMLValues(newElement, RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), null, null, String.valueOf(i));
+				XMLUtils.fillXMLValues(newElement, RawDataElementName.FRAGMENT_SCAN.getElementName(), null, null, String.valueOf(i));
 			}
 		}
 	}

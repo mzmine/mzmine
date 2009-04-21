@@ -38,6 +38,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.util.Range;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
@@ -154,11 +155,14 @@ public class PeakListSave {
 		// <NAME>
 		XMLUtils.fillXMLValues(element, "rawdata_name", null, null, file.getName());
 
+
 		// <RTRANGE>
-		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(file.getDataRTRange(1)));
+		Range RTRange = file.getDataRTRange(1);
+		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(RTRange.getMin()+"-"+RTRange.getMax()));
 
 		// <MZRANGE>
-		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(file.getDataMZRange(1)));
+		Range MZRange = file.getDataMZRange(1);
+		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(MZRange.getMin()+"-"+MZRange.getMax()));
 
 	}
 
