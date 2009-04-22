@@ -229,7 +229,7 @@ public class XcaliburRawFileReadTask implements Task {
 		parentTreeValue[msLevel] = scanNumber;
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel, retentionTime,
-				parentScan, 0f, null, new DataPoint[0], false);
+				parentScan, 0f, 0, null, new DataPoint[0], false);
 
 		/*
 		 * The common fields mz and intensity have the list of peaks for the

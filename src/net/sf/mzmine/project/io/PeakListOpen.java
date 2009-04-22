@@ -440,7 +440,7 @@ public class PeakListOpen extends DefaultHandler {
 
 				for (int i = 0; i < quantity; i++) {
 					SimpleScan newScan = new SimpleScan(buildingRawDataFile,
-							scanNumbers[i], 1, retentionTimes[i], -1, 0f, null,
+							scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0, null,
 							new DataPoint[0], false);
 					buildingRawDataFile.addScan(newScan);
 				}

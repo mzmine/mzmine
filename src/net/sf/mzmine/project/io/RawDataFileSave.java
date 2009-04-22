@@ -95,6 +95,8 @@ public class RawDataFileSave {
 		}
 
 		XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_MZ.getElementName(), null, null, String.valueOf(scan.getPrecursorMZ()));
+		XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_CHARGE.getElementName(), null, null, String.valueOf(scan.getPrecursorCharge()));
+		
 		XMLUtils.fillXMLValues(element, RawDataElementName.RETENTION_TIME.getElementName(), null, null, String.valueOf(scan.getRetentionTime()));
 		XMLUtils.fillXMLValues(element, RawDataElementName.CENTROIDED.getElementName(), null, null, String.valueOf(scan.isCentroided()));
 		XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), null, null, String.valueOf((scan.getNumberOfDataPoints())));

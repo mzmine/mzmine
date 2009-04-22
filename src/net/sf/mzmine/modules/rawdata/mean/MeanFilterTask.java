@@ -217,7 +217,7 @@ class MeanFilterTask implements Task {
         // Create filtered scan
         Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
                 sc.getMSLevel(), sc.getRetentionTime(),
-                sc.getParentScanNumber(), sc.getPrecursorMZ(),
+                sc.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
                 sc.getFragmentScanNumbers(), newDataPoints, sc.isCentroided());
 
         // Write the scan to new file

@@ -393,7 +393,7 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 					completeDataPoints, centroided);
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
-					retentionTime, parentScan, precursorMz, null,
+					retentionTime, parentScan, precursorMz, precursorCharge, null,
 					optimizedDataPoints, centroided);
 
 			buildingScan.setPrecursorCharge(precursorCharge);

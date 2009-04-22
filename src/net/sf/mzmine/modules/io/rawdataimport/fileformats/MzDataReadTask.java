@@ -71,6 +71,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	private int parentScan;
 	private double retentionTime;
 	private double precursorMz;
+	private int precursorCharge = 0;
 
 	/*
 	 * The information of "m/z" & "int" is content in two arrays because the
@@ -206,6 +207,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 			retentionTime = 0f;
 			parentScan = -1;
 			precursorMz = 0f;
+			precursorCharge = 0;
 			scanNumber = Integer.parseInt(attrs.getValue("id"));
 		}
 
@@ -235,6 +237,9 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 				if ((attrs.getValue("accession").equals("PSI:1000040"))
 						|| (attrs.getValue("name").equals("mz"))) {
 					precursorMz = Double.parseDouble(attrs.getValue("value"));
+				}
+				if (attrs.getValue("accession").equals("PSI:1000041")) {
+					precursorCharge = Integer.parseInt(attrs.getValue("value"));
 				}
 			}
 		}
@@ -322,7 +327,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 					completeDataPoints, centroided);
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
-					retentionTime, parentScan, precursorMz, null,
+					retentionTime, parentScan, precursorMz, precursorCharge, null,
 					optimizedDataPoints, centroided);
 
 			/*

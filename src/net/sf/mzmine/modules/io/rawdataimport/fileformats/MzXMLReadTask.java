@@ -244,7 +244,7 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			parentTreeValue[msLevel] = scanNumber;
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
-					retentionTime, parentScan, 0, null, new DataPoint[0], false);
+					retentionTime, parentScan, 0, 0, null, new DataPoint[0], false);
 
 		}
 

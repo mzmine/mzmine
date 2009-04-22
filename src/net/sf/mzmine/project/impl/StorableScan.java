@@ -60,7 +60,7 @@ public class StorableScan implements Scan {
      */
     public StorableScan(Scan sc, RawDataFileImpl rawDataFile) {
         this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(),
-                sc.getParentScanNumber(), sc.getPrecursorMZ(),
+                sc.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
                 sc.getFragmentScanNumbers(), sc.getDataPoints(),
                 sc.isCentroided(), rawDataFile);
     }
@@ -69,7 +69,7 @@ public class StorableScan implements Scan {
      * Constructor for creating scan with given data
      */
     public StorableScan(int scanNumber, int msLevel, double retentionTime,
-            int parentScan, double precursorMZ, int fragmentScans[],
+            int parentScan, double precursorMZ, int precursorCharge, int fragmentScans[],
             DataPoint[] dataPoints, boolean centroided, RawDataFileImpl rawDataFile) {
 
         // check assumptions about proper scan data
@@ -84,6 +84,7 @@ public class StorableScan implements Scan {
         this.retentionTime = retentionTime;
         this.parentScan = parentScan;
         this.precursorMZ = precursorMZ;
+        this.precursorCharge = precursorCharge;
         this.fragmentScans = fragmentScans;
         this.centroided = centroided;
 	

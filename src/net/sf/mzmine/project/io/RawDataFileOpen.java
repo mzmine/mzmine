@@ -47,6 +47,7 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int[] fragmentScan;
 	private int numberOfFragments;
 	private double precursorMZ;
+	private int precursorCharge;
 	private double retentionTime;
 	private boolean centroided;
 	private int dataPointsNumber;
@@ -159,6 +160,9 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.PRECURSOR_MZ.getElementName())) {
 			this.precursorMZ = Double.parseDouble(getTextOfElement());
 		}
+		if (qName.equals(RawDataElementName.PRECURSOR_CHARGE.getElementName())) {
+			this.precursorCharge = Integer.parseInt(getTextOfElement());
+		}
 		if (qName.equals(RawDataElementName.RETENTION_TIME.getElementName())) {
 			this.retentionTime = Double.parseDouble(getTextOfElement());
 		}
@@ -178,7 +182,7 @@ public class RawDataFileOpen extends DefaultHandler {
 
 				int storageArrayByteLength = this.dataPointsNumber * 8 * 2;
 				StorableScan scan = new CachedStorableScan(this.ScanNumber, this.msLevel, this.retentionTime,
-						this.parentScan, this.precursorMZ, this.fragmentScan,
+						this.parentScan, this.precursorMZ, this.precursorCharge, this.fragmentScan,
 						null, this.centroided, this.rawDataFileWriter);
 				scan.setParameters(storageFileOffset, storageArrayByteLength, this.dataPointsNumber);
 				this.rawDataFileWriter.addScan(scan);

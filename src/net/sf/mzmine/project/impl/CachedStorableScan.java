@@ -33,7 +33,7 @@ public class CachedStorableScan extends StorableScan {
 	 */
 	public CachedStorableScan(Scan sc, RawDataFileImpl rawDataFile) {
 		this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc
-				.getParentScanNumber(), sc.getPrecursorMZ(), sc
+				.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(), sc
 				.getFragmentScanNumbers(), sc.getDataPoints(), sc
 				.isCentroided(), rawDataFile);
 	}
@@ -42,11 +42,11 @@ public class CachedStorableScan extends StorableScan {
 	 * Constructor for creating scan with given data
 	 */
 	public CachedStorableScan(int scanNumber, int msLevel, double retentionTime,
-			int parentScan, double precursorMZ, int fragmentScans[],
+			int parentScan, double precursorMZ, int precursorCharge, int fragmentScans[],
 			DataPoint[] dataPoints, boolean centroided,
 			RawDataFileImpl rawDataFile) {
 
-		super(scanNumber, msLevel, retentionTime, parentScan, precursorMZ,
+		super(scanNumber, msLevel, retentionTime, parentScan, precursorMZ, precursorCharge,
 				fragmentScans, dataPoints, centroided, rawDataFile);
 
 		dataPointsCache = new SoftReference<DataPoint[]>(dataPoints);

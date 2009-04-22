@@ -413,7 +413,7 @@ public class NetCDFReadTask implements Task {
 		if (scanLength[0] == 0) {
 			scanNum++;
 			return new SimpleScan(null, scanNum, 1,
-					retentionTime.doubleValue(), -1, 0, null, new DataPoint[0],
+					retentionTime.doubleValue(), -1, 0, 0,null, new DataPoint[0],
 					false);
 		}
 
@@ -464,7 +464,7 @@ public class NetCDFReadTask implements Task {
 				completeDataPoints, centroided);
 
 		SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
-				retentionTime.doubleValue(), -1, 0, null, optimizedDataPoints,
+				retentionTime.doubleValue(), -1, 0, 0, null, optimizedDataPoints,
 				centroided);
 
 		return buildingScan;

@@ -17,7 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.project.io;
 
 public enum RawDataElementName {
@@ -28,14 +27,15 @@ public enum RawDataElementName {
 	ID ("id"),	
 	SCAN ("scan"),
 	SCAN_ID ("id"),
-	MS_LEVEL("msLevel"),
+	MS_LEVEL("mslevel"),
 	QUANTITY_FRAGMENT_SCAN ("fragmentscans"),
 	FRAGMENT_SCAN ("fragmentscan"),
 	QUANTITY ("quantity"),
 	PARENT_SCAN ("parent"),
 	PRECURSOR_MZ ("precursor_mz"),
+	PRECURSOR_CHARGE ("precursor_charge"),
 	RETENTION_TIME("rt"),
-	CENTROIDED ("cent"),
+	CENTROIDED ("centroid"),
 	QUANTITY_DATAPOINTS ("num_dp");
 
 	private String elementName;

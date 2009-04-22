@@ -54,7 +54,8 @@ public class SimpleScan implements Scan {
     public SimpleScan(Scan sc) {
         this(sc.getDataFile(), sc.getScanNumber(), sc.getMSLevel(),
                 sc.getRetentionTime(), sc.getParentScanNumber(),
-                sc.getPrecursorMZ(), sc.getFragmentScanNumbers(),
+                sc.getPrecursorMZ(), sc.getPrecursorCharge(),
+                sc.getFragmentScanNumbers(),
                 sc.getDataPoints(), sc.isCentroided());
     }
 
@@ -62,7 +63,7 @@ public class SimpleScan implements Scan {
      * Constructor for creating scan with given data
      */
     public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
-            double retentionTime, int parentScan, double precursorMZ,
+            double retentionTime, int parentScan, double precursorMZ, int precursorCharge,
             int fragmentScans[], DataPoint[] dataPoints, boolean centroided) {
 
         // check assumptions about proper scan data
@@ -77,6 +78,7 @@ public class SimpleScan implements Scan {
         this.precursorMZ = precursorMZ;
         this.fragmentScans = fragmentScans;
         this.centroided = centroided;
+        this.precursorCharge = precursorCharge;
 
         setDataPoints(dataPoints);
     }
