@@ -213,4 +213,13 @@ class TwoDPlot extends ChartPanel {
 
 	}
 
+	public void showPeaksTooltips(boolean mode){
+		if(mode){
+			PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
+			this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
+		}else{
+			this.peakDataRenderer.setBaseToolTipGenerator(null);
+		}
+	}
+
 }

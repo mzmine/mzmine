@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.visualization.twod;
 
 import java.awt.BorderLayout;
@@ -35,148 +34,157 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-        ActionListener {
+		ActionListener {
 
-    private TwoDToolBar toolBar;
-    private TwoDPlot twoDPlot;
-    private TwoDBottomPanel bottomPanel;
+	private TwoDToolBar toolBar;
+	private TwoDPlot twoDPlot;
+	private TwoDBottomPanel bottomPanel;
+	private TwoDDataSet dataset;
+	private RawDataFile dataFile;
+	private int msLevel;
+	private boolean tooltipMode;
 
-    private TwoDDataSet dataset;
+	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
+			Range rtRange, Range mzRange,
+			PeakThresholdParameters peakThresholdParameters) {
 
-    private RawDataFile dataFile;
-    private int msLevel;
+		super(dataFile.toString(), true, true, true, true);
 
-    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
-            Range rtRange, Range mzRange,
-            PeakThresholdParameters peakThresholdParameters) {
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 
-        super(dataFile.toString(), true, true, true, true);
+		this.dataFile = dataFile;
+		this.msLevel = msLevel;
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+		this.tooltipMode = true;
 
-        this.dataFile = dataFile;
-        this.msLevel = msLevel;
+		dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
 
-        dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
+		toolBar = new TwoDToolBar(this);
+		add(toolBar, BorderLayout.EAST);
 
-        toolBar = new TwoDToolBar(this);
-        add(toolBar, BorderLayout.EAST);
+		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
+		add(twoDPlot, BorderLayout.CENTER);
 
-        twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
-        add(twoDPlot, BorderLayout.CENTER);
+		bottomPanel = new TwoDBottomPanel(this, dataFile,
+				peakThresholdParameters);
+		add(bottomPanel, BorderLayout.SOUTH);
 
-        bottomPanel = new TwoDBottomPanel(this, dataFile,
-                peakThresholdParameters);
-        add(bottomPanel, BorderLayout.SOUTH);
+		updateTitle();
 
-        updateTitle();
+		pack();
 
-        pack();
+		// After we have constructed everything, load the peak lists into the
+		// bottom panel
+		bottomPanel.rebuildPeakListSelector();
+		bottomPanel.buildPeakThresholdSelector();
+	}
 
-        // After we have constructed everything, load the peak lists into the
-        // bottom panel
-        bottomPanel.rebuildPeakListSelector();
-        bottomPanel.buildPeakThresholdSelector();
-    }
+	void updateTitle() {
 
-    void updateTitle() {
+		StringBuffer title = new StringBuffer();
+		title.append("[");
+		title.append(dataFile.toString());
+		title.append("]: 2D view");
 
-        StringBuffer title = new StringBuffer();
-        title.append("[");
-        title.append(dataFile.toString());
-        title.append("]: 2D view");
+		setTitle(title.toString());
 
-        setTitle(title.toString());
+		title.append(", MS");
+		title.append(msLevel);
 
-        title.append(", MS");
-        title.append(msLevel);
+		twoDPlot.setTitle(title.toString());
 
-        twoDPlot.setTitle(title.toString());
+	}
 
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+		String command = event.getActionCommand();
 
-        String command = event.getActionCommand();
+		if (command.equals("SWITCH_PALETTE")) {
+			twoDPlot.getXYPlot().switchPalette();
+		}
 
-        if (command.equals("SWITCH_PALETTE")) {
-            twoDPlot.getXYPlot().switchPalette();
-        }
+		if (command.equals("SHOW_DATA_POINTS")) {
+			twoDPlot.switchDataPointsVisible();
+		}
 
-        if (command.equals("SHOW_DATA_POINTS")) {
-            twoDPlot.switchDataPointsVisible();
-        }
+		if (command.equals("PEAKLIST_CHANGE") || command.equals("PEAKS_VIEW_THRESHOLD")) {
 
-        if (command.equals("PEAKLIST_CHANGE")
-                || command.equals("PEAKS_VIEW_THRESHOLD")) {
+			setPeakThreshold();
+		}
 
-            setPeakThreshold();
-        }
+		if (command.equals("SETUP_AXES")) {
+			AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+			dialog.setVisible(true);
+		}
 
-        if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
-            dialog.setVisible(true);
-        }
+		if (command.equals("SWITCH_PLOTMODE")) {
 
-        if (command.equals("SWITCH_PLOTMODE")) {
+			if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+				toolBar.setCentroidButton(true);
+				twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+			} else {
+				toolBar.setCentroidButton(false);
+				twoDPlot.setPlotMode(PlotMode.CENTROID);
+			}
+		}
 
-            if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-                toolBar.setCentroidButton(true);
-                twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-            } else {
-                toolBar.setCentroidButton(false);
-                twoDPlot.setPlotMode(PlotMode.CENTROID);
-            }
-        }
+		if (command.equals("SWITCH_TOOLTIPS")) {
+			if (tooltipMode) {
+				twoDPlot.showPeaksTooltips(false);
+				toolBar.setTooltipButton(false);
+				tooltipMode = false;
+			} else {
+				twoDPlot.showPeaksTooltips(true);
+				toolBar.setTooltipButton(true);
+				tooltipMode = true;
+			}
+		}
 
-        if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
+		if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
 
-            PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-            if (selectedPeakList == null) {
-                return;
-            }
+			PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+			if (selectedPeakList == null) {
+				return;
+			}
 
-            twoDPlot.loadPeakList(selectedPeakList);
-        }
-    }
+			twoDPlot.loadPeakList(selectedPeakList);
+		}
+	}
 
-    private void setPeakThreshold() {
-        toolBar.toggleContinuousModeButtonSetEnable(true);
+	private void setPeakThreshold() {
+		toolBar.toggleContinuousModeButtonSetEnable(true);
 
-        String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
-        if (selectedPeakThreshold == null) {
-            return;
-        }
+		String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
+		if (selectedPeakThreshold == null) {
+			return;
+		}
 
-        if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())) {
-            bottomPanel.peakTextFieldSetVisible(false);
-            toolBar.toggleContinuousModeButtonSetEnable(false);
-            twoDPlot.setPeaksNotVisible();
-        }
-        if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
-            bottomPanel.peakTextFieldSetVisible(false);
-        }
-        if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName())
-                || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName())
-                || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
-            bottomPanel.peakTextFieldSetVisible(true);
-        }
+		if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())) {
+			bottomPanel.peakTextFieldSetVisible(false);
+			toolBar.toggleContinuousModeButtonSetEnable(false);
+			twoDPlot.setPeaksNotVisible();
+		}
+		if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
+			bottomPanel.peakTextFieldSetVisible(false);
+		}
+		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName()) || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName()) || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
+			bottomPanel.peakTextFieldSetVisible(true);
+		}
 
-        PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-        if (selectedPeakList == null) {
-            return;
-        }
-        twoDPlot.loadPeakList(selectedPeakList);
+		PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
+		if (selectedPeakList == null) {
+			return;
+		}
+		twoDPlot.loadPeakList(selectedPeakList);
 
-        bottomPanel.revalidate();
-    }
+		bottomPanel.revalidate();
+	}
 
-    TwoDPlot getPlot() {
-        return twoDPlot;
-    }
-
+	TwoDPlot getPlot() {
+		return twoDPlot;
+	}
 }

@@ -39,8 +39,10 @@ class TwoDToolBar extends JToolBar {
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 	static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
 	static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+	static final Icon tooltipsIcon = new ImageIcon("icons/tooltips2dploticon.png");
+	static final Icon notooltipsIcon = new ImageIcon("icons/notooltips2dploticon.png");
 
-	private JButton centroidContinuousButton, toggleContinuousModeButton;
+	private JButton centroidContinuousButton, toggleContinuousModeButton, toggleTooltipButton;
 
 	TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
@@ -68,7 +70,12 @@ class TwoDToolBar extends JToolBar {
 		addSeparator();
 
 		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon, masterFrame, "SWITCH_PLOTMODE",
-		"Switch between continuous and centroided mode");  
+		"Switch between continuous and centroided mode");
+
+		addSeparator();
+
+		toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon, masterFrame, "SWITCH_TOOLTIPS",
+		"Toggle displaying of tool tips on the peaks");
 
 	}
 
@@ -83,4 +90,13 @@ class TwoDToolBar extends JToolBar {
 	void toggleContinuousModeButtonSetEnable(boolean enable){
 		toggleContinuousModeButton.setEnabled(enable);
 	}
+
+	void setTooltipButton(boolean tooltip) {
+		if (tooltip) {
+			toggleTooltipButton.setIcon(tooltipsIcon);
+		} else {
+			toggleTooltipButton.setIcon(notooltipsIcon);
+		}
+	}
+	
 }
