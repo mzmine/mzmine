@@ -21,8 +21,11 @@ package net.sf.mzmine.project.io;
 import com.Ostermiller.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.util.TreeMap;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import javax.xml.parsers.SAXParser;
@@ -47,7 +50,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class PeakListOpen extends DefaultHandler {
-
+	
 	private RawDataFileImpl buildingRawDataFile;
 	private SimplePeakListRow buildingRow;
 	private int peakColumnID,  rawDataFileID,  quantity;
@@ -79,16 +82,11 @@ public class PeakListOpen extends DefaultHandler {
 		this.zipFile = zipFile;
 	}
 
-	public void readPeakList() {
-		SAXParserFactory factory = SAXParserFactory.newInstance();
-		try {			
-			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(zipFile.getInputStream(zipInputStream.getNextEntry()), this);
+	public void readPeakList() throws Exception {
 
-		} catch (Throwable e) {
-			e.printStackTrace();
-			return;
-		}
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		SAXParser saxParser = factory.newSAXParser();
+		saxParser.parse(zipFile.getInputStream(zipInputStream.getNextEntry()), this);
 
 		if (buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0) {
 			return;
@@ -97,12 +95,10 @@ public class PeakListOpen extends DefaultHandler {
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(buildingPeakList);
 	}
-	
 
-	public double getProgress(){
+	public double getProgress() {
 		return progress;
 	}
-
 
 	/**
 	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,
@@ -110,37 +106,26 @@ public class PeakListOpen extends DefaultHandler {
 	 */
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
-			Attributes attrs) throws SAXException {
+			Attributes attrs) {
 
 		// <PEAKLIST>
 		if (qName.equals(PeakListElementName.PEAKLIST.getElementName())) {
+
 			peakListFlag = true;
-		// clean the current char buffer for the new element
 		}
 
 		// <RAWFILE>
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
-			try {
-				rawDataFileID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
-				peakListFlag = false;
-			} catch (Exception e) {
-				throw new SAXException(
-						"Could not read scan attributes information");
-			}
+
+			rawDataFileID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
+			peakListFlag = false;
 		}
 
 		// <SCAN>
 		if (qName.equals(PeakListElementName.SCAN.getElementName())) {
-			try {
-				quantity = Integer.parseInt(attrs.getValue(PeakListElementName.QUANTITY.getElementName()));
 
-				scanFlag = true;
-
-			} catch (Exception e) {
-
-				throw new SAXException(
-						"Could not read scan attributes information");
-			}
+			quantity = Integer.parseInt(attrs.getValue(PeakListElementName.QUANTITY.getElementName()));
+			scanFlag = true;
 		}
 
 		// <ROW>
@@ -149,60 +134,33 @@ public class PeakListOpen extends DefaultHandler {
 			if (buildingPeakList == null) {
 				initializePeakList();
 			}
-
-			try {
-				int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
-				buildingRow = new SimplePeakListRow(rowID);		
-			
-			} catch (Exception e) {
-
-				throw new SAXException(
-						"Could not read row attributes information");
-			}
+			int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID.getElementName()));
+			buildingRow = new SimplePeakListRow(rowID);
 		}
 
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-			try {
-				identityID = attrs.getValue(PeakListElementName.ID.getElementName());
-				preferred = Boolean.parseBoolean(attrs.getValue(PeakListElementName.PREFERRED.getElementName()));
-			} catch (Exception e) {
 
-				throw new SAXException(
-						"Could not read identity attributes information");
-			}
+			identityID = attrs.getValue(PeakListElementName.ID.getElementName());
+			preferred = Boolean.parseBoolean(attrs.getValue(PeakListElementName.PREFERRED.getElementName()));
 		}
 
 		// <PEAK>
 		if (qName.equals(PeakListElementName.PEAK.getElementName())) {
-			try {
-				peakColumnID = Integer.parseInt(attrs.getValue(PeakListElementName.COLUMN.getElementName()));
-				mass = Double.parseDouble(attrs.getValue(PeakListElementName.MASS.getElementName()));
-				rt = Double.parseDouble(attrs.getValue(PeakListElementName.RT.getElementName()));
-				height = Double.parseDouble(attrs.getValue(PeakListElementName.HEIGHT.getElementName()));
-				area = Double.parseDouble(attrs.getValue(PeakListElementName.AREA.getElementName()));
-				peakStatus = attrs.getValue(PeakListElementName.STATUS.getElementName());
-			} catch (Exception e) {
 
-				throw new SAXException(
-						"Could not read peak attributes information");
-			}
-
+			peakColumnID = Integer.parseInt(attrs.getValue(PeakListElementName.COLUMN.getElementName()));
+			mass = Double.parseDouble(attrs.getValue(PeakListElementName.MASS.getElementName()));
+			rt = Double.parseDouble(attrs.getValue(PeakListElementName.RT.getElementName()));
+			height = Double.parseDouble(attrs.getValue(PeakListElementName.HEIGHT.getElementName()));
+			area = Double.parseDouble(attrs.getValue(PeakListElementName.AREA.getElementName()));
+			peakStatus = attrs.getValue(PeakListElementName.STATUS.getElementName());
 		}
 
 		// <MZPEAK>
 		if (qName.equals(PeakListElementName.MZPEAK.getElementName())) {
-			try {
-				quantity = Integer.parseInt(attrs.getValue(PeakListElementName.QUANTITY.getElementName()));
 
-				mzPeakFlag = true;
-
-			} catch (Exception e) {
-
-				throw new SAXException(
-						"Could not read mzPeak attributes information");
-			}
-
+			quantity = Integer.parseInt(attrs.getValue(PeakListElementName.QUANTITY.getElementName()));
+			mzPeakFlag = true;
 		}
 
 	}
@@ -213,42 +171,34 @@ public class PeakListOpen extends DefaultHandler {
 	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
-			) throws SAXException {
+			) {
 
 		// <NAME>
 		if (qName.equals(PeakListElementName.NAME.getElementName())) {
+
 			name = getTextOfElement();
 			if (peakListFlag) {
 				peakListName = name;
 			}
-
 		}
 
 		// <PEAKLIST_DATE>
 		if (qName.equals(PeakListElementName.PEAKLIST_DATE.getElementName())) {
-			try {
-				// String text = getTextOfElement();
-				dateCreated = getTextOfElement();
-			} catch (Exception e) {
 
-				throw new SAXException(
-						"Could not read peak list date of creation");
-			}
+			dateCreated = getTextOfElement();
 		}
 
 		// <QUANTITY>
 		if (qName.equals(PeakListElementName.QUANTITY.getElementName())) {
-			try {
-				String text = getTextOfElement();
-				text = text.trim();
-				totalRows = Integer.parseInt(text);
-			} catch (Exception e) {
-				throw new SAXException("Could not read quantity");
-			}
+
+			String text = getTextOfElement();
+			text = text.trim();
+			totalRows = Integer.parseInt(text);
 		}
 
 		// <PROCESS>
 		if (qName.equals(PeakListElementName.PROCESS.getElementName())) {
+
 			String text = getTextOfElement();
 			if (text.length() != 0) {
 				appliedProcess.add(text);
@@ -257,130 +207,110 @@ public class PeakListOpen extends DefaultHandler {
 
 		// <SCAN_ID>
 		if (qName.equals(PeakListElementName.SCAN_ID.getElementName())) {
-			try {
-				if (scanFlag) {
-					String valueText = getTextOfElement();
-					String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
-					scanNumbers = new int[quantity];
-					for (int i = 0; i < quantity; i++) {
-						scanNumbers[i] = Integer.parseInt(values[i]);
-					}
-				} else if (mzPeakFlag) {
-					byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-					// make a data input stream
-					DataInputStream dataInputStream = new DataInputStream(
-							new ByteArrayInputStream(bytes));
-					scanNumbers = new int[quantity];
-					for (int i = 0; i < quantity; i++) {
+
+			if (scanFlag) {
+				String valueText = getTextOfElement();
+				String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
+				scanNumbers = new int[quantity];
+				for (int i = 0; i < quantity; i++) {
+					scanNumbers[i] = Integer.parseInt(values[i]);
+				}
+			} else if (mzPeakFlag) {
+				byte[] bytes = Base64.decodeToBytes(getTextOfElement());
+				// make a data input stream
+				DataInputStream dataInputStream = new DataInputStream(
+						new ByteArrayInputStream(bytes));
+				scanNumbers = new int[quantity];
+				for (int i = 0; i < quantity; i++) {
+					try {
 						scanNumbers[i] = dataInputStream.readInt();
+					} catch (IOException ex) {
+						Logger.getLogger(PeakListOpen.class.getName()).log(Level.SEVERE, null, ex);
 					}
 				}
-
-			} catch (Exception e) {
-
-				e.printStackTrace();
-				throw new SAXException("Could not read list of scan numbers");
 			}
 		}
 
 		// <RT>
 		if (qName.equals(PeakListElementName.RT.getElementName())) {
-			try {
-				String valueText = getTextOfElement();
-				String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
-				retentionTimes = new double[quantity];
-				for (int i = 0; i < quantity; i++) {
-					retentionTimes[i] = Double.parseDouble(values[i]);
-				}
-			} catch (Exception e) {
 
-				e.printStackTrace();
-				throw new SAXException("Could not read list of retention times");
+			String valueText = getTextOfElement();
+			String values[] = valueText.split(PeakListElementName.SEPARATOR.getElementName());
+			retentionTimes = new double[quantity];
+			for (int i = 0; i < quantity; i++) {
+				retentionTimes[i] = Double.parseDouble(values[i]);
 			}
 		}
 
 		// <MASS>
 		if (qName.equals(PeakListElementName.MASS.getElementName())) {
-			try {
-				byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-				// make a data input stream
-				DataInputStream dataInputStream = new DataInputStream(
-						new ByteArrayInputStream(bytes));
-				masses = new double[quantity];
-				for (int i = 0; i < quantity; i++) {
+
+			byte[] bytes = Base64.decodeToBytes(getTextOfElement());
+			// make a data input stream
+			DataInputStream dataInputStream = new DataInputStream(
+					new ByteArrayInputStream(bytes));
+			masses = new double[quantity];
+			for (int i = 0; i < quantity; i++) {
+				try {
 					masses[i] = (double) dataInputStream.readFloat();
+				} catch (IOException ex) {
+					Logger.getLogger(PeakListOpen.class.getName()).log(Level.SEVERE, null, ex);
 				}
-
-			} catch (Exception e) {
-
-				e.printStackTrace();
-				throw new SAXException("Could not read list of masses");
 			}
-
 		}
 
 		// <HEIGHT>
 		if (qName.equals(PeakListElementName.HEIGHT.getElementName())) {
-			try {
-				byte[] bytes = Base64.decodeToBytes(getTextOfElement());
-				// make a data input stream
-				DataInputStream dataInputStream = new DataInputStream(
-						new ByteArrayInputStream(bytes));
-				intensities = new double[quantity];
-				for (int i = 0; i < quantity; i++) {
+
+			byte[] bytes = Base64.decodeToBytes(getTextOfElement());
+			// make a data input stream
+			DataInputStream dataInputStream = new DataInputStream(
+					new ByteArrayInputStream(bytes));
+			intensities = new double[quantity];
+			for (int i = 0; i < quantity; i++) {
+				try {
 					intensities[i] = (double) dataInputStream.readFloat();
+				} catch (IOException ex) {
+					Logger.getLogger(PeakListOpen.class.getName()).log(Level.SEVERE, null, ex);
 				}
-
-			} catch (Exception e) {
-
-				e.printStackTrace();
-				throw new SAXException("Could not read list of intensities");
 			}
-
 		}
 
 		// <FORMULA>
 		if (qName.equals(PeakListElementName.FORMULA.getElementName())) {
+
 			formula = getTextOfElement();
 		}
 
 		// <IDENTIFICATION>
 		if (qName.equals(PeakListElementName.IDENTIFICATION.getElementName())) {
+
 			identificationMethod = getTextOfElement();
 		}
 
 		// <RTRANGE>
 		if (qName.equals(PeakListElementName.RTRANGE.getElementName())) {
-			try {
-				String valueText = getTextOfElement();
-				String values[] = valueText.split("-");
-				double min = Double.parseDouble(values[0]);
-				double max = Double.parseDouble(values[1]);
-				rtRange = new Range(min, max);
-			} catch (Exception e) {
 
-				throw new SAXException(
-						"Could not read retention time range form raw data file");
-			}
+			String valueText = getTextOfElement();
+			String values[] = valueText.split("-");
+			double min = Double.parseDouble(values[0]);
+			double max = Double.parseDouble(values[1]);
+			rtRange = new Range(min, max);
 		}
 
 		// <MZRANGE>
 		if (qName.equals(PeakListElementName.MZRANGE.getElementName())) {
-			try {
-				String valueText = getTextOfElement();
-				String values[] = valueText.split("-");
-				double min = Double.parseDouble(values[0]);
-				double max = Double.parseDouble(values[1]);
-				mzRange = new Range(min, max);
-			} catch (Exception e) {
 
-				throw new SAXException(
-						"Could not read m/z range from raw data file");
-			}
+			String valueText = getTextOfElement();
+			String values[] = valueText.split("-");
+			double min = Double.parseDouble(values[0]);
+			double max = Double.parseDouble(values[1]);
+			mzRange = new Range(min, max);
 		}
 
 		// <MZPEAK>
 		if (qName.equals(PeakListElementName.MZPEAK.getElementName())) {
+
 			mzPeakFlag = false;
 		}
 
@@ -418,6 +348,7 @@ public class PeakListOpen extends DefaultHandler {
 
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
+
 			SimplePeakIdentity identity = new SimplePeakIdentity(identityID,
 					name, new String[0], formula, null, identificationMethod);
 			buildingRow.addPeakIdentity(identity, preferred);
@@ -425,32 +356,31 @@ public class PeakListOpen extends DefaultHandler {
 
 		// <ROW>
 		if (qName.equals(PeakListElementName.ROW.getElementName())) {
+
 			buildingPeakList.addRow(buildingRow);
 			buildingRow = null;
-			progress = (double)parsedRows / totalRows;
+			progress = (double) parsedRows / totalRows;
 			parsedRows++;
 		}
 
 		// <SCAN>
 		if (qName.equals(PeakListElementName.SCAN.getElementName())) {
-			try {
-				if (buildingRawDataFile == null) {
+
+			if (buildingRawDataFile == null) {
+				try {
 					buildingRawDataFile = new RawDataFileImpl(name);
+				} catch (IOException ex) {
+					Logger.getLogger(PeakListOpen.class.getName()).log(Level.SEVERE, null, ex);
 				}
-
-				for (int i = 0; i < quantity; i++) {
-					SimpleScan newScan = new SimpleScan(buildingRawDataFile,
-							scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0, null,
-							new DataPoint[0], false);
-					buildingRawDataFile.addScan(newScan);
-				}
-				scanFlag = false;
-
-			} catch (Exception e) {
-
-				throw new SAXException(
-						"Could not create scans for temporary raw data file");
 			}
+
+			for (int i = 0; i < quantity; i++) {
+				SimpleScan newScan = new SimpleScan(buildingRawDataFile,
+						scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0, null,
+						new DataPoint[0], false);
+				buildingRawDataFile.addScan(newScan);
+			}
+			scanFlag = false;
 		}
 
 		// <RAWFILE>
@@ -480,6 +410,7 @@ public class PeakListOpen extends DefaultHandler {
 	 * @return String element text
 	 */
 	private String getTextOfElement() {
+
 		String text = charBuffer.toString();
 		text = text.replaceAll("[\n\r\t]+", "");
 		text = text.replaceAll("^\\s+", "");
@@ -497,6 +428,7 @@ public class PeakListOpen extends DefaultHandler {
 	}
 
 	private void initializePeakList() {
+
 		RawDataFile[] dataFiles = buildingArrayRawDataFiles.values().toArray(
 				new RawDataFile[0]);
 		buildingPeakList = new SimplePeakList(peakListName, dataFiles);

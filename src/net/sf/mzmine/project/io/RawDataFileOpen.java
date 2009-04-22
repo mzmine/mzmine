@@ -31,13 +31,13 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.CachedStorableScan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
-import net.sf.mzmine.project.impl.StorableScan;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class RawDataFileOpen extends DefaultHandler {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private StringBuffer charBuffer;
 	private RawDataFileImpl rawDataFileWriter;
 	private int numberOfScans;
@@ -68,6 +68,8 @@ public class RawDataFileOpen extends DefaultHandler {
 
 	public void readRawDataFile(String Name) throws ClassNotFoundException {
 		try {
+			logger.info("Moving scan file : " + Name +" to the temporal folder");
+			
 			stepNumber = 0;
 			// Writes the scan file into a temporal file
 			String fileName = zipInputStream.getNextEntry().getName();
@@ -82,6 +84,8 @@ public class RawDataFileOpen extends DefaultHandler {
 			this.rawDataFileWriter = new RawDataFileImpl();
 			((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
 			this.rawDataFileWriter.setName(Name);
+
+			logger.info("Loading raw data file: " + Name);
 
 			stepNumber++;
 			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
@@ -175,13 +179,11 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.FRAGMENT_SCAN.getElementName())) {
 			fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
 		}
-
-
 		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
 			try {
 
 				int storageArrayByteLength = this.dataPointsNumber * 8 * 2;
-				StorableScan scan = new CachedStorableScan(this.ScanNumber, this.msLevel, this.retentionTime,
+				CachedStorableScan scan = new CachedStorableScan(this.ScanNumber, this.msLevel, this.retentionTime,
 						this.parentScan, this.precursorMZ, this.precursorCharge, this.fragmentScan,
 						null, this.centroided, this.rawDataFileWriter);
 				scan.setParameters(storageFileOffset, storageArrayByteLength, this.dataPointsNumber);
@@ -191,7 +193,6 @@ public class RawDataFileOpen extends DefaultHandler {
 			} catch (Exception ex) {
 				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 			}
-
 		}
 	}
 

@@ -183,21 +183,31 @@ public class ProjectOpeningTask implements Task {
 		projectOpen.openConfiguration();
 	}
 
-	private void loadRawDataObjects() throws IOException,
-			ClassNotFoundException {
+	private void loadRawDataObjects() {
 		rawDataFileOpen = new RawDataFileOpen(this.zipStream, this.zipFile);
 		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
 			if (this.projectOpen.getRawDataNames()[i] != null) {
-				rawDataFileOpen.readRawDataFile(this.projectOpen.getRawDataNames()[i]);
+				try {
+					rawDataFileOpen.readRawDataFile(this.projectOpen.getRawDataNames()[i]);
+				} catch (Exception ex) {
+					MZmineCore.getDesktop().displayErrorMessage("Error loading raw data file: " + this.projectOpen.getRawDataNames()[i]);
+					Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
+				}
 			}
 		}
 	}
 
-	private void loadPeakListObjects() throws IOException,
-			ClassNotFoundException {
+	private void loadPeakListObjects() {
 		for (int i = 0; i < this.projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
-			peakListOpen = new PeakListOpen(zipStream, this.zipFile);
-			peakListOpen.readPeakList();
+			try {
+				logger.info("Loading peak list: " + this.projectOpen.getPeakListNames()[i]);
+				peakListOpen = new PeakListOpen(zipStream, this.zipFile);
+				peakListOpen.readPeakList();
+			} catch (Exception ex) {
+				MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + this.projectOpen.getPeakListNames()[i]);
+					Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
+
+			}
 		}
 	}
 

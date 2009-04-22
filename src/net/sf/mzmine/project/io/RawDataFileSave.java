@@ -21,7 +21,6 @@ package net.sf.mzmine.project.io;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -36,6 +35,7 @@ import org.dom4j.io.XMLWriter;
 
 public class RawDataFileSave {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private int numOfScans;
 	private ZipOutputStream zipOutputStream;
 	private SaveFileUtils saveFileUtils;
@@ -44,25 +44,26 @@ public class RawDataFileSave {
 		this.zipOutputStream = zipOutputStream;
 	}
 
-	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) {
-		try {
-			// step 1 - save scan file			
+	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) throws IOException {
+			// step 1 - save scan file
+			logger.info("Saving scan file of: " + rawDataFile.getName());
+
 			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 			FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
 			saveFileUtils = new SaveFileUtils();
 			saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
 			Document document = this.saveRawDataInformation(rawDataFile);
 
-			// step 2 - save raw data description			
+			// step 2 - save raw data description
+			logger.info("Saving raw data description of: " + rawDataFile.getName());
+
 			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
 			OutputStream finalStream = zipOutputStream;
 			OutputFormat format = OutputFormat.createPrettyPrint();
 			XMLWriter writer = new XMLWriter(finalStream, format);
 			writer.write(document);
 
-		} catch (Exception ex) {
-			Logger.getLogger(RawDataFileSave.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		
 	}
 
 	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {

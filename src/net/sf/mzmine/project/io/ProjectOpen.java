@@ -35,6 +35,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class ProjectOpen extends DefaultHandler {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private ZipInputStream zipInputStream;
 	private ZipFile zipFile;
 	private StringBuffer charBuffer;
@@ -50,6 +51,7 @@ public class ProjectOpen extends DefaultHandler {
 
 	public void openConfiguration() {
 		try {
+			logger.info("Loading configuration file");
 			zipInputStream.getNextEntry();
 			File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
@@ -63,13 +65,15 @@ public class ProjectOpen extends DefaultHandler {
 	}
 
 	public void openProjectDescription() {
-		try {			
+		try {
+			logger.info("Loading project information");
 			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
 			charBuffer = new StringBuffer();
 			SAXParserFactory factory = SAXParserFactory.newInstance();
 			SAXParser saxParser = factory.newSAXParser();
 			saxParser.parse(InputStream, this);
 		} catch (Exception ex) {
+			MZmineCore.getDesktop().displayErrorMessage("Error loading the project description.");
 			Logger.getLogger(ProjectOpen.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}

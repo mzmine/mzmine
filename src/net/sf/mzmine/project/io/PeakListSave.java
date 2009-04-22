@@ -27,6 +27,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -47,6 +48,7 @@ import org.dom4j.io.XMLWriter;
 
 public class PeakListSave {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	public static DateFormat dateFormat = new SimpleDateFormat(
 			"yyyy/MM/dd HH:mm:ss");
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
@@ -61,6 +63,8 @@ public class PeakListSave {
 	}
 
 	public void savePeakList(PeakList peakList, String peakListSavedName) throws IOException {
+		logger.info("Saving peak list: " + peakList.getName());
+
 		progress = 0.0;
 		numberOfRows = peakList.getNumberOfRows();
 

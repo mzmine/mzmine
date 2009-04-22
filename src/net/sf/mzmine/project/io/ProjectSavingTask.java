@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.project.io;
 
+import java.util.logging.Level;
 import net.sf.mzmine.project.impl.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -168,7 +169,7 @@ public class ProjectSavingTask implements Task {
 			// Move the temporary ZIP file to the final location
 			tempFile.renameTo(saveFile);
 			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(saveFile);
-			logger.info("Finished saving project to " + saveFile);
+			logger.info("Finished saving the project to " + saveFile);
 			status = TaskStatus.FINISHED;
 
 		} catch (Throwable e) {
@@ -188,16 +189,26 @@ public class ProjectSavingTask implements Task {
 		int cont = 0;
 		for (RawDataFile rawDataFile : this.rawDataFiles) {
 			rawDataName = rawDataFile.getName();
-			rawDataFileSave.writeRawDataFiles(rawDataFile, "Raw data file #" + cont++ + " " + rawDataName);
+			try {
+				rawDataFileSave.writeRawDataFiles(rawDataFile, "Raw data file #" + cont++ + " " + rawDataName);
+			} catch (IOException ex) {
+				MZmineCore.getDesktop().displayErrorMessage("Error saving raw data file: " + rawDataName);
+				Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 	}
 
-	private void savePeakListObjects() throws IOException, Exception {
+	private void savePeakListObjects() {
 		peakListSave = new PeakListSave(zipStream);
 		int cont = 0;
 		for (PeakList peakList : this.peakLists) {
 			peakListName = peakList.getName();
-			peakListSave.savePeakList(peakList, "Peak list #" + cont++ + " " + peakListName );
+			try {
+				peakListSave.savePeakList(peakList, "Peak list #" + cont++ + " " + peakListName);
+			} catch (IOException ex) {
+				MZmineCore.getDesktop().displayErrorMessage("Error saving peakList file: " + peakList.getName());
+				Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
+			}
 		}
 	}
 

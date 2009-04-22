@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.PeakList;
@@ -36,6 +38,7 @@ import org.dom4j.io.XMLWriter;
 
 public class ProjectSave {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private ZipOutputStream zipOutputStream;
 
 	public ProjectSave(ZipOutputStream zipStream) {
@@ -43,6 +46,8 @@ public class ProjectSave {
 	}
 
 	public void saveConfiguration() throws IOException {
+		logger.info("Saving configuration file");
+
 		zipOutputStream.putNextEntry(new ZipEntry("configuration.xml"));
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 		MZmineCore.saveConfiguration(tempConfigFile);
@@ -52,13 +57,21 @@ public class ProjectSave {
 	}
 
 	public void saveProjectDescription(MZmineProjectImpl project) throws IOException {
-		Document document = this.saveProjectInformation(project);
+		try {
+			logger.info("Saving project information");
 
-		zipOutputStream.putNextEntry(new ZipEntry("Project description.xml"));
-		OutputStream finalStream = zipOutputStream;
-		OutputFormat format = OutputFormat.createPrettyPrint();
-		XMLWriter writer = new XMLWriter(finalStream, format);
-		writer.write(document);
+			Document document = this.saveProjectInformation(project);
+
+			zipOutputStream.putNextEntry(new ZipEntry("Project description.xml"));
+			OutputStream finalStream = zipOutputStream;
+			OutputFormat format = OutputFormat.createPrettyPrint();
+			XMLWriter writer = new XMLWriter(finalStream, format);
+
+			writer.write(document);
+		} catch (Exception ex) {
+			MZmineCore.getDesktop().displayErrorMessage("Error saving the project description.");
+			Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
+		}
 	}
 
 	private Document saveProjectInformation(MZmineProjectImpl project) {
