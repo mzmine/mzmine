@@ -76,7 +76,7 @@ public class ProjectSave {
 		try {
 			logger.info("Saving project information");
 
-			Document document = this.saveProjectInformation(project);
+			Document document = saveProjectInformation(project);
 
 			zipOutputStream.putNextEntry(new ZipEntry("Project description.xml"));
 			OutputStream finalStream = zipOutputStream;
@@ -102,11 +102,11 @@ public class ProjectSave {
 
 		// <RAWDATAFILES>
 		newElement = XMLUtils.fillXMLValues(saveRoot, "rawdatafiles", "quantity", String.valueOf(project.getDataFiles().length), null);
-		this.fillRawDataNames(newElement, project);
+		fillRawDataNames(newElement, project);
 
 		// <NUM_PEAKLISTS>
 		newElement = XMLUtils.fillXMLValues(saveRoot, "peaklists", "quantity", String.valueOf(project.getPeakLists().length), null);
-		this.fillPeakListNames(newElement, project);
+		fillPeakListNames(newElement, project);
 
 		return document;
 	}

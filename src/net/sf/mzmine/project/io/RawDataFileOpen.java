@@ -86,14 +86,14 @@ public class RawDataFileOpen extends DefaultHandler {
 
 		stepNumber++;
 		// Extracts the scan file from the zip project file to the temporal folder
-		this.saveFileUtils = new SaveFileUtils();
-		saveFileUtils.saveFile(zipInputStream, fileStream, this.zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+		saveFileUtils = new SaveFileUtils();
+		saveFileUtils.saveFile(zipInputStream, fileStream, zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
 		fileStream.close();
 
 		// Adds the scan file and the name to the new raw data file
-		this.rawDataFileWriter = new RawDataFileImpl();
+		rawDataFileWriter = new RawDataFileImpl();
 		((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
-		this.rawDataFileWriter.setName(Name);
+		rawDataFileWriter.setName(Name);
 
 		logger.info("Loading raw data file: " + Name);
 
@@ -134,10 +134,10 @@ public class RawDataFileOpen extends DefaultHandler {
 			Attributes attrs) throws SAXException {
 
 		if (qName.equals(RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName())) {
-			this.numberOfFragments = Integer.parseInt(attrs.getValue(RawDataElementName.QUANTITY.getElementName()));
-			if (this.numberOfFragments > 0) {
-				this.fragmentScan = new int[this.numberOfFragments];
-				this.fragmentCount = 0;
+			numberOfFragments = Integer.parseInt(attrs.getValue(RawDataElementName.QUANTITY.getElementName()));
+			if (numberOfFragments > 0) {
+				fragmentScan = new int[numberOfFragments];
+				fragmentCount = 0;
 			}
 		}
 	}
@@ -154,7 +154,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
 			try {
 				getTextOfElement();
-				this.scansReaded = 0;
+				scansReaded = 0;
 			} catch (Exception ex) {
 				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 			}
@@ -165,34 +165,33 @@ public class RawDataFileOpen extends DefaultHandler {
 		}
 
 		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
-
-			this.ScanNumber = Integer.parseInt(getTextOfElement());
+			ScanNumber = Integer.parseInt(getTextOfElement());
 			progress = ((double) scansReaded / numberOfScans) * 0.5 + 0.5;
 			scansReaded++;
 		}
 
 		if (qName.equals(RawDataElementName.MS_LEVEL.getElementName())) {
-			this.msLevel = Integer.parseInt(getTextOfElement());
+			msLevel = Integer.parseInt(getTextOfElement());
 		}
 
 		if (qName.equals(RawDataElementName.PARENT_SCAN.getElementName())) {
-			this.parentScan = Integer.parseInt(getTextOfElement());
+			parentScan = Integer.parseInt(getTextOfElement());
 		}
 
 		if (qName.equals(RawDataElementName.PRECURSOR_MZ.getElementName())) {
-			this.precursorMZ = Double.parseDouble(getTextOfElement());
+			precursorMZ = Double.parseDouble(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.PRECURSOR_CHARGE.getElementName())) {
-			this.precursorCharge = Integer.parseInt(getTextOfElement());
+			precursorCharge = Integer.parseInt(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.RETENTION_TIME.getElementName())) {
-			this.retentionTime = Double.parseDouble(getTextOfElement());
+			retentionTime = Double.parseDouble(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.CENTROIDED.getElementName())) {
-			this.centroided = Boolean.parseBoolean(getTextOfElement());
+			centroided = Boolean.parseBoolean(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.QUANTITY_DATAPOINTS.getElementName())) {
-			this.dataPointsNumber = Integer.parseInt(getTextOfElement());
+			dataPointsNumber = Integer.parseInt(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.FRAGMENT_SCAN.getElementName())) {
 			fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
@@ -200,12 +199,12 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
 			try {
 
-				int storageArrayByteLength = this.dataPointsNumber * 8 * 2;
-				CachedStorableScan scan = new CachedStorableScan(this.ScanNumber, this.msLevel, this.retentionTime,
-						this.parentScan, this.precursorMZ, this.precursorCharge, this.fragmentScan,
-						null, this.centroided, this.rawDataFileWriter);
-				scan.setParameters(storageFileOffset, storageArrayByteLength, this.dataPointsNumber);
-				this.rawDataFileWriter.addScan(scan);
+				int storageArrayByteLength = dataPointsNumber * 8 * 2;
+				CachedStorableScan scan = new CachedStorableScan(ScanNumber, msLevel, retentionTime,
+						parentScan, precursorMZ, precursorCharge, fragmentScan,
+						null, centroided, rawDataFileWriter);
+				scan.setParameters(storageFileOffset, storageArrayByteLength, dataPointsNumber);
+				rawDataFileWriter.addScan(scan);
 				storageFileOffset += storageArrayByteLength;
 
 			} catch (Exception ex) {

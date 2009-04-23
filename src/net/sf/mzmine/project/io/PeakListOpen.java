@@ -50,7 +50,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class PeakListOpen extends DefaultHandler {
-	
+
 	private RawDataFileImpl buildingRawDataFile;
 	private SimplePeakListRow buildingRow;
 	private int peakColumnID,  rawDataFileID,  quantity;
@@ -340,7 +340,7 @@ public class PeakListOpen extends DefaultHandler {
 					peakMZRange.extendRange(mz);
 					peakIntensityRange.extendRange(intensity);
 				}
-				if(intensity > 0.0){					
+				if (intensity > 0.0) {
 					mzPeaks[i] = new SimpleDataPoint(mz, intensity);
 				}
 			}
@@ -372,26 +372,6 @@ public class PeakListOpen extends DefaultHandler {
 			parsedRows++;
 		}
 
-		// <SCAN>
-		if (qName.equals(PeakListElementName.SCAN.getElementName())) {
-
-			if (buildingRawDataFile == null) {
-				try {
-					buildingRawDataFile = new RawDataFileImpl(name);
-				} catch (IOException ex) {
-					Logger.getLogger(PeakListOpen.class.getName()).log(Level.SEVERE, null, ex);
-				}
-			}
-
-			for (int i = 0; i < quantity; i++) {
-				SimpleScan newScan = new SimpleScan(buildingRawDataFile,
-						scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0, null,
-						new DataPoint[0], false);
-				buildingRawDataFile.addScan(newScan);
-			}
-			scanFlag = false;
-		}
-
 		// <RAWFILE>
 		if (qName.equals("rawdata_name")) {
 			rawDataName = getTextOfElement();
@@ -406,8 +386,7 @@ public class PeakListOpen extends DefaultHandler {
 					buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
 					break;
 				}
-			}
-			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
+			}			
 			buildingRawDataFile = null;
 		}
 

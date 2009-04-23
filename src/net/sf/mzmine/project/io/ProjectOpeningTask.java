@@ -66,7 +66,7 @@ public class ProjectOpeningTask implements Task {
 			case 2:
 				String rawDataName = "";
 				try {
-					rawDataName = this.projectOpen.getRawDataNames()[rawDataCount];
+					rawDataName = projectOpen.getRawDataNames()[rawDataCount];
 				} catch (Exception e) {
 					return taskDescription + "(raw data points) ";
 				}
@@ -74,7 +74,7 @@ public class ProjectOpeningTask implements Task {
 			case 3:
 				String peakListName = "";
 				try {
-					peakListName = this.projectOpen.getPeakListNames()[peakListCount];
+					peakListName = projectOpen.getPeakListNames()[peakListCount];
 				} catch (Exception e) {
 					return taskDescription + "(peak list objects)";
 				}
@@ -177,7 +177,7 @@ public class ProjectOpeningTask implements Task {
 	 * Loads the configuration file and the project information from the project zip file
 	 */
 	private void loadProjectInformation() {
-		projectOpen = new ProjectOpen(this.zipStream, this.zipFile);
+		projectOpen = new ProjectOpen(zipStream, zipFile);
 		projectOpen.openProjectDescription();
 		projectOpen.openConfiguration();
 	}
@@ -186,11 +186,11 @@ public class ProjectOpeningTask implements Task {
 	 * Loads the raw data files from the project zip file
 	 */
 	private void loadRawDataObjects() {
-		rawDataFileOpen = new RawDataFileOpen(this.zipStream, this.zipFile);
-		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
-			if (this.projectOpen.getRawDataNames()[i] != null) {
+		rawDataFileOpen = new RawDataFileOpen(zipStream, zipFile);
+		for (int i = 0; i < projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
+			if (projectOpen.getRawDataNames()[i] != null) {
 				try {
-					rawDataFileOpen.readRawDataFile(this.projectOpen.getRawDataNames()[i]);
+					rawDataFileOpen.readRawDataFile(projectOpen.getRawDataNames()[i]);
 				} catch (Exception ex) {
 					MZmineCore.getDesktop().displayErrorMessage("Error loading raw data file: " + this.projectOpen.getRawDataNames()[i]);
 					Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
@@ -203,10 +203,11 @@ public class ProjectOpeningTask implements Task {
 	 * Loads the peak lists from the project zip file
 	 */
 	private void loadPeakListObjects() {
-		for (int i = 0; i < this.projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
+		for (int i = 0; i < projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
 			try {
-				logger.info("Loading peak list: " + this.projectOpen.getPeakListNames()[i]);
-				peakListOpen = new PeakListOpen(zipStream, this.zipFile);
+				logger.info("Loading peak list: " + projectOpen.getPeakListNames()[i]);
+
+				peakListOpen = new PeakListOpen(zipStream, zipFile);
 				peakListOpen.readPeakList();
 			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + this.projectOpen.getPeakListNames()[i]);

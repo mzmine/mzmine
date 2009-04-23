@@ -191,8 +191,8 @@ public class ProjectSavingTask implements Task {
 	 */
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
-		int cont = 0;
-		for (RawDataFile rawDataFile : this.rawDataFiles) {
+				int cont = 0;
+		for (RawDataFile rawDataFile : rawDataFiles) {
 			rawDataName = rawDataFile.getName();
 			try {
 				rawDataFileSave.writeRawDataFiles(rawDataFile, "Raw data file #" + cont++ + " " + rawDataName);
@@ -209,7 +209,7 @@ public class ProjectSavingTask implements Task {
 	private void savePeakListObjects() {
 		peakListSave = new PeakListSave(zipStream);
 		int cont = 0;
-		for (PeakList peakList : this.peakLists) {
+		for (PeakList peakList : peakLists) {
 			peakListName = peakList.getName();
 			try {
 				peakListSave.savePeakList(peakList, "Peak list #" + cont++ + " " + peakListName);

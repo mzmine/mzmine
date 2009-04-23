@@ -27,6 +27,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -39,6 +40,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 import org.dom4j.Document;
 import org.dom4j.DocumentFactory;
@@ -108,7 +110,12 @@ public class PeakListSave {
 
 		for (int i = 1; i <= dataFiles.length; i++) {
 			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.RAWFILE.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(i), null);
-			fillRawDataFileElement(dataFiles[i - 1], newElement);
+			try {
+				fillRawDataFileElement(dataFiles[i - 1], newElement);
+			} catch (Exception ex) {
+				MZmineCore.getDesktop().displayErrorMessage("Error. No raw data exists for the peak list: " + peakList.getName());
+				return;
+			}
 			dataFilesIDMap.put(dataFiles[i - 1], i);
 		}
 
@@ -163,19 +170,18 @@ public class PeakListSave {
 	 * @param file
 	 * @param element
 	 */
-	private void fillRawDataFileElement(RawDataFile file, Element element) {
-
+	private void fillRawDataFileElement(RawDataFile file, Element element) throws Exception {
 		// <NAME>
 		XMLUtils.fillXMLValues(element, "rawdata_name", null, null, file.getName());
 
 
 		// <RTRANGE>
 		Range RTRange = file.getDataRTRange(1);
-		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(RTRange.getMin()+"-"+RTRange.getMax()));
+		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(RTRange.getMin() + "-" + RTRange.getMax()));
 
 		// <MZRANGE>
 		Range MZRange = file.getDataMZRange(1);
-		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(MZRange.getMin()+"-"+MZRange.getMax()));
+		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(MZRange.getMin() + "-" + MZRange.getMax()));
 
 	}
 
@@ -190,7 +196,7 @@ public class PeakListSave {
 		// <NAME>
 		XMLUtils.fillXMLValues(element, PeakListElementName.NAME.getElementName(), null, null, identity.getName() != null ? identity.getName() : " ");
 
-		
+
 		// <FORMULA>
 		String formula = "";
 		if (identity instanceof SimplePeakIdentity) {
@@ -261,14 +267,13 @@ public class PeakListSave {
 		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
 		XMLUtils.fillXMLValues(newElement, PeakListElementName.SCAN_ID.getElementName(), null, null, new String(bytes));
 
-		
+
 		bytes = Base64.encode(byteMassStream.toByteArray());
 		XMLUtils.fillXMLValues(newElement, PeakListElementName.MASS.getElementName(), null, null, new String(bytes));
 
-		
+
 		bytes = Base64.encode(byteHeightStream.toByteArray());
 		XMLUtils.fillXMLValues(newElement, PeakListElementName.HEIGHT.getElementName(), null, null, new String(bytes));
-
 
 	}
 

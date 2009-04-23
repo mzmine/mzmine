@@ -62,7 +62,7 @@ public class RawDataFileSave {
 			FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
 			saveFileUtils = new SaveFileUtils();
 			saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
-			Document document = this.saveRawDataInformation(rawDataFile);
+			Document document = saveRawDataInformation(rawDataFile);
 
 			// step 2 - save raw data description
 			logger.info("Saving raw data description of: " + rawDataFile.getName());
@@ -97,7 +97,7 @@ public class RawDataFileSave {
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
 			Element newElement = XMLUtils.fillXMLValues(saveRoot, RawDataElementName.SCAN.getElementName(), null, null, null);
 			Scan scan = rawDataFile.getScan(scanNumber);
-			this.fillScanElement(scan, newElement);
+			fillScanElement(scan, newElement);
 		}
 		return document;
 	}
