@@ -332,8 +332,9 @@ public class PeakListOpen extends DefaultHandler {
 					peakMZRange.extendRange(mz);
 					peakIntensityRange.extendRange(intensity);
 				}
-
-				mzPeaks[i] = new SimpleDataPoint(mz, intensity);
+				if(intensity > 0.0){					
+					mzPeaks[i] = new SimpleDataPoint(mz, intensity);
+				}
 			}
 
 			SimpleChromatographicPeak peak = new SimpleChromatographicPeak(
