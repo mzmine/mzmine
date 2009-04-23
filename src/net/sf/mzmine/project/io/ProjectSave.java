@@ -45,17 +45,33 @@ public class ProjectSave {
 		this.zipOutputStream = zipStream;
 	}
 
+	/**
+	 * Saves the configuration file using an MZmineCore function
+	 * @throws java.io.IOException
+	 */
 	public void saveConfiguration() throws IOException {
 		logger.info("Saving configuration file");
 
 		zipOutputStream.putNextEntry(new ZipEntry("configuration.xml"));
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+
 		MZmineCore.saveConfiguration(tempConfigFile);
+
 		FileInputStream fileStream = new FileInputStream(tempConfigFile);
 		(new SaveFileUtils()).saveFile(fileStream, zipOutputStream, 0, SaveFileUtilsMode.CLOSE_IN);
 		tempConfigFile.delete();
 	}
 
+	/**
+	 * Saves information about the project:
+	 *	- Number of raw data files
+	 *	- Name of the raw data files
+	 *	- Number of peak lists
+	 *	- Name of the peak lists
+	 *
+	 * @param project
+	 * @throws java.io.IOException
+	 */
 	public void saveProjectDescription(MZmineProjectImpl project) throws IOException {
 		try {
 			logger.info("Saving project information");
@@ -74,6 +90,11 @@ public class ProjectSave {
 		}
 	}
 
+	/**
+	 * Creates the XML document with the project information
+	 * @param project
+	 * @return XML document
+	 */
 	private Document saveProjectInformation(MZmineProjectImpl project) {
 		Element newElement;
 		Document document = DocumentFactory.getInstance().createDocument();
@@ -90,6 +111,11 @@ public class ProjectSave {
 		return document;
 	}
 
+	/**
+	 * Puts the raw data file names into the XML document
+	 * @param element
+	 * @param project
+	 */
 	private void fillRawDataNames(Element element, MZmineProjectImpl project) {
 		RawDataFile[] dataFiles = project.getDataFiles();
 		for (int i = 0; i < dataFiles.length; i++) {
@@ -97,6 +123,11 @@ public class ProjectSave {
 		}
 	}
 
+	/**
+	 * Puts the peak list names into the XML document
+	 * @param element
+	 * @param project
+	 */
 	private void fillPeakListNames(Element element, MZmineProjectImpl project) {
 		PeakList[] peakLists = project.getPeakLists();
 		for (int i = 0; i < peakLists.length; i++) {

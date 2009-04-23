@@ -82,8 +82,13 @@ public class PeakListOpen extends DefaultHandler {
 		this.zipFile = zipFile;
 	}
 
+	/**
+	 * Loads the peak list from the zip file reading the XML peak list file
+	 * @throws java.lang.Exception
+	 */
 	public void readPeakList() throws Exception {
 
+		// Parses the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
 		saxParser.parse(zipFile.getInputStream(zipInputStream.getNextEntry()), this);
@@ -96,6 +101,9 @@ public class PeakListOpen extends DefaultHandler {
 		currentProject.addPeakList(buildingPeakList);
 	}
 
+	/**
+	 * @return the progress of these functions loading the peak list from the zip file.
+	 */
 	public double getProgress() {
 		return progress;
 	}
@@ -428,6 +436,9 @@ public class PeakListOpen extends DefaultHandler {
 		charBuffer = charBuffer.append(buf, offset, len);
 	}
 
+	/**
+	 * Initializes the peak list
+	 */
 	private void initializePeakList() {
 
 		RawDataFile[] dataFiles = buildingArrayRawDataFiles.values().toArray(

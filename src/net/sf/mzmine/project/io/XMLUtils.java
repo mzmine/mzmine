@@ -23,13 +23,15 @@ import org.dom4j.Element;
 public class XMLUtils {
 
 	/**
+	 * Adds to the XML element a new element with an attribute or value if these
+	 * parameters are not null.
 	 * 
 	 * @param element
-	 * @param elementName
-	 * @param attributeName
-	 * @param attributeValue
-	 * @param value
-	 * @return
+	 * @param elementName name of the new element
+	 * @param attributeName attribute name of the new element
+	 * @param attributeValue attribute value of the new element
+	 * @param value value of the new element
+	 * @return the new element
 	 */
 	static Element fillXMLValues(Element element, String elementName, String attributeName, String attributeValue, String value) {
 		Element newElement = element;

@@ -44,6 +44,16 @@ public class RawDataFileSave {
 		this.zipOutputStream = zipOutputStream;
 	}
 
+	/**
+	 * Copies the scan file of the raw data file from the temporal folder to the
+	 * zip file.
+	 * Creates an XML file which contains the description of the same raw data file
+	 * an copies it into the same zip file.
+	 *
+	 * @param rawDataFile raw data file to be copied
+	 * @param rawDataSavedName name of the raw data inside the zip file
+	 * @throws java.io.IOException
+	 */
 	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) throws IOException {
 			// step 1 - save scan file
 			logger.info("Saving scan file of: " + rawDataFile.getName());
@@ -66,6 +76,12 @@ public class RawDataFileSave {
 		
 	}
 
+	/**
+	 * Function which creates an XML file with the descripcion of the raw data
+	 * @param rawDataFile raw data file
+	 * @return XML document
+	 * @throws java.io.IOException
+	 */
 	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
 		numOfScans = rawDataFile.getNumOfScans();
 
@@ -86,6 +102,11 @@ public class RawDataFileSave {
 		return document;
 	}
 
+	/**
+	 * Creates the part of the XML document related to the scans
+	 * @param scan 
+	 * @param element 
+	 */
 	private void fillScanElement(Scan scan, Element element) {
 
 		XMLUtils.fillXMLValues(element, RawDataElementName.SCAN_ID.getElementName(), null, null, String.valueOf(scan.getScanNumber()));
@@ -111,7 +132,11 @@ public class RawDataFileSave {
 		}
 	}
 
+	/**
+	 * 
+	 * @return the progress of these functions saving the raw data information to the zip file.
+	 */
 	public double getProgress() {
-		return saveFileUtils.progress;
+		return saveFileUtils.getProgress();
 	}
 }

@@ -49,24 +49,35 @@ public class ProjectOpen extends DefaultHandler {
 		charBuffer = new StringBuffer();
 	}
 
+	/**
+	 * Loads the configuration file from the zip file and adds it using an
+	 * MZmineCore function.
+	 */
 	public void openConfiguration() {
 		try {
 			logger.info("Loading configuration file");
+
 			zipInputStream.getNextEntry();
 			File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
 			(new SaveFileUtils()).saveFile(zipInputStream, fileStream, 0, SaveFileUtilsMode.CLOSE_OUT);
 			fileStream.close();
+
 			MZmineCore.loadConfiguration(tempConfigFile);
+			
 			tempConfigFile.delete();
 		} catch (IOException ex) {
 			Logger.getLogger(ProjectOpen.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
 
+	/**
+	 * Loads the project information from the XML file inside the zip file
+	 */
 	public void openProjectDescription() {
 		try {
 			logger.info("Loading project information");
+
 			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
 			charBuffer = new StringBuffer();
 			SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -78,6 +89,10 @@ public class ProjectOpen extends DefaultHandler {
 		}
 	}
 
+	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,
+	 *      java.lang.String, java.lang.String, org.xml.sax.Attributes)
+	 */
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
@@ -93,6 +108,10 @@ public class ProjectOpen extends DefaultHandler {
 
 	}
 
+	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String,
+	 *      java.lang.String, java.lang.String)
+	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
 			) throws SAXException {
@@ -128,18 +147,34 @@ public class ProjectOpen extends DefaultHandler {
 		charBuffer = charBuffer.append(buf, offset, len);
 	}
 
+	/**
+	 *
+	 * @return number of raw data files
+	 */
 	public int getNumOfRawDataFiles() {
 		return numRawDataFiles;
 	}
 
+	/**
+	 *
+	 * @return number of peak lists
+	 */
 	public int getNumOfPeakLists() {
 		return numPeakLists;
 	}
 
+	/**
+	 *
+	 * @return array with all raw data file names
+	 */
 	public String[] getRawDataNames() {
 		return rawDataNames;
 	}
 
+	/**
+	 *
+	 * @return array with all peak list names
+	 */
 	public String[] getPeakListNames() {
 		return peakListNames;
 	}

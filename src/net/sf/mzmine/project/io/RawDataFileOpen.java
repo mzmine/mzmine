@@ -66,48 +66,58 @@ public class RawDataFileOpen extends DefaultHandler {
 		charBuffer = new StringBuffer();
 	}
 
-	public void readRawDataFile(String Name) throws ClassNotFoundException {
-		try {
-			logger.info("Moving scan file : " + Name +" to the temporal folder");
-			
-			stepNumber = 0;
-			// Writes the scan file into a temporal file
-			String fileName = zipInputStream.getNextEntry().getName();
+	/**
+	 * Extracts the scan file and copies it into the temporal folder.
+	 * Creates a new raw data file using the information
+	 * from the XML raw data description file
+	 * @param Name raw data file name
+	 * @throws java.lang.ClassNotFoundException
+	 */
+	public void readRawDataFile(String Name) throws Exception {
 
-			File tempConfigFile = File.createTempFile("mzmine", ".scans");
-			FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-			stepNumber++;
-			this.saveFileUtils = new SaveFileUtils();
-			saveFileUtils.saveFile(zipInputStream, fileStream, this.zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
-			fileStream.close();
+		logger.info("Moving scan file : " + Name + " to the temporal folder");
+		stepNumber = 0;
 
-			this.rawDataFileWriter = new RawDataFileImpl();
-			((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
-			this.rawDataFileWriter.setName(Name);
+		// Writes the scan file into a temporal file
+		String fileName = zipInputStream.getNextEntry().getName();
 
-			logger.info("Loading raw data file: " + Name);
+		File tempConfigFile = File.createTempFile("mzmine", ".scans");
+		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
 
-			stepNumber++;
-			InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
+		stepNumber++;
+		// Extracts the scan file from the zip project file to the temporal folder
+		this.saveFileUtils = new SaveFileUtils();
+		saveFileUtils.saveFile(zipInputStream, fileStream, this.zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+		fileStream.close();
 
-			SAXParserFactory factory = SAXParserFactory.newInstance();
-			SAXParser saxParser = factory.newSAXParser();
-			saxParser.parse(InputStream, this);
+		// Adds the scan file and the name to the new raw data file
+		this.rawDataFileWriter = new RawDataFileImpl();
+		((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
+		this.rawDataFileWriter.setName(Name);
 
+		logger.info("Loading raw data file: " + Name);
 
-			RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
-			MZmineCore.getCurrentProject().addFile(rawDataFile);
+		stepNumber++;
+		// Extracts the raw data description file from the zip project file
+		InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
 
-		} catch (Exception ex) {
+		// Reads the XML file (raw data description)
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		SAXParser saxParser = factory.newSAXParser();
+		saxParser.parse(InputStream, this);
 
-			Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
-		}
+		// Adds the raw data file to MZmine
+		RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
+		MZmineCore.getCurrentProject().addFile(rawDataFile);
 	}
 
+	/**
+	 * @return the progress of these functions loading the raw data from the zip file
+	 */
 	public double getProgress() {
 		switch (stepNumber) {
 			case 1:
-				return saveFileUtils.progress * 0.5;
+				return saveFileUtils.getProgress() * 0.5;
 			case 2:
 				return progress;
 			default:
@@ -115,6 +125,10 @@ public class RawDataFileOpen extends DefaultHandler {
 		}
 	}
 
+	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,
+	 *      java.lang.String, java.lang.String, org.xml.sax.Attributes)
+	 */
 	public void startElement(String namespaceURI, String lName, // local name
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
@@ -128,6 +142,10 @@ public class RawDataFileOpen extends DefaultHandler {
 		}
 	}
 
+	/**
+	 * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String,
+	 *      java.lang.String, java.lang.String)
+	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
 			) throws SAXException {

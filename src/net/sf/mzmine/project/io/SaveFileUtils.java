@@ -30,29 +30,34 @@ import java.util.logging.Logger;
 
 public class SaveFileUtils {
 
-	public Double progress = 0.0;
+	private double progress;
 
 	/**
-	 *
-	 * @param input
-	 * @param output
-	 * @param mode: 0 to clos
+	 * Copy the data from inputStream to outputStream using nio channels
+	 * @param input InputStream
+	 * @param output OutputStream
+	 * @param mode: decides which stream has to be closed
 	 */
 	public void saveFile(InputStream input, OutputStream output, long fileLenght, SaveFileUtilsMode mode) {
 		try {
 			progress = 0.0;
+
 			ReadableByteChannel in = Channels.newChannel(input);
 			WritableByteChannel out = Channels.newChannel(output);
 			ByteBuffer bbuffer = ByteBuffer.allocate(16 * 1024);
 			int len = 0;
 			int lenTotal = 0;
+
 			while ((len = in.read(bbuffer)) != -1) {
 				bbuffer.flip();
 				out.write(bbuffer);
 				bbuffer.clear();
+
 				lenTotal += len;
 				progress = (double) lenTotal / fileLenght;
 			}
+
+			// closing streams
 			switch (mode) {
 				case CLOSE_ALL:
 					in.close();
@@ -69,5 +74,13 @@ public class SaveFileUtils {
 		} catch (IOException ex) {
 			Logger.getLogger(SaveFileUtils.class.getName()).log(Level.SEVERE, null, ex);
 		}
+	}
+
+	/**
+	 * 
+	 * @return the progress of the "saveFile()" function copying the data from one stream to another
+	 */
+	public double getProgress(){
+		return progress;
 	}
 }

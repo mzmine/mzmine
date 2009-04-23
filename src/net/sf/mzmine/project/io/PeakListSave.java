@@ -62,6 +62,13 @@ public class PeakListSave {
 		this.zipOutputStream = zipStream;
 	}
 
+	/**
+	 * Creates an XML document with the peak list information an saves it into
+	 * the project zip file
+	 * @param peakList
+	 * @param peakListSavedName name of the peak list
+	 * @throws java.io.IOException
+	 */
 	public void savePeakList(PeakList peakList, String peakListSavedName) throws IOException {
 		logger.info("Saving peak list: " + peakList.getName());
 
@@ -122,6 +129,7 @@ public class PeakListSave {
 	}
 
 	/**
+	 * Adds the row information into the XML document
 	 * @param row
 	 * @param element
 	 */
@@ -151,6 +159,7 @@ public class PeakListSave {
 	}
 
 	/**
+	 * Adds the raw data information into the XML document
 	 * @param file
 	 * @param element
 	 */
@@ -171,6 +180,7 @@ public class PeakListSave {
 	}
 
 	/**
+	 * Adds the peak identity information into the XML document
 	 * @param identity
 	 * @param element
 	 */
@@ -194,6 +204,7 @@ public class PeakListSave {
 	}
 
 	/**
+	 * Adds the peaks information into the XML document
 	 * @param peak
 	 * @param element
 	 * @param dataFileID
@@ -261,6 +272,9 @@ public class PeakListSave {
 
 	}
 
+	/**
+	 * @return the progress of these functions saving the peak list to the zip file.
+	 */
 	public double getProgress() {
 		return progress;
 	}

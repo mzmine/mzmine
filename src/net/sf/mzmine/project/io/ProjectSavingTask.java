@@ -82,14 +82,12 @@ public class ProjectSavingTask implements Task {
 				} catch (Exception e) {
 					return 0f;
 				}
-
 			case 3:
 				try {
 					return (double) peakListSave.getProgress();
 				} catch (Exception e) {
 					return 0f;
 				}
-
 			default:
 				return 0f;
 		}
@@ -178,12 +176,19 @@ public class ProjectSavingTask implements Task {
 		}
 	}
 
+	/**
+	 * Saves the configuration file and the information about the project.
+	 * @throws java.io.IOException
+	 */
 	private void saveConfiguration() throws IOException {
 		ProjectSave projectSave = new ProjectSave(zipStream);
 		projectSave.saveProjectDescription(project);
 		projectSave.saveConfiguration();
 	}
 
+	/**
+	 * Saves the raw data files
+	 */
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
 		int cont = 0;
@@ -198,6 +203,9 @@ public class ProjectSavingTask implements Task {
 		}
 	}
 
+	/**
+	 * Saves the peak lists
+	 */
 	private void savePeakListObjects() {
 		peakListSave = new PeakListSave(zipStream);
 		int cont = 0;

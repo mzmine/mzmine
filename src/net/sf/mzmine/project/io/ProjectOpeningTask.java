@@ -96,7 +96,6 @@ public class ProjectOpeningTask implements Task {
 				} catch (Exception e) {
 					return 0f;
 				}
-
 			case 3:
 				try {
 					return (double) peakListOpen.getProgress();
@@ -132,11 +131,9 @@ public class ProjectOpeningTask implements Task {
 			logger.info("Started opening project " + openFile);
 			status = TaskStatus.PROCESSING;
 
-
 			// Get project ZIP stream
 			FileInputStream fileStream = new FileInputStream(openFile);
 			zipStream = new ZipInputStream(fileStream);
-
 
 			// Stage 1 - load project description
 			currentStage++;
@@ -149,7 +146,6 @@ public class ProjectOpeningTask implements Task {
 			// Stage 3 - load PeakList objects
 			currentStage++;
 			loadPeakListObjects();
-
 
 			// Finish and close the project ZIP file
 			zipStream.close();
@@ -177,12 +173,18 @@ public class ProjectOpeningTask implements Task {
 		status = TaskStatus.CANCELED;
 	}
 
+	/**
+	 * Loads the configuration file and the project information from the project zip file
+	 */
 	private void loadProjectInformation() {
 		projectOpen = new ProjectOpen(this.zipStream, this.zipFile);
 		projectOpen.openProjectDescription();
 		projectOpen.openConfiguration();
 	}
 
+	/**
+	 * Loads the raw data files from the project zip file
+	 */
 	private void loadRawDataObjects() {
 		rawDataFileOpen = new RawDataFileOpen(this.zipStream, this.zipFile);
 		for (int i = 0; i < this.projectOpen.getNumOfRawDataFiles(); i++, rawDataCount++) {
@@ -197,6 +199,9 @@ public class ProjectOpeningTask implements Task {
 		}
 	}
 
+	/**
+	 * Loads the peak lists from the project zip file
+	 */
 	private void loadPeakListObjects() {
 		for (int i = 0; i < this.projectOpen.getNumOfPeakLists(); i++, peakListCount++) {
 			try {
@@ -205,16 +210,15 @@ public class ProjectOpeningTask implements Task {
 				peakListOpen.readPeakList();
 			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + this.projectOpen.getPeakListNames()[i]);
-					Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
+				Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
 
 			}
 		}
 	}
 
-	public Object[] getCreatedObjects() {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
+	/**
+	 * Removes the raw data files and the peak lists of the current project
+	 */
 	public void removeCurrentProjectFiles() {
 		MZmineProject project = MZmineCore.getCurrentProject();
 		RawDataFile[] rawDataFiles = project.getDataFiles();
@@ -226,4 +230,9 @@ public class ProjectOpeningTask implements Task {
 			project.removePeakList(peakList);
 		}
 	}
+
+	public Object[] getCreatedObjects() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
 }
