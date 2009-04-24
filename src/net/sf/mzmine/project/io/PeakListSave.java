@@ -38,6 +38,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -101,22 +102,31 @@ public class PeakListSave {
 
 		// <PROCESS>
 		PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
-		for (PeakListAppliedMethod proc : processes) {
-			XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PROCESS.getElementName(), null, null, proc.getDescription());
+		for (PeakListAppliedMethod proc : processes) {			
+			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PROCESS.getElementName(), "description", proc.getDescription(), null);
+			((SimpleParameterSet)proc.getParameterSet()).exportValuesToXML(newElement);
 		}
-
+	
 		// <RAWFILE>
 		RawDataFile[] dataFiles = peakList.getRawDataFiles();
 
 		for (int i = 1; i <= dataFiles.length; i++) {
-			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.RAWFILE.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(i), null);
+			int ID = 0;
+			RawDataFile[] files = MZmineCore.getCurrentProject().getDataFiles();
+			for(int e = 0; e < files.length; e++){
+				if(files[e].equals(dataFiles[i-1])){
+					ID = e;
+					break;
+				}
+			}
+			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.RAWFILE.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(ID), null);
 			try {
 				fillRawDataFileElement(dataFiles[i - 1], newElement);
 			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error. No raw data exists for the peak list: " + peakList.getName());
 				return;
 			}
-			dataFilesIDMap.put(dataFiles[i - 1], i);
+			dataFilesIDMap.put(dataFiles[i - 1], ID);
 		}
 
 		// <ROW>		
@@ -172,7 +182,7 @@ public class PeakListSave {
 	 */
 	private void fillRawDataFileElement(RawDataFile file, Element element) throws Exception {
 		// <NAME>
-		XMLUtils.fillXMLValues(element, "rawdata_name", null, null, file.getName());
+		XMLUtils.fillXMLValues(element, PeakListElementName.RAWDATA_NAME.getElementName(), null, null, file.getName());
 
 
 		// <RTRANGE>
@@ -251,7 +261,7 @@ public class PeakListSave {
 					mass = (float) mzPeak.getMZ();
 					height = (float) mzPeak.getIntensity();
 				} else {
-					mass = (float) peak.getMZ();
+					mass = 0f;
 					height = 0f;
 				}
 				dataMassStream.writeFloat(mass);

@@ -55,25 +55,25 @@ public class RawDataFileSave {
 	 * @throws java.io.IOException
 	 */
 	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) throws IOException {
-			// step 1 - save scan file
-			logger.info("Saving scan file of: " + rawDataFile.getName());
+		// step 1 - save scan file
+		logger.info("Saving scan file of: " + rawDataFile.getName());
 
-			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
-			FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
-			saveFileUtils = new SaveFileUtils();
-			saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
-			Document document = saveRawDataInformation(rawDataFile);
+		zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
+		FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
+		saveFileUtils = new SaveFileUtils();
+		saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
+		Document document = saveRawDataInformation(rawDataFile);
 
-			// step 2 - save raw data description
-			logger.info("Saving raw data description of: " + rawDataFile.getName());
+		// step 2 - save raw data description
+		logger.info("Saving raw data description of: " + rawDataFile.getName());
 
-			zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
-			OutputStream finalStream = zipOutputStream;
-			OutputFormat format = OutputFormat.createPrettyPrint();
-			XMLWriter writer = new XMLWriter(finalStream, format);
-			writer.write(document);
+		zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
+		OutputStream finalStream = zipOutputStream;
+		OutputFormat format = OutputFormat.createPrettyPrint();
+		XMLWriter writer = new XMLWriter(finalStream, format);
+		writer.write(document);
 
-		
+
 	}
 
 	/**
@@ -116,8 +116,11 @@ public class RawDataFileSave {
 			XMLUtils.fillXMLValues(element, RawDataElementName.PARENT_SCAN.getElementName(), null, null, String.valueOf(scan.getParentScanNumber()));
 		}
 
-		XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_MZ.getElementName(), null, null, String.valueOf(scan.getPrecursorMZ()));
-		XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_CHARGE.getElementName(), null, null, String.valueOf(scan.getPrecursorCharge()));
+		if (scan.getMSLevel() >= 2) {
+			XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_MZ.getElementName(), null, null, String.valueOf(scan.getPrecursorMZ()));
+		
+			XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_CHARGE.getElementName(), null, null, String.valueOf(scan.getPrecursorCharge()));
+		}
 		
 		XMLUtils.fillXMLValues(element, RawDataElementName.RETENTION_TIME.getElementName(), null, null, String.valueOf(scan.getRetentionTime()));
 		XMLUtils.fillXMLValues(element, RawDataElementName.CENTROIDED.getElementName(), null, null, String.valueOf(scan.isCentroided()));

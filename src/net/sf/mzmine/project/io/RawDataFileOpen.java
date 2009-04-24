@@ -58,7 +58,7 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int storageFileOffset;
 	private int fragmentCount;
 	private SaveFileUtils saveFileUtils;
-	private String fileName;
+	
 
 	public RawDataFileOpen() {		
 		charBuffer = new StringBuffer();
@@ -73,16 +73,16 @@ public class RawDataFileOpen extends DefaultHandler {
 	 */
 	public void readRawDataFile(ZipFile zipFile, ZipEntry entry, ZipInputStream zipInputStream) throws Exception {
 		stepNumber = 0;
-		// Writes the scan file into a temporal file
-		fileName = entry.getName();
-		logger.info("Moving scan file : " + fileName + " to the temporal folder");
+
+		// Writes the scan file into a temporal file		
+		logger.info("Moving scan file : " + entry.getName() + " to the temporal folder");
 		stepNumber++;
 		File tempConfigFile = File.createTempFile("mzmine", ".scans");
 		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
 		
 		// Extracts the scan file from the zip project file to the temporal folder
 		saveFileUtils = new SaveFileUtils();
-		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream, zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream, zipFile.getEntry(entry.getName()).getSize(), SaveFileUtilsMode.CLOSE_OUT);
 		fileStream.close();
 
 		rawDataFileWriter = new RawDataFileImpl();
@@ -208,11 +208,7 @@ public class RawDataFileOpen extends DefaultHandler {
 			}
 		}
 	}
-
-	public String getRawDataName() {
-		return fileName;
-	}
-
+	
 	/**
 	 * Return a string without tab an EOF characters
 	 *

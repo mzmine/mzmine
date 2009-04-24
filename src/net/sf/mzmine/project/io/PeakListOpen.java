@@ -22,6 +22,7 @@ import com.Ostermiller.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Level;
@@ -36,6 +37,7 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
@@ -44,6 +46,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.util.Range;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -68,15 +73,16 @@ public class PeakListOpen extends DefaultHandler {
 	private PeakList buildingPeakList;
 	private TreeMap<Integer, RawDataFile> buildingArrayRawDataFiles;
 	private Vector<String> appliedProcess;
+	private Vector<SimpleParameterSet> processParameters;
 	private int parsedRows;
 	private int totalRows;
-	private double progress;	
-	private String fileName;
+	private double progress;
 
 	public PeakListOpen() {
 		buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
 		charBuffer = new StringBuffer();
-		appliedProcess = new Vector<String>();		
+		appliedProcess = new Vector<String>();
+		processParameters = new Vector<SimpleParameterSet>();
 	}
 
 	/**
@@ -85,10 +91,14 @@ public class PeakListOpen extends DefaultHandler {
 	 */
 	public void readPeakList(ZipFile zipFile, ZipEntry entry) throws Exception {
 
-		// Parses the XML file		
-		fileName = entry.getName();
+		// Read the process parameters
+		readProcessParameters(zipFile, entry);
+
+		// Parse the XML file	
+
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
+
 		saxParser.parse(zipFile.getInputStream(entry), this);
 
 		if (buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0) {
@@ -97,6 +107,22 @@ public class PeakListOpen extends DefaultHandler {
 		// Add new peaklist to the project or MZviewer.desktop
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(buildingPeakList);
+	}
+
+	private void readProcessParameters(ZipFile zipFile, ZipEntry entry) throws Exception {
+		SAXReader reader = new SAXReader();
+		Document document = reader.read(zipFile.getInputStream(entry));
+
+		Element root = document.getRootElement();
+
+		Iterator i = root.elements(PeakListElementName.PROCESS.getElementName()).iterator();
+		while (i.hasNext()) {
+			Element element = (Element) i.next();
+			SimpleParameterSet parameters = new SimpleParameterSet();
+			parameters.importValuesFromXML(element);
+			System.out.println(parameters.toString());
+			processParameters.addElement(parameters);
+		}
 	}
 
 	/**
@@ -118,6 +144,16 @@ public class PeakListOpen extends DefaultHandler {
 		if (qName.equals(PeakListElementName.PEAKLIST.getElementName())) {
 
 			peakListFlag = true;
+		}
+
+		// <PROCESS>
+		if (qName.equals(PeakListElementName.PROCESS.getElementName())) {
+
+			String text = attrs.getValue("description");
+
+			if (text.length() != 0) {
+				appliedProcess.add(text);
+			}
 		}
 
 		// <RAWFILE>
@@ -203,14 +239,6 @@ public class PeakListOpen extends DefaultHandler {
 			totalRows = Integer.parseInt(text);
 		}
 
-		// <PROCESS>
-		if (qName.equals(PeakListElementName.PROCESS.getElementName())) {
-
-			String text = getTextOfElement();
-			if (text.length() != 0) {
-				appliedProcess.add(text);
-			}
-		}
 
 		// <SCAN_ID>
 		if (qName.equals(PeakListElementName.SCAN_ID.getElementName())) {
@@ -339,7 +367,7 @@ public class PeakListOpen extends DefaultHandler {
 					peakMZRange.extendRange(mz);
 					peakIntensityRange.extendRange(intensity);
 				}
-				if (intensity > 0.0) {
+				if (mz > 0.0) {
 					mzPeaks[i] = new SimpleDataPoint(mz, intensity);
 				}
 			}
@@ -371,28 +399,24 @@ public class PeakListOpen extends DefaultHandler {
 			parsedRows++;
 		}
 
+		if (qName.equals(PeakListElementName.PARAMETER.getElementName())) {
+			getTextOfElement();
+		}
+
 		// <RAWFILE>
-		if (qName.equals("rawdata_name")) {
+		if (qName.equals(PeakListElementName.RAWDATA_NAME.getElementName())) {
 			rawDataName = getTextOfElement();
 		}
 
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
-			for (RawDataFile rawDataFile : MZmineCore.getCurrentProject().getDataFiles()) {
-				if (rawDataFile.getName().matches(rawDataName)) {
-					buildingRawDataFile = (RawDataFileImpl) rawDataFile;
-					buildingRawDataFile.setRTRange(1, rtRange);
-					buildingRawDataFile.setMZRange(1, mzRange);
-					buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
-					break;
-				}
-			}
+			RawDataFile rawDataFile = MZmineCore.getCurrentProject().getDataFiles()[rawDataFileID];
+			buildingRawDataFile = (RawDataFileImpl) rawDataFile;
+			buildingRawDataFile.setRTRange(1, rtRange);
+			buildingRawDataFile.setMZRange(1, mzRange);
+			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);			
 			buildingRawDataFile = null;
 		}
 
-	}
-
-	public String getPeakListName() {
-		return fileName;
 	}
 
 	/**
@@ -422,14 +446,17 @@ public class PeakListOpen extends DefaultHandler {
 	 * Initializes the peak list
 	 */
 	private void initializePeakList() {
-
 		RawDataFile[] dataFiles = buildingArrayRawDataFiles.values().toArray(
 				new RawDataFile[0]);
 		buildingPeakList = new SimplePeakList(peakListName, dataFiles);
-		String[] process = appliedProcess.toArray(new String[0]);
-		for (String description : process) {
-			((SimplePeakList) buildingPeakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-					description));
+
+		for (int i = 0; i < this.appliedProcess.size(); i++) {
+			try {
+				((SimplePeakList) buildingPeakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+						appliedProcess.elementAt(i), processParameters.elementAt(i)));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		((SimplePeakList) buildingPeakList).setDateCreated(dateCreated);
 	}

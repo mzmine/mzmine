@@ -47,6 +47,7 @@ public class ProjectOpeningTask implements Task {
 	private RawDataFileOpen rawDataFileOpen;
 	private PeakListOpen peakListOpen;
 	private ZipFile zipFile;
+	private String fileName;
 	private int currentStage;
 	
 	public ProjectOpeningTask(File openFile) {
@@ -63,29 +64,8 @@ public class ProjectOpeningTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
-	public String getTaskDescription() {
-		String taskDescription = "Opening project ";
-		switch (currentStage) {
-			case 1:
-				String rawDataName = "";
-				try {
-					rawDataName = rawDataFileOpen.getRawDataName();
-				} catch (Exception e) {
-					return taskDescription + "(raw data points) ";
-				}
-				return taskDescription + rawDataName;
-			case 2:
-				String peakListName = "";
-				try {
-					peakListName = peakListOpen.getPeakListName();
-				} catch (Exception e) {
-					return taskDescription + "(peak list objects)";
-				}
-				return taskDescription + peakListName;
-			default:
-				return taskDescription + openFile;
-		}
-
+	public String getTaskDescription() {		
+		return "Opening project " + fileName;
 	}
 
 	/**
@@ -140,21 +120,24 @@ public class ProjectOpeningTask implements Task {
 
 			// Read the project ZIP file
 			for (int i = 0; i < this.zipFile.size(); i++) {
+				
 				ZipEntry entry = zipStream.getNextEntry();
+				fileName = entry.getName();
 
 				if (entry.getName().equals("configuration.xml")) {
 
 					currentStage = 0;
-					this.loadProjectInformation(zipFile.getInputStream(entry));
+					loadProjectInformation(zipFile.getInputStream(entry));
 
 				} else if (entry.getName().matches("Raw data file #.*")) {
 
 					currentStage = 1;
 					try {
+						rawDataFileOpen = new RawDataFileOpen();
 						rawDataFileOpen.readRawDataFile(zipFile, entry, zipStream);
 						i++;
 					} catch (Exception ex) {
-						MZmineCore.getDesktop().displayErrorMessage("Error loading raw data file: " + rawDataFileOpen.getRawDataName());
+						MZmineCore.getDesktop().displayErrorMessage("Error loading raw data file: " + entry.getName());
 						Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
 					}
 
@@ -165,7 +148,7 @@ public class ProjectOpeningTask implements Task {
 						peakListOpen = new PeakListOpen();
 						peakListOpen.readPeakList(zipFile, entry);
 					} catch (Exception ex) {
-						MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + peakListOpen.getPeakListName());
+						MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + entry.getName());
 						Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
 					}
 
@@ -199,7 +182,7 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	/**
-	 * Loads the configuration file and the project information from the project zip file
+	 * Loads the configuration file from the project zip file
 	 */
 	private void loadProjectInformation(InputStream inputStream) throws IOException {
 		logger.info("Loading configuration file");

@@ -200,7 +200,7 @@ public class ProjectSavingTask implements Task {
 	 */
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
-		int cont = 0;
+		int cont = 1;
 		for (RawDataFile rawDataFile : rawDataFiles) {
 			rawDataName = rawDataFile.getName();
 			try {
@@ -217,7 +217,7 @@ public class ProjectSavingTask implements Task {
 	 */
 	private void savePeakListObjects() {
 		peakListSave = new PeakListSave(zipStream);
-		int cont = 0;
+		int cont = 1;
 		for (PeakList peakList : peakLists) {
 			peakListName = peakList.getName();
 			try {

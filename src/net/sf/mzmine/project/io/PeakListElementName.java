@@ -27,7 +27,7 @@ public enum PeakListElementName {
 	PEAKLIST_DATE ("created"),
 	QUANTITY ("quantity"),
 	RAWFILE ("raw_file"),
-	NAME ("name"),
+	NAME ("pl_name"),
 	ID ("id"),
 	FORMULA ("formula"),
 	RT ("rt"),
@@ -51,7 +51,9 @@ public enum PeakListElementName {
 	MZPEAK ("mzpeak"),
 	SEPARATOR (";"),
 	PROCESS ("applied_method"),
-	ITEM ("item");
+	ITEM ("item"),
+	PARAMETER ("parameter"),
+	RAWDATA_NAME("rawdata_name");
 	
 	private String elementName;
 	
