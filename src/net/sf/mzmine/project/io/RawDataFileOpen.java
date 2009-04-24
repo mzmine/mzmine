@@ -65,8 +65,8 @@ public class RawDataFileOpen extends DefaultHandler {
 	}
 
 	/**
-	 * Extracts the scan file and copies it into the temporal folder.
-	 * Creates a new raw data file using the information
+	 * Extract the scan file and copies it into the temporal folder.
+	 * Create a new raw data file using the information
 	 * from the XML raw data description file
 	 * @param Name raw data file name
 	 * @throws java.lang.ClassNotFoundException

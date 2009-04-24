@@ -86,7 +86,7 @@ public class PeakListOpen extends DefaultHandler {
 	}
 
 	/**
-	 * Loads the peak list from the zip file reading the XML peak list file
+	 * Load the peak list from the zip file reading the XML peak list file
 	 * @throws java.lang.Exception
 	 */
 	public void readPeakList(ZipFile zipFile, ZipEntry entry) throws Exception {

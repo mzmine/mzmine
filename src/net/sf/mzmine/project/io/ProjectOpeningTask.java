@@ -182,7 +182,7 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	/**
-	 * Loads the configuration file from the project zip file
+	 * Load the configuration file from the project zip file
 	 */
 	private void loadProjectInformation(InputStream inputStream) throws IOException {
 		logger.info("Loading configuration file");
@@ -199,7 +199,7 @@ public class ProjectOpeningTask implements Task {
 
 	
 	/**
-	 * Removes the raw data files and the peak lists of the current project
+	 * Remove the raw data files and the peak lists of the current project
 	 */
 	public void removeCurrentProjectFiles() {
 		MZmineProject project = MZmineCore.getCurrentProject();

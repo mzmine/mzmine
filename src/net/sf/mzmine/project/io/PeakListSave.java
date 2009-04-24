@@ -27,7 +27,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -66,7 +65,7 @@ public class PeakListSave {
 	}
 
 	/**
-	 * Creates an XML document with the peak list information an saves it into
+	 * Create an XML document with the peak list information an save it into
 	 * the project zip file
 	 * @param peakList
 	 * @param peakListSavedName name of the peak list
@@ -146,7 +145,7 @@ public class PeakListSave {
 	}
 
 	/**
-	 * Adds the row information into the XML document
+	 * Add the row information into the XML document
 	 * @param row
 	 * @param element
 	 */
@@ -176,7 +175,7 @@ public class PeakListSave {
 	}
 
 	/**
-	 * Adds the raw data information into the XML document
+	 * Add the raw data information into the XML document
 	 * @param file
 	 * @param element
 	 */
@@ -196,7 +195,7 @@ public class PeakListSave {
 	}
 
 	/**
-	 * Adds the peak identity information into the XML document
+	 * Add the peak identity information into the XML document
 	 * @param identity
 	 * @param element
 	 */
@@ -220,7 +219,7 @@ public class PeakListSave {
 	}
 
 	/**
-	 * Adds the peaks information into the XML document
+	 * Add the peaks information into the XML document
 	 * @param peak
 	 * @param element
 	 * @param dataFileID

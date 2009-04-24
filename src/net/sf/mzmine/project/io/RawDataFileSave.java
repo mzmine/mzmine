@@ -45,10 +45,10 @@ public class RawDataFileSave {
 	}
 
 	/**
-	 * Copies the scan file of the raw data file from the temporal folder to the
+	 * Copy the scan file of the raw data file from the temporal folder to the
 	 * zip file.
-	 * Creates an XML file which contains the description of the same raw data file
-	 * an copies it into the same zip file.
+	 * Create an XML file which contains the description of the same raw data file
+	 * an copy it into the same zip file.
 	 *
 	 * @param rawDataFile raw data file to be copied
 	 * @param rawDataSavedName name of the raw data inside the zip file
@@ -103,7 +103,7 @@ public class RawDataFileSave {
 	}
 
 	/**
-	 * Creates the part of the XML document related to the scans
+	 * Create the part of the XML document related to the scans
 	 * @param scan 
 	 * @param element 
 	 */

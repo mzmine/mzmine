@@ -179,7 +179,7 @@ public class ProjectSavingTask implements Task {
 	}
 
 	/**
-	 * Saves the configuration file.
+	 * Save the configuration file.
 	 * @throws java.io.IOException
 	 */
 	private void saveConfiguration() throws IOException {
@@ -196,7 +196,7 @@ public class ProjectSavingTask implements Task {
 	}
 
 	/**
-	 * Saves the raw data files
+	 * Save the raw data files
 	 */
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
@@ -213,7 +213,7 @@ public class ProjectSavingTask implements Task {
 	}
 
 	/**
-	 * Saves the peak lists
+	 * Save the peak lists
 	 */
 	private void savePeakListObjects() {
 		peakListSave = new PeakListSave(zipStream);

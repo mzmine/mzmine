@@ -23,7 +23,7 @@ import org.dom4j.Element;
 public class XMLUtils {
 
 	/**
-	 * Adds to the XML element a new element with an attribute or value if these
+	 * Add to the XML element a new element with an attribute or value if these
 	 * parameters are not null.
 	 * 
 	 * @param element
