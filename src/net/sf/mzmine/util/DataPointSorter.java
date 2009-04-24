@@ -40,25 +40,42 @@ public class DataPointSorter implements Comparator<DataPoint> {
 
 	public int compare(DataPoint dp1, DataPoint dp2) {
 
-		Double peak1Value = getValue(dp1);
-		Double peak2Value = getValue(dp2);
+		int result;
 
-		if (direction == SortingDirection.Ascending)
-			return peak1Value.compareTo(peak2Value);
-		else
-			return peak2Value.compareTo(peak1Value);
-
-	}
-
-	private double getValue(DataPoint dp) {
 		switch (property) {
 		case MZ:
-			return dp.getMZ();
+
+			result = Double.compare(dp1.getMZ(), dp2.getMZ());
+
+			// If the data points have same m/z, we do a second comparison of
+			// intensity, to ensure that this comparator is consistent with
+			// equality: (compare(x, y)==0) == (x.equals(y)),
+			if (result == 0)
+				result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
+
+			if (direction == SortingDirection.Ascending)
+				return result;
+			else
+				return -result;
+
 		case Intensity:
-			return dp.getIntensity();
+			result = Double.compare(dp1.getIntensity(), dp2.getIntensity());
+
+			// If the data points have same intensity, we do a second comparison
+			// of m/z, to ensure that this comparator is consistent with
+			// equality: (compare(x, y)==0) == (x.equals(y)),
+			if (result == 0)
+				result = Double.compare(dp1.getMZ(), dp2.getMZ());
+
+			if (direction == SortingDirection.Ascending)
+				return result;
+			else
+				return -result;
+
 		}
 
 		// We should never get here, so throw exception
 		throw (new IllegalStateException());
+
 	}
 }
