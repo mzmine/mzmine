@@ -21,9 +21,11 @@ package net.sf.mzmine.project.io;
 import java.util.logging.Level;
 import net.sf.mzmine.project.impl.*;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -177,13 +179,20 @@ public class ProjectSavingTask implements Task {
 	}
 
 	/**
-	 * Saves the configuration file and the information about the project.
+	 * Saves the configuration file.
 	 * @throws java.io.IOException
 	 */
 	private void saveConfiguration() throws IOException {
-		ProjectSave projectSave = new ProjectSave(zipStream);
-		projectSave.saveProjectDescription(project);
-		projectSave.saveConfiguration();
+		logger.info("Saving configuration file");
+
+		zipStream.putNextEntry(new ZipEntry("configuration.xml"));
+		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+
+		MZmineCore.saveConfiguration(tempConfigFile);
+
+		FileInputStream fileStream = new FileInputStream(tempConfigFile);
+		(new SaveFileUtils()).saveFile(fileStream, zipStream, 0, SaveFileUtilsMode.CLOSE_IN);
+		tempConfigFile.delete();
 	}
 
 	/**
@@ -191,7 +200,7 @@ public class ProjectSavingTask implements Task {
 	 */
 	private void saveRawDataObjects() {
 		rawDataFileSave = new RawDataFileSave(zipStream);
-				int cont = 0;
+		int cont = 0;
 		for (RawDataFile rawDataFile : rawDataFiles) {
 			rawDataName = rawDataFile.getName();
 			try {

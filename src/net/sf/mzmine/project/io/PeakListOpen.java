@@ -26,8 +26,8 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import net.sf.mzmine.data.DataPoint;
@@ -40,7 +40,6 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
@@ -51,6 +50,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 public class PeakListOpen extends DefaultHandler {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFileImpl buildingRawDataFile;
 	private SimplePeakListRow buildingRow;
 	private int peakColumnID,  rawDataFileID,  quantity;
@@ -70,28 +70,26 @@ public class PeakListOpen extends DefaultHandler {
 	private Vector<String> appliedProcess;
 	private int parsedRows;
 	private int totalRows;
-	private double progress;
-	private ZipInputStream zipInputStream;
-	private ZipFile zipFile;
+	private double progress;	
+	private String fileName;
 
-	public PeakListOpen(ZipInputStream zipInputStream, ZipFile zipFile) {
+	public PeakListOpen() {
 		buildingArrayRawDataFiles = new TreeMap<Integer, RawDataFile>();
 		charBuffer = new StringBuffer();
-		appliedProcess = new Vector<String>();
-		this.zipInputStream = zipInputStream;
-		this.zipFile = zipFile;
+		appliedProcess = new Vector<String>();		
 	}
 
 	/**
 	 * Loads the peak list from the zip file reading the XML peak list file
 	 * @throws java.lang.Exception
 	 */
-	public void readPeakList() throws Exception {
+	public void readPeakList(ZipFile zipFile, ZipEntry entry) throws Exception {
 
-		// Parses the XML file
+		// Parses the XML file		
+		fileName = entry.getName();
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
-		saxParser.parse(zipFile.getInputStream(zipInputStream.getNextEntry()), this);
+		saxParser.parse(zipFile.getInputStream(entry), this);
 
 		if (buildingPeakList == null || buildingPeakList.getNumberOfRows() == 0) {
 			return;
@@ -185,6 +183,7 @@ public class PeakListOpen extends DefaultHandler {
 		if (qName.equals(PeakListElementName.NAME.getElementName())) {
 
 			name = getTextOfElement();
+			logger.info("Loading peak list: " + name);
 			if (peakListFlag) {
 				peakListName = name;
 			}
@@ -386,10 +385,14 @@ public class PeakListOpen extends DefaultHandler {
 					buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
 					break;
 				}
-			}			
+			}
 			buildingRawDataFile = null;
 		}
 
+	}
+
+	public String getPeakListName() {
+		return fileName;
 	}
 
 	/**

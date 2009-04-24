@@ -23,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import javax.xml.parsers.SAXParser;
@@ -52,17 +53,14 @@ public class RawDataFileOpen extends DefaultHandler {
 	private boolean centroided;
 	private int dataPointsNumber;
 	private int scansReaded;
-	private double progress;
+	private double progress = 0.5;
 	private int stepNumber;
 	private int storageFileOffset;
-	private ZipInputStream zipInputStream;
-	private ZipFile zipFile;
 	private int fragmentCount;
 	private SaveFileUtils saveFileUtils;
+	private String fileName;
 
-	public RawDataFileOpen(ZipInputStream zipInputStream, ZipFile zipFile) {
-		this.zipInputStream = zipInputStream;
-		this.zipFile = zipFile;
+	public RawDataFileOpen() {		
 		charBuffer = new StringBuffer();
 	}
 
@@ -73,29 +71,23 @@ public class RawDataFileOpen extends DefaultHandler {
 	 * @param Name raw data file name
 	 * @throws java.lang.ClassNotFoundException
 	 */
-	public void readRawDataFile(String Name) throws Exception {
-
-		logger.info("Moving scan file : " + Name + " to the temporal folder");
+	public void readRawDataFile(ZipFile zipFile, ZipEntry entry, ZipInputStream zipInputStream) throws Exception {
 		stepNumber = 0;
-
 		// Writes the scan file into a temporal file
-		String fileName = zipInputStream.getNextEntry().getName();
-
+		fileName = entry.getName();
+		logger.info("Moving scan file : " + fileName + " to the temporal folder");
+		stepNumber++;
 		File tempConfigFile = File.createTempFile("mzmine", ".scans");
 		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-
-		stepNumber++;
+		
 		// Extracts the scan file from the zip project file to the temporal folder
 		saveFileUtils = new SaveFileUtils();
-		saveFileUtils.saveFile(zipInputStream, fileStream, zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream, zipFile.getEntry(fileName).getSize(), SaveFileUtilsMode.CLOSE_OUT);
 		fileStream.close();
 
-		// Adds the scan file and the name to the new raw data file
 		rawDataFileWriter = new RawDataFileImpl();
 		((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
-		rawDataFileWriter.setName(Name);
 
-		logger.info("Loading raw data file: " + Name);
 
 		stepNumber++;
 		// Extracts the raw data description file from the zip project file
@@ -153,7 +145,11 @@ public class RawDataFileOpen extends DefaultHandler {
 		// <NAME>
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
 			try {
-				getTextOfElement();
+				// Adds the scan file and the name to the new raw data file
+				String name = getTextOfElement();
+				logger.info("Loading raw data file: " + name);
+				rawDataFileWriter.setName(name);
+
 				scansReaded = 0;
 			} catch (Exception ex) {
 				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
@@ -211,6 +207,10 @@ public class RawDataFileOpen extends DefaultHandler {
 				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
 			}
 		}
+	}
+
+	public String getRawDataName() {
+		return fileName;
 	}
 
 	/**
