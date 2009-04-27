@@ -202,12 +202,14 @@ public class ProjectOpeningTask implements Task {
 	 * Remove the raw data files and the peak lists of the current project
 	 */
 	public void removeCurrentProjectFiles() {
-		MZmineProject project = MZmineCore.getCurrentProject();		
-		for (RawDataFile file : project.getDataFiles()) {
-			project.removeFile(file);
-		}
+		MZmineProject project = MZmineCore.getCurrentProject();
+		
 		for (PeakList peakList : project.getPeakLists()) {
 			project.removePeakList(peakList);
+		}
+		
+		for (RawDataFile file : project.getDataFiles()) {
+			project.removeFile(file);
 		}
 	}
 
