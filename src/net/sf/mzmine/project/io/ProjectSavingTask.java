@@ -124,7 +124,7 @@ public class ProjectSavingTask implements Task {
 
 		try {
 
-			logger.info("Started saving project to " + saveFile);
+			logger.info("Saving project to " + saveFile);
 			status = TaskStatus.PROCESSING;
 
 			// Get project data
@@ -192,6 +192,7 @@ public class ProjectSavingTask implements Task {
 
 		FileInputStream fileStream = new FileInputStream(tempConfigFile);
 		(new SaveFileUtils()).saveFile(fileStream, zipStream, 0, SaveFileUtilsMode.CLOSE_IN);
+
 		tempConfigFile.delete();
 	}
 
