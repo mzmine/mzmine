@@ -42,6 +42,11 @@ Desktop
 
 ***** Raw data import *****
 
+Parameters
+* Bug: raw data importer parameter class has to properly implement
+  StorableParameterSet - currently, the fileNames parameter is not saved
+
+
 RAW file import using Thermo XCalibur DLL
 * Raw file import is using too much memory. Memory is released when task is 
   finished, but importing one file may consume >500MB RAM during the process.
