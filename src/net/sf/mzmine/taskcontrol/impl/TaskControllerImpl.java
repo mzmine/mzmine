@@ -47,6 +47,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	private TaskQueue taskQueue;
 	private TaskProgressWindow taskWindow;
 
+	/**
+	 * This vector contains references to all running threads of NORMAL
+	 * priority. Maximum number of concurrent threads is specified in the
+	 * preferences dialog.
+	 */
 	private Vector<WorkerThread> runningThreads;
 
 	/**
@@ -67,7 +72,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 		// Create the task progress window and add it to desktop
 		taskWindow = new TaskProgressWindow();
 		MZmineCore.getDesktop().addInternalFrame(taskWindow);
-		
+
 		// Initially, hide the task progress window
 		taskWindow.setVisible(false);
 
@@ -156,7 +161,7 @@ public class TaskControllerImpl implements TaskController, Runnable {
 			} else {
 				maxRunningThreads = preferences.getManualNumberOfThreads();
 			}
-			
+
 			// Check all tasks in the queue
 			for (WrappedTask task : queueSnapshot) {
 
@@ -170,7 +175,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
 				if ((task.getPriority() == TaskPriority.HIGH)
 						|| (runningThreads.size() < maxRunningThreads)) {
 					WorkerThread newThread = new WorkerThread(task);
-					runningThreads.add(newThread);
+
+					if (task.getPriority() == TaskPriority.NORMAL) {
+						runningThreads.add(newThread);
+					}
+
 					newThread.start();
 				}
 			}
