@@ -49,7 +49,7 @@ public class ProjectOpeningTask implements Task {
 	private ZipFile zipFile;
 	private String fileName;
 	private int currentStage;
-	
+
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
 		try {
@@ -64,7 +64,7 @@ public class ProjectOpeningTask implements Task {
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
-	public String getTaskDescription() {		
+	public String getTaskDescription() {
 		return "Opening project " + fileName;
 	}
 
@@ -110,6 +110,11 @@ public class ProjectOpeningTask implements Task {
 	public void run() {
 
 		try {
+			if (!openFile.getName().matches(".*.mzmine")) {
+				status = TaskStatus.ERROR;
+				errorMessage = "The name of this project file is not correct. Its extension should be .mzmine";
+				return;
+			}
 
 			logger.info("Started opening project " + openFile);
 			status = TaskStatus.PROCESSING;
@@ -120,7 +125,9 @@ public class ProjectOpeningTask implements Task {
 
 			// Read the project ZIP file
 			for (int i = 0; i < this.zipFile.size(); i++) {
-				
+				if (status == TaskStatus.CANCELED) {
+					return;
+				}
 				ZipEntry entry = zipStream.getNextEntry();
 				fileName = entry.getName();
 
@@ -167,7 +174,7 @@ public class ProjectOpeningTask implements Task {
 			logger.info("Finished opening project " + openFile);
 			status = TaskStatus.FINISHED;
 
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			status = TaskStatus.ERROR;
 			errorMessage = "Failed opening project: " + ExceptionUtils.exceptionToString(e);
 		}
@@ -197,17 +204,16 @@ public class ProjectOpeningTask implements Task {
 		tempConfigFile.delete();
 	}
 
-	
 	/**
 	 * Remove the raw data files and the peak lists of the current project
 	 */
 	public void removeCurrentProjectFiles() {
 		MZmineProject project = MZmineCore.getCurrentProject();
-		
+
 		for (PeakList peakList : project.getPeakLists()) {
 			project.removePeakList(peakList);
 		}
-		
+
 		for (RawDataFile file : project.getDataFiles()) {
 			project.removeFile(file);
 		}

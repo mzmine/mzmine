@@ -24,6 +24,11 @@ import java.io.OutputStream;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
@@ -32,6 +37,8 @@ import org.dom4j.DocumentFactory;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 public class RawDataFileSave {
 
@@ -54,7 +61,7 @@ public class RawDataFileSave {
 	 * @param rawDataSavedName name of the raw data inside the zip file
 	 * @throws java.io.IOException
 	 */
-	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) throws IOException {
+	public void writeRawDataFiles(RawDataFile rawDataFile, String rawDataSavedName) throws Exception {
 		// step 1 - save scan file
 		logger.info("Saving scan file of: " + rawDataFile.getName());
 
@@ -62,44 +69,61 @@ public class RawDataFileSave {
 		FileInputStream fileStream = new FileInputStream(((RawDataFileImpl) rawDataFile).getScanDataFileasFile());
 		saveFileUtils = new SaveFileUtils();
 		saveFileUtils.saveFile(fileStream, zipOutputStream, ((RawDataFileImpl) rawDataFile).getScanDataFileasFile().length(), SaveFileUtilsMode.CLOSE_IN);
-		Document document = saveRawDataInformation(rawDataFile);
+
 
 		// step 2 - save raw data description
 		logger.info("Saving raw data description of: " + rawDataFile.getName());
 
 		zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".xml"));
 		OutputStream finalStream = zipOutputStream;
-		OutputFormat format = OutputFormat.createPrettyPrint();
-		XMLWriter writer = new XMLWriter(finalStream, format);
-		writer.write(document);
 
+		StreamResult streamResult = new StreamResult(finalStream);
+		SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
 
+		TransformerHandler hd = tf.newTransformerHandler();
+		Transformer serializer = hd.getTransformer();
+
+		serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
+
+		hd.setResult(streamResult);
+		hd.startDocument();
+		saveRawDataInformation(rawDataFile, hd);
+		hd.endDocument();
 	}
 
 	/**
 	 * Function which creates an XML file with the descripcion of the raw data
-	 * @param rawDataFile raw data file
-	 * @return XML document
-	 * @throws java.io.IOException
+	 * @param rawDataFile
+	 * @param hd
+	 * @throws java.lang.Exception
 	 */
-	public Document saveRawDataInformation(RawDataFile rawDataFile) throws IOException {
+	public void saveRawDataInformation(RawDataFile rawDataFile, TransformerHandler hd) throws Exception {
+		AttributesImpl atts = new AttributesImpl();
 		numOfScans = rawDataFile.getNumOfScans();
 
-		Document document = DocumentFactory.getInstance().createDocument();
-		Element saveRoot = document.addElement(RawDataElementName.RAWDATA.getElementName());
+		hd.startElement("", "", RawDataElementName.RAWDATA.getElementName(), atts);
+		atts.clear();
 
 		// <NAME>
-		XMLUtils.fillXMLValues(saveRoot, RawDataElementName.NAME.getElementName(), null, null, rawDataFile.getName());
+		hd.startElement("", "", RawDataElementName.NAME.getElementName(), atts);
+		hd.characters(rawDataFile.getName().toCharArray(), 0, rawDataFile.getName().length());
+		hd.endElement("", "", RawDataElementName.NAME.getElementName());
 
 		// <QUANTITY>
-		XMLUtils.fillXMLValues(saveRoot, RawDataElementName.QUANTITY_SCAN.getElementName(), null, null, String.valueOf(numOfScans));
+		hd.startElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName(), atts);
+		hd.characters(String.valueOf(numOfScans).toCharArray(), 0, String.valueOf(numOfScans).length());
+		hd.endElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName());
 
+		// <SCAN>
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
-			Element newElement = XMLUtils.fillXMLValues(saveRoot, RawDataElementName.SCAN.getElementName(), null, null, null);
+			hd.startElement("", "", RawDataElementName.SCAN.getElementName(), atts);
 			Scan scan = rawDataFile.getScan(scanNumber);
-			fillScanElement(scan, newElement);
+			fillScanElement(scan, hd);
+			hd.endElement("", "", RawDataElementName.SCAN.getElementName());
 		}
-		return document;
+
+		hd.endElement("", "", RawDataElementName.RAWDATA.getElementName());
+
 	}
 
 	/**
@@ -107,31 +131,66 @@ public class RawDataFileSave {
 	 * @param scan 
 	 * @param element 
 	 */
-	private void fillScanElement(Scan scan, Element element) {
+	private void fillScanElement(Scan scan, TransformerHandler hd) throws SAXException {
+		// <SCAN_ID>
+		AttributesImpl atts = new AttributesImpl();
+		hd.startElement("", "", RawDataElementName.SCAN_ID.getElementName(), atts);
+		hd.characters(String.valueOf(scan.getScanNumber()).toCharArray(), 0, String.valueOf(scan.getScanNumber()).length());
+		hd.endElement("", "", RawDataElementName.SCAN_ID.getElementName());
 
-		XMLUtils.fillXMLValues(element, RawDataElementName.SCAN_ID.getElementName(), null, null, String.valueOf(scan.getScanNumber()));
-		XMLUtils.fillXMLValues(element, RawDataElementName.MS_LEVEL.getElementName(), null, null, String.valueOf(scan.getMSLevel()));
+		// <MS_LEVEL>
+		hd.startElement("", "", RawDataElementName.MS_LEVEL.getElementName(), atts);
+		hd.characters(String.valueOf(scan.getMSLevel()).toCharArray(), 0, String.valueOf(scan.getMSLevel()).length());
+		hd.endElement("", "", RawDataElementName.MS_LEVEL.getElementName());
 
+		// <PARENT_SCAN>
 		if (scan.getParentScanNumber() > 0) {
-			XMLUtils.fillXMLValues(element, RawDataElementName.PARENT_SCAN.getElementName(), null, null, String.valueOf(scan.getParentScanNumber()));
+			hd.startElement("", "", RawDataElementName.PARENT_SCAN.getElementName(), atts);
+			hd.characters(String.valueOf(scan.getParentScanNumber()).toCharArray(), 0, String.valueOf(scan.getParentScanNumber()).length());
+			hd.endElement("", "", RawDataElementName.PARENT_SCAN.getElementName());
 		}
+
 
 		if (scan.getMSLevel() >= 2) {
-			XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_MZ.getElementName(), null, null, String.valueOf(scan.getPrecursorMZ()));
-		
-			XMLUtils.fillXMLValues(element, RawDataElementName.PRECURSOR_CHARGE.getElementName(), null, null, String.valueOf(scan.getPrecursorCharge()));
-		}
-		
-		XMLUtils.fillXMLValues(element, RawDataElementName.RETENTION_TIME.getElementName(), null, null, String.valueOf(scan.getRetentionTime()));
-		XMLUtils.fillXMLValues(element, RawDataElementName.CENTROIDED.getElementName(), null, null, String.valueOf(scan.isCentroided()));
-		XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), null, null, String.valueOf((scan.getNumberOfDataPoints())));
+			// <PRECURSOR_MZ>
+			hd.startElement("", "", RawDataElementName.PRECURSOR_MZ.getElementName(), atts);
+			hd.characters(String.valueOf(scan.getPrecursorMZ()).toCharArray(), 0, String.valueOf(scan.getPrecursorMZ()).length());
+			hd.endElement("", "", RawDataElementName.PRECURSOR_MZ.getElementName());
 
+			// <PRECURSOR_CHARGE>
+			hd.startElement("", "", RawDataElementName.PRECURSOR_CHARGE.getElementName(), atts);
+			hd.characters(String.valueOf(scan.getPrecursorCharge()).toCharArray(), 0, String.valueOf(scan.getPrecursorCharge()).length());
+			hd.endElement("", "", RawDataElementName.PRECURSOR_CHARGE.getElementName());
+		}
+
+		// <RETENTION_TIME>
+		hd.startElement("", "", RawDataElementName.RETENTION_TIME.getElementName(), atts);
+		hd.characters(String.valueOf(scan.getRetentionTime()).toCharArray(), 0, String.valueOf(scan.getRetentionTime()).length());
+		hd.endElement("", "", RawDataElementName.RETENTION_TIME.getElementName());
+
+		// <CENTROIDED>
+		hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(), atts);
+		hd.characters(String.valueOf(scan.isCentroided()).toCharArray(), 0, String.valueOf(scan.isCentroided()).length());
+		hd.endElement("", "", RawDataElementName.CENTROIDED.getElementName());
+
+		// <QUANTITY_DATAPOINTS>
+		hd.startElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), atts);
+		hd.characters(String.valueOf((scan.getNumberOfDataPoints())).toCharArray(), 0, String.valueOf((scan.getNumberOfDataPoints())).length());
+		hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
+
+		// <FRAGMENT_SCAN>
 		if (scan.getFragmentScanNumbers() != null) {
 			int[] fragmentScans = scan.getFragmentScanNumbers();
-			Element newElement = XMLUtils.fillXMLValues(element, RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), RawDataElementName.QUANTITY.getElementName(), String.valueOf(fragmentScans.length), null);
+			atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(), "CDATA", String.valueOf(fragmentScans.length));
+			hd.startElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(), atts);
+			atts.clear();
 			for (int i : fragmentScans) {
-				XMLUtils.fillXMLValues(newElement, RawDataElementName.FRAGMENT_SCAN.getElementName(), null, null, String.valueOf(i));
+				hd.startElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName(), atts);
+				hd.characters( String.valueOf(i).toCharArray(), 0,  String.valueOf(i).length());
+				hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN.getElementName());
 			}
+			hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
+
 		}
 	}
 

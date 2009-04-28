@@ -206,7 +206,7 @@ public class ProjectSavingTask implements Task {
 			rawDataName = rawDataFile.getName();
 			try {
 				rawDataFileSave.writeRawDataFiles(rawDataFile, "Raw data file #" + cont++ + " " + rawDataName);
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error saving raw data file: " + rawDataName);
 				Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
 			}
