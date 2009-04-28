@@ -124,6 +124,9 @@ Custom database search
  one of the names is selected and the peak list is sorted. This selected identification 
  doesn't change its position in the list when it is sorted.
 
+PubChem search
+* We should remove the SOAP code and use a simple web interface, which is much easier
+* When user puts Charge=0 in the setup dialog, neutral mass is not calculated correctly 
 
 ***** Data analysis *****
 
