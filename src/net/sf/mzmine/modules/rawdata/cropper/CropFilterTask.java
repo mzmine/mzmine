@@ -132,11 +132,12 @@ class CropFilterTask implements Task {
                 // Is this scan within the RT range?
                 if (rtRange.contains(oldScan.getRetentionTime())) {
 
+                    
                     // Check if whole m/z range is within cropping region or
                     // scan is a fragmentation scan. In such case we copy the
                     // scan unmodified.
                     if ((oldScan.getMSLevel() > 1)
-                            || (oldScan.getMZRange().containsRange(mzRange))) {
+                            || (mzRange.containsRange(oldScan.getMZRange()))) {
                         rawDataFileWriter.addScan(oldScan);
                         filteredScans++;
                         continue;
