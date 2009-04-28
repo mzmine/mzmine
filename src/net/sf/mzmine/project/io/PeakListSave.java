@@ -30,8 +30,16 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
@@ -42,11 +50,8 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
-import org.dom4j.Document;
-import org.dom4j.DocumentFactory;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 public class PeakListSave {
 
@@ -54,7 +59,6 @@ public class PeakListSave {
 	public static DateFormat dateFormat = new SimpleDateFormat(
 			"yyyy/MM/dd HH:mm:ss");
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
-	private Document document;
 	private int numberOfRows;
 	private double progress;
 	private ZipOutputStream zipOutputStream;
@@ -71,18 +75,33 @@ public class PeakListSave {
 	 * @param peakListSavedName name of the peak list
 	 * @throws java.io.IOException
 	 */
-	public void savePeakList(PeakList peakList, String peakListSavedName) throws IOException {
+	public void savePeakList(PeakList peakList, String peakListSavedName) throws IOException, TransformerConfigurationException, SAXException {
 		logger.info("Saving peak list: " + peakList.getName());
 
 		progress = 0.0;
 		numberOfRows = peakList.getNumberOfRows();
 
-		Element newElement;
-		document = DocumentFactory.getInstance().createDocument();
-		Element saveRoot = document.addElement(PeakListElementName.PEAKLIST.getElementName());
+		zipOutputStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
+		OutputStream finalStream = zipOutputStream;
+		StreamResult streamResult = new StreamResult(finalStream);
+		SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+		
+		TransformerHandler hd = tf.newTransformerHandler();
+		Transformer serializer = hd.getTransformer();
+
+		serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
+		
+		hd.setResult(streamResult);
+		hd.startDocument();
+		AttributesImpl atts = new AttributesImpl();
+
+		hd.startElement("", "", PeakListElementName.PEAKLIST.getElementName(), atts);
+		atts.clear();
 
 		// <NAME>
-		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.NAME.getElementName(), null, null, peakList.getName());
+		hd.startElement("", "", PeakListElementName.NAME.getElementName(), atts);
+		hd.characters(peakList.getName().toCharArray(), 0, peakList.getName().length());
+		hd.endElement("", "", PeakListElementName.NAME.getElementName());
 
 		// <PEAKLIST_DATE>
 		String dateText = "";
@@ -92,56 +111,115 @@ public class PeakListSave {
 			Date date = new Date();
 			dateText = dateFormat.format(date);
 		}
-		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PEAKLIST_DATE.getElementName(), null, null, dateText);
-
+		hd.startElement("", "", PeakListElementName.PEAKLIST_DATE.getElementName(), atts);
+		hd.characters(dateText.toCharArray(), 0, dateText.length());
+		hd.endElement("", "", PeakListElementName.PEAKLIST_DATE.getElementName());
 
 		// <QUANTITY>
-		XMLUtils.fillXMLValues(saveRoot, PeakListElementName.QUANTITY.getElementName(), null, null, String.valueOf(numberOfRows));
+		hd.startElement("", "", PeakListElementName.QUANTITY.getElementName(), atts);
+		hd.characters(String.valueOf(numberOfRows).toCharArray(), 0, String.valueOf(numberOfRows).length());
+		hd.endElement("", "", PeakListElementName.QUANTITY.getElementName());
 
-
-		// <PROCESS>
+		// <PROCESS> 
 		PeakListAppliedMethod[] processes = peakList.getAppliedMethods();
-		for (PeakListAppliedMethod proc : processes) {			
-			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.PROCESS.getElementName(), "description", proc.getDescription(), null);
-			((SimpleParameterSet)proc.getParameterSet()).exportValuesToXML(newElement);
+		for (PeakListAppliedMethod proc : processes) {
+			atts.clear();
+			atts.addAttribute("", "", "description", "CDATA", proc.getDescription());
+			hd.startElement("", "", PeakListElementName.PROCESS.getElementName(), atts);			
+			this.fillProcessParameters((SimpleParameterSet)proc.getParameterSet(), hd);
+			hd.endElement("", "", PeakListElementName.PROCESS.getElementName());
 		}
-	
+		atts.clear();
+
 		// <RAWFILE>
 		RawDataFile[] dataFiles = peakList.getRawDataFiles();
 
 		for (int i = 1; i <= dataFiles.length; i++) {
 			int ID = 0;
 			RawDataFile[] files = MZmineCore.getCurrentProject().getDataFiles();
-			for(int e = 0; e < files.length; e++){
-				if(files[e].equals(dataFiles[i-1])){
+			for (int e = 0; e < files.length; e++) {
+				if (files[e].equals(dataFiles[i - 1])) {
 					ID = e;
 					break;
 				}
 			}
-			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.RAWFILE.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(ID), null);
+			atts.clear();
+			atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA", String.valueOf(ID));
+			hd.startElement("", "", PeakListElementName.RAWFILE.getElementName(), atts);
 			try {
-				fillRawDataFileElement(dataFiles[i - 1], newElement);
+				fillRawDataFileElement(dataFiles[i - 1], hd);
 			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error. No raw data exists for the peak list: " + peakList.getName());
 				return;
 			}
 			dataFilesIDMap.put(dataFiles[i - 1], ID);
+			hd.endElement("", "", PeakListElementName.RAWFILE.getElementName());
 		}
 
-		// <ROW>		
+
+		// <ROW>
 		PeakListRow row;
 		for (int i = 0; i < numberOfRows; i++) {
+			atts.clear();
 			row = peakList.getRow(i);
-			newElement = XMLUtils.fillXMLValues(saveRoot, PeakListElementName.ROW.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(row.getID()), null);
-			fillRowElement(row, newElement);
+			atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA", String.valueOf(row.getID()));
+			hd.startElement("", "", PeakListElementName.ROW.getElementName(), atts);
+			fillRowElement(row, hd);
+			hd.endElement("", "", PeakListElementName.ROW.getElementName());
 			progress = (double) i / numberOfRows;
 		}
 
-		zipOutputStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
-		OutputStream finalStream = zipOutputStream;
-		OutputFormat format = OutputFormat.createPrettyPrint();
-		XMLWriter writer = new XMLWriter(finalStream, format);
-		writer.write(document);
+
+		hd.endElement("", "", PeakListElementName.PEAKLIST.getElementName());
+
+		hd.endDocument();
+	}
+
+	/**
+	 * Add the process parameters into the XML document
+	 * @param parameterSet
+	 * @param hd
+	 * @throws org.xml.sax.SAXException
+	 */
+	private void fillProcessParameters(SimpleParameterSet parameterSet, TransformerHandler hd) throws SAXException {
+		AttributesImpl atts = new AttributesImpl();
+
+		for (Parameter p :  parameterSet.getParameters()) {
+			atts.clear();
+			atts.addAttribute("", "", "name", "CDATA", p.getName());
+			atts.addAttribute("", "", "type", "CDATA", p.getType().toString());
+
+			hd.startElement("", "", PeakListElementName.PARAMETER.getElementName(), atts);
+
+			if ((p.getType() == ParameterType.MULTIPLE_SELECTION) || (p.getType() == ParameterType.ORDERED_LIST)) {
+				Object[] values = p.getPossibleValues();
+				if (values != null) {
+					String valueAsString = "";
+					for (int i = 0; i < values.length; i++) {
+						if (i == values.length - 1) {
+							valueAsString += String.valueOf(values[i]);
+						} else {
+							valueAsString += String.valueOf(values[i]) + ",";
+						}
+					}
+					hd.characters(valueAsString.toCharArray(), 0, valueAsString.length());
+				}
+			} else {
+				Object value = parameterSet.getParameterValue(p);
+				if (value != null) {
+					String valueAsString;
+					if (value instanceof Range) {
+						Range rangeValue = (Range) value;
+						valueAsString = String.valueOf(rangeValue.getMin()) + "-" + String.valueOf(rangeValue.getMax());
+					} else {
+						valueAsString = value.toString();
+					}
+					hd.characters(valueAsString.toCharArray(), 0, valueAsString.length());
+				}
+			}
+			hd.endElement("", "", PeakListElementName.PARAMETER.getElementName());
+		}
+
 	}
 
 	/**
@@ -149,27 +227,39 @@ public class PeakListSave {
 	 * @param row
 	 * @param element
 	 */
-	private void fillRowElement(PeakListRow row, Element element) {
-		Element newElement;
+	private void fillRowElement(PeakListRow row, TransformerHandler hd) throws SAXException {
 
 		// <PEAK_IDENTITY>
 		PeakIdentity preferredIdentity = row.getPreferredPeakIdentity();
 		PeakIdentity[] identities = row.getPeakIdentities();
+		AttributesImpl atts = new AttributesImpl();
 
 		for (int i = 0; i < identities.length; i++) {
-			newElement = XMLUtils.fillXMLValues(element, PeakListElementName.PEAK_IDENTITY.getElementName(), PeakListElementName.ID.getElementName(), String.valueOf(i), null);
-			newElement.addAttribute(PeakListElementName.PREFERRED.getElementName(), String.valueOf(identities[i] == preferredIdentity));
-			fillIdentityElement(identities[i], newElement);
+			atts.addAttribute("", "", PeakListElementName.ID.getElementName(), "CDATA", String.valueOf(i));
+			atts.addAttribute("", "", PeakListElementName.PREFERRED.getElementName(), "CDATA", String.valueOf(identities[i] == preferredIdentity));
+			hd.startElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName(), atts);
+			fillIdentityElement(identities[i], hd);
+			hd.endElement("", "", PeakListElementName.PEAK_IDENTITY.getElementName());
 		}
 
 		// <PEAK>
 		int dataFileID = 0;
 		ChromatographicPeak[] peaks = row.getPeaks();
 		for (ChromatographicPeak p : peaks) {
-			newElement = XMLUtils.fillXMLValues(element, PeakListElementName.PEAK.getElementName(), null, null, null);
-
+			atts.clear();
 			dataFileID = dataFilesIDMap.get(p.getDataFile());
-			fillPeakElement(p, newElement, dataFileID);
+			atts.addAttribute("", "", PeakListElementName.COLUMN.getElementName(), "CDATA", String.valueOf(dataFileID));
+			atts.addAttribute("", "", PeakListElementName.MASS.getElementName(), "CDATA", String.valueOf(p.getMZ()));
+			atts.addAttribute("", "", PeakListElementName.RT.getElementName(), "CDATA", String.valueOf(p.getRT()));
+			atts.addAttribute("", "", PeakListElementName.HEIGHT.getElementName(), "CDATA", String.valueOf(p.getHeight()));
+			atts.addAttribute("", "", PeakListElementName.AREA.getElementName(), "CDATA", String.valueOf(p.getArea()));
+			atts.addAttribute("", "", PeakListElementName.STATUS.getElementName(), "CDATA", p.getPeakStatus().toString());
+
+
+			hd.startElement("", "", PeakListElementName.PEAK.getElementName(), atts);
+
+			fillPeakElement(p, hd);
+			hd.endElement("", "", PeakListElementName.PEAK.getElementName());
 		}
 
 	}
@@ -179,19 +269,29 @@ public class PeakListSave {
 	 * @param file
 	 * @param element
 	 */
-	private void fillRawDataFileElement(RawDataFile file, Element element) throws Exception {
+	private void fillRawDataFileElement(RawDataFile file, TransformerHandler hd) throws Exception {
+		AttributesImpl atts = new AttributesImpl();
 		// <NAME>
-		XMLUtils.fillXMLValues(element, PeakListElementName.RAWDATA_NAME.getElementName(), null, null, file.getName());
-
+		hd.startElement("", "", PeakListElementName.RAWDATA_NAME.getElementName(), atts);
+		hd.characters(file.getName().toCharArray(), 0, file.getName().length());
+		hd.endElement("", "", PeakListElementName.RAWDATA_NAME.getElementName());
 
 		// <RTRANGE>
 		Range RTRange = file.getDataRTRange(1);
-		XMLUtils.fillXMLValues(element, PeakListElementName.RTRANGE.getElementName(), null, null, String.valueOf(RTRange.getMin() + "-" + RTRange.getMax()));
+		atts.clear();
+		hd.startElement("", "", PeakListElementName.RTRANGE.getElementName(), atts);
+		String range = String.valueOf(RTRange.getMin() + "-" + RTRange.getMax());
+		hd.characters(range.toCharArray(), 0, range.length());
+		hd.endElement("", "", PeakListElementName.RTRANGE.getElementName());
+
 
 		// <MZRANGE>
 		Range MZRange = file.getDataMZRange(1);
-		XMLUtils.fillXMLValues(element, PeakListElementName.MZRANGE.getElementName(), null, null, String.valueOf(MZRange.getMin() + "-" + MZRange.getMax()));
-
+		atts.clear();
+		hd.startElement("", "", PeakListElementName.MZRANGE.getElementName(), atts);
+		range = String.valueOf(MZRange.getMin() + "-" + MZRange.getMax());
+		hd.characters(range.toCharArray(), 0, range.length());
+		hd.endElement("", "", PeakListElementName.MZRANGE.getElementName());
 	}
 
 	/**
@@ -199,12 +299,14 @@ public class PeakListSave {
 	 * @param identity
 	 * @param element
 	 */
-	private void fillIdentityElement(PeakIdentity identity, Element element) {
+	private void fillIdentityElement(PeakIdentity identity, TransformerHandler hd) throws SAXException {
 
-
+		AttributesImpl atts = new AttributesImpl();
 		// <NAME>
-		XMLUtils.fillXMLValues(element, PeakListElementName.NAME.getElementName(), null, null, identity.getName() != null ? identity.getName() : " ");
-
+		String name = identity.getName() != null ? identity.getName() : " ";
+		hd.startElement("", "", PeakListElementName.NAME.getElementName(), atts);
+		hd.characters(name.toCharArray(), 0, name.length());
+		hd.endElement("", "", PeakListElementName.NAME.getElementName());
 
 		// <FORMULA>
 		String formula = "";
@@ -212,10 +314,17 @@ public class PeakListSave {
 			SimplePeakIdentity id = (SimplePeakIdentity) identity;
 			formula = id.getCompoundFormula();
 		}
-		XMLUtils.fillXMLValues(element, PeakListElementName.FORMULA.getElementName(), null, null, formula);
+		atts.clear();
+		hd.startElement("", "", PeakListElementName.FORMULA.getElementName(), atts);
+		hd.characters(formula.toCharArray(), 0, formula.length());
+		hd.endElement("", "", PeakListElementName.FORMULA.getElementName());
 
 		// <IDENTIFICATION>
-		XMLUtils.fillXMLValues(element, PeakListElementName.IDENTIFICATION.getElementName(), null, null, identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ");
+		atts.clear();
+		hd.startElement("", "", PeakListElementName.IDENTIFICATION.getElementName(), atts);
+		name = identity.getIdentificationMethod() != null ? identity.getIdentificationMethod() : " ";
+		hd.characters(name.toCharArray(), 0, name.length());
+		hd.endElement("", "", PeakListElementName.IDENTIFICATION.getElementName());
 	}
 
 	/**
@@ -224,21 +333,14 @@ public class PeakListSave {
 	 * @param element
 	 * @param dataFileID
 	 */
-	private void fillPeakElement(ChromatographicPeak peak, Element element,
-			int dataFileID) {
-
-		element.addAttribute(PeakListElementName.COLUMN.getElementName(),
-				String.valueOf(dataFileID));
-		element.addAttribute(PeakListElementName.MASS.getElementName(), String.valueOf(peak.getMZ()));
-		element.addAttribute(PeakListElementName.RT.getElementName(), String.valueOf(peak.getRT()));
-		element.addAttribute(PeakListElementName.HEIGHT.getElementName(),
-				String.valueOf(peak.getHeight()));
-		element.addAttribute(PeakListElementName.AREA.getElementName(), String.valueOf(peak.getArea()));
-		element.addAttribute(PeakListElementName.STATUS.getElementName(), peak.getPeakStatus().toString());
+	private void fillPeakElement(ChromatographicPeak peak, TransformerHandler hd) throws SAXException {
+		AttributesImpl atts = new AttributesImpl();
 
 		// <MZPEAK>
 		int scanNumbers[] = peak.getScanNumbers();
-		Element newElement = XMLUtils.fillXMLValues(element, PeakListElementName.MZPEAK.getElementName(), PeakListElementName.QUANTITY.getElementName(), String.valueOf(scanNumbers.length), null);
+		atts.addAttribute("", "", PeakListElementName.QUANTITY.getElementName(), "CDATA", String.valueOf(scanNumbers.length));
+		hd.startElement("", "", PeakListElementName.MZPEAK.getElementName(), atts);
+		atts.clear();
 
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
@@ -274,16 +376,24 @@ public class PeakListSave {
 		}
 
 		byte[] bytes = Base64.encode(byteScanStream.toByteArray());
-		XMLUtils.fillXMLValues(newElement, PeakListElementName.SCAN_ID.getElementName(), null, null, new String(bytes));
-
+		hd.startElement("", "", PeakListElementName.SCAN_ID.getElementName(), atts);
+		String sbytes = new String(bytes);
+		hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+		hd.endElement("", "", PeakListElementName.SCAN_ID.getElementName());
 
 		bytes = Base64.encode(byteMassStream.toByteArray());
-		XMLUtils.fillXMLValues(newElement, PeakListElementName.MASS.getElementName(), null, null, new String(bytes));
-
+		hd.startElement("", "", PeakListElementName.MASS.getElementName(), atts);
+		sbytes = new String(bytes);
+		hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+		hd.endElement("", "", PeakListElementName.MASS.getElementName());
 
 		bytes = Base64.encode(byteHeightStream.toByteArray());
-		XMLUtils.fillXMLValues(newElement, PeakListElementName.HEIGHT.getElementName(), null, null, new String(bytes));
+		hd.startElement("", "", PeakListElementName.HEIGHT.getElementName(), atts);
+		sbytes = new String(bytes);
+		hd.characters(sbytes.toCharArray(), 0, sbytes.length());
+		hd.endElement("", "", PeakListElementName.HEIGHT.getElementName());
 
+		hd.endElement("", "", PeakListElementName.MZPEAK.getElementName());
 	}
 
 	/**

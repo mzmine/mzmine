@@ -223,7 +223,7 @@ public class ProjectSavingTask implements Task {
 			peakListName = peakList.getName();
 			try {
 				peakListSave.savePeakList(peakList, "Peak list #" + cont++ + " " + peakListName);
-			} catch (IOException ex) {
+			} catch (Exception ex) {
 				MZmineCore.getDesktop().displayErrorMessage("Error saving peakList file: " + peakList.getName());
 				Logger.getLogger(ProjectSavingTask.class.getName()).log(Level.SEVERE, null, ex);
 			}
