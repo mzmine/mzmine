@@ -62,7 +62,7 @@ public class PeakListOpen extends DefaultHandler {
 	private double mass,  rt,  height,  area;
 	private int[] scanNumbers;
 	private double[] retentionTimes,  masses,  intensities;
-	private String peakStatus,  peakListName,  name,  formula,  identificationMethod,  identityID,  rawDataName;
+	private String peakStatus,  peakListName,  name,  formula,  identificationMethod,  identityID;
 	private boolean preferred;
 	private String dateCreated;
 	private Range rtRange,  mzRange;
@@ -355,15 +355,16 @@ public class PeakListOpen extends DefaultHandler {
 			DataPoint[] mzPeaks = new DataPoint[quantity];
 			Range peakRTRange = null, peakMZRange = null, peakIntensityRange = null;
 			for (int i = 0; i < quantity; i++) {
-				double rt = buildingArrayRawDataFiles.get(peakColumnID).getScan(scanNumbers[i]).getRetentionTime();
+				double retentionTime = buildingArrayRawDataFiles.get(peakColumnID).getScan(scanNumbers[i]).getRetentionTime();
 				double mz = masses[i];
 				double intensity = intensities[i];
+
 				if (i == 0) {
-					peakRTRange = new Range(rt);
+					peakRTRange = new Range(retentionTime);
 					peakMZRange = new Range(mz);
 					peakIntensityRange = new Range(intensity);
 				} else {
-					peakRTRange.extendRange(rt);
+					peakRTRange.extendRange(retentionTime);
 					peakMZRange.extendRange(mz);
 					peakIntensityRange.extendRange(intensity);
 				}
@@ -375,8 +376,9 @@ public class PeakListOpen extends DefaultHandler {
 			SimpleChromatographicPeak peak = new SimpleChromatographicPeak(
 					buildingArrayRawDataFiles.get(peakColumnID), mass, rt,
 					height, area, scanNumbers, mzPeaks, PeakStatus.valueOf(
-					PeakStatus.class, peakStatus), -1, -1, peakRTRange,
+					PeakStatus.class, peakStatus), scanNumbers[0], -1, peakRTRange,
 					peakMZRange, peakIntensityRange);
+
 
 			buildingRow.addPeak(buildingArrayRawDataFiles.get(peakColumnID),
 					peak);
@@ -405,7 +407,7 @@ public class PeakListOpen extends DefaultHandler {
 
 		// <RAWFILE>
 		if (qName.equals(PeakListElementName.RAWDATA_NAME.getElementName())) {
-			rawDataName = getTextOfElement();
+			getTextOfElement();
 		}
 
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
@@ -413,7 +415,7 @@ public class PeakListOpen extends DefaultHandler {
 			buildingRawDataFile = (RawDataFileImpl) rawDataFile;
 			buildingRawDataFile.setRTRange(1, rtRange);
 			buildingRawDataFile.setMZRange(1, mzRange);
-			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);			
+			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
 			buildingRawDataFile = null;
 		}
 

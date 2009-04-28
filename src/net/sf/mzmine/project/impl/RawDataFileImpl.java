@@ -441,8 +441,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		int scanNumber = newScan.getScanNumber();
 
 		// Store the scan data
-		if(newScan.getClass().equals(CachedStorableScan.class)){
-			((StorableScan)newScan).findMZRange();
+		if(newScan instanceof CachedStorableScan){			
 			scans.put(scanNumber, newScan);
 		}else{
 			CachedStorableScan storedScan = new CachedStorableScan(newScan, this);

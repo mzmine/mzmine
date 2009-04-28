@@ -200,6 +200,7 @@ public class RawDataFileOpen extends DefaultHandler {
 						parentScan, precursorMZ, precursorCharge, fragmentScan,
 						null, centroided, rawDataFileWriter);
 				scan.setParameters(storageFileOffset, storageArrayByteLength, dataPointsNumber);
+				scan.findMZRange();
 				rawDataFileWriter.addScan(scan);
 				storageFileOffset += storageArrayByteLength;
 
