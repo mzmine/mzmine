@@ -58,7 +58,7 @@ public class PeakListOpen extends DefaultHandler {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFileImpl buildingRawDataFile;
 	private SimplePeakListRow buildingRow;
-	private int peakColumnID,  rawDataFileID,  quantity;
+	private int peakColumnID,  rawDataFileID,  quantity,  representativeScan,  fragmentScan;
 	private double mass,  rt,  height,  area;
 	private int[] scanNumbers;
 	private double[] retentionTimes,  masses,  intensities;
@@ -277,6 +277,17 @@ public class PeakListOpen extends DefaultHandler {
 			}
 		}
 
+		// <REPRESENTATIVE_SCAN>
+		if (qName.equals(PeakListElementName.REPRESENTATIVE_SCAN.getElementName())) {
+			representativeScan = Integer.valueOf(getTextOfElement());
+		}
+
+		// <FRAGMENT_SCAN>
+
+		if (qName.equals(PeakListElementName.FRAGMENT_SCAN.getElementName())) {
+			fragmentScan = Integer.valueOf(getTextOfElement());
+		}
+
 		// <MASS>
 		if (qName.equals(PeakListElementName.MASS.getElementName())) {
 
@@ -376,12 +387,14 @@ public class PeakListOpen extends DefaultHandler {
 			SimpleChromatographicPeak peak = new SimpleChromatographicPeak(
 					buildingArrayRawDataFiles.get(peakColumnID), mass, rt,
 					height, area, scanNumbers, mzPeaks, PeakStatus.valueOf(
-					PeakStatus.class, peakStatus), scanNumbers[0], -1, peakRTRange,
+					PeakStatus.class, peakStatus), representativeScan, fragmentScan, peakRTRange,
 					peakMZRange, peakIntensityRange);
 
 
 			buildingRow.addPeak(buildingArrayRawDataFiles.get(peakColumnID),
 					peak);
+
+
 		}
 
 		// <PEAK_IDENTITY>

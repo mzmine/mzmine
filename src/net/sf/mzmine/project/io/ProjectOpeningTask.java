@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+import javax.swing.JInternalFrame;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -209,6 +210,9 @@ public class ProjectOpeningTask implements Task {
 	 */
 	public void removeCurrentProjectFiles() {
 		MZmineProject project = MZmineCore.getCurrentProject();
+		for(JInternalFrame frame:MZmineCore.getDesktop().getInternalFrames()){
+			frame.doDefaultCloseAction();
+		}
 
 		for (PeakList peakList : project.getPeakLists()) {
 			project.removePeakList(peakList);

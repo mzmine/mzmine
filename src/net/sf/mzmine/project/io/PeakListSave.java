@@ -342,6 +342,17 @@ public class PeakListSave {
 		hd.startElement("", "", PeakListElementName.MZPEAK.getElementName(), atts);
 		atts.clear();
 
+		// <REPRESENTATIVE_SCAN>
+		hd.startElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName(), atts);
+		hd.characters(String.valueOf(peak.getRepresentativeScanNumber()).toCharArray(), 0, String.valueOf(peak.getRepresentativeScanNumber()).length());
+		hd.endElement("", "", PeakListElementName.REPRESENTATIVE_SCAN.getElementName());
+
+		// <FRAGMENT_SCAN>
+		hd.startElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName(), atts);
+		hd.characters(String.valueOf(peak.getMostIntenseFragmentScanNumber()).toCharArray(), 0, String.valueOf(peak.getMostIntenseFragmentScanNumber()).length());
+		hd.endElement("", "", PeakListElementName.FRAGMENT_SCAN.getElementName());
+
+		// <SCAN_ID> <MASS> <HEIGHT>
 		ByteArrayOutputStream byteScanStream = new ByteArrayOutputStream();
 		DataOutputStream dataScanStream = new DataOutputStream(byteScanStream);
 

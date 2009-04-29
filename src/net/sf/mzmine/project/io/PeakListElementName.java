@@ -53,7 +53,10 @@ public enum PeakListElementName {
 	PROCESS ("applied_method"),
 	ITEM ("item"),
 	PARAMETER ("parameter"),
-	RAWDATA_NAME("rawdata_name");
+	RAWDATA_NAME("rawdata_name"),
+	REPRESENTATIVE_SCAN("intense_scan"),
+	FRAGMENT_SCAN("fragment_scan");
+
 	
 	private String elementName;
 	
