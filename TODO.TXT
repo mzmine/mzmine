@@ -126,7 +126,8 @@ Custom database search
 
 PubChem search
 * We should remove the SOAP code and use a simple web interface, which is much easier
-* When user puts Charge=0 in the setup dialog, neutral mass is not calculated correctly 
+* When user puts Charge=0 in the setup dialog, neutral mass is not calculated correctly
+* Search on the whole peaklist doesn't work, only on individual peaks 
 
 ***** Data analysis *****
 
