@@ -19,8 +19,9 @@ TMP_FILE_DIRECTORY=/tmp
 
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
-# path to the java command of that JVM.
-JAVA_COMMAND=java
+# path to the java command of that JVM. By default, we use Mac OS X 
+# specific path to enforce using Java 6 VM
+JAVA_COMMAND=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java
 
 # It is not necessary to modify the following section
 LOGGING_CONFIG_FILE=conf/logging.properties
