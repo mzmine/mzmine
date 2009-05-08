@@ -137,10 +137,15 @@ public class MZmineProjectImpl implements MZmineProject {
     }
 
     public void setProjectFile(File file) {
-        this.projectFile = file;
+        projectFile = file;
         ProjectManagerImpl.getInstance().fireProjectListeners(
                 ProjectEvent.PROJECT_NAME_CHANGED);
     }
+
+	public void removeProjectFile(){
+		projectFile.delete();
+		projectFile = null;
+	}
 
     public String toString() {
         if (projectFile == null)

@@ -120,7 +120,7 @@ public class ProjectOpeningTask implements Task {
 			zipStream = new ZipInputStream(fileStream);
 
 			// Read the project ZIP file
-			for (int i = 0; i < this.zipFile.size(); i++) {
+			for (int i = 0; i < zipFile.size(); i++) {
 				if (status == TaskStatus.CANCELED) {
 					return;
 				}
@@ -228,6 +228,8 @@ public class ProjectOpeningTask implements Task {
 	 * Add the project extension to the file
 	 */
 	public void renameOpenFile() {
+		MZmineCore.getDesktop().displayMessage("This project file doesn't have a correct project extension and will be renamed.");
+
 
 		int dotPos = openFile.getPath().lastIndexOf(".");
 		String strFileName = openFile.getPath();

@@ -32,11 +32,6 @@ import javax.xml.transform.stream.StreamResult;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
-import org.dom4j.Document;
-import org.dom4j.DocumentFactory;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 

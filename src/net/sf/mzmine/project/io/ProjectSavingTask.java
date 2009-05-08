@@ -167,8 +167,12 @@ public class ProjectSavingTask implements Task {
 			}
 
 			// Move the temporary ZIP file to the final location
-			tempFile.renameTo(saveFile);
-			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(saveFile);
+			System.gc();
+			String fileName = saveFile.getPath();
+			if (saveFile.exists()) {
+				((MZmineProjectImpl) MZmineCore.getCurrentProject()).removeProjectFile();
+			}
+			tempFile.renameTo(new File(fileName));
 			logger.info("Finished saving the project to " + saveFile);
 			status = TaskStatus.FINISHED;
 
