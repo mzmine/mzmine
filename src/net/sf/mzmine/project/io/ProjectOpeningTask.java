@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -36,7 +37,6 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.ExceptionUtils;
 
 public class ProjectOpeningTask implements Task {
 
@@ -111,11 +111,6 @@ public class ProjectOpeningTask implements Task {
 	public void run() {
 
 		try {
-			if (!openFile.getName().matches(".*.mzmine")) {
-				status = TaskStatus.ERROR;
-				errorMessage = "The name of this project file is not correct. Its extension should be .mzmine";
-				return;
-			}
 
 			logger.info("Started opening project " + openFile);
 			status = TaskStatus.PROCESSING;
@@ -173,11 +168,17 @@ public class ProjectOpeningTask implements Task {
 			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(openFile);
 
 			logger.info("Finished opening project " + openFile);
+
+			// Add file extension ".mzmine" if the file doesn't have it.
+			if (!openFile.getName().matches(".*.mzmine")) {
+				zipFile.close();
+				renameOpenFile();
+			}
 			status = TaskStatus.FINISHED;
 
 		} catch (Exception e) {
 			status = TaskStatus.ERROR;
-			errorMessage = "Failed opening project: " + ExceptionUtils.exceptionToString(e);
+			errorMessage = "Failed opening project: trying to open a not correct MZmine project file";
 		}
 	}
 
@@ -210,7 +211,7 @@ public class ProjectOpeningTask implements Task {
 	 */
 	public void removeCurrentProjectFiles() {
 		MZmineProject project = MZmineCore.getCurrentProject();
-		for(JInternalFrame frame:MZmineCore.getDesktop().getInternalFrames()){
+		for (JInternalFrame frame : MZmineCore.getDesktop().getInternalFrames()) {
 			frame.doDefaultCloseAction();
 		}
 
@@ -221,6 +222,20 @@ public class ProjectOpeningTask implements Task {
 		for (RawDataFile file : project.getDataFiles()) {
 			project.removeFile(file);
 		}
+	}
+
+	/**
+	 * Add the project extension to the file
+	 */
+	public void renameOpenFile() {
+
+		int dotPos = openFile.getPath().lastIndexOf(".");
+		String strFileName = openFile.getPath();
+		if (dotPos != -1) {
+			strFileName = openFile.getPath().substring(0, dotPos);
+		}
+		File newFile = new File(strFileName + ".mzmine");
+		openFile.renameTo(newFile);
 	}
 
 	public Object[] getCreatedObjects() {
