@@ -143,8 +143,7 @@ public class MZmineProjectImpl implements MZmineProject {
     }
 
 	public void removeProjectFile(){
-		projectFile.delete();
-		projectFile = null;
+		projectFile.delete();		
 	}
 
     public String toString() {
