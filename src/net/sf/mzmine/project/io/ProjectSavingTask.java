@@ -131,9 +131,15 @@ public class ProjectSavingTask implements Task {
 			project = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 
 			// Prepare a temporary ZIP file
-			tempFile = File.createTempFile("mzmineproject", ".tmp");
-			FileOutputStream tempStream = new FileOutputStream(tempFile);
-			zipStream = new ZipOutputStream(tempStream);
+			if (saveFile.exists()) {
+				FileOutputStream tempStream = new FileOutputStream(saveFile);
+				zipStream = new ZipOutputStream(tempStream);
+			} else {
+				tempFile = File.createTempFile("mzmineproject", ".tmp");
+				FileOutputStream tempStream = new FileOutputStream(tempFile);
+				zipStream = new ZipOutputStream(tempStream);
+			}
+
 
 			// Stage 1 - save configuration
 			currentStage++;
@@ -167,12 +173,11 @@ public class ProjectSavingTask implements Task {
 			}
 
 			// Move the temporary ZIP file to the final location
-			System.gc();
-			String fileName = saveFile.getPath();
-			if (saveFile.exists()) {
-				((MZmineProjectImpl) MZmineCore.getCurrentProject()).removeProjectFile();
+			if (!saveFile.exists()) {
+				String fileName = saveFile.getPath();
+				tempFile.renameTo(new File(fileName));
 			}
-			tempFile.renameTo(new File(fileName));
+			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(saveFile);
 			logger.info("Finished saving the project to " + saveFile);
 			status = TaskStatus.FINISHED;
 
