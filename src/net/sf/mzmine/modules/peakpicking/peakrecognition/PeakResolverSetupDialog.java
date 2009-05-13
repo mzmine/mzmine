@@ -125,7 +125,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
             for (PeakListRow peak : peaks)
                 comboPeak.addItem(peak);
             comboPeak.addActionListener(this);
-            comboPeak.setSelectedIndex(0);
+			if(comboPeak.getSelectedIndex() != -1){
+				comboPeak.setSelectedIndex(0);
+			}
             return;
         }
 

@@ -44,6 +44,8 @@ public class PeakPreviewComboRenderer extends JPanel implements
             int index, boolean isSelected, boolean cellHasFocus) {
 
         PeakListRow row = (PeakListRow) value;
+		if(row == null)
+			return new JPanel();
         ChromatographicPeak peak = row.getPeaks()[0];
 
         String labelText = "#" + row.getID() + " "
