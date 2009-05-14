@@ -107,6 +107,11 @@ Spectrum visualizer
 Peak list row summary visualizer
 * After changing the peak using manual picker, the row summary is not updated
 
+***** Alignment *****
+Join Alignment
+Bug: When there is an error during the process, the frames for the messages apears empty. To reproduce it: try doing the alignment 
+whit two peak list with more than one sample each list, and the option "compare isotope pattern" activated.
+
 
 ***** Normalization *****
 
