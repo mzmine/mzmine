@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.impl;
+package net.sf.mzmine.desktop.impl.projecttree;
 
 import java.awt.Color;
 import java.awt.Component;

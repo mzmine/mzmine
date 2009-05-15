@@ -32,6 +32,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.border.EtchedBorder;
 
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
+
 /**
  * This class is the main window of application
  * 
