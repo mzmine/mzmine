@@ -32,14 +32,13 @@ import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-
-import com.sun.java.ExampleFileFilter;
 
 /**
  * This class imports project parameters and their values from a CSV file to the
@@ -79,8 +78,7 @@ public class ProjectParametersImporter {
 	private ProjectParametersSetupDialog mainDialog;
 	private Desktop desktop;
 
-	public ProjectParametersImporter(
-			ProjectParametersSetupDialog mainDialog) {
+	public ProjectParametersImporter(ProjectParametersSetupDialog mainDialog) {
 		this.mainDialog = mainDialog;
 
 		desktop = MZmineCore.getDesktop();
@@ -115,10 +113,8 @@ public class ProjectParametersImporter {
 	private File chooseFile() {
 		JFileChooser chooser = new JFileChooser();
 
-		ExampleFileFilter filter = new ExampleFileFilter();
-		filter.addExtension("txt");
-		filter.addExtension("csv");
-		filter.setDescription("TXT & CSV files");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"TXT & CSV files", "txt", "csv");
 		chooser
 				.setDialogTitle("Please select a file containing project parameter values for files.");
 		chooser.setFileFilter(filter);
@@ -265,18 +261,20 @@ public class ProjectParametersImporter {
 	private boolean processParameterValues(File parameterFile,
 			Parameter[] parameters) {
 
-		// Warn user if main dialog already contains a parameter with same name 
+		// Warn user if main dialog already contains a parameter with same name
 		for (Parameter parameter : parameters) {
 			Parameter p = mainDialog.getParameter(parameter.getName());
 			if (p != null) {
-				int res = JOptionPane.showConfirmDialog(mainDialog, 
-						"Overwrite previous parameter(s) with same name?", "Overwrite?", JOptionPane.OK_CANCEL_OPTION);
+				int res = JOptionPane.showConfirmDialog(mainDialog,
+						"Overwrite previous parameter(s) with same name?",
+						"Overwrite?", JOptionPane.OK_CANCEL_OPTION);
 				if (res == JOptionPane.CANCEL_OPTION)
 					return false;
-				else break;
+				else
+					break;
 			}
 		}
-		
+
 		// Remove parameters with same name
 		for (Parameter parameter : parameters) {
 			Parameter p = mainDialog.getParameter(parameter.getName());

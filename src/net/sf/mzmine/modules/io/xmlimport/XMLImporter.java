@@ -25,6 +25,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
@@ -39,106 +40,105 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-import com.sun.java.ExampleFileFilter;
-
 public class XMLImporter implements MZmineModule, ActionListener {
 
-    private XMLImporterParameters parameters;
-    private Desktop desktop;
-    public static XMLImporter myInstance;
+	private XMLImporterParameters parameters;
+	private Desktop desktop;
+	public static XMLImporter myInstance;
 
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    public void initModule() {
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new XMLImporterParameters();
+		parameters = new XMLImporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Import from XML file",
-                "Load a peak list from a XML file", KeyEvent.VK_I, true, this, null);
+		desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Import from XML file",
+				"Load a peak list from a XML file", KeyEvent.VK_I, true, this,
+				null);
 
-        myInstance = this;
+		myInstance = this;
 
-    }
+	}
 
-    public void initLightModule() {
+	public void initLightModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new XMLImporterParameters();
+		parameters = new XMLImporterParameters();
 
-    }
+	}
 
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (XMLImporterParameters) parameters;
-    }
+	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (XMLImporterParameters) parameters;
+	}
 
-    public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) {
 
-        if (MZmineCore.isLightViewer()) {
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setMultiSelectionEnabled(true);
-            ExampleFileFilter filter = new ExampleFileFilter();
-            filter.addExtension("mpl");
-            filter.setDescription("MZmine peak list files");
-            fileChooser.addChoosableFileFilter(filter);
-            int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+		if (MZmineCore.isLightViewer()) {
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setMultiSelectionEnabled(true);
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(
+					"MZmine peak list files", "mpl");
+			fileChooser.addChoosableFileFilter(filter);
+			int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
+					.getMainFrame());
 
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File[] selectedFiles = fileChooser.getSelectedFiles();
-                String[] filenames = new String[selectedFiles.length];
-                for (int i = 0; i < filenames.length; i++) {
-                    filenames[i] = selectedFiles[i].getAbsolutePath();
-                }
-                this.loadPeakLists(filenames);
-            }
-        } else {
-            ExitCode setupExitCode = setupParameters(parameters);
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				File[] selectedFiles = fileChooser.getSelectedFiles();
+				String[] filenames = new String[selectedFiles.length];
+				for (int i = 0; i < filenames.length; i++) {
+					filenames[i] = selectedFiles[i].getAbsolutePath();
+				}
+				this.loadPeakLists(filenames);
+			}
+		} else {
+			ExitCode setupExitCode = setupParameters(parameters);
 
-            if (setupExitCode != ExitCode.OK) {
-                return;
-            }
+			if (setupExitCode != ExitCode.OK) {
+				return;
+			}
 
-            runModule(null, null, parameters);
-        }
-    }
+			runModule(null, null, parameters);
+		}
+	}
 
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        XMLImportTask task = new XMLImportTask(
-                (XMLImporterParameters) parameters);
+		XMLImportTask task = new XMLImportTask(
+				(XMLImporterParameters) parameters);
 
-        MZmineCore.getTaskController().addTask(task);
+		MZmineCore.getTaskController().addTask(task);
 
 		return new Task[] { task };
 
-    }
+	}
 
-    public ExitCode setupParameters(ParameterSet parameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (XMLImporterParameters) parameters);
+	public ExitCode setupParameters(ParameterSet parameters) {
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(XMLImporterParameters) parameters);
 
-        dialog.setVisible(true);
+		dialog.setVisible(true);
 
-        return dialog.getExitCode();
-    }
+		return dialog.getExitCode();
+	}
 
-    public void loadPeakLists(String[] peakListNames) {
+	public void loadPeakLists(String[] peakListNames) {
 
-        Parameter filename;
-        SimpleParameterSet parameterSet;
-        for (String name : peakListNames) {
-            parameterSet = new XMLImporterParameters();
-            filename = parameterSet.getParameter("Filename");
-            parameterSet.setParameterValue(filename, name);
-            runModule(null, null, parameterSet);
-        }
+		Parameter filename;
+		SimpleParameterSet parameterSet;
+		for (String name : peakListNames) {
+			parameterSet = new XMLImporterParameters();
+			filename = parameterSet.getParameter("Filename");
+			parameterSet.setParameterValue(filename, name);
+			runModule(null, null, parameterSet);
+		}
 
-    }
+	}
 
 }

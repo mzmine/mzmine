@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -49,8 +50,6 @@ import net.sf.mzmine.util.components.PeakSummaryComponent;
 import net.sf.mzmine.util.components.PopupListener;
 import net.sf.mzmine.util.dialogs.PeakIdentitySetupDialog;
 
-import com.sun.java.TableSorter;
-
 public class PeakListTable extends JTable implements ComponentToolTipProvider{
 
 	static final String EDIT_IDENTITY = "Edit";
@@ -59,10 +58,10 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 
 	private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
 
-	private TableSorter sorter;
 	private PeakListTableModel pkTableModel;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
+	private TableRowSorter<PeakListTableModel> sorter;
 	private PeakListTableColumnModel cm;
     private ComponentToolTipManager ttm;
 
@@ -76,7 +75,8 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 		this.setAutoCreateColumnsFromModel(false);
 
 		this.pkTableModel = new PeakListTableModel(peakList);
-
+		setModel(pkTableModel);
+		
 		GroupableTableHeader header = new GroupableTableHeader();
 		setTableHeader(header);
 
@@ -89,8 +89,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 		cm.createColumns();
 
 		// Initialize sorter
-		sorter = new TableSorter(pkTableModel, header);
-		setModel(sorter);
+		sorter = new TableRowSorter<PeakListTableModel>(pkTableModel);
+		setRowSorter(sorter);
+		
 		
 		if (!isLightViewer){
 			PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
@@ -153,8 +154,8 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 
 		CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
 		if (commonColumn == CommonColumnType.IDENTITY) {
-			int peakListRowIndex = sorter.modelIndex(row);
-			peakListRow = peakList.getRow(peakListRowIndex);
+
+			peakListRow = peakList.getRow(row);
 
 			PeakIdentity identities[] = peakListRow.getPeakIdentities();
 			PeakIdentity preferredIdentity = peakListRow

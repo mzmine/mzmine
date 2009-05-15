@@ -61,8 +61,6 @@ import net.sf.mzmine.util.components.DragOrderedJList;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
 import net.sf.mzmine.util.components.HelpButton;
 
-import com.sun.java.ExampleFileFilter;
-
 /**
  * This class represents the parameter setup dialog to set the values of
  * SimpleParameterSet. Each Parameter is represented by a component. The
@@ -358,11 +356,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
 			panelFilename.add(btnFileBrowser);
 			comp = panelFilename;
-			if (p.getDefaultValue() != null) {
-				ExampleFileFilter fileChooserFilter = new ExampleFileFilter(p
-						.getDefaultValue().toString());
-				fileChooserFilter.setDescription(p.getDescription());
-			}
 			break;
 
 		case ORDERED_LIST:

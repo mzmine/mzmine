@@ -56,8 +56,6 @@ import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 
-import com.sun.java.TableSorter;
-
 /**
  * 
  */
@@ -148,11 +146,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if ((clickedRow >= 0) && (clickedColumn >= 0)) {
 
-            TableSorter sorter = (TableSorter) table.getModel();
-            clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
+            int rowIndex = table.convertRowIndexToModel(clickedRow);
+            clickedPeakListRow = peakList.getRow(rowIndex);
             allClickedPeakListRows = new PeakListRow[selectedRows.length];
             for (int i = 0; i < selectedRows.length; i++) {
-                allClickedPeakListRows[i] = peakList.getRow(sorter.modelIndex(selectedRows[i]));
+                allClickedPeakListRows[i] = peakList.getRow(table.convertRowIndexToModel(selectedRows[i]));
             }
             showXICItem.setEnabled(selectedRows.length > 0);
             showPeakRowSummaryItem.setEnabled(selectedRows.length == 1);
@@ -168,7 +166,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                         / DataFileColumnType.values().length;
                 clickedDataFile = peakList.getRawDataFile(dataFileIndex);
 
-                PeakListRow clickedPeakListRow = peakList.getRow(sorter.modelIndex(clickedRow));
+                PeakListRow clickedPeakListRow = peakList.getRow(table.convertRowIndexToModel(clickedRow));
                 ChromatographicPeak clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
 
                 // If we have the peak, enable Show... items
@@ -201,12 +199,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             int rowsToDelete[] = table.getSelectedRows();
 
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
+            PeakListTableModel originalModel = (PeakListTableModel) table.getModel();
 
             int unsordedIndexes[] = new int[rowsToDelete.length];
             for (int i = rowsToDelete.length - 1; i >= 0; i--) {
-                unsordedIndexes[i] = sorterModel.modelIndex(rowsToDelete[i]);
+                unsordedIndexes[i] = table.convertRowIndexToModel(rowsToDelete[i]);
             }
 
             // sort row indexes and start removing from the last
@@ -228,10 +225,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         if (src == plotRowsItem) {
 
             int selectedTableRows[] = table.getSelectedRows();
-            TableSorter sorterModel = (TableSorter) table.getModel();
+
             PeakListRow selectedRows[] = new PeakListRow[selectedTableRows.length];
             for (int i = 0; i < selectedTableRows.length; i++) {
-                int unsortedIndex = sorterModel.modelIndex(selectedTableRows[i]);
+                int unsortedIndex = table.convertRowIndexToModel(selectedTableRows[i]);
                 selectedRows[i] = peakList.getRow(unsortedIndex);
             }
             IntensityPlot.showIntensityPlot(peakList, selectedRows);
@@ -390,9 +387,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             // create a new row
             SimplePeakListRow newRow = new SimplePeakListRow(newID);
             peakList.addRow(newRow);
-            TableSorter sorterModel = (TableSorter) table.getModel();
-            PeakListTableModel originalModel = (PeakListTableModel) sorterModel.getTableModel();
-            originalModel.fireTableDataChanged();
+            PeakListTableModel tableModel = (PeakListTableModel) table.getModel();
+            tableModel.fireTableDataChanged();
             ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
                     newRow);
             

@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -44,172 +45,156 @@ import net.sf.mzmine.modules.io.rawdataimport.fileformats.XcaliburRawFileReadTas
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-import com.sun.java.ExampleFileFilter;
-
 /**
  * Raw data import module
  */
-public class RawDataImporter implements MZmineModule, ActionListener,
-        BatchStep {
+public class RawDataImporter implements MZmineModule, ActionListener, BatchStep {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private RawDataImporterParameters parameters;
+	private RawDataImporterParameters parameters;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new RawDataImporterParameters();
+		parameters = new RawDataImporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATA, "Import raw data files",
-                "This module imports raw data files into the project",
-                KeyEvent.VK_I, true, this, null);
+		desktop.addMenuItem(MZmineMenu.RAWDATA, "Import raw data files",
+				"This module imports raw data files into the project",
+				KeyEvent.VK_I, true, this, null);
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (RawDataImporterParameters) parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (RawDataImporterParameters) parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Raw data import";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return "Raw data import";
+	}
 
-    public void actionPerformed(ActionEvent event) {
+	public void actionPerformed(ActionEvent event) {
 
-        ExitCode setupExitCode = setupParameters(parameters);
+		ExitCode setupExitCode = setupParameters(parameters);
 
-        if (setupExitCode != ExitCode.OK) {
-            return;
-        }
+		if (setupExitCode != ExitCode.OK) {
+			return;
+		}
 
-        runModule(null, null, parameters);
+		runModule(null, null, parameters);
 
-    }
+	}
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PROJECT;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PROJECT;
+	}
 
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
-        File file[] = rawDataImporterParameters.getFileNames();
-        Task openTasks[] = new Task[file.length];
+		RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
+		File file[] = rawDataImporterParameters.getFileNames();
+		Task openTasks[] = new Task[file.length];
 
-        for (int i = 0; i < file.length; i++) {
+		for (int i = 0; i < file.length; i++) {
 
-            String extension = file[i].getName().substring(
-                    file[i].getName().lastIndexOf(".") + 1).toLowerCase();
+			String extension = file[i].getName().substring(
+					file[i].getName().lastIndexOf(".") + 1).toLowerCase();
 
-            if (extension.endsWith("mzdata")) {
-                openTasks[i] = new MzDataReadTask(file[i]);
-            }
-            if (extension.endsWith("mzxml")) {
-                openTasks[i] = new MzXMLReadTask(file[i]);
-            }
-            if (extension.endsWith("mzml")) {
-                openTasks[i] = new MzMLReadTask(file[i]);
-            }
-            if (extension.endsWith("cdf")) {
-                openTasks[i] = new NetCDFReadTask(file[i]);
-            }
-            if (extension.endsWith("raw")) {
-                openTasks[i] = new XcaliburRawFileReadTask(file[i]);
-            }
-            if (openTasks[i] == null) {
-                desktop.displayErrorMessage("Cannot determine file type of file "
-                        + file[i]);
-                logger.finest("Cannot determine file type of file " + file[i]);
-                return null;
-            }
-        }
-        
-        MZmineCore.getTaskController().addTasks(openTasks);
+			if (extension.endsWith("mzdata")) {
+				openTasks[i] = new MzDataReadTask(file[i]);
+			}
+			if (extension.endsWith("mzxml")) {
+				openTasks[i] = new MzXMLReadTask(file[i]);
+			}
+			if (extension.endsWith("mzml")) {
+				openTasks[i] = new MzMLReadTask(file[i]);
+			}
+			if (extension.endsWith("cdf")) {
+				openTasks[i] = new NetCDFReadTask(file[i]);
+			}
+			if (extension.endsWith("raw")) {
+				openTasks[i] = new XcaliburRawFileReadTask(file[i]);
+			}
+			if (openTasks[i] == null) {
+				desktop
+						.displayErrorMessage("Cannot determine file type of file "
+								+ file[i]);
+				logger.finest("Cannot determine file type of file " + file[i]);
+				return null;
+			}
+		}
 
-        return openTasks;
-    }
+		MZmineCore.getTaskController().addTasks(openTasks);
 
-    public ExitCode setupParameters(ParameterSet parameterSet) {
+		return openTasks;
+	}
 
-        RawDataImporterParameters parameters = (RawDataImporterParameters) parameterSet;
+	public ExitCode setupParameters(ParameterSet parameterSet) {
 
-        JFileChooser fileChooser = new JFileChooser();
+		RawDataImporterParameters parameters = (RawDataImporterParameters) parameterSet;
 
-        String path = (String) parameters.getParameterValue(RawDataImporterParameters.importDirectory);
-        if (path != null)
-            fileChooser.setCurrentDirectory(new File(path));
-        fileChooser.setMultiSelectionEnabled(true);
+		JFileChooser fileChooser = new JFileChooser();
 
-        ExampleFileFilter filter = new ExampleFileFilter();
-        filter.addExtension("cdf");
-        filter.addExtension("nc");
-        filter.setDescription("NetCDF files");
-        fileChooser.addChoosableFileFilter(filter);
+		String path = (String) parameters
+				.getParameterValue(RawDataImporterParameters.importDirectory);
+		if (path != null)
+			fileChooser.setCurrentDirectory(new File(path));
+		fileChooser.setMultiSelectionEnabled(true);
 
-        filter = new ExampleFileFilter();
-        filter.addExtension("mzDATA");
-        filter.setDescription("mzDATA files");
-        fileChooser.addChoosableFileFilter(filter);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"NetCDF files", "cdf", "nc");
+		fileChooser.addChoosableFileFilter(filter);
 
-        filter = new ExampleFileFilter();
-        filter.addExtension("mzML");
-        filter.setDescription("mzML files");
-        fileChooser.addChoosableFileFilter(filter);
+		filter = new FileNameExtensionFilter("mzDATA files", "mzDATA");
+		fileChooser.addChoosableFileFilter(filter);
 
-        filter = new ExampleFileFilter();
-        filter.addExtension("RAW");
-        filter.setDescription("XCalibur RAW files");
-        fileChooser.addChoosableFileFilter(filter);
+		filter = new FileNameExtensionFilter("mzML files", "mzML");
+		fileChooser.addChoosableFileFilter(filter);
 
-        filter = new ExampleFileFilter();
-        filter.addExtension("mzxml");
-        filter.setDescription("MZXML files");
-        fileChooser.addChoosableFileFilter(filter);
+		filter = new FileNameExtensionFilter("XCalibur RAW files", "RAW");
+		fileChooser.addChoosableFileFilter(filter);
 
-        filter = new ExampleFileFilter();
-        filter.addExtension("cdf");
-        filter.addExtension("nc");
-        filter.addExtension("mzDATA");
-        filter.addExtension("mzML");
-        filter.addExtension("mzxml");
-        filter.addExtension("RAW");
-        filter.setDescription("All raw data files");
-        fileChooser.setFileFilter(filter);
+		filter = new FileNameExtensionFilter("MZXML files", "mzxml");
+		fileChooser.addChoosableFileFilter(filter);
 
-        int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop().getMainFrame());
+		filter = new FileNameExtensionFilter("All raw data files", "cdf", "nc",
+				"mzDATA", "mzML", "mzxml", "RAW");
+		fileChooser.setFileFilter(filter);
 
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File[] selectedFiles = fileChooser.getSelectedFiles();
-            parameters.setFileNames(selectedFiles);
-            parameters.setParameterValue(
-                    RawDataImporterParameters.importDirectory,
-                    fileChooser.getCurrentDirectory().toString());
+		int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
+				.getMainFrame());
 
-            return ExitCode.OK;
-        } else
-            return ExitCode.CANCEL;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File[] selectedFiles = fileChooser.getSelectedFiles();
+			parameters.setFileNames(selectedFiles);
+			parameters.setParameterValue(
+					RawDataImporterParameters.importDirectory, fileChooser
+							.getCurrentDirectory().toString());
 
-    }
+			return ExitCode.OK;
+		} else
+			return ExitCode.CANCEL;
+
+	}
 
 }

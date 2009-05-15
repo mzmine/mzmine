@@ -79,8 +79,8 @@ public class MolStructureViewer extends JInternalFrame implements
 	 */
 	public MolStructureViewer(PubChemCompound compound) {
 
-		super("Structure " + compound.getName() + " CID"
-				+ compound.getID(), true, true, true, true);
+		super("Structure " + compound.getName() + " CID" + compound.getID(),
+				true, true, true, true);
 
 		this.compound = compound;
 
@@ -237,25 +237,23 @@ public class MolStructureViewer extends JInternalFrame implements
 				// Request 3D structure
 				if (structure3D == null) {
 
-					final org.wonderly.swing.SwingWorker worker = new org.wonderly.swing.SwingWorker() {
-						@Override
-						public Object construct() {
+					Thread newThread = new Thread(new Runnable() {
+						public void run() {
 							try {
-								structure3D = get3DStructure(compound
-										.getID());
+								structure3D = get3DStructure(compound.getID());
+								setJmolViewerStructure(structure3D);
+								button3d.setText(pubchem);
 							} catch (Exception e) {
 								MZmineCore
 										.getDesktop()
 										.displayMessage(
 												"The Pub3D does not contain this structure.");
-								return e;
+								return;
 							}
-							setJmolViewerStructure(structure3D);
-							button3d.setText(pubchem);
-							return null;
 						}
-					};
-					worker.start();
+					});
+
+					newThread.start();
 
 				} else {
 

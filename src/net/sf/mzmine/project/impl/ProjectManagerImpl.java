@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZminePreferences;
@@ -34,8 +35,6 @@ import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.io.ProjectOpeningTask;
 import net.sf.mzmine.project.io.ProjectSavingTask;
-
-import com.sun.java.ExampleFileFilter;
 
 /**
  * project manager implementation Using reflection to support different
@@ -95,9 +94,8 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		if (lastPath != null)
 			chooser.setCurrentDirectory(new File(lastPath));
 
-		ExampleFileFilter filter = new ExampleFileFilter();
-		filter.addExtension("mzmine");
-		filter.setDescription("MZmine 2 projects");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"MZmine 2 projects", "mzmine");
 		chooser.setFileFilter(filter);
 		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
 				.getMainFrame());
@@ -125,19 +123,17 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		if (lastPath != null)
 			chooser.setCurrentDirectory(new File(lastPath));
 
-		ExampleFileFilter filter = new ExampleFileFilter();
-		filter.addExtension("mzmine");
-		filter.setDescription("MZmine 2 projects");
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"MZmine 2 projects", "mzmine");
 		chooser.setFileFilter(filter);
 		int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop()
 				.getMainFrame());
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = chooser.getSelectedFile();
-			parameters.setLastOpenProjectPath(selectedFile.getParent());
-			String extension = filter.getExtension(selectedFile);
-			if ((extension == null) || (!extension.equals("mzmine"))) {
+			if (! selectedFile.getName().endsWith(".mzmine")) {
 				selectedFile = new File(selectedFile.getPath() + ".mzmine");
 			}
+			parameters.setLastOpenProjectPath(selectedFile.getParent());
 			ProjectSavingTask task = new ProjectSavingTask(selectedFile);
 			MZmineCore.getTaskController().addTask(task);
 		}

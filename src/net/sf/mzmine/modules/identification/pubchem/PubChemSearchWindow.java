@@ -24,6 +24,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.URI;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
@@ -46,9 +47,6 @@ import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStruct
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import edu.stanford.ejalbert.BrowserLauncher;
-import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
-import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 
 public class PubChemSearchWindow extends JInternalFrame implements
 		ActionListener {
@@ -131,18 +129,18 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		if (command.equals("ADD")) {
 			int index = IDList.getSelectedRow();
-			
-			if (index < 0){
+
+			if (index < 0) {
 				MZmineCore
-				.getDesktop()
-				.displayMessage(
-						"Select one PubChem result candidate as compound identity");
+						.getDesktop()
+						.displayMessage(
+								"Select one PubChem result candidate as compound identity");
 				return;
-				
+
 			}
 
-			peakListRow.addPeakIdentity(listElementModel
-					.getElementAt(index), false);
+			peakListRow.addPeakIdentity(listElementModel.getElementAt(index),
+					false);
 			dispose();
 		}
 
@@ -150,13 +148,13 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 			int index = IDList.getSelectedRow();
 
-			if (index < 0){
+			if (index < 0) {
 				MZmineCore
-				.getDesktop()
-				.displayMessage(
-						"Select one PubChem result candidate to display molecule structure");
+						.getDesktop()
+						.displayMessage(
+								"Select one PubChem result candidate to display molecule structure");
 				return;
-				
+
 			}
 
 			MolStructureViewer viewer;
@@ -178,12 +176,12 @@ public class PubChemSearchWindow extends JInternalFrame implements
 			}
 
 			int index = IDList.getSelectedRow();
-			
-			if (index < 0){
+
+			if (index < 0) {
 				MZmineCore
-				.getDesktop()
-				.displayMessage(
-						"Select one PubChem result candidate to display the isotope pattern");
+						.getDesktop()
+						.displayMessage(
+								"Select one PubChem result candidate to display the isotope pattern");
 				return;
 			}
 
@@ -209,12 +207,12 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 			final SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(
 					peak.getDataFile(), null, SpectraVisualizerType.ISOTOPE);
-	        
+
 			MZmineCore.getDesktop().addInternalFrame(spectraWindow);
 
 			Runnable newThreadRunnable = new Runnable() {
 
-				public void run() {			
+				public void run() {
 					spectraWindow.loadRawData((IsotopePattern) peak);
 					spectraWindow.loadIsotopePattern((IsotopePattern) peak);
 					spectraWindow.loadIsotopePattern(isotopePattern);
@@ -229,36 +227,30 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 		if (command.equals("PUBCHEM_LINK")) {
 			int index = IDList.getSelectedRow();
-			
-			if (index < 0){
+
+			if (index < 0) {
 				MZmineCore
-				.getDesktop()
-				.displayMessage(
-						"Select one PubChem result candidate to display in the deafult web browser");
+						.getDesktop()
+						.displayMessage(
+								"Select one PubChem result candidate to display in the deafult web browser");
 				return;
-				
+
 			}
 
 			logger
 					.finest("Launching default browser to display PubChem compound");
+
+			java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+
+			String urlString = listElementModel.getElementAt(index)
+					.getDatabaseEntryURL();
+
 			try {
-				BrowserLauncher launcher = new BrowserLauncher();
-				launcher.setNewWindowPolicy(false);
-
-				String urlString = listElementModel.getElementAt(index)
-						.getDatabaseEntryURL();
-				launcher.openURLinBrowser("DEFAULT", urlString);
-
-			} catch (BrowserLaunchingInitializingException e1) {
-				e1.printStackTrace();
-				logger.severe(" Error trying to launch default browser "
-						+ e1.getMessage());
-			} catch (UnsupportedOperatingSystemException e1) {
-				e1.printStackTrace();
-				logger.severe(" Error trying to launch default browser "
-						+ e1.getMessage());
+				desktop.browse(new URI(urlString));
+			} catch (Exception ex) {
+				logger.severe("Error trying to launch default browser: "
+						+ ex.getMessage());
 			}
-
 		}
 
 	}
