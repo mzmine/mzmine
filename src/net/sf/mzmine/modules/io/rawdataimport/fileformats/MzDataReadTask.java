@@ -174,7 +174,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 		}
 
 		logger.info("Finished parsing " + originalFile + ", parsed "
-				+ parsedScans + " scans");
+				+ parsedScans + " of " + totalScans + " scans");
 		status = TaskStatus.FINISHED;
 
 	}

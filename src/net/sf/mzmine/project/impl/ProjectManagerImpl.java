@@ -33,6 +33,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.project.ProjectManager;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.project.io.ProjectOpeningTask;
 import net.sf.mzmine.project.io.ProjectSavingTask;
 
@@ -80,7 +81,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 
 	void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
-		fireProjectListeners(ProjectEvent.ALL_CHANGED);
+		fireProjectListeners(new ProjectEvent(ProjectEventType.ALL_CHANGED));
 	}
 
 	public static ProjectManagerImpl getInstance() {

@@ -19,6 +19,79 @@
 
 package net.sf.mzmine.project;
 
-public enum ProjectEvent {
-    DATAFILE_ADDED, DATAFILE_REMOVED, PEAKLIST_ADDED, PEAKLIST_REMOVED, PEAKLIST_CONTENTS_CHANGED, PROJECT_NAME_CHANGED, ALL_CHANGED
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+
+public class ProjectEvent {
+
+	public enum ProjectEventType {
+		DATAFILE_ADDED, 
+		DATAFILE_REMOVED, 
+		DATAFILES_REORDERED, 
+		PEAKLIST_ADDED, 
+		PEAKLIST_REMOVED, 
+		PEAKLISTS_REORDERED, 
+		PEAKLIST_CONTENTS_CHANGED, 
+		PROJECT_NAME_CHANGED, 
+		ALL_CHANGED
+	}
+
+	private ProjectEventType type;
+	private RawDataFile dataFile;
+	private PeakList peakList;
+	private int index;
+
+	/**
+	 * Constructor for ALL_CHANGED,PROJECT_NAME_CHANGED, DATAFILES_REORDERED,
+	 * PEAKLISTS_REORDERED type event
+	 */
+	public ProjectEvent(ProjectEventType type) {
+		this.type = type;
+	}
+
+	/**
+	 * Constructor for DATAFILE_ADDED, DATAFILE_REMOVED type event
+	 */
+	public ProjectEvent(ProjectEventType type, RawDataFile dataFile, int index) {
+		this.type = type;
+		this.dataFile = dataFile;
+		this.index = index;
+	}
+
+	/**
+	 * Constructor for PEAKLIST_ADDED, PEAKLIST_REMOVED type event
+	 */
+	public ProjectEvent(ProjectEventType type, PeakList peakList, int index) {
+		this.type = type;
+		this.peakList = peakList;
+		this.index = index;
+	}
+
+	/**
+	 * Constructor for PEAKLIST_CONTENTS_CHANGED type event
+	 */
+	public ProjectEvent(ProjectEventType type, PeakList peakList) {
+		this.type = type;
+		this.peakList = peakList;
+	}
+
+	public ProjectEventType getType() {
+		return type;
+	}
+
+	public RawDataFile getDataFile() {
+		return dataFile;
+	}
+
+	public PeakList getPeakList() {
+		return peakList;
+	}
+
+	public int getIndex() {
+		return index;
+	}
+
+	public String toString() {
+		return type + ": data file " + dataFile + ", peak list " + peakList + ", index " + index;
+	}
 }

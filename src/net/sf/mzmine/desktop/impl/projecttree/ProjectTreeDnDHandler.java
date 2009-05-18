@@ -29,6 +29,9 @@ import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.MZmineProject;
 
 /**
  * Drag and drop transfer handler for project JTree
@@ -93,12 +96,41 @@ class ProjectTreeDnDHandler extends TransferHandler {
 			return false;
 		}
 
+		Desktop desktop = MZmineCore.getDesktop();
+		MZmineProject project = MZmineCore.getCurrentProject();
+		
 		JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
 
-		System.out.println("drag&drop to " + dl.getPath() + " "
-				+ dl.getDropPoint() + " " + dl.getChildIndex());
+		Object droppedLocationObject = dl.getPath().getLastPathComponent();
+		int childIndex = dl.getChildIndex();
+		
+		// Check if the drop target is among the project data files
+		if (droppedLocationObject == ProjectTreeModel.dataFilesItem) {
+			RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
+			project.moveDataFiles(selectedFiles, childIndex);
+		}
 
-		return false;
+		// Check if the drop target is AFTER the data files (last position)
+		if ((droppedLocationObject == project) && (childIndex == 1)) {
+			int numOfFiles = project.getDataFiles().length;
+			RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
+			project.moveDataFiles(selectedFiles, numOfFiles);
+		}
+		
+		// Check if the drop target is among the project peak lists
+		if (droppedLocationObject == ProjectTreeModel.peakListsItem) {
+			PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
+			project.movePeakLists(selectedPeakLists, childIndex);
+		}
+
+		// Check if the drop target is AFTER the peak lists (last position)
+		if ((droppedLocationObject == project) && (childIndex == 2)) {
+			int numOfPeakLists = project.getPeakLists().length;
+			PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
+			project.movePeakLists(selectedPeakLists, numOfPeakLists);
+		}
+
+		return true;
 	}
 
 	public int getSourceActions(JComponent c) {

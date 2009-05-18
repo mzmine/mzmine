@@ -21,8 +21,6 @@ package net.sf.mzmine.desktop.impl.projecttree;
 
 import java.util.Vector;
 
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
@@ -37,17 +35,17 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 
-class ProjectTreeModel implements TreeModel, ProjectListener {
+public class ProjectTreeModel implements TreeModel, ProjectListener {
 
 	static final String dataFilesItem = "Raw data files",
 			peakListsItem = "Peak lists";
 
-	private JTree projectTree;
-	private Vector<TreeModelListener> listeners;
+	private Vector<TreeModelListener> listeners = new Vector<TreeModelListener>();
 
-	ProjectTreeModel(JTree projectTree) {
+	private ProjectTree projectTree;
+
+	ProjectTreeModel(ProjectTree projectTree) {
 		this.projectTree = projectTree;
-		listeners = new Vector<TreeModelListener>();
 		MZmineCore.getProjectManager().addProjectListener(this);
 	}
 
@@ -161,63 +159,122 @@ class ProjectTreeModel implements TreeModel, ProjectListener {
 	}
 
 	/**
-	 * ProjectListner implementation
+	 * ProjectListener implementation - we have to reflect the changes of the
+	 * project by updating the tree model
 	 */
-	public void projectModified(final ProjectEvent event) {
+	public void projectModified(final ProjectEvent projectEvent) {
 
-		// We have to notify listeners in the Swing event thread, to avoid
-		// thread conflicts when re-painting
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				if (event == ProjectEvent.ALL_CHANGED) {
-					for (TreeModelListener l : listeners) {
-						l.treeStructureChanged(new TreeModelEvent(this,
-								new Object[] { getRoot() }));
-					}
-					projectTree.expandPath(new TreePath(new Object[] {
-							getRoot(), ProjectTreeModel.dataFilesItem }));
-					projectTree.expandPath(new TreePath(new Object[] {
-							getRoot(), ProjectTreeModel.peakListsItem }));
-				}
+		// Make sure we hold the lock of the project, so it does not get
+		// updated by another thread during our model update
+		MZmineProject project = MZmineCore.getCurrentProject();
+		synchronized (project) {
 
-				if (event == ProjectEvent.PROJECT_NAME_CHANGED) {
-					for (TreeModelListener l : listeners) {
-						l.treeNodesChanged(new TreeModelEvent(this,
-								new Object[] { getRoot() }));
-					}
-				}
+			TreeModelEvent treeEvent;
+			TreePath modifiedPath;
 
-				if ((event == ProjectEvent.DATAFILE_ADDED)
-						|| (event == ProjectEvent.DATAFILE_REMOVED)) {
-					for (TreeModelListener l : listeners) {
-						l.treeStructureChanged(new TreeModelEvent(this,
-								new Object[] { getRoot(), dataFilesItem }));
-					}
-				}
+			// Create a new tree event depending on the type of project
+			// event
+			switch (projectEvent.getType()) {
 
-				if ((event == ProjectEvent.PEAKLIST_ADDED)
-						|| (event == ProjectEvent.PEAKLIST_REMOVED)) {
-					for (TreeModelListener l : listeners) {
-						l.treeStructureChanged(new TreeModelEvent(this,
-								new Object[] { getRoot(), peakListsItem }));
-					}
+			case ALL_CHANGED:
+				modifiedPath = new TreePath(getRoot());
+				treeEvent = new TreeModelEvent(this, modifiedPath);
+				for (TreeModelListener l : listeners) {
+					l.treeStructureChanged(treeEvent);
 				}
+				projectTree.expandPath(new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.dataFilesItem }));
+				projectTree.expandPath(new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.peakListsItem }));
 
-				if (event == ProjectEvent.PEAKLIST_CONTENTS_CHANGED) {
-					PeakList peakLists[] = MZmineCore.getCurrentProject()
-							.getPeakLists();
-					for (PeakList peakList : peakLists) {
-						for (TreeModelListener l : listeners) {
-							l.treeStructureChanged(new TreeModelEvent(this,
-									new Object[] { getRoot(), peakListsItem,
-											peakList }));
-						}
-					}
+				break;
+
+			case PROJECT_NAME_CHANGED:
+				modifiedPath = new TreePath(getRoot());
+				treeEvent = new TreeModelEvent(this, modifiedPath);
+				for (TreeModelListener l : listeners) {
+					l.treeNodesChanged(treeEvent);
 				}
+				break;
+
+			case DATAFILE_ADDED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.dataFilesItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath,
+						new int[] { projectEvent.getIndex() },
+						new Object[] { projectEvent.getDataFile() });
+				for (TreeModelListener l : listeners) {
+					l.treeNodesInserted(treeEvent);
+				}
+				break;
+
+			case DATAFILE_REMOVED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.dataFilesItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath,
+						new int[] { projectEvent.getIndex() },
+						new Object[] { projectEvent.getDataFile() });
+				for (TreeModelListener l : listeners) {
+					l.treeNodesRemoved(treeEvent);
+				}
+				break;
+
+			case DATAFILES_REORDERED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.dataFilesItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath);
+				for (TreeModelListener l : listeners) {
+					l.treeStructureChanged(treeEvent);
+				}
+				break;
+
+			case PEAKLIST_ADDED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.peakListsItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath,
+						new int[] { projectEvent.getIndex() },
+						new Object[] { projectEvent.getPeakList() });
+
+				System.out.println("treeevent " + treeEvent);
+
+				for (TreeModelListener l : listeners) {
+					l.treeNodesInserted(treeEvent);
+				}
+				break;
+
+			case PEAKLIST_REMOVED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.peakListsItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath,
+						new int[] { projectEvent.getIndex() },
+						new Object[] { projectEvent.getPeakList() });
+				for (TreeModelListener l : listeners) {
+					l.treeNodesRemoved(treeEvent);
+				}
+				break;
+
+			case PEAKLISTS_REORDERED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.peakListsItem });
+				treeEvent = new TreeModelEvent(this, modifiedPath);
+				for (TreeModelListener l : listeners) {
+					l.treeStructureChanged(treeEvent);
+				}
+				break;
+
+			case PEAKLIST_CONTENTS_CHANGED:
+				modifiedPath = new TreePath(new Object[] { getRoot(),
+						ProjectTreeModel.peakListsItem,
+						projectEvent.getPeakList() });
+				treeEvent = new TreeModelEvent(this, modifiedPath);
+				for (TreeModelListener l : listeners) {
+					l.treeStructureChanged(treeEvent);
+				}
+				break;
 
 			}
-		});
 
+		}
 	}
 
 }

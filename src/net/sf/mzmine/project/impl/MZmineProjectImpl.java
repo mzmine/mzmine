@@ -28,6 +28,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 /**
  * This class represents a MZmine project. That includes raw data files,
@@ -35,125 +36,175 @@ import net.sf.mzmine.project.ProjectEvent;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-    private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
+	private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
-    private Vector<RawDataFile> dataFiles;
-    private Vector<PeakList> peakLists;
+	private Vector<RawDataFile> dataFiles;
+	private Vector<PeakList> peakLists;
 
-    private File projectFile;
+	private File projectFile;
 
-    public MZmineProjectImpl() {
+	public MZmineProjectImpl() {
 
-        this.dataFiles = new Vector<RawDataFile>();
-        this.peakLists = new Vector<PeakList>();
-        projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
+		this.dataFiles = new Vector<RawDataFile>();
+		this.peakLists = new Vector<PeakList>();
+		projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
-    }
-
-    public void addParameter(Parameter parameter) {
-        if (projectParametersAndValues.containsKey(parameter))
-            return;
-
-        Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
-        projectParametersAndValues.put(parameter, parameterValues);
-
-    }
-
-    public void removeParameter(Parameter parameter) {
-        projectParametersAndValues.remove(parameter);
-    }
-
-    public boolean hasParameter(Parameter parameter) {
-        return projectParametersAndValues.containsKey(parameter);
-    }
-
-    public Parameter[] getParameters() {
-        return projectParametersAndValues.keySet().toArray(new Parameter[0]);
-    }
-
-    public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
-            Object value) {
-        if (!(hasParameter(parameter)))
-            addParameter(parameter);
-        Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
-				.get(parameter);
-		parameterValues.put(rawDataFile, value);
-    }
-
-    public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
-        if (!(hasParameter(parameter)))
-            return null;
-        Object value = projectParametersAndValues.get(parameter).get(
-                rawDataFile);
-        if (value == null)
-            return parameter.getDefaultValue();
-        return value;
-    }
-
-    public synchronized void addFile(RawDataFile newFile) {
-        dataFiles.add(newFile);
-        ProjectManagerImpl.getInstance().fireProjectListeners(
-                ProjectEvent.DATAFILE_ADDED);
-    }
-
-    public synchronized void removeFile(RawDataFile file) {
-        dataFiles.remove(file);
-        file.close();
-        ProjectManagerImpl.getInstance().fireProjectListeners(
-                ProjectEvent.DATAFILE_REMOVED);
-    }
-
-    public RawDataFile[] getDataFiles() {
-        return dataFiles.toArray(new RawDataFile[0]);
-    }
-
-    public synchronized void addPeakList(PeakList peakList) {
-        peakLists.add(peakList);
-        ProjectManagerImpl.getInstance().fireProjectListeners(
-                ProjectEvent.PEAKLIST_ADDED);
-    }
-
-    public synchronized void removePeakList(PeakList peakList) {
-        peakLists.remove(peakList);
-        ProjectManagerImpl.getInstance().fireProjectListeners(
-                ProjectEvent.PEAKLIST_REMOVED);
-    }
-
-    public PeakList[] getPeakLists() {
-        return peakLists.toArray(new PeakList[0]);
-    }
-
-    public PeakList[] getPeakLists(RawDataFile file) {
-        Vector<PeakList> result = new Vector<PeakList>();
-        for (PeakList peakList : peakLists) {
-            if (peakList.hasRawDataFile(file))
-                result.add(peakList);
-        }
-        return result.toArray(new PeakList[0]);
-    }
-
-    public File getProjectFile() {
-        return projectFile;
-    }
-
-    public void setProjectFile(File file) {
-        projectFile = file;
-        ProjectManagerImpl.getInstance().fireProjectListeners(
-                ProjectEvent.PROJECT_NAME_CHANGED);
-    }
-
-	public void removeProjectFile(){
-		projectFile.delete();		
 	}
 
-    public String toString() {
-        if (projectFile == null)
-            return "New project";
-        String projectName = projectFile.getName();
-        if (projectName.endsWith(".mzmine")) {
-            projectName = projectName.substring(0, projectName.length() - 7);
-        }
-        return projectName;
-    }
+	public void addParameter(Parameter parameter) {
+		if (projectParametersAndValues.containsKey(parameter))
+			return;
+
+		Hashtable<RawDataFile, Object> parameterValues = new Hashtable<RawDataFile, Object>();
+		projectParametersAndValues.put(parameter, parameterValues);
+
+	}
+
+	public void removeParameter(Parameter parameter) {
+		projectParametersAndValues.remove(parameter);
+	}
+
+	public boolean hasParameter(Parameter parameter) {
+		return projectParametersAndValues.containsKey(parameter);
+	}
+
+	public Parameter[] getParameters() {
+		return projectParametersAndValues.keySet().toArray(new Parameter[0]);
+	}
+
+	public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+			Object value) {
+		if (!(hasParameter(parameter)))
+			addParameter(parameter);
+		Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
+				.get(parameter);
+		parameterValues.put(rawDataFile, value);
+	}
+
+	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
+		if (!(hasParameter(parameter)))
+			return null;
+		Object value = projectParametersAndValues.get(parameter).get(
+				rawDataFile);
+		if (value == null)
+			return parameter.getDefaultValue();
+		return value;
+	}
+
+	public synchronized void addFile(RawDataFile newFile) {
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.DATAFILE_ADDED, newFile, dataFiles.size());
+		dataFiles.add(newFile);
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+	}
+
+	public synchronized void removeFile(RawDataFile file) {
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.DATAFILE_REMOVED, file, dataFiles
+						.indexOf(file));
+		dataFiles.remove(file);
+		file.close();
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+	}
+
+	public synchronized void moveDataFiles(RawDataFile[] movedFiles,
+			int movePosition) {
+
+		int currentPosition;
+
+		for (RawDataFile movedFile : movedFiles) {
+			currentPosition = dataFiles.indexOf(movedFile);
+			if (currentPosition < 0)
+				continue;
+			dataFiles.remove(currentPosition);
+			if (currentPosition < movePosition)
+				movePosition--;
+			dataFiles.add(movePosition, movedFile);
+			movePosition++;
+		}
+
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.DATAFILES_REORDERED);
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+
+	}
+
+	public synchronized RawDataFile[] getDataFiles() {
+		return dataFiles.toArray(new RawDataFile[0]);
+	}
+
+	public synchronized void addPeakList(PeakList peakList) {
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.PEAKLIST_ADDED, peakList, peakLists.size());
+		peakLists.add(peakList);
+
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+	}
+
+	public synchronized void removePeakList(PeakList peakList) {
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.PEAKLIST_REMOVED, peakList, peakLists
+						.indexOf(peakList));
+		peakLists.remove(peakList);
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+	}
+
+	public synchronized void movePeakLists(PeakList[] movedPeakLists,
+			int movePosition) {
+
+		int currentPosition;
+
+		for (PeakList movedPeakList : movedPeakLists) {
+			currentPosition = peakLists.indexOf(movedPeakList);
+			if (currentPosition < 0)
+				continue;
+			peakLists.remove(currentPosition);
+			if (currentPosition < movePosition)
+				movePosition--;
+			peakLists.add(movePosition, movedPeakList);
+			movePosition++;
+		}
+
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.PEAKLISTS_REORDERED);
+		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+	}
+
+	public synchronized PeakList[] getPeakLists() {
+		return peakLists.toArray(new PeakList[0]);
+	}
+
+	public synchronized PeakList[] getPeakLists(RawDataFile file) {
+		Vector<PeakList> result = new Vector<PeakList>();
+		for (PeakList peakList : peakLists) {
+			if (peakList.hasRawDataFile(file))
+				result.add(peakList);
+		}
+		return result.toArray(new PeakList[0]);
+	}
+
+	public File getProjectFile() {
+		return projectFile;
+	}
+
+	public void setProjectFile(File file) {
+		projectFile = file;
+		ProjectManagerImpl.getInstance().fireProjectListeners(
+				new ProjectEvent(ProjectEventType.PROJECT_NAME_CHANGED));
+	}
+
+	public void removeProjectFile() {
+		projectFile.delete();
+	}
+
+	public String toString() {
+		if (projectFile == null)
+			return "New project";
+		String projectName = projectFile.getName();
+		if (projectName.endsWith(".mzmine")) {
+			projectName = projectName.substring(0, projectName.length() - 7);
+		}
+		return projectName;
+	}
 
 }

@@ -31,6 +31,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -163,8 +164,9 @@ public class FragmentSearchTask implements Task {
 						"Identification of fragments", parameters));
 		
         // Notify the project manager that peaklist contents have changed
-		MZmineCore.getProjectManager().fireProjectListeners(
-				ProjectEvent.PEAKLIST_CONTENTS_CHANGED);
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
+		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
 		status = TaskStatus.FINISHED;
 

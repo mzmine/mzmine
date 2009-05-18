@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.DropMode;
@@ -49,203 +50,211 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class ProjectTree extends JTree implements MouseListener, ActionListener {
 
-    private ProjectTreeModel treeModel;
+	private ProjectTreeModel treeModel;
 
-    private JPopupMenu dataFilePopupMenu, peakListPopupMenu, scanPopupMenu,
-            peakListRowPopupMenu;
+	private JPopupMenu dataFilePopupMenu, peakListPopupMenu, scanPopupMenu,
+			peakListRowPopupMenu;
 
-    /**
-     * Constructor
-     */
-    public ProjectTree() {
+	/**
+	 * Constructor
+	 */
+	public ProjectTree() {
 
-        treeModel = new ProjectTreeModel(this);
-        setModel(treeModel);
+		treeModel = new ProjectTreeModel(this);
+		setModel(treeModel);
 
-        ProjectTreeRenderer renderer = new ProjectTreeRenderer();
-        setCellRenderer(renderer);
+		ProjectTreeRenderer renderer = new ProjectTreeRenderer();
+		setCellRenderer(renderer);
 
-        DefaultTreeCellEditor editor = new DefaultTreeCellEditor(this,
-                renderer, new ProjectTreeEditor(this));
-        setCellEditor(editor);
-        setEditable(true);
+		DefaultTreeCellEditor editor = new DefaultTreeCellEditor(this,
+				renderer, new ProjectTreeEditor(this));
+		setCellEditor(editor);
+		setEditable(true);
 
-        setRootVisible(true);
-        setShowsRootHandles(false);
-        
-        setToggleClickCount(-1);
+		setRootVisible(true);
+		setShowsRootHandles(false);
 
-        // Activate drag&drop
-        ProjectTreeDnDHandler dndHandler = new ProjectTreeDnDHandler(treeModel);
-        setTransferHandler(dndHandler);
-        setDropMode(DropMode.INSERT);
-        setDragEnabled(true);
+		setToggleClickCount(-1);
 
-        addMouseListener(this);
+		// Activate drag&drop
+		ProjectTreeDnDHandler dndHandler = new ProjectTreeDnDHandler(treeModel);
+		setTransferHandler(dndHandler);
+		setDropMode(DropMode.INSERT);
+		setDragEnabled(true);
 
-        expandPath(new TreePath(new Object[] { treeModel.getRoot(),
-                ProjectTreeModel.dataFilesItem }));
-        expandPath(new TreePath(new Object[] { treeModel.getRoot(),
-                ProjectTreeModel.peakListsItem }));
+		addMouseListener(this);
 
-        dataFilePopupMenu = new JPopupMenu();
-        GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
-        GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
+		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
+				ProjectTreeModel.dataFilesItem }));
+		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
+				ProjectTreeModel.peakListsItem }));
 
-        scanPopupMenu = new JPopupMenu();
-        GUIUtils.addMenuItem(scanPopupMenu, "Show spectrum", this,
-                "SHOW_SPECTRA");
+		dataFilePopupMenu = new JPopupMenu();
+		GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
+		GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
-        peakListPopupMenu = new JPopupMenu();
-        GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list table", this,
-                "SHOW_PEAKLIST_TABLES");
-        GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this,
-                "SHOW_PEAKLIST_INFO");
-        GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
-                "REMOVE_PEAKLIST");
+		scanPopupMenu = new JPopupMenu();
+		GUIUtils.addMenuItem(scanPopupMenu, "Show spectrum", this,
+				"SHOW_SPECTRA");
 
-        peakListRowPopupMenu = new JPopupMenu();
-        GUIUtils.addMenuItem(peakListRowPopupMenu, "Show peak summary", this,
-                "SHOW_PEAK_SUMMARY");
+		peakListPopupMenu = new JPopupMenu();
+		GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list table", this,
+				"SHOW_PEAKLIST_TABLES");
+		GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this,
+				"SHOW_PEAKLIST_INFO");
+		GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
+				"REMOVE_PEAKLIST");
 
-    }
+		peakListRowPopupMenu = new JPopupMenu();
+		GUIUtils.addMenuItem(peakListRowPopupMenu, "Show peak summary", this,
+				"SHOW_PEAK_SUMMARY");
 
-    public ProjectTreeModel getModel() {
-        return treeModel;
-    }
+	}
 
-    @SuppressWarnings("unchecked")
-    public <T> T[] getSelectedObjects(Class<T> objectClass) {
-        Vector<T> selectedObjects = new Vector<T>();
-        TreePath selectedItems[] = getSelectionPaths();
-        if (selectedItems != null) {
-            for (TreePath path : selectedItems) {
-                Object selectedObject = path.getLastPathComponent();
-                if (objectClass.isInstance(selectedObject))
-                    selectedObjects.add((T) selectedObject);
-            }
-        }
-        return (T[]) selectedObjects.toArray((Object[]) Array.newInstance(
-                objectClass, 0));
-    }
+	public ProjectTreeModel getModel() {
+		return treeModel;
+	}
 
-    public void actionPerformed(ActionEvent e) {
-        String command = e.getActionCommand();
+	@SuppressWarnings("unchecked")
+	public <T> T[] getSelectedObjects(Class<T> objectClass) {
+		Vector<T> selectedObjects = new Vector<T>();
+		int selectedRows[] = getSelectionRows();
 
-        if (command.equals("REMOVE_FILE")) {
-            RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
-            for (RawDataFile file : selectedFiles)
-                MZmineCore.getCurrentProject().removeFile(file);
-        }
+		// Sorting is important to return the items in the same order as they
+		// are presented in the tree. By default, JTree returns items in the
+		// order in which they were selected by the user, which is not good for
+		// us.
+		Arrays.sort(selectedRows);
 
-        if (command.equals("SHOW_TIC")) {
-            RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
-            TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null, null);
-        }
+		for (int row : selectedRows) {
+			TreePath path = getPathForRow(row);
+			Object selectedObject = path.getLastPathComponent();
+			if (objectClass.isInstance(selectedObject))
+				selectedObjects.add((T) selectedObject);
+		}
+		return (T[]) selectedObjects.toArray((Object[]) Array.newInstance(
+				objectClass, 0));
+	}
 
-        if (command.equals("SHOW_SPECTRA")) {
-            Scan selectedScans[] = getSelectedObjects(Scan.class);
-            for (Scan scan : selectedScans) {
-                SpectraVisualizer.showNewSpectrumWindow(scan);
-            }
-        }
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
 
-        if (command.equals("REMOVE_PEAKLIST")) {
-            PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-            for (PeakList peakList : selectedPeakLists)
-                MZmineCore.getCurrentProject().removePeakList(peakList);
-        }
+		if (command.equals("REMOVE_FILE")) {
+			RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
+			for (RawDataFile file : selectedFiles)
+				MZmineCore.getCurrentProject().removeFile(file);
+		}
 
-        if (command.equals("SHOW_PEAKLIST_TABLES")) {
-            PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-            for (PeakList peakList : selectedPeakLists) {
-                PeakListTableVisualizer.showNewPeakListVisualizerWindow(peakList);
-            }
-        }
+		if (command.equals("SHOW_TIC")) {
+			RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
+			TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null, null);
+		}
 
-        if (command.equals("SHOW_PEAKLIST_INFO")) {
-            PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-            for (PeakList peakList : selectedPeakLists) {
-                InfoVisualizer.showNewPeakListInfo(peakList);
-            }
-        }
+		if (command.equals("SHOW_SPECTRA")) {
+			Scan selectedScans[] = getSelectedObjects(Scan.class);
+			for (Scan scan : selectedScans) {
+				SpectraVisualizer.showNewSpectrumWindow(scan);
+			}
+		}
 
-        if (command.equals("SHOW_PEAK_SUMMARY")) {
-            PeakListRow[] selectedRows = getSelectedObjects(PeakListRow.class);
-            for (PeakListRow row : selectedRows) {
-                PeakSummaryVisualizer.showNewPeakSummaryWindow(row);
-            }
-        }
+		if (command.equals("REMOVE_PEAKLIST")) {
+			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
+			for (PeakList peakList : selectedPeakLists)
+				MZmineCore.getCurrentProject().removePeakList(peakList);
+		}
 
-    }
+		if (command.equals("SHOW_PEAKLIST_TABLES")) {
+			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
+			for (PeakList peakList : selectedPeakLists) {
+				PeakListTableVisualizer
+						.showNewPeakListVisualizerWindow(peakList);
+			}
+		}
 
-    public void mouseClicked(MouseEvent e) {
-    }
+		if (command.equals("SHOW_PEAKLIST_INFO")) {
+			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
+			for (PeakList peakList : selectedPeakLists) {
+				InfoVisualizer.showNewPeakListInfo(peakList);
+			}
+		}
 
-    public void mouseEntered(MouseEvent e) {
-    }
+		if (command.equals("SHOW_PEAK_SUMMARY")) {
+			PeakListRow[] selectedRows = getSelectedObjects(PeakListRow.class);
+			for (PeakListRow row : selectedRows) {
+				PeakSummaryVisualizer.showNewPeakSummaryWindow(row);
+			}
+		}
 
-    public void mouseExited(MouseEvent e) {
-    }
+	}
 
-    public void mousePressed(MouseEvent e) {
+	public void mouseClicked(MouseEvent e) {
+	}
 
-        if (e.isPopupTrigger())
-            handlePopupTriggerEvent(e);
+	public void mouseEntered(MouseEvent e) {
+	}
 
-        if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1))
-            handleDoubleClickEvent(e);
+	public void mouseExited(MouseEvent e) {
+	}
 
-    }
+	public void mousePressed(MouseEvent e) {
 
-    public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger())
-            handlePopupTriggerEvent(e);
-    }
+		if (e.isPopupTrigger())
+			handlePopupTriggerEvent(e);
 
-    private void handlePopupTriggerEvent(MouseEvent e) {
-        TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
-        Object clickedObject = null;
-        if (clickedPath != null)
-            clickedObject = clickedPath.getLastPathComponent();
+		if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1))
+			handleDoubleClickEvent(e);
 
-        if (clickedObject instanceof RawDataFile)
-            dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-        if (clickedObject instanceof Scan)
-            scanPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-        if (clickedObject instanceof PeakList)
-            peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-        if (clickedObject instanceof PeakListRow)
-            peakListRowPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-    }
+	}
 
-    private void handleDoubleClickEvent(MouseEvent e) {
-        TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
-        Object clickedObject = null;
-        if (clickedPath != null)
-            clickedObject = clickedPath.getLastPathComponent();
+	public void mouseReleased(MouseEvent e) {
+		if (e.isPopupTrigger())
+			handlePopupTriggerEvent(e);
+	}
 
-        if (clickedObject instanceof RawDataFile) {
-            RawDataFile clickedFile = (RawDataFile) clickedObject;
-            TICVisualizer.showNewTICVisualizerWindow(
-                    new RawDataFile[] { clickedFile }, null, null);
-        }
+	private void handlePopupTriggerEvent(MouseEvent e) {
+		TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
+		Object clickedObject = null;
+		if (clickedPath != null)
+			clickedObject = clickedPath.getLastPathComponent();
 
-        if (clickedObject instanceof PeakList) {
-            PeakList clickedPeakList = (PeakList) clickedObject;
-            PeakListTableVisualizer.showNewPeakListVisualizerWindow(clickedPeakList);
-        }
+		if (clickedObject instanceof RawDataFile)
+			dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+		if (clickedObject instanceof Scan)
+			scanPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+		if (clickedObject instanceof PeakList)
+			peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+		if (clickedObject instanceof PeakListRow)
+			peakListRowPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+	}
 
-        if (clickedObject instanceof Scan) {
-            Scan clickedScan = (Scan) clickedObject;
-            SpectraVisualizer.showNewSpectrumWindow(clickedScan);
-        }
+	private void handleDoubleClickEvent(MouseEvent e) {
+		TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
+		Object clickedObject = null;
+		if (clickedPath != null)
+			clickedObject = clickedPath.getLastPathComponent();
 
-        if (clickedObject instanceof PeakListRow) {
-            PeakListRow clickedPeak = (PeakListRow) clickedObject;
-            PeakSummaryVisualizer.showNewPeakSummaryWindow(clickedPeak);
-        }
+		if (clickedObject instanceof RawDataFile) {
+			RawDataFile clickedFile = (RawDataFile) clickedObject;
+			TICVisualizer.showNewTICVisualizerWindow(
+					new RawDataFile[] { clickedFile }, null, null);
+		}
 
-    }
+		if (clickedObject instanceof PeakList) {
+			PeakList clickedPeakList = (PeakList) clickedObject;
+			PeakListTableVisualizer
+					.showNewPeakListVisualizerWindow(clickedPeakList);
+		}
+
+		if (clickedObject instanceof Scan) {
+			Scan clickedScan = (Scan) clickedObject;
+			SpectraVisualizer.showNewSpectrumWindow(clickedScan);
+		}
+
+		if (clickedObject instanceof PeakListRow) {
+			PeakListRow clickedPeak = (PeakListRow) clickedObject;
+			PeakSummaryVisualizer.showNewPeakSummaryWindow(clickedPeak);
+		}
+
+	}
 
 }
