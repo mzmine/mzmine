@@ -234,9 +234,6 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 				treeEvent = new TreeModelEvent(this, modifiedPath,
 						new int[] { projectEvent.getIndex() },
 						new Object[] { projectEvent.getPeakList() });
-
-				System.out.println("treeevent " + treeEvent);
-
 				for (TreeModelListener l : listeners) {
 					l.treeNodesInserted(treeEvent);
 				}

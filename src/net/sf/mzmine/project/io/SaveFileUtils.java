@@ -30,6 +30,8 @@ import java.util.logging.Logger;
 
 public class SaveFileUtils {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private double progress;
 
 	/**
@@ -72,7 +74,7 @@ public class SaveFileUtils {
 			}
 
 		} catch (IOException ex) {
-			Logger.getLogger(SaveFileUtils.class.getName()).log(Level.SEVERE, null, ex);
+			logger.log(Level.SEVERE, null, ex);
 		}
 	}
 

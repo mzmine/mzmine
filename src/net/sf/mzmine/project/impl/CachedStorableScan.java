@@ -28,43 +28,37 @@ public class CachedStorableScan extends StorableScan {
 
 	private SoftReference<DataPoint[]> dataPointsCache;
 
-	/**
-	 * Clone constructor
-	 */
-	public CachedStorableScan(Scan sc, RawDataFileImpl rawDataFile) {
-		this(sc.getScanNumber(), sc.getMSLevel(), sc.getRetentionTime(), sc
-				.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(), sc
-				.getFragmentScanNumbers(), sc.getDataPoints(), sc
-				.isCentroided(), rawDataFile);
+	public CachedStorableScan(Scan originalScan, RawDataFileImpl rawDataFile,
+			int scanFileOffset, int numberOfDataPoints) {
+		super(originalScan, rawDataFile, scanFileOffset, numberOfDataPoints);
+	}
+
+	public CachedStorableScan(RawDataFileImpl rawDataFile, int scanFileOffset,
+			int numberOfDataPoints, int scanNumber, int msLevel,
+			double retentionTime, int parentScan, double precursorMZ,
+			int precursorCharge, int[] fragmentScans, boolean centroided) {
+		super(rawDataFile, scanFileOffset, numberOfDataPoints, scanNumber, msLevel,
+				retentionTime, parentScan, precursorMZ, precursorCharge, fragmentScans,
+				centroided);
 	}
 
 	/**
-	 * Constructor for creating scan with given data
-	 */
-	public CachedStorableScan(int scanNumber, int msLevel, double retentionTime,
-			int parentScan, double precursorMZ, int precursorCharge, int fragmentScans[],
-			DataPoint[] dataPoints, boolean centroided,
-			RawDataFileImpl rawDataFile) {
-
-		super(scanNumber, msLevel, retentionTime, parentScan, precursorMZ, precursorCharge,
-				fragmentScans, dataPoints, centroided, rawDataFile);
-
-		dataPointsCache = new SoftReference<DataPoint[]>(dataPoints);
-
-	}
-
-	/**
-	 * We cache the data with help of GC
+	 * We cache the data with help of the garbage collector
 	 */
 	@Override
 	public DataPoint[] getDataPoints() {
-		// the GC eats the data, reload from disk
-		DataPoint[] p = dataPointsCache.get();
-		if (p == null) {
-			p = super.getDataPoints();
-			dataPointsCache = new SoftReference<DataPoint[]>(p);
+
+		DataPoint dataPoints[] = null;
+		
+		if (dataPointsCache != null)
+			dataPoints = dataPointsCache.get();
+
+		if (dataPoints == null) {
+			dataPoints = super.getDataPoints();
+			dataPointsCache = new SoftReference<DataPoint[]>(dataPoints);
 		}
-		return p;
+
+		return dataPoints;
 	}
 
 }

@@ -26,12 +26,15 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.CachedStorableScan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -39,10 +42,11 @@ import org.xml.sax.helpers.DefaultHandler;
 public class RawDataFileOpen extends DefaultHandler {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private StringBuffer charBuffer;
 	private RawDataFileImpl rawDataFileWriter;
 	private int numberOfScans;
-	private int ScanNumber;
+	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
 	private int[] fragmentScan;
@@ -58,40 +62,46 @@ public class RawDataFileOpen extends DefaultHandler {
 	private int storageFileOffset;
 	private int fragmentCount;
 	private SaveFileUtils saveFileUtils;
-	
 
-	public RawDataFileOpen() {		
+	public RawDataFileOpen() {
 		charBuffer = new StringBuffer();
 	}
 
 	/**
-	 * Extract the scan file and copies it into the temporal folder.
-	 * Create a new raw data file using the information
-	 * from the XML raw data description file
-	 * @param Name raw data file name
+	 * Extract the scan file and copies it into the temporal folder. Create a
+	 * new raw data file using the information from the XML raw data description
+	 * file
+	 * 
+	 * @param Name
+	 *            raw data file name
 	 * @throws java.lang.ClassNotFoundException
 	 */
-	public void readRawDataFile(ZipFile zipFile, ZipEntry entry, ZipInputStream zipInputStream) throws Exception {
+	public void readRawDataFile(ZipFile zipFile, ZipEntry entry,
+			ZipInputStream zipInputStream) throws Exception {
 		stepNumber = 0;
 
-		// Writes the scan file into a temporal file		
-		logger.info("Moving scan file : " + entry.getName() + " to the temporal folder");
+		// Writes the scan file into a temporal file
+		logger.info("Moving scan file : " + entry.getName()
+				+ " to the temporal folder");
 		stepNumber++;
 		File tempConfigFile = File.createTempFile("mzmine", ".scans");
 		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-		
-		// Extracts the scan file from the zip project file to the temporal folder
+
+		// Extracts the scan file from the zip project file to the temporal
+		// folder
 		saveFileUtils = new SaveFileUtils();
-		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream, zipFile.getEntry(entry.getName()).getSize(), SaveFileUtilsMode.CLOSE_OUT);
+		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream,
+				zipFile.getEntry(entry.getName()).getSize(),
+				SaveFileUtilsMode.CLOSE_OUT);
 		fileStream.close();
 
-		rawDataFileWriter = new RawDataFileImpl();
-		((RawDataFileImpl) rawDataFileWriter).setScanDataFile(tempConfigFile);
-
+		rawDataFileWriter = new RawDataFileImpl("");
+		rawDataFileWriter.openAndMapScanFile(tempConfigFile);
 
 		stepNumber++;
 		// Extracts the raw data description file from the zip project file
-		InputStream InputStream = zipFile.getInputStream(zipInputStream.getNextEntry());
+		InputStream InputStream = zipFile.getInputStream(zipInputStream
+				.getNextEntry());
 
 		// Reads the XML file (raw data description)
 		SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -104,16 +114,17 @@ public class RawDataFileOpen extends DefaultHandler {
 	}
 
 	/**
-	 * @return the progress of these functions loading the raw data from the zip file
+	 * @return the progress of these functions loading the raw data from the zip
+	 *         file
 	 */
 	public double getProgress() {
 		switch (stepNumber) {
-			case 1:
-				return saveFileUtils.getProgress() * 0.5;
-			case 2:
-				return progress;
-			default:
-				return 0.0;
+		case 1:
+			return saveFileUtils.getProgress() * 0.5;
+		case 2:
+			return progress;
+		default:
+			return 0.0;
 		}
 	}
 
@@ -125,8 +136,10 @@ public class RawDataFileOpen extends DefaultHandler {
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
 
-		if (qName.equals(RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName())) {
-			numberOfFragments = Integer.parseInt(attrs.getValue(RawDataElementName.QUANTITY.getElementName()));
+		if (qName.equals(RawDataElementName.QUANTITY_FRAGMENT_SCAN
+				.getElementName())) {
+			numberOfFragments = Integer.parseInt(attrs
+					.getValue(RawDataElementName.QUANTITY.getElementName()));
 			if (numberOfFragments > 0) {
 				fragmentScan = new int[numberOfFragments];
 				fragmentCount = 0;
@@ -140,7 +153,7 @@ public class RawDataFileOpen extends DefaultHandler {
 	 */
 	public void endElement(String namespaceURI, String sName, // simple name
 			String qName // qualified name
-			) throws SAXException {
+	) throws SAXException {
 
 		// <NAME>
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
@@ -152,7 +165,7 @@ public class RawDataFileOpen extends DefaultHandler {
 
 				scansReaded = 0;
 			} catch (Exception ex) {
-				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.SEVERE, null, ex);
 			}
 		}
 
@@ -161,7 +174,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		}
 
 		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
-			ScanNumber = Integer.parseInt(getTextOfElement());
+			scanNumber = Integer.parseInt(getTextOfElement());
 			progress = ((double) scansReaded / numberOfScans) * 0.5 + 0.5;
 			scansReaded++;
 		}
@@ -186,33 +199,35 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.CENTROIDED.getElementName())) {
 			centroided = Boolean.parseBoolean(getTextOfElement());
 		}
-		if (qName.equals(RawDataElementName.QUANTITY_DATAPOINTS.getElementName())) {
+		if (qName.equals(RawDataElementName.QUANTITY_DATAPOINTS
+				.getElementName())) {
 			dataPointsNumber = Integer.parseInt(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.FRAGMENT_SCAN.getElementName())) {
-			fragmentScan[fragmentCount++] = Integer.parseInt(getTextOfElement());
+			fragmentScan[fragmentCount++] = Integer
+					.parseInt(getTextOfElement());
 		}
 		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
 			try {
 
-				int storageArrayByteLength = dataPointsNumber * 8 * 2;
-				CachedStorableScan scan = new CachedStorableScan(ScanNumber, msLevel, retentionTime,
-						parentScan, precursorMZ, precursorCharge, fragmentScan,
-						null, centroided, rawDataFileWriter);
-				scan.setParameters(storageFileOffset, storageArrayByteLength, dataPointsNumber);
-				scan.findMZRange();
-				rawDataFileWriter.addScan(scan);
-				storageFileOffset += storageArrayByteLength;
+				CachedStorableScan storableScan = new CachedStorableScan(
+						rawDataFileWriter, storageFileOffset, dataPointsNumber,
+						scanNumber, msLevel, retentionTime, parentScan,
+						precursorMZ, precursorCharge, fragmentScan, centroided);
+
+				rawDataFileWriter.addScan(storableScan);
+				storageFileOffset += dataPointsNumber * 2;
 
 			} catch (Exception ex) {
-				Logger.getLogger(RawDataFileOpen.class.getName()).log(Level.SEVERE, null, ex);
+				logger.log(Level.SEVERE, "Error while saving scan data file",
+						ex);
 			}
 		}
 	}
-	
+
 	/**
 	 * Return a string without tab an EOF characters
-	 *
+	 * 
 	 * @return String element text
 	 */
 	private String getTextOfElement() {
@@ -225,7 +240,7 @@ public class RawDataFileOpen extends DefaultHandler {
 
 	/**
 	 * characters()
-	 *
+	 * 
 	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
 	 */
 	public void characters(char buf[], int offset, int len) throws SAXException {
