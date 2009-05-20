@@ -104,7 +104,6 @@ Custom database search
  doesn't change its position in the list when it is sorted.
 
 PubChem search
-* We should remove the SOAP code and use a simple web interface, which is much easier
 * When user puts Charge=0 in the setup dialog, neutral mass is not calculated correctly
 * Search on the whole peaklist doesn't work, only on individual peaks 
 

@@ -84,8 +84,9 @@ public class RawDataFileOpen extends DefaultHandler {
 		logger.info("Moving scan file : " + entry.getName()
 				+ " to the temporal folder");
 		stepNumber++;
-		File tempConfigFile = File.createTempFile("mzmine", ".scans");
-		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+		File tempFile = File.createTempFile("mzmine", ".scans");
+		tempFile.deleteOnExit();
+		FileOutputStream fileStream = new FileOutputStream(tempFile);
 
 		// Extracts the scan file from the zip project file to the temporal
 		// folder
@@ -96,7 +97,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		fileStream.close();
 
 		rawDataFileWriter = new RawDataFileImpl("");
-		rawDataFileWriter.openAndMapScanFile(tempConfigFile);
+		rawDataFileWriter.openAndMapScanFile(tempFile);
 
 		stepNumber++;
 		// Extracts the raw data description file from the zip project file

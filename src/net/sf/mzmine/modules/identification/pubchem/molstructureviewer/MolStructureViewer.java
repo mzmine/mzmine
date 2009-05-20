@@ -25,10 +25,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.logging.Logger;
@@ -44,6 +41,7 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.pubchem.PubChemCompound;
+import net.sf.mzmine.util.InetUtils;
 
 import org.jmol.api.JmolViewer;
 import org.openscience.cdk.ChemModel;
@@ -240,14 +238,15 @@ public class MolStructureViewer extends JInternalFrame implements
 					Thread newThread = new Thread(new Runnable() {
 						public void run() {
 							try {
-								structure3D = get3DStructure(compound.getID());
+								URL url3D = new URL(pub3dAddress + compound.getID());
+								structure3D = InetUtils.retrieveData(url3D);
 								setJmolViewerStructure(structure3D);
 								button3d.setText(pubchem);
 							} catch (Exception e) {
 								MZmineCore
 										.getDesktop()
 										.displayMessage(
-												"The Pub3D does not contain this structure.");
+												"Could not retrieve this structure from Pub3D: " + e.toString());
 								return;
 							}
 						}
@@ -266,38 +265,6 @@ public class MolStructureViewer extends JInternalFrame implements
 				button3d.setText(chembiogrid);
 			}
 		}
-
-	}
-
-	/**
-	 * Retrieve 3D structure from Pub3d server
-	 * 
-	 * @param ID
-	 * @return
-	 * @throws Exception
-	 */
-	private static String get3DStructure(String ID) throws Exception {
-
-		URL url = new URL(pub3dAddress + ID);
-
-		InputStream in = url.openStream();
-
-		if (in == null) {
-			throw new Exception("Got a null content Pub3d connection!");
-		}
-
-		BufferedReader is = new BufferedReader(new InputStreamReader(in,
-				"UTF-8"));
-		String responseLine;
-		StringBuffer buffer = new StringBuffer();
-
-		while ((responseLine = is.readLine()) != null) {
-			buffer.append(responseLine);
-			buffer.append("\n");
-		}
-
-		is.close();
-		return buffer.toString();
 
 	}
 

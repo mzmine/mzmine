@@ -79,7 +79,7 @@ public class PubChemResultTableModel extends AbstractTableModel{
     	return value;
     }
     
-    public PubChemCompound getElementAt(int row){
+    public PubChemCompound getCompoundAt(int row){
     	return compounds.get(row);
     }
     

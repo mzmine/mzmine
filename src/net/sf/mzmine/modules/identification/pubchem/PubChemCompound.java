@@ -24,8 +24,8 @@ import net.sf.mzmine.data.PeakIdentity;
 
 public class PubChemCompound implements PeakIdentity {
 
-	private String compoundID, compoundName, alternateNames[], compoundFormula;
-	private String databaseEntryURL;
+	private int compoundID;
+	private String compoundName, compoundFormula, databaseEntryURL;
 	private String exactMass = "", isotopePatternScore = "";
 	private IsotopePattern isotopePattern;
 	private String structure;
@@ -40,9 +40,8 @@ public class PubChemCompound implements PeakIdentity {
 	 * @param identificationMethod
 	 * @param scopeNote
 	 */
-	public PubChemCompound(String compoundID, String compoundName,
-			String[] alternateNames, String compoundFormula,
-			String databaseEntryURL) {
+	public PubChemCompound(int compoundID, String compoundName,
+			String compoundFormula, String databaseEntryURL) {
 		this.compoundName = compoundName;
 		this.compoundFormula = compoundFormula;
 
@@ -53,27 +52,12 @@ public class PubChemCompound implements PeakIdentity {
 		}
 
 		this.compoundID = compoundID;
-		this.alternateNames = alternateNames;
 		if (databaseEntryURL == null) {
 			this.databaseEntryURL = pubchemAddress + compoundID;
 		} else {
 			this.databaseEntryURL = databaseEntryURL;
 		}
-	}
-
-	/**
-	 * @return Returns the alternateNames.
-	 */
-	public String[] getAlternateNames() {
-		return alternateNames;
-	}
-
-	/**
-	 * @param alternateNames
-	 *            The alternateNames to set.
-	 */
-	public void setAlternateNames(String[] alternateNames) {
-		this.alternateNames = alternateNames;
+	
 	}
 
 	/**
@@ -94,7 +78,7 @@ public class PubChemCompound implements PeakIdentity {
 	/**
 	 * @return Returns the compoundID.
 	 */
-	public String getID() {
+	public int getID() {
 		return compoundID;
 	}
 
@@ -102,7 +86,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * @param compoundID
 	 *            The compoundID to set.
 	 */
-	public void setCompoundID(String compoundID) {
+	public void setCompoundID(int compoundID) {
 		this.compoundID = compoundID;
 	}
 
@@ -166,7 +150,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * 
 	 * @return String exact mass
 	 */
-	public void setIsotopePatterScore(String score) {
+	public void setIsotopePatternScore(String score) {
 		this.isotopePatternScore = score;
 	}
 

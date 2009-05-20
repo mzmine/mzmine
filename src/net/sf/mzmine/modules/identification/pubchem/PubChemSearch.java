@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -48,11 +47,6 @@ public class PubChemSearch implements BatchStep, ActionListener {
 	private PubChemSearchParameters parameters;
 
 	private static PubChemSearch myInstance;
-
-	private double rawMass;
-
-	private PeakListRow row;
-	private ChromatographicPeak peak;
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -90,7 +84,7 @@ public class PubChemSearch implements BatchStep, ActionListener {
 
 	public ExitCode setupParameters(ParameterSet parameters) {
 		PubChemSearchDialog dialog = new PubChemSearchDialog(
-				(PubChemSearchParameters) parameters, rawMass);
+				(PubChemSearchParameters) parameters, null);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
@@ -108,25 +102,28 @@ public class PubChemSearch implements BatchStep, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		this.row = null;
-		this.peak = null;
-
 		runModule(null, selectedPeakLists, parameters.clone());
 	}
 
-	public void showPubChemSearchDialog(PeakList peakList, PeakListRow row,
-			ChromatographicPeak peak) {
+	public static void showPubChemSingleRowIdentificationDialog(PeakListRow row) {
 
-		this.row = row;
-		this.peak = peak;
+		PubChemSearchParameters parameters = (PubChemSearchParameters) myInstance
+				.getParameterSet();
+		PubChemSearchDialog dialog = new PubChemSearchDialog(parameters, row);
+		dialog.setVisible(true);
 
-		PeakList[] selectedPeakLists = new PeakList[] { peakList };
-		this.rawMass = peak.getMZ();// rawMass;
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = dialog.getExitCode();
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(null, selectedPeakLists, parameters.clone());
+		// clone the parameters to avoid further changes
+		parameters = (PubChemSearchParameters) parameters.clone();
+
+		PubChemSingleRowIdentificationTask newTask = new PubChemSingleRowIdentificationTask(parameters, row);
+
+		// execute the sequence
+		MZmineCore.getTaskController().addTask(newTask);
+
 	}
 
 	/**
@@ -143,12 +140,12 @@ public class PubChemSearch implements BatchStep, ActionListener {
 					"Cannot run identification without a peak list");
 		}
 
+		PeakListRow row = null;// TODO
 		// prepare a new sequence of tasks
-		Task tasks[] = new PubChemSearchTask[peakLists.length];
+		Task tasks[] = new PubChemSingleRowIdentificationTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PubChemSearchTask(
-					(PubChemSearchParameters) parameters, peakLists[i], row,
-					peak);
+			tasks[i] = new PubChemSingleRowIdentificationTask(
+					(PubChemSearchParameters) parameters, row);
 		}
 
 		// execute the sequence
@@ -156,10 +153,6 @@ public class PubChemSearch implements BatchStep, ActionListener {
 
 		return tasks;
 
-	}
-
-	public static PubChemSearch getInstance() {
-		return myInstance;
 	}
 
 	public String toString() {

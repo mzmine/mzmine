@@ -123,8 +123,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	public void show(Component invoker, int x, int y) {
 
 		// First, disable all the Show... items
-		showMenu.setEnabled(false);
-		searchMenu.setEnabled(false);
 		showXICItem.setEnabled(false);
 		manuallyDefineItem.setEnabled(false);
 		showSpectrumItem.setEnabled(false);
@@ -138,7 +136,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		int selectedRows[] = table.getSelectedRows();
 		deleteRowsItem.setEnabled(selectedRows.length > 0);
 		plotRowsItem.setEnabled(selectedRows.length > 0);
-		showMenu.setEnabled(selectedRows.length > 0);
 
 		// Find the row and column where the user clicked
 		clickedDataFile = null;
@@ -183,9 +180,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 							.setEnabled(clickedPeak instanceof IsotopePattern);
 					showMSMSItem.setEnabled(clickedPeak
 							.getMostIntenseFragmentScanNumber() > 0);
-
-					searchMenu.setEnabled(true);
-
 				}
 
 			}
@@ -378,17 +372,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		}
 
 		if (src == pubChemSearchItem) {
-
-			PubChemSearch pubChem = PubChemSearch.getInstance();
-
-			ChromatographicPeak clickedPeak = null;
-
-			if (clickedDataFile != null)
-				clickedPeak = clickedPeakListRow.getPeak(clickedDataFile);
-
-			if (clickedPeak != null)
-				pubChem.showPubChemSearchDialog(peakList, clickedPeakListRow,
-						clickedPeak);
+			PubChemSearch.showPubChemSingleRowIdentificationDialog(clickedPeakListRow);
 		}
 
 		if (src == addNewRowItem) {

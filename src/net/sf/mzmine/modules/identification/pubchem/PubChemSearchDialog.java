@@ -30,6 +30,7 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 
 import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -46,12 +47,13 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
      * 
      */
 	public PubChemSearchDialog(PubChemSearchParameters parameters,
-			double massValue) {
+			PeakListRow row) {
 
 		// Make dialog modal
 		super("PubChem search setup dialog ", parameters);
 
-		this.rawMassValue = massValue;
+		if (row != null)
+			this.rawMassValue = row.getAverageMZ();
 
 		chargeField = (JTextField) getComponentForParameter(PubChemSearchParameters.charge);
 		chargeField.addPropertyChangeListener("value", this);
@@ -63,7 +65,7 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 		JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(PubChemSearchParameters.rawMass);
 		peakMass.setEditable(false);
 		peakMass.setBackground(BACKGROUND_COLOR);
-		peakMass.setValue(massValue);
+		peakMass.setValue(rawMassValue);
 
 		ionizationMethodCombo = (JComboBox) getComponentForParameter(PubChemSearchParameters.ionizationMethod);
 		ionizationMethodCombo.addActionListener(this);
