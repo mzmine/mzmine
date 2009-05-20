@@ -45,7 +45,7 @@ import net.sf.mzmine.util.CompressionUtils;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
-import org.apache.axis.encoding.Base64;
+import org.jfree.xml.util.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -244,7 +244,8 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			parentTreeValue[msLevel] = scanNumber;
 
 			buildingScan = new SimpleScan(null, scanNumber, msLevel,
-					retentionTime, parentScan, 0, 0, null, new DataPoint[0], false);
+					retentionTime, parentScan, 0, 0, null, new DataPoint[0],
+					false);
 
 		}
 
@@ -324,9 +325,9 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 		// <peaks>
 		if (qName.equalsIgnoreCase("peaks")) {
 
-			String charBufferString = charBuffer.toString();
-			byte[] peakBytes = Base64.decode(charBufferString);
-			
+			byte[] peakBytes = Base64.decode(charBuffer.toString()
+					.toCharArray());
+
 			if (compressFlag) {
 				try {
 					peakBytes = CompressionUtils.decompress(peakBytes);
