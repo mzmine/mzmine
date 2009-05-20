@@ -105,7 +105,8 @@ public class PubChemSearch implements BatchStep, ActionListener {
 		runModule(null, selectedPeakLists, parameters.clone());
 	}
 
-	public static void showPubChemSingleRowIdentificationDialog(PeakListRow row) {
+	public static void showPubChemSingleRowIdentificationDialog(
+			PeakList peakList, PeakListRow row) {
 
 		PubChemSearchParameters parameters = (PubChemSearchParameters) myInstance
 				.getParameterSet();
@@ -119,7 +120,8 @@ public class PubChemSearch implements BatchStep, ActionListener {
 		// clone the parameters to avoid further changes
 		parameters = (PubChemSearchParameters) parameters.clone();
 
-		PubChemSingleRowIdentificationTask newTask = new PubChemSingleRowIdentificationTask(parameters, row);
+		PubChemSingleRowIdentificationTask newTask = new PubChemSingleRowIdentificationTask(
+				parameters, peakList, row);
 
 		// execute the sequence
 		MZmineCore.getTaskController().addTask(newTask);
@@ -140,12 +142,11 @@ public class PubChemSearch implements BatchStep, ActionListener {
 					"Cannot run identification without a peak list");
 		}
 
-		PeakListRow row = null;// TODO
 		// prepare a new sequence of tasks
-		Task tasks[] = new PubChemSingleRowIdentificationTask[peakLists.length];
+		Task tasks[] = new PubChemPeakListIdentificationTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PubChemSingleRowIdentificationTask(
-					(PubChemSearchParameters) parameters, row);
+			tasks[i] = new PubChemPeakListIdentificationTask(
+					(PubChemSearchParameters) parameters, peakLists[i]);
 		}
 
 		// execute the sequence

@@ -75,7 +75,7 @@ public class PubChemGateway {
 	 * @param mass
 	 * @throws Exception
 	 */
-	static void getSummary(PubChemCompound compound, double mass)
+	static void getSummary(PubChemCompound compound)
 			throws IOException {
 
 		URL url = new URL(
@@ -96,10 +96,8 @@ public class PubChemGateway {
 			}
 
 			if (line.matches(".*PUBCHEM_MONOISOTOPIC_WEIGHT.*")) {
-				double massDiff = mass
-						- Double.parseDouble(summaryLines[i + 1]);
-				massDiff = Math.abs(massDiff);
-				compound.setExactMassDifference(String.valueOf(massDiff));
+				double exactMass = Double.parseDouble(summaryLines[i + 1]);
+				compound.setExactMass(exactMass);
 				continue;
 			}
 

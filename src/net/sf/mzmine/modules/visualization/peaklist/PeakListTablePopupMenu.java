@@ -372,7 +372,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		}
 
 		if (src == pubChemSearchItem) {
-			PubChemSearch.showPubChemSingleRowIdentificationDialog(clickedPeakListRow);
+			PubChemSearch.showPubChemSingleRowIdentificationDialog(peakList,
+					clickedPeakListRow);
 		}
 
 		if (src == addNewRowItem) {

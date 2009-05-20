@@ -25,6 +25,7 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
@@ -70,7 +71,16 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 		ionizationMethodCombo = (JComboBox) getComponentForParameter(PubChemSearchParameters.ionizationMethod);
 		ionizationMethodCombo.addActionListener(this);
 
+		JCheckBox onlyChargedCheckBox = (JCheckBox) getComponentForParameter(PubChemSearchParameters.chargedMol);
+		
 		setNeutralMassValue();
+		
+		if (row == null) {
+			chargeField.setEnabled(false);
+			neutralMassField.setEnabled(false);
+			peakMass.setEnabled(false);
+			onlyChargedCheckBox.setEnabled(false);
+		}
 
 		setResizable(false);
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());

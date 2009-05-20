@@ -40,6 +40,7 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -49,6 +50,8 @@ import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStruct
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.project.ProjectEvent;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 public class PubChemSearchWindow extends JInternalFrame implements
 		ActionListener {
@@ -57,15 +60,17 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 	private PubChemResultTableModel listElementModel;
 	private JButton btnAdd, btnViewer, btnIsotopeViewer, btnPubChemLink;
+	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private String description;
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-	public PubChemSearchWindow(PeakListRow peakListRow) {
+	public PubChemSearchWindow(PeakList peakList, PeakListRow peakListRow, double searchedMass) {
 
 		super(null, true, true, true, true);
 
+		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 
 		description = "PubChem search results "
@@ -80,7 +85,7 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		pnlLabelsAndList.add(new JLabel("List of possible identities"),
 				BorderLayout.NORTH);
 
-		listElementModel = new PubChemResultTableModel();
+		listElementModel = new PubChemResultTableModel(searchedMass);
 		IDList = new JTable();
 		IDList.setModel(listElementModel);
 		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -141,6 +146,12 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 			peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
 					false);
+
+			// Notify the tree that peak list has changed
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
+			MZmineCore.getProjectManager().fireProjectListeners(newEvent);
+
 			dispose();
 		}
 

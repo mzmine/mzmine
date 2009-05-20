@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.identification.pubchem;
 
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,16 +28,20 @@ import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
+import net.sf.mzmine.project.ProjectEvent;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
-public class PubChemSingleRowIdentificationTask implements Task {
+public class PubChemPeakListIdentificationTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
@@ -44,13 +49,12 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
 	private int finishedItems = 0, numItems;
-	private double valueOfQuery, massTolerance;
-	private int charge;
-	private int maxNumOfResults;
+	private double massTolerance;
+	private int numOfResults;
 	private PeakList peakList;
-	private PeakListRow peakListRow;
+	private PeakListRow currentRow;
 	private IonizationType ionType;
-	private boolean chargedMol = false, isotopeFilter = false;
+	private boolean isotopeFilter = false;
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 
@@ -61,29 +65,17 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	PubChemSingleRowIdentificationTask(PubChemSearchParameters parameters,
-			PeakList peakList, PeakListRow peakListRow) {
+	PubChemPeakListIdentificationTask(PubChemSearchParameters parameters,
+			PeakList peakList) {
 
 		this.peakList = peakList;
-		this.peakListRow = peakListRow;
 
-		valueOfQuery = (Double) parameters
-				.getParameterValue(PubChemSearchParameters.neutralMass);
 		massTolerance = (Double) parameters
 				.getParameterValue(PubChemSearchParameters.mzToleranceField);
-		maxNumOfResults = (Integer) parameters
+		numOfResults = (Integer) parameters
 				.getParameterValue(PubChemSearchParameters.numOfResults);
-		charge = (Integer) parameters
-				.getParameterValue(PubChemSearchParameters.charge);
-		chargedMol = (Boolean) parameters
-				.getParameterValue(PubChemSearchParameters.chargedMol);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(PubChemSearchParameters.isotopeFilter);
-
-		// If there is no isotope pattern, we cannot use the isotope filter
-		if (peakListRow.getBestIsotopePattern() == null)
-			isotopeFilter = false;
-
 		isotopeScoreThreshold = (Double) parameters
 				.getParameterValue(PubChemSearchParameters.isotopeScoreTolerance);
 		ionType = (IonizationType) parameters
@@ -109,8 +101,6 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
-		if (numItems == 0)
-			return 0;
 		return ((double) finishedItems) / numItems;
 	}
 
@@ -125,8 +115,16 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Peak identification of " + massFormater.format(valueOfQuery)
-				+ " using PubChem Compound database";
+		if (currentRow == null) {
+			return "Identification of peaks in " + peakList
+					+ " using PubChem Compound database";
+		} else {
+			NumberFormat mzFormat = MZmineCore.getMZFormat();
+			return "Identification of peaks in " + peakList + " ("
+					+ mzFormat.format(currentRow.getAverageMZ())
+					+ " m/z) using PubChem Compound database";
+
+		}
 	}
 
 	/**
@@ -136,67 +134,28 @@ public class PubChemSingleRowIdentificationTask implements Task {
 
 		status = TaskStatus.PROCESSING;
 
+		PeakListRow rows[] = peakList.getRows();
+
+		// Identify the peak list rows starting from the biggest peaks
+		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area,
+				SortingDirection.Descending));
+
+		numItems = rows.length;
+
 		try {
 
-			Desktop desktop = MZmineCore.getDesktop();
-			PubChemSearchWindow window = new PubChemSearchWindow(peakList, peakListRow, valueOfQuery);
-			desktop.addInternalFrame(window);
+			for (PeakListRow row : rows) {
 
-			Range massRange = new Range(valueOfQuery - massTolerance,
-					valueOfQuery + massTolerance);
-
-			boolean chargedOnly = false;
-			if ((chargedMol) && (ionType.equals(IonizationType.NO_IONIZATION)))
-				chargedOnly = true;
-
-			int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
-					maxNumOfResults, chargedOnly);
-
-			// Get the number of results
-			numItems = resultCIDs.length;
-
-			// Process each one of the result ID's.
-			for (int i = 0; i < numItems; i++) {
-
-				if (status != TaskStatus.PROCESSING) {
+				if (status != TaskStatus.PROCESSING)
 					return;
-				}
 
-				String compoundName = PubChemGateway.getName(resultCIDs[i]);
+				// Retrieve PubChem results for each row
+				retrieveIdentification(row);
 
-				PubChemCompound compound = new PubChemCompound(resultCIDs[i],
-						compoundName, null, null);
-
-				PubChemGateway.getSummary(compound);
-
-				// Generate IsotopePattern for this compound
-				IsotopePattern compoundIsotopePattern = analyzer
-						.getIsotopePattern(compound.getCompoundFormula(), 0.01,
-								charge, ionType.isPositiveCharge(), 0, true,
-								true, ionType);
-				compound.setIsotopePattern(compoundIsotopePattern);
-
-				// If required, check isotope score
-				if (isotopeFilter) {
-
-					IsotopePattern rawDataIsotopePattern = peakListRow
-							.getBestIsotopePattern();
-
-					double score = IsotopePatternScoreCalculator.getScore(
-							rawDataIsotopePattern, compoundIsotopePattern);
-
-					compound.setIsotopePatternScore(String.valueOf(score));
-
-					if (score >= isotopeScoreThreshold) {
-						finishedItems++;
-						continue;
-					}
-
-				}
-
-				// Add compound to the list of possible candidate and
-				// display it in window of results.
-				window.addNewListItem(compound);
+				// Notify the tree that peak list has changed
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
+				MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
 				finishedItems++;
 
@@ -212,6 +171,70 @@ public class PubChemSingleRowIdentificationTask implements Task {
 
 		status = TaskStatus.FINISHED;
 
+	}
+
+	private void retrieveIdentification(PeakListRow row) throws Exception {
+
+		currentRow = row;
+
+		double massValue = row.getAverageMZ();
+		int charge = 1;
+
+		IsotopePattern rowIsotopePattern = row.getBestIsotopePattern();
+		if (rowIsotopePattern != null) {
+			if (rowIsotopePattern.getCharge() != 0)
+				charge = rowIsotopePattern.getCharge();
+		}
+		massValue *= charge;
+		massValue -= ionType.getAddedMass();
+
+		Range massRange = new Range(massValue - massTolerance, massValue
+				+ massTolerance);
+
+		int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
+				numOfResults, false);
+
+		// Process each one of the result ID's.
+		for (int i = 0; i < resultCIDs.length; i++) {
+
+			if (status != TaskStatus.PROCESSING) {
+				return;
+			}
+
+			String compoundName = PubChemGateway.getName(resultCIDs[i]);
+
+			PubChemCompound compound = new PubChemCompound(resultCIDs[i],
+					compoundName, null, null);
+
+			PubChemGateway.getSummary(compound);
+
+			// If required, check isotope score
+			if (isotopeFilter) {
+
+				// Generate IsotopePattern for this compound
+				IsotopePattern compoundIsotopePattern = analyzer
+						.getIsotopePattern(compound.getCompoundFormula(), 0.01,
+								charge, ionType.isPositiveCharge(), 0, true,
+								true, ionType);
+				compound.setIsotopePattern(compoundIsotopePattern);
+
+				IsotopePattern rawDataIsotopePattern = row
+						.getBestIsotopePattern();
+
+				double score = IsotopePatternScoreCalculator.getScore(
+						rawDataIsotopePattern, compoundIsotopePattern);
+
+				compound.setIsotopePatternScore(String.valueOf(score));
+
+				if (score < isotopeScoreThreshold)
+					continue;
+
+			}
+
+			// Add the retrieved identity to the peak list row
+			row.addPeakIdentity(compound, false);
+
+		}
 	}
 
 	public Object[] getCreatedObjects() {

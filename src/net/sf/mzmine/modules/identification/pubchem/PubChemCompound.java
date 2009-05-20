@@ -26,7 +26,8 @@ public class PubChemCompound implements PeakIdentity {
 
 	private int compoundID;
 	private String compoundName, compoundFormula, databaseEntryURL;
-	private String exactMass = "", isotopePatternScore = "";
+	private double exactMass;
+	private String isotopePatternScore = "";
 	private IsotopePattern isotopePattern;
 	private String structure;
 	public static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
@@ -132,7 +133,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * 
 	 * @return String exact mass
 	 */
-	public void setExactMassDifference(String exactMass) {
+	public void setExactMass(double exactMass) {
 		this.exactMass = exactMass;
 	}
 
@@ -141,7 +142,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * 
 	 * @return String exact mass
 	 */
-	public String getExactMassDifference() {
+	public double getExactMass() {
 		return exactMass;
 	}
 
