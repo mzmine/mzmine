@@ -151,8 +151,6 @@ public class PeakListTableModel extends AbstractTableModel {
         if (columnType == CommonColumnType.IDENTITY) {
             if (value instanceof PeakIdentity)
                 peakListRow.setPreferredPeakIdentity((PeakIdentity) value);
-            else
-                peakListRow.setPreferredPeakIdentity(null);
         }
 
     }

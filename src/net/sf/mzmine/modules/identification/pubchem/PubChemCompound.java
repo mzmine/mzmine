@@ -204,12 +204,12 @@ public class PubChemCompound implements PeakIdentity {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return getDescription();
+		return compoundName;
 	}
 
 	public String getDescription() {
-		return compoundName + " (" + compoundFormula + ")\n" + "CID"
-				+ compoundID + "\n" + "Identification method: "
+		return compoundName + "\nFormula: " + compoundFormula + "\nCID: "
+				+ compoundID + "\nIdentification method: "
 				+ getIdentificationMethod();
 	}
 }

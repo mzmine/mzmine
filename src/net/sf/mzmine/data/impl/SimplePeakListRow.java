@@ -22,9 +22,8 @@ package net.sf.mzmine.data.impl;
 import java.text.Format;
 import java.util.Arrays;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
@@ -42,7 +41,7 @@ import net.sf.mzmine.util.SortingProperty;
 public class SimplePeakListRow implements PeakListRow {
 
 	private Hashtable<RawDataFile, ChromatographicPeak> peaks;
-	private HashSet<PeakIdentity> identities;
+	private Vector<PeakIdentity> identities;
 	private PeakIdentity preferredIdentity;
 	private String comment;
 	private int myID;
@@ -51,7 +50,7 @@ public class SimplePeakListRow implements PeakListRow {
 	public SimplePeakListRow(int myID) {
 		this.myID = myID;
 		peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
-		identities = new HashSet<PeakIdentity>();
+		identities = new Vector<PeakIdentity>();
 	}
 
 	/**
@@ -82,7 +81,8 @@ public class SimplePeakListRow implements PeakListRow {
 		return peaks.get(rawData);
 	}
 
-	public void addPeak(RawDataFile rawData, ChromatographicPeak peak) {
+	public synchronized void addPeak(RawDataFile rawData,
+			ChromatographicPeak peak) {
 
 		if (peak == null)
 			throw new IllegalArgumentException(
@@ -167,32 +167,26 @@ public class SimplePeakListRow implements PeakListRow {
 	/**
 	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
-	public void addPeakIdentity(PeakIdentity identity, boolean preferred) {
+	public synchronized void addPeakIdentity(PeakIdentity identity,
+			boolean preferred) {
 
 		// Verify if exists already an identity with the same name
-		PeakIdentity compoundIdentity;
-		boolean exists = false;
-		Iterator itr = identities.iterator();
-		while (itr.hasNext()) {
-			compoundIdentity = (PeakIdentity) itr.next();
-			if (compoundIdentity.getName().equals(identity.getName())) {
-				exists = true;
-				break;
+		for (PeakIdentity testId : identities) {
+			if (testId.getName().equals(identity.getName())) {
+				return;
 			}
 		}
 
-		if (!exists) {
-			identities.add(identity);
-			if ((preferredIdentity == null) || (preferred)) {
-				setPreferredPeakIdentity(identity);
-			}
+		identities.add(identity);
+		if ((preferredIdentity == null) || (preferred)) {
+			setPreferredPeakIdentity(identity);
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
-	public void removePeakIdentity(PeakIdentity identity) {
+	public synchronized void removePeakIdentity(PeakIdentity identity) {
 		identities.remove(identity);
 		if (preferredIdentity == identity) {
 			if (identities.size() > 0) {
@@ -222,24 +216,16 @@ public class SimplePeakListRow implements PeakListRow {
 	 * @see net.sf.mzmine.data.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.data.PeakIdentity)
 	 */
 	public void setPreferredPeakIdentity(PeakIdentity identity) {
-		if (identity != null) {
-			preferredIdentity = identity;
-			// Verify if exists already an identity with the same name
-			PeakIdentity compoundIdentity;
-			boolean exists = false;
-			Iterator itr = identities.iterator();
-			while (itr.hasNext()) {
-				compoundIdentity = (PeakIdentity) itr.next();
-				if (compoundIdentity.getName().equals(identity.getName())) {
-					exists = true;
-					break;
-				}
-			}
 
-			if (!exists) {
-				identities.add(identity);
-			}
+		if (identity == null)
+			throw (new NullPointerException());
+
+		preferredIdentity = identity;
+
+		if (!identities.contains(identity)) {
+			identities.add(identity);
 		}
+
 	}
 
 	/**
@@ -253,18 +239,17 @@ public class SimplePeakListRow implements PeakListRow {
 		return peaks.containsValue(peak);
 	}
 
-	public IsotopePattern getBestIsotopePattern()
-	{
+	public IsotopePattern getBestIsotopePattern() {
 		ChromatographicPeak peaks[] = getPeaks();
-		
+
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
-		
+
 		for (ChromatographicPeak peak : peaks) {
 			if (peak instanceof IsotopePattern)
 				return (IsotopePattern) peak;
 		}
-		
+
 		return null;
 	}
 

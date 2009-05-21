@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.UIManager;
+import javax.swing.event.RowSorterEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 
@@ -50,7 +51,7 @@ import net.sf.mzmine.util.components.PeakSummaryComponent;
 import net.sf.mzmine.util.components.PopupListener;
 import net.sf.mzmine.util.dialogs.PeakIdentitySetupDialog;
 
-public class PeakListTable extends JTable implements ComponentToolTipProvider{
+public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
 	static final String EDIT_IDENTITY = "Edit";
 	static final String REMOVE_IDENTITY = "Remove";
@@ -63,7 +64,8 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 	private PeakListRow peakListRow;
 	private TableRowSorter<PeakListTableModel> sorter;
 	private PeakListTableColumnModel cm;
-    private ComponentToolTipManager ttm;
+	private ComponentToolTipManager ttm;
+	private DefaultCellEditor currentEditor = null;
 
 	public PeakListTable(PeakListTableVisualizer visualizer,
 			PeakListTableWindow window, PeakListTableParameters parameters,
@@ -76,7 +78,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 
 		this.pkTableModel = new PeakListTableModel(peakList);
 		setModel(pkTableModel);
-		
+
 		GroupableTableHeader header = new GroupableTableHeader();
 		setTableHeader(header);
 
@@ -91,60 +93,53 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 		// Initialize sorter
 		sorter = new TableRowSorter<PeakListTableModel>(pkTableModel);
 		setRowSorter(sorter);
-		
-		
-		if (!isLightViewer){
-			PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
-				this, cm, peakList);
+
+		if (!isLightViewer) {
+			PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(
+					window, this, cm, peakList);
 			addMouseListener(new PopupListener(popupMenu));
 		}
-		
+
 		setRowHeight(parameters.getRowHeight());
-		
-		ttm = new ComponentToolTipManager();
 
-		this.registerCustomToolTip();
-
-	}
-	
-	public void registerCustomToolTip() {
-		
 		ttm = new ComponentToolTipManager();
 		ttm.registerComponent(this);
+
 	}
-	
-	public JComponent getCustomToolTipComponent(MouseEvent event){
+
+	public JComponent getCustomToolTipComponent(MouseEvent event) {
 
 		JComponent component = null;
 		String text = this.getToolTipText(event);
 		if (text == null)
 			return null;
-		
-		if (text.contains(ComponentToolTipManager.CUSTOM)){
+
+		if (text.contains(ComponentToolTipManager.CUSTOM)) {
 			String values[] = text.split("-");
-            int myID = Integer.parseInt(values[1].trim());
-            for(PeakListRow row:peakList.getRows()){
-            	if (row.getID() == myID){
-        			component = new PeakSummaryComponent(row, peakList.getRawDataFiles(), true, false, false, true, false, ComponentToolTipManager.bg);
-            		break;
-            	}
-            }
-            
-		}
-		else{
+			int myID = Integer.parseInt(values[1].trim());
+			for (PeakListRow row : peakList.getRows()) {
+				if (row.getID() == myID) {
+					component = new PeakSummaryComponent(row, peakList
+							.getRawDataFiles(), true, false, false, true,
+							false, ComponentToolTipManager.bg);
+					break;
+				}
+			}
+
+		} else {
+			text = "<html>" + text.replace("\n", "<br>") + "</html>";
 			JLabel label = new JLabel(text);
 			label.setFont(UIManager.getFont("ToolTip.font"));
 			JPanel panel = new JPanel();
 			panel.setBackground(ComponentToolTipManager.bg);
 			panel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 			panel.add(label);
-			component = panel; 
+			component = panel;
 		}
 
 		return component;
 
 	}
-
 
 	public PeakList getPeakList() {
 		return peakList;
@@ -167,7 +162,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 				combo = new JComboBox(identities);
 				combo.addItem("-------------------------");
 				combo.addItem(REMOVE_IDENTITY);
-                combo.addItem(EDIT_IDENTITY);
+				combo.addItem(EDIT_IDENTITY);
 			} else {
 				combo = new JComboBox();
 			}
@@ -176,7 +171,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 			combo.addItem(NEW_IDENTITY);
 			if (preferredIdentity != null) {
 				combo.setSelectedItem(preferredIdentity);
-            }
+			}
 
 			combo.addActionListener(new ActionListener() {
 
@@ -191,10 +186,11 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 							return;
 						}
 						if (item.toString() == EDIT_IDENTITY) {
-                            PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(
-                                    peakListRow, peakListRow.getPreferredPeakIdentity());
-                            dialog.setVisible(true);
-                            return;
+							PeakIdentitySetupDialog dialog = new PeakIdentitySetupDialog(
+									peakListRow, peakListRow
+											.getPreferredPeakIdentity());
+							dialog.setVisible(true);
+							return;
 						}
 						if (item.toString() == REMOVE_IDENTITY) {
 							PeakIdentity identity = peakListRow
@@ -210,17 +206,32 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 						if (item instanceof PeakIdentity) {
 							peakListRow
 									.setPreferredPeakIdentity((PeakIdentity) item);
+							return;
 						}
 					}
+
 				}
 			});
 
-			DefaultCellEditor cellEd = new DefaultCellEditor(combo);
-			return cellEd;
+			// Keep the reference to the editor
+			currentEditor = new DefaultCellEditor(combo);
+
+			return currentEditor;
 		}
 
 		return super.getCellEditor(row, column);
 
+	}
+
+	/**
+	 * When user sorts the table, we have to cancel current combobox for
+	 * identity selection. Unfortunately, this doesn't happen automatically.
+	 */
+	public void sorterChanged(RowSorterEvent e) {
+		if (currentEditor != null) {
+			currentEditor.stopCellEditing();
+		}
+		super.sorterChanged(e);
 	}
 
 }

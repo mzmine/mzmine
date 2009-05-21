@@ -145,7 +145,7 @@ public class SimplePeakIdentity implements PeakIdentity {
      * @see java.lang.Object#toString()
      */
     public String toString() {
-        return getDescription();
+        return compoundName;
     }
 
     /**
@@ -163,8 +163,8 @@ public class SimplePeakIdentity implements PeakIdentity {
     }
 
 	public String getDescription() {
-		return compoundName + " (" + compoundFormula
-				+ ") identification method: " + identificationMethod;
+		return compoundName + "\nFormula: " + compoundFormula
+				+ "\nIdentification method: " + identificationMethod;
 	}
 
 
