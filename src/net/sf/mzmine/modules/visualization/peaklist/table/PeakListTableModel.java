@@ -51,8 +51,6 @@ public class PeakListTableModel extends AbstractTableModel {
     }
 
     public String getColumnName(int col) {
-        // we need a unique identifier for each column, because the JFreeReport
-        // library is using it
         return "column" + col;
     }
 

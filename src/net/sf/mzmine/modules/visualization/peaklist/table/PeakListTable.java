@@ -155,6 +155,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider{
 		CommonColumnType commonColumn = pkTableModel.getCommonColumn(column);
 		if (commonColumn == CommonColumnType.IDENTITY) {
 
+			row = this.convertRowIndexToModel(row);
 			peakListRow = peakList.getRow(row);
 
 			PeakIdentity identities[] = peakListRow.getPeakIdentities();
