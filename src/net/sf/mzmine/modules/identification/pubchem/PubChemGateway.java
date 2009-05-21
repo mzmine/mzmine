@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.identification.pubchem;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
@@ -33,6 +35,12 @@ import org.dom4j.Element;
 
 public class PubChemGateway {
 
+	/**
+	 * Searches for CIDs of PubChem compounds based on their exact
+	 * (monoisotopic) mass. Returns maximum numOfResults results sorted by the
+	 * CID. If chargedOnly parameter is set, returns only molecules with
+	 * non-zero charge.
+	 */
 	static int[] findPubchemCID(Range massRange, int numOfResults,
 			boolean chargedOnly) throws IOException, DocumentException {
 
@@ -71,12 +79,8 @@ public class PubChemGateway {
 	/**
 	 * This method retrieve the SDF file of the compound from PubChem
 	 * 
-	 * @param compound
-	 * @param mass
-	 * @throws Exception
 	 */
-	static void getSummary(PubChemCompound compound)
-			throws IOException {
+	static void getSummary(PubChemCompound compound) throws IOException {
 
 		URL url = new URL(
 				"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="
@@ -89,6 +93,13 @@ public class PubChemGateway {
 		for (int i = 0; i < summaryLines.length; i++) {
 
 			String line = summaryLines[i];
+
+			if (line.matches(".*PUBCHEM_IUPAC_NAME.*")) {
+				if ((compound.getName() == null)
+						|| (compound.getName().equals("")))
+					compound.setCompoundName(summaryLines[i + 1]);
+				continue;
+			}
 
 			if (line.matches(".*PUBCHEM_MOLECULAR_FORMULA.*")) {
 				compound.setCompoundFormula(summaryLines[i + 1]);
@@ -108,22 +119,30 @@ public class PubChemGateway {
 	}
 
 	/**
-	 * This method exists due a lack of information in SDF file (missing name)
-	 * from PubChem
+	 * This method the name of the compound in PubChem based on its CID.
+	 * Unfortunately, there is no nice way how to obtain the name (= MeSH term)
+	 * from the XML records of PubChem, so we need to parse the HTML contents of
+	 * compound page. This may stop working if the structure of the PubChem site
+	 * is changed.
 	 * 
-	 * @param id
-	 * @param compound
 	 */
 	static String getName(int cid) throws IOException {
 
 		URL endpoint = new URL(
-				"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pccompound&id="
-						+ cid + "&report=brief&mode=text");
+				"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="
+						+ cid);
 
-		String name = InetUtils.retrieveData(endpoint);
-		String idString = String.valueOf(cid);
-		int index = name.indexOf(idString, 0);
-		name = name.substring(index + idString.length());
+		String htmlDocument = InetUtils.retrieveData(endpoint);
+
+		Pattern p = Pattern
+				.compile("<font size=4><b>([^<]+) - </b></font><font size=4><b>Compound Summary</b>");
+
+		Matcher m = p.matcher(htmlDocument);
+
+		if (!m.find())
+			return null;
+
+		String name = m.group(1);
 
 		return name;
 

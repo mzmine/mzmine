@@ -44,6 +44,7 @@ import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.TextUtils;
 
 /**
  * This class is the main window of application
@@ -98,23 +99,26 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	/**
      */
 	public void displayMessage(String msg) {
-		displayMessage("Message", msg);
+		displayMessage("Message", msg, JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**
      */
 	public void displayMessage(String title, String msg) {
-		JOptionPane.showMessageDialog(this, msg, title,
-				JOptionPane.INFORMATION_MESSAGE);
+		displayMessage(title, msg, JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	public void displayErrorMessage(String msg) {
-		displayErrorMessage("Error", msg);
+		displayMessage("Error", msg);
 	}
 
 	public void displayErrorMessage(String title, String msg) {
-		JOptionPane.showMessageDialog(this, msg, title,
-				JOptionPane.ERROR_MESSAGE);
+		displayMessage(title, msg, JOptionPane.ERROR_MESSAGE);
+	}
+
+	public void displayMessage(String title, String msg, int type) {
+		String wrappedMsg = TextUtils.wrapText(msg, 80);
+		JOptionPane.showMessageDialog(this, wrappedMsg, title, type);
 	}
 
 	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {

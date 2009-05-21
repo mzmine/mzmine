@@ -103,9 +103,6 @@ Custom database search
  one of the names is selected and the peak list is sorted. This selected identification 
  doesn't change its position in the list when it is sorted.
 
-PubChem search
-* When user puts Charge=0 in the setup dialog, neutral mass is not calculated correctly
-* Search on the whole peaklist doesn't work, only on individual peaks 
 
 ***** Data analysis *****
 

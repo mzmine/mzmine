@@ -72,9 +72,9 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 		ionizationMethodCombo.addActionListener(this);
 
 		JCheckBox onlyChargedCheckBox = (JCheckBox) getComponentForParameter(PubChemSearchParameters.chargedMol);
-		
+
 		setNeutralMassValue();
-		
+
 		if (row == null) {
 			chargeField.setEnabled(false);
 			neutralMassField.setEnabled(false);
@@ -116,6 +116,9 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 	private void setNeutralMassValue() {
 
 		int charge = Integer.parseInt(chargeField.getText());
+		if (charge < 1) {
+			charge = 1;
+		}
 
 		IonizationType ionType = (IonizationType) ionizationMethodCombo
 				.getSelectedItem();

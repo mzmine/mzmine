@@ -40,7 +40,7 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 	public static final Parameter charge = new SimpleParameter(
 			ParameterType.INTEGER, "Charge",
 			"This value is used to calculate the neutral mass", null,
-			new Integer(1), new Integer(0), null, null);
+			new Integer(1), new Integer(1), null, null);
 
 	public static final Parameter ionizationMethod = new SimpleParameter(
 			ParameterType.STRING, "Ionization method",

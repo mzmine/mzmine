@@ -57,7 +57,7 @@ public class MolStructureViewer extends JInternalFrame implements
 		ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
+
 	private JMolPanelLight jmolPanel;
 	private JChemPanelLight jcp;
 	private String description, structure3D;
@@ -66,10 +66,11 @@ public class MolStructureViewer extends JInternalFrame implements
 	private static int openDialogCount = 0;
 	private static final int xOffset = 30, yOffset = 30;
 	private static final Font buttonFont = new Font("SansSerif", Font.BOLD, 11);
-	
-	//private static final String pub3dAddress = "http://www.chembiogrid.org/cheminfo/rest/db/pub3d/";
+
+	// private static final String pub3dAddress =
+	// "http://www.chembiogrid.org/cheminfo/rest/db/pub3d/";
 	private static final String url3d = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?disopt=3DSaveSDF&cid=";
-	
+
 	private static final String load3d = "Load 3D structure";
 	private static final String load2d = "Load 2D structure";
 
@@ -232,27 +233,31 @@ public class MolStructureViewer extends JInternalFrame implements
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 
-		if (source instanceof JButton) {
+		if (source == button3d) {
+
+			// disable the button to avoid multiple clicking by user
+			button3d.setEnabled(false);
 
 			if (button3d.getText().equals(load3d)) {
 
 				// Request 3D structure
 				if (structure3D == null) {
 
+					// Load the structure in a new thread so we don't block the
+					// GUI
 					Thread newThread = new Thread(new Runnable() {
 						public void run() {
 							try {
 								URL url = new URL(url3d + compound.getID());
 								structure3D = InetUtils.retrieveData(url);
 								setJmolViewerStructure(structure3D);
-								button3d.setText(load2d);
 							} catch (Exception e) {
-								MZmineCore
-										.getDesktop()
-										.displayMessage(
-												"Could not retrieve 3D structure: " + e.toString());
-								return;
+								MZmineCore.getDesktop().displayMessage(
+										"Could not retrieve 3D structure: "
+												+ e.toString());
 							}
+							button3d.setText(load2d);
+							button3d.setEnabled(true);
 						}
 					});
 
@@ -262,11 +267,13 @@ public class MolStructureViewer extends JInternalFrame implements
 
 					setJmolViewerStructure(structure3D);
 					button3d.setText(load2d);
+					button3d.setEnabled(true);
 
 				}
 			} else {
 				setJmolViewerStructure(compound.getStructure());
 				button3d.setText(load3d);
+				button3d.setEnabled(true);
 			}
 		}
 
