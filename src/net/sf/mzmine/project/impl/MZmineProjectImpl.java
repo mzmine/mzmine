@@ -26,6 +26,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
@@ -107,10 +108,10 @@ public class MZmineProjectImpl implements MZmineProject {
 		// If the data file is present in any peak list, we must not remove it
 		for (PeakList peakList : peakLists) {
 			if (peakList.hasRawDataFile(file)) {
-				MZmineCore.getDesktop().displayErrorMessage(
-						"Cannot remove file " + file
-								+ ", because it is present in the peak list "
-								+ peakList);
+				Desktop desktop = MZmineCore.getDesktop();
+				desktop.displayErrorMessage("Cannot remove file \"" + file
+						+ "\", because it is present in the peak list \""
+						+ peakList + "\"");
 				return;
 			}
 		}
