@@ -46,10 +46,11 @@ public class PubChemCompound implements PeakIdentity {
 		this.compoundName = compoundName;
 		this.compoundFormula = compoundFormula;
 
-		if (compoundName == null) {
-			this.compoundName = compoundFormula;
-		} else if (compoundName.equals("")) {
-			this.compoundName = compoundFormula;
+		if ((compoundName == null) || (compoundName.equals(""))) {
+			if ((compoundFormula != null) && (compoundFormula.length() > 0))
+				this.compoundName = compoundFormula;
+			else
+				this.compoundName = "Unknown name";
 		}
 
 		this.compoundID = compoundID;
@@ -58,7 +59,7 @@ public class PubChemCompound implements PeakIdentity {
 		} else {
 			this.databaseEntryURL = databaseEntryURL;
 		}
-	
+
 	}
 
 	/**
