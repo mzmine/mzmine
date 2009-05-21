@@ -79,8 +79,8 @@ public class RawDataFileSave {
 
 		TransformerHandler hd = tf.newTransformerHandler();
 		Transformer serializer = hd.getTransformer();
-
-		serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
+		serializer.setOutputProperty(OutputKeys.INDENT,"yes");
+		serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
 		hd.setResult(streamResult);
 		hd.startDocument();

@@ -26,6 +26,7 @@ import java.util.Vector;
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
@@ -92,18 +93,33 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public synchronized void addFile(RawDataFile newFile) {
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.DATAFILE_ADDED, newFile, dataFiles.size());
+
+		int newFileIndex = dataFiles.size();
 		dataFiles.add(newFile);
+
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public synchronized void removeFile(RawDataFile file) {
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.DATAFILE_REMOVED, file, dataFiles
-						.indexOf(file));
+
+		// If the data file is present in any peak list, we must not remove it
+		for (PeakList peakList : peakLists) {
+			if (peakList.hasRawDataFile(file)) {
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Cannot remove file " + file
+								+ ", because it is present in the peak list "
+								+ peakList);
+				return;
+			}
+		}
+
+		int removedFileIndex = dataFiles.indexOf(file);
 		dataFiles.remove(file);
 		file.close();
+		ProjectEvent newEvent = new ProjectEvent(
+				ProjectEventType.DATAFILE_REMOVED, file, removedFileIndex);
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 

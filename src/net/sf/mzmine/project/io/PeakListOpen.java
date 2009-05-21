@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.project.io;
 
-import com.Ostermiller.util.Base64;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -29,8 +28,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakStatus;
@@ -46,12 +47,15 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.util.Range;
+
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import com.Ostermiller.util.Base64;
 
 public class PeakListOpen extends DefaultHandler {
 
@@ -65,7 +69,6 @@ public class PeakListOpen extends DefaultHandler {
 	private String peakStatus,  peakListName,  name,  formula,  identificationMethod,  identityID;
 	private boolean preferred;
 	private String dateCreated;
-	private Range rtRange,  mzRange;
 	private boolean peakListFlag = false;
 	private boolean scanFlag = false;
 	private boolean mzPeakFlag = false;
@@ -324,39 +327,16 @@ public class PeakListOpen extends DefaultHandler {
 
 		// <FORMULA>
 		if (qName.equals(PeakListElementName.FORMULA.getElementName())) {
-
 			formula = getTextOfElement();
 		}
 
 		// <IDENTIFICATION>
 		if (qName.equals(PeakListElementName.IDENTIFICATION.getElementName())) {
-
 			identificationMethod = getTextOfElement();
-		}
-
-		// <RTRANGE>
-		if (qName.equals(PeakListElementName.RTRANGE.getElementName())) {
-
-			String valueText = getTextOfElement();
-			String values[] = valueText.split("-");
-			double min = Double.parseDouble(values[0]);
-			double max = Double.parseDouble(values[1]);
-			rtRange = new Range(min, max);
-		}
-
-		// <MZRANGE>
-		if (qName.equals(PeakListElementName.MZRANGE.getElementName())) {
-
-			String valueText = getTextOfElement();
-			String values[] = valueText.split("-");
-			double min = Double.parseDouble(values[0]);
-			double max = Double.parseDouble(values[1]);
-			mzRange = new Range(min, max);
 		}
 
 		// <MZPEAK>
 		if (qName.equals(PeakListElementName.MZPEAK.getElementName())) {
-
 			mzPeakFlag = false;
 		}
 
@@ -426,8 +406,6 @@ public class PeakListOpen extends DefaultHandler {
 		if (qName.equals(PeakListElementName.RAWFILE.getElementName())) {
 			RawDataFile rawDataFile = MZmineCore.getCurrentProject().getDataFiles()[rawDataFileID];
 			buildingRawDataFile = (RawDataFileImpl) rawDataFile;
-			buildingRawDataFile.setRTRange(1, rtRange);
-			buildingRawDataFile.setMZRange(1, mzRange);
 			buildingArrayRawDataFiles.put(rawDataFileID, buildingRawDataFile);
 			buildingRawDataFile = null;
 		}

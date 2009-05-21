@@ -87,9 +87,10 @@ public class PeakListSave {
 		SAXTransformerFactory tf = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
 		
 		TransformerHandler hd = tf.newTransformerHandler();
+		
 		Transformer serializer = hd.getTransformer();
-
-		serializer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
+		serializer.setOutputProperty(OutputKeys.INDENT,"yes");
+		serializer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 		
 		hd.setResult(streamResult);
 		hd.startDocument();
@@ -279,23 +280,6 @@ public class PeakListSave {
 		hd.startElement("", "", PeakListElementName.RAWDATA_NAME.getElementName(), atts);
 		hd.characters(file.getName().toCharArray(), 0, file.getName().length());
 		hd.endElement("", "", PeakListElementName.RAWDATA_NAME.getElementName());
-
-		// <RTRANGE>
-		Range RTRange = file.getDataRTRange(1);
-		atts.clear();
-		hd.startElement("", "", PeakListElementName.RTRANGE.getElementName(), atts);
-		String range = String.valueOf(RTRange.getMin() + "-" + RTRange.getMax());
-		hd.characters(range.toCharArray(), 0, range.length());
-		hd.endElement("", "", PeakListElementName.RTRANGE.getElementName());
-
-
-		// <MZRANGE>
-		Range MZRange = file.getDataMZRange(1);
-		atts.clear();
-		hd.startElement("", "", PeakListElementName.MZRANGE.getElementName(), atts);
-		range = String.valueOf(MZRange.getMin() + "-" + MZRange.getMax());
-		hd.characters(range.toCharArray(), 0, range.length());
-		hd.endElement("", "", PeakListElementName.MZRANGE.getElementName());
 	}
 
 	/**

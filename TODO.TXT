@@ -3,14 +3,6 @@ TODO list for MZmine 2.0 release
 
 ***** Core modules *****
 
-Project manager
-* Project must not contain two data files with same name, otherwise project saving will fail.
-  This must be checked when data files are added to the project, and also when data file is being renamed.
-* When data file, which is present in a peak list, is removed from the project, lot of problems appear 
-  (e.g. exceptions when showing the XIC component). Maybe the easiest solution is not to allow removing 
-  of data files which are used in a peak list. 
-
-
 Desktop
 * Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
 
@@ -64,6 +56,10 @@ Peak list table
 * There should be another column "fold-change", user can select which samples/parameters are compared
 * We need a function to show a specific row of the peak list, this should be easy to activate from
   other plots (e.g. scatter plot)
+* Bug: the identification assigned to one peak changes to another peak when
+ one of the names is selected and the peak list is sorted. This selected identification 
+ doesn't change its position in the list when it is sorted.
+  
 
 Scatter plot
 * Scatter plot should be able to show average value from a group of samples 
@@ -82,6 +78,7 @@ Peak list row summary visualizer
 * After changing the peak using manual picker, the row summary is not updated
 
 ***** Alignment *****
+
 Join Alignment
 Bug: When there is an error during the process, the frames for the messages apears empty. To reproduce it: try doing the alignment 
 whit two peak list with more than one sample each list, and the option "compare isotope pattern" activated.
@@ -97,11 +94,6 @@ NOMIS method?
 Related peaks search
 * This module should perhaps be split into several modules for adduct search, 
   fragments search (using MS/MS), dimers etc. (Tomas)
-
-Custom database search
-* Bug: the identification assigned to one peak changes to another peak when
- one of the names is selected and the peak list is sorted. This selected identification 
- doesn't change its position in the list when it is sorted.
 
 
 ***** Data analysis *****
