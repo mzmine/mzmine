@@ -31,6 +31,8 @@ public class PubChemCompound implements PeakIdentity {
 	private IsotopePattern isotopePattern;
 	private String structure;
 	public static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
+	
+	static final String UNKNOWN_NAME = "Unknown name";
 
 	/**
 	 * @param compoundID
@@ -50,7 +52,7 @@ public class PubChemCompound implements PeakIdentity {
 			if ((compoundFormula != null) && (compoundFormula.length() > 0))
 				this.compoundName = compoundFormula;
 			else
-				this.compoundName = "Unknown name";
+				this.compoundName = UNKNOWN_NAME;
 		}
 
 		this.compoundID = compoundID;

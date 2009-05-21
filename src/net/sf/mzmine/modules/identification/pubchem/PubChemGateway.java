@@ -95,8 +95,7 @@ public class PubChemGateway {
 			String line = summaryLines[i];
 
 			if (line.matches(".*PUBCHEM_IUPAC_NAME.*")) {
-				if ((compound.getName() == null)
-						|| (compound.getName().equals("")))
+				if (compound.getName() == PubChemCompound.UNKNOWN_NAME)
 					compound.setCompoundName(summaryLines[i + 1]);
 				continue;
 			}
