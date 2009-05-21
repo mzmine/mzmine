@@ -49,10 +49,7 @@ public class PubChemCompound implements PeakIdentity {
 		this.compoundFormula = compoundFormula;
 
 		if ((compoundName == null) || (compoundName.equals(""))) {
-			if ((compoundFormula != null) && (compoundFormula.length() > 0))
-				this.compoundName = compoundFormula;
-			else
-				this.compoundName = UNKNOWN_NAME;
+			this.compoundName = UNKNOWN_NAME;
 		}
 
 		this.compoundID = compoundID;

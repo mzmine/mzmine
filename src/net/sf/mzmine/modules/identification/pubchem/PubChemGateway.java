@@ -113,6 +113,12 @@ public class PubChemGateway {
 
 		}
 
+		if (compound.getName() == PubChemCompound.UNKNOWN_NAME) {
+			String formula = compound.getCompoundFormula();
+			if ((formula != null) && (formula.length() > 0))
+				compound.setCompoundName(formula);
+		}
+
 		compound.setStructure(sdfCompoundData);
 
 	}
