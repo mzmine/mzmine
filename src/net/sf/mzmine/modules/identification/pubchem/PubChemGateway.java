@@ -44,11 +44,14 @@ public class PubChemGateway {
 	static int[] findPubchemCID(Range massRange, int numOfResults,
 			boolean chargedOnly, boolean isProxy, String proxyAdress, String proxyPort) throws IOException, DocumentException {
 
-		StringBuilder pubchemUrl = new StringBuilder();
+		//proxy options
 		if(isProxy){
 			System.setProperty("http.proxyHost", proxyAdress);
 			System.setProperty("http.proxyPort", proxyPort);
 		}
+
+		StringBuilder pubchemUrl = new StringBuilder();
+		
 		pubchemUrl
 				.append("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?usehistory=n&db=pccompound&sort=cida&retmax=");
 		pubchemUrl.append(numOfResults);
