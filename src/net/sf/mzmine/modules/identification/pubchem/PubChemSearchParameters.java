@@ -83,9 +83,9 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 			"Use a proxy server for your LAN", null,
 			false, null, null, null);
 
-	public static final Parameter proxyAdress = new SimpleParameter(
+	public static final Parameter proxyAddress = new SimpleParameter(
 			ParameterType.STRING, "Proxy adress",
-			"Proxy adress");
+			"Proxy address");
 	public static final Parameter proxyPort = new SimpleParameter(
 			ParameterType.STRING, "Port",
 			"Proxy port");
@@ -93,7 +93,7 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 	public PubChemSearchParameters() {
 		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
 				chargedMol, numOfResults, mzToleranceField, isotopeFilter,
-				isotopeScoreTolerance, proxy, proxyAdress, proxyPort });
+				isotopeScoreTolerance, proxy, proxyAddress, proxyPort });
 	}
 
 }

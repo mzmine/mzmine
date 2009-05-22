@@ -58,7 +58,7 @@ public class PubChemPeakListIdentificationTask implements Task {
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private boolean isProxy = false;
-	private String proxyAdress;
+	private String proxyAddress;
 	private String proxyPort;
 
 
@@ -86,8 +86,8 @@ public class PubChemPeakListIdentificationTask implements Task {
 				.getParameterValue(PubChemSearchParameters.ionizationMethod);
 		isProxy = (Boolean) parameters
 				.getParameterValue(PubChemSearchParameters.proxy);
-		proxyAdress = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyAdress);
+		proxyAddress = (String) parameters
+				.getParameterValue(PubChemSearchParameters.proxyAddress);
 		proxyPort = (String) parameters
 				.getParameterValue(PubChemSearchParameters.proxyPort);
 
@@ -202,7 +202,7 @@ public class PubChemPeakListIdentificationTask implements Task {
 				+ massTolerance);
 
 		int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
-				numOfResults, false, isProxy, proxyAdress, proxyPort);
+				numOfResults, false, isProxy, proxyAddress, proxyPort);
 
 		// Process each one of the result ID's.
 		for (int i = 0; i < resultCIDs.length; i++) {

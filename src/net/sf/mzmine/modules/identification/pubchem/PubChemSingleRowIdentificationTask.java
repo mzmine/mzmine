@@ -54,7 +54,7 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private boolean isProxy = false;
-	private String proxyAdress;
+	private String proxyAddress;
 	private String proxyPort;
 	
 	/**
@@ -85,8 +85,8 @@ public class PubChemSingleRowIdentificationTask implements Task {
 
 		isProxy = (Boolean) parameters
 				.getParameterValue(PubChemSearchParameters.proxy);
-		proxyAdress = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyAdress);
+		proxyAddress = (String) parameters
+				.getParameterValue(PubChemSearchParameters.proxyAddress);
 		proxyPort = (String) parameters
 				.getParameterValue(PubChemSearchParameters.proxyPort);
 
@@ -160,7 +160,7 @@ public class PubChemSingleRowIdentificationTask implements Task {
 				chargedOnly = true;
 
 			int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
-					maxNumOfResults, chargedOnly, isProxy, proxyAdress, proxyPort);
+					maxNumOfResults, chargedOnly, isProxy, proxyAddress, proxyPort);
 
 			// Get the number of results
 			numItems = resultCIDs.length;

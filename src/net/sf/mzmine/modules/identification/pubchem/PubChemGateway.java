@@ -42,11 +42,11 @@ public class PubChemGateway {
 	 * non-zero charge.
 	 */
 	static int[] findPubchemCID(Range massRange, int numOfResults,
-			boolean chargedOnly, boolean isProxy, String proxyAdress, String proxyPort) throws IOException, DocumentException {
+			boolean chargedOnly, boolean isProxy, String proxyAddress, String proxyPort) throws IOException, DocumentException {
 
 		//proxy options
 		if(isProxy){
-			System.setProperty("http.proxyHost", proxyAdress);
+			System.setProperty("http.proxyHost", proxyAddress);
 			System.setProperty("http.proxyPort", proxyPort);
 		}
 
