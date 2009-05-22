@@ -22,12 +22,11 @@ package net.sf.mzmine.taskcontrol;
 public enum TaskStatus {
 
 	/**
-	 * WAITING - task is ready and waiting to start
+	 * WAITING - task is waiting for available thread
 	 * 
 	 * PROCESSING - task is running
 	 * 
-	 * FINISHED - task finished succesfully, results can be obtained by
-	 * getResult()
+	 * FINISHED - task finished succesfully
 	 * 
 	 * CANCELED - task was canceled by user
 	 * 
