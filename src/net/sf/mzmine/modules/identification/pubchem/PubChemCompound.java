@@ -26,12 +26,10 @@ public class PubChemCompound implements PeakIdentity {
 
 	private int compoundID;
 	private String compoundName, compoundFormula, databaseEntryURL;
-	private double exactMass;
-	private String isotopePatternScore = "";
+	private double exactMass, isotopePatternScore;
 	private IsotopePattern isotopePattern;
-	private String structure;
 	public static final String pubchemAddress = "http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid=";
-	
+
 	static final String UNKNOWN_NAME = "Unknown name";
 
 	/**
@@ -44,20 +42,22 @@ public class PubChemCompound implements PeakIdentity {
 	 * @param scopeNote
 	 */
 	public PubChemCompound(int compoundID, String compoundName,
-			String compoundFormula, String databaseEntryURL) {
-		this.compoundName = compoundName;
-		this.compoundFormula = compoundFormula;
+			String compoundFormula, double exactMass) {
 
 		if ((compoundName == null) || (compoundName.equals(""))) {
-			this.compoundName = UNKNOWN_NAME;
+			if ((compoundFormula != null) && (compoundFormula.length() > 0)) {
+				this.compoundName = compoundFormula;
+			} else {
+				this.compoundName = UNKNOWN_NAME;
+			}
+		} else {
+			this.compoundName = compoundName;
 		}
 
+		this.compoundFormula = compoundFormula;
 		this.compoundID = compoundID;
-		if (databaseEntryURL == null) {
-			this.databaseEntryURL = pubchemAddress + compoundID;
-		} else {
-			this.databaseEntryURL = databaseEntryURL;
-		}
+		this.exactMass = exactMass;
+		this.databaseEntryURL = pubchemAddress + compoundID;
 
 	}
 
@@ -69,26 +69,10 @@ public class PubChemCompound implements PeakIdentity {
 	}
 
 	/**
-	 * @param compoundFormula
-	 *            The compoundFormula to set.
-	 */
-	public void setCompoundFormula(String compoundFormula) {
-		this.compoundFormula = compoundFormula;
-	}
-
-	/**
 	 * @return Returns the compoundID.
 	 */
 	public int getID() {
 		return compoundID;
-	}
-
-	/**
-	 * @param compoundID
-	 *            The compoundID to set.
-	 */
-	public void setCompoundID(int compoundID) {
-		this.compoundID = compoundID;
 	}
 
 	/**
@@ -99,14 +83,6 @@ public class PubChemCompound implements PeakIdentity {
 	}
 
 	/**
-	 * @param compoundName
-	 *            The compoundName to set.
-	 */
-	public void setCompoundName(String compoundName) {
-		this.compoundName = compoundName;
-	}
-
-	/**
 	 * @return Returns the databaseEntryURL.
 	 */
 	public String getDatabaseEntryURL() {
@@ -114,27 +90,10 @@ public class PubChemCompound implements PeakIdentity {
 	}
 
 	/**
-	 * @param databaseEntryURL
-	 *            The databaseEntryURL to set.
-	 */
-	public void setDatabaseEntryURL(String databaseEntryURL) {
-		this.databaseEntryURL = databaseEntryURL;
-	}
-
-	/**
 	 * @return Returns the identificationMethod.
 	 */
 	public String getIdentificationMethod() {
 		return "PubChem compound database";
-	}
-
-	/**
-	 * Set the difference between this compound and the detected peak
-	 * 
-	 * @return String exact mass
-	 */
-	public void setExactMass(double exactMass) {
-		this.exactMass = exactMass;
 	}
 
 	/**
@@ -151,7 +110,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * 
 	 * @return String exact mass
 	 */
-	public void setIsotopePatternScore(String score) {
+	public void setIsotopePatternScore(double score) {
 		this.isotopePatternScore = score;
 	}
 
@@ -160,7 +119,7 @@ public class PubChemCompound implements PeakIdentity {
 	 * 
 	 * @return IsotopePattern
 	 */
-	public String getIsotopePatternScore() {
+	public double getIsotopePatternScore() {
 		return isotopePatternScore;
 	}
 
@@ -180,24 +139,6 @@ public class PubChemCompound implements PeakIdentity {
 	 */
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
-	}
-
-	/**
-	 * Assign the structure (SDF format) of this compound.
-	 * 
-	 * @param structure
-	 */
-	public void setStructure(String structure) {
-		this.structure = structure;
-	}
-
-	/**
-	 * Returns the structure (SDF format) of this compound.
-	 * 
-	 * @return structure
-	 */
-	public String getStructure() {
-		return structure;
 	}
 
 	/**

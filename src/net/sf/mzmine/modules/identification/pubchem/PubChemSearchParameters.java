@@ -78,22 +78,10 @@ public class PubChemSearchParameters extends SimpleParameterSet {
 			"Threshold level for isotope pattern score", "%", new Double(0.65),
 			new Double(0.0), new Double(1.0), percentFormat);
 
-	public static final Parameter proxy = new SimpleParameter(
-			ParameterType.BOOLEAN, "Use a proxy server for your LAN",
-			"Use a proxy server for your LAN", null,
-			false, null, null, null);
-
-	public static final Parameter proxyAddress = new SimpleParameter(
-			ParameterType.STRING, "Proxy adress",
-			"Proxy address");
-	public static final Parameter proxyPort = new SimpleParameter(
-			ParameterType.STRING, "Port",
-			"Proxy port");
-
 	public PubChemSearchParameters() {
 		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
 				chargedMol, numOfResults, mzToleranceField, isotopeFilter,
-				isotopeScoreTolerance, proxy, proxyAddress, proxyPort });
+				isotopeScoreTolerance });
 	}
 
 }

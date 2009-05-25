@@ -53,9 +53,6 @@ public class PubChemSingleRowIdentificationTask implements Task {
 	private boolean chargedMol = false, isotopeFilter = false;
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
-	private boolean isProxy = false;
-	private String proxyAddress;
-	private String proxyPort;
 	
 	/**
 	 * 
@@ -82,13 +79,6 @@ public class PubChemSingleRowIdentificationTask implements Task {
 				.getParameterValue(PubChemSearchParameters.chargedMol);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(PubChemSearchParameters.isotopeFilter);
-
-		isProxy = (Boolean) parameters
-				.getParameterValue(PubChemSearchParameters.proxy);
-		proxyAddress = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyAddress);
-		proxyPort = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyPort);
 
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
@@ -160,7 +150,7 @@ public class PubChemSingleRowIdentificationTask implements Task {
 				chargedOnly = true;
 
 			int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
-					maxNumOfResults, chargedOnly, isProxy, proxyAddress, proxyPort);
+					maxNumOfResults, chargedOnly);
 
 			// Get the number of results
 			numItems = resultCIDs.length;
@@ -172,12 +162,7 @@ public class PubChemSingleRowIdentificationTask implements Task {
 					return;
 				}
 
-				String compoundName = PubChemGateway.getName(resultCIDs[i]);
-
-				PubChemCompound compound = new PubChemCompound(resultCIDs[i],
-						compoundName, null, null);
-
-				PubChemGateway.getSummary(compound);
+				PubChemCompound compound = PubChemGateway.getCompound(resultCIDs[i]);
 
 				// Generate IsotopePattern for this compound
 				IsotopePattern compoundIsotopePattern = analyzer
@@ -195,7 +180,7 @@ public class PubChemSingleRowIdentificationTask implements Task {
 					double score = IsotopePatternScoreCalculator.getScore(
 							rawDataIsotopePattern, compoundIsotopePattern);
 
-					compound.setIsotopePatternScore(String.valueOf(score));
+					compound.setIsotopePatternScore(score);
 
 					if (score >= isotopeScoreThreshold) {
 						finishedItems++;

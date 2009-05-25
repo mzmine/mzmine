@@ -26,6 +26,9 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
+import org.openscience.cdk.Molecule;
+import org.openscience.cdk.tools.MFAnalyser;
+
 public class IsotopeUtils {
 
 	// A quarter of Hydrogen's mass
@@ -42,7 +45,8 @@ public class IsotopeUtils {
 	 *            Isotope pattern to be compared
 	 * @return score a calculated double value
 	 */
-	public static double getSimilarityScore(IsotopePattern ip1, IsotopePattern ip2) {
+	public static double getSimilarityScore(IsotopePattern ip1,
+			IsotopePattern ip2) {
 
 		double diffMass, diffAbun, factor, totalFactor = 0;
 		double score = 0, tempScore;
@@ -191,6 +195,22 @@ public class IsotopeUtils {
 		}
 
 		return sortedDataPoints.toArray(new DataPoint[0]);
+
+	}
+
+	/**
+	 * Calculates exact monoisotopic mass of a given formula
+	 */
+	public static double calculateExactMass(String molecularFormula) {
+
+		Molecule mol = new Molecule();
+		MFAnalyser molAnalyser = new MFAnalyser(molecularFormula, mol);
+
+		try {
+			return molAnalyser.getMass();
+		} catch (Exception e) {
+			return 0;
+		}
 
 	}
 

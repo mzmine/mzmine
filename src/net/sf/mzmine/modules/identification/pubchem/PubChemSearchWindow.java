@@ -24,7 +24,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
@@ -46,7 +48,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.identification.pubchem.molstructureviewer.MolStructureViewer;
+import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -66,7 +68,8 @@ public class PubChemSearchWindow extends JInternalFrame implements
 	private String description;
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-	public PubChemSearchWindow(PeakList peakList, PeakListRow peakListRow, double searchedMass) {
+	public PubChemSearchWindow(PeakList peakList, PeakListRow peakListRow,
+			double searchedMass) {
 
 		super(null, true, true, true, true);
 
@@ -168,11 +171,23 @@ public class PubChemSearchWindow extends JInternalFrame implements
 
 			}
 
-			MolStructureViewer viewer;
-			viewer = new MolStructureViewer(listElementModel
-					.getCompoundAt(index));
-			Desktop desktop = MZmineCore.getDesktop();
-			desktop.addInternalFrame(viewer);
+			PubChemCompound compound = listElementModel.getCompoundAt(index);
+			try {
+				URL url2D = new URL(
+						"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?disopt=SaveSDF&cid="
+								+ compound.getID());
+				URL url3D = new URL(
+						"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?disopt=3DSaveSDF&cid="
+								+ compound.getID());
+				String name = compound.getName() + " (CID " + compound.getID()
+						+ ")";
+				MolStructureViewer viewer = new MolStructureViewer(name, url2D,
+						url3D);
+				Desktop desktop = MZmineCore.getDesktop();
+				desktop.addInternalFrame(viewer);
+			} catch (MalformedURLException mex) {
+				// ignore, because this should never happen
+			}
 
 		}
 

@@ -72,10 +72,7 @@ public class PubChemResultTableModel extends AbstractTableModel {
 			value = massFormat.format(massDifference);
 			break;
 		case (4):
-			String text = comp.getIsotopePatternScore();
-			if (text.length() == 0)
-				break;
-			double score = Double.parseDouble(text);
+			double score = comp.getIsotopePatternScore();
 			value = percentFormat.format(score);
 			break;
 		}

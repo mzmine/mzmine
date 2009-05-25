@@ -22,10 +22,9 @@ package net.sf.mzmine.modules.identification.pubchem;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.IsotopeUtils;
 import net.sf.mzmine.util.Range;
 
 import org.dom4j.Document;
@@ -42,16 +41,10 @@ public class PubChemGateway {
 	 * non-zero charge.
 	 */
 	static int[] findPubchemCID(Range massRange, int numOfResults,
-			boolean chargedOnly, boolean isProxy, String proxyAddress, String proxyPort) throws IOException, DocumentException {
-
-		//proxy options
-		if(isProxy){
-			System.setProperty("http.proxyHost", proxyAddress);
-			System.setProperty("http.proxyPort", proxyPort);
-		}
+			boolean chargedOnly) throws IOException, DocumentException {
 
 		StringBuilder pubchemUrl = new StringBuilder();
-		
+
 		pubchemUrl
 				.append("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?usehistory=n&db=pccompound&sort=cida&retmax=");
 		pubchemUrl.append(numOfResults);
@@ -83,79 +76,46 @@ public class PubChemGateway {
 	}
 
 	/**
-	 * This method retrieve the SDF file of the compound from PubChem
+	 * This method retrieves the details about a PubChem compound
 	 * 
 	 */
-	static void getSummary(PubChemCompound compound) throws IOException {
+	static PubChemCompound getCompound(int CID) throws IOException,
+			DocumentException {
 
 		URL url = new URL(
-				"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="
-						+ compound.getID() + "&disopt=DisplaySDF");
+				"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pccompound&id="
+						+ CID);
 
-		String sdfCompoundData = InetUtils.retrieveData(url);
+		String resultDocument = InetUtils.retrieveData(url);
 
-		String summaryLines[] = sdfCompoundData.split("\n");
+		Document parsedResult = DocumentHelper.parseText(resultDocument);
 
-		for (int i = 0; i < summaryLines.length; i++) {
-
-			String line = summaryLines[i];
-
-			if (line.matches(".*PUBCHEM_IUPAC_NAME.*")) {
-				if (compound.getName() == PubChemCompound.UNKNOWN_NAME)
-					compound.setCompoundName(summaryLines[i + 1]);
-				continue;
-			}
-
-			if (line.matches(".*PUBCHEM_MOLECULAR_FORMULA.*")) {
-				compound.setCompoundFormula(summaryLines[i + 1]);
-				continue;
-			}
-
-			if (line.matches(".*PUBCHEM_MONOISOTOPIC_WEIGHT.*")) {
-				double exactMass = Double.parseDouble(summaryLines[i + 1]);
-				compound.setExactMass(exactMass);
-				continue;
-			}
-
+		Element nameElement = (Element) parsedResult
+				.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='MeSHHeadingList']/Item");
+		if (nameElement == null) {
+			nameElement = (Element) parsedResult
+					.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='SynonymList']/Item");
 		}
-
-		if (compound.getName() == PubChemCompound.UNKNOWN_NAME) {
-			String formula = compound.getCompoundFormula();
-			if ((formula != null) && (formula.length() > 0))
-				compound.setCompoundName(formula);
+		if (nameElement == null) {
+			nameElement = (Element) parsedResult
+					.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='IUPACName']");
 		}
+		if (nameElement == null)
+			throw new DocumentException("Could not parse compound name");
 
-		compound.setStructure(sdfCompoundData);
+		String compoundName = nameElement.getText();
 
-	}
+		Element formulaElement = (Element) parsedResult
+				.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='MolecularFormula']");
 
-	/**
-	 * This method the name of the compound in PubChem based on its CID.
-	 * Unfortunately, there is no nice way how to obtain the name (= MeSH term)
-	 * from the XML records of PubChem, so we need to parse the HTML contents of
-	 * compound page. This may stop working if the structure of the PubChem site
-	 * is changed.
-	 * 
-	 */
-	static String getName(int cid) throws IOException {
+		String compoundFormula = formulaElement.getText();
 
-		URL endpoint = new URL(
-				"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?cid="
-						+ cid);
+		double compoundMass = IsotopeUtils.calculateExactMass(compoundFormula);
 
-		String htmlDocument = InetUtils.retrieveData(endpoint);
+		PubChemCompound newCompound = new PubChemCompound(CID, compoundName,
+				compoundFormula, compoundMass);
 
-		Pattern p = Pattern
-				.compile("<font size=4><b>([^<]+) - </b></font><font size=4><b>Compound Summary</b>");
-
-		Matcher m = p.matcher(htmlDocument);
-
-		if (!m.find())
-			return null;
-
-		String name = m.group(1);
-
-		return name;
+		return newCompound;
 
 	}
 

@@ -57,10 +57,6 @@ public class PubChemPeakListIdentificationTask implements Task {
 	private boolean isotopeFilter = false;
 	private double isotopeScoreThreshold;
 	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
-	private boolean isProxy = false;
-	private String proxyAddress;
-	private String proxyPort;
-
 
 	/**
 	 * 
@@ -84,12 +80,6 @@ public class PubChemPeakListIdentificationTask implements Task {
 				.getParameterValue(PubChemSearchParameters.isotopeScoreTolerance);
 		ionType = (IonizationType) parameters
 				.getParameterValue(PubChemSearchParameters.ionizationMethod);
-		isProxy = (Boolean) parameters
-				.getParameterValue(PubChemSearchParameters.proxy);
-		proxyAddress = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyAddress);
-		proxyPort = (String) parameters
-				.getParameterValue(PubChemSearchParameters.proxyPort);
 
 	}
 
@@ -202,7 +192,7 @@ public class PubChemPeakListIdentificationTask implements Task {
 				+ massTolerance);
 
 		int resultCIDs[] = PubChemGateway.findPubchemCID(massRange,
-				numOfResults, false, isProxy, proxyAddress, proxyPort);
+				numOfResults, false);
 
 		// Process each one of the result ID's.
 		for (int i = 0; i < resultCIDs.length; i++) {
@@ -211,12 +201,7 @@ public class PubChemPeakListIdentificationTask implements Task {
 				return;
 			}
 
-			String compoundName = PubChemGateway.getName(resultCIDs[i]);
-
-			PubChemCompound compound = new PubChemCompound(resultCIDs[i],
-					compoundName, null, null);
-
-			PubChemGateway.getSummary(compound);
+			PubChemCompound compound = PubChemGateway.getCompound(resultCIDs[i]);
 
 			// If required, check isotope score
 			if (isotopeFilter) {
@@ -234,7 +219,7 @@ public class PubChemPeakListIdentificationTask implements Task {
 				double score = IsotopePatternScoreCalculator.getScore(
 						rawDataIsotopePattern, compoundIsotopePattern);
 
-				compound.setIsotopePatternScore(String.valueOf(score));
+				compound.setIsotopePatternScore(score);
 
 				if (score < isotopeScoreThreshold)
 					continue;
