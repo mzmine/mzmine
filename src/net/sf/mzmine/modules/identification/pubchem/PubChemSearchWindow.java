@@ -76,8 +76,8 @@ public class PubChemSearchWindow extends JInternalFrame implements
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 
-		description = "PubChem search results "
-				+ massFormater.format(peakListRow.getAverageMZ());
+		description = "PubChem search results for "
+				+ massFormater.format(searchedMass) + " amu";
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.molstructure;
 
+import java.awt.Dimension;
 import java.awt.Point;
 import java.io.StringReader;
 import java.text.NumberFormat;
@@ -63,7 +64,11 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 		setShowInsertTextField(false);
 		setShowMenuBar(false);
 		setShowToolBar(false);
-		setOpaque(false);
+
+		// It is necessary to change the size of the canvas BEFORE we load the
+		// structure
+		getJChemPaintModel().getRendererModel().setBackgroundDimension(
+				new Dimension(2000, 2000));
 
 		// Load the structure
 		StringReader reader = new StringReader(structure);
@@ -72,14 +77,8 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 		chemModel = (ChemModel) molReader.read(chemModel);
 		processChemModel(chemModel);
 
+		// Get JChemPaintModel
 		JChemPaintModel jcpModel = getJChemPaintModel();
-
-		// Set controller properties
-		Controller2DModel controller = jcpModel.getControllerModel();
-		controller.setAutoUpdateImplicitHydrogens(true);
-		controller.setDrawMode(Controller2DModel.LASSO);
-		controller.setMovingAllowed(false);
-		controller.setAutoUpdateImplicitHydrogens(true);
 
 		// Set renderer properties
 		Renderer2DModel renderer = jcpModel.getRendererModel();
@@ -88,9 +87,15 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 		renderer.setShowImplicitHydrogens(true);
 		renderer.setZoomFactor(0.9);
 
+		// Set controller properties
+		Controller2DModel controller = jcpModel.getControllerModel();
+		controller.setAutoUpdateImplicitHydrogens(true);
+		controller.setDrawMode(Controller2DModel.LASSO);
+		controller.setMovingAllowed(false);
+
 		// Scroll to the center
 		JViewport vp = getScrollPane().getViewport();
-		vp.setViewPosition(new Point(150, 300));
+		vp.setViewPosition(new Point(700, 700));
 
 	}
 
