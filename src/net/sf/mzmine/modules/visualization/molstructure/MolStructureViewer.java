@@ -116,7 +116,6 @@ public class MolStructureViewer extends JInternalFrame {
 		try {
 			String structure2D = InetUtils.retrieveData(url);
 			newComponent = new Structure2DComponent(structure2D, statusLabel);
-
 		} catch (Exception e) {
 			String errorMessage = "Could not load 2D structure\n"
 					+ "Exception: " + e.toString();

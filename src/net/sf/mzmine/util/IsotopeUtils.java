@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.util;
 
+import java.util.Iterator;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -27,6 +28,7 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.tools.MFAnalyser;
 
 public class IsotopeUtils {
@@ -206,11 +208,16 @@ public class IsotopeUtils {
 		Molecule mol = new Molecule();
 		MFAnalyser molAnalyser = new MFAnalyser(molecularFormula, mol);
 
-		try {
-			return molAnalyser.getMass();
-		} catch (Exception e) {
-			return 0;
+		// Unfortunately, the mass returned by formulaAnalyzer.getMass() is not
+		// precise, so we have to calculate it from the exact mass of atoms
+		double mass = 0;
+		Iterator atomIterator = molAnalyser.getAtomContainer().atoms();
+		while (atomIterator.hasNext()) {
+			IAtom atom = (IAtom) atomIterator.next();
+			mass += atom.getExactMass();
 		}
+
+		return mass;
 
 	}
 

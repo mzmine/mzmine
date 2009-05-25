@@ -179,8 +179,8 @@ public class PubChemSearchWindow extends JInternalFrame implements
 				URL url3D = new URL(
 						"http://pubchem.ncbi.nlm.nih.gov/summary/summary.cgi?disopt=3DSaveSDF&cid="
 								+ compound.getID());
-				String name = compound.getName() + " (CID " + compound.getID()
-						+ ")";
+				String name = compound.getName() + " (PubChem CID "
+						+ compound.getID() + ")";
 				MolStructureViewer viewer = new MolStructureViewer(name, url2D,
 						url3D);
 				Desktop desktop = MZmineCore.getDesktop();

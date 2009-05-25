@@ -36,6 +36,7 @@ import org.openscience.cdk.applications.jchempaint.JChemPaintModel;
 import org.openscience.cdk.controller.Controller2DModel;
 import org.openscience.cdk.controller.PopupController2D;
 import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemModel;
 import org.openscience.cdk.io.MDLV2000Reader;
@@ -57,35 +58,37 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 		this.statusLabel = statusLabel;
 
+		// Set panel properties
 		setShowStatusBar(false);
 		setShowInsertTextField(false);
 		setShowMenuBar(false);
 		setShowToolBar(false);
 		setOpaque(false);
 
+		// Load the structure
 		StringReader reader = new StringReader(structure);
 		MDLV2000Reader molReader = new MDLV2000Reader(reader);
 		ChemModel chemModel = new ChemModel();
 		chemModel = (ChemModel) molReader.read(chemModel);
 		processChemModel(chemModel);
 
-		JChemPaintModel jcpModel = new JChemPaintModel();
-		registerModel(jcpModel);
-		setJChemPaintModel(jcpModel, null);
+		JChemPaintModel jcpModel = getJChemPaintModel();
 
+		// Set controller properties
 		Controller2DModel controller = jcpModel.getControllerModel();
 		controller.setAutoUpdateImplicitHydrogens(true);
 		controller.setDrawMode(Controller2DModel.LASSO);
 		controller.setMovingAllowed(false);
 		controller.setAutoUpdateImplicitHydrogens(true);
 
+		// Set renderer properties
 		Renderer2DModel renderer = jcpModel.getRendererModel();
 		renderer.setShowEndCarbons(true);
 		renderer.setShowExplicitHydrogens(true);
-		renderer.setShowImplicitHydrogens(false);
+		renderer.setShowImplicitHydrogens(true);
 		renderer.setZoomFactor(0.9);
 
-		// Automatically scroll to the center
+		// Scroll to the center
 		JViewport vp = getScrollPane().getViewport();
 		vp.setViewPosition(new Point(150, 300));
 
@@ -123,7 +126,15 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 		String wholeFormula = formulaAnalyzer
 				.getHTMLMolecularFormulaWithCharge();
-		double wholeMass = formulaAnalyzer.getMass();
+
+		// Unfortunately, the mass returned by formulaAnalyzer.getMass() is not
+		// precise, so we have to calculate it from the exact mass of atoms
+		double wholeMass = 0;
+		Iterator atomIterator = formulaAnalyzer.getAtomContainer().atoms();
+		while (atomIterator.hasNext()) {
+			IAtom atom = (IAtom) atomIterator.next();
+			wholeMass += atom.getExactMass();
+		}
 
 		StringBuilder status = new StringBuilder("<html>Formula: ");
 		status.append(wholeFormula);
@@ -141,7 +152,12 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 			String selectionFormula = selectionAnalyzer
 					.getHTMLMolecularFormulaWithCharge();
-			double selectionMass = selectionAnalyzer.getMass();
+			double selectionMass = 0;
+			atomIterator = selectionAnalyzer.getAtomContainer().atoms();
+			while (atomIterator.hasNext()) {
+				IAtom atom = (IAtom) atomIterator.next();
+				selectionMass += atom.getExactMass();
+			}
 
 			status.append("; selected formula: ");
 			status.append(selectionFormula);
