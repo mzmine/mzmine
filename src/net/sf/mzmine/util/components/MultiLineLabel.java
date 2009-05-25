@@ -42,7 +42,7 @@ public class MultiLineLabel extends JScrollPane {
 		if (margin > 0)
 			GUIUtils.addMargin(label, margin);
 		
-		add(label);
+		setViewportView(label);
 		
 	}
 
