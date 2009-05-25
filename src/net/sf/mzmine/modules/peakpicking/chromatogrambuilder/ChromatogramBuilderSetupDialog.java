@@ -250,19 +250,19 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 			if (notMsLevelOne) {
 				desktop
-						.displayMessage(" One or more selected files does not contain spectrum of MS level 1.\n"
+						.displayMessage(" One or more selected files does not contain spectrum of MS level 1."
 								+ " The actual mass detector only works over spectrum of this level.");
 			}
 
 			if ((centroid) && (!massDetectorName.equals("Centroid"))) {
 				desktop
-						.displayMessage(" One or more selected files contains centroided data points.\n"
+						.displayMessage(" One or more selected files contains centroided data points."
 								+ " The actual mass detector could give an unexpected result ");
 			}
 
 			if ((!centroid) && (massDetectorName.equals("Centroid"))) {
 				desktop
-						.displayMessage(" Neither one of the selected files contains centroided data points.\n"
+						.displayMessage(" Neither one of the selected files contains centroided data points."
 								+ " The actual mass detector could give an unexpected result ");
 			}
 		}
