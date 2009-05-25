@@ -123,7 +123,7 @@ public class PubChemSearchDialog extends ParameterSetupDialog implements
 		IonizationType ionType = (IonizationType) ionizationMethodCombo
 				.getSelectedItem();
 
-		double neutral = (rawMassValue * charge) - ionType.getAddedMass();
+		double neutral = (rawMassValue - ionType.getAddedMass()) * charge;
 
 		neutralMassField.setValue(neutral);
 

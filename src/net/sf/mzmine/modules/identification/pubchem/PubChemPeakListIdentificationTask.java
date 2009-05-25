@@ -177,7 +177,6 @@ public class PubChemPeakListIdentificationTask implements Task {
 
 		currentRow = row;
 
-		double massValue = row.getAverageMZ();
 		int charge = 1;
 
 		IsotopePattern rowIsotopePattern = row.getBestIsotopePattern();
@@ -185,8 +184,9 @@ public class PubChemPeakListIdentificationTask implements Task {
 			if (rowIsotopePattern.getCharge() != 0)
 				charge = rowIsotopePattern.getCharge();
 		}
-		massValue *= charge;
-		massValue -= ionType.getAddedMass();
+
+		double massValue = (row.getAverageMZ() - ionType.getAddedMass())
+				* charge;
 
 		Range massRange = new Range(massValue - massTolerance, massValue
 				+ massTolerance);
@@ -201,7 +201,8 @@ public class PubChemPeakListIdentificationTask implements Task {
 				return;
 			}
 
-			PubChemCompound compound = PubChemGateway.getCompound(resultCIDs[i]);
+			PubChemCompound compound = PubChemGateway
+					.getCompound(resultCIDs[i]);
 
 			// If required, check isotope score
 			if (isotopeFilter) {
