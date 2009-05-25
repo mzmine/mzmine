@@ -28,6 +28,7 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 
 import org.openscience.cdk.Molecule;
+import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.tools.MFAnalyser;
 
@@ -207,6 +208,16 @@ public class IsotopeUtils {
 
 		Molecule mol = new Molecule();
 		MFAnalyser molAnalyser = new MFAnalyser(molecularFormula, mol);
+
+		// We have to configure the molecule using the isotope factory,
+		// otherwise the atoms do not carry information about their mass
+		IsotopeFactory isotFac;
+		try {
+			isotFac = IsotopeFactory.getInstance(mol.getBuilder());
+		} catch (Exception e) {
+			return 0;
+		}
+		isotFac.configureAtoms(mol);
 
 		// Unfortunately, the mass returned by formulaAnalyzer.getMass() is not
 		// precise, so we have to calculate it from the exact mass of atoms
