@@ -206,6 +206,15 @@ public class IsotopeUtils {
 	 */
 	public static double calculateExactMass(String molecularFormula) {
 
+		// Remove the trailing charge information from the formula
+		int hasPlus = molecularFormula.indexOf("+");
+		if (hasPlus >= 0)
+			molecularFormula = molecularFormula.substring(0, hasPlus);
+		
+		int hasMinus = molecularFormula.indexOf("-");
+		if (hasMinus >= 0)
+			molecularFormula = molecularFormula.substring(0, hasMinus);
+
 		Molecule mol = new Molecule();
 		MFAnalyser molAnalyser = new MFAnalyser(molecularFormula, mol);
 
