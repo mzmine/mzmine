@@ -30,6 +30,7 @@ import javax.swing.JViewport;
 import javax.swing.event.ChangeEvent;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.IsotopeUtils;
 
 import org.openscience.cdk.ChemModel;
 import org.openscience.cdk.applications.jchempaint.JChemPaintEditorPanel;
@@ -37,11 +38,12 @@ import org.openscience.cdk.applications.jchempaint.JChemPaintModel;
 import org.openscience.cdk.controller.Controller2DModel;
 import org.openscience.cdk.controller.PopupController2D;
 import org.openscience.cdk.exception.CDKException;
-import org.openscience.cdk.interfaces.IAtom;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemModel;
+import org.openscience.cdk.interfaces.IMolecule;
 import org.openscience.cdk.io.MDLV2000Reader;
 import org.openscience.cdk.renderer.Renderer2DModel;
+import org.openscience.cdk.tools.HydrogenAdder;
 import org.openscience.cdk.tools.MFAnalyser;
 import org.openscience.cdk.tools.manipulator.ChemModelManipulator;
 
@@ -75,6 +77,18 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 		MDLV2000Reader molReader = new MDLV2000Reader(reader);
 		ChemModel chemModel = new ChemModel();
 		chemModel = (ChemModel) molReader.read(chemModel);
+
+		// Add implicit hydrogens which may be missing in the structure. This is
+		// necessary for correct mass calculation.
+		HydrogenAdder hydrogenAdder = new HydrogenAdder(
+				"org.openscience.cdk.tools.ValencyChecker");
+		Iterator mols = chemModel.getMoleculeSet().molecules();
+		while (mols.hasNext()) {
+			IMolecule molecule = (IMolecule) mols.next();
+			hydrogenAdder.addImplicitHydrogensToSatisfyValency(molecule);
+		}
+
+		// Load the model
 		processChemModel(chemModel);
 
 		// Get JChemPaintModel
@@ -89,7 +103,6 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 		// Set controller properties
 		Controller2DModel controller = jcpModel.getControllerModel();
-		controller.setAutoUpdateImplicitHydrogens(true);
 		controller.setDrawMode(Controller2DModel.LASSO);
 		controller.setMovingAllowed(false);
 
@@ -133,13 +146,10 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 				.getHTMLMolecularFormulaWithCharge();
 
 		// Unfortunately, the mass returned by formulaAnalyzer.getMass() is not
-		// precise, so we have to calculate it from the exact mass of atoms
-		double wholeMass = 0;
-		Iterator atomIterator = formulaAnalyzer.getAtomContainer().atoms();
-		while (atomIterator.hasNext()) {
-			IAtom atom = (IAtom) atomIterator.next();
-			wholeMass += atom.getExactMass();
-		}
+		// precise, so we have to calculate it with own our method, using the
+		// molecular formula
+		double wholeMass = IsotopeUtils.calculateExactMass(formulaAnalyzer
+				.getMolecularFormula());
 
 		StringBuilder status = new StringBuilder("<html>Formula: ");
 		status.append(wholeFormula);
@@ -155,17 +165,14 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 			MFAnalyser selectionAnalyzer = new MFAnalyser(selectedPart, true);
 
-			String selectionFormula = selectionAnalyzer
+			String selectionFormula = selectionAnalyzer.getMolecularFormula();
+			String selectionHTMLFormula = selectionAnalyzer
 					.getHTMLMolecularFormulaWithCharge();
-			double selectionMass = 0;
-			atomIterator = selectionAnalyzer.getAtomContainer().atoms();
-			while (atomIterator.hasNext()) {
-				IAtom atom = (IAtom) atomIterator.next();
-				selectionMass += atom.getExactMass();
-			}
+			double selectionMass = IsotopeUtils
+					.calculateExactMass(selectionFormula);
 
 			status.append("; selected formula: ");
-			status.append(selectionFormula);
+			status.append(selectionHTMLFormula);
 			status.append(", mass: ");
 			status.append(massFormater.format(selectionMass));
 			status.append(" amu");

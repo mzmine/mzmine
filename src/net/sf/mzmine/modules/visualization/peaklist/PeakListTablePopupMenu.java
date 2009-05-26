@@ -38,7 +38,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.identification.pubchem.PubChemSearch;
+import net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch;
 import net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
@@ -70,7 +70,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	private JMenu showMenu, searchMenu;
 	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
 			showSpectrumItem, showXICItem, showMSMSItem,
-			showIsotopePatternItem, show2DItem, show3DItem, pubChemSearchItem,
+			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem,
 			manuallyDefineItem, showPeakRowSummaryItem;
 
 	private RawDataFile clickedDataFile;
@@ -104,8 +104,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		searchMenu = new JMenu("Search...");
 		this.add(searchMenu);
 
-		pubChemSearchItem = GUIUtils.addMenuItem(searchMenu,
-				"Search in PubChem", this);
+		dbSearchItem = GUIUtils.addMenuItem(searchMenu,
+				"Search online database", this);
 
 		plotRowsItem = GUIUtils.addMenuItem(this,
 				"Plot using Intensity Plot module", this);
@@ -371,8 +371,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			}
 		}
 
-		if (src == pubChemSearchItem) {
-			PubChemSearch.showPubChemSingleRowIdentificationDialog(peakList,
+		if (src == dbSearchItem) {
+			OnlineDBSearch.showSingleRowIdentificationDialog(peakList,
 					clickedPeakListRow);
 		}
 

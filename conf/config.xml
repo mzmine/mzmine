@@ -4,14 +4,14 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Volumes/data/Sajiki/090414 MAPK G0 0hr 24hr</parameter>
-        <parameter name="Files to import" type="STRING">090414_A_WT_0hr_neg_05.mzXML 090414_A_WT_0hr_pos_11.mzXML 090414_A_WT_0hr_pos_20.mzXML 090414_B_ts989_0hr_neg_06.mzXML 090414_B_ts989_0hr_pos_12.mzXML 090414_B_ts989_0hr_pos_21.mzXML 090414_C_WT_24hr_neg_07.mzXML 090414_C_WT_24hr_pos_13.mzXML 090414_C_WT_24hr_pos_22.mzXML 090414_D_ts989_24hr_neg_08.mzXML 090414_D_ts989_24hr_pos_14.mzXML 090414_D_ts989_24hr_pos_23.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">/Users/plusik/MZmine projects</parameter>
+        <parameter name="Files to import" type="STRING">070308_STD_19_profile.mzXML</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
       <parameters>
         <massdetector name="Centroid">
-          <parameter name="Noise level" type="DOUBLE">1000.0</parameter>
+          <parameter name="Noise level" type="DOUBLE">10000.0</parameter>
         </massdetector>
         <massdetector name="Exact mass">
           <parameter name="Noise level" type="DOUBLE">1000.0</parameter>
@@ -34,9 +34,9 @@
         <massconnector name="Highest data point">
           <parameter name="Min time span" type="DOUBLE">20.0</parameter>
           <parameter name="Min height" type="DOUBLE">10000.0</parameter>
-          <parameter name="m/z tolerance" type="DOUBLE">0.0030</parameter>
+          <parameter name="m/z tolerance" type="DOUBLE">0.0050</parameter>
         </massconnector>
-        <parameter name="Mass Detector type" type="INTEGER">0</parameter>
+        <parameter name="Mass Detector type" type="INTEGER">1</parameter>
         <parameter name="Chromatogram Builder type" type="INTEGER">0</parameter>
         <parameter name="Suffix" type="STRING">peaklist</parameter>
       </parameters> 
@@ -80,11 +80,11 @@
     </module>  
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer"> 
       <parameters>
-        <parameter name="Raw data files" type="MULTIPLE_SELECTION">090416_A_WT_3hr_neg_14.mzXML,090416_B_ts989_3hr_neg_15.mzXML,090416_C_WT_6hr_neg_16.mzXML,090416_D_ts989_BROKEN_6hr_neg_17.mzXML,090416_E_WT_12hr_neg_18.mzXML,090416_F_ts989_12hr_neg_19.mzXML,090414_A_WT_0hr_neg_05.mzXML,090414_B_ts989_0hr_neg_06.mzXML,090414_C_WT_24hr_neg_07.mzXML,090414_D_ts989_24hr_neg_08.mzXML</parameter>
+        <parameter name="Raw data files" type="MULTIPLE_SELECTION"></parameter>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Plot type" type="STRING">Base peak intensity</parameter>
-        <parameter name="Retention time" type="RANGE">0.761-2399.73</parameter>
-        <parameter name="m/z range" type="RANGE">505.98541259765625-505.9904479980469</parameter>
+        <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
+        <parameter name="m/z range" type="RANGE">507.95-529.9744262695312</parameter>
         <parameter name="Selected peaks" type="MULTIPLE_SELECTION"></parameter>
       </parameters> 
     </module>  
@@ -97,10 +97,10 @@
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.7595999999999999-2400.0</parameter>
-        <parameter name="m/z range" type="RANGE">100.0-1000.0</parameter>
+        <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
+        <parameter name="m/z range" type="RANGE">100.00403594970703-1000.0153198242188</parameter>
         <parameter name="Intensity threshold" type="DOUBLE">0.0</parameter>
-        <parameter name="Top peaks threshold" type="INTEGER">0</parameter>
+        <parameter name="Top peaks threshold" type="INTEGER">9</parameter>
         <parameter name="Top peaks threshold in the displayed area" type="INTEGER">0</parameter>
         <parameter name="Index threshold combo box" type="INTEGER">0</parameter>
       </parameters> 
@@ -108,9 +108,9 @@
     <module class="net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer"> 
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
-        <parameter name="Retention time" type="RANGE">0.7684-2397.6186999999995</parameter>
+        <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
         <parameter name="Retention time resolution" type="INTEGER">700</parameter>
-        <parameter name="m/z range" type="RANGE">100.00011895050982-1000.0083390846103</parameter>
+        <parameter name="m/z range" type="RANGE">100.00403594970703-1000.0153198242188</parameter>
         <parameter name="m/z resolution" type="INTEGER">700</parameter>
       </parameters> 
     </module>  
@@ -130,11 +130,11 @@
         </column>
         <column type="common" name="AVERAGEMZ">
           <visible>true</visible>
-          <width>64</width>
+          <width>68</width>
         </column>
         <column type="common" name="AVERAGERT">
           <visible>true</visible>
-          <width>52</width>
+          <width>68</width>
         </column>
         <column type="common" name="IDENTITY">
           <visible>true</visible>
@@ -149,7 +149,7 @@
           <width>374</width>
         </column>
         <column type="datafile" name="STATUS">
-          <visible>true</visible>
+          <visible>false</visible>
           <width>17</width>
         </column>
         <column type="datafile" name="PEAKSHAPE">
@@ -169,12 +169,12 @@
           <width>100</width>
         </column>
         <column type="datafile" name="HEIGHT">
-          <visible>true</visible>
+          <visible>false</visible>
           <width>88</width>
         </column>
         <column type="datafile" name="AREA">
-          <visible>false</visible>
-          <width>49</width>
+          <visible>true</visible>
+          <width>212</width>
         </column>
         <rowheight>50</rowheight>
         <peakshapenormalization>PEAKMAX</peakshapenormalization>
@@ -191,7 +191,15 @@
     </module>  
     <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer"/>  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode"> 
-      <parameters/> 
+      <parameters>
+        <batchstep>
+          <method>net.sf.mzmine.modules.io.rawdataimport.RawDataImporter</method>
+          <parameters>
+            <parameter name="Last open directory" type="STRING">/Users/plusik/MZmine projects</parameter>
+            <parameter name="Files to import" type="STRING">070308_STD_19_centroid.mzXML 070308_STD_19_profile.mzXML 090112_B_VE_26_neg_06.mzXML</parameter>
+          </parameters>
+        </batchstep>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.cropper.CropFilter"> 
       <parameters>
@@ -275,7 +283,7 @@
         <parameter name="Maximum m/z" type="DOUBLE">1000.0</parameter>
         <parameter name="Minimum retention time" type="DOUBLE">0.0</parameter>
         <parameter name="Maximum retention time" type="DOUBLE">2400.0</parameter>
-        <parameter name="Only identified?" type="BOOLEAN">true</parameter>
+        <parameter name="Only identified?" type="BOOLEAN">false</parameter>
         <parameter name="Remove source peak list after filtering" type="BOOLEAN">false</parameter>
       </parameters> 
     </module>  
@@ -319,7 +327,7 @@
         <parameter name="Peak measurement type" type="STRING">Peak area</parameter>
         <parameter name="M/Z vs RT balance" type="DOUBLE">10.0</parameter>
         <parameter name="Remove original peak list" type="BOOLEAN">false</parameter>
-        <parameter name="Standard compounds" type="MULTIPLE_SELECTION">#3 237.091 m/z @7:11 HEPES (STD),#27 301.054 m/z @11:46 PIPES (STD)</parameter>
+        <parameter name="Standard compounds" type="MULTIPLE_SELECTION"></parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer"> 
@@ -393,14 +401,14 @@
         <parameter name="Sharing points" type="DOUBLE">0.5</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.identification.pubchem.PubChemSearch"> 
+    <module class="net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch"> 
       <parameters>
-        <parameter name="Peak mass" type="DOUBLE">709.111572265625</parameter>
+        <parameter name="Database" type="STRING">KEGG Compound database</parameter>
+        <parameter name="Peak mass" type="DOUBLE">664.1161929099819</parameter>
         <parameter name="Charge" type="INTEGER">1</parameter>
         <parameter name="Ionization method" type="STRING">-H</parameter>
-        <parameter name="Neutral mass" type="DOUBLE">710.119512265625</parameter>
-        <parameter name="Molecule with charge" type="BOOLEAN">false</parameter>
-        <parameter name="Number of results" type="INTEGER">50</parameter>
+        <parameter name="Neutral mass" type="DOUBLE">665.1241329099819</parameter>
+        <parameter name="Number of results" type="INTEGER">15</parameter>
         <parameter name="Mass tolerance" type="DOUBLE">0.0030</parameter>
         <parameter name="Isotope pattern filter" type="BOOLEAN">false</parameter>
         <parameter name="Isotope pattern score threshold" type="DOUBLE">0.65</parameter>
@@ -421,7 +429,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.io.xmlimport.XMLImporter"> 
       <parameters>
-        <parameter name="Filename" type="FILE_NAME">/Users/plusik/Documents/Metabolome paper 2/Tranche upload/Schizosaccharomyces pombe metabolome/MZviewer/data/negative_all.mpl</parameter>
+        <parameter name="Filename" type="FILE_NAME">/Users/plusik/Documents/Metabolome paper 2/Tranche upload/Schizosaccharomyces pombe metabolome/MZviewer/data/hcs1_pos.mpl</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.rawdata.resample.ResampleFilter"> 
@@ -469,15 +477,15 @@
     </format>
     <format type="Intensity">
       <type>NUMBER</type>
-      <pattern>#0.0</pattern>
+      <pattern>#0.000</pattern>
     </format>
     <mainwindow>
-      <x>165</x>
-      <y>276</y>
-      <width>1280</width>
-      <height>697</height>
+      <x>0</x>
+      <y>22</y>
+      <width>-1</width>
+      <height>-1</height>
     </mainwindow>
-    <lastProjectDirectory>/Users/plusik/MZmine projects/20090422 Sajiki ts989</lastProjectDirectory>
-    <threads>1</threads>
+    <lastProjectDirectory>/tmp</lastProjectDirectory>
+    <threads auto="true">1</threads>
   </preferences> 
 </configuration>

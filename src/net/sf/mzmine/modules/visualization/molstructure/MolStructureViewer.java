@@ -90,19 +90,27 @@ public class MolStructureViewer extends JInternalFrame {
 
 		pack();
 
-		Thread loading2DThread = new Thread(new Runnable() {
-			public void run() {
-				load2DStructure(structure2DAddress);
-			}
-		}, "Structure loading thread");
-		loading2DThread.start();
+		if (structure2DAddress != null) {
+			Thread loading2DThread = new Thread(new Runnable() {
+				public void run() {
+					load2DStructure(structure2DAddress);
+				}
+			}, "Structure loading thread");
+			loading2DThread.start();
+		} else {
+			loading2Dlabel.setText("2D structure not available");
+		}
 
-		Thread loading3DThread = new Thread(new Runnable() {
-			public void run() {
-				load3DStructure(structure3DAddress);
-			}
-		}, "Structure loading thread");
-		loading3DThread.start();
+		if (structure3DAddress != null) {
+			Thread loading3DThread = new Thread(new Runnable() {
+				public void run() {
+					load3DStructure(structure3DAddress);
+				}
+			}, "Structure loading thread");
+			loading3DThread.start();
+		} else {
+			loading3Dlabel.setText("3D structure not available");
+		}
 
 	}
 
