@@ -107,7 +107,7 @@ public class HMDBGateway implements DBGateway {
 				}
 			}
 
-			if (lines[i].contains("<td>MOL File</td>")) {
+			if (lines[i].contains("<td>SDF File</td>")) {
 				Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
 				Matcher matcher = pat.matcher(lines[i + 1]);
 				if (matcher.find()) {
