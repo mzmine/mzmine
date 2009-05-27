@@ -19,25 +19,24 @@
 
 package net.sf.mzmine.modules.identification.dbsearch;
 
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.IsotopeUtils;
 
 public class ResultTableModel extends AbstractTableModel {
 
-	private Vector<DBCompound> compounds = new Vector<DBCompound>();
-	private static final String[] columnNames = { "CID", "Common Name",
+	private static final String[] columnNames = { "ID", "Common Name",
 			"Formula", "Mass difference", "Isotope pattern score" };
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-	public static final DecimalFormat massFormat = new DecimalFormat("##.#####");
-
 	private double searchedMass;
+	private Vector<DBCompound> compounds = new Vector<DBCompound>();
+
+	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+	final NumberFormat massFormat = MZmineCore.getMZFormat();
 
 	ResultTableModel(double searchedMass) {
 		this.searchedMass = searchedMass;
