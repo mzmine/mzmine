@@ -93,76 +93,111 @@ public class MZmineProjectImpl implements MZmineProject {
 		return value;
 	}
 
-	public synchronized void addFile(RawDataFile newFile) {
+	public void addFile(RawDataFile newFile) {
 
-		int newFileIndex = dataFiles.size();
-		dataFiles.add(newFile);
+		ProjectEvent newEvent;
 
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
+		synchronized (dataFiles) {
+			int newFileIndex = dataFiles.size();
+			dataFiles.add(newFile);
+			newEvent = new ProjectEvent(ProjectEventType.DATAFILE_ADDED,
+					newFile, newFileIndex);
+		}
+
+		// We fire the listeners outside of the synchronized block. The reason
+		// is that firing the listeners may cause some GUI update and Swing
+		// thread may become deadlocked with another thread.
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
-	public synchronized void removeFile(RawDataFile file) {
+	public void removeFile(RawDataFile file) {
 
 		// If the data file is present in any peak list, we must not remove it
-		for (PeakList peakList : peakLists) {
-			if (peakList.hasRawDataFile(file)) {
-				Desktop desktop = MZmineCore.getDesktop();
-				desktop.displayErrorMessage("Cannot remove file \"" + file
-						+ "\", because it is present in the peak list \""
-						+ peakList + "\"");
-				return;
+		synchronized (peakLists) {
+			for (PeakList peakList : peakLists) {
+				if (peakList.hasRawDataFile(file)) {
+					Desktop desktop = MZmineCore.getDesktop();
+					desktop.displayErrorMessage("Cannot remove file \"" + file
+							+ "\", because it is present in the peak list \""
+							+ peakList + "\"");
+					return;
+				}
 			}
 		}
 
-		int removedFileIndex = dataFiles.indexOf(file);
-		dataFiles.remove(file);
-		file.close();
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.DATAFILE_REMOVED, file, removedFileIndex);
+		ProjectEvent newEvent;
+
+		synchronized (dataFiles) {
+			int removedFileIndex = dataFiles.indexOf(file);
+			dataFiles.remove(file);
+			file.close();
+			newEvent = new ProjectEvent(ProjectEventType.DATAFILE_REMOVED,
+					file, removedFileIndex);
+
+		}
+
+		// We fire the listeners outside of the synchronized block. The reason
+		// is that firing the listeners may cause some GUI update and Swing
+		// thread may become deadlocked with another thread.
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
-	public synchronized void moveDataFiles(RawDataFile[] movedFiles,
-			int movePosition) {
+	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
 
-		int currentPosition;
+		synchronized (dataFiles) {
+			int currentPosition;
 
-		for (RawDataFile movedFile : movedFiles) {
-			currentPosition = dataFiles.indexOf(movedFile);
-			if (currentPosition < 0)
-				continue;
-			dataFiles.remove(currentPosition);
-			if (currentPosition < movePosition)
-				movePosition--;
-			dataFiles.add(movePosition, movedFile);
-			movePosition++;
+			for (RawDataFile movedFile : movedFiles) {
+				currentPosition = dataFiles.indexOf(movedFile);
+				if (currentPosition < 0)
+					continue;
+				dataFiles.remove(currentPosition);
+				if (currentPosition < movePosition)
+					movePosition--;
+				dataFiles.add(movePosition, movedFile);
+				movePosition++;
+			}
 		}
 
+		// We fire the listeners outside of the synchronized block. The reason
+		// is that firing the listeners may cause some GUI update and Swing
+		// thread may become deadlocked with another thread.
 		ProjectEvent newEvent = new ProjectEvent(
 				ProjectEventType.DATAFILES_REORDERED);
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 
 	}
 
-	public synchronized RawDataFile[] getDataFiles() {
+	public RawDataFile[] getDataFiles() {
 		return dataFiles.toArray(new RawDataFile[0]);
 	}
 
-	public synchronized void addPeakList(PeakList peakList) {
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_ADDED, peakList, peakLists.size());
-		peakLists.add(peakList);
+	public void addPeakList(PeakList peakList) {
+		ProjectEvent newEvent;
+		synchronized (peakLists) {
+			newEvent = new ProjectEvent(ProjectEventType.PEAKLIST_ADDED,
+					peakList, peakLists.size());
+			peakLists.add(peakList);
+		}
 
+		// We fire the listeners outside of the synchronized block. The reason
+		// is that firing the listeners may cause some GUI update and Swing
+		// thread may become deadlocked with another thread.
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+
 	}
 
-	public synchronized void removePeakList(PeakList peakList) {
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_REMOVED, peakList, peakLists
-						.indexOf(peakList));
-		peakLists.remove(peakList);
+	public void removePeakList(PeakList peakList) {
+		ProjectEvent newEvent;
+		synchronized (peakLists) {
+			newEvent = new ProjectEvent(ProjectEventType.PEAKLIST_REMOVED,
+					peakList, peakLists.indexOf(peakList));
+			peakLists.remove(peakList);
+		}
+
+		// We fire the listeners outside of the synchronized block. The reason
+		// is that firing the listeners may cause some GUI update and Swing
+		// thread may become deadlocked with another thread.
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
@@ -187,17 +222,21 @@ public class MZmineProjectImpl implements MZmineProject {
 		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
-	public synchronized PeakList[] getPeakLists() {
-		return peakLists.toArray(new PeakList[0]);
+	public PeakList[] getPeakLists() {
+		synchronized (peakLists) {
+			return peakLists.toArray(new PeakList[0]);
+		}
 	}
 
-	public synchronized PeakList[] getPeakLists(RawDataFile file) {
-		Vector<PeakList> result = new Vector<PeakList>();
-		for (PeakList peakList : peakLists) {
-			if (peakList.hasRawDataFile(file))
-				result.add(peakList);
+	public PeakList[] getPeakLists(RawDataFile file) {
+		synchronized (peakLists) {
+			Vector<PeakList> result = new Vector<PeakList>();
+			for (PeakList peakList : peakLists) {
+				if (peakList.hasRawDataFile(file))
+					result.add(peakList);
+			}
+			return result.toArray(new PeakList[0]);
 		}
-		return result.toArray(new PeakList[0]);
 	}
 
 	public File getProjectFile() {
