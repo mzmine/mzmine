@@ -19,13 +19,15 @@
 
 package net.sf.mzmine.modules.identification.dbsearch;
 
+import net.sf.mzmine.modules.identification.dbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.identification.dbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.identification.dbsearch.databases.PubChemGateway;
 
 public enum OnlineDatabase {
 
-	KEGG("KEGG Compound database", KEGGGateway.class), 
-	PubChem("PubChem Compound database", PubChemGateway.class);
+	KEGG("KEGG Compound Database", KEGGGateway.class), 
+	PubChem("PubChem Compound Database", PubChemGateway.class),
+	HMDB("Human Metabolome Database", HMDBGateway.class);
 
 	private final String dbName;
 	private final Class<? extends DBGateway> gatewayClass;
