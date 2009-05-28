@@ -162,6 +162,12 @@ public class SingleRowIdentificationTask implements Task {
 			// Get the number of results
 			numItems = compoundIDs.length;
 
+			if (numItems == 0) {
+				window.setTitle("Searching for "
+						+ massFormater.format(searchedMass)
+						+ " amu: no results found");
+			}
+
 			// Process each one of the result ID's.
 			for (int i = 0; i < numItems; i++) {
 
