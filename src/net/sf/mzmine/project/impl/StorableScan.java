@@ -19,7 +19,11 @@
 
 package net.sf.mzmine.project.impl;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -34,6 +38,8 @@ import net.sf.mzmine.util.ScanUtils;
  */
 public class StorableScan implements Scan {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private int scanNumber, msLevel, parentScan, fragmentScans[];
 	private double precursorMZ;
 	private int precursorCharge;
@@ -42,7 +48,7 @@ public class StorableScan implements Scan {
 	private DataPoint basePeak;
 	private double totalIonCurrent;
 	private boolean centroided;
-	private int scanFileOffset;
+	private long scanFileOffset;
 	private int numberOfDataPoints;
 	private RawDataFileImpl rawDataFile;
 
@@ -50,7 +56,7 @@ public class StorableScan implements Scan {
 	 * Constructor for creating a storable scan from a given scan
 	 */
 	public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile,
-			int scanFileOffset, int numberOfDataPoints) {
+			long scanFileOffset, int numberOfDataPoints) {
 
 		// save scan data
 		this.rawDataFile = rawDataFile;
@@ -71,7 +77,7 @@ public class StorableScan implements Scan {
 
 	}
 
-	public StorableScan(RawDataFileImpl rawDataFile, int scanFileOffset,
+	public StorableScan(RawDataFileImpl rawDataFile, long scanFileOffset,
 			int numberOfDataPoints, int scanNumber, int msLevel,
 			double retentionTime, int parentScan, double precursorMZ,
 			int precursorCharge, int fragmentScans[], boolean centroided) {
@@ -127,17 +133,27 @@ public class StorableScan implements Scan {
 	 */
 	public DataPoint[] getDataPoints() {
 
-		float floatArray[] = rawDataFile.readFromFloatBufferFile(
-				scanFileOffset, numberOfDataPoints * 2);
+		try {
+			ByteBuffer bytes = rawDataFile.readFromFloatBufferFile(
+					scanFileOffset, numberOfDataPoints * 2 * 4);
 
-		DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
+			FloatBuffer floatBuffer = bytes.asFloatBuffer();
 
-		for (int i = 0; i < numberOfDataPoints; i++) {
-			dataPoints[i] = new SimpleDataPoint(floatArray[i * 2],
-					floatArray[i * 2 + 1]);
+			DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
+
+			for (int i = 0; i < numberOfDataPoints; i++) {
+				float mz = floatBuffer.get();
+				float intensity = floatBuffer.get();
+				dataPoints[i] = new SimpleDataPoint(mz, intensity);
+			}
+
+			return dataPoints;
+
+		} catch (IOException e) {
+			logger.severe("Could not read data from temporary file "
+					+ e.toString());
+			return new DataPoint[0];
 		}
-
-		return dataPoints;
 
 	}
 

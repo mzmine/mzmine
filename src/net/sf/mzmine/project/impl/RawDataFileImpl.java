@@ -25,7 +25,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -60,9 +59,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	private File scanFile;
 	private RandomAccessFile scanDataFile;
 
-	// Buffer of the temporary file mapped into memory
-	private FloatBuffer scanDataBuffer;
-
 	/**
 	 * Scans
 	 */
@@ -77,7 +73,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	}
 
-	public void openAndMapScanFile(File scanFile) throws IOException {
+	public void openScanFile(File scanFile) throws IOException {
 
 		this.scanFile = scanFile;
 		this.scanDataFile = new RandomAccessFile(scanFile, "r");
@@ -88,11 +84,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// MZmine is starting. Lock will be automatically released when this
 		// instance of MZmine exits.
 		scanFileChannel.lock(0, scanDataFile.length(), true);
-
-		ByteBuffer scanByteBuffer = scanFileChannel.map(MapMode.READ_ONLY, 0,
-				scanDataFile.length());
-
-		scanDataBuffer = scanByteBuffer.asFloatBuffer();
 
 	}
 
@@ -117,11 +108,22 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		return scans.get(scanNumber);
 	}
 
-	synchronized float[] readFromFloatBufferFile(int position, int size) {
-		float floatArray[] = new float[size];
-		scanDataBuffer.position(position);
-		scanDataBuffer.get(floatArray);
-		return floatArray;
+	/**
+	 * Reads data from the temporary scan file
+	 * 
+	 * @param position Position from the beginning of the file, in bytes
+	 * @param size Amount of data to read, in bytes
+	 * @return
+	 * @throws IOException
+	 */
+	synchronized ByteBuffer readFromFloatBufferFile(long position, int size) throws IOException {
+		
+		ByteBuffer buffer = ByteBuffer.allocate(size);
+		
+		scanDataFile.seek(position);
+		scanDataFile.read(buffer.array(), 0, size);
+		
+		return buffer;
 	}
 
 	/**
@@ -293,7 +295,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		// Each float takes 4 bytes, so we get the current float offset by
 		// dividing the size of the file by 4
-		int currentOffset = (int) (scanDataFile.length() / 4);
+		long currentOffset = scanDataFile.length();
 
 		ByteBuffer buffer = ByteBuffer.allocate(dataPoints.length * 2 * 4);
 		FloatBuffer floatBuffer = buffer.asFloatBuffer();
@@ -322,7 +324,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// Close the temporary file and reopen it for read-only using memory
 		// mapping
 		scanDataFile.close();
-		openAndMapScanFile(scanFile);
+		openScanFile(scanFile);
 
 		// Prepare the hashtables for scan numbers and data limits. These
 		// hashtables must not be used until the data file writing is finished,
@@ -434,7 +436,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		dataRTRange = null;
 		dataMaxBasePeakIntensity = null;
 		dataMaxTIC = null;
-		scanDataBuffer = null;
 
 	}
 

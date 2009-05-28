@@ -29,17 +29,17 @@ public class CachedStorableScan extends StorableScan {
 	private SoftReference<DataPoint[]> dataPointsCache;
 
 	public CachedStorableScan(Scan originalScan, RawDataFileImpl rawDataFile,
-			int scanFileOffset, int numberOfDataPoints) {
+			long scanFileOffset, int numberOfDataPoints) {
 		super(originalScan, rawDataFile, scanFileOffset, numberOfDataPoints);
 	}
 
-	public CachedStorableScan(RawDataFileImpl rawDataFile, int scanFileOffset,
+	public CachedStorableScan(RawDataFileImpl rawDataFile, long scanFileOffset,
 			int numberOfDataPoints, int scanNumber, int msLevel,
 			double retentionTime, int parentScan, double precursorMZ,
 			int precursorCharge, int[] fragmentScans, boolean centroided) {
-		super(rawDataFile, scanFileOffset, numberOfDataPoints, scanNumber, msLevel,
-				retentionTime, parentScan, precursorMZ, precursorCharge, fragmentScans,
-				centroided);
+		super(rawDataFile, scanFileOffset, numberOfDataPoints, scanNumber,
+				msLevel, retentionTime, parentScan, precursorMZ,
+				precursorCharge, fragmentScans, centroided);
 	}
 
 	/**
@@ -49,7 +49,7 @@ public class CachedStorableScan extends StorableScan {
 	public DataPoint[] getDataPoints() {
 
 		DataPoint dataPoints[] = null;
-		
+
 		if (dataPointsCache != null)
 			dataPoints = dataPointsCache.get();
 

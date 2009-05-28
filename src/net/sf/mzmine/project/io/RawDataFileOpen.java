@@ -97,7 +97,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		fileStream.close();
 
 		rawDataFileWriter = new RawDataFileImpl("");
-		rawDataFileWriter.openAndMapScanFile(tempFile);
+		rawDataFileWriter.openScanFile(tempFile);
 
 		stepNumber++;
 		// Extracts the raw data description file from the zip project file
