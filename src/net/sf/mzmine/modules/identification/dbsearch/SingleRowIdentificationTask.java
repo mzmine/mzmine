@@ -45,7 +45,7 @@ public class SingleRowIdentificationTask implements Task {
 	private int finishedItems = 0, numItems;
 
 	private OnlineDatabase db;
-	private double valueOfQuery, massTolerance;
+	private double searchedMass, massTolerance;
 	private int charge;
 	private int numOfResults;
 	private PeakList peakList;
@@ -78,7 +78,7 @@ public class SingleRowIdentificationTask implements Task {
 			e.printStackTrace();
 		}
 
-		valueOfQuery = (Double) parameters
+		searchedMass = (Double) parameters
 				.getParameterValue(OnlineDBSearchParameters.neutralMass);
 		massTolerance = (Double) parameters
 				.getParameterValue(OnlineDBSearchParameters.massTolerance);
@@ -134,7 +134,7 @@ public class SingleRowIdentificationTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Peak identification of " + massFormater.format(valueOfQuery)
+		return "Peak identification of " + massFormater.format(searchedMass)
 				+ " using " + db;
 	}
 
@@ -148,11 +148,15 @@ public class SingleRowIdentificationTask implements Task {
 		try {
 
 			Desktop desktop = MZmineCore.getDesktop();
+			NumberFormat massFormater = MZmineCore.getMZFormat();
+
 			OnlineDBSearchWindow window = new OnlineDBSearchWindow(peakList,
-					peakListRow, valueOfQuery);
+					peakListRow, searchedMass, this);
+			window.setTitle("Searching for "
+					+ massFormater.format(searchedMass) + " amu");
 			desktop.addInternalFrame(window);
 
-			String compoundIDs[] = gateway.findCompounds(valueOfQuery,
+			String compoundIDs[] = gateway.findCompounds(searchedMass,
 					massTolerance, numOfResults);
 
 			// Get the number of results
@@ -195,6 +199,11 @@ public class SingleRowIdentificationTask implements Task {
 				// Add compound to the list of possible candidate and
 				// display it in window of results.
 				window.addNewListItem(compound);
+
+				// Update window title
+				window.setTitle("Searching for "
+						+ massFormater.format(searchedMass) + " amu ("
+						+ (i + 1) + "/" + numItems + ")");
 
 				finishedItems++;
 

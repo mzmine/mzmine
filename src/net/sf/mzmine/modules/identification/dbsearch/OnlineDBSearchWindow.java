@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
-import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
@@ -52,6 +51,8 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 public class OnlineDBSearchWindow extends JInternalFrame implements
 		ActionListener {
@@ -64,18 +65,16 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private String description;
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
+	private Task searchTask;
 
 	public OnlineDBSearchWindow(PeakList peakList, PeakListRow peakListRow,
-			double searchedMass) {
+			double searchedMass, Task searchTask) {
 
 		super(null, true, true, true, true);
 
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
-
-		description = "Search results for " + massFormater.format(searchedMass)
-				+ " amu";
+		this.searchTask = searchTask;
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
@@ -137,10 +136,8 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 			int index = IDList.getSelectedRow();
 
 			if (index < 0) {
-				MZmineCore
-						.getDesktop()
-						.displayMessage(
-								"Select one result to add as compound identity");
+				MZmineCore.getDesktop().displayMessage(
+						"Select one result to add as compound identity");
 				return;
 
 			}
@@ -259,6 +256,18 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 
 	public String toString() {
 		return description;
+	}
+
+	public void dispose() {
+
+		// Cancel the search task if it is still running
+		TaskStatus searchStatus = searchTask.getStatus();
+		if ((searchStatus == TaskStatus.WAITING)
+				|| (searchStatus == TaskStatus.PROCESSING))
+			searchTask.cancel();
+
+		super.dispose();
+
 	}
 
 }
