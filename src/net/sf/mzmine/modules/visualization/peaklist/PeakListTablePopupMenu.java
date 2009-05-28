@@ -123,14 +123,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	public void show(Component invoker, int x, int y) {
 
 		// First, disable all the Show... items
-		showXICItem.setEnabled(false);
 		manuallyDefineItem.setEnabled(false);
-		showSpectrumItem.setEnabled(false);
-		show2DItem.setEnabled(false);
-		show3DItem.setEnabled(false);
 		showMSMSItem.setEnabled(false);
 		showIsotopePatternItem.setEnabled(false);
-		showPeakRowSummaryItem.setEnabled(false);
 
 		// Enable row items if applicable
 		int selectedRows[] = table.getSelectedRows();
@@ -153,7 +148,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 						.convertRowIndexToModel(selectedRows[i]));
 			}
 			showXICItem.setEnabled(selectedRows.length > 0);
-			showPeakRowSummaryItem.setEnabled(selectedRows.length == 1);
 
 			// If we clicked on data file columns, check the peak
 			if (clickedColumn >= CommonColumnType.values().length) {
@@ -173,14 +167,21 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 				// If we have the peak, enable Show... items
 				if ((clickedPeak != null) && (selectedRows.length == 1)) {
-					showSpectrumItem.setEnabled(true);
-					show2DItem.setEnabled(true);
-					show3DItem.setEnabled(true);
 					showIsotopePatternItem
 							.setEnabled(clickedPeak instanceof IsotopePattern);
 					showMSMSItem.setEnabled(clickedPeak
 							.getMostIntenseFragmentScanNumber() > 0);
 				}
+
+			} else {
+				ChromatographicPeak rowBestPeak = clickedPeakListRow
+						.getBestPeak();
+				IsotopePattern rowBestIsotopePattern = clickedPeakListRow
+						.getBestIsotopePattern();
+				showIsotopePatternItem
+						.setEnabled(rowBestIsotopePattern != null);
+				showMSMSItem.setEnabled(rowBestPeak
+						.getMostIntenseFragmentScanNumber() > 0);
 
 			}
 
@@ -287,44 +288,48 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		if (src == show2DItem) {
 
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
+			ChromatographicPeak showPeak;
 
-			if (clickedPeak != null) {
-				Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
-				Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
-				Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
-						- peakRTRange.getSize()), peakRTRange.getMax()
-						+ peakRTRange.getSize());
+			if (clickedDataFile != null)
+				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			else
+				showPeak = clickedPeakListRow.getBestPeak();
 
-				Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
-						- peakMZRange.getSize()), peakMZRange.getMax()
-						+ peakMZRange.getSize());
-				TwoDVisualizer.show2DVisualizerSetupDialog(clickedDataFile,
-						mzRange, rtRange);
+			Range peakRTRange = showPeak.getRawDataPointsRTRange();
+			Range peakMZRange = showPeak.getRawDataPointsMZRange();
+			Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
+					- peakRTRange.getSize()), peakRTRange.getMax()
+					+ peakRTRange.getSize());
 
-			}
+			Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
+					- peakMZRange.getSize()), peakMZRange.getMax()
+					+ peakMZRange.getSize());
+			TwoDVisualizer.show2DVisualizerSetupDialog(showPeak.getDataFile(),
+					mzRange, rtRange);
+
 		}
 
 		if (src == show3DItem) {
 
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
+			ChromatographicPeak showPeak;
 
-			if (clickedPeak != null) {
-				Range peakRTRange = clickedPeak.getRawDataPointsRTRange();
-				Range peakMZRange = clickedPeak.getRawDataPointsMZRange();
-				Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
-						- peakRTRange.getSize()), peakRTRange.getMax()
-						+ peakRTRange.getSize());
+			if (clickedDataFile != null)
+				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			else
+				showPeak = clickedPeakListRow.getBestPeak();
 
-				Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
-						- peakMZRange.getSize()), peakMZRange.getMax()
-						+ peakMZRange.getSize());
-				ThreeDVisualizer.show3DVisualizerSetupDialog(clickedDataFile,
-						mzRange, rtRange);
+			Range peakRTRange = showPeak.getRawDataPointsRTRange();
+			Range peakMZRange = showPeak.getRawDataPointsMZRange();
+			Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
+					- peakRTRange.getSize()), peakRTRange.getMax()
+					+ peakRTRange.getSize());
 
-			}
+			Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
+					- peakMZRange.getSize()), peakMZRange.getMax()
+					+ peakMZRange.getSize());
+			ThreeDVisualizer.show3DVisualizerSetupDialog(
+					showPeak.getDataFile(), mzRange, rtRange);
+
 		}
 
 		if (src == manuallyDefineItem) {
@@ -333,41 +338,55 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		}
 
 		if (src == showSpectrumItem) {
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
-			SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
-					clickedPeak.getRepresentativeScanNumber());
+
+			ChromatographicPeak showPeak;
+
+			if (clickedDataFile != null)
+				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			else
+				showPeak = clickedPeakListRow.getBestPeak();
+
+			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
+					showPeak.getRepresentativeScanNumber());
 		}
 
 		if (src == showMSMSItem) {
 
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
+			ChromatographicPeak showPeak;
 
-			if (clickedPeak != null) {
-				int scanNumber = clickedPeak.getMostIntenseFragmentScanNumber();
-				if (scanNumber > 0) {
-					SpectraVisualizer.showNewSpectrumWindow(clickedDataFile,
-							scanNumber);
-				} else {
-					MZmineCore.getDesktop().displayMessage(
-							"There is no fragment for the mass "
-									+ massFormater.format(clickedPeak.getMZ())
-									+ "m/z in the current raw data.");
-					return;
-				}
+			if (clickedDataFile != null)
+				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			else
+				showPeak = clickedPeakListRow.getBestPeak();
+
+			int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
+			if (scanNumber > 0) {
+				SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
+						scanNumber);
+			} else {
+				MZmineCore.getDesktop().displayMessage(
+						"There is no fragment for "
+								+ massFormater.format(showPeak.getMZ())
+								+ " m/z in the current raw data.");
+				return;
 			}
 		}
 
 		if (src == showIsotopePatternItem) {
 
-			ChromatographicPeak clickedPeak = clickedPeakListRow
-					.getPeak(clickedDataFile);
+			IsotopePattern showPattern = null;
 
-			if (clickedPeak != null) {
+			if (clickedDataFile != null) {
+				ChromatographicPeak clickedPeak = clickedPeakListRow
+						.getPeak(clickedDataFile);
 				if (clickedPeak instanceof IsotopePattern)
-					SpectraVisualizer.showIsotopePattern(clickedDataFile,
-							(IsotopePattern) clickedPeak);
+					showPattern = (IsotopePattern) clickedPeak;
+			} else
+				showPattern = clickedPeakListRow.getBestIsotopePattern();
+
+			if (showPattern != null) {
+				SpectraVisualizer.showIsotopePattern(showPattern.getDataFile(),
+						showPattern);
 			}
 		}
 
