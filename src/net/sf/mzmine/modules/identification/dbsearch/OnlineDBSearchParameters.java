@@ -38,7 +38,7 @@ public class OnlineDBSearchParameters extends SimpleParameterSet {
 			OnlineDatabase.values());
 
 	public static final Parameter rawMass = new SimpleParameter(
-			ParameterType.DOUBLE, "Peak mass", "Peak mass value of raw data",
+			ParameterType.DOUBLE, "Peak m/z", "Detected m/z value of the peak",
 			"m/z", null, new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter charge = new SimpleParameter(
