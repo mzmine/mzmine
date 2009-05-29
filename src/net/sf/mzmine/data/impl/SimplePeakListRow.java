@@ -218,7 +218,7 @@ public class SimplePeakListRow implements PeakListRow {
 	public void setPreferredPeakIdentity(PeakIdentity identity) {
 
 		if (identity == null)
-			throw (new NullPointerException());
+			return;
 
 		preferredIdentity = identity;
 
