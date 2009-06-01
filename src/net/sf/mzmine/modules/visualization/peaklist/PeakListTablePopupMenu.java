@@ -295,6 +295,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			else
 				showPeak = clickedPeakListRow.getBestPeak();
 
+			if (showPeak == null)
+				return;
+
 			Range peakRTRange = showPeak.getRawDataPointsRTRange();
 			Range peakMZRange = showPeak.getRawDataPointsMZRange();
 			Range rtRange = new Range(Math.max(0, peakRTRange.getMin()
@@ -317,6 +320,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
 			else
 				showPeak = clickedPeakListRow.getBestPeak();
+
+			if (showPeak == null)
+				return;
 
 			Range peakRTRange = showPeak.getRawDataPointsRTRange();
 			Range peakMZRange = showPeak.getRawDataPointsMZRange();
@@ -346,6 +352,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			else
 				showPeak = clickedPeakListRow.getBestPeak();
 
+			if (showPeak == null)
+				return;
+
 			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
 					showPeak.getRepresentativeScanNumber());
 		}
@@ -358,6 +367,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
 			else
 				showPeak = clickedPeakListRow.getBestPeak();
+
+			if (showPeak == null)
+				return;
 
 			int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
 			if (scanNumber > 0) {
@@ -384,10 +396,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			} else
 				showPattern = clickedPeakListRow.getBestIsotopePattern();
 
-			if (showPattern != null) {
-				SpectraVisualizer.showIsotopePattern(showPattern.getDataFile(),
-						showPattern);
-			}
+			if (showPattern == null)
+				return;
+
+			SpectraVisualizer.showIsotopePattern(showPattern.getDataFile(),
+					showPattern);
+
 		}
 
 		if (src == dbSearchItem) {
