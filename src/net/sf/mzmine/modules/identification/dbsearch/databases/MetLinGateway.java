@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.identification.dbsearch.databases;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.TreeSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,18 +30,20 @@ import net.sf.mzmine.modules.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.util.InetUtils;
 
-public class HMDBGateway implements DBGateway {
+public class MetLinGateway implements DBGateway {
 
-	public static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
+	public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
+	public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
+	public static final String metLinStructureAddress2 = ".mol";
 
 	/**
 	 */
 	public String[] findCompounds(double mass, double massTolerance,
 			int numOfResults) throws IOException {
 
-		String queryAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight&query_from="
+		String queryAddress = "http://metlin.scripps.edu/metabo_list.php?mass_min="
 				+ (mass - massTolerance)
-				+ "&query_to="
+				+ "&mass_max="
 				+ (mass + massTolerance);
 
 		URL queryURL = new URL(queryAddress);
@@ -49,21 +51,16 @@ public class HMDBGateway implements DBGateway {
 		// Submit the query
 		String queryResult = InetUtils.retrieveData(queryURL);
 
-		// Organize the IDs as a TreeSet to keep them sorted
-		TreeSet<String> results = new TreeSet<String>();
+		Vector<String> results = new Vector<String>();
 
 		// Find IDs in the HTML data
-		Pattern pat = Pattern.compile("\"metabolites/(HMDB[0-9]{5})\"");
+		Pattern pat = Pattern.compile("\"metabo_info.php\\?molid=([0-9]+)\"");
 		Matcher matcher = pat.matcher(queryResult);
 		while (matcher.find()) {
-			String hmdbID = matcher.group(1);
-			results.add(hmdbID);
-		}
-
-		// Remove all except first numOfResults IDs
-		while (results.size() > numOfResults) {
-			String lastItem = results.last();
-			results.remove(lastItem);
+			String MID = matcher.group(1);
+			results.add(MID);
+			if (results.size() == numOfResults)
+				break;
 		}
 
 		return results.toArray(new String[0]);
@@ -71,62 +68,45 @@ public class HMDBGateway implements DBGateway {
 	}
 
 	/**
-	 * This method retrieves the details about HMDB compound
+	 * This method retrieves the details about METLIN compound
 	 * 
 	 */
 	public DBCompound getCompound(String ID) throws IOException {
 
-		URL entryURL = new URL(hmdbEntryAddress + ID);
+		URL entryURL = new URL(metLinEntryAddress + ID);
 
-		String metaboCard = InetUtils.retrieveData(entryURL);
-		String lines[] = metaboCard.split("\n");
+		String metLinEntry = InetUtils.retrieveData(entryURL);
+		String lines[] = metLinEntry.split("\n");
 
 		String compoundName = null;
 		String compoundFormula = null;
 		URL structure2DURL = null;
 		URL structure3DURL = null;
 
-		for (int i = 0; i < lines.length - 1; i++) {
+		for (int i = 0; i < lines.length - 2; i++) {
 
-			if (lines[i].contains("<td>Common Name</td>")) {
-				Pattern pat = Pattern
-						.compile("<td><strong>([^<]+)</strong></td>");
-				Matcher matcher = pat.matcher(lines[i + 1]);
+			if (lines[i].contains("<td>Name:</td>")) {
+				Pattern pat = Pattern.compile("(.+)</td>");
+				Matcher matcher = pat.matcher(lines[i + 2]);
 				if (matcher.find()) {
 					compoundName = matcher.group(1);
 				}
 			}
 
-			if (lines[i].contains("<td>Chemical Formula</td>")) {
-				Pattern pat = Pattern.compile("<td>(.+)</td>");
-				Matcher matcher = pat.matcher(lines[i + 1]);
+			if (lines[i].contains("<td>Formula:</td>")) {
+				Pattern pat = Pattern.compile("(.+)</td>");
+				Matcher matcher = pat.matcher(lines[i + 2]);
 				if (matcher.find()) {
 					String htmlFormula = matcher.group(1);
 					compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
 				}
 			}
 
-			if (lines[i].contains("<td>SDF File</td>")) {
-				Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					String structureAddress = matcher.group(1);
-					structureAddress = structureAddress
-							.replaceAll("&amp;", "&");
-					structure2DURL = new URL(structureAddress);
-				}
-			}
-
-			if (lines[i].contains("<td>PDB File</td>")) {
-				Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					String structureAddress = matcher.group(1);
-					structureAddress = structureAddress
-							.replaceAll("&amp;", "&");
-					structure3DURL = new URL(structureAddress);
-				}
-			}
+			// Unfortunately, 2D structures provided by METLIN cannot be loaded
+			// into CDK (throws CDKException). They can be loaded into JMol, so
+			// we can show 3D structure.
+			structure3DURL = new URL(metLinStructureAddress1 + ID
+					+ metLinStructureAddress2);
 
 		}
 
@@ -134,7 +114,7 @@ public class HMDBGateway implements DBGateway {
 			throw (new IOException("Could not parse compound name"));
 		}
 
-		DBCompound newCompound = new DBCompound(OnlineDatabase.HMDB, ID,
+		DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
 				compoundName, compoundFormula, entryURL, structure2DURL,
 				structure3DURL);
 

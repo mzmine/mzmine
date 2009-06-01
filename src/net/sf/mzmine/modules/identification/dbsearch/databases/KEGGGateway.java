@@ -110,7 +110,7 @@ public class KEGGGateway implements DBGateway {
 					+ met3DStructureAddress2);
 		}
 
-		DBCompound newCompound = new DBCompound(OnlineDatabase.PubChem, ID,
+		DBCompound newCompound = new DBCompound(OnlineDatabase.KEGG, ID,
 				compoundName, compoundFormula, entryURL, structure2DURL,
 				structure3DURL);
 

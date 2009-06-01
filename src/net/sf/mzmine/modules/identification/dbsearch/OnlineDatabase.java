@@ -21,13 +21,15 @@ package net.sf.mzmine.modules.identification.dbsearch;
 
 import net.sf.mzmine.modules.identification.dbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.identification.dbsearch.databases.KEGGGateway;
+import net.sf.mzmine.modules.identification.dbsearch.databases.MetLinGateway;
 import net.sf.mzmine.modules.identification.dbsearch.databases.PubChemGateway;
 
 public enum OnlineDatabase {
 
 	KEGG("KEGG Compound Database", KEGGGateway.class), 
 	PubChem("PubChem Compound Database", PubChemGateway.class),
-	HMDB("Human Metabolome Database", HMDBGateway.class);
+	HMDB("Human Metabolome Database", HMDBGateway.class),
+	METLIN("METLIN Database", MetLinGateway.class);
 
 	private final String dbName;
 	private final Class<? extends DBGateway> gatewayClass;

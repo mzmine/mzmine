@@ -76,8 +76,9 @@ public class MolStructureViewer extends JInternalFrame {
 				SwingConstants.CENTER);
 		loading3Dlabel.setOpaque(true);
 		loading3Dlabel.setBackground(Color.white);
-		
-		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, loading2Dlabel, loading3Dlabel);
+
+		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, loading2Dlabel,
+				loading3Dlabel);
 		splitPane.setResizeWeight(0.5);
 
 		mainPanel.add(splitPane, BorderLayout.CENTER);
@@ -91,7 +92,7 @@ public class MolStructureViewer extends JInternalFrame {
 		setPreferredSize(new Dimension(900, 500));
 
 		pack();
-		
+
 		// Set the initial splitter location, after the window is packed
 		splitPane.setDividerLocation(500);
 
@@ -128,6 +129,8 @@ public class MolStructureViewer extends JInternalFrame {
 		JComponent newComponent;
 		try {
 			String structure2D = InetUtils.retrieveData(url);
+			if (structure2D.length() < 10)
+				throw (new Exception("Structure string is empty"));
 			newComponent = new Structure2DComponent(structure2D, statusLabel);
 		} catch (Exception e) {
 			String errorMessage = "Could not load 2D structure\n"
@@ -148,6 +151,8 @@ public class MolStructureViewer extends JInternalFrame {
 		JComponent newComponent;
 		try {
 			String structure3D = InetUtils.retrieveData(url);
+			if (structure3D.length() < 10)
+				throw (new Exception("Structure string is empty"));
 			newComponent = new Structure3DComponent(structure3D);
 		} catch (Exception e) {
 			String errorMessage = "Could not load 3D structure\n"

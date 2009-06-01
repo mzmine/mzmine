@@ -41,7 +41,7 @@ import org.openscience.cdk.exception.CDKException;
 import org.openscience.cdk.interfaces.IAtomContainer;
 import org.openscience.cdk.interfaces.IChemModel;
 import org.openscience.cdk.interfaces.IMolecule;
-import org.openscience.cdk.io.MDLV2000Reader;
+import org.openscience.cdk.io.MDLReader;
 import org.openscience.cdk.renderer.Renderer2DModel;
 import org.openscience.cdk.tools.HydrogenAdder;
 import org.openscience.cdk.tools.MFAnalyser;
@@ -74,7 +74,8 @@ public class Structure2DComponent extends JChemPaintEditorPanel {
 
 		// Load the structure
 		StringReader reader = new StringReader(structure);
-		MDLV2000Reader molReader = new MDLV2000Reader(reader);
+		
+		MDLReader molReader = new MDLReader(reader);
 		ChemModel chemModel = new ChemModel();
 		chemModel = (ChemModel) molReader.read(chemModel);
 
