@@ -217,10 +217,10 @@ public class RawDataFileOpen extends DefaultHandler {
 						precursorMZ, precursorCharge, fragmentScan, centroided);
 
 				rawDataFileWriter.addScan(storableScan);
-				storageFileOffset += dataPointsNumber * 2;
+				storageFileOffset += dataPointsNumber * 4 * 2;
 
 			} catch (Exception ex) {
-				logger.log(Level.SEVERE, "Error while saving scan data file",
+				logger.log(Level.SEVERE, "Error while opening scan data file",
 						ex);
 			}
 		}
