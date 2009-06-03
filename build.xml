@@ -34,7 +34,7 @@
 
 		<mkdir dir="${build}" />
 
-		<javac target="1.5" srcdir="${src}" destdir="${build}" debug="on">
+		<javac target="1.6" srcdir="${src}" destdir="${build}" debug="on">
 			<classpath refid="cppath" />
 		</javac>
 		
@@ -47,7 +47,7 @@
 		<mkdir dir="${dist}/icons" />
 		<mkdir dir="${dist}/conf" />
 
-		<!-- copy the sources, to include all resources like XML report definition -->
+		<!-- copy the src, to include java sources and help files -->
 		<copy todir="${build}">
 			<fileset dir="${src}" />
 		</copy>
