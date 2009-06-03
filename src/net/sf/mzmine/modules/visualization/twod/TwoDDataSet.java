@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
+import java.lang.ref.SoftReference;
 import java.util.Arrays;
-import java.util.HashMap;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -46,13 +46,14 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
 	private double retentionTimes[];
 	private double basePeaks[];
-	private HashMap<Integer, Scan> dataPointMatrix;
+	private SoftReference<DataPoint[]> dataPointMatrix[];
 
 	private Range totalRTRange, totalMZRange;
 	private int scanNumbers[], totalScans, processedScans;
 
 	private TaskStatus taskStatus = TaskStatus.WAITING;
 
+	@SuppressWarnings("unchecked")
 	TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
 			Range mzRange, TwoDVisualizerWindow visualizer) {
 
@@ -65,7 +66,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
 		totalScans = scanNumbers.length;
 
-		dataPointMatrix = new HashMap<Integer, Scan>(scanNumbers.length);
+		dataPointMatrix = new SoftReference[scanNumbers.length];
 		retentionTimes = new double[scanNumbers.length];
 		basePeaks = new double[scanNumbers.length];
 
@@ -90,7 +91,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 			retentionTimes[index] = scan.getRetentionTime();
 			basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
 					.getIntensity());
-			dataPointMatrix.put(index, scan);
+			DataPoint scanDataPoints[] = scan.getDataPoints();
+			dataPointMatrix[index] = new SoftReference<DataPoint[]>(
+					scanDataPoints);
 			processedScans++;
 		}
 
@@ -167,8 +170,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 				return 0;
 
 			if (startScanIndex == searchRetentionTimes.length - 1)
-				return getMaxIntensity(dataPointMatrix.get(startScanIndex - 1)
-						.getDataPoints(), mzRange, plotMode);
+				return getMaxIntensity(startScanIndex - 1, mzRange, plotMode);
 
 			// find which scan point is closer
 			double diffNext = searchRetentionTimes[startScanIndex]
@@ -177,11 +179,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 					- searchRetentionTimes[startScanIndex - 1];
 
 			if (diffPrev < diffNext)
-				return getMaxIntensity(dataPointMatrix.get(startScanIndex - 1)
-						.getDataPoints(), mzRange, plotMode);
+				return getMaxIntensity(startScanIndex - 1, mzRange, plotMode);
 			else
-				return getMaxIntensity(dataPointMatrix.get(startScanIndex)
-						.getDataPoints(), mzRange, plotMode);
+				return getMaxIntensity(startScanIndex, mzRange, plotMode);
 		}
 
 		for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange
@@ -191,14 +191,8 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 			if (basePeaks[scanIndex] < maxIntensity)
 				continue;
 
-			Scan scan = dataPointMatrix.get(scanIndex);
+			double scanMax = getMaxIntensity(scanIndex, mzRange, plotMode);
 
-			if (scan == null)
-				continue;
-
-			double scanMax = getMaxIntensity(scan.getDataPoints(), mzRange,
-					plotMode);
-			;
 			if (scanMax > maxIntensity)
 				maxIntensity = scanMax;
 
@@ -208,7 +202,19 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
 	}
 
-	double getMaxIntensity(DataPoint dataPoints[], Range mzRange,
+	private double getMaxIntensity(int dataPointMatrixIndex, Range mzRange,
+			PlotMode plotMode) {
+		DataPoint dataPoints[] = dataPointMatrix[dataPointMatrixIndex].get();
+		if (dataPoints == null) {
+			Scan scan = rawDataFile.getScan(scanNumbers[dataPointMatrixIndex]);
+			dataPoints = scan.getDataPoints();
+			dataPointMatrix[dataPointMatrixIndex] = new SoftReference<DataPoint[]>(
+					dataPoints);
+		}
+		return getMaxIntensity(dataPoints, mzRange, plotMode);
+	}
+
+	private double getMaxIntensity(DataPoint dataPoints[], Range mzRange,
 			PlotMode plotMode) {
 
 		double maxIntensity = 0;

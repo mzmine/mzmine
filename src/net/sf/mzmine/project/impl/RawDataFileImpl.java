@@ -111,18 +111,21 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	/**
 	 * Reads data from the temporary scan file
 	 * 
-	 * @param position Position from the beginning of the file, in bytes
-	 * @param size Amount of data to read, in bytes
+	 * @param position
+	 *            Position from the beginning of the file, in bytes
+	 * @param size
+	 *            Amount of data to read, in bytes
 	 * @return
 	 * @throws IOException
 	 */
-	synchronized ByteBuffer readFromFloatBufferFile(long position, int size) throws IOException {
-		
+	synchronized ByteBuffer readFromFloatBufferFile(long position, int size)
+			throws IOException {
+
 		ByteBuffer buffer = ByteBuffer.allocate(size);
-		
+
 		scanDataFile.seek(position);
 		scanDataFile.read(buffer.array(), 0, size);
-		
+
 		return buffer;
 	}
 
@@ -307,7 +310,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		scanDataFile.write(buffer.array());
 
-		CachedStorableScan storedScan = new CachedStorableScan(newScan, this,
+		StorableScan storedScan = new StorableScan(newScan, this,
 				currentOffset, dataPoints.length);
 
 		scans.put(newScan.getScanNumber(), storedScan);

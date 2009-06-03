@@ -32,8 +32,8 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.impl.CachedStorableScan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.project.impl.StorableScan;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -211,7 +211,7 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
 			try {
 
-				CachedStorableScan storableScan = new CachedStorableScan(
+				StorableScan storableScan = new StorableScan(
 						rawDataFileWriter, storageFileOffset, dataPointsNumber,
 						scanNumber, msLevel, retentionTime, parentScan,
 						precursorMZ, precursorCharge, fragmentScan, centroided);
