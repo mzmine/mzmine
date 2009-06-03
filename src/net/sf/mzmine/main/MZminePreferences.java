@@ -236,13 +236,13 @@ public class MZminePreferences implements StorableParameterSet {
 			proxyServer = (proxyElement.attributeValue("activated") != null);
 
 			Element AddressElement = proxyElement.element(PROXY_ADDRESS);
-			if (AddressElement != null) {
-				proxyAddress = AddressElement.getText();
+			if (AddressElement != null) {				
+				setProxyAddress(AddressElement.getText());
 			}
 
 			Element portElement = proxyElement.element(PROXY_PORT);
-			if (portElement != null) {
-				proxyPort = portElement.getText();
+			if (portElement != null) {				
+				setProxyPort(portElement.getText());
 			}
 		}
 
@@ -275,24 +275,32 @@ public class MZminePreferences implements StorableParameterSet {
 
 	public void setProxy(boolean proxy){
 		this.proxyServer = proxy;
+		if(!proxy){
+			System.clearProperty("http.proxyHost");
+			System.clearProperty("http.proxyPort");
+		}
 	}
 
-	public String getProxyAddress(){
+	public String getProxyAddress(){		
 		return proxyAddress;
 	}
 
 	public void setProxyAddress(String address){
 		this.proxyAddress = address;
-		System.setProperty("http.proxyHost", address);
+		if(isProxy()){
+			System.setProperty("http.proxyHost", address);
+		}
 	}
 
-	public String getProxyPort(){
+	public String getProxyPort(){		
 		return proxyPort;
 	}
 
 	public void setProxyPort(String port){
 		this.proxyPort = port;
-		System.setProperty("http.proxyPort", port);
+		if(isProxy()){
+			System.setProperty("http.proxyPort", port);
+		}
 	}
 
 
