@@ -283,6 +283,7 @@ public class MZminePreferences implements StorableParameterSet {
 
 	public void setProxyAddress(String address){
 		this.proxyAddress = address;
+		System.setProperty("http.proxyHost", address);
 	}
 
 	public String getProxyPort(){
@@ -291,6 +292,7 @@ public class MZminePreferences implements StorableParameterSet {
 
 	public void setProxyPort(String port){
 		this.proxyPort = port;
+		System.setProperty("http.proxyPort", port);
 	}
 
 
