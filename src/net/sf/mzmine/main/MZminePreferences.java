@@ -48,6 +48,9 @@ public class MZminePreferences implements StorableParameterSet {
 	public static final String HEIGHT_ELEMENT_NAME = "height";
 	public static final String LAST_PROJECT_PATH_ELEMENT_NAME = "lastProjectDirectory";
 	public static final String THREADS_ELEMENT_NAME = "threads";
+	public static final String PROXY = "proxy_settings";
+	public static final String PROXY_ADDRESS = "proxy_address";
+	public static final String PROXY_PORT = "proxy_port";
 
 	public static final int MAXIMIZED = -1;
 
@@ -57,6 +60,10 @@ public class MZminePreferences implements StorableParameterSet {
 
 	private boolean autoNumberOfThreads = true;
 	private int manualNumberOfThreads = 2;
+
+	private boolean proxyServer = false;
+	private String proxyAddress = "";
+	private String proxyPort = "";
 
 	public MZminePreferences() {
 		this.mzFormat = new NumberFormatter(FormatterType.NUMBER, "0.000");
@@ -155,6 +162,17 @@ public class MZminePreferences implements StorableParameterSet {
 			threadsElement.addAttribute("auto", "true");
 		threadsElement.setText(String.valueOf(manualNumberOfThreads));
 
+
+		//Proxy Settings
+		Element proxyElement = element.addElement(PROXY);
+		if (proxyServer)
+			proxyElement.addAttribute("activated", "true");
+
+		Element addressElement = proxyElement.addElement(PROXY_ADDRESS);
+		addressElement.setText(String.valueOf(proxyAddress));
+		Element portElement = proxyElement.addElement(PROXY_PORT);
+		portElement.setText(String.valueOf(proxyPort));
+
 	}
 
 	/**
@@ -212,6 +230,22 @@ public class MZminePreferences implements StorableParameterSet {
 			manualNumberOfThreads = Integer.parseInt(threadsElement.getText());
 		}
 
+		//Proxy settings
+		Element proxyElement = element.element(PROXY);
+		if (proxyElement != null) {
+			proxyServer = (proxyElement.attributeValue("activated") != null);
+
+			Element AddressElement = proxyElement.element(PROXY_ADDRESS);
+			if (AddressElement != null) {
+				proxyAddress = AddressElement.getText();
+			}
+
+			Element portElement = proxyElement.element(PROXY_PORT);
+			if (portElement != null) {
+				proxyPort = portElement.getText();
+			}
+		}
+
 	}
 
 	public MZminePreferences clone() {
@@ -233,5 +267,31 @@ public class MZminePreferences implements StorableParameterSet {
 	public void setManualNumberOfThreads(int manualNumberOfThreads) {
 		this.manualNumberOfThreads = manualNumberOfThreads;
 	}
+
+	// Proxy settings	
+	public boolean isProxy(){
+		return proxyServer;
+	}
+
+	public void setProxy(boolean proxy){
+		this.proxyServer = proxy;
+	}
+
+	public String getProxyAddress(){
+		return proxyAddress;
+	}
+
+	public void setProxyAddress(String address){
+		this.proxyAddress = address;
+	}
+
+	public String getProxyPort(){
+		return proxyPort;
+	}
+
+	public void setProxyPort(String port){
+		this.proxyPort = port;
+	}
+
 
 }

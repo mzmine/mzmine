@@ -27,6 +27,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -46,6 +47,8 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 	private JButton btnOK, btnCancel, btnHelp;
 	private JTextField manualNumberField;
 	private JRadioButton setAutoButton, setManuallyButton;
+	private JTextField proxyAddressField, proxyPortField;
+	private JCheckBox proxyBox;
 
 	/**
 	 * Constructor
@@ -82,6 +85,28 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		pnlLabelsAndFields.add(setAutoPanel);
 		pnlLabelsAndFields.add(setManuallyPanel);
 
+
+		// Proxy options 
+		JLabel proxyLabel = new JLabel("Internet connection settings");
+		proxyBox = new JCheckBox("Proxy connection");
+		proxyBox.addActionListener(this);
+
+		JPanel proxyAddressPanel = new JPanel(new GridLayout(2, 2));
+		JLabel proxyAddressLabel = new JLabel("Proxy Address:");
+		proxyAddressField = new JTextField();
+		JLabel proxyPortLabel = new JLabel("Proxy Port:");
+		proxyPortField = new JTextField();
+		proxyAddressPanel.add(proxyAddressLabel);
+		proxyAddressPanel.add(proxyAddressField);		
+		proxyAddressPanel.add(proxyPortLabel);
+		proxyAddressPanel.add(proxyPortField);
+
+		JPanel proxyPanel = new JPanel(new GridLayout(3, 1));
+		proxyPanel.add(proxyLabel);
+		proxyPanel.add(proxyBox);
+		proxyPanel.add(proxyAddressPanel);
+		
+
 		// Create buttons
 		JPanel pnlButtons = new JPanel();
 		btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
@@ -92,7 +117,8 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		// Put everything into a main panel
 		JPanel pnlAll = new JPanel(new BorderLayout());
 		GUIUtils.addMargin(pnlAll, 10);
-		pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
+		pnlAll.add(pnlLabelsAndFields, BorderLayout.NORTH);
+		pnlAll.add(proxyPanel, BorderLayout.CENTER);
 		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 		add(pnlAll);
 
@@ -106,6 +132,15 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		} else {
 			setManuallyButton.setSelected(true);
 		}
+
+		if(preferences.isProxy()){
+			proxyBox.setSelected(true);
+		}
+		proxyAddressField.setText(preferences.getProxyAddress());
+		proxyPortField.setText(preferences.getProxyPort());
+		
+		proxyAddressField.setEnabled(proxyBox.isSelected());
+		proxyPortField.setEnabled(proxyBox.isSelected());
 
 		pack();
 
@@ -138,11 +173,20 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 					.getText());
 			preferences.setManualNumberOfThreads(manualNumberOfThreads);
 
+			preferences.setProxy(proxyBox.isSelected());
+			preferences.setProxyAddress(proxyAddressField.getText());
+			preferences.setProxyPort(proxyPortField.getText());
+
 			dispose();
 		}
 
 		if (src == btnCancel) {
 			dispose();
+		}
+
+		if (src == proxyBox){
+			proxyAddressField.setEnabled(proxyBox.isSelected());
+			proxyPortField.setEnabled(proxyBox.isSelected());
 		}
 
 	}
