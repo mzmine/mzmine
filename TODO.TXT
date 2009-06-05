@@ -53,6 +53,9 @@ to peak detection.
 * There should be a switch whether missing points in the grid should be
   approximated - makes sense only for continuous mode when looking in high
   detail
+* Bug: 3D visualizer sometimes cannot start and throws this exception:
+   visad.SetException: Gridded2DSet: samples do not form a valid grid
+   especially when showing centroided data in detail?	 
 
 Peak list table
 * There should be another column "fold-change", user can select which samples/parameters are compared
