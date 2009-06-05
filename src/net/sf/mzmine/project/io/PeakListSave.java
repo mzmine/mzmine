@@ -183,7 +183,7 @@ public class PeakListSave {
 	 * @throws org.xml.sax.SAXException
 	 */
 	private void fillProcessParameters(SimpleParameterSet parameterSet, TransformerHandler hd) throws SAXException {
-		if(parameterSet.getParameters() == null) 
+		if ((parameterSet == null) || (parameterSet.getParameters() == null)) 
 			return;
 
 		AttributesImpl atts = new AttributesImpl();
