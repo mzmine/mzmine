@@ -47,394 +47,412 @@ import org.jfree.chart.axis.NumberTickUnit;
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizerWindow extends JInternalFrame implements
-        ActionListener {
+		ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private SpectraVisualizerType visualizerType;
+	private SpectraVisualizerType visualizerType;
 
-    private SpectraToolBar toolBar;
-    private SpectraPlot spectrumPlot;
-    private SpectraBottomPanel bottomPanel;
+	private SpectraToolBar toolBar;
+	private SpectraPlot spectrumPlot;
+	private SpectraBottomPanel bottomPanel;
 
-    private RawDataFile dataFile;
+	private RawDataFile dataFile;
 
-    // Currently loaded scan
-    private Scan currentScan;
+	// Currently loaded scan
+	private Scan currentScan;
 
-    // Current scan data set
-    private SpectraDataSet spectrumDataSet;
+	// Current scan data set
+	private SpectraDataSet spectrumDataSet;
 
-    private NumberFormat rtFormat = MZmineCore.getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	private NumberFormat rtFormat = MZmineCore.getRTFormat();
+	private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-    public SpectraVisualizerWindow(RawDataFile dataFile, String title,
-            SpectraVisualizerType type) {
+	public SpectraVisualizerWindow(RawDataFile dataFile, String title,
+			SpectraVisualizerType type) {
 
-        super(title, true, true, true, true);
-        this.dataFile = dataFile;
+		super(title, true, true, true, true);
+		this.dataFile = dataFile;
 
-        visualizerType = type;
+		visualizerType = type;
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 
-        spectrumPlot = new SpectraPlot(this, visualizerType);
-        add(spectrumPlot, BorderLayout.CENTER);
+		spectrumPlot = new SpectraPlot(this, visualizerType);
+		add(spectrumPlot, BorderLayout.CENTER);
 
-        toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
-        add(toolBar, BorderLayout.EAST);
+		toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
+		add(toolBar, BorderLayout.EAST);
 
-        // Create relationship between the current Plot and Tool bar
-        spectrumPlot.setRelatedToolBar(toolBar);
+		// Create relationship between the current Plot and Tool bar
+		spectrumPlot.setRelatedToolBar(toolBar);
 
-        if (visualizerType == SpectraVisualizerType.SPECTRUM) {
-            bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
-            add(bottomPanel, BorderLayout.SOUTH);
-        }
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
+			bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
+			add(bottomPanel, BorderLayout.SOUTH);
+		}
 
-        pack();
+		pack();
 
-    }
+	}
 
-    SpectraVisualizerWindow(RawDataFile dataFile, String title,
-            final MzDataTable mzDataTable) {
+	SpectraVisualizerWindow(RawDataFile dataFile, String title,
+			final MzDataTable mzDataTable) {
 
-        super(title, true, true, true, true);
+		super(title, true, true, true, true);
 
-        if (mzDataTable instanceof Scan) {
-            visualizerType = SpectraVisualizerType.SPECTRUM;
-        } else if (mzDataTable instanceof IsotopePattern) {
-            visualizerType = SpectraVisualizerType.ISOTOPE;
-        }
+		if (mzDataTable instanceof Scan) {
+			visualizerType = SpectraVisualizerType.SPECTRUM;
+		} else if (mzDataTable instanceof IsotopePattern) {
+			visualizerType = SpectraVisualizerType.ISOTOPE;
+		}
 
-        this.dataFile = dataFile;
+		this.dataFile = dataFile;
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
 
-        spectrumPlot = new SpectraPlot(this, visualizerType);
-        add(spectrumPlot, BorderLayout.CENTER);
+		spectrumPlot = new SpectraPlot(this, visualizerType);
+		add(spectrumPlot, BorderLayout.CENTER);
 
-        toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
-        add(toolBar, BorderLayout.EAST);
+		toolBar = new SpectraToolBar(spectrumPlot, visualizerType);
+		add(toolBar, BorderLayout.EAST);
 
-        // Create relationship between the current Plot and Tool bar
-        spectrumPlot.setRelatedToolBar(toolBar);
+		// Create relationship between the current Plot and Tool bar
+		spectrumPlot.setRelatedToolBar(toolBar);
 
-        if (visualizerType == SpectraVisualizerType.SPECTRUM) {
-            bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
-            add(bottomPanel, BorderLayout.SOUTH);
-        }
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
+			bottomPanel = new SpectraBottomPanel(this, dataFile, visualizerType);
+			add(bottomPanel, BorderLayout.SOUTH);
+		}
 
-        if (visualizerType == SpectraVisualizerType.SPECTRUM) {
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
 
-            Runnable newThreadRunnable = new Runnable() {
+			Runnable newThreadRunnable = new Runnable() {
 
-                public void run() {
-                    loadRawData(mzDataTable);
-                    loadPeaks();
-                }
+				public void run() {
+					loadRawData(mzDataTable);
+					loadPeaks();
+				}
 
-            };
+			};
 
-            Thread newThread = new Thread(newThreadRunnable);
-            newThread.start();
+			Thread newThread = new Thread(newThreadRunnable);
+			newThread.start();
 
-        } else {
+		} else {
 
-            Runnable newThreadRunnable = new Runnable() {
+			Runnable newThreadRunnable = new Runnable() {
 
-                public void run() {
-                    loadRawData(mzDataTable);
-                    loadPeaks();
-                    loadIsotopePattern((IsotopePattern) mzDataTable);
-                }
-
-            };
-
-            Thread newThread = new Thread(newThreadRunnable);
-            newThread.start();
-
-        }
+				public void run() {
+					loadRawData(mzDataTable);
+					loadPeaks();
+					loadIsotopePattern((IsotopePattern) mzDataTable);
+				}
 
-        pack();
+			};
 
-        // After we have constructed everything, load the peak lists into the
-        // bottom panel
-        if (visualizerType == SpectraVisualizerType.SPECTRUM)
-            bottomPanel.rebuildPeakListSelector();
+			Thread newThread = new Thread(newThreadRunnable);
+			newThread.start();
 
-    }
+		}
 
-    public void loadRawData(MzDataTable rawData) {
-
-        if (rawData instanceof Scan) {
-            logger.finest("Loading scan #" + ((Scan) rawData).getScanNumber()
-                    + " from " + dataFile + " for spectra visualizer");
-        }
-
-        spectrumDataSet = new SpectraDataSet(rawData);
-
-        if (visualizerType == SpectraVisualizerType.SPECTRUM) {
-
-            currentScan = (Scan) rawData;
-
-            // Set plot mode only if it hasn't been set before
-            if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
-                // if the scan is centroided, switch to centroid mode
-                if (currentScan.isCentroided()) {
-                    spectrumPlot.setPlotMode(PlotMode.CENTROID);
-                    toolBar.setCentroidButton(false);
-                } else {
-                    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-                    toolBar.setCentroidButton(true);
-                }
+		pack();
 
-            // Clean up the MS/MS selector combo
+		// After we have constructed everything, load the peak lists into the
+		// bottom panel
+		if (visualizerType == SpectraVisualizerType.SPECTRUM)
+			bottomPanel.rebuildPeakListSelector();
 
-            JComboBox msmsSelector = bottomPanel.getMSMSSelector();
-            msmsSelector.removeAllItems();
-            boolean msmsVisible = false;
+	}
 
-            // Add parent scan to MS/MS selector combo
+	public void loadRawData(MzDataTable rawData) {
 
-            int parentNumber = currentScan.getParentScanNumber();
-            if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
+		if (rawData instanceof Scan) {
+			logger.finest("Loading scan #" + ((Scan) rawData).getScanNumber()
+					+ " from " + dataFile + " for spectra visualizer");
+		}
 
-                Scan parentScan = dataFile.getScan(parentNumber);
-                if (parentScan != null) {
-                    String itemText = "Parent scan #" + parentNumber + ", RT: "
-                            + rtFormat.format(parentScan.getRetentionTime())
-                            + ", precursor m/z: "
-                            + mzFormat.format(currentScan.getPrecursorMZ());
+		spectrumDataSet = new SpectraDataSet(rawData);
 
-                    if (currentScan.getPrecursorCharge() > 0)
-                        itemText += " (chrg "
-                                + currentScan.getPrecursorCharge() + ")";
+		if (visualizerType == SpectraVisualizerType.SPECTRUM) {
 
-                    msmsSelector.addItem(itemText);
-                    msmsVisible = true;
-                }
-            }
+			currentScan = (Scan) rawData;
 
-            // Add all fragment scans to MS/MS selector combo
-            int fragmentScans[] = currentScan.getFragmentScanNumbers();
-            if (fragmentScans != null) {
-                for (int fragment : fragmentScans) {
-                    Scan fragmentScan = dataFile.getScan(fragment);
-                    if (fragmentScan == null)
-                        continue;
-                    String itemText = "Fragment scan #" + fragment + ", RT: "
-                            + rtFormat.format(fragmentScan.getRetentionTime())
-                            + ", precursor m/z: "
-                            + mzFormat.format(fragmentScan.getPrecursorMZ());
-                    msmsSelector.addItem(itemText);
-                    msmsVisible = true;
-                }
-            }
+			// Set plot mode only if it hasn't been set before
+			if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
+				// if the scan is centroided, switch to centroid mode
+				if (currentScan.isCentroided()) {
+					spectrumPlot.setPlotMode(PlotMode.CENTROID);
+					toolBar.setCentroidButton(false);
+				} else {
+					spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+					toolBar.setCentroidButton(true);
+				}
 
-            // Update the visibility of MS/MS selection combo
-            bottomPanel.setMSMSSelectorVisible(msmsVisible);
+			// Clean up the MS/MS selector combo
 
-            // Set window and plot titles
+			JComboBox msmsSelector = bottomPanel.getMSMSSelector();
 
-            String title = "[" + dataFile.toString() + "] scan #"
-                    + currentScan.getScanNumber();
+			// We disable the MSMS selector first and then enable it again later
+			// after updating the items. If we skip this, the size of the
+			// selector may not be adjusted properly (timing issues?)
+			msmsSelector.setEnabled(false);
 
-            String subTitle = "MS" + currentScan.getMSLevel() + ", RT "
-                    + rtFormat.format(currentScan.getRetentionTime());
+			msmsSelector.removeAllItems();
+			boolean msmsVisible = false;
 
-            DataPoint basePeak = currentScan.getBasePeak();
-            if (basePeak != null) {
-                subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
-                        + " m/z ("
-                        + intensityFormat.format(basePeak.getIntensity()) + ")";
-            }
+			// Add parent scan to MS/MS selector combo
 
-            setTitle(title);
-            spectrumPlot.setTitle(title, subTitle);
+			int parentNumber = currentScan.getParentScanNumber();
+			if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
 
-        } else {
+				Scan parentScan = dataFile.getScan(parentNumber);
+				if (parentScan != null) {
+					String itemText = "Parent scan #" + parentNumber + ", RT: "
+							+ rtFormat.format(parentScan.getRetentionTime())
+							+ ", precursor m/z: "
+							+ mzFormat.format(currentScan.getPrecursorMZ());
 
-            IsotopePattern isotopePattern = (IsotopePattern) rawData;
+					if (currentScan.getPrecursorCharge() > 0)
+						itemText += " (chrg "
+								+ currentScan.getPrecursorCharge() + ")";
 
-            Range mzRange = isotopePattern.getIsotopeMzRange();
-            String subTitle = "";
+					msmsSelector.addItem(itemText);
+					msmsVisible = true;
+				}
+			}
 
-            if (isotopePattern.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED) {
-                spectrumPlot.setPlotMode(PlotMode.CENTROID);
-                toolBar.setCentroidButton(false);
-            } else {
-                spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-                toolBar.setCentroidButton(true);
-                subTitle = isotopePattern.getDataFile().getName() + " Scan "
-                        + isotopePattern.getRepresentativeScanNumber();
-            }
+			// Add all fragment scans to MS/MS selector combo
+			int fragmentScans[] = currentScan.getFragmentScanNumbers();
+			if (fragmentScans != null) {
+				for (int fragment : fragmentScans) {
+					Scan fragmentScan = dataFile.getScan(fragment);
+					if (fragmentScan == null)
+						continue;
+					String itemText = "Fragment scan #" + fragment + ", RT: "
+							+ rtFormat.format(fragmentScan.getRetentionTime())
+							+ ", precursor m/z: "
+							+ mzFormat.format(fragmentScan.getPrecursorMZ());
+					msmsSelector.addItem(itemText);
+					msmsVisible = true;
+				}
+			}
 
-            toolBar.setPeaksButtonEnabled(false);
+			msmsSelector.setEnabled(true);
 
-            // Set window and plot titles
-            String title = "Isotope pattern of " + isotopePattern.toString();
-            setTitle(title);
-            spectrumPlot.setTitle(title, subTitle);
-            spectrumPlot.getXYPlot().getDomainAxis().setRange(mzRange.getMin(),
-                    mzRange.getMax());
+			// Update the visibility of MS/MS selection combo
+			bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
-        }
+			// Set window and plot titles
 
-        // Set plot data sets
-        spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+			String title = "[" + dataFile.toString() + "] scan #"
+					+ currentScan.getScanNumber();
 
-    }
+			String subTitle = "MS" + currentScan.getMSLevel();
 
-    public void loadPeaks() {
+			if (currentScan.getMSLevel() > 1) {
+				subTitle += " ("
+						+ mzFormat.format(currentScan.getPrecursorMZ())
+						+ " precursor m/z)";
+			}
 
-        PeakListDataSet peaksDataSet = null;
+			subTitle += ", RT "
+					+ rtFormat.format(currentScan.getRetentionTime());
 
-        if (bottomPanel == null)
-            return;
+			DataPoint basePeak = currentScan.getBasePeak();
+			if (basePeak != null) {
+				subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
+						+ " m/z ("
+						+ intensityFormat.format(basePeak.getIntensity()) + ")";
+			}
 
-        PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+			setTitle(title);
+			spectrumPlot.setTitle(title, subTitle);
 
-        if (selectedPeakList != null) {
-            toolBar.setPeaksButtonEnabled(true);
-            peaksDataSet = new PeakListDataSet(dataFile,
-                    currentScan.getScanNumber(), selectedPeakList);
-            // Set plot data sets
-            spectrumPlot.addPeaksDataSet(peaksDataSet);
-        } else {
-            toolBar.setPeaksButtonEnabled(false);
-        }
+		} else {
 
-    }
+			IsotopePattern isotopePattern = (IsotopePattern) rawData;
 
-    public void loadIsotopePattern(IsotopePattern isotopePattern) {
+			Range mzRange = isotopePattern.getIsotopeMzRange();
+			String subTitle = "";
 
-        PeakListDataSet peaksDataSet = null;
+			if (isotopePattern.getIsotopePatternStatus() == IsotopePatternStatus.PREDICTED) {
+				spectrumPlot.setPlotMode(PlotMode.CENTROID);
+				toolBar.setCentroidButton(false);
+			} else {
+				spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+				toolBar.setCentroidButton(true);
+				subTitle = isotopePattern.getDataFile().getName() + " Scan "
+						+ isotopePattern.getRepresentativeScanNumber();
+			}
 
-        peaksDataSet = new PeakListDataSet(isotopePattern);
+			toolBar.setPeaksButtonEnabled(false);
 
-        if (peaksDataSet != null) {
-            toolBar.setPeaksButtonEnabled(true);
-            spectrumPlot.addPeaksDataSet(peaksDataSet);
-        } else {
-            // toolBar.setPeaksButtonEnabled(false);
-        }
+			// Set window and plot titles
+			String title = "Isotope pattern of " + isotopePattern.toString();
+			setTitle(title);
+			spectrumPlot.setTitle(title, subTitle);
+			spectrumPlot.getXYPlot().getDomainAxis().setRange(mzRange.getMin(),
+					mzRange.getMax());
 
-    }
+		}
 
-    public void setAxesRange(double xMin, double xMax, double xTickSize,
-            double yMin, double yMax, double yTickSize) {
-        NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot().getDomainAxis();
-        NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
-        xAxis.setRange(xMin, xMax);
-        xAxis.setTickUnit(new NumberTickUnit(xTickSize));
-        yAxis.setRange(yMin, yMax);
-        yAxis.setTickUnit(new NumberTickUnit(yTickSize));
-    }
+		// Set plot data sets
+		spectrumPlot.setSpectrumDataSet(spectrumDataSet);
 
-    public void actionPerformed(ActionEvent event) {
+	}
 
-        String command = event.getActionCommand();
+	public void loadPeaks() {
 
-        if (command.equals("PEAKLIST_CHANGE")) {
+		PeakListDataSet peaksDataSet = null;
 
-            // If no scan is loaded yet, ignore
-            if (currentScan == null)
-                return;
+		if (bottomPanel == null)
+			return;
 
-            PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
-            PeakListDataSet peaksDataSet = null;
+		PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
 
-            if (selectedPeakList != null) {
-                logger.finest("Loading a peak list " + selectedPeakList
-                        + " to a spectrum window " + getTitle());
-                toolBar.setPeaksButtonEnabled(true);
-                peaksDataSet = new PeakListDataSet(dataFile,
-                        currentScan.getScanNumber(), selectedPeakList);
-                spectrumPlot.setSpectrumDataSet(spectrumDataSet);
-                spectrumPlot.addPeaksDataSet(peaksDataSet);
-            } else {
-                toolBar.setPeaksButtonEnabled(false);
-            }
+		if (selectedPeakList != null) {
+			toolBar.setPeaksButtonEnabled(true);
+			peaksDataSet = new PeakListDataSet(dataFile, currentScan
+					.getScanNumber(), selectedPeakList);
+			// Set plot data sets
+			spectrumPlot.addPeaksDataSet(peaksDataSet);
+		} else {
+			toolBar.setPeaksButtonEnabled(false);
+		}
 
-        }
+	}
 
-        if (command.equals("PREVIOUS_SCAN")) {
+	public void loadIsotopePattern(IsotopePattern isotopePattern) {
 
-            if (dataFile == null)
-                return;
+		PeakListDataSet peaksDataSet = null;
 
-            int msLevel = currentScan.getMSLevel();
-            int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-            int scanIndex = Arrays.binarySearch(scanNumbers,
-                    currentScan.getScanNumber());
-            if (scanIndex > 0) {
-                final int prevScanIndex = scanNumbers[scanIndex - 1];
+		peaksDataSet = new PeakListDataSet(isotopePattern);
 
-                Runnable newThreadRunnable = new Runnable() {
+		if (peaksDataSet != null) {
+			toolBar.setPeaksButtonEnabled(true);
+			spectrumPlot.addPeaksDataSet(peaksDataSet);
+		} else {
+			// toolBar.setPeaksButtonEnabled(false);
+		}
 
-                    public void run() {
-                        loadRawData(dataFile.getScan(prevScanIndex));
-                        loadPeaks();
-                    }
+	}
 
-                };
+	public void setAxesRange(double xMin, double xMax, double xTickSize,
+			double yMin, double yMax, double yTickSize) {
+		NumberAxis xAxis = (NumberAxis) spectrumPlot.getXYPlot()
+				.getDomainAxis();
+		NumberAxis yAxis = (NumberAxis) spectrumPlot.getXYPlot().getRangeAxis();
+		xAxis.setRange(xMin, xMax);
+		xAxis.setTickUnit(new NumberTickUnit(xTickSize));
+		yAxis.setRange(yMin, yMax);
+		yAxis.setTickUnit(new NumberTickUnit(yTickSize));
+	}
 
-                Thread newThread = new Thread(newThreadRunnable);
-                newThread.start();
+	public void actionPerformed(ActionEvent event) {
 
-            }
-        }
+		String command = event.getActionCommand();
 
-        if (command.equals("NEXT_SCAN")) {
+		if (command.equals("PEAKLIST_CHANGE")) {
 
-            if (dataFile == null)
-                return;
+			// If no scan is loaded yet, ignore
+			if (currentScan == null)
+				return;
 
-            int msLevel = currentScan.getMSLevel();
-            int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-            int scanIndex = Arrays.binarySearch(scanNumbers,
-                    currentScan.getScanNumber());
-            if (scanIndex < (scanNumbers.length - 1)) {
-                final int nextScanIndex = scanNumbers[scanIndex + 1];
+			PeakList selectedPeakList = bottomPanel.getSelectedPeakList();
+			PeakListDataSet peaksDataSet = null;
 
-                Runnable newThreadRunnable = new Runnable() {
+			if (selectedPeakList != null) {
+				logger.finest("Loading a peak list " + selectedPeakList
+						+ " to a spectrum window " + getTitle());
+				toolBar.setPeaksButtonEnabled(true);
+				peaksDataSet = new PeakListDataSet(dataFile, currentScan
+						.getScanNumber(), selectedPeakList);
+				spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+				spectrumPlot.addPeaksDataSet(peaksDataSet);
+			} else {
+				toolBar.setPeaksButtonEnabled(false);
+			}
 
-                    public void run() {
-                        loadRawData(dataFile.getScan(nextScanIndex));
-                        loadPeaks();
-                    }
+		}
 
-                };
+		if (command.equals("PREVIOUS_SCAN")) {
 
-                Thread newThread = new Thread(newThreadRunnable);
-                newThread.start();
+			if (dataFile == null)
+				return;
 
-            }
-        }
+			int msLevel = currentScan.getMSLevel();
+			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
+					.getScanNumber());
+			if (scanIndex > 0) {
+				final int prevScanIndex = scanNumbers[scanIndex - 1];
 
-        if (command.equals("SHOW_MSMS")) {
+				Runnable newThreadRunnable = new Runnable() {
 
-            String selectedScanString = (String) bottomPanel.getMSMSSelector().getSelectedItem();
-            if (selectedScanString == null)
-                return;
+					public void run() {
+						loadRawData(dataFile.getScan(prevScanIndex));
+						loadPeaks();
+					}
 
-            int sharpIndex = selectedScanString.indexOf('#');
-            int commaIndex = selectedScanString.indexOf(',');
-            selectedScanString = selectedScanString.substring(sharpIndex + 1,
-                    commaIndex);
-            int selectedScan = Integer.valueOf(selectedScanString);
+				};
 
-            SpectraVisualizer.showNewSpectrumWindow(dataFile, selectedScan);
-        }
+				Thread newThread = new Thread(newThreadRunnable);
+				newThread.start();
 
-    }
+			}
+		}
 
-    public SpectraPlot getSpectrumPlot() {
-        return spectrumPlot;
-    }
+		if (command.equals("NEXT_SCAN")) {
+
+			if (dataFile == null)
+				return;
+
+			int msLevel = currentScan.getMSLevel();
+			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
+			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
+					.getScanNumber());
+			if (scanIndex < (scanNumbers.length - 1)) {
+				final int nextScanIndex = scanNumbers[scanIndex + 1];
+
+				Runnable newThreadRunnable = new Runnable() {
+
+					public void run() {
+						loadRawData(dataFile.getScan(nextScanIndex));
+						loadPeaks();
+					}
+
+				};
+
+				Thread newThread = new Thread(newThreadRunnable);
+				newThread.start();
+
+			}
+		}
+
+		if (command.equals("SHOW_MSMS")) {
+
+			String selectedScanString = (String) bottomPanel.getMSMSSelector()
+					.getSelectedItem();
+			if (selectedScanString == null)
+				return;
+
+			int sharpIndex = selectedScanString.indexOf('#');
+			int commaIndex = selectedScanString.indexOf(',');
+			selectedScanString = selectedScanString.substring(sharpIndex + 1,
+					commaIndex);
+			int selectedScan = Integer.valueOf(selectedScanString);
+
+			SpectraVisualizer.showNewSpectrumWindow(dataFile, selectedScan);
+		}
+
+	}
+
+	public SpectraPlot getSpectrumPlot() {
+		return spectrumPlot;
+	}
 
 }
