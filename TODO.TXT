@@ -42,9 +42,7 @@ to peak detection.
 * Need to set threshold for how many peaks will be annotated (Sandra)
 * Color scale should be editable, similar as color scale of RT/MZ plots
 * Intensity scale is now relative to the zoomed area. There should be a 
-  setting to make it absolute (e.g. when comparing two files)
-* Loading of data should be properly implemented as a Task. Currently 
-  the task only loads Scans, but these are already in memory. 
+  setting to make it absolute (e.g. when comparing two files) 
 
 3D visualizer
 * Need to set threshold for how many peaks will be annotated
@@ -78,6 +76,12 @@ Spectrum visualizer
 
 Peak list row summary visualizer
 * After changing the peak using manual picker, the row summary is not updated
+
+Project listeners
+* Visualizers which set project listener need to remove that listener when their frame is closed, 
+  otherwise garbage collector cannot collect them. Other solution may be to use SoftReference for
+  project listeners.
+
 
 ***** Alignment *****
 
