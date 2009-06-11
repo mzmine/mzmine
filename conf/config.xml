@@ -302,7 +302,8 @@
         <parameter name="Isotope pattern score thresold level" type="DOUBLE">0.65</parameter>
         <parameter name="Weight for isotope pattern score" type="DOUBLE">0.0</parameter>
       </parameters> 
-    </module>  
+    </module> 
+    <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner"> </module> 
     <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
