@@ -113,11 +113,11 @@ class RansacAlignerTask implements Task {
 	public void run() {
 		status = TaskStatus.PROCESSING;
 		logger.info("Running RANSAC aligner");
-		int rowID=0;
+		int rowID = 0;
 
 		// Remember how many rows we need to process. 
 		for (int i = 0; i < peakLists.length; i++) {
-			totalRows += peakLists[i].getNumberOfRows() ;
+			totalRows += peakLists[i].getNumberOfRows() * 2;
 		}
 
 		// Collect all data files
@@ -141,7 +141,7 @@ class RansacAlignerTask implements Task {
 		alignedPeakList = new SimplePeakList(peakListName,
 				allDataFiles.toArray(new RawDataFile[0]));
 
-		
+
 		// For each peak list
 		for (PeakList peakList : peakLists) {
 
@@ -164,37 +164,46 @@ class RansacAlignerTask implements Task {
 				// Get all rows of the aligned peaklist within parameter limits
 				PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(
 						new Range(rtMin, rtMax), new Range(mzMin, mzMax));
-				for (PeakListRow row2 : candidateRows) {
-					alignMol.addElement(new AlignStructMol(row, row2));
+				for (PeakListRow candidateRow : candidateRows) {
+					alignMol.addElement(new AlignStructMol(row, candidateRow));
 				}
+				processedRows++;
 			}
 
 			// The first peak list is added to the aligned peak list directly
 			if (alignedPeakList.getNumberOfRows() == 0) {
 				for (PeakListRow row : peakList.getRows()) {
-					PeakListRow row2 = new SimplePeakListRow(rowID++);
+					PeakListRow newRow = new SimplePeakListRow(rowID++);
 					for (ChromatographicPeak p : row.getPeaks()) {
-						row2.addPeak(p.getDataFile(), p);
+						newRow.addPeak(p.getDataFile(), p);
 					}
-					alignedPeakList.addRow(row2);
+					alignedPeakList.addRow(newRow);
 				}
 				alignedPeakList.setName(peakListName);
 			} else {
-				RANSACDEVST ransac = new RANSACDEVST(parameters);
-				ransac.alignment(alignMol);				
-				
+				// RANSAC algorithm
+				RANSAC ransac = new RANSAC(parameters);
+				ransac.alignment(alignMol);
+
+				// Write results into the aligned peak list
 				for (PeakListRow row : peakList.getRows()) {
 					boolean mark = false;
-					for (PeakListRow row2 : alignedPeakList.getRows()) {
+					for (PeakListRow alignedPeakListRow : alignedPeakList.getRows()) {
 						for (AlignStructMol mols : alignMol) {
-							if (mols.isMols(row, row2) && mols.Aligned) {
+
+							// If the peak list row and the aligned peak list row are aligned
+							// add all the row peaks into the aligned peak list row and the loop stops
+							if (mols.isMols(row, alignedPeakListRow) && mols.Aligned) {
 								for (RawDataFile file : row.getRawDataFiles()) {
-									row2.addPeak(file, row.getPeak(file));
+									alignedPeakListRow.addPeak(file, row.getPeak(file));
 								}
 								mark = true;
 								break;
-							}							
-						}if(mark)break;
+							}
+						}
+						if (mark) {
+							break;
+						}
 					}
 					if (!mark) {
 
@@ -204,8 +213,9 @@ class RansacAlignerTask implements Task {
 						}
 						alignedPeakList.addRow(row3);
 					}
+					processedRows++;
 				}
-			}			
+			}
 		}
 
 		// Add new aligned peak list to the project

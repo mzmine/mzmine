@@ -32,7 +32,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 	
 	public static final Parameter MZTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed M/Z difference", "m/z", new Double(0.2),
+			"Maximum allowed M/Z difference", "m/z", new Double(0.02),
 			new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
@@ -42,23 +42,23 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
 	public static final Parameter OptimizationIterations = new SimpleParameter(
 			ParameterType.INTEGER, "RANSAC Iterations",
-			"Min optimization iterations", new Integer(100));
+			"Maximum number of iterations allowed in the algorithm", new Integer(1000));
 
 	public static final Parameter NMinPoints = new SimpleParameter(
 			ParameterType.DOUBLE, "NMinPoints",
 			"Number Minimun of Points", new Double(0.2));
 
 	public static final Parameter Margin = new SimpleParameter(
-			ParameterType.DOUBLE, "Margin",
-			"Margin", new Double(2.0));
+			ParameterType.DOUBLE, "Threshold value",
+			"Threshold value for determining when a data point fits a model", new Double(3.0));
 
 	public static final Parameter curve = new SimpleParameter(
-			ParameterType.BOOLEAN, "Curve",
-			"Switch between curve model or lineal", new Boolean(false));
+			ParameterType.BOOLEAN, "Curve model",
+			"Switch between curve model or lineal model", new Boolean(false));
 
 	public static final Parameter chart = new SimpleParameter(
-			ParameterType.BOOLEAN, "Show Charts",
-			"Show the aligment on some charts", new Boolean(false));
+			ParameterType.BOOLEAN, "Visualitzation",
+			"Visualitzation of the results", new Boolean(false));
 
 	public RansacAlignerParameters() {
 		super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, OptimizationIterations, NMinPoints, Margin, curve, chart});

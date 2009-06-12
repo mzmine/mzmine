@@ -26,36 +26,40 @@ import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
-public class RANSACDEVST {
+public class RANSAC {
 
 	/**
 	 * input:
-	 * data - a set of observed data points
-	 * model - a model that can be fitted to data points
+	 * data - a set of observed data points	 
 	 * n - the minimum number of data values required to fit the model
 	 * k - the maximum number of iterations allowed in the algorithm
 	 * t - a threshold value for determining when a data point fits a model
 	 * d - the number of close data values required to assert that a model fits well to data
 	 *
 	 * output:
-	 * bestfit - model parameters which best fit the data (or nil if no good model is found)
+	 * model which best fit the data 
 	 */
-	int n;
-	double d;
-	int k = 0;
-	Random rnd;
-	int AlsoNumber;
-	double numRatePoints, margin;
-	AlignmentChart chart;
-	boolean isCurve, showChart;
-	RansacAlignerParameters parameters;
+	private int n;
+	private double d = 1;
+	private int k = 0;
+	private Random rnd;
+	private int AlsoNumber;
+	private double numRatePoints,  t;
+	private AlignmentChart chart;
+	private boolean isCurve,  showChart;
+	private RansacAlignerParameters parameters;
 
-	public RANSACDEVST(RansacAlignerParameters parameters) {
+	public RANSAC(RansacAlignerParameters parameters) {
 		this.parameters = parameters;
+
 		this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
-		this.margin = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
+
+		this.t = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
+
 		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.OptimizationIterations);
+
 		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
+
 		this.showChart = (Boolean) parameters.getParameterValue(RansacAlignerParameters.chart);
 
 		if (showChart) {
@@ -65,30 +69,37 @@ public class RANSACDEVST {
 
 	/**
 	 * Set all parameters and start ransac.
-	 * @param v vector with the points which represent all possible alignments.
+	 * @param data vector with the points which represent all possible alignments.
 	 */
-	public void alignment(Vector<AlignStructMol> v) {
+	public void alignment(Vector<AlignStructMol> data) {
+
 		this.rnd = new Random();
+		// If the model is a curve 3 points are taken to build the model,
+		// if it is a line only 2 points are taken.
 		if (isCurve) {
 			n = 3;
 		} else {
 			n = 2;
 		}
-		if (v.size() < 10) {
+
+		// Minimun number of points required to assert that a model fits well to data
+		if (data.size() < 10) {
 			d = 3;
 		} else {
-			d = v.size() * numRatePoints;
+			d = data.size() * numRatePoints;
 		}
+
+		// Calculate the number of trials if the user has not define them
 		if (k == 0) {
 			k = (int) this.getK();
 		}
+
+		// Visualization of the aligmnet
 		if (showChart) {
-			//chart.addSeries(v, "na", true);
-			//chart.printAlignmentChart();
 			chart.setVisible(true);
 			MZmineCore.getDesktop().addInternalFrame(chart);
 		}
-		this.ransac(v);
+		this.ransac(data);
 	}
 
 	/**
@@ -103,38 +114,41 @@ public class RANSACDEVST {
 
 	/**
 	 * RANSAC algorithm
-	 * @param v vector with the points which represent all possible alignments.
+	 * @param data vector with the points which represent all possible alignments.
 	 */
-	public void ransac(Vector<AlignStructMol> v) {
+	public void ransac(Vector<AlignStructMol> data) {
 		double besterr = 9.9E99;
+
 		for (int iterations = 0; iterations < this.k; iterations++) {
 			this.AlsoNumber = this.n;
-			boolean initN = this.getInitN(v);
+			// Get the initial points
+			boolean initN = this.getInitN(data);
 			if (!initN) {
 				continue;
 			}
 
+			// Calculate the model
 			if (isCurve) {
-				this.getAllModelPointsCurve(v);
+				this.getAllModelPointsCurve(data);
 			} else {
-				this.getAllModelPoints(v);
+				this.getAllModelPoints(data);
 			}
 
-
-			//System.out.println("also: " + this.AlsoNumber);
+			// If the model has the minimun number of points
 			if (this.AlsoNumber >= this.d) {
+				// Get the error of the model based on the number of points
 				double error = 10000;
 				try {
-					error = this.newError(v, null);
+					error = this.newError(data);
 				} catch (Exception ex) {
-					Logger.getLogger(RANSACDEVST.class.getName()).log(Level.SEVERE, null, ex);
+					Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
 				}
 
+				// If the error is less than the error of the last model
 				if (error < besterr) {
-					System.out.println(error);
 					besterr = error;
-					for (int i = 0; i < v.size(); i++) {
-						AlignStructMol alignStruct = v.elementAt(i);
+					for (int i = 0; i < data.size(); i++) {
+						AlignStructMol alignStruct = data.elementAt(i);
 						if (alignStruct.ransacAlsoInLiers || alignStruct.ransacMaybeInLiers) {
 							alignStruct.Aligned = true;
 						} else {
@@ -144,17 +158,23 @@ public class RANSACDEVST {
 						alignStruct.ransacAlsoInLiers = false;
 						alignStruct.ransacMaybeInLiers = false;
 					}
-					this.deleteRepeatsAlignments(v);
+
+					// Remove conficts on the alignments
+					this.deleteRepeatsAlignments(data);
+
+					// Visualizantion of the new selected model
 					if (showChart) {
 						chart.removeSeries();
-						chart.addSeries(v, "na", true);
+						chart.addSeries(data, "na", true);
 						chart.printAlignmentChart();
+						chart.moveToFront();
 					}
 				}
 			}
 
-			for (int i = 0; i < v.size(); i++) {
-				AlignStructMol alignStruct = v.elementAt(i);
+			// remove the model
+			for (int i = 0; i < data.size(); i++) {
+				AlignStructMol alignStruct = data.elementAt(i);
 				alignStruct.ransacAlsoInLiers = false;
 				alignStruct.ransacMaybeInLiers = false;
 			}
@@ -163,32 +183,47 @@ public class RANSACDEVST {
 	}
 
 	/**
-	 * Take the initial 2 points ramdoly (but the points have to be separated)
-	 * @param v vector with the points which represent all possible alignments.
-	 * @return false if there are any problem.
+	 * Take the initial points ramdoly. The points are divided by the initial number
+	 * of points. If the fractions contain enough number of points took one point
+	 * from each part.
+	 * @param data vector with the points which represent all possible alignments.
+	 * @return false if there is any problem.
 	 */
-	private boolean getInitN(Vector<AlignStructMol> v) {
-		int quarter = (v.size() / 4) - 1;
+	private boolean getInitN(Vector<AlignStructMol> data) {
 
-		if (quarter > 8) {
-			int index = rnd.nextInt(quarter);
-			v.elementAt(index).ransacMaybeInLiers = true;
+		int fractionNPoints = (data.size() / n) - 1;
 
-			index = rnd.nextInt(quarter);
-			index += (quarter * 2);
-			v.elementAt(index).ransacMaybeInLiers = true;
+		if (fractionNPoints > 8) {
 
-			index = rnd.nextInt(quarter);
-			index += (quarter * 3);
-			v.elementAt(index).ransacMaybeInLiers = true;
+			if (!isCurve) {
+				// Take 2 points
+				int index = rnd.nextInt(fractionNPoints);
+				data.elementAt(index).ransacMaybeInLiers = true;
+
+				index = rnd.nextInt(fractionNPoints);
+				index += fractionNPoints;
+				data.elementAt(index).ransacMaybeInLiers = true;
+			} else {
+				// Take 3 points
+				int index = rnd.nextInt(fractionNPoints);
+				data.elementAt(index).ransacMaybeInLiers = true;
+
+				index = rnd.nextInt(fractionNPoints);
+				index += fractionNPoints;
+				data.elementAt(index).ransacMaybeInLiers = true;
+
+				index = rnd.nextInt(fractionNPoints);
+				index += fractionNPoints;
+				data.elementAt(index).ransacMaybeInLiers = true;
+			}
 			return true;
-		} else if (v.size() > 1) {
+		} else if (data.size() > 1) {
 			for (int i = 0; i < this.n; i++) {
-				int index = rnd.nextInt(v.size());
-				if (v.elementAt(index).ransacMaybeInLiers) {
+				int index = rnd.nextInt(data.size());
+				if (data.elementAt(index).ransacMaybeInLiers) {
 					i--;
 				} else {
-					v.elementAt(index).ransacMaybeInLiers = true;
+					data.elementAt(index).ransacMaybeInLiers = true;
 				}
 			}
 			return true;
@@ -198,31 +233,33 @@ public class RANSACDEVST {
 	}
 
 	/**
-	 * Take the model
-	 * @param v vector with the points which represent all possible alignments.
-	 * @return regression of the points inside the model
+	 * Build the model creating a line with the 2 points
+	 * @param data vector with the points which represent all possible alignments.	 
 	 */
-	public void getAllModelPoints(Vector<AlignStructMol> v) {
+	public void getAllModelPoints(Vector<AlignStructMol> data) {
 		int indexRow1 = 0;
 		int indexRow2 = 0;
+
+		// Create the regression line using the two points
 		SimpleRegression regression = new SimpleRegression();
 
-		for (int i = 0; i < v.size(); i++) {
-			AlignStructMol point = v.elementAt(i);
+		for (int i = 0; i < data.size(); i++) {
+			AlignStructMol point = data.elementAt(i);
 			if (point.ransacMaybeInLiers) {
 				regression.addData(point.row1.getPeaks()[indexRow1].getRT(), point.row2.getPeaks()[indexRow2].getRT());
 			}
 		}
 
-
-		for (int i = 0; i < v.size(); i++) {
-			AlignStructMol point = v.elementAt(i);
+		// Add all the points which fit the model (the difference between the point
+		// and the regression line is less than "t"
+		for (int i = 0; i < data.size(); i++) {
+			AlignStructMol point = data.elementAt(i);
 			double intercept = regression.getIntercept();
 			double slope = regression.getSlope();
 
 			double y = point.row2.getPeaks()[indexRow2].getRT();
 			double bestY = intercept + (point.row1.getPeaks()[indexRow1].getRT() * slope);
-			if (Math.abs(y - bestY) < margin) {
+			if (Math.abs(y - bestY) < t) {
 				point.ransacAlsoInLiers = true;
 				this.AlsoNumber++;
 			} else {
@@ -232,27 +269,33 @@ public class RANSACDEVST {
 
 	}
 
-	public void getAllModelPointsCurve(Vector<AlignStructMol> v) {
+	/**
+	 *
+	 * @param data vector with the points which represent all possible alignments.
+	 */
+	public void getAllModelPointsCurve(Vector<AlignStructMol> data) {
 		int indexRow1 = 0;
 		int indexRow2 = 0;
+
+		// Obtain the variables of the curve equation
 		Vector<double[]> threePoints = new Vector<double[]>();
-		for (int i = 0; i < v.size(); i++) {
-			AlignStructMol point = v.elementAt(i);
+		for (int i = 0; i < data.size(); i++) {
+			AlignStructMol point = data.elementAt(i);
 			if (point.ransacMaybeInLiers) {
 				double[] pointCoord = new double[2];
-				//indexRow1 = rnd.nextInt(point.row1.getPeaks().length);
-				//	indexRow2 = rnd.nextInt(point.row2.getPeaks().length);
 				pointCoord[0] = point.row1.getPeaks()[indexRow1].getRT();
 				pointCoord[1] = point.row2.getPeaks()[indexRow2].getRT();
 				threePoints.addElement(pointCoord);
 			}
 		}
+		// Add all the points which fit the model (the difference between the point
+		// and the curve is less than "t"
 		try {
 			double[] curve = this.getCurveEquation(threePoints);
-			for (AlignStructMol point : v) {
+			for (AlignStructMol point : data) {
 				double y = point.row2.getPeaks()[indexRow2].getRT();
 				double bestY = curve[0] * Math.pow(point.row1.getPeaks()[indexRow1].getRT(), 2) + curve[1] * point.row1.getPeaks()[indexRow1].getRT() + curve[2];
-				if (Math.abs(y - bestY) < margin) {
+				if (Math.abs(y - bestY) < t) {
 					point.ransacAlsoInLiers = true;
 					this.AlsoNumber++;
 				} else {
@@ -294,15 +337,15 @@ public class RANSACDEVST {
 
 	/**
 	 * calculate the error in the model
-	 * @param v vector with the points which represent all possible alignments.
+	 * @param data vector with the points which represent all possible alignments.
 	 * @param regression regression of the alignment points
 	 * @return the error in the model
 	 */
-	public double newError(Vector<AlignStructMol> v, SimpleRegression regression) throws Exception {
+	public double newError(Vector<AlignStructMol> data) throws Exception {
 
 		double numT = 1;
-		for (int i = 0; i < v.size(); i++) {
-			if (v.elementAt(i).ransacAlsoInLiers || v.elementAt(i).ransacMaybeInLiers) {
+		for (int i = 0; i < data.size(); i++) {
+			if (data.elementAt(i).ransacAlsoInLiers || data.elementAt(i).ransacMaybeInLiers) {
 				numT++;
 			}
 		}
@@ -312,14 +355,14 @@ public class RANSACDEVST {
 
 	/**
 	 * If the same lipid is aligned with two differents lipids delete the alignment farest to the ransac regression line of all aligned points.
-	 * @param v vector with the points which represent all possible alignments.
+	 * @param data vector with the points which represent all possible alignments.
 	 */
-	private void deleteRepeatsAlignments(Vector<AlignStructMol> v) {
-		for (AlignStructMol structMol1 : v) {
+	private void deleteRepeatsAlignments(Vector<AlignStructMol> data) {
+		for (AlignStructMol structMol1 : data) {
 			if (structMol1.Aligned) {
-				for (AlignStructMol structMol2 : v) {
+				for (AlignStructMol structMol2 : data) {
 					if (structMol1 != structMol2 && structMol2.Aligned) {
-						if ((structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2)|| (structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2)) {
+						if ((structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2) || (structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2)) {
 							if (Math.abs(structMol1.row1.getDataPointMaxIntensity() - structMol1.row2.getDataPointMaxIntensity()) < Math.abs(structMol2.row1.getDataPointMaxIntensity() - structMol2.row2.getDataPointMaxIntensity())) {
 								structMol2.Aligned = false;
 							} else {
