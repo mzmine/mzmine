@@ -115,10 +115,9 @@ class RansacAlignerTask implements Task {
 		logger.info("Running RANSAC aligner");
 		int rowID=0;
 
-		// Remember how many rows we need to process. Each row will be processed
-		// twice, first for score calculation, second for actual alignment.
+		// Remember how many rows we need to process. 
 		for (int i = 0; i < peakLists.length; i++) {
-			totalRows += peakLists[i].getNumberOfRows() * 2;
+			totalRows += peakLists[i].getNumberOfRows() ;
 		}
 
 		// Collect all data files
@@ -143,8 +142,9 @@ class RansacAlignerTask implements Task {
 				allDataFiles.toArray(new RawDataFile[0]));
 
 		
-
+		// For each peak list
 		for (PeakList peakList : peakLists) {
+
 			Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
 			for (PeakListRow row : peakList.getRows()) {
@@ -157,9 +157,7 @@ class RansacAlignerTask implements Task {
 				double mzMin = row.getAverageMZ() - mzTolerance;
 				double mzMax = row.getAverageMZ() + mzTolerance;
 				double rtMin, rtMax;
-				double rtToleranceValue = 0.0f;
-
-				rtToleranceValue = rtToleranceValueAbs;
+				double rtToleranceValue = rtToleranceValueAbs;
 				rtMin = row.getAverageRT() - rtToleranceValue;
 				rtMax = row.getAverageRT() + rtToleranceValue;
 
@@ -171,6 +169,7 @@ class RansacAlignerTask implements Task {
 				}
 			}
 
+			// The first peak list is added to the aligned peak list directly
 			if (alignedPeakList.getNumberOfRows() == 0) {
 				for (PeakListRow row : peakList.getRows()) {
 					PeakListRow row2 = new SimplePeakListRow(rowID++);
@@ -204,9 +203,7 @@ class RansacAlignerTask implements Task {
 							row3.addPeak(p.getDataFile(), p);
 						}
 						alignedPeakList.addRow(row3);
-
 					}
-
 				}
 			}			
 		}
@@ -226,18 +223,4 @@ class RansacAlignerTask implements Task {
 	public Object[] getCreatedObjects() {
 		return new Object[]{alignedPeakList};
 	}
-
-/*	private void checkIntensities(Vector<AlignStructMol> alignMol) {
-		Vector<AlignStructMol> newMol = new Vector<AlignStructMol>();
-		for (AlignStructMol mols : alignMol) {
-			if (mols.Aligned) {
-				AlignStructMol newMols= mols;
-				newMols.Aligned = false;
-				newMol.add(newMols);
-			}
-		}
-
-		RANSACIntensities ransac = new RANSACIntensities(parameters);
-		ransac.alignment(newMol);
-	}*/
 }

@@ -319,7 +319,7 @@ public class RANSACDEVST {
 			if (structMol1.Aligned) {
 				for (AlignStructMol structMol2 : v) {
 					if (structMol1 != structMol2 && structMol2.Aligned) {
-						if ((structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2)) {
+						if ((structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2)|| (structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2)) {
 							if (Math.abs(structMol1.row1.getDataPointMaxIntensity() - structMol1.row2.getDataPointMaxIntensity()) < Math.abs(structMol2.row1.getDataPointMaxIntensity() - structMol2.row2.getDataPointMaxIntensity())) {
 								structMol2.Aligned = false;
 							} else {
