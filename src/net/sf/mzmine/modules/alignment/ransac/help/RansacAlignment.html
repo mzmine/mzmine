@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>Join align peak list</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="sandra C">
+	<META NAME="CHANGED" CONTENT="20090612;12561300">
+</HEAD>
+<BODY LANG="es-ES" DIR="LTR">
+<H1><FONT COLOR="#0066cc">RANSAC <SPAN LANG="en-GB">align peak list</SPAN></FONT></H1>
+<H2 LANG="en-GB" STYLE="margin-left: 0.53cm">Method overview</H2>
+<P STYLE="margin-left: 0.9cm"><A HREF="http://en.wikipedia.org/wiki/RANSAC"><SPAN LANG="en-GB">http://en.wikipedia.org/wiki/RANSAC</SPAN></A></P>
+<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.79cm"><B>RANSAC</B>
+is an abbreviation for &quot;RANdom SAmple Consensus&quot;. It is an
+iterative method to estimate parameters of a mathematical model from
+a set of observed data which contains outliers. It is a
+non-deterministic algorithm in the sense that it produces a
+reasonable result only with a certain probability, with this
+probability increasing as more iterations are allowed. The algorithm
+was first published by Fischler and Bolles in 1981.</P>
+<P LANG="en-GB" STYLE="margin-left: 0.82cm">A basic assumption is
+that the data consists of &quot;inliers&quot;, i.e., data whose
+distribution can be explained by some set of model parameters, and
+&quot;outliers&quot; which are data that do not fit the model. In
+addition to this, the data can be subject to noise. The outliers can
+come, e.g., from extreme values of the noise or from erroneous
+measurements or incorrect hypotheses about the interpretation of
+data. RANSAC also assumes that, given a (usually small) set of
+inliers, there exists a procedure which can estimate the parameters
+of a model that optimally explains or fits this data.</P>
+<P LANG="en-GB" STYLE="margin-left: 0.82cm">The input to the RANSAC
+algorithm is a set of observed data values, a parametrized model
+which can explain or be fitted to the observations, and some
+confidence parameters.</P>
+<P LANG="en-GB" STYLE="margin-left: 0.85cm">RANSAC achieves its goal
+by iteratively selecting a random subset of the original data. These
+data are <I>hypothetical inliers</I> and this hypothesis is then
+tested as follows:</P>
+<OL>
+	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">A model is fitted to
+	the hypothetical inliers, i.e. all free parameters of the model are
+	reconstructed from the data set. 
+	</P>
+	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">All other data are
+	then tested against the fitted model and, if a point fits well to
+	the estimated model, also considered as a hypothetical inlier. 
+	</P>
+	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">The estimated model
+	is reasonably good if sufficiently many points have been classified
+	as hypothetical inliers. 
+	</P>
+	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">The model is
+	re-estimated from all hypothetical inliers, because it has only been
+	estimated from the initial set of hypothetical inliers. 
+	</P>
+	<LI><P LANG="en-GB">Finally, the model is evaluated by estimating
+	the error of the inliers relative to the model. 
+	</P>
+</OL>
+<P LANG="en-GB" STYLE="margin-left: 0.82cm">This procedure is
+repeated a fixed number of times, each time producing either a model
+which is rejected because too few points are classified as inliers or
+a refined model together with a corresponding error measure. In the
+latter case, we keep the refined model if its error is lower than the
+last saved model.</P>
+<DIV ALIGN=RIGHT>
+	<TABLE WIDTH=1241 BORDER=0 CELLPADDING=0 CELLSPACING=0>
+		<COL WIDTH=620>
+		<COL WIDTH=621>
+		<TR VALIGN=TOP>
+			<TD WIDTH=620>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><IMG SRC="600px-Line_with_outliers.svg.png" NAME="gr&aacute;ficos3" ALIGN=LEFT WIDTH=356 HEIGHT=342 BORDER=0><BR CLEAR=LEFT><BR>
+				</P>
+				<P ALIGN=CENTER STYLE="margin-bottom: 0cm">A data set with many
+				outliers for which a line has to be fitted. 
+				</P>
+				<P><BR>
+				</P>
+			</TD>
+			<TD WIDTH=621>
+				<P STYLE="margin-bottom: 0cm"><IMG SRC="600px-Fitted_line.svg.png" NAME="gr&aacute;ficos4" ALIGN=LEFT WIDTH=371 HEIGHT=342 BORDER=0><BR CLEAR=LEFT><BR>
+				</P>
+				<P STYLE="margin-bottom: 0cm">Fitted line with RANSAC, outliers
+				have no influence on the result. 
+				</P>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=620>
+				<P><BR>
+				</P>
+			</TD>
+			<TD WIDTH=621>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+	</TABLE>
+</DIV>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">It is
+specially appropriate for the alignment of samples with a shift in
+the retention time. 
+</P>
+<H2 LANG="en-GB" STYLE="margin-left: 0.53cm">Parameters</H2>
+<P STYLE="margin-left: 0.58cm"><SPAN LANG="en-GB">This aligner
+requires the next parameters:<BR><BR></SPAN><SPAN LANG="en-GB"><I>&quot;Peak
+list name&quot;</I></SPAN><SPAN LANG="en-GB"><BR>This is the suffix
+to identify the new aligned peak list in Peak list frame of
+desktop.<BR><BR></SPAN><SPAN LANG="en-GB"><I>&quot;m/z
+tolerance&quot;</I></SPAN><SPAN LANG="en-GB"><BR>This value sets the
+range, in terms of m/z, to verify for possible peak rows to be
+aligned. Maximum allowed m/z difference<BR><BR></SPAN><SPAN LANG="en-GB"><I>&quot;Retention
+time tolerance type&quot;</I></SPAN><SPAN LANG="en-GB"><BR>Maximum RT
+difference can be defined either using absolute or relative
+value<BR></SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>RANSAC
+Iterations&rdquo;</I></SPAN> <BR><SPAN LANG="en-GB">Maximum number of
+iterations allowed in the algorithm. If its value is 0, the number of
+iterations will be estimate by the algorithm.</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>NminPoints&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>Minimum
+number of aligned peaks required to fit the model</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>Threshold
+value&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>Threshold value of
+seconds for determining when a data point fits a model</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>Curve
+model&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>It should be not
+selected when the model is a line, and selected when it is a
+curve.</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>Visualization&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>It
+should be selected when the visualization of the results is required.
+The results are represented on a chart where the Y axis is the
+retention time of one sample and X axis the retention time of the
+other sample. </SPAN>
+</P>
+<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.66cm"><FONT SIZE=5><B>Parameter
+setup dialog</B></FONT></P>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P><IMG SRC="parameters.jpg" NAME="gr&aacute;ficos1" ALIGN=LEFT WIDTH=346 HEIGHT=349 BORDER=0><BR CLEAR=LEFT><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P LANG="en-GB">New aligned peak list showing peaks from 3
+			different samples.<BR><BR><IMG SRC="../../join/help/join_alignment_preview.jpg" NAME="gr&aacute;ficos2" ALIGN=BOTTOM WIDTH=1023 HEIGHT=311 BORDER=0>
+						</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>

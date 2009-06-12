@@ -36,7 +36,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-			ParameterType.DOUBLE, "Absolute RT tolerance",
+			ParameterType.DOUBLE, "RT tolerance",
 			"Maximum allowed absolute RT difference", null, new Double(15.0),
 			new Double(0.0), null, MZmineCore.getRTFormat());
 

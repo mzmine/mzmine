@@ -45,7 +45,7 @@ public class RansacAligner implements BatchStep, ActionListener {
 
     private Desktop desktop;
 
-    private final String helpID = "net/sf/mzmine/modules/alignment/ransac/help/ransacAlignment.html";
+    private final String helpID = "net/sf/mzmine/modules/alignment/ransac/help/RansacAlignment.html";
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
