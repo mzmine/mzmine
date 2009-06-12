@@ -92,7 +92,9 @@ whit two peak list with more than one sample each list, and the option "compare 
 
 ***** Normalization *****
 
-NOMIS method?
+* NOMIS method?
+
+* After normalization, the information about isotope patterns is lost!
 
 
 ***** Identification *****
