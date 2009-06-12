@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.alignment.ransac;
 
 import java.awt.Color;
@@ -44,9 +43,9 @@ public class AlignmentChart extends JInternalFrame {
 		super(name, true, true, true, true);
 		try {
 			this.setSize(900, 800);
-			this.dataset = new XYSeriesCollection();
-			this.chart = ChartFactory.createXYLineChart(
-					"Alignment",
+			dataset = new XYSeriesCollection();
+			chart = ChartFactory.createXYLineChart(
+					name,
 					"RT1",
 					"RT2",
 					dataset,
@@ -54,8 +53,7 @@ public class AlignmentChart extends JInternalFrame {
 					true,
 					true,
 					false);
-			ChartPanel chartPanel = new ChartPanel(chart);
-			chartPanel.setDisplayToolTips(true);
+			ChartPanel chartPanel = new ChartPanel(chart);			
 			this.add(chartPanel);
 		} catch (Exception e) {
 		}
@@ -66,7 +64,7 @@ public class AlignmentChart extends JInternalFrame {
 	 */
 	public void removeSeries() {
 		try {
-			this.dataset.removeAllSeries();
+			dataset.removeAllSeries();
 		} catch (Exception e) {
 		}
 	}
@@ -76,26 +74,18 @@ public class AlignmentChart extends JInternalFrame {
 	 * @param v Vector with the alignments
 	 * @param Name Name of the type of lipids in this alignment
 	 */
-	public void addSeries(Vector<AlignStructMol> v, String Name, boolean isRT) {
+	public void addSeries(Vector<AlignStructMol> data) {
 		try {
 
 			XYSeries s1 = new XYSeries("Aligned Molecules");
 			XYSeries s2 = new XYSeries("Non aligned Molecules");
 
-			for (AlignStructMol aS : v) {
+			for (AlignStructMol point : data) {
 
-				if (aS.Aligned) {
-					if (isRT) {
-						s1.add(aS.row1.getPeaks()[0].getRT(), aS.row2.getPeaks()[0].getRT());
-					} else {
-						s1.add(aS.row1.getDataPointMaxIntensity(), aS.row2.getDataPointMaxIntensity());
-					}
+				if (point.Aligned) {
+					s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
 				} else {
-					if(isRT){
-						s2.add(aS.row1.getPeaks()[0].getRT(), aS.row2.getPeaks()[0].getRT());
-					}else{
-						s2.add(aS.row1.getDataPointMaxIntensity(), aS.row2.getDataPointMaxIntensity());
-					}
+					s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
 				}
 
 			}
@@ -125,13 +115,7 @@ public class AlignmentChart extends JInternalFrame {
 			renderer.setBaseLinesVisible(false);
 			renderer.setBaseShapesVisible(true);
 			plot.setRenderer(renderer);
-
-
-			XYItemRenderer renderer2 = plot.getRenderer();
-			renderer2.setBaseToolTipGenerator(
-					new StandardXYToolTipGenerator(
-					StandardXYToolTipGenerator.DEFAULT_TOOL_TIP_FORMAT,
-					new DecimalFormat("#,##0.00"), new DecimalFormat("#,##0.00")));
+			
 			chart.setBackgroundPaint(Color.white);
 			plot.setOutlinePaint(Color.black);
 

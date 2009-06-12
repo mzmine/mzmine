@@ -49,7 +49,7 @@ public class RANSAC {
 	private boolean isCurve,  showChart;
 	private RansacAlignerParameters parameters;
 
-	public RANSAC(RansacAlignerParameters parameters) {
+	public RANSAC(RansacAlignerParameters parameters, String alignmentName) {
 		this.parameters = parameters;
 
 		this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
@@ -63,7 +63,7 @@ public class RANSAC {
 		this.showChart = (Boolean) parameters.getParameterValue(RansacAlignerParameters.chart);
 
 		if (showChart) {
-			chart = new AlignmentChart("result");
+			chart = new AlignmentChart(alignmentName);
 		}
 	}
 
@@ -73,7 +73,7 @@ public class RANSAC {
 	 */
 	public void alignment(Vector<AlignStructMol> data) {
 
-		this.rnd = new Random();
+		rnd = new Random();
 		// If the model is a curve 3 points are taken to build the model,
 		// if it is a line only 2 points are taken.
 		if (isCurve) {
@@ -91,7 +91,7 @@ public class RANSAC {
 
 		// Calculate the number of trials if the user has not define them
 		if (k == 0) {
-			k = (int) this.getK();
+			k = (int) getK();
 		}
 
 		// Visualization of the aligmnet
@@ -99,7 +99,7 @@ public class RANSAC {
 			chart.setVisible(true);
 			MZmineCore.getDesktop().addInternalFrame(chart);
 		}
-		this.ransac(data);
+		ransac(data);
 	}
 
 	/**
@@ -119,27 +119,27 @@ public class RANSAC {
 	public void ransac(Vector<AlignStructMol> data) {
 		double besterr = 9.9E99;
 
-		for (int iterations = 0; iterations < this.k; iterations++) {
-			this.AlsoNumber = this.n;
+		for (int iterations = 0; iterations < k; iterations++) {
+			AlsoNumber = n;
 			// Get the initial points
-			boolean initN = this.getInitN(data);
+			boolean initN = getInitN(data);
 			if (!initN) {
 				continue;
 			}
 
 			// Calculate the model
 			if (isCurve) {
-				this.getAllModelPointsCurve(data);
+				getAllModelPointsCurve(data);
 			} else {
-				this.getAllModelPoints(data);
+				getAllModelPoints(data);
 			}
 
 			// If the model has the minimun number of points
-			if (this.AlsoNumber >= this.d) {
+			if (AlsoNumber >= d) {
 				// Get the error of the model based on the number of points
 				double error = 10000;
 				try {
-					error = this.newError(data);
+					error = newError(data);
 				} catch (Exception ex) {
 					Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
 				}
@@ -160,12 +160,12 @@ public class RANSAC {
 					}
 
 					// Remove conficts on the alignments
-					this.deleteRepeatsAlignments(data);
+					deleteRepeatsAlignments(data);
 
 					// Visualizantion of the new selected model
 					if (showChart) {
 						chart.removeSeries();
-						chart.addSeries(data, "na", true);
+						chart.addSeries(data);
 						chart.printAlignmentChart();
 						chart.moveToFront();
 					}
@@ -218,7 +218,7 @@ public class RANSAC {
 			}
 			return true;
 		} else if (data.size() > 1) {
-			for (int i = 0; i < this.n; i++) {
+			for (int i = 0; i < n; i++) {
 				int index = rnd.nextInt(data.size());
 				if (data.elementAt(index).ransacMaybeInLiers) {
 					i--;
@@ -261,7 +261,7 @@ public class RANSAC {
 			double bestY = intercept + (point.row1.getPeaks()[indexRow1].getRT() * slope);
 			if (Math.abs(y - bestY) < t) {
 				point.ransacAlsoInLiers = true;
-				this.AlsoNumber++;
+				AlsoNumber++;
 			} else {
 				point.ransacAlsoInLiers = false;
 			}
@@ -291,13 +291,13 @@ public class RANSAC {
 		// Add all the points which fit the model (the difference between the point
 		// and the curve is less than "t"
 		try {
-			double[] curve = this.getCurveEquation(threePoints);
+			double[] curve = getCurveEquation(threePoints);
 			for (AlignStructMol point : data) {
 				double y = point.row2.getPeaks()[indexRow2].getRT();
 				double bestY = curve[0] * Math.pow(point.row1.getPeaks()[indexRow1].getRT(), 2) + curve[1] * point.row1.getPeaks()[indexRow1].getRT() + curve[2];
 				if (Math.abs(y - bestY) < t) {
 					point.ransacAlsoInLiers = true;
-					this.AlsoNumber++;
+					AlsoNumber++;
 				} else {
 					point.ransacAlsoInLiers = false;
 				}

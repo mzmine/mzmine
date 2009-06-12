@@ -181,8 +181,8 @@ class RansacAlignerTask implements Task {
 				}
 				alignedPeakList.setName(peakListName);
 			} else {
-				// RANSAC algorithm
-				RANSAC ransac = new RANSAC(parameters);
+				// RANSAC algorithm				
+				RANSAC ransac = new RANSAC(parameters, peakList.getName());
 				ransac.alignment(alignMol);
 
 				// Write results into the aligned peak list
