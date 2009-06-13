@@ -113,7 +113,7 @@ class RansacAlignerTask implements Task {
 	public void run() {
 		status = TaskStatus.PROCESSING;
 		logger.info("Running RANSAC aligner");
-		int rowID = 0;
+		int rowID = 1;
 
 		// Remember how many rows we need to process. 
 		for (int i = 0; i < peakLists.length; i++) {
