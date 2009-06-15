@@ -94,7 +94,11 @@ whit two peak list with more than one sample each list, and the option "compare 
 
 * NOMIS method?
 
-* After normalization, the information about isotope patterns is lost!
+***** Isotope patterns *****
+
+* After normalization, the information about isotope patterns is lost. 
+  Same happens when project is saved and loaded.
+  Isotope patterns should probably be organized in a different manner.
 
 
 ***** Identification *****
