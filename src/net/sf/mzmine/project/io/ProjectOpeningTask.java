@@ -16,58 +16,70 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.project.io;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
+import java.io.InputStreamReader;
+import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 import javax.swing.JInternalFrame;
+import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.StreamCopy;
+
+import org.xml.sax.SAXException;
 
 public class ProjectOpeningTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
+
 	private File openFile;
-	private ZipInputStream zipStream;
-	private RawDataFileOpen rawDataFileOpen;
-	private PeakListOpen peakListOpen;
-	private ZipFile zipFile;
-	private String fileName;
+	private MZmineProjectImpl newProject;
+
+	private RawDataFileOpenHandler rawDataFileOpenHandler;
+	private PeakListOpenHandler peakListOpenHandler;
+
 	private int currentStage;
+	private String currentLoadedObjectName;
+
+	// This hashtable maps stored IDs to raw data file objects
+	private Hashtable<Integer, RawDataFile> dataFilesIDMap;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
-		try {
-			zipFile = new ZipFile(openFile);
-			rawDataFileOpen = new RawDataFileOpen();
-		} catch (IOException ex) {
-			Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
-		}
-		removeCurrentProjectFiles();
+		dataFilesIDMap = new Hashtable<Integer, RawDataFile>();
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Opening project " + fileName;
+		if (currentLoadedObjectName == null)
+			return "Opening project " + openFile;
+		return "Opening project " + openFile + " (" + currentLoadedObjectName
+				+ ")";
 	}
 
 	/**
@@ -75,20 +87,18 @@ public class ProjectOpeningTask implements Task {
 	 */
 	public double getFinishedPercentage() {
 		switch (currentStage) {
-			case 1:
-				try {
-					return (double) rawDataFileOpen.getProgress();
-				} catch (Exception e) {
-					return 0f;
-				}
-			case 2:
-				try {
-					return (double) peakListOpen.getProgress();
-				} catch (Exception e) {
-					return 0f;
-				}
-			default:
-				return 0f;
+		case 2:
+			if (rawDataFileOpenHandler == null)
+				return 0;
+			return rawDataFileOpenHandler.getProgress();
+		case 3:
+			if (peakListOpenHandler == null)
+				return 0;
+			return peakListOpenHandler.getProgress();
+		case 4:
+			return 1;
+		default:
+			return 0;
 		}
 	}
 
@@ -116,70 +126,67 @@ public class ProjectOpeningTask implements Task {
 			logger.info("Started opening project " + openFile);
 			status = TaskStatus.PROCESSING;
 
+			// Create a new project
+			newProject = new MZmineProjectImpl();
+			newProject.setProjectFile(openFile);
+
 			// Get project ZIP stream
-			FileInputStream fileStream = new FileInputStream(openFile);
-			zipStream = new ZipInputStream(fileStream);
+			ZipFile zipFile = new ZipFile(openFile);
 
-			// Read the project ZIP file
-			for (int i = 0; i < zipFile.size(); i++) {
-				if (status == TaskStatus.CANCELED) {
-					return;
-				}
-				ZipEntry entry = zipStream.getNextEntry();
-				fileName = entry.getName();
+			// Stage 1 - check version and load configuration
+			currentStage++;
+			loadVersion(zipFile);
+			loadConfiguration(zipFile);
+			if (status == TaskStatus.CANCELED)
+				return;
 
-				if (entry.getName().equals("configuration.xml")) {
+			// Stage 2 - load raw data files
+			currentStage++;
+			loadRawDataFiles(zipFile);
+			if (status == TaskStatus.CANCELED)
+				return;
 
-					currentStage = 0;
-					loadProjectInformation(zipFile.getInputStream(entry));
+			// Stage 3 - load peak lists
+			currentStage++;
+			loadPeakLists(zipFile);
+			if (status == TaskStatus.CANCELED)
+				return;
 
-				} else if (entry.getName().matches("Raw data file #.*")) {
-
-					currentStage = 1;
-					try {
-						rawDataFileOpen = new RawDataFileOpen();
-						rawDataFileOpen.readRawDataFile(zipFile, entry, zipStream);
-						i++;
-					} catch (Exception ex) {
-						MZmineCore.getDesktop().displayErrorMessage("Error loading raw data file: " + entry.getName());
-						Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
-					}
-
-				} else if (entry.getName().matches("Peak list #.*")) {
-
-					currentStage = 2;
-					try {
-						peakListOpen = new PeakListOpen();
-						peakListOpen.readPeakList(zipFile, entry);
-					} catch (Exception ex) {
-						MZmineCore.getDesktop().displayErrorMessage("Error loading peak list file: " + entry.getName());
-						Logger.getLogger(ProjectOpeningTask.class.getName()).log(Level.SEVERE, null, ex);
-					}
-
-				}
-			}
-
-			// Finish and close the project ZIP file
-			zipStream.close();
+			// Stage 4 - finish and close the project ZIP file
+			currentStage++;
+			zipFile.close();
 
 			// Final check for cancel
-			if (status == TaskStatus.CANCELED) {
+			if (status == TaskStatus.CANCELED)
 				return;
+
+			// Close all open frames related to previous project
+			JInternalFrame frames[] = MZmineCore.getDesktop()
+					.getInternalFrames();
+			for (JInternalFrame frame : frames) {
+				// Use doDefailtCloseAction() instead of dispose() to protect
+				// the TaskProgressWindow from disposing
+				frame.doDefaultCloseAction();
 			}
-			((MZmineProjectImpl) MZmineCore.getCurrentProject()).setProjectFile(openFile);
+
+			// Replace the current project with the new one
+			ProjectManager projectManager = MZmineCore.getProjectManager();
+			projectManager.setCurrentProject(newProject);
 
 			logger.info("Finished opening project " + openFile);
 
-			// Add file extension ".mzmine" if the file doesn't have it.
-			if (!openFile.getName().matches(".*.mzmine")) {
-				zipFile.close();
-				renameOpenFile();
-			}
 			status = TaskStatus.FINISHED;
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
+
+			// If project opening was canceled, parser was stopped by a
+			// SAXException which can be safely ignored
+			if (status == TaskStatus.CANCELED)
+				return;
+
 			status = TaskStatus.ERROR;
-			errorMessage = "Failed opening project: trying to open a not correct MZmine project file";
+			errorMessage = "Failed opening project: "
+					+ ExceptionUtils.exceptionToString(e);
 		}
 	}
 
@@ -187,19 +194,73 @@ public class ProjectOpeningTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
 	public void cancel() {
+
 		logger.info("Canceling opening of project " + openFile);
+
 		status = TaskStatus.CANCELED;
+
+		if (rawDataFileOpenHandler != null)
+			rawDataFileOpenHandler.cancel();
+
+		if (peakListOpenHandler != null)
+			peakListOpenHandler.cancel();
+
+	}
+
+	/**
+	 * Load the version info from the ZIP file and checks whether such version
+	 * can be opened with this MZmine
+	 */
+	private void loadVersion(ZipFile zipFile) throws IOException {
+
+		logger.info("Checking project version");
+
+		ZipEntry versionEntry = zipFile
+				.getEntry(ProjectSavingTask.VERSION_FILENAME);
+
+		if (versionEntry == null) {
+			throw new IOException(
+					"This file is not valid MZmine 2 project. It does not contain version information.");
+		}
+
+		InputStream versionInputStream = zipFile.getInputStream(versionEntry);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				versionInputStream));
+
+		String mzmineVersion = MZmineCore.getMZmineVersion();
+		String projectVersion = reader.readLine();
+
+		double projectVersionNumber = Double.parseDouble(projectVersion);
+
+		// Check if project was saved with compatible version
+		if (projectVersionNumber < 1.96) {
+			throw new IOException("This project was saved with MZmine version "
+					+ projectVersion + " and cannot be opened in MZmine "
+					+ mzmineVersion);
+		}
+
 	}
 
 	/**
 	 * Load the configuration file from the project zip file
 	 */
-	private void loadProjectInformation(InputStream inputStream) throws IOException {
+	private void loadConfiguration(ZipFile zipFile) throws IOException {
+
 		logger.info("Loading configuration file");
 
+		ZipEntry configEntry = zipFile
+				.getEntry(ProjectSavingTask.CONFIG_FILENAME);
+
+		if (configEntry == null) {
+			throw new IOException(
+					"This file is not valid MZmine 2 project. It does not contain configuration data.");
+		}
+
+		InputStream configInputStream = zipFile.getInputStream(configEntry);
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-		(new SaveFileUtils()).saveFile(inputStream, fileStream, 0, SaveFileUtilsMode.CLOSE_OUT);
+		StreamCopy copyMachine = new StreamCopy();
+		copyMachine.copy(configInputStream, fileStream);
 		fileStream.close();
 
 		MZmineCore.loadConfiguration(tempConfigFile);
@@ -207,41 +268,78 @@ public class ProjectOpeningTask implements Task {
 		tempConfigFile.delete();
 	}
 
-	/**
-	 * Remove the raw data files and the peak lists of the current project
-	 */
-	public void removeCurrentProjectFiles() {
-		MZmineProject project = MZmineCore.getCurrentProject();
-		for (JInternalFrame frame : MZmineCore.getDesktop().getInternalFrames()) {
-			frame.doDefaultCloseAction();
+	private void loadRawDataFiles(ZipFile zipFile) throws IOException,
+			ParserConfigurationException, SAXException {
+
+		logger.info("Loading raw data files");
+
+		Pattern filePattern = Pattern
+				.compile("Raw data file #([\\d]+) (.*)\\.xml");
+
+		Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+		while (zipEntries.hasMoreElements()) {
+
+			// Canceled
+			if (status == TaskStatus.CANCELED)
+				return;
+
+			ZipEntry entry = zipEntries.nextElement();
+			String entryName = entry.getName();
+
+			Matcher fileMatcher = filePattern.matcher(entryName);
+
+			if (fileMatcher.matches()) {
+
+				Integer fileID = Integer.parseInt(fileMatcher.group(1));
+				currentLoadedObjectName = fileMatcher.group(2);
+
+				String scansFileName = entryName.replaceFirst(".xml", ".scans");
+				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
+				rawDataFileOpenHandler = new RawDataFileOpenHandler();
+				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
+						zipFile, scansEntry, entry);
+				newProject.addFile(newFile);
+				dataFilesIDMap.put(fileID, newFile);
+			}
+
 		}
 
-		for (PeakList peakList : project.getPeakLists()) {
-			project.removePeakList(peakList);
-		}
-
-		for (RawDataFile file : project.getDataFiles()) {
-			project.removeFile(file);
-		}
 	}
 
-	/**
-	 * Add the project extension to the file
-	 */
-	public void renameOpenFile() {
-		MZmineCore.getDesktop().displayMessage("This project file doesn't have a correct project extension and will be renamed.");
+	private void loadPeakLists(ZipFile zipFile) throws IOException,
+			ParserConfigurationException, SAXException {
 
+		logger.info("Loading peak lists");
 
-		int dotPos = openFile.getPath().lastIndexOf(".");
-		String strFileName = openFile.getPath();
-		if (dotPos != -1) {
-			strFileName = openFile.getPath().substring(0, dotPos);
+		Pattern filePattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml");
+
+		Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+		while (zipEntries.hasMoreElements()) {
+
+			// Canceled
+			if (status == TaskStatus.CANCELED)
+				return;
+
+			ZipEntry entry = zipEntries.nextElement();
+			String entryName = entry.getName();
+
+			Matcher fileMatcher = filePattern.matcher(entryName);
+
+			if (fileMatcher.matches()) {
+
+				currentLoadedObjectName = fileMatcher.group(2);
+
+				peakListOpenHandler = new PeakListOpenHandler();
+				PeakList newPeakList = peakListOpenHandler.readPeakList(
+						zipFile, entry, dataFilesIDMap);
+				newProject.addPeakList(newPeakList);
+			}
+
 		}
-		File newFile = new File(strFileName + ".mzmine");
-		openFile.renameTo(newFile);
+
 	}
 
 	public Object[] getCreatedObjects() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		throw new UnsupportedOperationException("Not supported.");
 	}
 }

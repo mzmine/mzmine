@@ -17,9 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.project.io;
-
 
 public enum PeakListElementName {
 	
@@ -27,36 +25,30 @@ public enum PeakListElementName {
 	PEAKLIST_DATE ("created"),
 	QUANTITY ("quantity"),
 	RAWFILE ("raw_file"),
-	NAME ("pl_name"),
+	PEAKLIST_NAME ("pl_name"),
 	ID ("id"),
-	FORMULA ("formula"),
 	RT ("rt"),
-	MASS ("mz"),
+	MZ ("mz"),
 	HEIGHT ("height"),
 	RTRANGE ("rt_range"),
 	MZRANGE ("mz_range"),
 	AREA ("area"),
 	STATUS ("status"),
 	COLUMN ("column_id"),
-	SCAN ("scan"),
 	SCAN_ID ("scan_id"),
-	IDENTIFICATION ("identification_method"),
-	DETECTION ("detection_method"),
-	MASS_DETECTOR ("mass_detector"),
-	CHROMATO_CONSTRUCTOR ("chromato_builder"),
 	ROW ("row"),
 	PEAK_IDENTITY ("identity"),
 	PREFERRED ("preferred"),
+	IDENTITY_NAME ("identity_name"),
+	FORMULA ("formula"),
+	IDENTIFICATION_METHOD ("identification_method"),
 	PEAK ("peak"),
-	MZPEAK ("mzpeak"),
-	SEPARATOR (";"),
-	PROCESS ("applied_method"),
-	ITEM ("item"),
-	PARAMETER ("parameter"),
-	RAWDATA_NAME("rawdata_name"),
-	REPRESENTATIVE_SCAN("intense_scan"),
+	MZPEAKS ("mzpeaks"),
+	METHOD ("applied_method"),
+	METHOD_NAME ("method_name"),
+	METHOD_PARAMETERS ("method_parameters"),
+	REPRESENTATIVE_SCAN("best_scan"),
 	FRAGMENT_SCAN("fragment_scan");
-
 	
 	private String elementName;
 	
@@ -67,6 +59,5 @@ public enum PeakListElementName {
 	public String getElementName(){
 		return elementName;
 	}
-	
 
 }

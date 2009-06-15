@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
@@ -42,163 +41,170 @@ import com.Ostermiller.util.CSVParser;
  */
 class CustomDBSearchTask implements Task {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private PeakList peakList;
+	private PeakList peakList;
 
-    private TaskStatus status;
-    private String errorMessage;
-    private String[][] databaseValues;
-    private int finishedLines = 0;
+	private TaskStatus status = TaskStatus.WAITING;;
+	private String errorMessage;
+	private String[][] databaseValues;
+	private int finishedLines = 0;
 
-    private String dataBaseFile;
-    private String fieldSeparator;
-    private Object[] fieldOrder;
-    private boolean ignoreFirstLine;
-    private double mzTolerance;
-    private double rtTolerance;
-    private CustomDBSearchParameters parameters;
+	private String dataBaseFile;
+	private String fieldSeparator;
+	private Object[] fieldOrder;
+	private boolean ignoreFirstLine;
+	private double mzTolerance;
+	private double rtTolerance;
+	private CustomDBSearchParameters parameters;
 
-    CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
-        status = TaskStatus.WAITING;
-        this.peakList = peakList;
+	CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
 
-        dataBaseFile = (String) parameters.getParameterValue(CustomDBSearchParameters.dataBaseFile);
-        fieldSeparator = (String) parameters.getParameterValue(CustomDBSearchParameters.fieldSeparator);
+		this.peakList = peakList;
+		this.parameters = parameters;
 
-        fieldOrder = (Object[]) parameters.getParameterValue(CustomDBSearchParameters.fieldOrder);
+		dataBaseFile = (String) parameters
+				.getParameterValue(CustomDBSearchParameters.dataBaseFile);
+		fieldSeparator = (String) parameters
+				.getParameterValue(CustomDBSearchParameters.fieldSeparator);
 
-        ignoreFirstLine = (Boolean) parameters.getParameterValue(CustomDBSearchParameters.ignoreFirstLine);
-        mzTolerance = (Double) parameters.getParameterValue(CustomDBSearchParameters.mzTolerance);
-        rtTolerance = (Double) parameters.getParameterValue(CustomDBSearchParameters.rtTolerance);
+		fieldOrder = (Object[]) parameters
+				.getParameterValue(CustomDBSearchParameters.fieldOrder);
 
-    }
+		ignoreFirstLine = (Boolean) parameters
+				.getParameterValue(CustomDBSearchParameters.ignoreFirstLine);
+		mzTolerance = (Double) parameters
+				.getParameterValue(CustomDBSearchParameters.mzTolerance);
+		rtTolerance = (Double) parameters
+				.getParameterValue(CustomDBSearchParameters.rtTolerance);
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
+	 */
+	public void cancel() {
+		status = TaskStatus.CANCELED;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-        if (databaseValues == null)
-            return 0;
-        return ((double) finishedLines) / databaseValues.length;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+	 */
+	public String getErrorMessage() {
+		return errorMessage;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		if (databaseValues == null)
+			return 0;
+		return ((double) finishedLines) / databaseValues.length;
+	}
 
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-        return "Peak identification of " + peakList + " using database "
-                + dataBaseFile;
-    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+	 */
+	public TaskStatus getStatus() {
+		return status;
+	}
 
-    /**
-     * @see java.lang.Runnable#run()
-     */
-    public void run() {
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Peak identification of " + peakList + " using database "
+				+ dataBaseFile;
+	}
 
-        status = TaskStatus.PROCESSING;
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
 
-        File dbFile = new File(dataBaseFile);
+		status = TaskStatus.PROCESSING;
 
-        try {
-            // read database contents in memory
-            FileReader dbFileReader = new FileReader(dbFile);
-            databaseValues = CSVParser.parse(dbFileReader,
-                    fieldSeparator.charAt(0));
-            if (ignoreFirstLine)
-                finishedLines++;
-            for (; finishedLines < databaseValues.length; finishedLines++) {
-                try {
-                    processOneLine(databaseValues[finishedLines]);
-                } catch (Exception e) {
-                    // ingore incorrect lines
-                }
-            }
-            dbFileReader.close();
+		File dbFile = new File(dataBaseFile);
 
-        } catch (Exception e) {
-            logger.log(Level.WARNING, "Could not read file " + dbFile, e);
-            status = TaskStatus.ERROR;
-            errorMessage = e.toString();
-            return;
-        }
+		try {
+			// read database contents in memory
+			FileReader dbFileReader = new FileReader(dbFile);
+			databaseValues = CSVParser.parse(dbFileReader, fieldSeparator
+					.charAt(0));
+			if (ignoreFirstLine)
+				finishedLines++;
+			for (; finishedLines < databaseValues.length; finishedLines++) {
+				try {
+					processOneLine(databaseValues[finishedLines]);
+				} catch (Exception e) {
+					// ingore incorrect lines
+				}
+			}
+			dbFileReader.close();
 
-        // Add task description to peakList
-        ((SimplePeakList) peakList).addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                "Peak identification using database " + dataBaseFile,
-                parameters));
-        
-        // Notify the project manager that peaklist contents have changed
+		} catch (Exception e) {
+			logger.log(Level.WARNING, "Could not read file " + dbFile, e);
+			status = TaskStatus.ERROR;
+			errorMessage = e.toString();
+			return;
+		}
+
+		// Add task description to peakList
+		peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+				"Peak identification using database " + dataBaseFile,
+				parameters));
+
+		// Notify the project manager that peaklist contents have changed
 		ProjectEvent newEvent = new ProjectEvent(
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-        status = TaskStatus.FINISHED;
+		status = TaskStatus.FINISHED;
 
-    }
+	}
 
-    private void processOneLine(String values[]) {
+	private void processOneLine(String values[]) {
 
-        int numOfColumns = Math.min(fieldOrder.length, values.length);
+		int numOfColumns = Math.min(fieldOrder.length, values.length);
 
-        String lineID = null, lineName = null, lineFormula = null;
-        double lineMZ = 0, lineRT = 0;
+		String lineID = null, lineName = null, lineFormula = null;
+		double lineMZ = 0, lineRT = 0;
 
-        for (int i = 0; i < numOfColumns; i++) {
-            if (fieldOrder[i] == FieldItem.FIELD_ID)
-                lineID = values[i];
-            if (fieldOrder[i] == FieldItem.FIELD_NAME)
-                lineName = values[i];
-            if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
-                lineFormula = values[i];
-            if (fieldOrder[i] == FieldItem.FIELD_MZ)
-                lineMZ = Double.parseDouble(values[i]);
-            if (fieldOrder[i] == FieldItem.FIELD_RT)
-                lineRT = Double.parseDouble(values[i]) * 60;
-        }
+		for (int i = 0; i < numOfColumns; i++) {
+			if (fieldOrder[i] == FieldItem.FIELD_ID)
+				lineID = values[i];
+			if (fieldOrder[i] == FieldItem.FIELD_NAME)
+				lineName = values[i];
+			if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
+				lineFormula = values[i];
+			if (fieldOrder[i] == FieldItem.FIELD_MZ)
+				lineMZ = Double.parseDouble(values[i]);
+			if (fieldOrder[i] == FieldItem.FIELD_RT)
+				lineRT = Double.parseDouble(values[i]) * 60;
+		}
 
-        File dbFile = new File(dataBaseFile);
-        SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineID,
-                lineName, null, lineFormula, null, dbFile.getName());
+		File dbFile = new File(dataBaseFile);
+		SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineID,
+				lineName, null, lineFormula, null, dbFile.getName());
 
-        for (PeakListRow peakRow : peakList.getRows()) {
+		for (PeakListRow peakRow : peakList.getRows()) {
 
-            boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < mzTolerance);
-            boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < rtTolerance);
+			boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < mzTolerance);
+			boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < rtTolerance);
 
-            if (mzOK && rtOK) {
+			if (mzOK && rtOK) {
 
-                logger.finest("Found compound " + lineName + " (m/z " + lineMZ
-                        + ", RT " + lineRT + ")");
+				logger.finest("Found compound " + lineName + " (m/z " + lineMZ
+						+ ", RT " + lineRT + ")");
 
-                // add new identity to the row
-                peakRow.addPeakIdentity(newIdentity, false);
+				// add new identity to the row
+				peakRow.addPeakIdentity(newIdentity, false);
 
-            }
-        }
+			}
+		}
 
-    }
+	}
 
 	public Object[] getCreatedObjects() {
 		return null;

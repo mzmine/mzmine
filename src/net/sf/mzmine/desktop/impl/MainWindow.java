@@ -179,7 +179,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 	void updateTitle() {
 		String projectName = MZmineCore.getCurrentProject().toString();
-		setTitle("MZmine 2: " + projectName);
+		setTitle("MZmine " + MZmineCore.getMZmineVersion() + ": " + projectName);
 	}
 
 	/**

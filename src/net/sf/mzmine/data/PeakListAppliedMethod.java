@@ -20,10 +20,9 @@
 package net.sf.mzmine.data;
 
 public interface PeakListAppliedMethod {
-	
+
 	public String getDescription();
-	
-	public ParameterSet getParameterSet();
-	
+
+	public String getParameters();
 
 }

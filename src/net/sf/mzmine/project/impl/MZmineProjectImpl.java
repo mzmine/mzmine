@@ -107,7 +107,8 @@ public class MZmineProjectImpl implements MZmineProject {
 		// We fire the listeners outside of the synchronized block. The reason
 		// is that firing the listeners may cause some GUI update and Swing
 		// thread may become deadlocked with another thread.
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this)
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public void removeFile(RawDataFile file) {
@@ -139,7 +140,8 @@ public class MZmineProjectImpl implements MZmineProject {
 		// We fire the listeners outside of the synchronized block. The reason
 		// is that firing the listeners may cause some GUI update and Swing
 		// thread may become deadlocked with another thread.
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this)
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
@@ -162,9 +164,11 @@ public class MZmineProjectImpl implements MZmineProject {
 		// We fire the listeners outside of the synchronized block. The reason
 		// is that firing the listeners may cause some GUI update and Swing
 		// thread may become deadlocked with another thread.
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.DATAFILES_REORDERED);
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.DATAFILES_REORDERED);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		}
 
 	}
 
@@ -183,7 +187,8 @@ public class MZmineProjectImpl implements MZmineProject {
 		// We fire the listeners outside of the synchronized block. The reason
 		// is that firing the listeners may cause some GUI update and Swing
 		// thread may become deadlocked with another thread.
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this)
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 
 	}
 
@@ -198,7 +203,8 @@ public class MZmineProjectImpl implements MZmineProject {
 		// We fire the listeners outside of the synchronized block. The reason
 		// is that firing the listeners may cause some GUI update and Swing
 		// thread may become deadlocked with another thread.
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this)
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public synchronized void movePeakLists(PeakList[] movedPeakLists,
@@ -217,9 +223,11 @@ public class MZmineProjectImpl implements MZmineProject {
 			movePosition++;
 		}
 
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLISTS_REORDERED);
-		ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLISTS_REORDERED);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		}
 	}
 
 	public PeakList[] getPeakLists() {
@@ -245,8 +253,10 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void setProjectFile(File file) {
 		projectFile = file;
-		ProjectManagerImpl.getInstance().fireProjectListeners(
-				new ProjectEvent(ProjectEventType.PROJECT_NAME_CHANGED));
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectManagerImpl.getInstance().fireProjectListeners(
+					new ProjectEvent(ProjectEventType.PROJECT_NAME_CHANGED));
+		}
 	}
 
 	public void removeProjectFile() {

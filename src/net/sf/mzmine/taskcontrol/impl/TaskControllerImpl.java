@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.taskcontrol.Task;
@@ -110,7 +112,12 @@ public class TaskControllerImpl implements TaskController, Runnable {
 		}
 
 		// Show the task list component
-		taskWindow.setVisible(true);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				taskWindow.setVisible(true);
+			}
+		});
+		
 
 	}
 
@@ -137,7 +144,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
 			// Check if all tasks in the queue are finished
 			if (taskQueue.allTasksFinished()) {
-				taskWindow.setVisible(false);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						taskWindow.setVisible(false);
+					}
+				});
 				taskQueue.clear();
 				continue;
 			}

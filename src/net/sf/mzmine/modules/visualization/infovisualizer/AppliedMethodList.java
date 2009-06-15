@@ -4,12 +4,11 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.JList;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 
 public class AppliedMethodList extends JList {
 
-	private ParameterSet parameters;
+	private String parameters;
 
 	AppliedMethodList(PeakListAppliedMethod[] methods) {
 		super(methods);
@@ -19,7 +18,7 @@ public class AppliedMethodList extends JList {
 		
 		int index = locationToIndex(e.getPoint());
 		if (index > -1) {
-			parameters = ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameterSet();
+			parameters = ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameters();
 		}
 		if (parameters != null){
         String toolTipText = parameters.toString().replace(", ", "\n");
@@ -29,13 +28,4 @@ public class AppliedMethodList extends JList {
 			return null;
 	}
 	
-	public ParameterSet getParameterSet(){
-		return parameters;
-	}
-
-	public String getDescription() {
-		return null;
-	}
-
-
 }

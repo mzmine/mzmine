@@ -16,17 +16,18 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.project.io;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -34,18 +35,19 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.project.impl.StorableScan;
+import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class RawDataFileOpen extends DefaultHandler {
+class RawDataFileOpenHandler extends DefaultHandler {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private StringBuffer charBuffer;
 	private RawDataFileImpl rawDataFileWriter;
-	private int numberOfScans;
+	private int numberOfScans, parsedScans;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
@@ -56,86 +58,99 @@ public class RawDataFileOpen extends DefaultHandler {
 	private double retentionTime;
 	private boolean centroided;
 	private int dataPointsNumber;
-	private int scansReaded;
-	private double progress = 0.5;
 	private int stepNumber;
 	private int storageFileOffset;
 	private int fragmentCount;
-	private SaveFileUtils saveFileUtils;
+	private StreamCopy copyMachine;
 
-	public RawDataFileOpen() {
+	private boolean canceled = false;
+
+	public RawDataFileOpenHandler() {
 		charBuffer = new StringBuffer();
 	}
 
 	/**
-	 * Extract the scan file and copies it into the temporal folder. Create a
+	 * Extract the scan file and copies it into the temporary folder. Create a
 	 * new raw data file using the information from the XML raw data description
 	 * file
 	 * 
 	 * @param Name
 	 *            raw data file name
-	 * @throws java.lang.ClassNotFoundException
+	 * @throws SAXException
+	 * @throws ParserConfigurationException
 	 */
-	public void readRawDataFile(ZipFile zipFile, ZipEntry entry,
-			ZipInputStream zipInputStream) throws Exception {
+	RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
+			ZipEntry xmlEntry) throws IOException,
+			ParserConfigurationException, SAXException {
 		stepNumber = 0;
 
-		// Writes the scan file into a temporal file
-		logger.info("Moving scan file : " + entry.getName()
-				+ " to the temporal folder");
+		// Writes the scan file into a temporary file
+		logger.info("Moving scan file : " + scansEntry.getName()
+				+ " to the temporary folder");
 		stepNumber++;
 		File tempFile = File.createTempFile("mzmine", ".scans");
 		tempFile.deleteOnExit();
+
+		InputStream scanInputStream = zipFile.getInputStream(scansEntry);
 		FileOutputStream fileStream = new FileOutputStream(tempFile);
 
-		// Extracts the scan file from the zip project file to the temporal
+		// Extracts the scan file from the zip project file to the temporary
 		// folder
-		saveFileUtils = new SaveFileUtils();
-		saveFileUtils.saveFile(zipFile.getInputStream(entry), fileStream,
-				zipFile.getEntry(entry.getName()).getSize(),
-				SaveFileUtilsMode.CLOSE_OUT);
+		copyMachine = new StreamCopy();
+		copyMachine.copy(scanInputStream, fileStream, scansEntry.getSize());
 		fileStream.close();
 
-		rawDataFileWriter = new RawDataFileImpl("");
+		rawDataFileWriter = (RawDataFileImpl) MZmineCore.createNewFile(null);
 		rawDataFileWriter.openScanFile(tempFile);
 
 		stepNumber++;
-		// Extracts the raw data description file from the zip project file
-		InputStream InputStream = zipFile.getInputStream(zipInputStream
-				.getNextEntry());
 
 		// Reads the XML file (raw data description)
+		InputStream xmlInputStream = zipFile.getInputStream(xmlEntry);
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
-		saxParser.parse(InputStream, this);
+		saxParser.parse(xmlInputStream, this);
 
 		// Adds the raw data file to MZmine
 		RawDataFile rawDataFile = rawDataFileWriter.finishWriting();
-		MZmineCore.getCurrentProject().addFile(rawDataFile);
+		return rawDataFile;
+
 	}
 
 	/**
 	 * @return the progress of these functions loading the raw data from the zip
 	 *         file
 	 */
-	public double getProgress() {
+	double getProgress() {
+		
 		switch (stepNumber) {
 		case 1:
-			return saveFileUtils.getProgress() * 0.5;
+			// We can estimate that copying the scan file takes ~75% of the time
+			return copyMachine.getProgress() * 0.75;
 		case 2:
-			return progress;
+			if (numberOfScans == 0)
+				return 0;
+			return ((double) parsedScans / numberOfScans) * 0.25 + 0.75;
 		default:
 			return 0.0;
 		}
+	}
+
+	void cancel() {
+		canceled = true;
+		if (copyMachine != null)
+			copyMachine.cancel();
 	}
 
 	/**
 	 * @see org.xml.sax.helpers.DefaultHandler#startElement(java.lang.String,
 	 *      java.lang.String, java.lang.String, org.xml.sax.Attributes)
 	 */
-	public void startElement(String namespaceURI, String lName, // local name
-			String qName, // qualified name
+	public void startElement(String namespaceURI, String lName, String qName,
 			Attributes attrs) throws SAXException {
+
+		if (canceled)
+			throw new SAXException("Parsing canceled");
 
 		if (qName.equals(RawDataElementName.QUANTITY_FRAGMENT_SCAN
 				.getElementName())) {
@@ -152,22 +167,19 @@ public class RawDataFileOpen extends DefaultHandler {
 	 * @see org.xml.sax.helpers.DefaultHandler#endElement(java.lang.String,
 	 *      java.lang.String, java.lang.String)
 	 */
-	public void endElement(String namespaceURI, String sName, // simple name
-			String qName // qualified name
-	) throws SAXException {
+	public void endElement(String namespaceURI, String sName, String qName)
+			throws SAXException {
+
+		if (canceled)
+			throw new SAXException("Parsing canceled");
 
 		// <NAME>
 		if (qName.equals(RawDataElementName.NAME.getElementName())) {
-			try {
-				// Adds the scan file and the name to the new raw data file
-				String name = getTextOfElement();
-				logger.info("Loading raw data file: " + name);
-				rawDataFileWriter.setName(name);
 
-				scansReaded = 0;
-			} catch (Exception ex) {
-				logger.log(Level.SEVERE, null, ex);
-			}
+			// Adds the scan file and the name to the new raw data file
+			String name = getTextOfElement();
+			logger.info("Loading raw data file: " + name);
+			rawDataFileWriter.setName(name);
 		}
 
 		if (qName.equals(RawDataElementName.QUANTITY_SCAN.getElementName())) {
@@ -176,8 +188,7 @@ public class RawDataFileOpen extends DefaultHandler {
 
 		if (qName.equals(RawDataElementName.SCAN_ID.getElementName())) {
 			scanNumber = Integer.parseInt(getTextOfElement());
-			progress = ((double) scansReaded / numberOfScans) * 0.5 + 0.5;
-			scansReaded++;
+			parsedScans++;
 		}
 
 		if (qName.equals(RawDataElementName.MS_LEVEL.getElementName())) {
@@ -191,38 +202,43 @@ public class RawDataFileOpen extends DefaultHandler {
 		if (qName.equals(RawDataElementName.PRECURSOR_MZ.getElementName())) {
 			precursorMZ = Double.parseDouble(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.PRECURSOR_CHARGE.getElementName())) {
 			precursorCharge = Integer.parseInt(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.RETENTION_TIME.getElementName())) {
 			retentionTime = Double.parseDouble(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.CENTROIDED.getElementName())) {
 			centroided = Boolean.parseBoolean(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.QUANTITY_DATAPOINTS
 				.getElementName())) {
 			dataPointsNumber = Integer.parseInt(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.FRAGMENT_SCAN.getElementName())) {
 			fragmentScan[fragmentCount++] = Integer
 					.parseInt(getTextOfElement());
 		}
+		
 		if (qName.equals(RawDataElementName.SCAN.getElementName())) {
+
+			StorableScan storableScan = new StorableScan(rawDataFileWriter,
+					storageFileOffset, dataPointsNumber, scanNumber, msLevel,
+					retentionTime, parentScan, precursorMZ, precursorCharge,
+					fragmentScan, centroided);
+
 			try {
-
-				StorableScan storableScan = new StorableScan(
-						rawDataFileWriter, storageFileOffset, dataPointsNumber,
-						scanNumber, msLevel, retentionTime, parentScan,
-						precursorMZ, precursorCharge, fragmentScan, centroided);
-
 				rawDataFileWriter.addScan(storableScan);
-				storageFileOffset += dataPointsNumber * 4 * 2;
-
-			} catch (Exception ex) {
-				logger.log(Level.SEVERE, "Error while opening scan data file",
-						ex);
+			} catch (IOException e) {
+				throw new SAXException(e);
 			}
+			storageFileOffset += dataPointsNumber * 4 * 2;
+
 		}
 	}
 

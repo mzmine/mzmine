@@ -58,8 +58,12 @@ class ShapeModelerTask implements Task {
 
 	private SimplePeakList newPeakList;
 
+	private ShapeModelerParameters parameters;
+
 	public ShapeModelerTask(PeakList peakList, ShapeModelerParameters parameters) {
+
 		this.originalPeakList = peakList;
+		this.parameters = parameters;
 
 		shapeModelerType = (String) parameters
 				.getParameterValue(ShapeModelerParameters.shapeModelerType);
@@ -219,7 +223,7 @@ class ShapeModelerTask implements Task {
 		newPeakList
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Peaks shaped by " + shapeModelerType + " function",
-						null));
+						parameters));
 
 		logger.finest("Finished peak shape modeler " + processedRows
 				+ " rows processed");

@@ -45,7 +45,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 
 	private static ProjectManagerImpl myInstance;
 
-	private transient Vector<ProjectListener> listeners;
+	private Vector<ProjectListener> listeners;
 
 	MZmineProject currentProject;
 
@@ -79,7 +79,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		return currentProject;
 	}
 
-	void setCurrentProject(MZmineProject project) {
+	public void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
 		fireProjectListeners(new ProjectEvent(ProjectEventType.ALL_CHANGED));
 	}

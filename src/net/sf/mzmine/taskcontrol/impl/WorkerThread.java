@@ -53,9 +53,9 @@ class WorkerThread extends Thread {
 
 		logger.finest("Starting processing of task: "
 				+ actualTask.getTaskDescription());
-		
+
 		try {
-			
+
 			// Process the actual task
 			actualTask.run();
 
@@ -67,11 +67,10 @@ class WorkerThread extends Thread {
 						"Error of task " + actualTask.getTaskDescription(),
 						actualTask.getErrorMessage());
 			}
-
+			
 			/*
-			 * This is important to allow the garbage collector to remove the
-			 * task, while keeping the task description in the "Tasks in
-			 * progress" window
+			 * This is important to allow the garbage collector to remove the task,
+			 * while keeping the task description in the "Tasks in progress" window
 			 */
 			wrappedTask.removeTaskReference();
 
@@ -95,12 +94,14 @@ class WorkerThread extends Thread {
 			e.printStackTrace();
 
 		}
-		
-		// Mark this thread as finished
+
+		/*
+		 * Mark this thread as finished
+		 */
 		finished = true;
 
 	}
-	
+
 	boolean isFinished() {
 		return finished;
 	}

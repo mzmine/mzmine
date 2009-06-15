@@ -50,6 +50,8 @@ import org.dom4j.io.XMLWriter;
  */
 public abstract class MZmineCore {
 
+	public static final String MZMINE_VERSION = "1.96";
+	
 	public static final File CONFIG_FILE = new File("conf/config.xml");
 
 	// configuration XML structure
@@ -61,7 +63,7 @@ public abstract class MZmineCore {
 	public static final String PREFERENCES_ELEMENT_NAME = "preferences";
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
-
+ 
 	protected static MZminePreferences preferences;
 
 	protected static TaskController taskController;
@@ -223,7 +225,7 @@ public abstract class MZmineCore {
 			logger.finest("Saved configuration to file " + file);
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not update configuration file "
+			logger.log(Level.SEVERE, "Could not save configuration file "
 					+ file, e);
 		}
 
@@ -293,6 +295,10 @@ public abstract class MZmineCore {
 	public static RawDataFileWriter createNewFile(String name)
 			throws IOException {
 		return new RawDataFileImpl(name);
+	}
+	
+	public static String getMZmineVersion() {
+		return MZMINE_VERSION;
 	}
 
 }

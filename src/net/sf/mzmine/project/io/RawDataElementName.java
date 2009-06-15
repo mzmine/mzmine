@@ -23,7 +23,7 @@ public enum RawDataElementName {
 
 	RAWDATA ("rawdata"),	
 	NAME ("name"),
-	QUANTITY_SCAN("num_scan"),
+	QUANTITY_SCAN("num_scans"),
 	ID ("id"),	
 	SCAN ("scan"),
 	SCAN_ID ("id"),
@@ -47,4 +47,5 @@ public enum RawDataElementName {
 	public String getElementName(){
 		return elementName;
 	}
+
 }

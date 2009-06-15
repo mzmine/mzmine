@@ -26,6 +26,8 @@ package net.sf.mzmine.project;
 public interface ProjectManager {
 
 	public MZmineProject getCurrentProject();
+	
+	public void setCurrentProject(MZmineProject newProject);
 
 	public void addProjectListener(ProjectListener listener);
 
