@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition;
+package net.sf.mzmine.modules.peakpicking.deconvolution;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,9 +34,9 @@ import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class PeakRecognition implements BatchStep, ActionListener {
+public class Deconvolution implements BatchStep, ActionListener {
 
-	private PeakRecognitionParameters parameters;
+	private DeconvolutionParameters parameters;
 
 	private Desktop desktop;
 
@@ -47,10 +47,10 @@ public class PeakRecognition implements BatchStep, ActionListener {
 
 		this.desktop = MZmineCore.getDesktop();
 
-		parameters = new PeakRecognitionParameters();
-		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Peak recognition",
+		parameters = new DeconvolutionParameters();
+		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "Peak deconvolution",
 				"Resolving individual peaks within each chromatogram",
-				KeyEvent.VK_P, true, this, null);
+				KeyEvent.VK_D, true, this, null);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class PeakRecognition implements BatchStep, ActionListener {
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
 				desktop
-						.displayErrorMessage("Peak recognition can only be performed on peak lists which have a single column");
+						.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
 				return;
 			}
 		}
@@ -84,16 +84,16 @@ public class PeakRecognition implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Peak recognition";
+		return "Peak deconvolution";
 	}
 
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public ExitCode setupParameters(ParameterSet parameters) {
-		PeakRecognitionSetupDialog dialog = new PeakRecognitionSetupDialog(
+		DeconvolutionSetupDialog dialog = new DeconvolutionSetupDialog(
 				"Please set parameter values for " + toString(),
-				(PeakRecognitionParameters) parameters);
+				(DeconvolutionParameters) parameters);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
@@ -106,12 +106,13 @@ public class PeakRecognition implements BatchStep, ActionListener {
 	}
 
 	public void setParameters(ParameterSet parameters) {
-		this.parameters = (PeakRecognitionParameters) parameters;
+		this.parameters = (DeconvolutionParameters) parameters;
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.AlignmentResult[],
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
@@ -120,25 +121,25 @@ public class PeakRecognition implements BatchStep, ActionListener {
 		// check peak lists
 		if ((peakLists == null) || (peakLists.length == 0)) {
 			desktop
-					.displayErrorMessage("Please select peak lists for recognition");
+					.displayErrorMessage("Please select peak lists for deconvolution");
 			return null;
 		}
 
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
 				desktop
-						.displayErrorMessage("Peak recognition can only be performed on peak lists which have a single column");
+						.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
 				return null;
 			}
 		}
 
 		// prepare a new group of tasks
-		Task tasks[] = new PeakRecognitionTask[peakLists.length];
+		Task tasks[] = new DeconvolutionTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PeakRecognitionTask(peakLists[i],
-					(PeakRecognitionParameters) parameters);
+			tasks[i] = new DeconvolutionTask(peakLists[i],
+					(DeconvolutionParameters) parameters);
 		}
-		
+
 		MZmineCore.getTaskController().addTasks(tasks);
 
 		return tasks;

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition.noiseamplitude;
+package net.sf.mzmine.modules.peakpicking.deconvolution.noiseamplitude;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -25,8 +25,8 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
+import net.sf.mzmine.modules.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.deconvolution.ResolvedPeak;
 
 /**
  * 

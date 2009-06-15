@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition;
+package net.sf.mzmine.modules.peakpicking.deconvolution;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -43,9 +43,9 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 /**
  * 
  */
-class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
+class DeconvolutionSetupDialog extends JDialog implements ActionListener {
 
-    private PeakRecognitionParameters parameters;
+    private DeconvolutionParameters parameters;
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
     // Dialog components
@@ -54,8 +54,8 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
     private JCheckBox removeOriginalCheckBox;
     private JTextField txtField;
 
-    public PeakRecognitionSetupDialog(String title,
-            PeakRecognitionParameters parameters) {
+    public DeconvolutionSetupDialog(String title,
+            DeconvolutionParameters parameters) {
 
         super(MZmineCore.getDesktop().getMainFrame(),
                 "Please select peak resolver", true);
@@ -87,8 +87,8 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         if (src == btnOK) {
 
             parameters.setTypeNumber(comboPeaksConstructors.getSelectedIndex());
-            parameters.setParameterValue(PeakRecognitionParameters.suffix, txtField.getText());
-            parameters.setParameterValue(PeakRecognitionParameters.autoRemove, removeOriginalCheckBox.isSelected());
+            parameters.setParameterValue(DeconvolutionParameters.suffix, txtField.getText());
+            parameters.setParameterValue(DeconvolutionParameters.autoRemove, removeOriginalCheckBox.isSelected());
             exitCode = ExitCode.OK;
             dispose();
         }
@@ -108,13 +108,13 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
         // Elements of suffix
         txtField = new JTextField();
-        txtField.setText((String) parameters.getParameterValue(PeakRecognitionParameters.suffix));
+        txtField.setText((String) parameters.getParameterValue(DeconvolutionParameters.suffix));
         txtField.selectAll();
         txtField.setMaximumSize(new Dimension(250, 30));
 
         // Elements of Peak recognition
         comboPeaksConstructors = new JComboBox(
-                PeakRecognitionParameters.peakResolverNames);
+                DeconvolutionParameters.peakResolverNames);
         comboPeaksConstructors.setSelectedIndex(parameters.getPeakResolverTypeNumber());
         comboPeaksConstructors.addActionListener(this);
         comboPeaksConstructors.setMaximumSize(new Dimension(200, 28));
@@ -123,7 +123,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
         
         //Element remove original peak list
         removeOriginalCheckBox = new JCheckBox();
-        removeOriginalCheckBox.setSelected((Boolean) parameters.getParameterValue(PeakRecognitionParameters.autoRemove));
+        removeOriginalCheckBox.setSelected((Boolean) parameters.getParameterValue(DeconvolutionParameters.autoRemove));
 
         // Elements of buttons
         btnOK = new JButton("OK");
@@ -159,7 +159,7 @@ class PeakRecognitionSetupDialog extends JDialog implements ActionListener {
 
         c.gridx = 0;
         c.gridy = 4;
-        pnlCombo.add(new JLabel(PeakRecognitionParameters.autoRemove.getName()), c);
+        pnlCombo.add(new JLabel(DeconvolutionParameters.autoRemove.getName()), c);
         c.gridx = 1;
         pnlCombo.add(removeOriginalCheckBox, c);
         

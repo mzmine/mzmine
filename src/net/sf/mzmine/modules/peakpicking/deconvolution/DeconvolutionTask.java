@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition;
+package net.sf.mzmine.modules.peakpicking.deconvolution;
 
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
@@ -39,7 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 /**
  * @see
  */
-class PeakRecognitionTask implements Task {
+class DeconvolutionTask implements Task {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -69,14 +69,14 @@ class PeakRecognitionTask implements Task {
      * @param dataFile
      * @param parameters
      */
-    PeakRecognitionTask(PeakList peakList, PeakRecognitionParameters parameters) {
+    DeconvolutionTask(PeakList peakList, DeconvolutionParameters parameters) {
 
         this.originalPeakList = peakList;
 
         peakResolverTypeNumber = parameters.getPeakResolverTypeNumber();
         pbParameters = parameters.getPeakResolverParameters(peakResolverTypeNumber);
-        suffix = (String) parameters.getParameterValue(PeakRecognitionParameters.suffix);
-        removeOriginal = (Boolean) parameters.getParameterValue(PeakRecognitionParameters.autoRemove);
+        suffix = (String) parameters.getParameterValue(DeconvolutionParameters.suffix);
+        removeOriginal = (Boolean) parameters.getParameterValue(DeconvolutionParameters.autoRemove);
 
     }
 
@@ -128,7 +128,7 @@ class PeakRecognitionTask implements Task {
         logger.info("Started peak recognition on " + originalPeakList);
 
         // Create new peak constructor according with the user's selection
-        String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
+        String peakResolverClassName = DeconvolutionParameters.peakResolverClasses[peakResolverTypeNumber];
         try {
             Class peakResolverClass = Class.forName(peakResolverClassName);
             Constructor peakResolverConstruct = peakResolverClass.getConstructors()[0];
@@ -198,7 +198,7 @@ class PeakRecognitionTask implements Task {
         
         // Add task description to peakList
         newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak recognition by " + 
-        		PeakRecognitionParameters.peakResolverNames[peakResolverTypeNumber], pbParameters));
+        		DeconvolutionParameters.peakResolverNames[peakResolverTypeNumber], pbParameters));
 
 
         status = TaskStatus.FINISHED;

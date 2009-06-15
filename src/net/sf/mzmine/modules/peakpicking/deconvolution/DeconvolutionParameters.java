@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition;
+package net.sf.mzmine.modules.peakpicking.deconvolution;
 
 import java.util.Iterator;
 
@@ -29,7 +29,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 import org.dom4j.Element;
 
-public class PeakRecognitionParameters implements StorableParameterSet {
+public class DeconvolutionParameters implements StorableParameterSet {
 
     private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
@@ -69,7 +69,7 @@ public class PeakRecognitionParameters implements StorableParameterSet {
             "If checked, original peak list will be removed and only resolved version remains",
             new Boolean(false));
 
-    public PeakRecognitionParameters() {
+    public DeconvolutionParameters() {
 
         peakResolverParameters = new SimpleParameterSet[peakResolverClasses.length];
 
@@ -159,9 +159,9 @@ public class PeakRecognitionParameters implements StorableParameterSet {
      * without modify the behavior of other launched tasks
      * 
      */
-    public PeakRecognitionParameters clone() {
+    public DeconvolutionParameters clone() {
 
-        PeakRecognitionParameters newSet = new PeakRecognitionParameters();
+        DeconvolutionParameters newSet = new DeconvolutionParameters();
 
         newSet.peakResolverParameters = new SimpleParameterSet[peakResolverParameters.length];
         for (int i = 0; i < peakResolverParameters.length; i++) {

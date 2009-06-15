@@ -28,7 +28,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.SGDerivative;
+import net.sf.mzmine.modules.peakpicking.deconvolution.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 

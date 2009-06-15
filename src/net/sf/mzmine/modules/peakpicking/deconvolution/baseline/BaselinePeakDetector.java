@@ -17,14 +17,14 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition.baseline;
+package net.sf.mzmine.modules.peakpicking.deconvolution.baseline;
 
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
+import net.sf.mzmine.modules.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.deconvolution.ResolvedPeak;
 
 /**
  * This class implements a simple peak builder. This takes all collected MzPeaks

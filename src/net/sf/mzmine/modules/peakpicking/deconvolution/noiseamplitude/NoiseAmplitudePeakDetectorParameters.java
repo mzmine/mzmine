@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition.noiseamplitude;
+package net.sf.mzmine.modules.peakpicking.deconvolution.noiseamplitude;
 
 import java.text.NumberFormat;
 

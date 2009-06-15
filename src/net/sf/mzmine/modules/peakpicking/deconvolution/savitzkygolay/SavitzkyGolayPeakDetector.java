@@ -17,14 +17,14 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay;
+package net.sf.mzmine.modules.peakpicking.deconvolution.savitzkygolay;
 
 import java.util.Arrays;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.PeakResolver;
-import net.sf.mzmine.modules.peakpicking.peakrecognition.ResolvedPeak;
+import net.sf.mzmine.modules.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
 
 /**

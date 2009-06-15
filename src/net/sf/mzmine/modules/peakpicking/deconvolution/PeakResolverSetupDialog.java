@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.peakrecognition;
+package net.sf.mzmine.modules.peakpicking.deconvolution;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -80,14 +80,14 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
      * @param parameters
      * @param massDetectorTypeNumber
      */
-    public PeakResolverSetupDialog(PeakRecognitionParameters parameters,
+    public PeakResolverSetupDialog(DeconvolutionParameters parameters,
             int peakResolverTypeNumber) {
 
         super(
-                PeakRecognitionParameters.peakResolverNames[peakResolverTypeNumber]
+                DeconvolutionParameters.peakResolverNames[peakResolverTypeNumber]
                         + "'s parameter setup dialog ",
                 parameters.getPeakResolverParameters(peakResolverTypeNumber),
-                PeakRecognitionParameters.peakResolverHelpFiles[peakResolverTypeNumber]);
+                DeconvolutionParameters.peakResolverHelpFiles[peakResolverTypeNumber]);
 
         this.peakResolverTypeNumber = peakResolverTypeNumber;
 
@@ -183,7 +183,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
         // Create Peak Builder
         PeakResolver peakResolver;
         updateParameterSetFromComponents();
-        String peakResolverClassName = PeakRecognitionParameters.peakResolverClasses[peakResolverTypeNumber];
+        String peakResolverClassName = DeconvolutionParameters.peakResolverClasses[peakResolverTypeNumber];
 
         try {
             Class peakResolverClass = Class.forName(peakResolverClassName);

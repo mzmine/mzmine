@@ -41,7 +41,7 @@
         <parameter name="Suffix" type="STRING">peaklist</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.peakpicking.peakrecognition.PeakRecognition"> 
+    <module class="net.sf.mzmine.modules.peakpicking.deconvolution.Deconvolution"> 
       <parameters>
         <peakbuilder name="Baseline cut-off">
           <parameter name="Min peak height" type="DOUBLE">10000.0</parameter>
