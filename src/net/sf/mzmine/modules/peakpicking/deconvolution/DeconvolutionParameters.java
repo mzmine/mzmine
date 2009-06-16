@@ -39,15 +39,15 @@ public class DeconvolutionParameters implements StorableParameterSet {
             "Local minimum search" };
 
     public static final String peakResolverClasses[] = {
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.baseline.BaselinePeakDetector",
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.noiseamplitude.NoiseAmplitudePeakDetector",
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.savitzkygolay.SavitzkyGolayPeakDetector",
-            "net.sf.mzmine.modules.peakpicking.peakrecognition.minimumsearch.MinimumSearchPeakDetector" };
+            "net.sf.mzmine.modules.peakpicking.deconvolution.baseline.BaselinePeakDetector",
+            "net.sf.mzmine.modules.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector",
+            "net.sf.mzmine.modules.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector",
+            "net.sf.mzmine.modules.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector" };
 
     public static final String peakResolverHelpFiles[] = {
-            "net/sf/mzmine/modules/peakpicking/peakrecognition/baseline/help/BaselinePeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/peakrecognition/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/peakrecognition/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
+            "net/sf/mzmine/modules/peakpicking/deconvolution/baseline/help/BaselinePeakDetector.html",
+            "net/sf/mzmine/modules/peakpicking/deconvolution/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
+            "net/sf/mzmine/modules/peakpicking/deconvolution/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
             "TODO" };
 
     // Three step parameters
