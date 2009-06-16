@@ -87,6 +87,8 @@ class PeakListSaveHandler {
 		logger.info("Saving peak list: " + peakList.getName());
 
 		numberOfRows = peakList.getNumberOfRows();
+		finishedRows = 0;
+		
 		this.dataFilesIDMap = dataFilesIDMap;
 
 		String peakListSavedName = "Peak list #" + number + " "

@@ -70,6 +70,9 @@ class RawDataFileSaveHandler {
 	void writeRawDataFile(RawDataFile rawDataFile, int number)
 			throws IOException, TransformerConfigurationException, SAXException {
 
+		numOfScans = rawDataFile.getNumOfScans();
+		completedScans = 0;
+		
 		// step 1 - save scan file
 		logger.info("Saving scan file of: " + rawDataFile.getName());
 
@@ -120,7 +123,6 @@ class RawDataFileSaveHandler {
 			throws SAXException {
 
 		AttributesImpl atts = new AttributesImpl();
-		numOfScans = rawDataFile.getNumOfScans();
 
 		hd.startElement("", "", RawDataElementName.RAWDATA.getElementName(),
 				atts);
