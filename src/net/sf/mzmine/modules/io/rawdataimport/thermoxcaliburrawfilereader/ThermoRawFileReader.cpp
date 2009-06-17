@@ -100,23 +100,20 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 		return (jint) 1;
 	}
 
-
-
 	XRAWFILE2Lib::IXRawfile3Ptr xrawfile2_ = NULL;
 
 	CoInitialize( NULL );	
 
 	HRESULT hr = xrawfile2_.CreateInstance("XRawfile.XRawfile.1");
-
+	
 	if (!FAILED(hr)) {
 		jstr = env->NewStringUTF("Xcalibur 2.0 interface initialized.");
 		env->CallVoidMethod(log, mid_finest, jstr);
 	}
 	else {
-		jstr = (jstring) "Unable to initialize Xcalibur 2.0 interface";
- 	    env->CallVoidMethod(log, mid_severe, jstr);
-		jstr = (jstring) "try running the command regsvr32 C:\\<path_to_Xcalibur_dll>\\XRawfile2.dll";
+		jstr = env->NewStringUTF("Unable to initialize Xcalibur 2.0 interface, try running the command regsvr32 C:\\<path_to_Xcalibur_dll>\\XRawfile2.dll");
 		env->CallVoidMethod(log, mid_severe, jstr);
+		CoUninitialize();	
 		return (jint) 1;
 	}
 	
@@ -146,10 +143,10 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 
 	jfieldID fid_scanNumber = env->GetFieldID(cls, "scanNumber","I");
 	jfieldID fid_msLevel = env->GetFieldID(cls, "msLevel","I");
-	jfieldID fid_retentionTime = env->GetFieldID(cls, "retentionTime","F");
-	jfieldID fid_mz = env->GetFieldID(cls, "mz","[F");
-	jfieldID fid_intensity = env->GetFieldID(cls, "intensity","[F");
-	jfieldID fid_precursorMz = env->GetFieldID(cls, "precursorMz","F");
+	jfieldID fid_retentionTime = env->GetFieldID(cls, "retentionTime","D");
+	jfieldID fid_mz = env->GetFieldID(cls, "mz","[D");
+	jfieldID fid_intensity = env->GetFieldID(cls, "intensity","[D");
+	jfieldID fid_precursorMz = env->GetFieldID(cls, "precursorMz","D");
 	jfieldID fid_precursorCharge = env->GetFieldID(cls, "precursorCharge","I");
 	jfieldID fid_peaksCount = env->GetFieldID(cls, "peaksCount","I");
 	jfieldID fid_totalScans = env->GetFieldID(cls, "totalScans","I");
@@ -173,8 +170,43 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 	jint total = (jint) totalNumScans;
 	env->SetIntField(jobj, fid_totalScans, total);
 
+	long numDataPoints = -1; // points in both the m/z and intensity arrays
+	double retentionTimeInMinutes = -1;
+	double retentionTimeInSeconds = -1;
+	double minObservedMZ_ = -1;
+	double maxObservedMZ_ = -1;
+	double totalIonCurrent_ = -1;
+	double basePeakMZ_ = -1;
+	double basePeakIntensity_ = -1;
+	long channel; // unused
+	long uniformTime; // unused
+	double frequency; // unused
+	double precursorMz = 0;
+	long precursorCharge = 0;
+
+	// set up the parameters to read the scan
+	long dataPoints = 0;
+	long scanNum = curScanNum;
+	LPCTSTR szFilter = NULL;		// No filter
+	long intensityCutoffType = 0;		// No cutoff
+	long intensityCutoffValue = 0;	// No cutoff
+	long maxNumberOfPeaks = 0;		// 0 : return all data peaks
+	double centroidPeakWidth = 0;		// No centroiding
+	double* mzArray_;
+	double* intensityArray_;
+	bool centroidThisScan = false;
+
+	FilterLine filterLine;
+
+	// Java variables
+	jint vjint;
+	jdouble vjdouble;
+	jdoubleArray vjdoublearrayMz;
+	jdoubleArray vjdoublearrayIntensity;
+
+
 	for (curScanNum=1; curScanNum <= totalNumScans; curScanNum++) {
-	
+
 		std::string thermoFilterLine = "";
 		BSTR bstrFilter = NULL;
 		xrawfile2_->GetFilterForScanNum(curScanNum, &bstrFilter);
@@ -187,26 +219,26 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 
 		thermoFilterLine = convertBstrToString(bstrFilter);
 
-		FilterLine filterLine;
 		if (!filterLine.parse(thermoFilterLine)) {
 			jstr = env->NewStringUTF("error parsing filter line. exiting.");
 			env->CallVoidMethod(log, mid_severe, jstr);
 			return (jint) 1;
 		}
 
-		long numDataPoints = -1; // points in both the m/z and intensity arrays
-		double retentionTimeInMinutes = -1;
-		double retentionTimeInSeconds = -1;
-		double minObservedMZ_ = -1;
-		double maxObservedMZ_ = -1;
-		double totalIonCurrent_ = -1;
-		double basePeakMZ_ = -1;
-		double basePeakIntensity_ = -1;
-		long channel; // unused
-		long uniformTime; // unused
-		double frequency; // unused
-		float precursorMz = 0;
-		long precursorCharge = 0;
+		//Clean varaibles
+		numDataPoints = -1; // points in both the m/z and intensity arrays
+		retentionTimeInMinutes = -1;
+		retentionTimeInSeconds = -1;
+		minObservedMZ_ = -1;
+		maxObservedMZ_ = -1;
+		totalIonCurrent_ = -1;
+		basePeakMZ_ = -1;
+		basePeakIntensity_ = -1;
+		channel; // unused
+		uniformTime; // unused
+		frequency; // unused
+		precursorMz = 0;
+		precursorCharge = 0;
 
 		xrawfile2_->GetScanHeaderInfoForScanNum(
 			curScanNum, 
@@ -234,9 +266,9 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 				xrawfile2_->GetTrailerExtraValueForScanNum(curScanNum, "Monoisotopic M/Z:" , &varValue);
 				
 				if( varValue.vt == VT_R4 ){ 
-					precursorMz = varValue.fltVal;
+					precursorMz = (double) varValue.fltVal;
 				}else if( varValue.vt == VT_R8 ) {
-					precursorMz = (float) varValue.dblVal;
+					precursorMz = varValue.dblVal;
 				}else if ( varValue.vt != VT_ERROR ) {
 					char buffer [33];
 					_itoa_s ((int)curScanNum, buffer,10);
@@ -252,7 +284,7 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 				}
 				if (precursorMz == 0) {
 					// use the low-precision parent mass in the filter line
-					precursorMz = (float) filterLine.cidParentMass_[filterLine.cidParentMass_.size() - 1];
+					precursorMz = filterLine.cidParentMass_[filterLine.cidParentMass_.size() - 1];
 				}
 				
 				/*
@@ -277,16 +309,14 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 		VariantInit(&varPeakFlags);
 
 		// set up the parameters to read the scan
-		long dataPoints = 0;
-		long scanNum = curScanNum;
-		LPCTSTR szFilter = NULL;		// No filter
-		long intensityCutoffType = 0;		// No cutoff
-		long intensityCutoffValue = 0;	// No cutoff
-		long maxNumberOfPeaks = 0;		// 0 : return all data peaks
-		double centroidPeakWidth = 0;		// No centroiding
-		float* mzArray_;
-		float* intensityArray_;
-		bool centroidThisScan = false;
+		dataPoints = 0;
+		scanNum = curScanNum;
+		szFilter = NULL;		// No filter
+		intensityCutoffType = 0;		// No cutoff
+		intensityCutoffValue = 0;	// No cutoff
+		maxNumberOfPeaks = 0;		// 0 : return all data peaks
+		centroidPeakWidth = 0;		// No centroiding
+		centroidThisScan = false;
 
 		xrawfile2_->GetMassListFromScanNum(
 			&scanNum,
@@ -301,8 +331,8 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 			&dataPoints);		// array size
 
 		// record the number of data point (allocates memory for arrays)
-		mzArray_ = new float[dataPoints];
-		intensityArray_ = new float[dataPoints];
+		mzArray_ = new double[dataPoints];
+		intensityArray_ = new double[dataPoints];
 
 		// Get a pointer to the SafeArray
 		SAFEARRAY FAR* psa = varMassList.parray;
@@ -311,8 +341,8 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 		
 		// record mass list information in scan object
 		for (long j=0; j<dataPoints; j++) {
-			mzArray_[j] = (float) pDataPeaks[j].dMass;
-			intensityArray_[j] = (float) pDataPeaks[j].dIntensity;
+			mzArray_[j] = pDataPeaks[j].dMass;
+			intensityArray_[j] = pDataPeaks[j].dIntensity;
 		}
 
 		// cleanup
@@ -333,7 +363,7 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 		}
 
 		//Update values in java object for the current scan
-		jint vjint = (jint) curScanNum;
+		vjint = (jint) curScanNum;
 		env->SetIntField(jobj, fid_scanNumber, vjint);
 		vjint = (jint) filterLine.msLevel_;
 		env->SetIntField(jobj, fid_msLevel, vjint);
@@ -342,20 +372,20 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 		vjint = (jint) precursorCharge;
 		env->SetIntField(jobj, fid_precursorCharge, vjint);
 
-		jfloat vjfloat = (jfloat) retentionTimeInSeconds;
-		env->SetFloatField(jobj, fid_retentionTime, vjfloat);
-		vjfloat = (jfloat) precursorMz;
-		env->SetFloatField(jobj, fid_precursorMz, vjfloat);
+		vjdouble = (jdouble) retentionTimeInSeconds;
+		env->SetDoubleField(jobj, fid_retentionTime, vjdouble);
+		vjdouble = (jdouble) precursorMz;
+		env->SetDoubleField(jobj, fid_precursorMz, vjdouble);
 
-		jfloatArray vjfloararrayMs= env->NewFloatArray((jsize) dataPoints);
-   		env->SetFloatArrayRegion(
-			vjfloararrayMs, 0, dataPoints, (const jfloat *) mzArray_);
-		env->SetObjectField(jobj, fid_mz, vjfloararrayMs);
-
-		jfloatArray vjfloararrayIntensity= env->NewFloatArray((jsize) dataPoints);
-   		env->SetFloatArrayRegion(
-			vjfloararrayIntensity, 0, dataPoints, (const jfloat *) intensityArray_);
-		env->SetObjectField(jobj, fid_intensity, vjfloararrayIntensity);
+		vjdoublearrayMz = env->NewDoubleArray((jsize) dataPoints);
+   		env->SetDoubleArrayRegion(
+			vjdoublearrayMz, 0, dataPoints, (const jdouble *) mzArray_);
+		env->SetObjectField(jobj, fid_mz, vjdoublearrayMz);
+		
+		vjdoublearrayIntensity = env->NewDoubleArray((jsize) dataPoints);
+   		env->SetDoubleArrayRegion(
+			vjdoublearrayIntensity, 0, dataPoints, (const jdouble *) intensityArray_);
+		env->SetObjectField(jobj, fid_intensity, vjdoublearrayIntensity);
 
 		env->ExceptionClear();
 		env->CallVoidMethod(jobj, mid_startScan);
@@ -376,8 +406,14 @@ JNIEXPORT jint JNICALL Java_net_sf_mzmine_modules_io_rawdataimport_fileformats_X
 			env->ExceptionClear();
 			return (jint) 1;
 		}
-		delete mzArray_;
-		delete intensityArray_;
+
+		// Cleaning memory
+		env->DeleteLocalRef(vjdoublearrayMz);
+		env->DeleteLocalRef(vjdoublearrayIntensity);
+		delete[] mzArray_;
+		mzArray_=NULL;
+		delete[] intensityArray_;
+		intensityArray_=NULL;
 		
 	}
 
