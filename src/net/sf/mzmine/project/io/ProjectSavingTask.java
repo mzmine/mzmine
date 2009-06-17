@@ -56,7 +56,7 @@ public class ProjectSavingTask implements Task {
 
 	private RawDataFileSaveHandler rawDataFileSaveHandler;
 	private PeakListSaveHandler peakListSaveHandler;
-	
+
 	private int currentStage;
 	private String currentSavedObjectName;
 
@@ -142,9 +142,14 @@ public class ProjectSavingTask implements Task {
 			// Get current project
 			savedProject = (MZmineProjectImpl) MZmineCore.getCurrentProject();
 
-			// Prepare a temporary ZIP file
-			File tempFile = File.createTempFile("mzmineproject", ".tmp");
+			// Prepare a temporary ZIP file. We create this file in the same
+			// directory as the final saveFile to avoid moving between
+			// filesystems in the last stage (renameTo)
+			File tempFile = File.createTempFile(saveFile.getName(), ".tmp",
+					saveFile.getParentFile());
 			tempFile.deleteOnExit();
+
+			// Create a ZIP stream writing to the temporary file
 			FileOutputStream tempStream = new FileOutputStream(tempFile);
 			ZipOutputStream zipStream = new ZipOutputStream(tempStream);
 
@@ -177,7 +182,12 @@ public class ProjectSavingTask implements Task {
 				return;
 
 			// Move the temporary ZIP file to the final location
-			tempFile.renameTo(saveFile);
+			saveFile.delete();
+			boolean renameOK = tempFile.renameTo(saveFile);
+			if (!renameOK) {
+				throw new IOException("Could not move the temporary file "
+						+ tempFile + " to the final location " + saveFile);
+			}
 
 			// Update the location of the project
 			savedProject.setProjectFile(saveFile);
@@ -187,7 +197,9 @@ public class ProjectSavingTask implements Task {
 			status = TaskStatus.FINISHED;
 
 		} catch (Throwable e) {
+
 			status = TaskStatus.ERROR;
+
 			if (currentSavedObjectName == null) {
 				errorMessage = "Failed saving the project: "
 						+ ExceptionUtils.exceptionToString(e);
@@ -196,6 +208,7 @@ public class ProjectSavingTask implements Task {
 						+ currentSavedObjectName + ": "
 						+ ExceptionUtils.exceptionToString(e);
 			}
+
 		}
 	}
 
