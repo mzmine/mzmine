@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -164,8 +165,10 @@ class RansacAlignerTask implements Task {
 				// Get all rows of the aligned peaklist within parameter limits
 				PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(
 						new Range(rtMin, rtMax), new Range(mzMin, mzMax));
-				for (PeakListRow candidateRow : candidateRows) {
-					alignMol.addElement(new AlignStructMol(row, candidateRow));
+				Random rnd = new Random();
+				int rawIndex = rnd.nextInt(alignedPeakList.getNumberOfRawDataFiles());
+				for (PeakListRow candidateRow : candidateRows) {					
+					alignMol.addElement(new AlignStructMol(row, candidateRow, alignedPeakList.getRawDataFile(rawIndex)));
 				}
 				processedRows++;
 			}
@@ -178,6 +181,7 @@ class RansacAlignerTask implements Task {
 						newRow.addPeak(p.getDataFile(), p);
 					}
 					alignedPeakList.addRow(newRow);
+					processedRows++;
 				}
 				alignedPeakList.setName(peakListName);
 			} else {

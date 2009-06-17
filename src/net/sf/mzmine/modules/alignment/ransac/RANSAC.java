@@ -193,11 +193,11 @@ public class RANSAC {
 
 		int fractionNPoints = (data.size() / n) - 1;
 
-		if (fractionNPoints > 8) {
+		if (fractionNPoints > 2) {
 
 			if (!isCurve) {
 				// Take 2 points
-				int index = rnd.nextInt(fractionNPoints);
+				int index = rnd.nextInt(fractionNPoints/2);
 				data.elementAt(index).ransacMaybeInLiers = true;
 
 				index = rnd.nextInt(fractionNPoints);
@@ -205,7 +205,7 @@ public class RANSAC {
 				data.elementAt(index).ransacMaybeInLiers = true;
 			} else {
 				// Take 3 points
-				int index = rnd.nextInt(fractionNPoints);
+				int index = rnd.nextInt(fractionNPoints/2);
 				data.elementAt(index).ransacMaybeInLiers = true;
 
 				index = rnd.nextInt(fractionNPoints);
@@ -213,6 +213,7 @@ public class RANSAC {
 				data.elementAt(index).ransacMaybeInLiers = true;
 
 				index = rnd.nextInt(fractionNPoints);
+				index += fractionNPoints;
 				index += fractionNPoints;
 				data.elementAt(index).ransacMaybeInLiers = true;
 			}
@@ -237,28 +238,25 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.	 
 	 */
 	public void getAllModelPoints(Vector<AlignStructMol> data) {
-		int indexRow1 = 0;
-		int indexRow2 = 0;
-
+		
 		// Create the regression line using the two points
 		SimpleRegression regression = new SimpleRegression();
 
 		for (int i = 0; i < data.size(); i++) {
 			AlignStructMol point = data.elementAt(i);
 			if (point.ransacMaybeInLiers) {
-				regression.addData(point.row1.getPeaks()[indexRow1].getRT(), point.row2.getPeaks()[indexRow2].getRT());
+				regression.addData(point.RT, point.RT2);
 			}
 		}
 
 		// Add all the points which fit the model (the difference between the point
 		// and the regression line is less than "t"
-		for (int i = 0; i < data.size(); i++) {
-			AlignStructMol point = data.elementAt(i);
+		for (AlignStructMol point : data) {
 			double intercept = regression.getIntercept();
 			double slope = regression.getSlope();
 
-			double y = point.row2.getPeaks()[indexRow2].getRT();
-			double bestY = intercept + (point.row1.getPeaks()[indexRow1].getRT() * slope);
+			double y = point.RT2;
+			double bestY = intercept + (point.RT * slope);
 			if (Math.abs(y - bestY) < t) {
 				point.ransacAlsoInLiers = true;
 				AlsoNumber++;
@@ -274,17 +272,15 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.
 	 */
 	public void getAllModelPointsCurve(Vector<AlignStructMol> data) {
-		int indexRow1 = 0;
-		int indexRow2 = 0;
-
+	
 		// Obtain the variables of the curve equation
 		Vector<double[]> threePoints = new Vector<double[]>();
 		for (int i = 0; i < data.size(); i++) {
 			AlignStructMol point = data.elementAt(i);
 			if (point.ransacMaybeInLiers) {
-				double[] pointCoord = new double[2];
-				pointCoord[0] = point.row1.getPeaks()[indexRow1].getRT();
-				pointCoord[1] = point.row2.getPeaks()[indexRow2].getRT();
+				double[] pointCoord = new double[2];				
+				pointCoord[0] = point.RT;
+				pointCoord[1] = point.RT2;
 				threePoints.addElement(pointCoord);
 			}
 		}
@@ -293,8 +289,8 @@ public class RANSAC {
 		try {
 			double[] curve = getCurveEquation(threePoints);
 			for (AlignStructMol point : data) {
-				double y = point.row2.getPeaks()[indexRow2].getRT();
-				double bestY = curve[0] * Math.pow(point.row1.getPeaks()[indexRow1].getRT(), 2) + curve[1] * point.row1.getPeaks()[indexRow1].getRT() + curve[2];
+				double y = point.RT2;
+				double bestY = curve[0] * Math.pow(point.RT, 2) + curve[1] * point.RT + curve[2];
 				if (Math.abs(y - bestY) < t) {
 					point.ransacAlsoInLiers = true;
 					AlsoNumber++;
@@ -358,12 +354,20 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.
 	 */
 	private void deleteRepeatsAlignments(Vector<AlignStructMol> data) {
+		SimpleRegression regression = new SimpleRegression();
+
+		for (int i = 0; i < data.size(); i++) {
+			AlignStructMol point = data.elementAt(i);
+			if (point.Aligned) {
+				regression.addData(point.RT, point.RT2);
+			}
+		}
 		for (AlignStructMol structMol1 : data) {
 			if (structMol1.Aligned) {
 				for (AlignStructMol structMol2 : data) {
 					if (structMol1 != structMol2 && structMol2.Aligned) {
-						if ((structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2) || (structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2)) {
-							if (Math.abs(structMol1.row1.getDataPointMaxIntensity() - structMol1.row2.getDataPointMaxIntensity()) < Math.abs(structMol2.row1.getDataPointMaxIntensity() - structMol2.row2.getDataPointMaxIntensity())) {
+						if (structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2 || structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2) {
+							if (getScore(structMol1, structMol2, regression)) {
 								structMol2.Aligned = false;
 							} else {
 								structMol1.Aligned = false;
@@ -372,6 +376,38 @@ public class RANSAC {
 					}
 				}
 			}
+		}
+	}
+
+	private boolean getScore(AlignStructMol point, AlignStructMol point2, SimpleRegression regression) {
+		double intercept = regression.getIntercept();
+		double slope = regression.getSlope();
+		double y = point.RT2;
+		double bestY = intercept + (point.RT * slope);
+		double f = Math.abs(bestY - y);
+
+
+		y = point2.RT2;
+		bestY = intercept + (point2.RT * slope);
+		double f2 = Math.abs(bestY - y);
+
+
+		f = f / (f2 + f);
+		f2 = f2 / (f2 + f);
+
+		double intDiff1 = Math.abs(point.row1.getDataPointMaxIntensity() - point.row2.getDataPointMaxIntensity());
+		double intDiff2 = Math.abs(point2.row1.getDataPointMaxIntensity() - point2.row2.getDataPointMaxIntensity());
+
+		intDiff1 = intDiff1 / (intDiff1 + intDiff2);
+		intDiff2 = intDiff2 / (intDiff1 + intDiff2);
+		f += intDiff1;
+		f2 += intDiff2;
+		
+
+		if (f < f2) {
+			return true;
+		} else {
+			return false;
 		}
 	}
 }
