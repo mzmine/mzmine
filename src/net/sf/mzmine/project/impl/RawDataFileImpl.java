@@ -292,6 +292,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// If we have no defined scan data file, create a new temporary file
 		if (scanDataFile == null) {
 			scanFile = File.createTempFile("mzmine", ".scans");
+
+			// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
+			// bug #4171239. We will try to remove the temporary files in a
+			// shutdown hook registered in MZmineClient class
 			scanFile.deleteOnExit();
 			scanDataFile = new RandomAccessFile(scanFile, "rw");
 		}

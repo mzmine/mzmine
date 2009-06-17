@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.main.mzmineclient;
 
 import java.io.File;
@@ -93,7 +94,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			});
 
 			for (File remainingTmpFile : remainingTmpFiles) {
-				
+
 				// Skip files created by someone else
 				if (!remainingTmpFile.canWrite())
 					continue;
@@ -215,17 +216,5 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			return null;
 		}
 
-	}
-
-	/**
-	 * Shutdown hook - invoked on JRE shutdown. This method saves current
-	 * configuration to XML.
-	 * 
-	 */
-	private class ShutDownHook extends Thread {
-
-		public void start() {
-			saveConfiguration(CONFIG_FILE);
-		}
 	}
 }
