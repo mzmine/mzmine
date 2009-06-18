@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.project.impl;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -41,7 +40,7 @@ import net.sf.mzmine.project.io.ProjectSavingTask;
  * project manager implementation Using reflection to support different
  * implementation of actual tasks
  */
-public class ProjectManagerImpl implements ProjectManager, ActionListener {
+public class ProjectManagerImpl implements ProjectManager {
 
 	private static ProjectManagerImpl myInstance;
 
@@ -56,23 +55,6 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		listeners = new Vector<ProjectListener>();
 		currentProject = new MZmineProjectImpl();
 		myInstance = this;
-	}
-
-	public void actionPerformed(ActionEvent event) {
-
-		String cmd = event.getActionCommand();
-
-		if (cmd.equals("OPEN_PROJECT")) {
-
-		}
-
-		if (cmd.equals("SAVE_PROJECT")) {
-
-		}
-
-		if (cmd.equals("SAVE_PROJECT_AS")) {
-			saveProjectAs();
-		}
 	}
 
 	public MZmineProject getCurrentProject() {
@@ -121,6 +103,7 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		MZminePreferences parameters = MZmineCore.getPreferences();
 		String lastPath = parameters.getLastOpenProjectPath();
 		JFileChooser chooser = new JFileChooser();
+
 		if (lastPath != null)
 			chooser.setCurrentDirectory(new File(lastPath));
 
@@ -129,15 +112,32 @@ public class ProjectManagerImpl implements ProjectManager, ActionListener {
 		chooser.setFileFilter(filter);
 		int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop()
 				.getMainFrame());
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			File selectedFile = chooser.getSelectedFile();
-			if (! selectedFile.getName().endsWith(".mzmine")) {
-				selectedFile = new File(selectedFile.getPath() + ".mzmine");
-			}
-			parameters.setLastOpenProjectPath(selectedFile.getParent());
-			ProjectSavingTask task = new ProjectSavingTask(selectedFile);
-			MZmineCore.getTaskController().addTask(task);
+
+		if (returnVal != JFileChooser.APPROVE_OPTION)
+			return;
+
+		File selectedFile = chooser.getSelectedFile();
+
+		if (!selectedFile.getName().endsWith(".mzmine")) {
+			selectedFile = new File(selectedFile.getPath() + ".mzmine");
 		}
+
+		if (selectedFile.exists()) {
+			int selectedValue = JOptionPane.showInternalConfirmDialog(
+					MZmineCore.getDesktop().getMainFrame().getContentPane(),
+					selectedFile.getName() + " already exists, overwrite ?",
+					"Question...", JOptionPane.YES_NO_OPTION,
+					JOptionPane.WARNING_MESSAGE);
+
+			if (selectedValue != JOptionPane.YES_OPTION)
+				return;
+		}
+
+		parameters.setLastOpenProjectPath(selectedFile.getParent());
+
+		ProjectSavingTask task = new ProjectSavingTask(selectedFile);
+		MZmineCore.getTaskController().addTask(task);
+
 	}
 
 	public void addProjectListener(ProjectListener listener) {

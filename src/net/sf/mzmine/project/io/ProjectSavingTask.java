@@ -182,7 +182,9 @@ public class ProjectSavingTask implements Task {
 				return;
 
 			// Move the temporary ZIP file to the final location
-			saveFile.delete();
+			if (saveFile.exists() && !saveFile.delete()) {
+				throw new IOException("Could not delete old file " + saveFile);
+			}
 			boolean renameOK = tempFile.renameTo(saveFile);
 			if (!renameOK) {
 				throw new IOException("Could not move the temporary file "
