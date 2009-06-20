@@ -40,201 +40,212 @@ import net.sf.mzmine.util.Range;
  */
 class RansacAlignerTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private PeakList peakLists[],  alignedPeakList;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private PeakList peakLists[],  alignedPeakList;
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage;
 
-	// Processed rows counter
-	private int processedRows,  totalRows;
-	private String peakListName;
-	private double mzTolerance;
-	private double rtToleranceValueAbs;
-	private RansacAlignerParameters parameters;
+    // Processed rows counter
+    private int processedRows,  totalRows;
+    private String peakListName;
+    private double mzTolerance;
+    private double rtToleranceValueAbs;
+    private RansacAlignerParameters parameters;
 
-	/**
-	 * @param rawDataFile
-	 * @param parameters
-	 */
-	RansacAlignerTask(PeakList[] peakLists, RansacAlignerParameters parameters) {
+    /**
+     * @param rawDataFile
+     * @param parameters
+     */
+    RansacAlignerTask(PeakList[] peakLists, RansacAlignerParameters parameters) {
 
-		this.peakLists = peakLists;
-		this.parameters = parameters;
+        this.peakLists = peakLists;
+        this.parameters = parameters;
 
-		// Get parameter values for easier use
-		peakListName = (String) parameters.getParameterValue(RansacAlignerParameters.peakListName);
+        // Get parameter values for easier use
+        peakListName = (String) parameters.getParameterValue(RansacAlignerParameters.peakListName);
 
-		mzTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.MZTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.MZTolerance);
 
-		rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Ransac aligner, " + peakListName + " (" + peakLists.length + " peak lists)";
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+        return "Ransac aligner, " + peakListName + " (" + peakLists.length + " peak lists)";
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalRows == 0) {
-			return 0f;
-		}
-		return (double) processedRows / (double) totalRows;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+        if (totalRows == 0) {
+            return 0f;
+        }
+        return (double) processedRows / (double) totalRows;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
+     */
+    public TaskStatus getStatus() {
+        return status;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
 
-	/**
-	 * @see Runnable#run()
-	 */
-	public void run() {
-		status = TaskStatus.PROCESSING;
-		logger.info("Running RANSAC aligner");
-		int rowID = 1;
+    /**
+     * @see Runnable#run()
+     */
+    public void run() {
+        status = TaskStatus.PROCESSING;
+        logger.info("Running RANSAC aligner");
+        int rowID = 1;
 
-		// Remember how many rows we need to process. 
-		for (int i = 0; i < peakLists.length; i++) {
-			totalRows += peakLists[i].getNumberOfRows() * 2;
-		}
+        // Remember how many rows we need to process.
+        for (int i = 0; i < peakLists.length; i++) {
+            totalRows += peakLists[i].getNumberOfRows() * 2;
+        }
 
-		// Collect all data files
-		Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-		for (PeakList peakList : peakLists) {
+        // Collect all data files
+        Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
+        for (PeakList peakList : peakLists) {
 
-			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-				// Each data file can only have one column in aligned peak list
-				if (allDataFiles.contains(dataFile)) {
-					status = TaskStatus.ERROR;
-					errorMessage = "Cannot run alignment, because file " + dataFile + " is present in multiple peak lists";
-					return;
-				}
+                // Each data file can only have one column in aligned peak list
+                if (allDataFiles.contains(dataFile)) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Cannot run alignment, because file " + dataFile + " is present in multiple peak lists";
+                    return;
+                }
 
-				allDataFiles.add(dataFile);
-			}
-		}
+                allDataFiles.add(dataFile);
+            }
+        }
 
-		// Create a new aligned peak list
-		alignedPeakList = new SimplePeakList(peakListName,
-				allDataFiles.toArray(new RawDataFile[0]));
+        // Create a new aligned peak list
+        alignedPeakList = new SimplePeakList(peakListName,
+                allDataFiles.toArray(new RawDataFile[0]));
 
 
-		// For each peak list
-		for (PeakList peakList : peakLists) {
+        // For each peak list
+        for (PeakList peakList : peakLists) {
 
-			Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
+            Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
-			for (PeakListRow row : peakList.getRows()) {
+            for (PeakListRow row : peakList.getRows()) {
 
-				if (status == TaskStatus.CANCELED) {
-					return;
-				}
+                if (status == TaskStatus.CANCELED) {
+                    return;
+                }
 
-				// Calculate limits for a row with which the row can be aligned
-				double mzMin = row.getAverageMZ() - mzTolerance;
-				double mzMax = row.getAverageMZ() + mzTolerance;
-				double rtMin, rtMax;
-				double rtToleranceValue = rtToleranceValueAbs;
-				rtMin = row.getAverageRT() - rtToleranceValue;
-				rtMax = row.getAverageRT() + rtToleranceValue;
+                // Calculate limits for a row with which the row can be aligned
+                double mzMin = row.getAverageMZ() - mzTolerance;
+                double mzMax = row.getAverageMZ() + mzTolerance;
+                double rtMin, rtMax;
+                double rtToleranceValue = rtToleranceValueAbs;
+                rtMin = row.getAverageRT() - rtToleranceValue;
+                rtMax = row.getAverageRT() + rtToleranceValue;
 
-				// Get all rows of the aligned peaklist within parameter limits
-				PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(
-						new Range(rtMin, rtMax), new Range(mzMin, mzMax));
-				Random rnd = new Random();
-				int rawIndex = rnd.nextInt(alignedPeakList.getNumberOfRawDataFiles());
-				for (PeakListRow candidateRow : candidateRows) {					
-					alignMol.addElement(new AlignStructMol(row, candidateRow, alignedPeakList.getRawDataFile(rawIndex)));
-				}
-				processedRows++;
-			}
+                // Get all rows of the aligned peaklist within parameter limits
+                PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(
+                        new Range(rtMin, rtMax), new Range(mzMin, mzMax));
 
-			// The first peak list is added to the aligned peak list directly
-			if (alignedPeakList.getNumberOfRows() == 0) {
-				for (PeakListRow row : peakList.getRows()) {
-					PeakListRow newRow = new SimplePeakListRow(rowID++);
-					for (ChromatographicPeak p : row.getPeaks()) {
-						newRow.addPeak(p.getDataFile(), p);
-					}
-					alignedPeakList.addRow(newRow);
-					processedRows++;
-				}
-				alignedPeakList.setName(peakListName);
-			} else {
-				// RANSAC algorithm				
-				RANSAC ransac = new RANSAC(parameters, peakList.getName());
-				ransac.alignment(alignMol);
+                for (PeakListRow candidateRow : candidateRows) {
+                    alignMol.addElement(new AlignStructMol(row, candidateRow));
+                }
+                processedRows++;
+            }
 
-				// Write results into the aligned peak list
-				for (PeakListRow row : peakList.getRows()) {
-					boolean mark = false;
-					for (PeakListRow alignedPeakListRow : alignedPeakList.getRows()) {
-						for (AlignStructMol mols : alignMol) {
+            // The first peak list is added to the aligned peak list directly
+            if (alignedPeakList.getNumberOfRows() == 0) {
+                for (PeakListRow row : peakList.getRows()) {
+                    PeakListRow newRow = new SimplePeakListRow(rowID++);
+                    for (ChromatographicPeak p : row.getPeaks()) {
+                        newRow.addPeak(p.getDataFile(), p);
+                    }
+                    alignedPeakList.addRow(newRow);
+                    processedRows++;
+                }
+                alignedPeakList.setName(peakListName);
+            } else {
 
-							// If the peak list row and the aligned peak list row are aligned
-							// add all the row peaks into the aligned peak list row and the loop stops
-							if (mols.isMols(row, alignedPeakListRow) && mols.Aligned) {
-								for (RawDataFile file : row.getRawDataFiles()) {
-									alignedPeakListRow.addPeak(file, row.getPeak(file));
-								}
-								mark = true;
-								break;
-							}
-						}
-						if (mark) {
-							break;
-						}
-					}
-					if (!mark) {
+                // RANSAC algorithm
+                for (RawDataFile data : alignedPeakList.getRawDataFiles()) {
+                    for (AlignStructMol mols : alignMol) {
+                        mols.addResult(mols.Aligned);
+                        mols.setRT(data);
+                    }
+                    
+                    RANSAC ransac = new RANSAC(parameters, peakList.getName());
+                    ransac.alignment(alignMol);
+                }
 
-						PeakListRow row3 = new SimplePeakListRow(rowID++);
-						for (ChromatographicPeak p : row.getPeaks()) {
-							row3.addPeak(p.getDataFile(), p);
-						}
-						alignedPeakList.addRow(row3);
-					}
-					processedRows++;
-				}
-			}
-		}
+                // Write the result
+                for (PeakListRow row : peakList.getRows()) {
+                    boolean mark = false;
+                    for (PeakListRow alignedPeakListRow : alignedPeakList.getRows()) {
+                        for (AlignStructMol mols : alignMol) {
 
-		// Add new aligned peak list to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(alignedPeakList);
+                            // If the peak list row and the aligned peak list row are aligned
+                            // add all the row peaks into the aligned peak list row and the loop stops
+                            if (mols.isMols(row, alignedPeakListRow) && mols.getResult()) {
+                                for (RawDataFile file : row.getRawDataFiles()) {
+                                    alignedPeakListRow.addPeak(file, row.getPeak(file));
+                                }
+                                mark = true;
+                                break;
+                            }
+                        }
+                        if (mark) {
+                            break;
+                        }
+                    }
+                    if (!mark) {
 
-		// Add task description to peakList
-		alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("RANSAC aligner", parameters));
+                        PeakListRow row3 = new SimplePeakListRow(rowID++);
+                        for (ChromatographicPeak p : row.getPeaks()) {
+                            row3.addPeak(p.getDataFile(), p);
+                        }
+                        alignedPeakList.addRow(row3);
+                    }
+                    processedRows++;
+                }
 
-		logger.info("Finished RANSAC aligner");
-		status = TaskStatus.FINISHED;
+            }
 
-	}
+        }
 
-	public Object[] getCreatedObjects() {
-		return new Object[]{alignedPeakList};
-	}
+        // Add new aligned peak list to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+
+        currentProject.addPeakList(alignedPeakList);
+
+        // Add task description to peakList
+        alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("RANSAC aligner", parameters));
+
+        logger.info(
+                "Finished RANSAC aligner");
+        status = TaskStatus.FINISHED;
+
+    }
+
+    public Object[] getCreatedObjects() {
+        return new Object[]{alignedPeakList};
+    }
 }
