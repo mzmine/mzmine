@@ -160,7 +160,7 @@ public class RANSAC {
 					}
 
 					// Remove conficts on the alignments
-					deleteRepeatsAlignments(data);
+					//deleteRepeatsAlignments(data);
 
 					// Visualizantion of the new selected model
 					if (showChart) {

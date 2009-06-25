@@ -22,7 +22,6 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 
 public class AlignStructMol {
 
@@ -36,7 +35,9 @@ public class AlignStructMol {
     public AlignStructMol(PeakListRow row1, PeakListRow row2) {
         this.row1 = row1;
         this.row2 = row2;
-        this.isAligned = new Vector<Boolean>();       
+        this.isAligned = new Vector<Boolean>();
+		RT = row1.getAverageRT();
+		 RT2 = row2.getAverageRT();
     }
 
     public boolean isMols(PeakListRow row1, PeakListRow row2) {
@@ -46,37 +47,31 @@ public class AlignStructMol {
         return false;
     }
 
-    public void setRT(RawDataFile data) {
-        /*DescriptiveStatistics stats = DescriptiveStatistics.newInstance();
-
-        for(ChromatographicPeak peak :row1.getPeaks()){
-        stats.addValue(peak.getRT());
+	public boolean isHere(PeakListRow row){
+		if (this.row1 == row || this.row2 == row) {
+            return true;
         }
+        return false;
+	}
 
-        double[] values = stats.getSortedValues();
-        RT = values[values.length/2];
-
-        stats.clear();
-        for(ChromatographicPeak peak :row2.getPeaks()){
-        stats.addValue(peak.getRT());
-        }
-
-        values = stats.getSortedValues();
-        RT2 = values[values.length/2];*/
-
-        ChromatographicPeak peak = row1.getPeak(data);
+    public void setRT(RawDataFile data) {  
+       // ChromatographicPeak peak = row1.getPeak(data);
+		/*System.out.println(row2.getNumberOfPeaks());
         if (peak != null) {
             RT = peak.getRT();
         } else {
             RT = row1.getPeaks()[0].getRT();
-        }
+       // }
 
         ChromatographicPeak peak2 = row2.getPeak(data);
         if (peak2 != null) {
             RT2 = peak2.getRT();
         } else {
             RT2 = row2.getPeaks()[0].getRT();
-        }
+        }*/
+
+		 RT = row1.getAverageRT();
+		 RT2 = row2.getAverageRT();
     }
 
     public void addResult(boolean result) {
@@ -98,7 +93,12 @@ public class AlignStructMol {
         } else {
             return false;
         }
+
     }
+
+	public void resetResult(){
+		 this.isAligned = new Vector<Boolean>();       
+	}
 }
 
 
