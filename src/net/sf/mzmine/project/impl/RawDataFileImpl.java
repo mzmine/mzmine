@@ -68,7 +68,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		this.dataFileName = dataFileName;
 
-		// prepare new Hashtable for scans
+		// Prepare the hashtables for scan numbers and data limits. 
+		scanNumbersCache = new Hashtable<Integer, int[]>();
+		dataMZRange = new Hashtable<Integer, Range>();
+		dataRTRange = new Hashtable<Integer, Range>();
+		dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
+		dataMaxTIC = new Hashtable<Integer, Double>();
 		scans = new Hashtable<Integer, Scan>();
 
 	}
@@ -332,16 +337,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// mapping
 		scanDataFile.close();
 		openScanFile(scanFile);
-
-		// Prepare the hashtables for scan numbers and data limits. These
-		// hashtables must not be used until the data file writing is finished,
-		// that's why we create them here, after calling finishWriting()
-		scanNumbersCache = new Hashtable<Integer, int[]>();
-
-		dataMZRange = new Hashtable<Integer, Range>();
-		dataRTRange = new Hashtable<Integer, Range>();
-		dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
-		dataMaxTIC = new Hashtable<Integer, Double>();
 
 		return this;
 
