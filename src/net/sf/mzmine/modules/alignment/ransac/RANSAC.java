@@ -44,9 +44,8 @@ public class RANSAC {
 	private int k = 0;
 	private Random rnd;
 	private int AlsoNumber;
-	private double numRatePoints,  t;
-	private AlignmentChart chart;
-	private boolean isCurve,  showChart;
+	private double numRatePoints,  t;	
+	private boolean isCurve;
 	private RansacAlignerParameters parameters;
 
 	public RANSAC(RansacAlignerParameters parameters, String alignmentName) {
@@ -59,12 +58,7 @@ public class RANSAC {
 		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.OptimizationIterations);
 
 		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
-
-		this.showChart = (Boolean) parameters.getParameterValue(RansacAlignerParameters.chart);
-
-		if (showChart) {
-			chart = new AlignmentChart(alignmentName);
-		}
+		
 	}
 
 	/**
@@ -93,12 +87,7 @@ public class RANSAC {
 		if (k == 0) {
 			k = (int) getK();
 		}
-
-		// Visualization of the aligmnet
-		if (showChart) {
-			chart.setVisible(true);
-			MZmineCore.getDesktop().addInternalFrame(chart);
-		}
+		
 		ransac(data);
 	}
 
@@ -157,18 +146,7 @@ public class RANSAC {
 
 						alignStruct.ransacAlsoInLiers = false;
 						alignStruct.ransacMaybeInLiers = false;
-					}
-
-					// Remove conficts on the alignments
-					//deleteRepeatsAlignments(data);
-
-					// Visualizantion of the new selected model
-					if (showChart) {
-						chart.removeSeries();
-						chart.addSeries(data);
-						chart.printAlignmentChart();
-						chart.moveToFront();
-					}
+					}				
 				}
 			}
 
@@ -347,67 +325,5 @@ public class RANSAC {
 		}
 		return 1 / numT;
 
-	}
-
-	/**
-	 * If the same lipid is aligned with two differents lipids delete the alignment farest to the ransac regression line of all aligned points.
-	 * @param data vector with the points which represent all possible alignments.
-	 */
-	private void deleteRepeatsAlignments(Vector<AlignStructMol> data) {
-		SimpleRegression regression = new SimpleRegression();
-
-		for (int i = 0; i < data.size(); i++) {
-			AlignStructMol point = data.elementAt(i);
-			if (point.Aligned) {
-				regression.addData(point.RT, point.RT2);
-			}
-		}
-		for (AlignStructMol structMol1 : data) {
-			if (structMol1.Aligned) {
-				for (AlignStructMol structMol2 : data) {
-					if (structMol1 != structMol2 && structMol2.Aligned) {
-						if (structMol1.row1 == structMol2.row1 || structMol1.row1 == structMol2.row2 || structMol1.row2 == structMol2.row1 || structMol1.row2 == structMol2.row2) {
-							if (getScore(structMol1, structMol2, regression)) {
-								structMol2.Aligned = false;
-							} else {
-								structMol1.Aligned = false;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	private boolean getScore(AlignStructMol point, AlignStructMol point2, SimpleRegression regression) {
-		double intercept = regression.getIntercept();
-		double slope = regression.getSlope();
-		double y = point.RT2;
-		double bestY = intercept + (point.RT * slope);
-		double f = Math.abs(bestY - y);
-
-
-		y = point2.RT2;
-		bestY = intercept + (point2.RT * slope);
-		double f2 = Math.abs(bestY - y);
-
-
-		f = f / (f2 + f);
-		f2 = f2 / (f2 + f);
-
-		double intDiff1 = Math.abs(point.row1.getDataPointMaxIntensity() - point.row2.getDataPointMaxIntensity());
-		double intDiff2 = Math.abs(point2.row1.getDataPointMaxIntensity() - point2.row2.getDataPointMaxIntensity());
-
-		intDiff1 = intDiff1 / (intDiff1 + intDiff2);
-		intDiff2 = intDiff2 / (intDiff1 + intDiff2);
-		f += intDiff1;
-		f2 += intDiff2;
-		
-
-		if (f < f2) {
-			return true;
-		} else {
-			return false;
-		}
 	}
 }

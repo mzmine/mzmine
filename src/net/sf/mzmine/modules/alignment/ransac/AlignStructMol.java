@@ -18,10 +18,7 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
-import java.util.Vector;
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 
 public class AlignStructMol {
 
@@ -30,14 +27,12 @@ public class AlignStructMol {
     public boolean Aligned= false;
     public boolean ransacMaybeInLiers;
     public boolean ransacAlsoInLiers; 
-    public Vector<Boolean> isAligned;
 
     public AlignStructMol(PeakListRow row1, PeakListRow row2) {
         this.row1 = row1;
-        this.row2 = row2;
-        this.isAligned = new Vector<Boolean>();
+        this.row2 = row2;      
 		RT = row1.getAverageRT();
-		 RT2 = row2.getAverageRT();
+	    RT2 = row2.getAverageRT();
     }
 
     public boolean isMols(PeakListRow row1, PeakListRow row2) {
@@ -52,53 +47,7 @@ public class AlignStructMol {
             return true;
         }
         return false;
-	}
-
-    public void setRT(RawDataFile data) {  
-       // ChromatographicPeak peak = row1.getPeak(data);
-		/*System.out.println(row2.getNumberOfPeaks());
-        if (peak != null) {
-            RT = peak.getRT();
-        } else {
-            RT = row1.getPeaks()[0].getRT();
-       // }
-
-        ChromatographicPeak peak2 = row2.getPeak(data);
-        if (peak2 != null) {
-            RT2 = peak2.getRT();
-        } else {
-            RT2 = row2.getPeaks()[0].getRT();
-        }*/
-
-		 RT = row1.getAverageRT();
-		 RT2 = row2.getAverageRT();
-    }
-
-    public void addResult(boolean result) {
-        this.isAligned.addElement(new Boolean(result));
-    }
-
-    public boolean getResult() {
-        int truer = 0;
-        int falser = 0;
-        for (Boolean result : isAligned) {
-            if (result) {
-                truer++;
-            } else {
-                falser++;
-            }
-        }
-        if (truer > 1) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-	public void resetResult(){
-		 this.isAligned = new Vector<Boolean>();       
-	}
+	}   
 }
 
 

@@ -18,26 +18,32 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.text.DecimalFormat;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Vector;
+import javax.swing.JButton;
 import javax.swing.JInternalFrame;
+import javax.swing.JPanel;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-public class AlignmentChart extends JInternalFrame {
+public class AlignmentChart extends JInternalFrame implements ActionListener {
 
 	XYSeriesCollection dataset;
+	Vector<XYSeriesCollection> datasets;
+	Vector<String> names;
 	JFreeChart chart;
+	JButton right, left;
+	int cont = 0;
 
 	public AlignmentChart(String name) {
 		super(name, true, true, true, true);
@@ -53,8 +59,23 @@ public class AlignmentChart extends JInternalFrame {
 					true,
 					true,
 					false);
-			ChartPanel chartPanel = new ChartPanel(chart);			
-			this.add(chartPanel);
+			ChartPanel chartPanel = new ChartPanel(chart);
+			right = new JButton(">");
+			right.addActionListener(this);
+			left = new JButton("<");
+			left.addActionListener(this);
+
+			JPanel buttons = new JPanel();
+			buttons.add(left);
+			buttons.add(right);
+			JPanel chartAndButtons = new JPanel();
+
+			chartAndButtons.add(chartPanel, BorderLayout.NORTH);
+			chartAndButtons.add(buttons, BorderLayout.SOUTH);
+			this.add(chartAndButtons);
+
+
+
 		} catch (Exception e) {
 		}
 	}
@@ -74,9 +95,9 @@ public class AlignmentChart extends JInternalFrame {
 	 * @param v Vector with the alignments
 	 * @param Name Name of the type of lipids in this alignment
 	 */
-	public void addSeries(Vector<AlignStructMol> data) {
+	public void addSeries(Vector<AlignStructMol> data, String title) {
 		try {
-
+			chart.setTitle(title);
 			XYSeries s1 = new XYSeries("Aligned Molecules");
 			XYSeries s2 = new XYSeries("Non aligned Molecules");
 
@@ -92,6 +113,9 @@ public class AlignmentChart extends JInternalFrame {
 
 			this.dataset.addSeries(s1);
 			this.dataset.addSeries(s2);
+
+			datasets.addElement(dataset);
+			names.addElement(title);
 
 
 		} catch (Exception e) {
@@ -115,12 +139,51 @@ public class AlignmentChart extends JInternalFrame {
 			renderer.setBaseLinesVisible(false);
 			renderer.setBaseShapesVisible(true);
 			plot.setRenderer(renderer);
-			
+
 			chart.setBackgroundPaint(Color.white);
 			plot.setOutlinePaint(Color.black);
 
 		} catch (Exception e) {
 		}
 
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == this.right) {
+			try {
+				if (cont < datasets.size()) {
+					chart = ChartFactory.createXYLineChart(
+							names.elementAt(cont),
+							"RT1",
+							"RT2",
+							datasets.elementAt(cont++),
+							PlotOrientation.VERTICAL,
+							true,
+							true,
+							false);
+					printAlignmentChart();
+
+				}
+			} catch (Exception exception) {
+			}
+		}
+		if (e.getSource() == this.left) {
+
+			try {
+				if (cont >= 0) {
+					chart = ChartFactory.createXYLineChart(
+							names.elementAt(cont),
+							"RT1",
+							"RT2",
+							datasets.elementAt(cont--),
+							PlotOrientation.VERTICAL,
+							true,
+							true,
+							false);
+					printAlignmentChart();
+				}
+			} catch (Exception exception) {
+			}
+		}
 	}
 }

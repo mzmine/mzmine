@@ -52,7 +52,9 @@ class RansacAlignerTask implements Task {
 	private RansacAlignerParameters parameters;
 	private Vector<RawDataFile> allDataFiles;
 	private int contID = 1;
-
+	private AlignmentChart chart;
+	private Boolean showChart;
+	private int numSamplesGroup;
 	/**
 	 * @param rawDataFile
 	 * @param parameters
@@ -69,6 +71,15 @@ class RansacAlignerTask implements Task {
 
 		rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
 
+		numSamplesGroup = (Integer) parameters.getParameterValue(RansacAlignerParameters.groupSamples);
+
+		showChart = (Boolean) parameters.getParameterValue(RansacAlignerParameters.chart);
+
+		if (showChart) {
+			chart = new AlignmentChart("Alignment");
+			chart.setVisible(true);
+			MZmineCore.getDesktop().addInternalFrame(chart);
+		}
 	}
 
 	/**
@@ -121,59 +132,28 @@ class RansacAlignerTask implements Task {
 			for (int e = i + 1; e < peakLists.length; e++) {
 				totalRows += peakLists[i].getNumberOfRows() * 2;
 			}
-		}
+		}		
 
-		// Collect all data files
-		allDataFiles = new Vector<RawDataFile>();
-		for (PeakList peakList : peakLists) {
-
-			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-
-				// Each data file can only have one column in aligned peak list
-				if (allDataFiles.contains(dataFile)) {
-					status = TaskStatus.ERROR;
-					errorMessage = "Cannot run alignment, because file " + dataFile + " is present in multiple peak lists";
-					return;
-				}
-
-				allDataFiles.add(dataFile);
+		// Do the alignment of some samples each time.
+		PeakList[] allPeakLists = new PeakList[(peakLists.length / numSamplesGroup) + 1];
+		PeakList[] someSamplesPeakList = new PeakList[numSamplesGroup];
+		for (int e = 0, j = 0; e < (peakLists.length / numSamplesGroup); e += numSamplesGroup, j++) {
+			for (int i = 0; i < numSamplesGroup; i++) {
+				someSamplesPeakList[i] = peakLists[e + i];
 			}
+			allPeakLists[j] = this.getPeakList(someSamplesPeakList);
 		}
-
-		// Create a new aligned peak list
-		alignedPeakList = new SimplePeakList(peakListName, allDataFiles.toArray(new RawDataFile[0]));
-
-
-		// Create a vector with the alignment model for the combination of some samples
-		Vector<Vector<AlignStructMol>> lists = new Vector<Vector<AlignStructMol>>();
-
-		for (int i = 0; i < peakLists.length; i++) {
-			for (int e = i + 1; e < peakLists.length; e++) {
-				Vector<AlignStructMol> list = this.getVectorAlignment(peakLists[i], peakLists[e]);
-				RANSAC ransac = new RANSAC(parameters, peakLists[i].getName());
-				ransac.alignment(list);
-				lists.addElement(list);
+		if(peakLists.length % numSamplesGroup > 0){
+			someSamplesPeakList = new PeakList[peakLists.length % numSamplesGroup];
+			for (int i = 0; i < peakLists.length % numSamplesGroup; i++) {
+				someSamplesPeakList[i] = peakLists[(peakLists.length - (peakLists.length % numSamplesGroup)) + i];
 			}
+			allPeakLists[(peakLists.length / numSamplesGroup)] = getPeakList(someSamplesPeakList);
 		}
-
-
-		// write results
-		alignedPeakList = this.writeResults(lists);
-
-		// write isolate peaks
-		for (PeakList peakList : peakLists) {
-			for (PeakListRow row : peakList.getRows()) {
-				if (!isRow(row, alignedPeakList)) {
-					alignedPeakList.addRow(row);
-				}
-			}
-			alignedPeakList.setName(peakListName);
-		}
-
+		alignedPeakList = this.getPeakList(allPeakLists);
 
 		// Add new aligned peak list to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-
+		MZmineProject currentProject = MZmineCore.getCurrentProject();		
 		currentProject.addPeakList(alignedPeakList);
 
 		// Add task description to peakList
@@ -185,114 +165,60 @@ class RansacAlignerTask implements Task {
 
 	}
 
-	private PeakList writeResults(Vector<Vector<AlignStructMol>> lists) {
-
-		PeakList alignedPeakList2 = new SimplePeakList(peakListName,
-				allDataFiles.toArray(new RawDataFile[0]));
-		for (Vector<AlignStructMol> list : lists) {
-			for (AlignStructMol mol : list) {
-				if (mol.Aligned) {
-					PeakListRow row1 = alignedPeakList2.getPeakRow(mol.row1.getPeaks()[0]);
-					PeakListRow row2 = alignedPeakList2.getPeakRow(mol.row2.getPeaks()[0]);
-					if (row1 == null && row2 == null) {
-						PeakListRow row3 = new SimplePeakListRow(contID++);
-
-						row3.addPeak(mol.row1.getPeaks()[0].getDataFile(), mol.row1.getPeaks()[0]);
-						row3.addPeak(mol.row2.getPeaks()[0].getDataFile(), mol.row2.getPeaks()[0]);
-
-						alignedPeakList2.addRow(row3);
-
-					} else {
-						if (row1 != null) {
-							row1.addPeak(mol.row2.getPeaks()[0].getDataFile(), mol.row2.getPeaks()[0]);
-						}
-						if (row2 != null) {
-							row2.addPeak(mol.row1.getPeaks()[0].getDataFile(), mol.row1.getPeaks()[0]);
-						}
-
-					}
-				} else {
-					PeakListRow row1 = alignedPeakList2.getPeakRow(mol.row1.getPeaks()[0]);
-					PeakListRow row2 = alignedPeakList2.getPeakRow(mol.row2.getPeaks()[0]);
-					if (row1 == null) {
-						PeakListRow row3 = new SimplePeakListRow(contID++);
-						row3.addPeak(mol.row1.getPeaks()[0].getDataFile(), mol.row1.getPeaks()[0]);
-						alignedPeakList2.addRow(row3);
-					}
-					if (row2 == null) {
-						PeakListRow row3 = new SimplePeakListRow(contID++);
-						row3.addPeak(mol.row2.getPeaks()[0].getDataFile(), mol.row2.getPeaks()[0]);
-						alignedPeakList2.addRow(row3);
-					}
-				}
-				processedRows++;
+	private PeakList getPeakList(PeakList[] peakListss) {
+		allDataFiles = new Vector<RawDataFile>();
+		for (PeakList peakList : peakListss) {
+			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+				allDataFiles.add(dataFile);
 			}
 		}
 
-		fixAlignment(alignedPeakList2);
-		return alignedPeakList2;
+		// Create a vector with the alignment model for the combination of some samples
+		Vector<Vector<AlignStructMol>> lists = new Vector<Vector<AlignStructMol>>();
 
-	}
+		// do the aligment combining all the samples
+		for (int i = 0; i < peakListss.length; i++) {
+			for (int e = i + 1; e < peakListss.length; e++) {
+				if (peakListss[i] != null && peakListss[e] != null) {
+					Vector<AlignStructMol> list = this.getVectorAlignment(peakListss[i], peakListss[e]);
+					RANSAC ransac = new RANSAC(parameters, peakListss[i].getName());
+					ransac.alignment(list);
+					lists.addElement(list);
+					// Visualizantion of the new selected model
+					if (showChart) {
+						chart.removeSeries();
+						chart.addSeries(list, peakListss[i].getName() + " vs " + peakListss[e].getName());
+					//	chart.printAlignmentChart();
+					}
+				}
+			}
+		}
 
-	public void fixAlignment(PeakList peakList) {
-		for (PeakListRow row : peakList.getRows()) {
-			for (ChromatographicPeak peak : row.getPeaks()) {
-				PeakListRow row2 = getPeakRow(peak, peakList, row);
-				if (row2 != null) {
-					repair(row, row2, peak, peakList);
+
+		// write results
+		PeakList PeakList = this.getNewPeakList(lists);
+
+		// write isolate peaks
+		for (PeakList peakList : peakListss) {
+			if (peakList != null) {
+				for (PeakListRow row : peakList.getRows()) {
+					if (!isRow(row, PeakList)) {
+						PeakList.addRow(row);
+					}
 				}
 			}
 		}
+
+		return PeakList;
 	}
 
-	public void repair(PeakListRow row, PeakListRow row2, ChromatographicPeak p, PeakList peakList) {
-
-		//System.out.println(row.getAverageMZ() + ": " + row.getID() + " - " + row2.getAverageMZ() + ": " + row2.getID());
-		PeakListRow bigRow;
-		PeakListRow smallRow;
-		//System.out.println(row.getNumberOfPeaks() + " - " + row2.getNumberOfPeaks());
-		if (row.getNumberOfPeaks() > row2.getNumberOfPeaks()) {
-			bigRow = row;
-			smallRow = row2;
-		} else {
-			bigRow = row2;
-			smallRow = row;
-		}
-
-
-		for (ChromatographicPeak peak : smallRow.getPeaks()) {
-			ChromatographicPeak peak2 = bigRow.getPeak(peak.getDataFile());
-			if (peak2 == null && peak != p) {
-				bigRow.addPeak(peak.getDataFile(), peak);
-			} else {
-			}
-
-		}
-
-		peakList.removeRow(smallRow);
-	}
-
-	private boolean isRow(PeakListRow row, PeakList peakList) {
-		for (PeakListRow row2 : peakList.getRows()) {
-			for (ChromatographicPeak p : row.getPeaks()) {
-				if (row2.hasPeak(p)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private PeakListRow getPeakRow(ChromatographicPeak p, PeakList peakList, PeakListRow row) {
-		for (PeakListRow row2 : peakList.getRows()) {
-			if (row2.hasPeak(p) && row != row2) {
-				return row2;
-			}
-		}
-		return null;
-	}
-
-	public Vector<AlignStructMol> getVectorAlignment(PeakList peakList, PeakList peakList2) {
+	/**
+	 * Create the vector which contains all the possible aligned peaks.
+	 * @param peakList
+	 * @param peakList2
+	 * @return vector which contains all the possible aligned peaks.
+	 */
+	private Vector<AlignStructMol> getVectorAlignment(PeakList peakList, PeakList peakList2) {
 
 		Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
@@ -320,6 +246,159 @@ class RansacAlignerTask implements Task {
 			processedRows++;
 		}
 		return alignMol;
+	}
+
+	/**
+	 * Write the result of all the alignments
+	 * @param lists vector which contains the result of all the alignments between all the samples
+	 * @return peak list
+	 */
+	private PeakList getNewPeakList(Vector<Vector<AlignStructMol>> lists) {
+
+		try {
+
+			// create a new peak list
+			PeakList alignedPeakList2 = new SimplePeakList(peakListName,
+					allDataFiles.toArray(new RawDataFile[0]));
+
+			// for each possible aligned pair of peaks in all the samples
+			for (Vector<AlignStructMol> list : lists) {
+				for (AlignStructMol mol : list) {
+
+					// check if the rows are already in the new peak list
+					PeakListRow row1 = alignedPeakList2.getPeakRow(mol.row1.getPeaks()[0]);
+					PeakListRow row2 = alignedPeakList2.getPeakRow(mol.row2.getPeaks()[0]);
+
+					if (mol.Aligned) {
+
+						// if they are not add a new row
+						if (row1 == null && row2 == null) {
+							PeakListRow row3 = new SimplePeakListRow(contID++);
+							for (ChromatographicPeak peak : mol.row1.getPeaks()) {
+								row3.addPeak(peak.getDataFile(), peak);
+							}
+							for (ChromatographicPeak peak : mol.row2.getPeaks()) {
+								row3.addPeak(peak.getDataFile(), peak);
+							}
+							alignedPeakList2.addRow(row3);
+
+						} else {
+
+							// if one of them is already in the new peak list, add the other aligned peak in the same row
+							if (row1 != null) {
+								for (ChromatographicPeak peak : mol.row2.getPeaks()) {
+									row1.addPeak(peak.getDataFile(), peak);
+								}
+							}
+							if (row2 != null) {
+								for (ChromatographicPeak peak : mol.row1.getPeaks()) {
+									row2.addPeak(peak.getDataFile(), peak);
+								}
+							}
+						}
+
+					} else {
+						if (row1 == null) {
+							PeakListRow row3 = new SimplePeakListRow(contID++);
+							for (ChromatographicPeak peak : mol.row1.getPeaks()) {
+								row3.addPeak(peak.getDataFile(), peak);
+							}
+							alignedPeakList2.addRow(row3);
+						}
+						if (row2 == null) {
+							PeakListRow row3 = new SimplePeakListRow(contID++);
+							for (ChromatographicPeak peak : mol.row2.getPeaks()) {
+								row3.addPeak(peak.getDataFile(), peak);
+							}
+							alignedPeakList2.addRow(row3);
+						}
+					}
+					processedRows++;
+				}
+			}
+
+			fixAlignment(alignedPeakList2);
+			return alignedPeakList2;
+		} catch (Exception e) {
+			return null;
+
+		}
+	}
+
+	/**
+	 * Find the rows where are repeats peaks and call the function "removeRepeatedRows()"
+	 * @param peakList
+	 */
+	private void fixAlignment(PeakList peakList) {
+		for (PeakListRow row : peakList.getRows()) {
+			for (ChromatographicPeak peak : row.getPeaks()) {
+				PeakListRow row2 = getPeakRow(peak, peakList, row);
+				if (row2 != null) {
+					removeRepeatedRows(row, row2, peak, peakList);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Remove the repeated rows.
+	 * @param row row where is the repeated peak
+	 * @param row2 row where is the repeated peak
+	 * @param p peak repeated in both rows
+	 * @param peakList
+	 */
+	private void removeRepeatedRows(PeakListRow row, PeakListRow row2, ChromatographicPeak p, PeakList peakList) {
+
+		PeakListRow bigRow;
+		PeakListRow smallRow;
+		if (row.getNumberOfPeaks() > row2.getNumberOfPeaks()) {
+			bigRow = row;
+			smallRow = row2;
+		} else {
+			bigRow = row2;
+			smallRow = row;
+		}
+
+		for (ChromatographicPeak peak : smallRow.getPeaks()) {
+			ChromatographicPeak peak2 = bigRow.getPeak(peak.getDataFile());
+			if (peak2 == null && peak != p) {
+				bigRow.addPeak(peak.getDataFile(), peak);
+			}
+		}
+		peakList.removeRow(smallRow);
+	}
+
+	/**
+	 *
+	 * @param row
+	 * @param peakList
+	 * @return return true if the peak list contains one of the peak present in the row
+	 */
+	private boolean isRow(PeakListRow row, PeakList peakList) {
+		for (PeakListRow row2 : peakList.getRows()) {
+			for (ChromatographicPeak p : row.getPeaks()) {
+				if (row2.hasPeak(p)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 *
+	 * @param p
+	 * @param peakList
+	 * @param row
+	 * @return return the row where is the peak "p" into the peak list
+	 */
+	private PeakListRow getPeakRow(ChromatographicPeak p, PeakList peakList, PeakListRow row) {
+		for (PeakListRow row2 : peakList.getRows()) {
+			if (row2.hasPeak(p) && row != row2) {
+				return row2;
+			}
+		}
+		return null;
 	}
 
 	public Object[] getCreatedObjects() {
