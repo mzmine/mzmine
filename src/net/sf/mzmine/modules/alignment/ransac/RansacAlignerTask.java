@@ -54,7 +54,8 @@ class RansacAlignerTask implements Task {
 	private int contID = 1;
 	private AlignmentChart chart;
 	private Boolean showChart;
-	private int numSamplesGroup;
+
+	
 	/**
 	 * @param rawDataFile
 	 * @param parameters
@@ -70,8 +71,6 @@ class RansacAlignerTask implements Task {
 		mzTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.MZTolerance);
 
 		rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
-
-		numSamplesGroup = (Integer) parameters.getParameterValue(RansacAlignerParameters.groupSamples);
 
 		showChart = (Boolean) parameters.getParameterValue(RansacAlignerParameters.chart);
 
@@ -132,28 +131,12 @@ class RansacAlignerTask implements Task {
 			for (int e = i + 1; e < peakLists.length; e++) {
 				totalRows += peakLists[i].getNumberOfRows() * 2;
 			}
-		}		
-
-		// Do the alignment of some samples each time.
-		PeakList[] allPeakLists = new PeakList[(peakLists.length / numSamplesGroup) + 1];
-		PeakList[] someSamplesPeakList = new PeakList[numSamplesGroup];
-		for (int e = 0, j = 0; e < (peakLists.length / numSamplesGroup); e += numSamplesGroup, j++) {
-			for (int i = 0; i < numSamplesGroup; i++) {
-				someSamplesPeakList[i] = peakLists[e + i];
-			}
-			allPeakLists[j] = this.getPeakList(someSamplesPeakList);
 		}
-		if(peakLists.length % numSamplesGroup > 0){
-			someSamplesPeakList = new PeakList[peakLists.length % numSamplesGroup];
-			for (int i = 0; i < peakLists.length % numSamplesGroup; i++) {
-				someSamplesPeakList[i] = peakLists[(peakLists.length - (peakLists.length % numSamplesGroup)) + i];
-			}
-			allPeakLists[(peakLists.length / numSamplesGroup)] = getPeakList(someSamplesPeakList);
-		}
-		alignedPeakList = this.getPeakList(allPeakLists);
+		
+		alignedPeakList = this.getPeakList(peakLists);
 
 		// Add new aligned peak list to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();		
+		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(alignedPeakList);
 
 		// Add task description to peakList
@@ -165,11 +148,18 @@ class RansacAlignerTask implements Task {
 
 	}
 
+	/**
+	 * 
+	 * @param peakListss
+	 * @return
+	 */
 	private PeakList getPeakList(PeakList[] peakListss) {
 		allDataFiles = new Vector<RawDataFile>();
 		for (PeakList peakList : peakListss) {
-			for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-				allDataFiles.add(dataFile);
+			if (peakList != null) {
+				for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+					allDataFiles.add(dataFile);
+				}
 			}
 		}
 

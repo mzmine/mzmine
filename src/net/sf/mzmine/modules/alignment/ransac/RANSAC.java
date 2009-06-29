@@ -23,7 +23,6 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.sf.mzmine.main.MZmineCore;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 public class RANSAC {

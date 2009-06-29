@@ -52,10 +52,6 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE, "Threshold value",
 			"Threshold value for determining when a data point fits a model", new Double(3.0));
 
-	public static final Parameter groupSamples = new SimpleParameter(
-			ParameterType.INTEGER, "Number of samples per group",
-			"The alignment is done for groups of samples", new Integer(10));
-
 	public static final Parameter curve = new SimpleParameter(
 			ParameterType.BOOLEAN, "Curve model",
 			"Switch between curve model or lineal model", new Boolean(false));
@@ -65,6 +61,6 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			"Visualitzation of the results", new Boolean(false));
 
 	public RansacAlignerParameters() {
-		super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, OptimizationIterations, NMinPoints, Margin, groupSamples, curve, chart});
+		super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, OptimizationIterations, NMinPoints, Margin, curve, chart});
 	}
 }
