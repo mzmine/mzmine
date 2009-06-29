@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="sandra C">
-	<META NAME="CHANGED" CONTENT="20090612;12561300">
+	<META NAME="CHANGED" CONTENT="20090629;13503900">
 </HEAD>
 <BODY LANG="es-ES" DIR="LTR">
 <H1><FONT COLOR="#0066cc">RANSAC <SPAN LANG="en-GB">align peak list</SPAN></FONT></H1>
@@ -101,6 +101,17 @@ last saved model.</P>
 		</TR>
 	</TABLE>
 </DIV>
+<P LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">In this case,
+each point represents the retention time of one peak from one sample
+versus the retention time of one peak (possible aligned peak) from
+another sample. All the points represent all possible alignments. 
+</P>
+<P ALIGN=LEFT STYLE="margin-left: 0.82cm"><SPAN LANG="en-GB">Ransac
+algorithm is done for each pair combination of  samples. That means
+t</SPAN>he time<SPAN LANG="en-US"> cost of the algorithm is an almost
+quadratic (N*(N-1)/2) function of the number of samples, and grows
+very quickly for bigger values of N. </SPAN>
+</P>
 <P LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">It is
 specially appropriate for the alignment of samples with a shift in
 the retention time. 
@@ -115,8 +126,7 @@ tolerance&quot;</I></SPAN><SPAN LANG="en-GB"><BR>This value sets the
 range, in terms of m/z, to verify for possible peak rows to be
 aligned. Maximum allowed m/z difference<BR><BR></SPAN><SPAN LANG="en-GB"><I>&quot;Retention
 time tolerance type&quot;</I></SPAN><SPAN LANG="en-GB"><BR>Maximum RT
-difference can be defined either using absolute or relative
-value<BR></SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>RANSAC
+difference <BR></SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>RANSAC
 Iterations&rdquo;</I></SPAN> <BR><SPAN LANG="en-GB">Maximum number of
 iterations allowed in the algorithm. If its value is 0, the number of
 iterations will be estimate by the algorithm.</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>NminPoints&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>Minimum
