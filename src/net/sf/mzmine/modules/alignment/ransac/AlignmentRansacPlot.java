@@ -18,76 +18,80 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Font;
+import java.text.NumberFormat;
 import java.util.Vector;
-import javax.swing.JButton;
-import javax.swing.JInternalFrame;
-import javax.swing.JPanel;
+import net.sf.mzmine.main.MZmineCore;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-public class AlignmentChart extends JInternalFrame implements ActionListener {
+public class AlignmentRansacPlot extends ChartPanel {
 
-	XYSeriesCollection dataset;
-	Vector<XYSeriesCollection> datasets;
-	Vector<String> names;
-	JFreeChart chart;
-	JButton right, left;
-	int cont = 0;
+	private XYSeriesCollection dataset;
+	private JFreeChart chart;
+	private TextTitle chartTitle,  chartSubTitle;
+	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+			11);
 
-	public AlignmentChart(String name) {
-		super(name, true, true, true, true);
-		try {
-			this.setSize(900, 800);
-			dataset = new XYSeriesCollection();
-			chart = ChartFactory.createXYLineChart(
-					name,
-					"RT1",
-					"RT2",
-					dataset,
-					PlotOrientation.VERTICAL,
-					true,
-					true,
-					false);
-			ChartPanel chartPanel = new ChartPanel(chart);
-			right = new JButton(">");
-			right.addActionListener(this);
-			left = new JButton("<");
-			left.addActionListener(this);
+	// legend
+	private LegendTitle legend;
+	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+	private XYToolTipGenerator toolTipGenerator;
+	private NumberFormat rtFormat = MZmineCore.getRTFormat();
 
-			JPanel buttons = new JPanel();
-			buttons.add(left);
-			buttons.add(right);
-			JPanel chartAndButtons = new JPanel();
+	public AlignmentRansacPlot() {
+		super(null, true);
 
-			chartAndButtons.add(chartPanel, BorderLayout.NORTH);
-			chartAndButtons.add(buttons, BorderLayout.SOUTH);
-			this.add(chartAndButtons);
+		dataset = new XYSeriesCollection();
+		chart = ChartFactory.createXYLineChart(
+				"",
+				null,
+				null,
+				dataset,
+				PlotOrientation.VERTICAL,
+				true,
+				true,
+				false);
+
+		chart.setBackgroundPaint(Color.white);
+		setChart(chart);
 
 
+		// title
+		chartTitle = chart.getTitle();
+		chartTitle.setMargin(5, 0, 0, 0);
+		chartTitle.setFont(titleFont);
 
-		} catch (Exception e) {
-		}
+		chartSubTitle = new TextTitle();
+		chartSubTitle.setFont(subTitleFont);
+		chartSubTitle.setMargin(5, 0, 0, 0);
+		chart.addSubtitle(chartSubTitle);
+
+		// legend constructed by ChartFactory
+		legend = chart.getLegend();
+		legend.setItemFont(legendFont);
+		legend.setFrame(BlockBorder.NONE);
+
 	}
 
 	/**
 	 * Remove all series from the chart
 	 */
 	public void removeSeries() {
-		try {
-			dataset.removeAllSeries();
-		} catch (Exception e) {
-		}
+		dataset.removeAllSeries();
 	}
 
 	/**
@@ -108,14 +112,10 @@ public class AlignmentChart extends JInternalFrame implements ActionListener {
 				} else {
 					s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
 				}
-
 			}
 
 			this.dataset.addSeries(s1);
 			this.dataset.addSeries(s2);
-
-			datasets.addElement(dataset);
-			names.addElement(title);
 
 
 		} catch (Exception e) {
@@ -125,19 +125,26 @@ public class AlignmentChart extends JInternalFrame implements ActionListener {
 	/**
 	 * Print the chart
 	 */
-	public void printAlignmentChart() {
+	public void printAlignmentChart(String axisTitleX, String axisTitleY) {
 		try {
+			toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
+
 			XYPlot plot = chart.getXYPlot();
-			NumberAxis xAxis = new NumberAxis("RT 1");
-			NumberAxis yAxis = new NumberAxis("RT 2");
+
+			NumberAxis xAxis = new NumberAxis(axisTitleX);
+			xAxis.setNumberFormatOverride(rtFormat);
 			xAxis.setAutoRangeIncludesZero(false);
-			yAxis.setAutoRangeIncludesZero(false);
 			plot.setDomainAxis(xAxis);
+
+			NumberAxis yAxis = new NumberAxis(axisTitleY);
+			yAxis.setNumberFormatOverride(rtFormat);			
+			yAxis.setAutoRangeIncludesZero(false);		
 			plot.setRangeAxis(yAxis);
 
 			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 			renderer.setBaseLinesVisible(false);
 			renderer.setBaseShapesVisible(true);
+			renderer.setBaseToolTipGenerator(toolTipGenerator);
 			plot.setRenderer(renderer);
 
 			chart.setBackgroundPaint(Color.white);
@@ -145,45 +152,6 @@ public class AlignmentChart extends JInternalFrame implements ActionListener {
 
 		} catch (Exception e) {
 		}
-
 	}
-
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.right) {
-			try {
-				if (cont < datasets.size()) {
-					chart = ChartFactory.createXYLineChart(
-							names.elementAt(cont),
-							"RT1",
-							"RT2",
-							datasets.elementAt(cont++),
-							PlotOrientation.VERTICAL,
-							true,
-							true,
-							false);
-					printAlignmentChart();
-
-				}
-			} catch (Exception exception) {
-			}
-		}
-		if (e.getSource() == this.left) {
-
-			try {
-				if (cont >= 0) {
-					chart = ChartFactory.createXYLineChart(
-							names.elementAt(cont),
-							"RT1",
-							"RT2",
-							datasets.elementAt(cont--),
-							PlotOrientation.VERTICAL,
-							true,
-							true,
-							false);
-					printAlignmentChart();
-				}
-			} catch (Exception exception) {
-			}
-		}
-	}
+	
 }

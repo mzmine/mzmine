@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.alignment.ransac;
 
 import java.awt.event.ActionEvent;
@@ -26,7 +25,6 @@ import java.awt.event.KeyEvent;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -41,100 +39,98 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class RansacAligner implements BatchStep, ActionListener {
 
-    private RansacAlignerParameters parameters;
+	private RansacAlignerParameters parameters;
+	private Desktop desktop;
+	private final String helpID = "net/sf/mzmine/modules/alignment/ransac/help/RansacAlignment.html";
 
-    private Desktop desktop;
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-    private final String helpID = "net/sf/mzmine/modules/alignment/ransac/help/RansacAlignment.html";
+		this.desktop = MZmineCore.getDesktop();
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+		parameters = new RansacAlignerParameters();
 
-        this.desktop = MZmineCore.getDesktop();
+		desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
+				"Alignment based on RANSAC algorithm",
+				KeyEvent.VK_R, false, this, null);
 
-        parameters = new RansacAlignerParameters();
+	}
 
-        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
-                "Alignment based on RANSAC algorithm",
-                KeyEvent.VK_R, false, this, null);
+	public String toString() {
+		return "Ransac aligner";
+	}
 
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    public String toString() {
-        return "Ransac aligner";
-    }
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (RansacAlignerParameters) parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet currentParameters) {
+		ParameterSetupDialog dialog = new RansacAlignerSetupDialog(
+				"Please set parameter values for " + toString(),
+				(RansacAlignerParameters) currentParameters, helpID);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (RansacAlignerParameters) parameters;
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters, helpID);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		if (peakLists.length == 0) {
+			desktop.displayErrorMessage("Please select peak lists for alignment");
+			return;
+		}		
 
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
+		// Setup parameters
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK) {
+			return;
+		}
 
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select peak lists for alignment");
-            return;
-        }
+		runModule(null, peakLists, parameters.clone());
 
-        // Setup parameters
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+	}
 
-        runModule(null, peakLists, parameters.clone());
-
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 
-        // check peak lists
-        if ((peakLists == null) || (peakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for alignment");
-            return null;
-        }
+		// check peak lists
+		if ((peakLists == null) || (peakLists.length == 0)) {
+			desktop.displayErrorMessage("Please select peak lists for alignment");
+			return null;
+		}
 
-        // prepare a new group with just one task
+		// prepare a new group with just one task
 		Task task = new RansacAlignerTask(peakLists,
-                (RansacAlignerParameters) parameters);
-        
-        MZmineCore.getTaskController().addTask(task);
+				(RansacAlignerParameters) parameters);
 
-        return new Task[] { task };
+		MZmineCore.getTaskController().addTask(task);
 
-    }
+		return new Task[]{task};
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.ALIGNMENT;
-    }
+	}
 
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.ALIGNMENT;
+	}
 }

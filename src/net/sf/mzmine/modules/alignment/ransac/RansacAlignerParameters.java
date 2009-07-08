@@ -35,7 +35,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			"Maximum allowed M/Z difference", "m/z", new Double(0.02),
 			new Double(0.0), null, MZmineCore.getMZFormat());
 
-	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
+	public static final Parameter RTTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "RT tolerance",
 			"Maximum allowed absolute RT difference", null, new Double(15.0),
 			new Double(0.0), null, MZmineCore.getRTFormat());
@@ -50,17 +50,14 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
 	public static final Parameter Margin = new SimpleParameter(
 			ParameterType.DOUBLE, "Threshold value",
-			"Threshold value for determining when a data point fits a model", new Double(3.0));
+			"Threshold value for determining when a data point fits a model", new Double(3.0));	
 
 	public static final Parameter curve = new SimpleParameter(
 			ParameterType.BOOLEAN, "Curve model",
 			"Switch between curve model or lineal model", new Boolean(false));
 	
-	public static final Parameter chart = new SimpleParameter(
-			ParameterType.BOOLEAN, "Visualitzation",
-			"Visualitzation of the results", new Boolean(false));
-
+	
 	public RansacAlignerParameters() {
-		super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, OptimizationIterations, NMinPoints, Margin, curve, chart});
+		super(new Parameter[]{peakListName, MZTolerance, RTTolerance, OptimizationIterations, NMinPoints, Margin, curve});
 	}
 }

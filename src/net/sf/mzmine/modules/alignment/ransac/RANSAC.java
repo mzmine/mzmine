@@ -47,7 +47,7 @@ public class RANSAC {
 	private boolean isCurve;
 	private RansacAlignerParameters parameters;
 
-	public RANSAC(RansacAlignerParameters parameters, String alignmentName) {
+	public RANSAC(RansacAlignerParameters parameters) {
 		this.parameters = parameters;
 
 		this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
@@ -125,7 +125,7 @@ public class RANSAC {
 			// If the model has the minimun number of points
 			if (AlsoNumber >= d) {
 				// Get the error of the model based on the number of points
-				double error = 10000;
+				double error = 9.9E99;
 				try {
 					error = newError(data);
 				} catch (Exception ex) {
