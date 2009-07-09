@@ -145,7 +145,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
-		preview = new JCheckBox(" Show preview of mass peak detection ");
+		preview = new JCheckBox(" Show preview of RANSAC alignment ");
 		preview.addActionListener(this);
 		preview.setHorizontalAlignment(SwingConstants.CENTER);
 		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
@@ -159,20 +159,26 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		peakListsPanel = new JPanel();
 		peakListsPanel.setLayout(new BoxLayout(peakListsPanel, BoxLayout.PAGE_AXIS));
 
-		PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
+		JPanel comboPanel = new JPanel();
+		PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 		peakListsComboX = new JComboBox();
 		peakListsComboY = new JComboBox();
 		for (PeakList peakList : peakLists) {
 			peakListsComboX.addItem(peakList);
 			peakListsComboY.addItem(peakList);
 		}		
-
+		comboPanel.add(peakListsComboX);
+		comboPanel.add(peakListsComboY);
+		
+		// Preview button
 		alignmentPreviewButton = new JButton("Preview Alignmnet");
 		alignmentPreviewButton.addActionListener(this);
-		peakListsPanel.add(peakListsComboX);
-		peakListsPanel.add(peakListsComboY);
-		peakListsPanel.add(alignmentPreviewButton);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(alignmentPreviewButton, BorderLayout.CENTER);
+
+		peakListsPanel.add(comboPanel);
+		peakListsPanel.add(buttonPanel);
 		peakListsPanel.setVisible(false);
 
 		JPanel pnlVisible = new JPanel(new BorderLayout());

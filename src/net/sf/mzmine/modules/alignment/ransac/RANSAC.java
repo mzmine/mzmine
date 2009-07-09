@@ -54,7 +54,7 @@ public class RANSAC {
 
 		this.t = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
 
-		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.OptimizationIterations);
+		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.Iterations);
 
 		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
 
@@ -86,7 +86,7 @@ public class RANSAC {
 			if (k == 0) {
 				k = (int) getK();
 			}
-
+			
 			ransac(data);
 		} catch (Exception exepcion) {
 		}
@@ -97,9 +97,9 @@ public class RANSAC {
 	 * @return number of trials "k" required to select a subset of n good data points.
 	 */
 	public double getK() {
-		double w = 0.05;
-		double b = Math.pow(w, 2);
-		return 3 * (1 / b);
+		double w = numRatePoints;
+		double b = Math.pow(w, n);
+		return Math.log10(1-0.99)/Math.log10(1-b) + (Math.sqrt(1-b)/b);
 	}
 
 	/**
