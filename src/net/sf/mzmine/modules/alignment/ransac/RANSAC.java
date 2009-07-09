@@ -43,7 +43,7 @@ public class RANSAC {
 	private int k = 0;
 	private Random rnd;
 	private int AlsoNumber;
-	private double numRatePoints,  t;	
+	private double numRatePoints,  t;
 	private boolean isCurve;
 	private RansacAlignerParameters parameters;
 
@@ -57,7 +57,7 @@ public class RANSAC {
 		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.OptimizationIterations);
 
 		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
-		
+
 	}
 
 	/**
@@ -65,29 +65,31 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.
 	 */
 	public void alignment(Vector<AlignStructMol> data) {
+		try {
+			rnd = new Random();
+			// If the model is a curve 3 points are taken to build the model,
+			// if it is a line only 2 points are taken.
+			if (isCurve) {
+				n = 3;
+			} else {
+				n = 2;
+			}
 
-		rnd = new Random();
-		// If the model is a curve 3 points are taken to build the model,
-		// if it is a line only 2 points are taken.
-		if (isCurve) {
-			n = 3;
-		} else {
-			n = 2;
-		}
+			// Minimun number of points required to assert that a model fits well to data
+			if (data.size() < 10) {
+				d = 3;
+			} else {
+				d = data.size() * numRatePoints;
+			}
 
-		// Minimun number of points required to assert that a model fits well to data
-		if (data.size() < 10) {
-			d = 3;
-		} else {
-			d = data.size() * numRatePoints;
-		}
+			// Calculate the number of trials if the user has not define them
+			if (k == 0) {
+				k = (int) getK();
+			}
 
-		// Calculate the number of trials if the user has not define them
-		if (k == 0) {
-			k = (int) getK();
+			ransac(data);
+		} catch (Exception exepcion) {
 		}
-		
-		ransac(data);
 	}
 
 	/**
@@ -145,7 +147,7 @@ public class RANSAC {
 
 						alignStruct.ransacAlsoInLiers = false;
 						alignStruct.ransacMaybeInLiers = false;
-					}				
+					}
 				}
 			}
 
@@ -174,7 +176,7 @@ public class RANSAC {
 
 			if (!isCurve) {
 				// Take 2 points
-				int index = rnd.nextInt(fractionNPoints/2);
+				int index = rnd.nextInt(fractionNPoints / 2);
 				data.elementAt(index).ransacMaybeInLiers = true;
 
 				index = rnd.nextInt(fractionNPoints);
@@ -182,7 +184,7 @@ public class RANSAC {
 				data.elementAt(index).ransacMaybeInLiers = true;
 			} else {
 				// Take 3 points
-				int index = rnd.nextInt(fractionNPoints/2);
+				int index = rnd.nextInt(fractionNPoints / 2);
 				data.elementAt(index).ransacMaybeInLiers = true;
 
 				index = rnd.nextInt(fractionNPoints);
@@ -215,7 +217,7 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.	 
 	 */
 	public void getAllModelPoints(Vector<AlignStructMol> data) {
-		
+
 		// Create the regression line using the two points
 		SimpleRegression regression = new SimpleRegression();
 
@@ -249,13 +251,13 @@ public class RANSAC {
 	 * @param data vector with the points which represent all possible alignments.
 	 */
 	public void getAllModelPointsCurve(Vector<AlignStructMol> data) {
-	
+
 		// Obtain the variables of the curve equation
 		Vector<double[]> threePoints = new Vector<double[]>();
 		for (int i = 0; i < data.size(); i++) {
 			AlignStructMol point = data.elementAt(i);
 			if (point.ransacMaybeInLiers) {
-				double[] pointCoord = new double[2];				
+				double[] pointCoord = new double[2];
 				pointCoord[0] = point.RT;
 				pointCoord[1] = point.RT2;
 				threePoints.addElement(pointCoord);

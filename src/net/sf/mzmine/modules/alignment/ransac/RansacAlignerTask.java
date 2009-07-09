@@ -34,9 +34,6 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
-/**
- * 
- */
 class RansacAlignerTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -46,17 +43,14 @@ class RansacAlignerTask implements Task {
 
 	// Processed rows counter
 	private int processedRows,  totalRows;
+	private int contID = 1;
+	// Parameters
 	private String peakListName;
 	private double mzTolerance;
 	private double rtTolerance;
 	private RansacAlignerParameters parameters;
-	private int contID = 1;
 
-	/**
-	 * @param rawDataFile
-	 * @param parameters
-	 */
-	RansacAlignerTask(PeakList[] peakLists, RansacAlignerParameters parameters) {
+	public RansacAlignerTask(PeakList[] peakLists, RansacAlignerParameters parameters) {
 
 		this.peakLists = peakLists;
 		this.parameters = parameters;
@@ -119,30 +113,48 @@ class RansacAlignerTask implements Task {
 			for (int e = i + 1; e < peakLists.length; e++) {
 				totalRows += peakLists[i].getNumberOfRows();
 			}
-		}
+			totalRows += peakLists[i].getNumberOfRows();
+		}		
 		totalRows += ((peakLists.length) * (peakLists.length - 1)) / 2;
 
 
+		 // Collect all data files
+        Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
+        for (PeakList peakList : peakLists) {
+
+            for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+
+                // Each data file can only have one column in aligned peak list
+                if (allDataFiles.contains(dataFile)) {
+                    status = TaskStatus.ERROR;
+                    errorMessage = "Cannot run alignment, because file "
+                            + dataFile + " is present in multiple peak lists";
+                    return;
+                }
+
+                allDataFiles.add(dataFile);
+            }
+        }
+
+		// Create a new aligned peak list
 		alignedPeakList = new SimplePeakList(peakListName,
-				getRawData(peakLists).toArray(new RawDataFile[0]));
+				allDataFiles.toArray(new RawDataFile[0]));
 
+		// Ransac alignmnent
 		ransacPeakLists(peakLists, alignedPeakList);
-
-
 		removeDuplicateRows(alignedPeakList);
 
-		// write isolate peaks
+		// Write non-aligned peaks
 		for (PeakList peakList : peakLists) {
-			if (peakList != null) {
-				for (PeakListRow row : peakList.getRows()) {
-					if (!isRow(row, alignedPeakList)) {
-						PeakListRow row3 = new SimplePeakListRow(contID++);
-						for (ChromatographicPeak peak : row.getPeaks()) {
-							row3.addPeak(peak.getDataFile(), peak);
-						}
-						alignedPeakList.addRow(row3);
+			for (PeakListRow row : peakList.getRows()) {
+				if (!isRow(row, alignedPeakList)) {
+					PeakListRow row3 = new SimplePeakListRow(contID++);
+					for (ChromatographicPeak peak : row.getPeaks()) {
+						row3.addPeak(peak.getDataFile(), peak);
 					}
+					alignedPeakList.addRow(row3);
 				}
+				processedRows++;
 			}
 		}
 
@@ -159,46 +171,33 @@ class RansacAlignerTask implements Task {
 
 	}
 
-	public Vector<RawDataFile> getRawData(PeakList[] peakLists) {
-		Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-		for (PeakList peakList : peakLists) {
-			if (peakList != null) {
-				for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-					if (!allDataFiles.contains(dataFile)) {
-						allDataFiles.add(dataFile);
-					}
-				}
-			}
-		}
-		return allDataFiles;
-	}
 
 	/**
-	 * 
-	 * @param peakLists
 	 *
+	 * @param peakLists
+	 * @param finalPeakList
 	 */
-	private void ransacPeakLists(PeakList[] peakLists, PeakList finalPeakList) {
+	private void ransacPeakLists(PeakList[] peakLists, PeakList AlignedPeakList) {
 
-		// Do the aligment combining all the samples
+		// Do the alignment combining all the samples
 		for (int i = 0; i < peakLists.length; i++) {
 			for (int e = i + 1; e < peakLists.length; e++) {
 				if (peakLists[i] != null && peakLists[e] != null) {
-					
+
 					RawDataFile fileX = this.getDataFileWithMorePeaks(peakLists[i]);
 					RawDataFile fileY = this.getDataFileWithMorePeaks(peakLists[e]);
 
+					// Get the list of all possible alignments
 					Vector<AlignStructMol> list = this.getVectorAlignment(peakLists[i], peakLists[e], fileX, fileY);
 					RANSAC ransac = new RANSAC(parameters);
 					ransac.alignment(list);
-					this.getNewPeakList(list, finalPeakList);
+					this.getNewPeakList(list, AlignedPeakList);
 
 				}
 				processedRows++;
 			}
 		}
 	}
-	
 
 	private RawDataFile getDataFileWithMorePeaks(PeakList peackList) {
 		int numPeaks = 0;
@@ -214,11 +213,11 @@ class RansacAlignerTask implements Task {
 
 	/**
 	 * Create the vector which contains all the possible aligned peaks.
-	 * @param peakList
-	 * @param peakList2
+	 * @param peakListX
+	 * @param peakListY
 	 * @return vector which contains all the possible aligned peaks.
 	 */
-	private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY, RawDataFile file, RawDataFile file2) {
+	private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY, RawDataFile fileX, RawDataFile fileY) {
 
 		Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
@@ -241,11 +240,11 @@ class RansacAlignerTask implements Task {
 					new Range(rtMin, rtMax), new Range(mzMin, mzMax));
 
 			for (PeakListRow candidateRow : candidateRows) {
-				if (file == null || file2 == null) {
+				if (fileX == null || fileY == null) {
 					alignMol.addElement(new AlignStructMol(row, candidateRow));
 				} else {
-					if (candidateRow.getPeak(file2) != null) {
-						alignMol.addElement(new AlignStructMol(row, candidateRow, file, file2));
+					if (candidateRow.getPeak(fileY) != null) {
+						alignMol.addElement(new AlignStructMol(row, candidateRow, fileX, fileY));
 					}
 				}
 			}
@@ -360,10 +359,7 @@ class RansacAlignerTask implements Task {
 		peakList.removeRow(smallRow);
 	}
 
-	/**
-	 *
-	 * @param row
-	 * @param peakList
+	/**	 
 	 * @return return true if the peak list contains one of the peak present in the row
 	 */
 	private boolean isRow(PeakListRow row, PeakList peakList) {
@@ -378,10 +374,6 @@ class RansacAlignerTask implements Task {
 	}
 
 	/**
-	 *
-	 * @param p
-	 * @param peakList
-	 * @param row
 	 * @return return the row where is the peak "p" into the peak list
 	 */
 	private PeakListRow getPeakRow(ChromatographicPeak p, PeakList peakList, PeakListRow row) {

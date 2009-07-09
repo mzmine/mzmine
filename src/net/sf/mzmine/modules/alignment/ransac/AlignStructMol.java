@@ -58,13 +58,7 @@ public class AlignStructMol {
 		}
 		return false;
 	}
-
-	public boolean isHere(PeakListRow row) {
-		if (this.row1 == row || this.row2 == row) {
-			return true;
-		}
-		return false;
-	}
+	
 }
 
 

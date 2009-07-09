@@ -41,15 +41,14 @@ public class AlignmentRansacPlot extends ChartPanel {
 
 	private XYSeriesCollection dataset;
 	private JFreeChart chart;
-	private TextTitle chartTitle,  chartSubTitle;
-	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
-			11);
+	private TextTitle chartTitle;
+	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);	
 
 	// legend
 	private LegendTitle legend;
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 	private XYToolTipGenerator toolTipGenerator;
+	
 	private NumberFormat rtFormat = MZmineCore.getRTFormat();
 
 	public AlignmentRansacPlot() {
@@ -73,12 +72,7 @@ public class AlignmentRansacPlot extends ChartPanel {
 		// title
 		chartTitle = chart.getTitle();
 		chartTitle.setMargin(5, 0, 0, 0);
-		chartTitle.setFont(titleFont);
-
-		chartSubTitle = new TextTitle();
-		chartSubTitle.setFont(subTitleFont);
-		chartSubTitle.setMargin(5, 0, 0, 0);
-		chart.addSubtitle(chartSubTitle);
+		chartTitle.setFont(titleFont);		
 
 		// legend constructed by ChartFactory
 		legend = chart.getLegend();
@@ -122,9 +116,7 @@ public class AlignmentRansacPlot extends ChartPanel {
 		}
 	}
 
-	/**
-	 * Print the chart
-	 */
+	
 	public void printAlignmentChart(String axisTitleX, String axisTitleY) {
 		try {
 			toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
