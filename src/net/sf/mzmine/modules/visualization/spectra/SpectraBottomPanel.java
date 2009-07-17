@@ -29,6 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
@@ -43,166 +44,175 @@ import net.sf.mzmine.util.GUIUtils;
  * Spectra visualizer's bottom panel
  */
 class SpectraBottomPanel extends JPanel implements ProjectListener,
-        InternalFrameListener {
+		InternalFrameListener {
 
-    // get arrow characters by their UTF16 code
-    public static final String leftArrow = new String(new char[] { '\u2190' });
-    public static final String rightArrow = new String(new char[] { '\u2192' });
+	// get arrow characters by their UTF16 code
+	public static final String leftArrow = new String(new char[] { '\u2190' });
+	public static final String rightArrow = new String(new char[] { '\u2192' });
 
-    public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+	public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private JPanel topPanel, bottomPanel;
-    private JComboBox msmsSelector, peakListSelector;
+	private JPanel topPanel, bottomPanel;
+	private JComboBox msmsSelector, peakListSelector;
 
-    private SpectraVisualizerWindow masterFrame;
-    private RawDataFile dataFile;
-    private boolean isotopeFlag;
+	private SpectraVisualizerWindow masterFrame;
+	private RawDataFile dataFile;
+	private boolean isotopeFlag;
 
-    SpectraBottomPanel(SpectraVisualizerWindow masterFrame,
-            RawDataFile dataFile, SpectraVisualizerType type) {
+	SpectraBottomPanel(SpectraVisualizerWindow masterFrame,
+			RawDataFile dataFile, SpectraVisualizerType type) {
 
-        super(new BorderLayout());
-        this.dataFile = dataFile;
-        this.masterFrame = masterFrame;
-        isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
+		super(new BorderLayout());
+		this.dataFile = dataFile;
+		this.masterFrame = masterFrame;
+		isotopeFlag = type == SpectraVisualizerType.ISOTOPE;
 
-        setBackground(Color.white);
+		setBackground(Color.white);
 
-        topPanel = new JPanel();
-        topPanel.setBackground(Color.white);
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-        add(topPanel, BorderLayout.CENTER);
+		topPanel = new JPanel();
+		topPanel.setBackground(Color.white);
+		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+		add(topPanel, BorderLayout.CENTER);
 
-        topPanel.add(Box.createHorizontalStrut(10));
+		topPanel.add(Box.createHorizontalStrut(10));
 
-        JButton prevScanBtn = GUIUtils.addButton(topPanel, leftArrow, null,
-                masterFrame, "PREVIOUS_SCAN");
-        prevScanBtn.setBackground(Color.white);
-        prevScanBtn.setFont(smallFont);
+		JButton prevScanBtn = GUIUtils.addButton(topPanel, leftArrow, null,
+				masterFrame, "PREVIOUS_SCAN");
+		prevScanBtn.setBackground(Color.white);
+		prevScanBtn.setFont(smallFont);
 
-        topPanel.add(Box.createHorizontalGlue());
+		topPanel.add(Box.createHorizontalGlue());
 
-        if (!isotopeFlag) {
+		if (!isotopeFlag) {
 
-            GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
+			GUIUtils.addLabel(topPanel, "Peak list: ", SwingConstants.RIGHT);
 
-            peakListSelector = new JComboBox();
-            peakListSelector.setBackground(Color.white);
-            peakListSelector.setFont(smallFont);
-            peakListSelector.addActionListener(masterFrame);
-            peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-            topPanel.add(peakListSelector);
+			peakListSelector = new JComboBox();
+			peakListSelector.setBackground(Color.white);
+			peakListSelector.setFont(smallFont);
+			peakListSelector.addActionListener(masterFrame);
+			peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+			topPanel.add(peakListSelector);
 
-            topPanel.add(Box.createHorizontalGlue());
+			topPanel.add(Box.createHorizontalGlue());
 
-        }
+		}
 
-        JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null,
-                masterFrame, "NEXT_SCAN");
-        nextScanBtn.setBackground(Color.white);
-        nextScanBtn.setFont(smallFont);
+		JButton nextScanBtn = GUIUtils.addButton(topPanel, rightArrow, null,
+				masterFrame, "NEXT_SCAN");
+		nextScanBtn.setBackground(Color.white);
+		nextScanBtn.setFont(smallFont);
 
-        if (!isotopeFlag) {
+		if (!isotopeFlag) {
 
-            topPanel.add(Box.createHorizontalStrut(10));
+			topPanel.add(Box.createHorizontalStrut(10));
 
-            bottomPanel = new JPanel();
-            bottomPanel.setBackground(Color.white);
-            bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-            add(bottomPanel, BorderLayout.SOUTH);
+			bottomPanel = new JPanel();
+			bottomPanel.setBackground(Color.white);
+			bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
+			add(bottomPanel, BorderLayout.SOUTH);
 
-            bottomPanel.add(Box.createHorizontalGlue());
+			bottomPanel.add(Box.createHorizontalGlue());
 
-            GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
+			GUIUtils.addLabel(bottomPanel, "MS/MS: ", SwingConstants.RIGHT);
 
-            msmsSelector = new JComboBox();
-            msmsSelector.setBackground(Color.white);
-            msmsSelector.setFont(smallFont);
-            bottomPanel.add(msmsSelector);
+			msmsSelector = new JComboBox();
+			msmsSelector.setBackground(Color.white);
+			msmsSelector.setFont(smallFont);
+			bottomPanel.add(msmsSelector);
 
-            JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
-                    masterFrame, "SHOW_MSMS");
-            showButton.setBackground(Color.white);
-            showButton.setFont(smallFont);
+			JButton showButton = GUIUtils.addButton(bottomPanel, "Show", null,
+					masterFrame, "SHOW_MSMS");
+			showButton.setBackground(Color.white);
+			showButton.setFont(smallFont);
 
-            bottomPanel.add(Box.createHorizontalGlue());
+			bottomPanel.add(Box.createHorizontalGlue());
 
-        }
+		}
 
-        MZmineCore.getProjectManager().addProjectListener(this);
+		MZmineCore.getProjectManager().addProjectListener(this);
 
-        masterFrame.addInternalFrameListener(this);
+		masterFrame.addInternalFrameListener(this);
 
-    }
+	}
 
-    JComboBox getMSMSSelector() {
-        return msmsSelector;
-    }
+	JComboBox getMSMSSelector() {
+		return msmsSelector;
+	}
 
-    void setMSMSSelectorVisible(boolean visible) {
-        bottomPanel.setVisible(visible);
-    }
+	void setMSMSSelectorVisible(boolean visible) {
+		bottomPanel.setVisible(visible);
+	}
 
-    /**
-     * Returns selected peak list
-     */
-    PeakList getSelectedPeakList() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        return selectedPeakList;
-    }
+	/**
+	 * Returns selected peak list
+	 */
+	PeakList getSelectedPeakList() {
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		return selectedPeakList;
+	}
 
-    /**
-     * Reloads peak lists from the project to the selector combo box
-     */
-    void rebuildPeakListSelector() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        PeakList currentPeakLists[] = MZmineCore.getCurrentProject().getPeakLists(
-                dataFile);
-        peakListSelector.removeAllItems();
-        for (int i = currentPeakLists.length - 1; i >= 0; i--) {
-            peakListSelector.addItem(currentPeakLists[i]);
-        }
-        if (selectedPeakList != null)
-            peakListSelector.setSelectedItem(selectedPeakList);
-    }
+	/**
+	 * Reloads peak lists from the project to the selector combo box
+	 */
+	void rebuildPeakListSelector() {
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
+				.getPeakLists(dataFile);
+		peakListSelector.removeAllItems();
+		for (int i = currentPeakLists.length - 1; i >= 0; i--) {
+			peakListSelector.addItem(currentPeakLists[i]);
+		}
+		if (selectedPeakList != null)
+			peakListSelector.setSelectedItem(selectedPeakList);
+	}
 
-    public void projectModified(ProjectEvent event) {
-        if (!isotopeFlag)
-            rebuildPeakListSelector();
-    }
+	public void projectModified(ProjectEvent event) {
+		if (!isotopeFlag) {
+			// Rebuild the peak list combo in the event dispatching thread to
+			// avoid dead locks
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					rebuildPeakListSelector();
+				}
+			});
+		}
+	}
 
-    public void internalFrameActivated(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameActivated(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    /**
-     * We have to remove the listener when the window is closed, because
-     * otherwise the project would always keep a reference to this window and
-     * the GC would not be able to collect it
-     */
-    public void internalFrameClosed(InternalFrameEvent event) {
-        MZmineCore.getProjectManager().removeProjectListener(this);
-        masterFrame.removeInternalFrameListener(this);
-    }
+	/**
+	 * We have to remove the listener when the window is closed, because
+	 * otherwise the project would always keep a reference to this window and
+	 * the GC would not be able to collect it
+	 */
+	public void internalFrameClosed(InternalFrameEvent event) {
+		MZmineCore.getProjectManager().removeProjectListener(this);
+		masterFrame.removeInternalFrameListener(this);
+	}
 
-    public void internalFrameClosing(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameClosing(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameDeactivated(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameDeactivated(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameDeiconified(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameDeiconified(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameIconified(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameIconified(InternalFrameEvent event) {
+		// Ignore
+	}
 
-    public void internalFrameOpened(InternalFrameEvent event) {
-        // Ignore
-    }
+	public void internalFrameOpened(InternalFrameEvent event) {
+		// Ignore
+	}
 
 }

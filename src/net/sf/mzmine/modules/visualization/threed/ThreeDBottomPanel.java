@@ -28,6 +28,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
@@ -119,7 +120,12 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
      * ProjectListener implementaion
      */
     public void projectModified(ProjectEvent event) {
-        rebuildPeakListSelector();
+		// Modify the GUI in the event dispatching thread
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				rebuildPeakListSelector();
+			}
+		});
     }
 
     public void internalFrameActivated(InternalFrameEvent event) {

@@ -32,6 +32,7 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -227,7 +228,12 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	}
 
 	public void projectModified(ProjectEvent event) {
-		updateTitle();
+		// Modify the GUI in the event dispatching thread
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				updateTitle();
+			}
+		});
 	}
 
 	public void displayException(Exception e) {
