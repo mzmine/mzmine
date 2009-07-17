@@ -60,6 +60,14 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
 				peakAreas[i] = areaPeaks[i].getArea();
 			double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
 			return medianArea;
+		case Intensity:
+			ChromatographicPeak[] intensityPeaks = row.getPeaks();
+			double[] peakIntensities = new double[intensityPeaks.length];
+			for (int i = 0; i < intensityPeaks.length; i++)
+				peakIntensities[i] = intensityPeaks[i].getArea();
+			double medianIntensity = MathUtils.calcQuantile(peakIntensities,
+					0.5);
+			return medianIntensity;
 		case Height:
 			ChromatographicPeak[] heightPeaks = row.getPeaks();
 			double[] peakHeights = new double[heightPeaks.length];
