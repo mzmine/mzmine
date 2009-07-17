@@ -302,8 +302,32 @@
         <parameter name="Isotope pattern score thresold level" type="DOUBLE">0.65</parameter>
         <parameter name="Weight for isotope pattern score" type="DOUBLE">0.0</parameter>
       </parameters> 
-    </module> 
-    <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner"> </module> 
+    </module>  
+    <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner">
+      <parameters>
+        <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
+        <parameter name="m/z tolerance" type="DOUBLE">0.2</parameter>
+        <parameter name="Weight for m/z" type="DOUBLE">10.0</parameter>
+        <parameter name="Retention time tolerance type" type="STRING">Absolute</parameter>
+        <parameter name="Absolute RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
+        <parameter name="Weight for RT" type="DOUBLE">10.0</parameter>
+        <parameter name="Require same ID" type="BOOLEAN">false</parameter>
+        <parameter name="Weight for ID" type="DOUBLE">0.0</parameter>
+        <parameter name="Number of fragments" type="INTEGER">50</parameter>
+      </parameters>
+    </module>  
+    <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner"> 
+      <parameters>
+        <parameter name="Peak list name" type="STRING">Aligned peak list</parameter>
+        <parameter name="m/z tolerance" type="DOUBLE">0.02</parameter>
+        <parameter name="RT tolerance" type="DOUBLE">15.0</parameter>
+        <parameter name="RANSAC Iterations" type="INTEGER">0</parameter>
+        <parameter name="Minimun Number of Points" type="DOUBLE">0.2</parameter>
+        <parameter name="Threshold value" type="DOUBLE">3.0</parameter>
+        <parameter name="Curve model" type="BOOLEAN">false</parameter>
+      </parameters>
+    </module>  
     <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">normalized</parameter>
@@ -404,8 +428,8 @@
     </module>  
     <module class="net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch"> 
       <parameters>
-        <parameter name="Database" type="STRING">KEGG Compound database</parameter>
-        <parameter name="Peak mass" type="DOUBLE">664.1161929099819</parameter>
+        <parameter name="Database" type="STRING"/>
+        <parameter name="Peak m/z" type="DOUBLE"/>
         <parameter name="Charge" type="INTEGER">1</parameter>
         <parameter name="Ionization method" type="STRING">-H</parameter>
         <parameter name="Neutral mass" type="DOUBLE">665.1241329099819</parameter>
@@ -488,5 +512,9 @@
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
     <threads auto="true">1</threads>
+    <proxy_settings>
+      <proxy_address></proxy_address>
+      <proxy_port></proxy_port>
+    </proxy_settings>
   </preferences> 
 </configuration>
