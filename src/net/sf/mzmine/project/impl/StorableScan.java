@@ -123,11 +123,6 @@ public class StorableScan implements Scan {
 
 	}
 
-	public void setParameters(int scanFileOffset, int numberOfDataPoints) {
-		this.scanFileOffset = scanFileOffset;
-		this.numberOfDataPoints = numberOfDataPoints;
-	}
-
 	/**
 	 * @return Scan's datapoints from temporary file.
 	 */
