@@ -95,53 +95,42 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void addFile(RawDataFile newFile) {
 
-		ProjectEvent newEvent;
-
 		synchronized (dataFiles) {
 			int newFileIndex = dataFiles.size();
 			dataFiles.add(newFile);
-			newEvent = new ProjectEvent(ProjectEventType.DATAFILE_ADDED,
-					newFile, newFileIndex);
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
+			if (MZmineCore.getCurrentProject() == this)
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
 
-		// We fire the listeners outside of the synchronized block. The reason
-		// is that firing the listeners may cause some GUI update and Swing
-		// thread may become deadlocked with another thread.
-		if (MZmineCore.getCurrentProject() == this)
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public void removeFile(RawDataFile file) {
 
 		// If the data file is present in any peak list, we must not remove it
-		synchronized (peakLists) {
-			for (PeakList peakList : peakLists) {
-				if (peakList.hasRawDataFile(file)) {
-					Desktop desktop = MZmineCore.getDesktop();
-					desktop.displayErrorMessage("Cannot remove file \"" + file
-							+ "\", because it is present in the peak list \""
-							+ peakList + "\"");
-					return;
-				}
+		PeakList currentPeakLists[] = getPeakLists();
+		for (PeakList peakList : currentPeakLists) {
+			if (peakList.hasRawDataFile(file)) {
+				Desktop desktop = MZmineCore.getDesktop();
+				desktop.displayErrorMessage("Cannot remove file \"" + file
+						+ "\", because it is present in the peak list \""
+						+ peakList + "\"");
+				return;
 			}
 		}
-
-		ProjectEvent newEvent;
 
 		synchronized (dataFiles) {
 			int removedFileIndex = dataFiles.indexOf(file);
 			dataFiles.remove(file);
 			file.close();
-			newEvent = new ProjectEvent(ProjectEventType.DATAFILE_REMOVED,
-					file, removedFileIndex);
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.DATAFILE_REMOVED, file, removedFileIndex);
+			if (MZmineCore.getCurrentProject() == this)
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 
 		}
 
-		// We fire the listeners outside of the synchronized block. The reason
-		// is that firing the listeners may cause some GUI update and Swing
-		// thread may become deadlocked with another thread.
-		if (MZmineCore.getCurrentProject() == this)
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
 	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
@@ -159,15 +148,11 @@ public class MZmineProjectImpl implements MZmineProject {
 				dataFiles.add(movePosition, movedFile);
 				movePosition++;
 			}
-		}
-
-		// We fire the listeners outside of the synchronized block. The reason
-		// is that firing the listeners may cause some GUI update and Swing
-		// thread may become deadlocked with another thread.
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.DATAFILES_REORDERED);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			if (MZmineCore.getCurrentProject() == this) {
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.DATAFILES_REORDERED);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
 		}
 
 	}
@@ -177,74 +162,66 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public void addPeakList(PeakList peakList) {
-		ProjectEvent newEvent;
 		synchronized (peakLists) {
-			newEvent = new ProjectEvent(ProjectEventType.PEAKLIST_ADDED,
-					peakList, peakLists.size());
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLIST_ADDED, peakList, peakLists.size());
 			peakLists.add(peakList);
+			if (MZmineCore.getCurrentProject() == this)
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
-
-		// We fire the listeners outside of the synchronized block. The reason
-		// is that firing the listeners may cause some GUI update and Swing
-		// thread may become deadlocked with another thread.
-		if (MZmineCore.getCurrentProject() == this)
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 
 	}
 
 	public void removePeakList(PeakList peakList) {
-		ProjectEvent newEvent;
 		synchronized (peakLists) {
-			newEvent = new ProjectEvent(ProjectEventType.PEAKLIST_REMOVED,
-					peakList, peakLists.indexOf(peakList));
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLIST_REMOVED, peakList, peakLists
+							.indexOf(peakList));
 			peakLists.remove(peakList);
+			if (MZmineCore.getCurrentProject() == this)
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
 
-		// We fire the listeners outside of the synchronized block. The reason
-		// is that firing the listeners may cause some GUI update and Swing
-		// thread may become deadlocked with another thread.
-		if (MZmineCore.getCurrentProject() == this)
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 	}
 
-	public synchronized void movePeakLists(PeakList[] movedPeakLists,
-			int movePosition) {
+	public void movePeakLists(PeakList[] movedPeakLists, int movePosition) {
 
-		int currentPosition;
+		synchronized (peakLists) {
 
-		for (PeakList movedPeakList : movedPeakLists) {
-			currentPosition = peakLists.indexOf(movedPeakList);
-			if (currentPosition < 0)
-				continue;
-			peakLists.remove(currentPosition);
-			if (currentPosition < movePosition)
-				movePosition--;
-			peakLists.add(movePosition, movedPeakList);
-			movePosition++;
-		}
+			int currentPosition;
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLISTS_REORDERED);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			for (PeakList movedPeakList : movedPeakLists) {
+				currentPosition = peakLists.indexOf(movedPeakList);
+				if (currentPosition < 0)
+					continue;
+				peakLists.remove(currentPosition);
+				if (currentPosition < movePosition)
+					movePosition--;
+				peakLists.add(movePosition, movedPeakList);
+				movePosition++;
+			}
+
+			if (MZmineCore.getCurrentProject() == this) {
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.PEAKLISTS_REORDERED);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
 		}
 	}
 
 	public PeakList[] getPeakLists() {
-		synchronized (peakLists) {
-			return peakLists.toArray(new PeakList[0]);
-		}
+		return peakLists.toArray(new PeakList[0]);
 	}
 
 	public PeakList[] getPeakLists(RawDataFile file) {
-		synchronized (peakLists) {
-			Vector<PeakList> result = new Vector<PeakList>();
-			for (PeakList peakList : peakLists) {
-				if (peakList.hasRawDataFile(file))
-					result.add(peakList);
-			}
-			return result.toArray(new PeakList[0]);
+		PeakList[] currentPeakLists = getPeakLists();
+		Vector<PeakList> result = new Vector<PeakList>();
+		for (PeakList peakList : currentPeakLists) {
+			if (peakList.hasRawDataFile(file))
+				result.add(peakList);
 		}
+		return result.toArray(new PeakList[0]);
+
 	}
 
 	public File getProjectFile() {
