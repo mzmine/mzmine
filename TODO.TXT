@@ -87,8 +87,11 @@ Project listeners
 ***** Alignment *****
 
 Join Alignment
-Bug: When there is an error during the process, the frames for the messages apears empty. To reproduce it: try doing the alignment 
-whit two peak list with more than one sample each list, and the option "compare isotope pattern" activated.
+* Bug: When there is an error during the process, the frames for the messages appears empty. 
+  To reproduce it: try doing the alignment with two peak list with more than one sample 
+  each list, and the option "compare isotope pattern" activated.
+* Fragment aligner and join aligner should be integrated, with some option to run alignment
+  by parallel tasks
 
 
 ***** Normalization *****
