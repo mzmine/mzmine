@@ -49,7 +49,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			new Double(3.0), null, MZmineCore.getRTFormat());
 	public static final Parameter curve = new SimpleParameter(
 			ParameterType.BOOLEAN, "Curve model",
-			"Switch between curve model or lineal model", new Boolean(false));
+			"Switch between curve model or lineal model", new Boolean(true));
 
 	public RansacAlignerParameters() {
 		super(new Parameter[]{peakListName, MZTolerance, RTTolerance, Iterations, NMinPoints, Margin, curve});

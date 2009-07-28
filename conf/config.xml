@@ -4,8 +4,8 @@
   <modules> 
     <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"> 
       <parameters>
-        <parameter name="Last open directory" type="STRING">/Users/plusik/MZmine projects</parameter>
-        <parameter name="Files to import" type="STRING">070308_STD_19_profile.mzXML</parameter>
+        <parameter name="Last open directory" type="STRING">C:\Documents and Settings\SCSANDRA\Desktop\Tracer_2007\CDF</parameter>
+        <parameter name="Files to import" type="STRING">Ae_04_S_8_200407_rep0101.CDF Ae_04_V1_0_210407_rep0101.CDF Ae_04_V1_2_210407_rep0101.CDF Ae_04_V1_4_210407_rep0101.CDF</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -90,7 +90,7 @@
     </module>  
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer"> 
       <parameters>
-        <parameter name="Scan number" type="INTEGER">1</parameter>
+        <parameter name="Scan number" type="INTEGER">325</parameter>
         <parameter name="thickness" type="DOUBLE">1.0E-5</parameter>
       </parameters> 
     </module>  
@@ -249,6 +249,8 @@
         <parameter name="Relative RT tolerance" type="DOUBLE">0.15</parameter>
       </parameters> 
     </module>  
+    <module class="net.sf.mzmine.modules.gapfilling.peakfinderRansac.PeakFinder"> 
+    </module>  
     <module class="net.sf.mzmine.modules.gapfilling.samerange.SameRange"> 
       <parameters>
         <parameter name="Name suffix" type="STRING">gap-filled</parameter>
@@ -303,7 +305,7 @@
         <parameter name="Weight for isotope pattern score" type="DOUBLE">0.0</parameter>
       </parameters> 
     </module>  
-    <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner">
+    <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner"> 
       <parameters>
         <parameter name="Peaklist name" type="STRING">Aligned peak list</parameter>
         <parameter name="m/z tolerance" type="DOUBLE">0.2</parameter>
@@ -315,7 +317,7 @@
         <parameter name="Require same ID" type="BOOLEAN">false</parameter>
         <parameter name="Weight for ID" type="DOUBLE">0.0</parameter>
         <parameter name="Number of fragments" type="INTEGER">50</parameter>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner"> 
       <parameters>
@@ -326,7 +328,7 @@
         <parameter name="Minimun Number of Points" type="DOUBLE">0.2</parameter>
         <parameter name="Threshold value" type="DOUBLE">3.0</parameter>
         <parameter name="Curve model" type="BOOLEAN">false</parameter>
-      </parameters>
+      </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer"> 
       <parameters>
@@ -505,10 +507,10 @@
       <pattern>#0.000</pattern>
     </format>
     <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
+      <x>202</x>
+      <y>155</y>
+      <width>1164</width>
+      <height>873</height>
     </mainwindow>
     <lastProjectDirectory>/tmp</lastProjectDirectory>
     <threads auto="true">1</threads>

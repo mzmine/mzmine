@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
@@ -57,6 +58,11 @@ public class AlignStructMol {
 			return true;
 		}
 		return false;
+	}
+
+	public AlignStructMol(ChromatographicPeak row1, ChromatographicPeak row2) {
+		RT = row1.getRT();
+		RT2 = row2.getRT();
 	}
 	
 }

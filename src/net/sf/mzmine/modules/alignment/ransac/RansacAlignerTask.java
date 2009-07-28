@@ -153,7 +153,11 @@ class RansacAlignerTask implements Task {
 						row3.addPeak(peak.getDataFile(), peak);
 					}
 					alignedPeakList.addRow(row3);
-				}
+				}/*else{
+					for (ChromatographicPeak peak : row.getPeaks()) {
+						PeakListRow rowIn = this.getPeakRow(peak, alignedPeakList, row);
+					}
+				}*/
 				processedRows++;
 			}
 		}

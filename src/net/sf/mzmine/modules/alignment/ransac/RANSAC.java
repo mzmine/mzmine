@@ -86,7 +86,7 @@ public class RANSAC {
 			if (k == 0) {
 				k = (int) getK();
 			}
-			
+
 			ransac(data);
 		} catch (Exception exepcion) {
 		}
@@ -99,7 +99,7 @@ public class RANSAC {
 	public double getK() {
 		double w = numRatePoints;
 		double b = Math.pow(w, n);
-		return Math.log10(1-0.99)/Math.log10(1-b) + (Math.sqrt(1-b)/b);
+		return Math.log10(1 - 0.99) / Math.log10(1 - b) + (Math.sqrt(1 - b) / b);
 	}
 
 	/**
@@ -147,16 +147,17 @@ public class RANSAC {
 
 						alignStruct.ransacAlsoInLiers = false;
 						alignStruct.ransacMaybeInLiers = false;
+
 					}
 				}
-			}
-
+			}			
 			// remove the model
 			for (int i = 0; i < data.size(); i++) {
 				AlignStructMol alignStruct = data.elementAt(i);
 				alignStruct.ransacAlsoInLiers = false;
 				alignStruct.ransacMaybeInLiers = false;
 			}
+
 
 		}
 	}
