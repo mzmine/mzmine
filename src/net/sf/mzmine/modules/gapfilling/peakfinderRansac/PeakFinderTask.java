@@ -125,7 +125,7 @@ class PeakFinderTask implements Task {
 					}
 				}		
 				
-				regressionInfo.add(new RegressionInfo(regression, datafiles[i], datafiles[e]));
+				regressionInfo.add(new RegressionInfo(regression.getSlope(), regression.getIntercept(), datafiles[i], datafiles[e]));
 			}
 		}
 
@@ -152,7 +152,7 @@ class PeakFinderTask implements Task {
 					// Create a new gap
 
 					double mz = sourceRow.getAverageMZ();
-					double rt = this.checkRTPeak(regressionInfo, dataFile, sourceRow);
+					double rt = this.getRealRT(regressionInfo, dataFile, sourceRow);
 					double rtTolerance = 0;
 					if (rtToleranceUseAbs) {
 						rtTolerance = rtToleranceValueAbs;
@@ -254,6 +254,47 @@ class PeakFinderTask implements Task {
 		return alignMol;
 	}
 
+	/**
+	 * Return the retention time where the peak must be based on the ransac 
+	 * alignment of all the samples.	
+	 */
+	public double getRealRT(Vector<RegressionInfo> regressionInfo, RawDataFile rawDataFile, PeakListRow row) {
+		double bestY = 0;
+		int cont = 0;
+		for (RegressionInfo rinfo : regressionInfo) {
+			if (rinfo.getRawDataFile1() == rawDataFile) {
+				try {
+
+					double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
+					double y = (RTX - rinfo.getIntercept())/rinfo.getSlope();
+					if (y > 0 &&  rinfo.getSlope() > 0) {
+						bestY += y;
+						cont++;
+					}
+
+				} catch (Exception exception) {
+				}
+			}
+			if (rinfo.getRawDataFile2() == rawDataFile) {
+
+				try {
+
+					double RTX = row.getPeak(rinfo.getRawDataFile1()).getRT();
+					double y = rinfo.getIntercept() + (RTX * rinfo.getSlope());
+					if (y > 0) {
+						bestY += y;
+						cont++;
+					}
+				} catch (Exception exception) {
+				}
+			}
+
+		}
+
+		return bestY / cont;
+
+	}
+
 	public void cancel() {
 		status = TaskStatus.CANCELED;
 	}
@@ -284,58 +325,5 @@ class PeakFinderTask implements Task {
 
 	public Object[] getCreatedObjects() {
 		return new Object[]{processedPeakList};
-	}
-	
-	public double checkRTPeak(Vector<RegressionInfo> vrgap, RawDataFile rawDataFile, PeakListRow row) {
-		double bestYTotal = 0;
-		int cont = 0;
-		for (RegressionInfo rgap : vrgap) {
-			if (rgap.file == rawDataFile) {
-				try {
-
-					double RTX = row.getPeak(rgap.file2).getRT();					
-					double y = (RTX - rgap.intercept)/rgap.slope;					
-					if (y > 0 &&  rgap.slope > 0) {
-						bestYTotal += y;
-						cont++;						
-					}
-				
-				} catch (Exception exception) {
-				}
-			}
-			if (rgap.file2 == rawDataFile) {
-
-				try {
-
-					double RTX = row.getPeak(rgap.file).getRT();
-					double y = rgap.intercept + (RTX * rgap.slope);
-					if (y > 0) {
-						bestYTotal += y;
-						cont++;						
-					}
-				} catch (Exception exception) {
-				}
-			}
-
-		}
-
-		return bestYTotal / cont;
-
-	}
-
-	class RegressionInfo {
-
-		double slope;
-		double intercept;
-		RawDataFile file;
-		RawDataFile file2;
-
-		public RegressionInfo(SimpleRegression regression, RawDataFile file, RawDataFile file2) {
-			this.slope = regression.getSlope();
-			this.intercept = regression.getIntercept();
-			this.file = file;
-			this.file2 = file2;
-		}
-
-	}
+	}	
 }
