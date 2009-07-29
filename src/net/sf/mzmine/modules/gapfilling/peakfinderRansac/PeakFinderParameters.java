@@ -67,27 +67,10 @@ public class PeakFinderParameters extends SimpleParameterSet {
             ParameterType.DOUBLE, "Relative RT tolerance",
             "Maximum allowed relative RT difference", "%", new Double(0.15),
             new Double(0.0), null, percentFormat);
-
-	public static final Parameter Iterations = new SimpleParameter(
-			ParameterType.INTEGER, "RANSAC Iterations",
-			"Maximum number of iterations allowed in the algorithm", new Integer(0));
-
-	public static final Parameter NMinPoints = new SimpleParameter(
-			ParameterType.DOUBLE, "Minimun Number of Points",
-			"Minimum number of aligned peaks required to fit the model", "%", new Double(0.2), null, null);
-
-	public static final Parameter Margin = new SimpleParameter(
-			ParameterType.DOUBLE, "Threshold value",
-			"Threshold value for determining when a data point fits a model", "seconds",
-			new Double(3.0), null, MZmineCore.getRTFormat());
-
-	public static final Parameter curve = new SimpleParameter(
-			ParameterType.BOOLEAN, "Curve model",
-			"Switch between curve model or lineal model", new Boolean(true));
-
+	
     public PeakFinderParameters() {
         super(new Parameter[] { suffix, intTolerance, MZTolerance,
-                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent, Iterations, NMinPoints, Margin, curve});
+                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent});
     }
 
 }

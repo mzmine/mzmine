@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.gapfilling.peakfinderRansac;
 
-
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -52,8 +51,7 @@ class PeakFinderTask implements Task {
 	private boolean rtToleranceUseAbs;
 	private double rtToleranceValueAbs,  rtToleranceValuePercent;
 	private PeakFinderParameters parameters;
-	private int processedScans,  totalScans;	
-	
+	private int processedScans,  totalScans;
 
 	PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
@@ -69,8 +67,6 @@ class PeakFinderTask implements Task {
 		rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
 		rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
 	}
-
-	
 
 	public void run() {
 
@@ -99,32 +95,23 @@ class PeakFinderTask implements Task {
 			}
 			processedPeakList.addRow(newRow);
 		}
-		
 
-		//RANSAC parameters
-		RansacAlignerParameters parametersRansac = new RansacAlignerParameters();
-		parametersRansac.setParameterValue(RansacAlignerParameters.Iterations, parameters.getParameterValue(PeakFinderParameters.Iterations));
-		parametersRansac.setParameterValue(RansacAlignerParameters.Margin, parameters.getParameterValue(PeakFinderParameters.Margin));
-		parametersRansac.setParameterValue(RansacAlignerParameters.NMinPoints, parameters.getParameterValue(PeakFinderParameters.NMinPoints));
-		parametersRansac.setParameterValue(RansacAlignerParameters.curve, parameters.getParameterValue(PeakFinderParameters.curve));
 
-		//RANSAC algorithm for all the samples
+		// Get the information to obtain the retention time where the peaks should be
 		Vector<RegressionInfo> regressionInfo = new Vector<RegressionInfo>();
 		RawDataFile[] datafiles = peakList.getRawDataFiles();
 
 		for (int i = 0; i < datafiles.length; i++) {
 			for (int e = i + 1; e < datafiles.length; e++) {
-				Vector<AlignStructMol>list = this.getVectorAlignment(peakList.getPeaks(datafiles[i]), peakList.getPeaks(datafiles[e]));
-				RANSAC ransac = new RANSAC(parametersRansac);
-				ransac.alignment(list);
-
-				SimpleRegression regression = new SimpleRegression();				
-				for (AlignStructMol mols : list) {
-					if (mols.Aligned) {
-						regression.addData(mols.RT, mols.RT2);
+				SimpleRegression regression = new SimpleRegression();
+				for (PeakListRow row : peakList.getRows()) {
+					ChromatographicPeak peaki = row.getPeak(datafiles[i]);
+					ChromatographicPeak peake = row.getPeak(datafiles[e]);
+					if (peaki != null && peake != null) {
+						regression.addData(peaki.getRT(), peake.getRT());
 					}
-				}		
-				
+				}
+
 				regressionInfo.add(new RegressionInfo(regression.getSlope(), regression.getIntercept(), datafiles[i], datafiles[e]));
 			}
 		}
@@ -266,8 +253,8 @@ class PeakFinderTask implements Task {
 				try {
 
 					double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
-					double y = (RTX - rinfo.getIntercept())/rinfo.getSlope();
-					if (y > 0 &&  rinfo.getSlope() > 0) {
+					double y = (RTX - rinfo.getIntercept()) / rinfo.getSlope();
+					if (y > 0 && rinfo.getSlope() > 0) {
 						bestY += y;
 						cont++;
 					}
@@ -325,5 +312,5 @@ class PeakFinderTask implements Task {
 
 	public Object[] getCreatedObjects() {
 		return new Object[]{processedPeakList};
-	}	
+	}
 }
