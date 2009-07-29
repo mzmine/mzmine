@@ -31,13 +31,9 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.alignment.ransac.AlignStructMol;
-import net.sf.mzmine.modules.alignment.ransac.RANSAC;
-import net.sf.mzmine.modules.alignment.ransac.RansacAlignerParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class PeakFinderTask implements Task {
@@ -207,39 +203,7 @@ class PeakFinderTask implements Task {
 		status = TaskStatus.FINISHED;
 
 	}
-
-	/**
-	 * Create the vector which contains all the possible aligned peaks.
-	 * @return vector which contains all the possible aligned peaks.
-	 */
-	private Vector<AlignStructMol> getVectorAlignment(ChromatographicPeak[] peaksX, ChromatographicPeak[] peaksY) {
-
-		Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
-
-		for (ChromatographicPeak row : peaksX) {
-
-			if (status == TaskStatus.CANCELED) {
-				return null;
-			}
-
-			// Calculate limits for a row with which the row can be aligned
-			double mzMin = row.getMZ() - mzTolerance;
-			double mzMax = row.getMZ() + mzTolerance;
-			double rtMin, rtMax;
-			double rtToleranceValue = rtToleranceValueAbs;
-			rtMin = row.getRT() - rtToleranceValue;
-			rtMax = row.getRT() + rtToleranceValue;
-			Range mzRange = new Range(mzMin, mzMax);
-			Range rtRange = new Range(rtMin, rtMax);
-			for (ChromatographicPeak candidateRow : peaksY) {
-				if (mzRange.contains(candidateRow.getMZ()) && rtRange.contains(candidateRow.getRT())) {
-					alignMol.addElement(new AlignStructMol(row, candidateRow));
-				}
-			}
-
-		}
-		return alignMol;
-	}
+	
 
 	/**
 	 * Return the retention time where the peak must be based on the ransac 
