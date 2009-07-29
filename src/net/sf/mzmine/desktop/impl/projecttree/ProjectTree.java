@@ -120,6 +120,11 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 		Vector<T> selectedObjects = new Vector<T>();
 		int selectedRows[] = getSelectionRows();
 
+		// getSelectionRows() may return null or empty array, depending on
+		// TreeModel implementation
+		if ((selectedRows == null) || (selectedRows.length == 0))
+			return (T[]) Array.newInstance(objectClass, 0);
+
 		// Sorting is important to return the items in the same order as they
 		// are presented in the tree. By default, JTree returns items in the
 		// order in which they were selected by the user, which is not good for
