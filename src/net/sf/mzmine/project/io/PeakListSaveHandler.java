@@ -88,7 +88,7 @@ class PeakListSaveHandler {
 
 		numberOfRows = peakList.getNumberOfRows();
 		finishedRows = 0;
-		
+
 		this.dataFilesIDMap = dataFilesIDMap;
 
 		String peakListSavedName = "Peak list #" + number + " "
@@ -283,7 +283,7 @@ class PeakListSaveHandler {
 
 		AttributesImpl atts = new AttributesImpl();
 		// <NAME>
-		String name = identity.getName() != null ? identity.getName() : " ";
+		String name = (identity.getName() != null) ? identity.getName() : "";
 		hd.startElement("", "", PeakListElementName.IDENTITY_NAME
 				.getElementName(), atts);
 		hd.characters(name.toCharArray(), 0, name.length());
@@ -291,26 +291,29 @@ class PeakListSaveHandler {
 				.getElementName());
 
 		// <FORMULA>
-		String formula = "";
+		String formula = null;
 		if (identity instanceof SimplePeakIdentity) {
 			SimplePeakIdentity id = (SimplePeakIdentity) identity;
 			formula = id.getCompoundFormula();
 		}
-		atts.clear();
-		hd.startElement("", "", PeakListElementName.FORMULA.getElementName(),
-				atts);
-		hd.characters(formula.toCharArray(), 0, formula.length());
-		hd.endElement("", "", PeakListElementName.FORMULA.getElementName());
+		if (formula != null) {
+			atts.clear();
+			hd.startElement("", "", PeakListElementName.FORMULA
+					.getElementName(), atts);
+			hd.characters(formula.toCharArray(), 0, formula.length());
+			hd.endElement("", "", PeakListElementName.FORMULA.getElementName());
+		}
 
 		// <IDENTIFICATION>
-		atts.clear();
-		hd.startElement("", "", PeakListElementName.IDENTIFICATION_METHOD
-				.getElementName(), atts);
-		name = identity.getIdentificationMethod() != null ? identity
-				.getIdentificationMethod() : " ";
-		hd.characters(name.toCharArray(), 0, name.length());
-		hd.endElement("", "", PeakListElementName.IDENTIFICATION_METHOD
-				.getElementName());
+		if (identity.getIdentificationMethod() != null) {
+			atts.clear();
+			hd.startElement("", "", PeakListElementName.IDENTIFICATION_METHOD
+					.getElementName(), atts);
+			String idMethod = identity.getIdentificationMethod();
+			hd.characters(idMethod.toCharArray(), 0, idMethod.length());
+			hd.endElement("", "", PeakListElementName.IDENTIFICATION_METHOD
+					.getElementName());
+		}
 	}
 
 	/**
