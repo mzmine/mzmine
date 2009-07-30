@@ -184,6 +184,8 @@ public class ProjectOpeningTask implements Task {
 			if (status == TaskStatus.CANCELED)
 				return;
 
+			e.printStackTrace();
+			
 			status = TaskStatus.ERROR;
 			errorMessage = "Failed opening project: "
 					+ ExceptionUtils.exceptionToString(e);
@@ -226,10 +228,17 @@ public class ProjectOpeningTask implements Task {
 		InputStream versionInputStream = zipFile.getInputStream(versionEntry);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				versionInputStream));
-
+		
 		String mzmineVersion = MZmineCore.getMZmineVersion();
 		String projectVersion = reader.readLine();
-
+		reader.close();
+		
+		// Strip any extra characters from project version and convert it to double
+		Pattern p = Pattern.compile("(\\d+\\.\\d+)");
+		Matcher m = p.matcher(projectVersion);
+		m.find();
+		projectVersion = m.group(1);
+		
 		double projectVersionNumber = Double.parseDouble(projectVersion);
 
 		// Check if project was saved with compatible version
