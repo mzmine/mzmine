@@ -308,15 +308,17 @@ class PeakListOpenHandler extends DefaultHandler {
 
 				if (i == 0) {
 					peakRTRange = new Range(retentionTime);
-					peakMZRange = new Range(mz);
 					peakIntensityRange = new Range(intensity);
 				} else {
 					peakRTRange.extendRange(retentionTime);
-					peakMZRange.extendRange(mz);
 					peakIntensityRange.extendRange(intensity);
 				}
 				if (mz > 0.0) {
 					mzPeaks[i] = new SimpleDataPoint(mz, intensity);
+					if (peakMZRange == null)
+						peakMZRange = new Range(mz);
+					else
+						peakMZRange.extendRange(mz);
 				}
 			}
 
