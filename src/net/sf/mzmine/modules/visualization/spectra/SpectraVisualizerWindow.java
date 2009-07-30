@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
@@ -194,7 +195,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 			// Clean up the MS/MS selector combo
 
-			JComboBox msmsSelector = bottomPanel.getMSMSSelector();
+			final JComboBox msmsSelector = bottomPanel.getMSMSSelector();
 
 			// We disable the MSMS selector first and then enable it again later
 			// after updating the items. If we skip this, the size of the
@@ -232,11 +233,18 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 					Scan fragmentScan = dataFile.getScan(fragment);
 					if (fragmentScan == null)
 						continue;
-					String itemText = "Fragment scan #" + fragment + ", RT: "
+					final String itemText = "Fragment scan #" + fragment
+							+ ", RT: "
 							+ rtFormat.format(fragmentScan.getRetentionTime())
 							+ ", precursor m/z: "
 							+ mzFormat.format(fragmentScan.getPrecursorMZ());
-					msmsSelector.addItem(itemText);
+					// Updating the combo in other than Swing thread may cause
+					// exception
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							msmsSelector.addItem(itemText);
+						}
+					});
 					msmsVisible = true;
 				}
 			}
