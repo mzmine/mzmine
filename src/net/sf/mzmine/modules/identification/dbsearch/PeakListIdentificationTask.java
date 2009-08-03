@@ -211,7 +211,7 @@ public class PeakListIdentificationTask implements Task {
 			DBCompound compound = gateway.getCompound(compoundID);
 
 			// If required, check isotope score
-			if (isotopeFilter) {
+			if ((isotopeFilter) && (rowIsotopePattern != null)) {
 
 				// Generate IsotopePattern for this compound
 				IsotopePattern compoundIsotopePattern = analyzer
@@ -220,11 +220,8 @@ public class PeakListIdentificationTask implements Task {
 								true, ionType);
 				compound.setIsotopePattern(compoundIsotopePattern);
 
-				IsotopePattern rawDataIsotopePattern = row
-						.getBestIsotopePattern();
-
 				double score = IsotopePatternScoreCalculator.getScore(
-						rawDataIsotopePattern, compoundIsotopePattern);
+						rowIsotopePattern, compoundIsotopePattern);
 
 				compound.setIsotopePatternScore(score);
 
