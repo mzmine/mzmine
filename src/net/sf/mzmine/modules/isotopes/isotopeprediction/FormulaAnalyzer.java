@@ -78,6 +78,8 @@ public class FormulaAnalyzer {
 
 		String mf = originalFormula.trim();
 		charge = Math.abs(charge);
+		
+	
 		mf = removeSpaces(mf);
 		mf = removeSymbols(mf);
 
@@ -868,16 +870,24 @@ public class FormulaAnalyzer {
 		return t;
 	}
 
-	private static String removeSymbols(String s) {
+	private static String removeSymbols(String mf) {
 
-		for (int i = 0; i < s.length(); i++) {
-			if ((s.charAt(i) == '+') || (s.charAt(i) == '-')) {
-				s = replaceWithSpaceAt(s, i, i);
-			}
-		}
+		// Remove the trailing charge information from the formula
+		int hasParenth = mf.indexOf("[");
+		if (hasParenth >= 0)
+			mf = mf.substring(0, hasParenth);
+		
+		int hasPlus = mf.indexOf("+");
+		if (hasPlus >= 0)
+			mf = mf.substring(0, hasPlus);
 
-		s = removeSpaces(s);
-		return s;
+		int hasMinus = mf.indexOf("-");
+		if (hasMinus >= 0)
+			mf = mf.substring(0, hasMinus);
+		
+		mf = mf.replaceAll(" ", "");
+		
+		return mf;
 
 	}
 
