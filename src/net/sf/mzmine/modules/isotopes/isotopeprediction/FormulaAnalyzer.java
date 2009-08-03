@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IonizationType;
@@ -40,6 +41,8 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class FormulaAnalyzer {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private IsotopeFactory isoFactory;
 	private DataPoint[] abundanceAndMass = null;
 	private String errorMessage;
@@ -79,9 +82,10 @@ public class FormulaAnalyzer {
 		String mf = originalFormula.trim();
 		charge = Math.abs(charge);
 		
-	
 		mf = removeSpaces(mf);
 		mf = removeSymbols(mf);
+		
+		logger.finest("Predicting isotope pattern of formula " + mf);
 
 		if ((mf == null) || (mf == "")) {
 			errorMessage = "Please type a chemical formula or common organic compound.";
