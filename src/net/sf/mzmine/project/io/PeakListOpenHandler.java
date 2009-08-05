@@ -26,8 +26,6 @@ import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -52,6 +50,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 import com.Ostermiller.util.Base64;
+
+import de.schlichtherle.util.zip.ZipEntry;
+import de.schlichtherle.util.zip.ZipFile;
 
 class PeakListOpenHandler extends DefaultHandler {
 

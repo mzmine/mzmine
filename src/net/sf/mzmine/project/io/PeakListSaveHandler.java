@@ -28,8 +28,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -52,6 +50,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 import com.Ostermiller.util.Base64;
+
+import de.schlichtherle.util.zip.ZipEntry;
+import de.schlichtherle.util.zip.ZipOutputStream;
 
 class PeakListSaveHandler {
 

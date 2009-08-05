@@ -30,8 +30,6 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.swing.JInternalFrame;
 import javax.xml.parsers.ParserConfigurationException;
@@ -47,6 +45,9 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
+
+import de.schlichtherle.util.zip.ZipEntry;
+import de.schlichtherle.util.zip.ZipFile;
 
 public class ProjectOpeningTask implements Task {
 
@@ -285,14 +286,14 @@ public class ProjectOpeningTask implements Task {
 		Pattern filePattern = Pattern
 				.compile("Raw data file #([\\d]+) (.*)\\.xml");
 
-		Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+		Enumeration zipEntries = zipFile.entries();
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
 			if (status == TaskStatus.CANCELED)
 				return;
 
-			ZipEntry entry = zipEntries.nextElement();
+			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
 			String entryName = entry.getName();
 
 			Matcher fileMatcher = filePattern.matcher(entryName);
@@ -322,14 +323,14 @@ public class ProjectOpeningTask implements Task {
 
 		Pattern filePattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml");
 
-		Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
+		Enumeration zipEntries = zipFile.entries();
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
 			if (status == TaskStatus.CANCELED)
 				return;
 
-			ZipEntry entry = zipEntries.nextElement();
+			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
 			String entryName = entry.getName();
 
 			Matcher fileMatcher = filePattern.matcher(entryName);

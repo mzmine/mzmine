@@ -24,8 +24,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -41,6 +39,9 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
+
+import de.schlichtherle.util.zip.ZipEntry;
+import de.schlichtherle.util.zip.ZipOutputStream;
 
 class RawDataFileSaveHandler {
 
