@@ -196,13 +196,16 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 	}
 
 	/**
-	 * 
+	 * Returns the preferred peak identity or null
 	 * @param series
 	 * @param item
-	 * @return
+	 * @return name or null
 	 */
 	public String getDataPointName(int series, int item) {
 		int rowID = arraySeriesAndItemsSelection[series][item];
+		if (peakList.getRow(rowID).getPreferredPeakIdentity() == null) {
+			return null;
+		}
 		return peakList.getRow(rowID).getPreferredPeakIdentity().getName();
 	}
 
