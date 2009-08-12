@@ -8,6 +8,10 @@ Desktop
 * When data file or peak list is removed, all visualizers showing this file/peak list should be 
   closed as well, otherwise exceptions may occur
 
+Data model
+* Perhaps columns in peak list table should not be indexed by RawDataFile, but instead by a String
+  (title). This way we can introduce calculated columns (e.g. fold change, or average of several
+  samples) 
 
 ***** Raw data import *****
 
