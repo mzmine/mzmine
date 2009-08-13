@@ -116,7 +116,7 @@ public class AdductSearchTask implements Task {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Identification of related peaks in " + peakList.toString();
+		return "Identification of adducts in " + peakList;
 	}
 
 	/**
