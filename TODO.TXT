@@ -17,6 +17,9 @@ Data model
   (title). This way we can introduce calculated columns (e.g. fold change, or average of several
   samples) 
 
+Project saving/loading
+* Project parameters and isotope patterns are lost after saving/loading project
+
 ***** Raw data import *****
 
 Parameters
