@@ -23,6 +23,7 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
@@ -30,14 +31,16 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
-import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.FormulaUtils;
 
 public class SingleRowIdentificationTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	private TaskStatus status = TaskStatus.WAITING;
@@ -53,7 +56,6 @@ public class SingleRowIdentificationTask implements Task {
 	private IonizationType ionType;
 	private boolean isotopeFilter = false;
 	private double isotopeScoreThreshold;
-	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private DBGateway gateway;
 
 	/**
@@ -90,7 +92,7 @@ public class SingleRowIdentificationTask implements Task {
 				.getParameterValue(OnlineDBSearchParameters.isotopeFilter);
 
 		// If there is no isotope pattern, we cannot use the isotope filter
-		if (peakListRow.getBestIsotopePattern() == null)
+		if (peakListRow.getBestIsotopePatternPeak() == null)
 			isotopeFilter = false;
 
 		isotopeScoreThreshold = (Double) parameters
@@ -177,29 +179,49 @@ public class SingleRowIdentificationTask implements Task {
 
 				DBCompound compound = gateway.getCompound(compoundIDs[i]);
 
-				// Generate IsotopePattern for this compound
-				IsotopePattern compoundIsotopePattern = analyzer
-						.getIsotopePattern(compound.getCompoundFormula(), 0.01,
-								charge, ionType.isPositiveCharge(), 0, true,
-								true, ionType);
-				compound.setIsotopePattern(compoundIsotopePattern);
+				if (compound.getCompoundFormula() != null) {
 
-				// If required, check isotope score
-				if (isotopeFilter) {
+					// First modify the formula according to polarity - for
+					// negative, remove one hydrogen; for positive, add one
+					// hydrogen
+					String adjustedFormula = FormulaUtils.ionizeFormula(
+							compound.getCompoundFormula(), ionType
+									.getPolarity());
 
-					IsotopePattern rawDataIsotopePattern = peakListRow
-							.getBestIsotopePattern();
+					logger
+							.finest("Calculating isotope pattern for compound formula "
+									+ compound.getCompoundFormula()
+									+ " adjusted to " + adjustedFormula);
 
-					double score = IsotopePatternScoreCalculator.getScore(
-							rawDataIsotopePattern, compoundIsotopePattern);
+					// Generate IsotopePattern for this compound
+					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
+							.calculateIsotopePattern(adjustedFormula, charge,
+									ionType.getPolarity());
+					
+					compound.setIsotopePattern(compoundIsotopePattern);
 
-					compound.setIsotopePatternScore(score);
+					ChromatographicPeak bestPeakWithIsotopes = peakListRow
+							.getBestIsotopePatternPeak();
 
-					if (score >= isotopeScoreThreshold) {
-						finishedItems++;
-						continue;
+					if (bestPeakWithIsotopes != null) {
+
+						IsotopePattern rawDataIsotopePattern = bestPeakWithIsotopes
+								.getIsotopePattern();
+
+						double score = IsotopePatternScoreCalculator
+								.getSimilarityScore(rawDataIsotopePattern,
+										compoundIsotopePattern);
+						
+						compound.setIsotopePatternScore(score);
+
+						// If required, check isotope score
+						if (isotopeFilter) {
+							if (score >= isotopeScoreThreshold) {
+								finishedItems++;
+								continue;
+							}
+						}
 					}
-
 				}
 
 				// Add compound to the list of possible candidate and

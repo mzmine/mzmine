@@ -29,6 +29,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
@@ -58,8 +59,9 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 
 		if (row != null) {
 			this.rawMassValue = row.getAverageMZ();
-			IsotopePattern pattern = row.getBestIsotopePattern();
-			if (pattern != null) {
+			ChromatographicPeak peak = row.getBestIsotopePatternPeak();
+			if (peak!= null) {
+				IsotopePattern pattern = peak.getIsotopePattern();
 				int rowCharge = pattern.getCharge();
 				chargeField.setText(String.valueOf(rowCharge));
 			}

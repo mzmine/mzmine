@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -66,6 +67,9 @@ public class Chromatogram implements ChromatographicPeak {
 	// commitBuildingSegment()
 	private int numOfCommittedSegments = 0;
 
+	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	private IsotopePattern isotopePattern;
+	
 	/**
 	 * Initializes this Chromatogram
 	 */
@@ -157,6 +161,14 @@ public class Chromatogram implements ChromatographicPeak {
 
 	public RawDataFile getDataFile() {
 		return dataFile;
+	}
+	
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 
 	public void finishChromatogram() {

@@ -59,16 +59,12 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilderParameters;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
-import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
-import net.sf.mzmine.modules.visualization.spectra.SpectraDataSet;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.SpectraToolBar;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
+import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
-
-import org.jfree.chart.labels.XYToolTipGenerator;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -98,9 +94,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	private int[] listScans;
 
 	// XYPlot
-	private SpectraToolBar toolBar;
 	private SpectraPlot spectrumPlot;
-	private SpectraDataSet spectraDataSet;
+	private ScanDataSet spectraDataSet;
 	private PeakListDataSet peaksDataSet;
 
 	// Mass Detector;
@@ -136,8 +131,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				previewDataFile = dataFiles[0];
 
 			// Parameters of local mass detector to get preview values
-			mdParameters = parameters.getMassDetectorParameters(
-					massDetectorTypeNumber);
+			mdParameters = parameters
+					.getMassDetectorParameters(massDetectorTypeNumber);
 
 			// List of scan to apply mass detector
 			listScans = previewDataFile.getScanNumbers(1);
@@ -153,22 +148,22 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 					indexComboFileName = i;
 			}
 
-            // Set a listener in all parameters's fields to add functionality to
-            // this dialog
-            for (Parameter p : mdParameters.getParameters()) {
+			// Set a listener in all parameters's fields to add functionality to
+			// this dialog
+			for (Parameter p : mdParameters.getParameters()) {
 
-                JComponent field = getComponentForParameter(p);
-                field.addPropertyChangeListener("value", this);
-                if (field instanceof JCheckBox)
-                    ((JCheckBox) field).addActionListener(this);
-                if (field instanceof JComboBox)
-                    ((JComboBox) field).addActionListener(this);
-            }
+				JComponent field = getComponentForParameter(p);
+				field.addPropertyChangeListener("value", this);
+				if (field instanceof JCheckBox)
+					((JCheckBox) field).addActionListener(this);
+				if (field instanceof JComboBox)
+					((JComboBox) field).addActionListener(this);
+			}
 
 		}
-        
-        addComponents();
-        
+
+		addComponents();
+
 	}
 
 	/**
@@ -183,22 +178,18 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
 		currentScan = previewDataFile.getScan(scanNumber);
-		spectraDataSet = new SpectraDataSet(currentScan);
+		spectraDataSet = new ScanDataSet(currentScan);
 
-		toolBar.setPeaksButtonEnabled(true);
 		spectrumPlot.setSpectrumDataSet(spectraDataSet);
-		spectrumPlot.addPeaksDataSet(peaksDataSet);
+		spectrumPlot.setPeaksDataSet(peaksDataSet);
 
 		// Set plot mode only if it hasn't been set before
-		if (spectrumPlot.getPlotMode() == PlotMode.UNDEFINED)
-			// if the scan is centroided, switch to centroid mode
-			if (currentScan.isCentroided()) {
-				spectrumPlot.setPlotMode(PlotMode.CENTROID);
-				toolBar.setCentroidButton(false);
-			} else {
-				spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-				toolBar.setCentroidButton(true);
-			}
+		// if the scan is centroided, switch to centroid mode
+		if (currentScan.isCentroided()) {
+			spectrumPlot.setPlotMode(PlotMode.CENTROID);
+		} else {
+			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+		}
 
 		// Set window and plot titles
 
@@ -223,8 +214,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	 */
 	public void actionPerformed(ActionEvent event) {
 
-	    super.actionPerformed(event);
-        
+		super.actionPerformed(event);
+
 		Object src = event.getSource();
 		String command = event.getActionCommand();
 
@@ -267,7 +258,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 				this.setResizable(true);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
-                mainPanel.remove(pnlPlotXY);
+				mainPanel.remove(pnlPlotXY);
 				pnlFileNameScanNumber.setVisible(false);
 				this.setResizable(false);
 				pack();
@@ -300,8 +291,8 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 		SimplePeakList newPeakList = new SimplePeakList(previewDataFile
 				+ "_singleScanPeak", previewDataFile);
-        updateParameterSetFromComponents();
-        
+		updateParameterSetFromComponents();
+
 		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
 
 		try {
@@ -445,9 +436,9 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		JPanel pnlVisible = new JPanel(new BorderLayout());
 
 		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
-        
-        JPanel tmp = new JPanel();
-        tmp.add(pnlFileNameScanNumber);
+
+		JPanel tmp = new JPanel();
+		tmp.add(pnlFileNameScanNumber);
 		pnlVisible.add(tmp, BorderLayout.CENTER);
 
 		// Panel for XYPlot
@@ -457,21 +448,17 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
 		pnlPlotXY.setBackground(Color.white);
 
-		spectrumPlot = new SpectraPlot(this, SpectraVisualizerType.SPECTRUM);
-		MassDetectorPreviewToolTipGenerator mzPeakToolTipGenerator = new MassDetectorPreviewToolTipGenerator();
-		spectrumPlot
-				.setPeakToolTipGenerator((XYToolTipGenerator) mzPeakToolTipGenerator);
+		spectrumPlot = new SpectraPlot(this);
+
+		// Hide legend for the preview purpose
+		spectrumPlot.getChart().removeLegend();
+
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 
-		toolBar = new SpectraToolBar(spectrumPlot,
-				SpectraVisualizerType.SPECTRUM);
-		spectrumPlot.setRelatedToolBar(toolBar);
-		pnlPlotXY.add(toolBar, BorderLayout.EAST);
-
 		componentsPanel.add(pnlVisible, BorderLayout.CENTER);
-        
-        pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+
+		pack();
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 	}
 
 }

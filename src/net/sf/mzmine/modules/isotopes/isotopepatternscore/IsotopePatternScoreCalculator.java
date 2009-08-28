@@ -19,189 +19,54 @@
 
 package net.sf.mzmine.modules.isotopes.isotopepatternscore;
 
-import java.util.TreeSet;
-import java.util.Vector;
-
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.SortingDirection;
-import net.sf.mzmine.util.SortingProperty;
+
+import org.openscience.cdk.formula.IsotopeContainer;
+import org.openscience.cdk.formula.IsotopePatternSimilarity;
 
 public class IsotopePatternScoreCalculator {
 
-	// A quarter of Hydrogen's mass
-	private static double TOLERANCE = 0.25195625d;
-
 	/**
-	 * Receive to IsotopePattern and compare the second against the first to get
-	 * a score value. This value is based in the difference of ratio between
-	 * isotopes and mass.
+	 * Returns a calculated similarity score of two isotope patterns in the
+	 * range of 0 (not similar at all) to 1 (100% same). Score is calculated
+	 * using CDK method.
 	 * 
-	 * @param ip1
-	 *            Isotope pattern reference (predicted)
-	 * @param ip2
-	 *            Isotope pattern to be compared (detected)
-	 * @return score a calculated double value
 	 */
-	public static double getScore(IsotopePattern ip1, IsotopePattern ip2) {
+	public static double getSimilarityScore(IsotopePattern ip1,
+			IsotopePattern ip2) {
 
-		double diffMass, diffAbun, factor, totalFactor = 0d;
-		double score = 0d, tempScore;
-		DataPoint closestDp;
-		int numIsotopes1 = ip1.getNumberOfIsotopes();
-		int numIsotopes2 = ip1.getNumberOfIsotopes();
-		int length = numIsotopes1;
+		// First, normalize the isotopes to intensity 0..1
+		IsotopePattern nip1 = ip1.normalizeTo(1);
+		IsotopePattern nip2 = ip2.normalizeTo(1);
 
-		// Maximum number of isotopes to be compared
-		if (numIsotopes1 < numIsotopes2)
-			length = numIsotopes2;
+		// Create CDK isotope patterns
+		org.openscience.cdk.formula.IsotopePattern cdkIP1 = new org.openscience.cdk.formula.IsotopePattern();
+		org.openscience.cdk.formula.IsotopePattern cdkIP2 = new org.openscience.cdk.formula.IsotopePattern();
 
-		DataPoint[] dp1 = ip1.getIsotopes().clone();
-		DataPoint[] dp2 = ip2.getIsotopes().clone();
-
-		// Normalize the intensity of isotopes regarding the biggest one
-		dp1 = sortAndNormalizedByIntensity(dp1);
-		dp2 = sortAndNormalizedByIntensity(dp2);
-
-		for (int i = 0; i < length; i++) {
-
-			factor = dp1[i].getIntensity();// 1.0d;// Math.pow(2.0d, i);
-			totalFactor += factor;
-
-			// Search for the closest isotope in the second pattern (detected)
-			// to the
-			// current isotope (predicted pattern)
-			closestDp = getClosestDataPoint(dp1[i], dp2);
-
-			if (closestDp == null)
-				continue;
-
-			// Remove from the second pattern the used isotope to set the score.
-			dp2 = removeDataPoint(closestDp, dp2);
-
-			// Calculate the score using the next formula.
-			//
-			// Score = { [ 1 - (IsotopeMass1[i] - IsotopeMass2[j]) + (1 -
-			// (IsotopeIntensity1[i] / IsotopeIntensity2[j])) ] * factor[i] } /
-			// totalFactor
-			//
-			// Where i is equal to the number of isotopes of the first pattern
-			// and j is the closest isotope of the second pattern. Factor is the
-			// given weight to each isotope, and totalFactor is the sum of all
-			// values of factor.
-
-			diffMass = dp1[i].getMZ() - closestDp.getMZ();
-			diffMass = Math.abs(diffMass);
-
-			diffAbun = 1.0d - (dp1[i].getIntensity() / closestDp.getIntensity());
-			diffAbun = Math.abs(diffAbun);
-
-			tempScore = 1 - (diffMass + diffAbun);
-
-			if (tempScore < 0)
-				tempScore = 0;
-
-			score += (tempScore * factor);
-
+		// Fill the CDK isotope patterns with our isotopes
+		for (DataPoint isotope : nip1.getDataPoints()) {
+			IsotopeContainer cdkIs = new IsotopeContainer(isotope.getMZ(),
+					isotope.getIntensity());
+			cdkIP1.addIsotope(cdkIs);
+		}
+		for (DataPoint isotope : nip2.getDataPoints()) {
+			IsotopeContainer cdkIs = new IsotopeContainer(isotope.getMZ(),
+					isotope.getIntensity());
+			cdkIP2.addIsotope(cdkIs);
 		}
 
-		return score / totalFactor;
-	}
+		// Create a CDK object for comparing isotope patterns
+		IsotopePatternSimilarity cdkSimilarityCalculator = new IsotopePatternSimilarity();
+		
+		// Set the mass tolerance to 10 ppm
+		cdkSimilarityCalculator.seTolerance(10);
 
-	/**
-	 * Sort and normalize an array of DataPoint objects according with the
-	 * biggest intensity DataPoint
-	 * 
-	 * @param dataPoints
-	 * @return
-	 */
-	private static DataPoint[] sortAndNormalizedByIntensity(
-			DataPoint[] dataPoints) {
+		// Compare the CDK isotope patterns using CDK comparator
+		double score = cdkSimilarityCalculator.compare(cdkIP1, cdkIP2);
 
-		double intensity, biggestIntensity = Double.MIN_VALUE;
-		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(SortingProperty.Intensity,
-						SortingDirection.Descending));
-
-		for (DataPoint dp : dataPoints) {
-
-			intensity = dp.getIntensity();
-			if (intensity > biggestIntensity)
-				biggestIntensity = intensity;
-
-		}
-
-		for (DataPoint dp : dataPoints) {
-
-			intensity = dp.getIntensity();
-			intensity /= biggestIntensity;
-			if (intensity < 0)
-				intensity = 0;
-
-			((SimpleDataPoint) dp).setIntensity(intensity);
-			sortedDataPoints.add(dp);
-
-		}
-
-		return sortedDataPoints.toArray(new DataPoint[0]);
-
-	}
-
-	/**
-	 * Search and find the closest DataPoint in an array in terms of mass and
-	 * intensity. Always return a DataPoint
-	 * 
-	 * @param dp
-	 * @param dataPoints
-	 * @return DataPoint
-	 */
-	private static DataPoint getClosestDataPoint(DataPoint dp,
-			DataPoint[] dataPoints) {
-
-		double diff;
-		TreeSet<DataPoint> sortedDataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(SortingProperty.Intensity,
-						SortingDirection.Descending));
-
-		for (DataPoint localDp : dataPoints) {
-			diff = Math.abs(dp.getMZ() - localDp.getMZ());
-			if (diff <= TOLERANCE) {
-				sortedDataPoints.add(localDp);
-			}
-		}
-
-		if (sortedDataPoints.size() > 0)
-			return sortedDataPoints.first();
-
-		return null;
-
-	}
-
-	/**
-	 * Remove an element from a DataPoint objects array.
-	 * 
-	 * @param dp
-	 *            element to remove
-	 * @param dataPoints
-	 *            array of DataPoint objects
-	 * @return
-	 */
-	private static DataPoint[] removeDataPoint(DataPoint dp,
-			DataPoint[] dataPoints) {
-
-		Vector<DataPoint> sortedDataPoints = new Vector<DataPoint>();
-
-		for (DataPoint localDp : dataPoints) {
-			if ((localDp.getMZ() == dp.getMZ())
-					&& (localDp.getIntensity() == dp.getIntensity()))
-				continue;
-			sortedDataPoints.add(localDp);
-		}
-
-		return sortedDataPoints.toArray(new DataPoint[0]);
-
+		// Return the final score
+		return score;
 	}
 
 }

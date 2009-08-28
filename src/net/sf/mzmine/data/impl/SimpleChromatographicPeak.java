@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
@@ -55,6 +56,9 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
 	// Number of most intense fragment scan
 	private int fragmentScanNumber;
+	
+	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	private IsotopePattern isotopePattern;
 
 	/**
 	 * Initializes a new peak using given values
@@ -264,6 +268,14 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	 */
 	public int getMostIntenseFragmentScanNumber() {
 		return fragmentScanNumber;
+	}
+
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 
 }

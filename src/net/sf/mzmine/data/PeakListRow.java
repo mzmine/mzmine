@@ -130,12 +130,12 @@ public interface PeakListRow {
 	 * Returns the most intense peak in this row
 	 */
 	public ChromatographicPeak getBestPeak();
-	
+
 	/**
-	 * Returns the isotope pattern from this row which has the highest
-	 * intensity. If there are no isotope patterns present in the row, returns
+	 * Returns the most intense peak in this row which has an isotope pattern
+	 * attached. If there are no isotope patterns present in the row, returns
 	 * null.
 	 */
-	public IsotopePattern getBestIsotopePattern();
+	public ChromatographicPeak getBestIsotopePatternPeak();
 
 }

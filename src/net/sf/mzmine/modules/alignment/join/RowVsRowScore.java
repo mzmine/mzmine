@@ -51,25 +51,21 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 				- alignedRow.getAverageRT());
 
 		// Compare identities
-		double sameIDFlag = 0.0d;
+		double sameIDFlag = 0;
 		if (PeakUtils.compareIdentities(peakListRow, alignedRow))
-			sameIDFlag = 1.0d;
+			sameIDFlag = 1;
 
 		// Compare isotope pattern 
-		double sameIsotopePatternScore = 0.0f;
+		double sameIsotopePatternScore = 0;
 		if (compareIsotopePattern){
 			
-			ChromatographicPeak[] p1 = peakListRow.getPeaks();
-			if (p1.length > 1){
-				errorMessage = "One of the peak list contains more than one column";
-				throw new Exception();
-			}
+			ChromatographicPeak p1 = peakListRow.getBestIsotopePatternPeak();
+			ChromatographicPeak p2 = alignedRow.getBestIsotopePatternPeak();
 			
-			ChromatographicPeak[] p2 = alignedRow.getPeaks();
+			IsotopePattern ip1 = p1.getIsotopePattern();
+			IsotopePattern ip2 = p2.getIsotopePattern();
 
-			if ((p1[0] instanceof IsotopePattern) && (p2[0] instanceof IsotopePattern)){
-				sameIsotopePatternScore = IsotopePatternScoreCalculator.getScore((IsotopePattern)p2[0], (IsotopePattern)p1[0]);
-			}
+			sameIsotopePatternScore = IsotopePatternScoreCalculator.getSimilarityScore(ip1, ip2);
 			
 			if (sameIsotopePatternScore < isotopePatternScoreThresold){
 				sameIsotopePatternWeight = 0;

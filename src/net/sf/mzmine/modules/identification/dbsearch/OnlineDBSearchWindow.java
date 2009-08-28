@@ -42,13 +42,10 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
-import net.sf.mzmine.modules.visualization.spectra.PeakListDataSet;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerType;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
@@ -184,38 +181,20 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 				return;
 			}
 
-			final IsotopePattern isotopePattern = listElementModel
+			final IsotopePattern predictedPattern = listElementModel
 					.getCompoundAt(index).getIsotopePattern();
 
-			if (isotopePattern == null)
+			if (predictedPattern == null)
 				return;
 
-			PeakListDataSet peakDataSet = new PeakListDataSet(isotopePattern);
+			ChromatographicPeak peak = peakListRow.getBestIsotopePatternPeak();
+			if (peak == null)
+				peak = peakListRow.getBestPeak();
 
-			if (peakDataSet == null)
-				return;
-
-			IsotopePattern searchPattern = peakListRow.getBestIsotopePattern();
-
-			if (searchPattern == null) {
-				ChromatographicPeak bestPeakInRow = peakListRow.getBestPeak();
-				RawDataFile datafile = bestPeakInRow.getDataFile();
-				Scan bestScan = datafile.getScan(bestPeakInRow
-						.getRepresentativeScanNumber());
-				SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(
-						datafile, null, SpectraVisualizerType.SPECTRUM);
-				MZmineCore.getDesktop().addInternalFrame(spectraWindow);
-				spectraWindow.loadRawData(bestScan);
-				spectraWindow.loadIsotopePattern(isotopePattern);
-			} else {
-				RawDataFile datafile = searchPattern.getDataFile();
-				SpectraVisualizerWindow spectraWindow = new SpectraVisualizerWindow(
-						datafile, null, SpectraVisualizerType.ISOTOPE);
-				MZmineCore.getDesktop().addInternalFrame(spectraWindow);
-				spectraWindow.loadRawData(searchPattern);
-				spectraWindow.loadIsotopePattern(searchPattern);
-				spectraWindow.loadIsotopePattern(isotopePattern);
-			}
+			RawDataFile dataFile = peak.getDataFile();
+			int scanNumber = peak.getRepresentativeScanNumber();
+			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, peak
+					.getIsotopePattern(), predictedPattern);
 
 		}
 
@@ -243,6 +222,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 				logger.severe("Error trying to launch default browser: "
 						+ ex.getMessage());
 			}
+
 		}
 
 	}

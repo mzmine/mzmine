@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
@@ -31,7 +32,7 @@ import net.sf.mzmine.util.Range;
  * This class is only used for visualization terms by MassDetectorSetupDialog.
  * 
  */
-class MassDetectorPreviewPeak implements ChromatographicPeak {
+public class MassDetectorPreviewPeak implements ChromatographicPeak {
 
 	private MzPeak mzPeak;
 	private int scanNumber;
@@ -41,7 +42,7 @@ class MassDetectorPreviewPeak implements ChromatographicPeak {
 	 * @param scanNumber
 	 * @param datapoint
 	 */
-	public MassDetectorPreviewPeak(int scanNumber, MzPeak mzPeak) {
+	MassDetectorPreviewPeak(int scanNumber, MzPeak mzPeak) {
 		this.mzPeak = mzPeak;
 		this.scanNumber = scanNumber;
 	}
@@ -59,15 +60,15 @@ class MassDetectorPreviewPeak implements ChromatographicPeak {
 	}
 
 	public double getHeight() {
-		return 0;
+		return mzPeak.getIntensity();
 	}
 
 	public double getMZ() {
-		return 0;
+		return mzPeak.getMZ();
 	}
 
 	public PeakStatus getPeakStatus() {
-		return null;
+		return PeakStatus.DETECTED;
 	}
 
 	public double getRT() {
@@ -101,6 +102,13 @@ class MassDetectorPreviewPeak implements ChromatographicPeak {
 
 	public int getMostIntenseFragmentScanNumber() {
 		return 0;
+	}
+
+	public IsotopePattern getIsotopePattern() {
+		return null;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
 	}
 
 }

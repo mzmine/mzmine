@@ -25,7 +25,7 @@ import java.util.Vector;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.IsotopeUtils;
+import net.sf.mzmine.util.FormulaUtils;
 
 public class ResultTableModel extends AbstractTableModel {
 
@@ -69,7 +69,7 @@ public class ResultTableModel extends AbstractTableModel {
 			break;
 		case (3):
 			String compFormula = comp.getCompoundFormula();
-			double compMass = IsotopeUtils.calculateExactMass(compFormula);
+			double compMass = FormulaUtils.calculateExactMass(compFormula);
 			double massDifference = Math.abs(searchedMass - compMass);
 			value = massFormat.format(massDifference);
 			break;

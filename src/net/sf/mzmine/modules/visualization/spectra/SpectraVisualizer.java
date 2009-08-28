@@ -39,103 +39,108 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
-    private SpectraVisualizerParameters parameters;
+	private SpectraVisualizerParameters parameters;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new SpectraVisualizerParameters();
+		parameters = new SpectraVisualizerParameters();
 
-        MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA,
-                "Spectra plot", "Shows an individual spectrum", KeyEvent.VK_S,
-                false, this, null);
+		MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA,
+				"Spectra plot", "Mass spectrum visualizer", KeyEvent.VK_S,
+				false, this, null);
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        logger.finest("Opening a new spectra visualizer setup dialog");
+		logger.finest("Opening a new spectra visualizer setup dialog");
 
-        RawDataFile dataFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
-        if (dataFiles.length != 1) {
-            MZmineCore.getDesktop().displayErrorMessage(
-                    "Please select a single data file");
-            return;
-        }
+		RawDataFile dataFiles[] = MZmineCore.getDesktop()
+				.getSelectedDataFiles();
+		if (dataFiles.length != 1) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Please select a single data file");
+			return;
+		}
 
-        showNewSpectrumWindow(dataFiles[0], parameters);
+		showNewSpectrumWindow(dataFiles[0], parameters);
 
-    }
+	}
 
-    private void showNewSpectrumWindow(RawDataFile dataFile,
-            SpectraVisualizerParameters parameters) {
+	private void showNewSpectrumWindow(RawDataFile dataFile,
+			SpectraVisualizerParameters parameters) {
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(), parameters);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(), parameters);
 
-        dialog.setVisible(true);
+		dialog.setVisible(true);
 
-        if (dialog.getExitCode() != ExitCode.OK)
-            return;
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-        Integer scanNumber = (Integer) parameters.getParameterValue(SpectraVisualizerParameters.scanNumber);
+		Integer scanNumber = (Integer) parameters
+				.getParameterValue(SpectraVisualizerParameters.scanNumber);
 
-        showNewSpectrumWindow(dataFile, scanNumber);
+		showNewSpectrumWindow(dataFile, scanNumber);
 
-    }
+	}
 
-    public static void showNewSpectrumWindow(RawDataFile dataFile,
-            int scanNumber) {
-        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
-                dataFile, dataFile.toString(), dataFile.getScan(scanNumber));
-        MZmineCore.getDesktop().addInternalFrame(newWindow);
-    }
-    
-    public static void showNewSpectrumWindow(Scan scan) {
-        showNewSpectrumWindow(scan.getDataFile(), scan.getScanNumber());
-    }
+	public static void showNewSpectrumWindow(RawDataFile dataFile,
+			int scanNumber) {
+		showNewSpectrumWindow(dataFile, scanNumber, null, null);
+	}
+	
+	
+	public static void showNewSpectrumWindow(RawDataFile dataFile,
+			int scanNumber,IsotopePattern detectedPattern) {
+		showNewSpectrumWindow(dataFile, scanNumber, detectedPattern, null);
+	}
 
-    public static void showIsotopePattern(RawDataFile dataFile,
-            IsotopePattern isotopePattern) {
-        String title = dataFile.toString();
-        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
-                dataFile, title, isotopePattern);
-        MZmineCore.getDesktop().addInternalFrame(newWindow);
+	public static void showNewSpectrumWindow(RawDataFile dataFile,
+			int scanNumber, IsotopePattern detectedPattern,
+			IsotopePattern predictedPattern) {
+		SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
+				dataFile);
+		Scan scan = dataFile.getScan(scanNumber);
+		newWindow.loadRawData(scan);
 
-    }
+		if (detectedPattern != null)
+			newWindow.loadIsotopes(detectedPattern);
+		
+		if (predictedPattern != null)
+			newWindow.loadIsotopes(predictedPattern);
 
-    public static void showIsotopePattern(IsotopePattern isotopePattern) {
-        SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(null,
-                "", isotopePattern);
-        MZmineCore.getDesktop().addInternalFrame(newWindow);
-    }
+		MZmineCore.getDesktop().addInternalFrame(newWindow);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Spectra visualizer";
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Spectra visualizer";
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet newParameters) {
-        parameters = (SpectraVisualizerParameters) newParameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet newParameters) {
+		parameters = (SpectraVisualizerParameters) newParameters;
+	}
 
 }

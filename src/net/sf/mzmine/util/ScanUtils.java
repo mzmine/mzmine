@@ -461,4 +461,21 @@ public class ScanUtils {
 
 	}
 
+	/**
+	 * Find the highest data point in array
+	 * 
+	 */
+	public static DataPoint findTopDataPoint(DataPoint dataPoints[]) {
+
+		DataPoint topDP = null;
+
+		for (DataPoint dp : dataPoints) {
+			if ((topDP == null) || (dp.getIntensity() > topDP.getIntensity())) {
+				topDP = dp;
+			}
+		}
+
+		return topDP;
+	}
+
 }

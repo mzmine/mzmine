@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -45,10 +46,9 @@ public class SpectraToolBar extends JToolBar {
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 	static final Icon thicknessIcon = new ImageIcon("icons/thicknessicon.png");
 
-	private JButton centroidContinuousButton, dataPointsButton, peaksButton,
-			isotopePeakButton, axesButton;
+	private JButton centroidContinuousButton, dataPointsButton;
 
-	public SpectraToolBar(SpectraPlot plot, SpectraVisualizerType type) {
+	public SpectraToolBar(ActionListener masterFrame) {
 
 		super(JToolBar.VERTICAL);
 
@@ -58,39 +58,40 @@ public class SpectraToolBar extends JToolBar {
 		setBackground(Color.white);
 
 		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
-				plot, "TOGGLE_PLOT_MODE", "Toggle centroid/continuous mode");
+				masterFrame, "TOGGLE_PLOT_MODE",
+				"Toggle centroid/continuous mode");
 
 		addSeparator();
 
-		dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon, plot,
-				"SHOW_DATA_POINTS",
+		dataPointsButton = GUIUtils.addButton(this, null, dataPointsIcon,
+				masterFrame, "SHOW_DATA_POINTS",
 				"Toggle displaying of data points  in continuous mode");
 
 		addSeparator();
 
-		GUIUtils.addButton(this, null, annotationsIcon, plot,
+		GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
 				"SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
 		addSeparator();
 
-		peaksButton = GUIUtils.addButton(this, null, pickedPeakIcon, plot,
+		GUIUtils.addButton(this, null, pickedPeakIcon, masterFrame,
 				"SHOW_PICKED_PEAKS", "Toggle displaying of picked peaks");
 
-		isotopePeakButton = GUIUtils.addButton(this, null, isotopePeakIcon,
-				plot, "SHOW_ISOTOPE_PEAKS",
-				"Toggle displaying of predicted isotope peaks");
+		addSeparator();
 		
-		isotopePeakButton.setEnabled(false);
+		GUIUtils.addButton(this, null, isotopePeakIcon, masterFrame,
+				"SHOW_ISOTOPE_PEAKS",
+				"Toggle displaying of predicted isotope peaks");
+
+		addSeparator();
+		
+		GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+				"Setup ranges for axes");
 
 		addSeparator();
 
-		axesButton = GUIUtils.addButton(this, null, axesIcon, plot,
-				"SETUP_AXES", "Setup ranges for axes");
-
-		addSeparator();
-
-		GUIUtils.addButton(this, null, thicknessIcon, plot,
-				"THICKNESS", "Setup thickness of isotope bar");
+		GUIUtils.addButton(this, null, thicknessIcon, masterFrame, "THICKNESS",
+				"Setup thickness of isotope bar");
 	}
 
 	public void setCentroidButton(boolean centroid) {
@@ -101,18 +102,6 @@ public class SpectraToolBar extends JToolBar {
 			centroidContinuousButton.setIcon(continuousIcon);
 			dataPointsButton.setEnabled(false);
 		}
-	}
-
-	public void setPeaksButtonEnabled(boolean enabled) {
-		peaksButton.setEnabled(enabled);
-	}
-
-	public void setIsotopePeaksButtonEnabled(boolean enabled) {
-		isotopePeakButton.setEnabled(enabled);
-	}
-
-	public void setAxesButtonEnabled(boolean enabled) {
-		axesButton.setEnabled(enabled);
 	}
 
 }

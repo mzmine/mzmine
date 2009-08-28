@@ -19,57 +19,43 @@
 
 package net.sf.mzmine.modules.isotopes.isotopeprediction;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.util.logging.Logger;
-
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.data.Polarity;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class IsotopePatternCalculator implements MZmineModule, ActionListener {
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.formula.IsotopeContainer;
+import org.openscience.cdk.formula.IsotopePatternGenerator;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-	private static IsotopePatternCalculator myInstance;
+/**
+ * The reason why we introduce this as a module, rather than simple utility
+ * class, is to remember the parameter values.
+ */
+public class IsotopePatternCalculator implements MZmineModule {
 
-	private IsotopePatternCalculatorParameters parameters;
+	public static final double ELECTRON_MASS = 5.4857990943E-4;
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private Desktop desktop;
+	private static IsotopePatternCalculatorParameters parameters;
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
-
-		this.desktop = MZmineCore.getDesktop();
-
 		parameters = new IsotopePatternCalculatorParameters();
-
-		myInstance = this;
-
-		desktop
-				.addMenuItem(
-						MZmineMenu.ISOTOPES,
-						"Isotope pattern calculator",
-						"Calculation of isotope pattern using a given chemical formula",
-						KeyEvent.VK_C, false, this, null);
-
-	}
-
-	public static IsotopePatternCalculator getInstance() {
-		return myInstance;
 	}
 
 	public void setParameters(ParameterSet parameters) {
-		this.parameters = (IsotopePatternCalculatorParameters) parameters;
+		parameters = (IsotopePatternCalculatorParameters) parameters;
 	}
 
 	/**
@@ -79,46 +65,76 @@ public class IsotopePatternCalculator implements MZmineModule, ActionListener {
 		return parameters;
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		logger.finest("Opening a new spectra visualizer setup dialog");
+	/**
+	 * Returns
+	 */
+	public static IsotopePattern calculateIsotopePattern(
+			String molecularFormula, int charge, Polarity polarity) {
+
+		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+
+		IMolecularFormula formulaObject = MolecularFormulaManipulator
+				.getMolecularFormula(molecularFormula, builder);
+		
+		// TODO: check if the formula is not too big (>100 of a single atom?). if so, just cancel the prediction
+
+		// Set the minimum abundance of isotope to 0.1%
+		IsotopePatternGenerator generator = new IsotopePatternGenerator(0.001);
+
+		org.openscience.cdk.formula.IsotopePattern pattern = generator
+				.getIsotopes(formulaObject);
+
+		int numOfIsotopes = pattern.getNumberOfIsotopes();
+
+		DataPoint dataPoints[] = new DataPoint[numOfIsotopes];
+
+		for (int i = 0; i < numOfIsotopes; i++) {
+			IsotopeContainer isotope = pattern.getIsotope(i);
+
+			// For each unit of charge, we have to add or remove a mass of a
+			// single electron. If the charge is positive, we remove electron
+			// mass. If the charge is negative, we add it.
+			double mass = isotope.getMass()
+					+ (polarity.getSign() * -1 * charge * ELECTRON_MASS);
+
+			double mz = mass / charge;
+			double intensity = isotope.getIntensity();
+
+			dataPoints[i] = new SimpleDataPoint(mz, intensity);
+		}
+
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(charge,
+				dataPoints, IsotopePatternStatus.PREDICTED, molecularFormula);
+
+		return newPattern;
+
+	}
+
+	public static IsotopePattern showIsotopePredictionDialog() {
+
+		if (parameters == null) {
+			throw new IllegalStateException("Module not initialized");
+		}
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(), parameters);
+				"Please set the formula", parameters);
 
 		dialog.setVisible(true);
 
 		if (dialog.getExitCode() != ExitCode.OK)
-			return;
+			return null;
 
-		runTask(null);
+		String formula = (String) parameters
+				.getParameterValue(IsotopePatternCalculatorParameters.formula);
+		int charge = (Integer) parameters
+				.getParameterValue(IsotopePatternCalculatorParameters.charge);
+		Polarity polarity = (Polarity) parameters
+				.getParameterValue(IsotopePatternCalculatorParameters.polarity);
 
-	}
+		IsotopePattern predictedPattern = calculateIsotopePattern(formula,
+				charge, polarity);
 
-	public void showIsotopePatternCalculatorWindow(SpectraPlot plot) {
-
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(), parameters);
-
-		dialog.setVisible(true);
-
-		if (dialog.getExitCode() != ExitCode.OK)
-			return;
-
-		runTask(plot);
+		return predictedPattern;
 
 	}
-
-	public void runTask(SpectraPlot plot) {
-
-		Task task = new IsotopePatternCalculatorTask(
-				(IsotopePatternCalculatorParameters) parameters.clone(), plot);
-
-		MZmineCore.getTaskController().addTask(task);
-
-	}
-
-	public String toString() {
-		return "Isotope pattern calculator";
-	}
-
 }

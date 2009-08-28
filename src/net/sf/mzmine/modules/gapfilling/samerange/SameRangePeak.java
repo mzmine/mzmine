@@ -23,6 +23,7 @@ import java.util.TreeMap;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.util.CollectionUtils;
@@ -49,6 +50,9 @@ class SameRangePeak implements ChromatographicPeak {
 
 	// Number of most intense fragment scan
 	private int fragmentScanNumber, representativeScan;
+	
+	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	private IsotopePattern isotopePattern;
 
 	/**
 	 * Initializes empty peak for adding data points
@@ -238,4 +242,13 @@ class SameRangePeak implements ChromatographicPeak {
 	public int getMostIntenseFragmentScanNumber() {
 		return fragmentScanNumber;
 	}
+	
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
+	}
+	
 }

@@ -22,7 +22,7 @@ package net.sf.mzmine.data;
 public enum IsotopePatternStatus {
 
     /**
-     * Isotope pattern was detected by deisotope grouper
+     * Isotope pattern was detected by isotope grouper
      */
     DETECTED,
 
@@ -30,6 +30,5 @@ public enum IsotopePatternStatus {
      * Isotope pattern was predicted by Isotope pattern calculator
      */
     PREDICTED;
-    
     
 }

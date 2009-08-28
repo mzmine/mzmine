@@ -19,9 +19,18 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetectorPreviewPeak;
+import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -31,23 +40,75 @@ import org.jfree.data.xy.XYDataset;
  */
 class SpectraToolTipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat mzFormat = MZmineCore.getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	private NumberFormat percentFormat = new DecimalFormat("0.00");
 
-    /**
-     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-     *      int, int)
-     */
-    public String generateToolTip(XYDataset dataset, int series, int item) {
+	/**
+	 * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
+	 *      int, int)
+	 */
+	public String generateToolTip(XYDataset dataset, int series, int item) {
 
-        double intValue = dataset.getYValue(series, item);
-        double mzValue = dataset.getXValue(series, item);
+		double intValue = dataset.getYValue(series, item);
+		double mzValue = dataset.getXValue(series, item);
 
-        String tooltip = "m/z: " + mzFormat.format(mzValue) + "\nIntensity: "
-                + intensityFormat.format(intValue);
+		if (dataset instanceof ScanDataSet) {
 
-        return tooltip;
+			String tooltip = "m/z: " + mzFormat.format(mzValue)
+					+ "\nIntensity: " + intensityFormat.format(intValue);
 
-    }
+			return tooltip;
+		}
 
+		if (dataset instanceof PeakListDataSet) {
+
+			PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
+
+			ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
+
+			// In case this spectrum visualizer is not actually a visualizer,
+			// but only peak detection preview, show a simple tooltip
+			if (peak instanceof MassDetectorPreviewPeak) {
+				String tooltip = "Detected peak preview\nm/z: "
+						+ mzFormat.format(mzValue) + "\nIntensity: "
+						+ intensityFormat.format(intValue);
+				return tooltip;
+			}
+
+			PeakList peakList = peakListDataSet.getPeakList();
+			PeakListRow row = peakList.getPeakRow(peak);
+
+			String tooltip = "Peak: " + peak + "\nStatus: "
+					+ peak.getPeakStatus() + "\nPeak list row: " + row
+					+ "\nData point m/z: " + mzFormat.format(mzValue)
+					+ "\nData point intensity: "
+					+ intensityFormat.format(intValue);
+
+			return tooltip;
+
+		}
+
+		if (dataset instanceof IsotopesDataSet) {
+
+			IsotopesDataSet isotopeDataSet = (IsotopesDataSet) dataset;
+
+			IsotopePattern pattern = isotopeDataSet.getIsotopePattern();
+			double relativeIntensity = intValue
+					/ pattern.getHighestIsotope().getIntensity() * 100;
+
+			String tooltip = "Isotope pattern: " + pattern.getDescription()
+					+ "\nStatus: " + pattern.getStatus() + "\nData point m/z: "
+					+ mzFormat.format(mzValue) + "\nData point intensity: "
+					+ intensityFormat.format(intValue)
+					+ "\nRelative intensity: "
+					+ percentFormat.format(relativeIntensity) + "%";
+
+			return tooltip;
+
+		}
+
+		return null;
+
+	}
 }

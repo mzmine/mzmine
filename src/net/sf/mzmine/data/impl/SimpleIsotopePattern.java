@@ -19,281 +19,80 @@
 
 package net.sf.mzmine.data.impl;
 
-import java.text.Format;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
-
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
-import net.sf.mzmine.util.SortingDirection;
-import net.sf.mzmine.util.SortingProperty;
 
 /**
  * Simple implementation of IsotopePattern interface
  */
 public class SimpleIsotopePattern implements IsotopePattern {
 
-	private int charge = UNKNOWN_CHARGE;
-	private Set<ChromatographicPeak> peaks;
-	private ChromatographicPeak representativePeak;
-	private IsotopePatternStatus patternStatus = IsotopePatternStatus.DETECTED;
+	private int charge;
+	private DataPoint dataPoints[], highestIsotope;
+	private IsotopePatternStatus status;
+	private String description;
 
-	public SimpleIsotopePattern() {
-		peaks = new HashSet<ChromatographicPeak>();
-	}
+	public SimpleIsotopePattern(int charge, DataPoint dataPoints[],
+			IsotopePatternStatus status, String description) {
 
-	/**
-	 * @param charge
-	 * @param peaks
-	 * @param representativePeak
-	 */
-	public SimpleIsotopePattern(int charge, ChromatographicPeak peaks[],
-			ChromatographicPeak representativePeak) {
-		this();
+		assert dataPoints.length > 0;
+
+		highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
 		this.charge = charge;
-		for (ChromatographicPeak p : peaks)
-			this.peaks.add(p);
-		this.representativePeak = representativePeak;
+		this.dataPoints = dataPoints;
+		this.status = status;
+		this.description = description;
 	}
 
-	/**
-	 * Adds new isotope (peak) to this pattern
-	 * 
-	 * @param p
-	 *            Peak to add
-	 */
-	public void addPeak(ChromatographicPeak p) {
-		peaks.add(p);
-	}
-
-	/**
-	 * Returns the charge state of peaks in the pattern
-	 * 
-	 * @see net.sf.mzmine.data.IsotopePattern#getCharge()
-	 */
 	public int getCharge() {
 		return charge;
 	}
 
-	/**
-	 * @param charge
-	 *            The charge to set.
-	 */
-	public void setCharge(int charge) {
-		this.charge = charge;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.IsotopePattern#getOriginalPeaks()
-	 */
-	public ChromatographicPeak[] getOriginalPeaks() {
-		return peaks.toArray(new ChromatographicPeak[0]);
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.IsotopePattern#getRepresentativePeak()
-	 */
-	public ChromatographicPeak getRepresentativePeak() {
-		return representativePeak;
-	}
-
-	/**
-	 * @param representativePeak
-	 *            The representativePeak to set.
-	 */
-	public void setRepresentativePeak(ChromatographicPeak representativePeak) {
-		this.representativePeak = representativePeak;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
-	 */
-	public RawDataFile getDataFile() {
-		return representativePeak.getDataFile();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getMZ()
-	 */
-	public double getMZ() {
-		return representativePeak.getMZ();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getRT()
-	 */
-	public double getRT() {
-		return representativePeak.getRT();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getHeight()
-	 */
-	public double getHeight() {
-		return representativePeak.getHeight();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getArea()
-	 */
-	public double getArea() {
-		return representativePeak.getArea();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getScanNumbers()
-	 */
-	public int[] getScanNumbers() {
-		return representativePeak.getScanNumbers();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getPeakStatus()
-	 */
-	public PeakStatus getPeakStatus() {
-		return representativePeak.getPeakStatus();
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getRawDatapoint(int)
-	 */
-	public DataPoint getDataPoint(int scanNumber) {
-		return representativePeak.getDataPoint(scanNumber);
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return representativePeak.toString();
-	}
-
-	public Range getRawDataPointsIntensityRange() {
-		return representativePeak.getRawDataPointsIntensityRange();
-	}
-
-	public Range getRawDataPointsMZRange() {
-		return representativePeak.getRawDataPointsMZRange();
-	}
-
-	public Range getRawDataPointsRTRange() {
-		return representativePeak.getRawDataPointsRTRange();
-	}
-
-	public double getIsotopeMass() {
-		if (charge == UNKNOWN_CHARGE)
-			return representativePeak.getMZ();
-		else
-			return representativePeak.getMZ() * charge;
-	}
-
-	public void setMZ(double mz) {
-	}
-
 	public DataPoint[] getDataPoints() {
-
-		RawDataFile dataFile = representativePeak.getDataFile();
-		int repScanNumber = representativePeak.getRepresentativeScanNumber();
-		Scan scan = dataFile.getScan(repScanNumber);
-
-		return scan.getDataPoints();
-	}
-
-	public int getNumberOfDataPoints() {
-		return getDataPoints().length;
-	}
-
-	public int getRepresentativeScanNumber() {
-		return representativePeak.getRepresentativeScanNumber();
-	}
-
-	public String getIsotopeInfo() {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
-		Format timeFormat = MZmineCore.getRTFormat();
-		buf.append(mzFormat.format(getIsotopeMass()));
-		buf.append(" m/z @");
-		buf.append(timeFormat.format(getRT()));
-		return buf.toString();
+		return dataPoints;
 	}
 
 	public int getNumberOfIsotopes() {
-		return peaks.size();
+		return dataPoints.length;
 	}
 
-	public Range getIsotopeMzRange() {
+	public IsotopePatternStatus getStatus() {
+		return status;
+	}
 
-		Iterator<ChromatographicPeak> itr = peaks.iterator();
-		ChromatographicPeak cp;
-		double repRT = representativePeak.getMZ(), H = 1.0078f;
-		Range mzRange = new Range(repRT);
-		while (itr.hasNext()) {
-			cp = itr.next();
-			mzRange.extendRange(cp.getRawDataPointsMZRange());
+	public IsotopePattern normalizeTo(double normalizedValue) {
+
+		double maxIntensity = highestIsotope.getIntensity();
+
+		DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
+
+		for (int i = 0; i < dataPoints.length; i++) {
+
+			double mz = dataPoints[i].getMZ();
+			double intensity = dataPoints[i].getIntensity() / maxIntensity
+					* normalizedValue;
+
+			newDataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
-		// Increase range by +/- one hydrogen
-		if ((mzRange.getMin() > (repRT - H))
-				|| (mzRange.getMax() < (repRT + 2 * H))) {
-			double extendRange = mzRange.getMin() - H;
-			mzRange.extendRange(extendRange);
-			extendRange = mzRange.getMax() + 2 * H;
-			mzRange.extendRange(extendRange);
-		}
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(charge,
+				newDataPoints, status, description);
 
-		return mzRange;
+		return newPattern;
 	}
 
-	public IsotopePatternStatus getIsotopePatternStatus() {
-		return patternStatus;
+	public DataPoint getHighestIsotope() {
+		return highestIsotope;
 	}
 
-	public String getFormula() {
-		return null;
+	public String getDescription() {
+		return description;
 	}
 
-	public double getIsotopeHeight() {
-		return getRepresentativePeak().getHeight();
-	}
-
-	public DataPoint[] getIsotopes() {
-
-		TreeSet<DataPoint> dataPoints = new TreeSet<DataPoint>(
-				new DataPointSorter(SortingProperty.MZ,
-						SortingDirection.Ascending));
-		ChromatographicPeak cp;
-		Iterator<ChromatographicPeak> itr = peaks.iterator();
-
-		while (itr.hasNext()) {
-			cp = itr.next();
-			dataPoints.add(new SimpleDataPoint(cp.getMZ(), cp.getHeight()));
-		}
-
-		return dataPoints.toArray(new DataPoint[0]);
-	}
-
-	public int getMostIntenseFragmentScanNumber() {
-		return representativePeak.getMostIntenseFragmentScanNumber();
-	}
-
-	public DataPoint[] getDataPointsByMass(Range mzRange) {
-		return ScanUtils.selectDataPointsByMass(getDataPoints(), mzRange);
-	}
-
-	public DataPoint[] getDataPointsOverIntensity(double intensity) {
-		return ScanUtils.selectDataPointsOverIntensity(getDataPoints(),
-				intensity);
+	public String toString() {
+		return "Isotope pattern: " + description;
 	}
 
 }

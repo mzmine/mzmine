@@ -19,62 +19,47 @@
 
 package net.sf.mzmine.data;
 
-import net.sf.mzmine.util.Range;
-
 /**
- * This interface defines the properties of a deisotoped peak
+ * This interface defines an isotope pattern which can be attached to a peak
  */
-public interface IsotopePattern extends ChromatographicPeak, MzDataTable {
+public interface IsotopePattern {
 
-    public static final int UNKNOWN_CHARGE = -1;
+	/**
+	 * Returns the charge of peaks in the pattern. Returns 0 if the charge could
+	 * not be determined.
+	 */
+	public int getCharge();
 
-    /**
-     * Returns peaks that form this isotopic pattern
-     */
-    public ChromatographicPeak[] getOriginalPeaks();
+	/**
+	 * Returns the isotope pattern status.
+	 */
+	public IsotopePatternStatus getStatus();
 
-    /**
-     * Returns representative peak of this pattern
-     */
-    public ChromatographicPeak getRepresentativePeak();
+	/**
+	 * Returns the number of isotopes in this pattern
+	 */
+	public int getNumberOfIsotopes();
 
-    /**
-     * Returns the charge of peaks in the pattern
-     */
-    public int getCharge();
+	/**
+	 * Returns an array of m/z values and intensities of the isotopes. The size
+	 * of the array is same as returned by getNumberOfIsotopes()
+	 */
+	public DataPoint[] getDataPoints();
+	
+	/**
+	 * Returns the highest (in terms of intensity) isotope of this pattern.
+	 */
+	public DataPoint getHighestIsotope();
 
-    /**
-     * Returns the m/z range of the pattern
-     */
-    public Range getIsotopeMzRange();
+	/**
+	 * Creates a new isotope pattern which has same ratios but maximum intensity
+	 * is normalized to given value
+	 */
+	public IsotopePattern normalizeTo(double value);
+	
+	/**
+	 * Returns a description of this isotope pattern (formula, etc.) 
+	 */
+	public String getDescription();
 
-    /**
-     * Returns info about this pattern
-     */
-    public String getIsotopeInfo();
-
-    /**
-     * Returns the isotope pattern status.
-     */
-    public IsotopePatternStatus getIsotopePatternStatus();
-    
-    /**
-     * Returns an array of DataPoint[], that represents all isotopes of this pattern
-     */
-    public DataPoint[] getIsotopes();
-
-    /**
-     * Returns the number of isotopes in this pattern
-     */
-    public int getNumberOfIsotopes();
-
-    /**
-     * Returns the height of the most abundant isotope
-     */
-    public double getIsotopeHeight();
-
-    /**
-     * Returns the chemical formula that represents this pattern
-     */
-    public String getFormula();
 }

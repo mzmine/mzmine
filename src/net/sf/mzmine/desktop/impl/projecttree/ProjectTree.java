@@ -158,7 +158,7 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 		if (command.equals("SHOW_SPECTRA")) {
 			Scan selectedScans[] = getSelectedObjects(Scan.class);
 			for (Scan scan : selectedScans) {
-				SpectraVisualizer.showNewSpectrumWindow(scan);
+				// TODO oSpectraVisualizer.showNewSpectrumWindow(scan);
 			}
 		}
 
@@ -252,7 +252,7 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 
 		if (clickedObject instanceof Scan) {
 			Scan clickedScan = (Scan) clickedObject;
-			SpectraVisualizer.showNewSpectrumWindow(clickedScan);
+			// TODO SpectraVisualizer.showNewSpectrumWindow(clickedScan);
 		}
 
 		if (clickedObject instanceof PeakListRow) {

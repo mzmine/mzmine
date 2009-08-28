@@ -25,7 +25,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -285,12 +284,7 @@ class JoinAlignerTask implements Task {
 
                 // Add all non-existing identities from the original row to the
                 // aligned row
-                for (PeakIdentity identity : row.getPeakIdentities()) {
-                    if (!PeakUtils.containsIdentity(targetRow, identity))
-                        targetRow.addPeakIdentity(identity, false);
-                }
-                // TODO Handling of conflicting preferred identities
-                targetRow.setPreferredPeakIdentity(row.getPreferredPeakIdentity());
+                PeakUtils.copyPeakListRowProperties(row, targetRow);
 
                 processedRows++;
 

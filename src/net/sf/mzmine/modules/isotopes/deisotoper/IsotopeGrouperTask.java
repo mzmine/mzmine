@@ -24,9 +24,14 @@ import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
@@ -36,6 +41,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
@@ -67,7 +73,7 @@ class IsotopeGrouperTask implements Task {
 	// parameter values
 	private String suffix;
 	private double mzTolerance, rtTolerance;
-	private boolean monotonicShape, removeOriginal, chooseMostIntense;
+	private boolean monotonicShape, removeOriginal;
 	private int maximumCharge;
 	private IsotopeGrouperParameters parameters;
 
@@ -91,8 +97,6 @@ class IsotopeGrouperTask implements Task {
 				.getParameterValue(IsotopeGrouperParameters.monotonicShape);
 		maximumCharge = (Integer) parameters
 				.getParameterValue(IsotopeGrouperParameters.maximumCharge);
-		chooseMostIntense = (parameters
-				.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
 		removeOriginal = (Boolean) parameters
 				.getParameterValue(IsotopeGrouperParameters.autoRemove);
 
@@ -146,21 +150,21 @@ class IsotopeGrouperTask implements Task {
 		// We assume source peakList contains one datafile
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
-		// Create new deisotoped peakList
-		deisotopedPeakList = new SimplePeakList(peakList + " "
-				+ suffix, peakList.getRawDataFiles());
+		// Create a new deisotoped peakList
+		deisotopedPeakList = new SimplePeakList(peakList + " " + suffix,
+				peakList.getRawDataFiles());
 
 		// Collect all selected charge states
 		int charges[] = new int[maximumCharge];
 		for (int i = 0; i < maximumCharge; i++)
-			charges[i] = (i + 1);
+			charges[i] = i + 1;
 
-		// Sort peaks
+		// Sort peaks by descending height
 		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
 		Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 
-		// Loop through all peaks in the order of descending intensity
+		// Loop through all peaks
 		totalPeaks = sortedPeaks.length;
 
 		for (int ind = 0; ind < totalPeaks; ind++) {
@@ -196,40 +200,36 @@ class IsotopeGrouperTask implements Task {
 
 			}
 
+			PeakListRow oldRow = peakList.getPeakRow(aPeak);
+
 			// Verify the number of detected isotopes. If there is only one
 			// isotope, we skip this left the original peak in the peak list.
 			if (bestFitPeaks.size() == 1) {
-				deisotopedPeakList.addRow(peakList.getPeakRow(aPeak));
+				deisotopedPeakList.addRow(oldRow);
 				processedPeaks++;
 				continue;
 			}
 
-			// Assign peaks in best fitted pattern to same isotope pattern
-			SimpleIsotopePattern isotopePattern = new SimpleIsotopePattern();
-			isotopePattern.setCharge(bestFitCharge);
+			DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
+			for (int i = 0; i < isotopes.length; i++) {
+				ChromatographicPeak p = bestFitPeaks.get(i);
+				isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
 
-			double maxHeight = Double.MIN_VALUE, minMZ = Double.MAX_VALUE;
-
-			for (ChromatographicPeak p : bestFitPeaks) {
-				isotopePattern.addPeak(p);
-				if (p.getHeight() > maxHeight) {
-					if (chooseMostIntense)
-						isotopePattern.setRepresentativePeak(p);
-					maxHeight = p.getHeight();
-				}
-				if (p.getMZ() < minMZ) {
-					if (!chooseMostIntense)
-						isotopePattern.setRepresentativePeak(p);
-					minMZ = p.getMZ();
-				}
 			}
+			// Assign peaks in best fitted pattern to same isotope pattern
+			SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+					bestFitCharge, isotopes, IsotopePatternStatus.DETECTED,
+					aPeak.toString());
+
+			ChromatographicPeak newPeak = new SimpleChromatographicPeak(aPeak);
+			newPeak.setIsotopePattern(newPattern);
 
 			// keep old ID
-			int oldID = peakList.getPeakRow(
-					isotopePattern.getRepresentativePeak()).getID();
-			SimplePeakListRow newRow = new SimplePeakListRow(oldID);
-			newRow.addPeak(dataFile, isotopePattern);
 
+			int oldID = oldRow.getID();
+			SimplePeakListRow newRow = new SimplePeakListRow(oldID);
+			PeakUtils.copyPeakListRowProperties(oldRow, newRow);
+			newRow.addPeak(dataFile, newPeak);
 			deisotopedPeakList.addRow(newRow);
 
 			// remove all peaks already assigned to isotope pattern

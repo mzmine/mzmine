@@ -176,8 +176,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			} else {
 				ChromatographicPeak rowBestPeak = clickedPeakListRow
 						.getBestPeak();
-				IsotopePattern rowBestIsotopePattern = clickedPeakListRow
-						.getBestIsotopePattern();
+				ChromatographicPeak rowBestIsotopePattern = clickedPeakListRow
+						.getBestIsotopePatternPeak();
 				showIsotopePatternItem
 						.setEnabled(rowBestIsotopePattern != null);
 				showMSMSItem.setEnabled(rowBestPeak
@@ -386,21 +386,20 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		if (src == showIsotopePatternItem) {
 
-			IsotopePattern showPattern = null;
+			ChromatographicPeak showPeak = null;
 
 			if (clickedDataFile != null) {
-				ChromatographicPeak clickedPeak = clickedPeakListRow
-						.getPeak(clickedDataFile);
-				if (clickedPeak instanceof IsotopePattern)
-					showPattern = (IsotopePattern) clickedPeak;
-			} else
-				showPattern = clickedPeakListRow.getBestIsotopePattern();
+				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
+			} else {
+				showPeak = clickedPeakListRow.getBestIsotopePatternPeak();
+			}
 
-			if (showPattern == null)
+			if ((showPeak == null) || (showPeak.getIsotopePattern() == null))
 				return;
 
-			SpectraVisualizer.showIsotopePattern(showPattern.getDataFile(),
-					showPattern);
+			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
+					showPeak.getRepresentativeScanNumber(), showPeak
+							.getIsotopePattern());
 
 		}
 

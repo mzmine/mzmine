@@ -46,7 +46,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -438,9 +437,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 			} else if (visualizerType.equals("Isotope pattern")) {
 				for (int i = 0; i < selectedPeaks.length; i++) {
-					if (selectedPeaks[i] instanceof IsotopePattern)
-						SpectraVisualizer.showIsotopePattern(dataFiles[i],
-								(IsotopePattern) selectedPeaks[i]);
+					//if (selectedPeaks[i] instanceof IsotopePattern)
+						// TODO SpectraVisualizer.showIsotopePattern(dataFiles[i],(IsotopePattern) selectedPeaks[i]);
 				}
 			}
 			return;

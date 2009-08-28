@@ -22,7 +22,6 @@ package net.sf.mzmine.modules.normalization.standardcompound;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
@@ -37,6 +36,7 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.PeakUtils;
 
 public class StandardCompoundNormalizerTask implements Task {
 
@@ -130,10 +130,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
             // Copy comment and identification
             SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
-            normalizedRow.setComment(row.getComment());
-            for (PeakIdentity ident : row.getPeakIdentities())
-                normalizedRow.addPeakIdentity(ident, false);
-            normalizedRow.setPreferredPeakIdentity(row.getPreferredPeakIdentity());
+            PeakUtils.copyPeakListRowProperties(row, normalizedRow);
 
             // Get m/z and RT of the current row
             double mz = row.getAverageMZ();

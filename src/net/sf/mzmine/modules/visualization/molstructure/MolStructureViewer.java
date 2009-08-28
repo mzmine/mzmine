@@ -35,14 +35,13 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.components.MultiLineLabel;
 
 public class MolStructureViewer extends JInternalFrame {
 
 	private JSplitPane splitPane;
-	private JLabel statusLabel;
 
 	/**
 	 * 
@@ -82,10 +81,6 @@ public class MolStructureViewer extends JInternalFrame {
 		splitPane.setResizeWeight(0.5);
 
 		mainPanel.add(splitPane, BorderLayout.CENTER);
-
-		statusLabel = new JLabel();
-		GUIUtils.addMargin(statusLabel, 5);
-		mainPanel.add(statusLabel, BorderLayout.SOUTH);
 
 		add(mainPanel);
 
@@ -131,11 +126,12 @@ public class MolStructureViewer extends JInternalFrame {
 			String structure2D = InetUtils.retrieveData(url);
 			if (structure2D.length() < 10)
 				throw (new Exception("Structure string is empty"));
-			newComponent = new Structure2DComponent(structure2D, statusLabel);
+			newComponent = new Structure2DComponent(structure2D);
 		} catch (Exception e) {
 			String errorMessage = "Could not load 2D structure\n"
-					+ "Exception: " + e.toString();
+					+ "Exception: " + ExceptionUtils.exceptionToString(e);
 			newComponent = new MultiLineLabel(errorMessage);
+			e.printStackTrace();
 		}
 		splitPane.setLeftComponent(newComponent);
 		splitPane.setDividerLocation(500);
@@ -156,7 +152,7 @@ public class MolStructureViewer extends JInternalFrame {
 			newComponent = new Structure3DComponent(structure3D);
 		} catch (Exception e) {
 			String errorMessage = "Could not load 3D structure\n"
-					+ "Exception: " + e.toString();
+					+ "Exception: " + ExceptionUtils.exceptionToString(e);
 			newComponent = new MultiLineLabel(errorMessage, 10);
 		}
 		splitPane.setRightComponent(newComponent);

@@ -34,95 +34,68 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerParameters;
 
 public class ThicknessSetupDialog extends JDialog implements ActionListener {
 
-    private JFormattedTextField fieldThickness;
-    private JButton btnOK, btnApply, btnCancel;
-    private SpectraPlot plot;
-    private double oldThickness;
-    private static double MIN_THICKNESS = 0.00001d;
+	private JFormattedTextField fieldThickness;
+	private JButton btnOK, btnCancel;
+	private SpectraPlot plot;
 
-    public ThicknessSetupDialog(SpectraPlot plot) {
-        // Make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), true);
+	public ThicknessSetupDialog(SpectraPlot plot) {
+		// Make dialog modal
+		super(MZmineCore.getDesktop().getMainFrame(), true);
 
-        this.plot = plot;
-        oldThickness = plot.getBarThickness();
-        DecimalFormat defaultFormatter = new DecimalFormat("#.#####");
-        JLabel label = new JLabel("Thickness ");
-        fieldThickness = new JFormattedTextField(defaultFormatter);
-        fieldThickness.setValue(oldThickness);
-        // fieldThickness = new JTextField(Double.toString(oldThickness));
+		this.plot = plot;
+		double oldThickness = SpectraVisualizerParameters.getBarThickness();
+		DecimalFormat defaultFormatter = new DecimalFormat("#.######");
+		JLabel label = new JLabel("Thickness ");
+		fieldThickness = new JFormattedTextField(defaultFormatter);
+		fieldThickness.setValue(oldThickness);
 
-        // Create a panel for labels and fields
-        JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
-        pnlLabelsAndFields.add(label);
-        pnlLabelsAndFields.add(fieldThickness);
+		// Create a panel for labels and fields
+		JPanel pnlLabelsAndFields = new JPanel(new GridLayout(0, 2));
+		pnlLabelsAndFields.add(label);
+		pnlLabelsAndFields.add(fieldThickness);
 
-        // Create buttons
-        JPanel pnlButtons = new JPanel();
-        btnOK = new JButton("OK");
-        btnOK.addActionListener(this);
-        btnApply = new JButton("Apply");
-        btnApply.addActionListener(this);
-        btnCancel = new JButton("Cancel");
-        btnCancel.addActionListener(this);
+		// Create buttons
+		JPanel pnlButtons = new JPanel();
+		btnOK = new JButton("OK");
+		btnOK.addActionListener(this);
+		btnCancel = new JButton("Cancel");
+		btnCancel.addActionListener(this);
 
-        pnlButtons.add(btnOK);
-        pnlButtons.add(btnApply);
-        pnlButtons.add(btnCancel);
+		pnlButtons.add(btnOK);
+		pnlButtons.add(btnCancel);
 
-        // Put everything into a main panel
-        JPanel pnlAll = new JPanel(new BorderLayout());
-        pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(pnlAll);
+		// Put everything into a main panel
+		JPanel pnlAll = new JPanel(new BorderLayout());
+		pnlAll.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		add(pnlAll);
 
-        pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
-        pnlAll.add(pnlButtons, BorderLayout.SOUTH);
+		pnlAll.add(pnlLabelsAndFields, BorderLayout.CENTER);
+		pnlAll.add(pnlButtons, BorderLayout.SOUTH);
 
-        pack();
+		pack();
 
-        setTitle("Please set value of thickness");
-        setResizable(false);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setTitle("Please set value of thickness");
+		setResizable(false);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
-    public void actionPerformed(ActionEvent ae) {
-        Object src = ae.getSource();
+	public void actionPerformed(ActionEvent ae) {
 
-        if (src == btnOK) {
-            if (setValuesToPlot()) {
-                dispose();
-            }
-        }
+		Object src = ae.getSource();
 
-        if (src == btnApply) {
-            if (!setValuesToPlot())
-                fieldThickness.setValue(oldThickness);
-        }
+		if (src == btnOK) {
+			Number numberValue = (Number) fieldThickness.getValue();
+			double newThickness = numberValue.doubleValue();
+			SpectraVisualizerParameters.setBarThickness(newThickness);
+			plot.thicknessUpdated();
+		}
 
-        if (src == btnCancel) {
-            plot.setBarThickness(oldThickness);
-            dispose();
-        }
-    }
-
-    private boolean setValuesToPlot() {
-
-        double thickness = Double.parseDouble(fieldThickness.getValue().toString());
-
-        if (thickness >= MIN_THICKNESS) {
-            plot.setBarThickness(thickness);
-        } else {
-            MZmineCore.getDesktop().displayMessage(
-                    "Invalid value for thickness, must be greater or equal than "
-                            + MIN_THICKNESS);
-            return false;
-        }
-
-        return true;
-    }
+		dispose();
+	}
 
 }

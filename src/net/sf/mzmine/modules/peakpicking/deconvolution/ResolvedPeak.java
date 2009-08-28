@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -58,6 +59,9 @@ public class ResolvedPeak implements ChromatographicPeak {
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
 
+	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	private IsotopePattern isotopePattern;
+	
 	/**
 	 * Initializes this peak using data points from a given chromatogram -
 	 * regionStart marks the index of the first data point (inclusive),
@@ -205,6 +209,14 @@ public class ResolvedPeak implements ChromatographicPeak {
 
 	public RawDataFile getDataFile() {
 		return dataFile;
+	}
+	
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 
 }

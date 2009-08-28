@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -52,6 +53,9 @@ public class EMGPeakModel implements ChromatographicPeak {
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
 	private TreeMap<Integer, DataPoint> dataPointsMap;
+	
+	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	private IsotopePattern isotopePattern;
 
 	public double getArea() {
 		return area;
@@ -107,6 +111,14 @@ public class EMGPeakModel implements ChromatographicPeak {
 
 	public String toString() {
 		return "EMG peak " + PeakUtils.peakToString(this);
+	}
+	
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 
 	public EMGPeakModel(ChromatographicPeak originalDetectedShape,

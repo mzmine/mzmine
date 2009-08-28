@@ -32,6 +32,8 @@ public class DBCompound implements PeakIdentity {
 	private double isotopePatternScore;
 	private IsotopePattern isotopePattern;
 
+	
+
 	/**
 	 * @param compoundID
 	 * @param compoundName
@@ -123,24 +125,6 @@ public class DBCompound implements PeakIdentity {
 	}
 
 	/**
-	 * Returns the isotope pattern of this compound identity.
-	 * 
-	 * @return isotopePattern
-	 */
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	/**
-	 * Assign an isotope pattern to this compound identity.
-	 * 
-	 * @param isotopePattern
-	 */
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-
-	/**
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
@@ -151,5 +135,13 @@ public class DBCompound implements PeakIdentity {
 		return compoundName + "\nFormula: " + compoundFormula + "\nID: "
 				+ compoundID + "\nIdentification method: "
 				+ getIdentificationMethod();
+	}
+	
+	public IsotopePattern getIsotopePattern() {
+		return isotopePattern;
+	}
+
+	public void setIsotopePattern(IsotopePattern isotopePattern) {
+		this.isotopePattern = isotopePattern;
 	}
 }

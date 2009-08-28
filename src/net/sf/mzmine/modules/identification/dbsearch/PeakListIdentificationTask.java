@@ -30,12 +30,13 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
-import net.sf.mzmine.modules.isotopes.isotopeprediction.FormulaAnalyzer;
+import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -57,7 +58,6 @@ public class PeakListIdentificationTask implements Task {
 	private IonizationType ionType;
 	private boolean isotopeFilter = false;
 	private double isotopeScoreThreshold;
-	private FormulaAnalyzer analyzer = new FormulaAnalyzer();
 	private DBGateway gateway;
 
 	/**
@@ -189,7 +189,8 @@ public class PeakListIdentificationTask implements Task {
 
 		int charge = 1;
 
-		IsotopePattern rowIsotopePattern = row.getBestIsotopePattern();
+		IsotopePattern rowIsotopePattern = row.getBestIsotopePatternPeak()
+				.getIsotopePattern();
 		if (rowIsotopePattern != null) {
 			if (rowIsotopePattern.getCharge() != 0)
 				charge = rowIsotopePattern.getCharge();
@@ -213,15 +214,24 @@ public class PeakListIdentificationTask implements Task {
 			// If required, check isotope score
 			if ((isotopeFilter) && (rowIsotopePattern != null)) {
 
-				// Generate IsotopePattern for this compound
-				IsotopePattern compoundIsotopePattern = analyzer
-						.getIsotopePattern(compound.getCompoundFormula(), 0.01,
-								charge, ionType.isPositiveCharge(), 0, true,
-								true, ionType);
-				compound.setIsotopePattern(compoundIsotopePattern);
+				// First modify the formula according to polarity - for
+				// negative, remove one hydrogen; for positive, add one hydrogen
+				String adjustedFormula = FormulaUtils.ionizeFormula(compound
+						.getCompoundFormula(), ionType.getPolarity());
 
-				double score = IsotopePatternScoreCalculator.getScore(
-						rowIsotopePattern, compoundIsotopePattern);
+				logger
+						.finest("Calculating isotope pattern for compound formula "
+								+ compound.getCompoundFormula()
+								+ " adjusted to " + adjustedFormula);
+
+				// Generate IsotopePattern for this compound
+				IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
+						.calculateIsotopePattern(adjustedFormula, charge,
+								ionType.getPolarity());
+
+				double score = IsotopePatternScoreCalculator
+						.getSimilarityScore(rowIsotopePattern,
+								compoundIsotopePattern);
 
 				compound.setIsotopePatternScore(score);
 

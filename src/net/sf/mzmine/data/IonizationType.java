@@ -49,8 +49,8 @@ public enum IonizationType {
 		return addedMass;
 	}
 
-	public boolean isPositiveCharge() {
-		return addedMass > 0;
+	public Polarity getPolarity() {
+		return addedMass > 0 ? Polarity.Positive : Polarity.Negative;
 	}
 
 	public double getMass() {
