@@ -17,11 +17,25 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop;
+package net.sf.mzmine.modules.io.projectsave;
 
-public enum MZmineMenu {
-    PROJECTIO, PROJECT, RAWDATA, RAWDATAFILTERING, PEAKPICKING, GAPFILLING, 
-    ISOTOPES, PEAKLISTFILTERING, ALIGNMENT, NORMALIZATION, 
-    IDENTIFICATION, PEAKLISTEXPORT, VISUALIZATIONRAWDATA, 
-    VISUALIZATIONPEAKLIST, DATAANALYSIS, HELPSYSTEM
-};
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
+
+public class ProjectSaverParameters extends SimpleParameterSet {
+
+	public static final Parameter lastDirectory = new SimpleParameter(
+			ParameterType.STRING, "Last open directory",
+			"Last directory used to load project");
+
+	public static final Parameter projectFile = new SimpleParameter(
+			ParameterType.FILE_NAME, "Project file to save",
+			"File name of project to be saved");
+
+	public ProjectSaverParameters() {
+		super(new Parameter[] { lastDirectory, projectFile });
+	}
+
+}

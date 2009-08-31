@@ -98,8 +98,10 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
 	public void addTasks(Task tasks[], TaskPriority priority) {
 
-		assert tasks != null;
-		assert tasks.length >= 1;
+		// It can sometimes happen during a batch that no tasks are actually
+		// executed --> tasks[] array may be empty
+		if ((tasks == null) || (tasks.length == 0))
+			return;
 
 		for (Task task : tasks) {
 			WrappedTask newQueueEntry = new WrappedTask(task, priority);
@@ -117,7 +119,6 @@ public class TaskControllerImpl implements TaskController, Runnable {
 				taskWindow.setVisible(true);
 			}
 		});
-		
 
 	}
 

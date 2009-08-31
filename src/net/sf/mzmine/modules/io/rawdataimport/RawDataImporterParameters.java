@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.io.rawdataimport;
 
 import java.io.File;
+import java.util.Arrays;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -28,42 +29,35 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 public class RawDataImporterParameters extends SimpleParameterSet {
 
-    private File fileNames[];
+	private File fileNames[];
 
-    public static final Parameter importDirectory = new SimpleParameter(
-            ParameterType.STRING, "Last open directory",
-            "Last directory used to import files");
+	public static final Parameter lastDirectory = new SimpleParameter(
+			ParameterType.STRING, "Last open directory",
+			"Last directory used to import files");
 
-    public static final Parameter lastFileNames = new SimpleParameter(
-            ParameterType.STRING, "Files to import", "");
+	public RawDataImporterParameters() {
+		super(new Parameter[] { lastDirectory });
+		fileNames = new File[0];
+	}
 
-    public RawDataImporterParameters() {
-        super(new Parameter[] { importDirectory, lastFileNames });
-        fileNames = new File[0];
-    }
+	public File[] getFileNames() {
+		return fileNames;
+	}
 
-    public File[] getFileNames() {
-        return fileNames;
-    }
+	public void setFileNames(File[] fileNames) {
+		this.fileNames = fileNames;
+	}
 
-    public void setFileNames(File[] fileNames) {
-        this.fileNames = fileNames;
-
-        String files = "  ";
-        if (fileNames != null) {
-            for (File f : fileNames) {
-                files += f.getName() + " ";
-            }
-        }
-        this.setParameterValue(lastFileNames, files);
-    }
-    
-    public RawDataImporterParameters clone() {
+	public RawDataImporterParameters clone() {
 		RawDataImporterParameters newParams = (RawDataImporterParameters) super
 				.clone();
 		if (fileNames != null)
 			newParams.fileNames = fileNames.clone();
 		return newParams;
+	}
+
+	public String toString() {
+		return "Files: " + Arrays.toString(fileNames);
 	}
 
 }

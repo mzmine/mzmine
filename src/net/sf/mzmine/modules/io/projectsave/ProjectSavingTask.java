@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project.io;
+package net.sf.mzmine.modules.io.projectsave;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,8 +49,8 @@ import de.schlichtherle.util.zip.ZipOutputStream;
  */
 public class ProjectSavingTask implements Task {
 
-	static final String VERSION_FILENAME = "MZMINE_VERSION";
-	static final String CONFIG_FILENAME = "configuration.xml";
+	public static final String VERSION_FILENAME = "MZMINE_VERSION";
+	public static final String CONFIG_FILENAME = "configuration.xml";
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -163,20 +163,26 @@ public class ProjectSavingTask implements Task {
 			currentStage++;
 			saveVersion(zipStream);
 			saveConfiguration(zipStream);
-			if (status == TaskStatus.CANCELED)
-				return;
+			if (status == TaskStatus.CANCELED) {
+				zipStream.close();
+				tempFile.delete();
+			}
 
 			// Stage 2 - save RawDataFile objects
 			currentStage++;
 			saveRawDataFiles(zipStream);
-			if (status == TaskStatus.CANCELED)
-				return;
+			if (status == TaskStatus.CANCELED) {
+				zipStream.close();
+				tempFile.delete();
+			}
 
 			// Stage 3 - save PeakList objects
 			currentStage++;
 			savePeakLists(zipStream);
-			if (status == TaskStatus.CANCELED)
-				return;
+			if (status == TaskStatus.CANCELED) {
+				zipStream.close();
+				tempFile.delete();
+			}
 
 			// Stage 4 - finish and close the temporary ZIP file
 			currentStage++;
@@ -184,13 +190,15 @@ public class ProjectSavingTask implements Task {
 			zipStream.close();
 
 			// Final check for cancel
-			if (status == TaskStatus.CANCELED)
-				return;
+			if (status == TaskStatus.CANCELED) {
+				tempFile.delete();
+			}
 
 			// Move the temporary ZIP file to the final location
 			if (saveFile.exists() && !saveFile.delete()) {
 				throw new IOException("Could not delete old file " + saveFile);
 			}
+			
 			boolean renameOK = tempFile.renameTo(saveFile);
 			if (!renameOK) {
 				throw new IOException("Could not move the temporary file "
@@ -275,6 +283,10 @@ public class ProjectSavingTask implements Task {
 		RawDataFile rawDataFiles[] = savedProject.getDataFiles();
 
 		for (int i = 0; i < rawDataFiles.length; i++) {
+			
+			if (status == TaskStatus.CANCELED)
+				return;
+			
 			currentSavedObjectName = rawDataFiles[i].getName();
 			rawDataFileSaveHandler.writeRawDataFile(rawDataFiles[i], i + 1);
 			dataFilesIDMap.put(rawDataFiles[i], i + 1);
@@ -295,6 +307,10 @@ public class ProjectSavingTask implements Task {
 		PeakList peakLists[] = savedProject.getPeakLists();
 
 		for (int i = 0; i < peakLists.length; i++) {
+			
+			if (status == TaskStatus.CANCELED)
+				return;
+			
 			currentSavedObjectName = peakLists[i].getName();
 			peakListSaveHandler.savePeakList(peakLists[i], i + 1,
 					dataFilesIDMap);
@@ -302,6 +318,6 @@ public class ProjectSavingTask implements Task {
 	}
 
 	public Object[] getCreatedObjects() {
-		throw new UnsupportedOperationException("Not supported.");
+		return null;
 	}
 }

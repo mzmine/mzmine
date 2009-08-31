@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project.io;
+package net.sf.mzmine.modules.io.projectload;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.io.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;
@@ -138,20 +140,22 @@ public class ProjectOpeningTask implements Task {
 			currentStage++;
 			loadVersion(zipFile);
 			loadConfiguration(zipFile);
-			if (status == TaskStatus.CANCELED)
+			if (status == TaskStatus.CANCELED) {
+				zipFile.close();
 				return;
-
+			}
+			
 			// Stage 2 - load raw data files
 			currentStage++;
 			loadRawDataFiles(zipFile);
-			if (status == TaskStatus.CANCELED)
+			if (status == TaskStatus.CANCELED) {
+				zipFile.close();
 				return;
-
+			}
+			
 			// Stage 3 - load peak lists
 			currentStage++;
 			loadPeakLists(zipFile);
-			if (status == TaskStatus.CANCELED)
-				return;
 
 			// Stage 4 - finish and close the project ZIP file
 			currentStage++;
@@ -185,8 +189,6 @@ public class ProjectOpeningTask implements Task {
 			if (status == TaskStatus.CANCELED)
 				return;
 
-			e.printStackTrace();
-			
 			status = TaskStatus.ERROR;
 			errorMessage = "Failed opening project: "
 					+ ExceptionUtils.exceptionToString(e);
@@ -350,6 +352,13 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	public Object[] getCreatedObjects() {
-		throw new UnsupportedOperationException("Not supported.");
+		ArrayList<Object> newObjects = new ArrayList<Object>();
+		for (RawDataFile file : newProject.getDataFiles()) {
+			newObjects.add(file);
+		}
+		for (PeakList peakList : newProject.getPeakLists()) {
+			newObjects.add(peakList);
+		}
+		return newObjects.toArray();
 	}
 }

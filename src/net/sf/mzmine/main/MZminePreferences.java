@@ -46,7 +46,6 @@ public class MZminePreferences implements StorableParameterSet {
 	public static final String Y_ELEMENT_NAME = "y";
 	public static final String WIDTH_ELEMENT_NAME = "width";
 	public static final String HEIGHT_ELEMENT_NAME = "height";
-	public static final String LAST_PROJECT_PATH_ELEMENT_NAME = "lastProjectDirectory";
 	public static final String THREADS_ELEMENT_NAME = "threads";
 	public static final String PROXY = "proxy_settings";
 	public static final String PROXY_ADDRESS = "proxy_address";
@@ -56,7 +55,6 @@ public class MZminePreferences implements StorableParameterSet {
 
 	private NumberFormatter mzFormat, rtFormat, intensityFormat;
 	private int mainWindowX, mainWindowY, mainWindowWidth, mainWindowHeight;
-	private String lastOpenProjectPath = "";
 
 	private boolean autoNumberOfThreads = true;
 	private int manualNumberOfThreads = 2;
@@ -91,21 +89,6 @@ public class MZminePreferences implements StorableParameterSet {
 	 */
 	public NumberFormatter getRTFormat() {
 		return rtFormat;
-	}
-
-	/**
-	 * @param lastOpenProjectPath
-	 *            The lastOpenProjectPath to set.
-	 */
-	public void setLastOpenProjectPath(String lastOpenPath) {
-		this.lastOpenProjectPath = lastOpenPath;
-	}
-
-	/**
-	 * @return Returns the lastOpenPath.
-	 */
-	public String getLastOpenProjectPath() {
-		return lastOpenProjectPath;
 	}
 
 	/**
@@ -153,9 +136,6 @@ public class MZminePreferences implements StorableParameterSet {
 				String.valueOf(mainWindowWidth));
 		mainWindowElement.addElement(HEIGHT_ELEMENT_NAME).setText(
 				String.valueOf(mainWindowHeight));
-
-		element.addElement(LAST_PROJECT_PATH_ELEMENT_NAME).setText(
-				lastOpenProjectPath);
 
 		Element threadsElement = element.addElement(THREADS_ELEMENT_NAME);
 		if (autoNumberOfThreads)
@@ -220,9 +200,6 @@ public class MZminePreferences implements StorableParameterSet {
 			newState |= Frame.MAXIMIZED_VERT;
 
 		mainWindow.setExtendedState(newState);
-
-		lastOpenProjectPath = element
-				.elementText(LAST_PROJECT_PATH_ELEMENT_NAME);
 
 		Element threadsElement = element.element(THREADS_ELEMENT_NAME);
 		if (threadsElement != null) {

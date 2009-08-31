@@ -156,7 +156,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 		JFileChooser fileChooser = new JFileChooser();
 
 		String path = (String) parameters
-				.getParameterValue(RawDataImporterParameters.importDirectory);
+				.getParameterValue(RawDataImporterParameters.lastDirectory);
 		if (path != null)
 			fileChooser.setCurrentDirectory(new File(path));
 		fileChooser.setMultiSelectionEnabled(true);
@@ -188,7 +188,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 			File[] selectedFiles = fileChooser.getSelectedFiles();
 			parameters.setFileNames(selectedFiles);
 			parameters.setParameterValue(
-					RawDataImporterParameters.importDirectory, fileChooser
+					RawDataImporterParameters.lastDirectory, fileChooser
 							.getCurrentDirectory().toString());
 
 			return ExitCode.OK;

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project.io;
+package net.sf.mzmine.modules.io.projectsave;
 
 import java.io.File;
 import java.io.FileInputStream;
