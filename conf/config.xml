@@ -16,7 +16,7 @@
     <module class="net.sf.mzmine.modules.io.projectsave.ProjectSaver"> 
       <parameters>
         <parameter name="Last open directory" type="STRING">/tmp</parameter>
-        <parameter name="Project file to save" type="FILE_NAME">/tmp/zaaa.mzmine</parameter>
+        <parameter name="Project file to save" type="FILE_NAME">/tmp/testis.mzmine</parameter>
       </parameters> 
     </module>  
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder"> 
@@ -109,7 +109,7 @@
       <parameters>
         <parameter name="MS level" type="INTEGER">1</parameter>
         <parameter name="Retention time" type="RANGE">0.577-2399.4</parameter>
-        <parameter name="m/z range" type="RANGE">100.00403594970703-500.0</parameter>
+        <parameter name="m/z range" type="RANGE">100.00403594970703-1000.0153198242188</parameter>
         <parameter name="Intensity threshold" type="DOUBLE">0.0</parameter>
         <parameter name="Top peaks threshold" type="INTEGER">9</parameter>
         <parameter name="Top peaks threshold in the displayed area" type="INTEGER">0</parameter>
@@ -517,7 +517,7 @@
     </format>
     <format type="Intensity">
       <type>NUMBER</type>
-      <pattern>#0.0</pattern>
+      <pattern>0.0E0</pattern>
     </format>
     <mainwindow>
       <x>0</x>

@@ -38,6 +38,7 @@ import javax.xml.transform.stream.StreamResult;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
@@ -349,6 +350,30 @@ class PeakListSaveHandler {
 
 		int scanNumbers[] = peak.getScanNumbers();
 
+		// <ISOTOPE_PATTERN>
+		IsotopePattern isotopePattern = peak.getIsotopePattern();
+		if (isotopePattern != null) {
+			atts.addAttribute("", "", PeakListElementName.STATUS
+					.getElementName(), "CDATA", String.valueOf(isotopePattern
+					.getStatus()));
+			atts.addAttribute("", "", PeakListElementName.CHARGE
+					.getElementName(), "CDATA", String.valueOf(isotopePattern
+					.getCharge()));
+			atts
+					.addAttribute("", "", PeakListElementName.DESCRIPTION
+							.getElementName(), "CDATA", isotopePattern
+							.getDescription());
+			hd.startElement("", "", PeakListElementName.ISOTOPE_PATTERN
+					.getElementName(), atts);
+			atts.clear();
+
+			fillIsotopePatternElement(isotopePattern, hd);
+
+			hd.endElement("", "", PeakListElementName.ISOTOPE_PATTERN
+					.getElementName());
+
+		}
+
 		// <MZPEAK>
 		atts.addAttribute("", "",
 				PeakListElementName.QUANTITY.getElementName(), "CDATA", String
@@ -407,6 +432,24 @@ class PeakListSaveHandler {
 		hd.endElement("", "", PeakListElementName.HEIGHT.getElementName());
 
 		hd.endElement("", "", PeakListElementName.MZPEAKS.getElementName());
+	}
+
+	private void fillIsotopePatternElement(IsotopePattern isotopePattern,
+			TransformerHandler hd) throws SAXException, IOException {
+
+		AttributesImpl atts = new AttributesImpl();
+
+		DataPoint isotopes[] = isotopePattern.getDataPoints();
+
+		for (DataPoint isotope : isotopes) {
+			hd.startElement("", "", PeakListElementName.ISOTOPE
+					.getElementName(), atts);
+			String isotopeString = isotope.getMZ() + ":"
+					+ isotope.getIntensity();
+			hd.characters(isotopeString.toCharArray(), 0, isotopeString
+					.length());
+			hd.endElement("", "", PeakListElementName.ISOTOPE.getElementName());
+		}
 	}
 
 	/**

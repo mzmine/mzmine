@@ -32,6 +32,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakStatus;
@@ -39,6 +40,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleIsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
@@ -78,6 +80,11 @@ class PeakListOpenHandler extends DefaultHandler {
 	private Vector<String> appliedMethods, appliedMethodParameters;
 	private Vector<RawDataFile> currentPeakListDataFiles;
 
+	private Vector<DataPoint> currentIsotopes;
+	private IsotopePatternStatus currentIsotopePatternStatus;
+	private int currentIsotopePatternCharge;
+	private String currentIsotopePatternDescription;
+
 	private Hashtable<Integer, RawDataFile> dataFilesIDMap;
 
 	private int parsedRows, totalRows;
@@ -89,6 +96,7 @@ class PeakListOpenHandler extends DefaultHandler {
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();
 		currentPeakListDataFiles = new Vector<RawDataFile>();
+		currentIsotopes = new Vector<DataPoint>();
 	}
 
 	/**
@@ -175,6 +183,17 @@ class PeakListOpenHandler extends DefaultHandler {
 		if (qName.equals(PeakListElementName.MZPEAKS.getElementName())) {
 			numOfMZpeaks = Integer.parseInt(attrs
 					.getValue(PeakListElementName.QUANTITY.getElementName()));
+		}
+
+		// <ISOTOPE_PATTERN>
+		if (qName.equals(PeakListElementName.ISOTOPE_PATTERN.getElementName())) {
+			currentIsotopes.clear();
+			currentIsotopePatternStatus = IsotopePatternStatus.valueOf(attrs
+					.getValue(PeakListElementName.STATUS.getElementName()));
+			currentIsotopePatternCharge = Integer.valueOf(attrs
+					.getValue(PeakListElementName.CHARGE.getElementName()));
+			currentIsotopePatternDescription = attrs
+					.getValue(PeakListElementName.DESCRIPTION.getElementName());
 		}
 
 	}
@@ -331,6 +350,16 @@ class PeakListOpenHandler extends DefaultHandler {
 					status, representativeScan, fragmentScan, peakRTRange,
 					peakMZRange, peakIntensityRange);
 
+			if (currentIsotopes.size() > 0) {
+				SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+						currentIsotopePatternCharge, currentIsotopes
+								.toArray(new DataPoint[0]),
+						currentIsotopePatternStatus,
+						currentIsotopePatternDescription);
+				peak.setIsotopePattern(newPattern);
+				currentIsotopes.clear();
+			}
+
 			buildingRow.addPeak(dataFile, peak);
 
 		}
@@ -350,6 +379,16 @@ class PeakListOpenHandler extends DefaultHandler {
 			buildingPeakList.addRow(buildingRow);
 			buildingRow = null;
 			parsedRows++;
+		}
+
+		// <ISOTOPE>
+		if (qName.equals(PeakListElementName.ISOTOPE.getElementName())) {
+			String text = getTextOfElement();
+			String items[] = text.split(":");
+			double mz = Double.valueOf(items[0]);
+			double intensity = Double.valueOf(items[1]);
+			DataPoint isotope = new SimpleDataPoint(mz, intensity);
+			currentIsotopes.add(isotope);
 		}
 
 		if (qName.equals(PeakListElementName.METHOD_NAME.getElementName())) {
