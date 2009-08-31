@@ -22,10 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -36,9 +33,9 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -54,7 +51,6 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		ActionListener{
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 	// Dialog components
 	private JPanel pnlPlotXY,  peakListsPanel;
 	private JCheckBox preview;

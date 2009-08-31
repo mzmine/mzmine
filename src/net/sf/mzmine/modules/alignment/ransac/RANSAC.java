@@ -18,12 +18,14 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
-import Jama.Matrix;
 import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.apache.commons.math.stat.regression.SimpleRegression;
+
+import Jama.Matrix;
 
 public class RANSAC {
 
@@ -45,10 +47,8 @@ public class RANSAC {
 	private int AlsoNumber;
 	private double numRatePoints,  t;
 	private boolean isCurve;
-	private RansacAlignerParameters parameters;
 
 	public RANSAC(RansacAlignerParameters parameters) {
-		this.parameters = parameters;
 
 		this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
 

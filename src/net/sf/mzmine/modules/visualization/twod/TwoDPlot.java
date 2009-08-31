@@ -27,6 +27,9 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -50,7 +53,7 @@ class TwoDPlot extends ChartPanel {
 	// crosshair stroke
 	private static final BasicStroke crossHairStroke = new BasicStroke(1,
 			BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
-			5, 3 }, 0);
+					5, 3 }, 0);
 
 	private RawDataFile rawDataFile;
 	private Range rtRange, mzRange;
@@ -137,17 +140,15 @@ class TwoDPlot extends ChartPanel {
 
 		peakDataRenderer = new PeakDataRenderer();
 
-		/*
-		 * add items to popup menu MenuItem annotationsMenuItem,
-		 * dataPointsMenuItem, plotTypeMenuItem; // TODO plotTypeMenuItem = new
-		 * JMenuItem("Toggle centroid/continuous mode");
-		 * plotTypeMenuItem.addActionListener(visualizer);
-		 * plotTypeMenuItem.setActionCommand("TOGGLE_PLOT_MODE");
-		 * add(plotTypeMenuItem);
-		 * 
-		 * JPopupMenu popupMenu = getPopupMenu(); popupMenu.addSeparator();
-		 * popupMenu.add(plotTypeMenuItem);
-		 */
+		JMenuItem plotTypeMenuItem = new JMenuItem(
+				"Toggle centroid/continuous mode");
+		plotTypeMenuItem.addActionListener(visualizer);
+		plotTypeMenuItem.setActionCommand("SWITCH_PLOTMODE");
+		add(plotTypeMenuItem);
+
+		JPopupMenu popupMenu = getPopupMenu();
+		popupMenu.addSeparator();
+		popupMenu.add(plotTypeMenuItem);
 
 	}
 
@@ -169,8 +170,8 @@ class TwoDPlot extends ChartPanel {
 	void setPeaksNotVisible() {
 
 		if (plot.getDataset(1) == null)
-			return;       
-		plot.setRenderer(1, null);        
+			return;
+		plot.setRenderer(1, null);
 	}
 
 	PlotMode getPlotMode() {
@@ -188,7 +189,7 @@ class TwoDPlot extends ChartPanel {
 
 		plot.setDataset(1, peaksDataSet);
 		plot.setRenderer(1, peakDataRenderer);
-	}   
+	}
 
 	public String getToolTipText(MouseEvent event) {
 
@@ -206,18 +207,18 @@ class TwoDPlot extends ChartPanel {
 					yAxisEdge);
 
 			tooltip = "Retention time: " + rtFormat.format(rt) + "\nm/z: "
-			+ mzFormat.format(mz);
+					+ mzFormat.format(mz);
 		}
 
 		return tooltip;
 
 	}
 
-	public void showPeaksTooltips(boolean mode){
-		if(mode){
+	public void showPeaksTooltips(boolean mode) {
+		if (mode) {
 			PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
 			this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
-		}else{
+		} else {
 			this.peakDataRenderer.setBaseToolTipGenerator(null);
 		}
 	}

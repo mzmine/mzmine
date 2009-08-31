@@ -58,7 +58,6 @@ public class PeakUtils {
 	 * 
 	 * @return True if identities match between rows
 	 * 
-	 *         TODO Compare using IDs instead of names when possible
 	 */
 	public static boolean compareIdentities(PeakListRow row1, PeakListRow row2) {
 
@@ -106,7 +105,6 @@ public class PeakUtils {
 	/**
 	 * Returns true if peak list row contains a compound identity matching to id
 	 * 
-	 * TODO Compare IDs instead of names when possible
 	 */
 	public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
 

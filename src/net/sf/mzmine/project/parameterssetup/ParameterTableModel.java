@@ -69,7 +69,6 @@ public class ParameterTableModel extends
 	
 	@Override
 	public void setValueAt(Object value, int row, int col) {
-		// TODO Auto-generated method stub
 		if (col==0) return;
 		Parameter p = parameters[col-1];
 		Object[] values = parameterValues.get(p);
