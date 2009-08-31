@@ -111,6 +111,10 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 		return peakThresholdParameters;
 	}
 
+	public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
+		show2DVisualizerSetupDialog(dataFile, null, null);
+	}
+
 	public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
 			Range mzRange, Range rtRange) {
 

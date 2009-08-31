@@ -19,41 +19,21 @@
 
 package net.sf.mzmine.desktop.impl.projecttree;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Vector;
 
 import javax.swing.DropMode;
-import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.TreePath;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
-import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizer;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.util.GUIUtils;
-
 /**
- * This class implements a selector of raw data files and alignment results
+ * This class implements a selector of raw data files and peak lists
  */
-public class ProjectTree extends JTree implements MouseListener, ActionListener {
+public class ProjectTree extends JTree {
 
 	private ProjectTreeModel treeModel;
-
-	private JPopupMenu dataFilePopupMenu, peakListPopupMenu, scanPopupMenu,
-			peakListRowPopupMenu;
 
 	/**
 	 * Constructor
@@ -82,32 +62,14 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 		setDropMode(DropMode.INSERT);
 		setDragEnabled(true);
 
-		addMouseListener(this);
+		// Attach a handler for handling popup menus and double clicks
+		ProjectTreeMouseHandler popupHandler = new ProjectTreeMouseHandler(this);
+		addMouseListener(popupHandler);
 
 		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
 				ProjectTreeModel.dataFilesItem }));
 		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
 				ProjectTreeModel.peakListsItem }));
-
-		dataFilePopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(dataFilePopupMenu, "Show TIC", this, "SHOW_TIC");
-		GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
-
-		scanPopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(scanPopupMenu, "Show spectrum", this,
-				"SHOW_SPECTRA");
-
-		peakListPopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list table", this,
-				"SHOW_PEAKLIST_TABLES");
-		GUIUtils.addMenuItem(peakListPopupMenu, "Show peak list info", this,
-				"SHOW_PEAKLIST_INFO");
-		GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
-				"REMOVE_PEAKLIST");
-
-		peakListRowPopupMenu = new JPopupMenu();
-		GUIUtils.addMenuItem(peakListRowPopupMenu, "Show peak summary", this,
-				"SHOW_PEAK_SUMMARY");
 
 	}
 
@@ -139,127 +101,6 @@ public class ProjectTree extends JTree implements MouseListener, ActionListener 
 		}
 		return (T[]) selectedObjects.toArray((Object[]) Array.newInstance(
 				objectClass, 0));
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		String command = e.getActionCommand();
-
-		if (command.equals("REMOVE_FILE")) {
-			RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
-			for (RawDataFile file : selectedFiles)
-				MZmineCore.getCurrentProject().removeFile(file);
-		}
-
-		if (command.equals("SHOW_TIC")) {
-			RawDataFile[] selectedFiles = getSelectedObjects(RawDataFile.class);
-			TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null, null);
-		}
-
-		if (command.equals("SHOW_SPECTRA")) {
-			Scan selectedScans[] = getSelectedObjects(Scan.class);
-			for (Scan scan : selectedScans) {
-				// TODO oSpectraVisualizer.showNewSpectrumWindow(scan);
-			}
-		}
-
-		if (command.equals("REMOVE_PEAKLIST")) {
-			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-			for (PeakList peakList : selectedPeakLists)
-				MZmineCore.getCurrentProject().removePeakList(peakList);
-		}
-
-		if (command.equals("SHOW_PEAKLIST_TABLES")) {
-			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-			for (PeakList peakList : selectedPeakLists) {
-				PeakListTableVisualizer
-						.showNewPeakListVisualizerWindow(peakList);
-			}
-		}
-
-		if (command.equals("SHOW_PEAKLIST_INFO")) {
-			PeakList[] selectedPeakLists = getSelectedObjects(PeakList.class);
-			for (PeakList peakList : selectedPeakLists) {
-				InfoVisualizer.showNewPeakListInfo(peakList);
-			}
-		}
-
-		if (command.equals("SHOW_PEAK_SUMMARY")) {
-			PeakListRow[] selectedRows = getSelectedObjects(PeakListRow.class);
-			for (PeakListRow row : selectedRows) {
-				PeakSummaryVisualizer.showNewPeakSummaryWindow(row);
-			}
-		}
-
-	}
-
-	public void mouseClicked(MouseEvent e) {
-	}
-
-	public void mouseEntered(MouseEvent e) {
-	}
-
-	public void mouseExited(MouseEvent e) {
-	}
-
-	public void mousePressed(MouseEvent e) {
-
-		if (e.isPopupTrigger())
-			handlePopupTriggerEvent(e);
-
-		if ((e.getClickCount() == 2) && (e.getButton() == MouseEvent.BUTTON1))
-			handleDoubleClickEvent(e);
-
-	}
-
-	public void mouseReleased(MouseEvent e) {
-		if (e.isPopupTrigger())
-			handlePopupTriggerEvent(e);
-	}
-
-	private void handlePopupTriggerEvent(MouseEvent e) {
-		TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
-		Object clickedObject = null;
-		if (clickedPath != null)
-			clickedObject = clickedPath.getLastPathComponent();
-
-		if (clickedObject instanceof RawDataFile)
-			dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-		if (clickedObject instanceof Scan)
-			scanPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-		if (clickedObject instanceof PeakList)
-			peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-		if (clickedObject instanceof PeakListRow)
-			peakListRowPopupMenu.show(e.getComponent(), e.getX(), e.getY());
-	}
-
-	private void handleDoubleClickEvent(MouseEvent e) {
-		TreePath clickedPath = getPathForLocation(e.getX(), e.getY());
-		Object clickedObject = null;
-		if (clickedPath != null)
-			clickedObject = clickedPath.getLastPathComponent();
-
-		if (clickedObject instanceof RawDataFile) {
-			RawDataFile clickedFile = (RawDataFile) clickedObject;
-			TICVisualizer.showNewTICVisualizerWindow(
-					new RawDataFile[] { clickedFile }, null, null);
-		}
-
-		if (clickedObject instanceof PeakList) {
-			PeakList clickedPeakList = (PeakList) clickedObject;
-			PeakListTableVisualizer
-					.showNewPeakListVisualizerWindow(clickedPeakList);
-		}
-
-		if (clickedObject instanceof Scan) {
-			Scan clickedScan = (Scan) clickedObject;
-			// TODO SpectraVisualizer.showNewSpectrumWindow(clickedScan);
-		}
-
-		if (clickedObject instanceof PeakListRow) {
-			PeakListRow clickedPeak = (PeakListRow) clickedObject;
-			PeakSummaryVisualizer.showNewPeakSummaryWindow(clickedPeak);
-		}
-
 	}
 
 }

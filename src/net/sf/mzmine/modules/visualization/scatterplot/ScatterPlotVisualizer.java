@@ -33,54 +33,66 @@ import net.sf.mzmine.main.MZmineModule;
 
 public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Scatter plot",
-                "Visualization of peak list data in scatter plot", KeyEvent.VK_S, false,
-                this, null);
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Scatter plot",
+				"Visualization of peak list data in scatter plot",
+				KeyEvent.VK_S, false, this, null);
 
-    }
-    
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	}
 
-        logger.finest("Opening scatter plot window");
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        PeakList[] peaklists = desktop.getSelectedPeakLists();
+		logger.finest("Opening scatter plot window");
 
-        if (peaklists.length != 1) {
-            desktop.displayErrorMessage("Please select a peak list for visualization in scatter plot");
-            return;
-        }
-        
-        if (peaklists[0].getNumberOfRawDataFiles()<2){
-            desktop.displayErrorMessage("There is only one raw data file in the selected peak list, it is necessary at least two for comparison");
-            return;
-        }
+		PeakList[] peaklists = desktop.getSelectedPeakLists();
 
-        ScatterPlotWindow newWindow = new ScatterPlotWindow(peaklists[0], "Scatter plot of " + peaklists[0].toString());
+		if (peaklists.length != 1) {
+			desktop
+					.displayErrorMessage("Please select a peak list for visualization in scatter plot");
+			return;
+		}
 
-        desktop.addInternalFrame(newWindow);
-        
-    }
+		showNewScatterPlotWindow(peaklists[0]);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Scatter plot";
-    }
+	}
+
+	public static void showNewScatterPlotWindow(PeakList peakList) {
+
+		if (peakList.getNumberOfRawDataFiles() < 2) {
+			MZmineCore
+					.getDesktop()
+					.displayErrorMessage(
+							"There is only one raw data file in the selected "
+									+ "peak list, it is necessary at least two for comparison");
+			return;
+		}
+
+		ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList,
+				"Scatter plot of " + peakList);
+
+		MZmineCore.getDesktop().addInternalFrame(newWindow);
+
+	}
+
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Scatter plot";
+	}
 
 	public ParameterSet getParameterSet() {
 		return null;
@@ -88,6 +100,5 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
 	public void setParameters(ParameterSet parameterValues) {
 	}
-	
 
 }

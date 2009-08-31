@@ -39,6 +39,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
+	private static SpectraVisualizer myInstance;
+
 	private SpectraVisualizerParameters parameters;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -47,6 +49,8 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
+
+		myInstance = this;
 
 		parameters = new SpectraVisualizerParameters();
 
@@ -71,11 +75,17 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 			return;
 		}
 
-		showNewSpectrumWindow(dataFiles[0], parameters);
+		showSpectrumVisualizerDialog(dataFiles[0], parameters);
 
 	}
 
-	private void showNewSpectrumWindow(RawDataFile dataFile,
+	public static void showSpectrumVisualizerDialog(RawDataFile dataFile) {
+
+		myInstance
+				.showSpectrumVisualizerDialog(dataFile, myInstance.parameters);
+	}
+
+	private void showSpectrumVisualizerDialog(RawDataFile dataFile,
 			SpectraVisualizerParameters parameters) {
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
@@ -86,7 +96,7 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 		if (dialog.getExitCode() != ExitCode.OK)
 			return;
 
-		Integer scanNumber = (Integer) parameters
+		int scanNumber = (Integer) parameters
 				.getParameterValue(SpectraVisualizerParameters.scanNumber);
 
 		showNewSpectrumWindow(dataFile, scanNumber);
@@ -97,24 +107,32 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 			int scanNumber) {
 		showNewSpectrumWindow(dataFile, scanNumber, null, null);
 	}
-	
-	
+
 	public static void showNewSpectrumWindow(RawDataFile dataFile,
-			int scanNumber,IsotopePattern detectedPattern) {
+			int scanNumber, IsotopePattern detectedPattern) {
 		showNewSpectrumWindow(dataFile, scanNumber, detectedPattern, null);
 	}
 
 	public static void showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber, IsotopePattern detectedPattern,
 			IsotopePattern predictedPattern) {
+
+		Scan scan = dataFile.getScan(scanNumber);
+		
+		if (scan == null) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Raw data file " + dataFile + " does not contain scan #"
+							+ scanNumber);
+			return;
+		}
+
 		SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
 				dataFile);
-		Scan scan = dataFile.getScan(scanNumber);
 		newWindow.loadRawData(scan);
 
 		if (detectedPattern != null)
 			newWindow.loadIsotopes(detectedPattern);
-		
+
 		if (predictedPattern != null)
 			newWindow.loadIsotopes(predictedPattern);
 

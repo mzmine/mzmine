@@ -79,7 +79,7 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 			return;
 		}
 
-		show3DVisualizerSetupDialog(dataFiles[0], null, null);
+		show3DVisualizerSetupDialog(dataFiles[0]);
 
 	}
 
@@ -102,6 +102,10 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 	 */
 	public void setParameters(ParameterSet parameters) {
 		this.parameters = (ThreeDVisualizerParameters) parameters;
+	}
+
+	public static void show3DVisualizerSetupDialog(RawDataFile dataFile) {
+		show3DVisualizerSetupDialog(dataFile, null, null);
 	}
 
 	public static void show3DVisualizerSetupDialog(RawDataFile dataFile,
