@@ -71,7 +71,8 @@
 		
 		<copy todir="${dist}/lib">
 			<fileset file="${lib}/*.jar" />
-			<fileset file="${lib}/*.dll" />
+			<fileset file="${lib}/*.exe" />
+			<fileset file="${lib}/*.cpp" />
 		</copy>
 
 		<copy todir="${dist}">
