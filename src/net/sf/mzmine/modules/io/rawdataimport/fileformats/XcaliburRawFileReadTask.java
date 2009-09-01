@@ -195,6 +195,10 @@ public class XcaliburRawFileReadTask implements Task {
 				return;
 			}
 
+			if (line.startsWith("ERROR: ")) {
+				throw (new IOException(line.substring("ERROR: ".length())));
+			}
+
 			if (line.startsWith("NUMBER OF SCANS: ")) {
 				totalScans = Integer.parseInt(line
 						.substring("NUMBER OF SCANS: ".length()));
@@ -255,18 +259,14 @@ public class XcaliburRawFileReadTask implements Task {
 
 				DataPoint completeDataPoints[] = new DataPoint[numOfDataPoints];
 
-				if (numOfDataPoints > 0) {
-
-					// Because Intel CPU is using little endian natively, we
-					// need to use LEDataInputStream instead of normal Java
-					// DataInputStream, which is big-endian.
-					LEDataInputStream dis = new LEDataInputStream(dumpStream);
-					for (int i = 0; i < numOfDataPoints; i++) {
-						double mz = dis.readDouble();
-						double intensity = dis.readDouble();
-						completeDataPoints[i] = new SimpleDataPoint(mz,
-								intensity);
-					}
+				// Because Intel CPU is using little endian natively, we
+				// need to use LEDataInputStream instead of normal Java
+				// DataInputStream, which is big-endian.
+				LEDataInputStream dis = new LEDataInputStream(dumpStream);
+				for (int i = 0; i < numOfDataPoints; i++) {
+					double mz = dis.readDouble();
+					double intensity = dis.readDouble();
+					completeDataPoints[i] = new SimpleDataPoint(mz, intensity);
 				}
 
 				boolean centroided = ScanUtils.isCentroided(completeDataPoints);
