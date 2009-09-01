@@ -41,212 +41,212 @@
 
 typedef struct _datapeak
 {
-	double dMass;
-	double dIntensity;
+    double dMass;
+    double dIntensity;
 } DataPeak;
 
 int main(int argc, char* argv[]) {
 
-	// Disable output buffering and set output to binary mode
-	setvbuf(stdout, 0, _IONBF, 0);
-	_setmode(fileno(stdout), _O_BINARY);
-	
-	if (argc != 2) {
-		fprintf(stdout, "ERROR: This program accepts exactly 1 argument\n");
-		return 1;
-	}
+    // Disable output buffering and set output to binary mode
+    setvbuf(stdout, 0, _IONBF, 0);
+    _setmode(fileno(stdout), _O_BINARY);
+    
+    if (argc != 2) {
+        fprintf(stdout, "ERROR: This program accepts exactly 1 argument\n");
+        return 1;
+    }
 
-	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);	
-	if (FAILED(hr)) {
-		fprintf(stdout, "ERROR: Unable to initialize COM\n");
-		return 1;
-	}
-
-	// Make an instance from XRawfile class defined in XRawFile2.dll.
-	XRAWFILE2Lib::IXRawfile3Ptr rawFile = NULL;
-	hr = rawFile.CreateInstance("XRawfile.XRawfile.1");
+    HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);    
     if (FAILED(hr)) {
-		fprintf(stdout, "ERROR: Unable to initialize Xcalibur 2.0 interface, try running the command regsvr32 'C:\\<path_to_Xcalibur_dll>\\XRawfile2.dll'\n");
-		return 1;
-	}
+        fprintf(stdout, "ERROR: Unable to initialize COM\n");
+        return 1;
+    }
 
-	// Open the Thermo RAW file
-	char *filename = argv[1];
-
-	hr = rawFile->Open(filename);
-	if (FAILED(hr)) {
-		fprintf(stdout, "ERROR: Unable to open XCalibur RAW file %s\n", filename);
-		return 1;
-	}
-
-	// Look for data that belong to the first mass spectra device in the file
-	rawFile->SetCurrentController(0, 1);
-	
-	long firstScanNumber = 0, lastScanNumber = 0;
-
-	// Verifies if can get the first scan
-	hr = rawFile->GetFirstSpectrumNumber(&firstScanNumber);
+    // Make an instance from XRawfile class defined in XRawFile2.dll.
+    XRAWFILE2Lib::IXRawfile3Ptr rawFile = NULL;
+    hr = rawFile.CreateInstance("XRawfile.XRawfile.1");
     if (FAILED(hr)) {
-		fprintf(stdout, "ERROR: Unable to get first scan\n");
-		return 1;
-	}
+        fprintf(stdout, "ERROR: Unable to initialize Xcalibur 2.0 interface, try running the command regsvr32 'C:\\<path_to_Xcalibur_dll>\\XRawfile2.dll'\n");
+        return 1;
+    }
 
-	// Ask for the last scan number to prepare memory space, for cycle 
-	// and final verification
-	rawFile->GetLastSpectrumNumber(&lastScanNumber);
-	long totalNumScans = (lastScanNumber - firstScanNumber) + 1;
+    // Open the Thermo RAW file
+    char *filename = argv[1];
 
-	fprintf(stdout, "NUMBER OF SCANS: %ld\n", totalNumScans);
+    hr = rawFile->Open(filename);
+    if (FAILED(hr)) {
+        fprintf(stdout, "ERROR: Unable to open XCalibur RAW file %s\n", filename);
+        return 1;
+    }
 
-	// Prepare a wide character string to read the filter line
-	BSTR bstrFilter;
+    // Look for data that belong to the first mass spectra device in the file
+    rawFile->SetCurrentController(0, 1);
+    
+    long firstScanNumber = 0, lastScanNumber = 0;
 
-	// Read totalnumber of scans, passing values to MZmine application
-	for (long curScanNum = 1; curScanNum <= totalNumScans; curScanNum++) {
+    // Verifies if can get the first scan
+    hr = rawFile->GetFirstSpectrumNumber(&firstScanNumber);
+    if (FAILED(hr)) {
+        fprintf(stdout, "ERROR: Unable to get first scan\n");
+        return 1;
+    }
 
-		bstrFilter = NULL;
-		rawFile->GetFilterForScanNum(curScanNum, &bstrFilter);
+    // Ask for the last scan number to prepare memory space, for cycle 
+    // and final verification
+    rawFile->GetLastSpectrumNumber(&lastScanNumber);
+    long totalNumScans = (lastScanNumber - firstScanNumber) + 1;
 
-		if (bstrFilter == NULL){
-			fprintf(stdout, "ERROR: Could not extract scan filter line for scan #%d\n", curScanNum);
-			return 1;
-		}
+    fprintf(stdout, "NUMBER OF SCANS: %ld\n", totalNumScans);
 
-		char *thermoFilterLine = _com_util::ConvertBSTRToString(bstrFilter);
+    // Prepare a wide character string to read the filter line
+    BSTR bstrFilter;
 
-		fprintf(stdout, "SCAN NUMBER: %ld\n", curScanNum);
-	    fprintf(stdout, "SCAN FILTER: %s\n", thermoFilterLine);
-	
-		SysFreeString(bstrFilter);
+    // Read totalnumber of scans, passing values to MZmine application
+    for (long curScanNum = 1; curScanNum <= totalNumScans; curScanNum++) {
 
-		long numDataPoints = -1; // points in both the m/z and intensity arrays
-		double retentionTimeInMinutes = -1;
-		double minObservedMZ_ = -1;
-		double maxObservedMZ_ = -1;
-		double totalIonCurrent_ = -1;
-		double basePeakMZ_ = -1;
-		double basePeakIntensity_ = -1;
-		long channel; // unused
-		long uniformTime; // unused
-		double frequency; // unused
-		double precursorMz = 0;
-		long precursorCharge = 0;
+        bstrFilter = NULL;
+        rawFile->GetFilterForScanNum(curScanNum, &bstrFilter);
 
-		rawFile->GetScanHeaderInfoForScanNum(
-			curScanNum, 
-			&numDataPoints, 
-			&retentionTimeInMinutes, 
-			&minObservedMZ_,
-			&maxObservedMZ_,
-			&totalIonCurrent_,
-			&basePeakMZ_,
-			&basePeakIntensity_,
-			&channel, // unused
-			&uniformTime, // unused
-			&frequency // unused
-		);
+        if (bstrFilter == NULL){
+            fprintf(stdout, "ERROR: Could not extract scan filter line for scan #%d\n", curScanNum);
+            return 1;
+        }
 
-		fprintf(stdout, "RETENTION TIME: %f\n", retentionTimeInMinutes);
+        char *thermoFilterLine = _com_util::ConvertBSTRToString(bstrFilter);
 
-		// Check if the scan is MS/MS scan
-		if (strstr(thermoFilterLine, "ms ") == NULL) {
+        fprintf(stdout, "SCAN NUMBER: %ld\n", curScanNum);
+        fprintf(stdout, "SCAN FILTER: %s\n", thermoFilterLine);
+    
+        SysFreeString(bstrFilter);
 
-				// precursorMz
-				VARIANT varValue;
-				VariantInit(&varValue);
-				rawFile->GetTrailerExtraValueForScanNum(curScanNum, "Monoisotopic M/Z:" , &varValue);
+        long numDataPoints = -1; // points in both the m/z and intensity arrays
+        double retentionTimeInMinutes = -1;
+        double minObservedMZ_ = -1;
+        double maxObservedMZ_ = -1;
+        double totalIonCurrent_ = -1;
+        double basePeakMZ_ = -1;
+        double basePeakIntensity_ = -1;
+        long channel; // unused
+        long uniformTime; // unused
+        double frequency; // unused
+        double precursorMz = 0;
+        long precursorCharge = 0;
 
-				if( varValue.vt == VT_R4 ){ 
-					precursorMz = (double) varValue.fltVal;
-				}else if( varValue.vt == VT_R8 ) {
-					precursorMz = varValue.dblVal;
-				}else if ( varValue.vt != VT_ERROR ) {
-					precursorMz = 0;
-				}
-				
-				// precursorCharge
-				VariantClear(&varValue);
-				rawFile->GetTrailerExtraValueForScanNum(curScanNum, "Charge State:" , &varValue);
+        rawFile->GetScanHeaderInfoForScanNum(
+            curScanNum, 
+            &numDataPoints, 
+            &retentionTimeInMinutes, 
+            &minObservedMZ_,
+            &maxObservedMZ_,
+            &totalIonCurrent_,
+            &basePeakMZ_,
+            &basePeakIntensity_,
+            &channel, // unused
+            &uniformTime, // unused
+            &frequency // unused
+        );
 
-				if( varValue.vt == VT_I2 ) 
-					precursorCharge = varValue.iVal;
+        fprintf(stdout, "RETENTION TIME: %f\n", retentionTimeInMinutes);
 
-				VariantClear(&varValue);
-				fprintf(stdout, "PRECURSOR: %f %d\n", precursorMz, precursorCharge);
-		
-		}
+        // Check if the scan is MS/MS scan
+        if (strstr(thermoFilterLine, "ms ") == NULL) {
 
-		// Cleanup memory
-		delete[] thermoFilterLine;
+                // precursorMz
+                VARIANT varValue;
+                VariantInit(&varValue);
+                rawFile->GetTrailerExtraValueForScanNum(curScanNum, "Monoisotopic M/Z:" , &varValue);
 
-		VARIANT varMassList;
-		// initiallize variant to VT_EMPTY
-		VariantInit(&varMassList);
+                if( varValue.vt == VT_R4 ){ 
+                    precursorMz = (double) varValue.fltVal;
+                }else if( varValue.vt == VT_R8 ) {
+                    precursorMz = varValue.dblVal;
+                }else if ( varValue.vt != VT_ERROR ) {
+                    precursorMz = 0;
+                }
+                
+                // precursorCharge
+                VariantClear(&varValue);
+                rawFile->GetTrailerExtraValueForScanNum(curScanNum, "Charge State:" , &varValue);
 
-		VARIANT varPeakFlags; // unused
-		// initiallize variant to VT_EMPTY
-		VariantInit(&varPeakFlags);
+                if( varValue.vt == VT_I2 ) 
+                    precursorCharge = varValue.iVal;
 
-		// set up the parameters to read the scan
-		long dataPoints = 0;
-		long scanNum = curScanNum;
-		LPCTSTR szFilter = NULL;		// No filter
-		long intensityCutoffType = 0;		// No cutoff
-		long intensityCutoffValue = 0;	// No cutoff
-		long maxNumberOfPeaks = 0;		// 0 : return all data peaks
-		double centroidPeakWidth = 0;		// No centroiding
-		bool centroidThisScan = false;
+                VariantClear(&varValue);
+                fprintf(stdout, "PRECURSOR: %f %d\n", precursorMz, precursorCharge);
+        
+        }
 
-		rawFile->GetMassListFromScanNum(
-			&scanNum,
-			szFilter,			 // filter
-			intensityCutoffType, // intensityCutoffType
-			intensityCutoffValue, // intensityCutoffValue
-			maxNumberOfPeaks,	 // maxNumberOfPeaks
-			centroidThisScan,		// centroid result?
-			&centroidPeakWidth,	// centroidingPeakWidth
-			&varMassList,		// massList
-			&varPeakFlags,		// peakFlags
-			&dataPoints);		// array size
+        // Cleanup memory
+        delete[] thermoFilterLine;
 
-		// Get a pointer to the SafeArray
-		SAFEARRAY FAR* psa = varMassList.parray;
-		DataPeak* pDataPeaks = NULL;
-		SafeArrayAccessData(psa, (void**)(&pDataPeaks));
-		
-		// Print data points
-		fprintf(stdout, "DATA POINTS: %d\n", dataPoints);
-		
-		// Dump the binary data
-		fwrite(pDataPeaks, 16, dataPoints, stdout);
+        VARIANT varMassList;
+        // initiallize variant to VT_EMPTY
+        VariantInit(&varMassList);
 
-		// Cleanup
-		SafeArrayUnaccessData(psa); // Release the data handle
-		VariantClear(&varMassList); // Delete all memory associated with the variant
-		VariantClear(&varPeakFlags); // and reinitialize to VT_EMPTY
+        VARIANT varPeakFlags; // unused
+        // initiallize variant to VT_EMPTY
+        VariantInit(&varPeakFlags);
 
-		if( varMassList.vt != VT_EMPTY ) {
-			SAFEARRAY FAR* psa = varMassList.parray;
-			varMassList.parray = NULL;
-			SafeArrayDestroy( psa ); // Delete the SafeArray
-		}
+        // set up the parameters to read the scan
+        long dataPoints = 0;
+        long scanNum = curScanNum;
+        LPCTSTR szFilter = NULL;        // No filter
+        long intensityCutoffType = 0;        // No cutoff
+        long intensityCutoffValue = 0;    // No cutoff
+        long maxNumberOfPeaks = 0;        // 0 : return all data peaks
+        double centroidPeakWidth = 0;        // No centroiding
+        bool centroidThisScan = false;
 
-		if(varPeakFlags.vt != VT_EMPTY ) {
-			SAFEARRAY FAR* psa = varPeakFlags.parray;
-			varPeakFlags.parray = NULL;
-			SafeArrayDestroy( psa ); // Delete the SafeArray
-		}
-		
-	}
+        rawFile->GetMassListFromScanNum(
+            &scanNum,
+            szFilter,             // filter
+            intensityCutoffType, // intensityCutoffType
+            intensityCutoffValue, // intensityCutoffValue
+            maxNumberOfPeaks,     // maxNumberOfPeaks
+            centroidThisScan,        // centroid result?
+            &centroidPeakWidth,    // centroidingPeakWidth
+            &varMassList,        // massList
+            &varPeakFlags,        // peakFlags
+            &dataPoints);        // array size
 
-	// Finalize link to XRawfile2.dll library
-	hr = rawFile->Close();
-	if (FAILED(hr)) {
-		fprintf(stdout, "ERROR: Error trying to close the RAW file\n");
-		return 1;
-	}
-	
-	CoUninitialize();	
-	
-	return 0;
+        // Get a pointer to the SafeArray
+        SAFEARRAY FAR* psa = varMassList.parray;
+        DataPeak* pDataPeaks = NULL;
+        SafeArrayAccessData(psa, (void**)(&pDataPeaks));
+        
+        // Print data points
+        fprintf(stdout, "DATA POINTS: %d\n", dataPoints);
+        
+        // Dump the binary data
+        fwrite(pDataPeaks, 16, dataPoints, stdout);
+
+        // Cleanup
+        SafeArrayUnaccessData(psa); // Release the data handle
+        VariantClear(&varMassList); // Delete all memory associated with the variant
+        VariantClear(&varPeakFlags); // and reinitialize to VT_EMPTY
+
+        if( varMassList.vt != VT_EMPTY ) {
+            SAFEARRAY FAR* psa = varMassList.parray;
+            varMassList.parray = NULL;
+            SafeArrayDestroy( psa ); // Delete the SafeArray
+        }
+
+        if(varPeakFlags.vt != VT_EMPTY ) {
+            SAFEARRAY FAR* psa = varPeakFlags.parray;
+            varPeakFlags.parray = NULL;
+            SafeArrayDestroy( psa ); // Delete the SafeArray
+        }
+        
+    }
+
+    // Finalize link to XRawfile2.dll library
+    hr = rawFile->Close();
+    if (FAILED(hr)) {
+        fprintf(stdout, "ERROR: Error trying to close the RAW file\n");
+        return 1;
+    }
+    
+    CoUninitialize();    
+    
+    return 0;
 }
