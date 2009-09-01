@@ -18,7 +18,7 @@ Data model
   samples) 
 
 Project saving/loading
-* Project parameters and isotope patterns are lost after saving/loading project
+* Project parameters are lost after saving/loading project
 
 ***** Raw data import *****
 
@@ -34,10 +34,6 @@ Polarity support
 * polarity attribute (+/-/?) should be added to Scan interface and import modules
   should recognize polarity
   
-Xcalibur binding
-* Thermo RAW data import doesn't work when Java is running in 64-bit mode. Import should be 
-  handled by a separate process running always in 32-bit mode.
-
 
 ***** Raw data filtering *****
 
@@ -76,6 +72,7 @@ Peak list table
 Scatter plot
 * Scatter plot should be able to show average value from a group of samples 
   (defined by sample parameter)
+* When a row is removed from a peak list, scatter plot showing that peaklist starts throwing exceptions  
 
 
 TIC/XIC visualizer
@@ -108,19 +105,6 @@ Join Alignment
 ***** Normalization *****
 
 * NOMIS method?
-
-***** Isotope patterns *****
-
-* After normalization, the information about isotope patterns is lost. 
-  Same happens when project is saved and loaded.
-  Isotope patterns should probably be organized in a different manner.
-
-
-***** Identification *****
-
-Related peaks search
-* This module should perhaps be split into several modules for adduct search, 
-  fragments search (using MS/MS), dimers etc. (Tomas)
 
 
 ***** Data analysis *****
