@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 
 /**
  * Text processing utilities
@@ -76,4 +79,26 @@ public class TextUtils {
 
 		return result.toString();
 	}
+
+	/**
+	 * Reads a line of text from a given input stream or null if the end of the
+	 * stream is reached.
+	 */
+	public static String readLineFromStream(InputStream in) throws IOException {
+		byte buf[] = new byte[1024];
+		int pos = 0;
+		while (true) {
+			int ch = in.read();
+			if ((ch == '\n') || (ch < 0))
+				break;
+			buf[pos++] = (byte) ch;
+			if (pos == buf.length)
+				buf = Arrays.copyOf(buf, pos * 2);
+		}
+		if (pos == 0)
+			return null;
+
+		return new String(Arrays.copyOf(buf, pos), "UTF-8");
+	}
+
 }
