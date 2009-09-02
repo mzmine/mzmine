@@ -45,11 +45,15 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class ProjectLoader implements BatchStep, ActionListener {
 
+	private static ProjectLoader myInstance;
+
 	private ProjectLoaderParameters parameters;
 
 	private Desktop desktop;
 
 	public void initModule() {
+
+		myInstance = this;
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -84,7 +88,7 @@ public class ProjectLoader implements BatchStep, ActionListener {
 
 		FileNameExtensionFilter filter = new FileNameExtensionFilter(
 				"MZmine 2 projects", "mzmine");
-		
+
 		chooser.setFileFilter(filter);
 		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
 				.getMainFrame());
@@ -125,9 +129,18 @@ public class ProjectLoader implements BatchStep, ActionListener {
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;
 	}
-	
+
 	public String toString() {
-		return "Project load"; 
+		return "Project load";
+	}
+
+	/**
+	 * This function is called from ProjectManagerImpl.setCurrentProject() so we
+	 * can update last open path
+	 */
+	public static void setLastProjectOpenPath(String path) {
+		myInstance.parameters.setParameterValue(
+				ProjectLoaderParameters.lastDirectory, path);
 	}
 
 }

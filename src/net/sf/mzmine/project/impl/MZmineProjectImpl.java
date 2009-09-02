@@ -33,8 +33,8 @@ import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 /**
- * This class represents a MZmine project. That includes raw data files,
- * processed raw data files, peak lists, alignment results....
+ * This class represents a MZmine project. That includes raw data files, peak
+ * lists and parameters.
  */
 public class MZmineProjectImpl implements MZmineProject {
 
@@ -43,12 +43,22 @@ public class MZmineProjectImpl implements MZmineProject {
 	private Vector<RawDataFile> dataFiles;
 	private Vector<PeakList> peakLists;
 
+	/**
+	 * These arrays are used to avoid locking the dataFiles and peakLists
+	 * Vectors every time when project tree is repainted. That would cause dead
+	 * locks when a new object is added to the project.
+	 */
+	private RawDataFile currentDataFiles[];
+	private PeakList currentPeakLists[];
+
 	private File projectFile;
 
 	public MZmineProjectImpl() {
 
 		this.dataFiles = new Vector<RawDataFile>();
+		this.currentDataFiles = new RawDataFile[0];
 		this.peakLists = new Vector<PeakList>();
+		this.currentPeakLists = new PeakList[0];
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
 	}
@@ -93,20 +103,21 @@ public class MZmineProjectImpl implements MZmineProject {
 		return value;
 	}
 
-	public void addFile(RawDataFile newFile) {
+	public synchronized void addFile(RawDataFile newFile) {
 
-		synchronized (dataFiles) {
-			int newFileIndex = dataFiles.size();
-			dataFiles.add(newFile);
+		int newFileIndex = dataFiles.size();
+		dataFiles.add(newFile);
+		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
+
+		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
 					ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
-			if (MZmineCore.getCurrentProject() == this)
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
 
 	}
 
-	public void removeFile(RawDataFile file) {
+	public synchronized void removeFile(RawDataFile file) {
 
 		// If the data file is present in any peak list, we must not remove it
 		PeakList currentPeakLists[] = getPeakLists();
@@ -120,97 +131,115 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		}
 
-		synchronized (dataFiles) {
-			int removedFileIndex = dataFiles.indexOf(file);
-			dataFiles.remove(file);
-			file.close();
+		int removedFileIndex = dataFiles.indexOf(file);
+		dataFiles.remove(file);
+		file.close();
+
+		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
+
+		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
 					ProjectEventType.DATAFILE_REMOVED, file, removedFileIndex);
-			if (MZmineCore.getCurrentProject() == this)
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
 
 	}
 
-	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
+	public synchronized void moveDataFiles(RawDataFile[] movedFiles,
+			int movePosition) {
 
-		synchronized (dataFiles) {
-			int currentPosition;
+		int currentPosition;
 
-			for (RawDataFile movedFile : movedFiles) {
-				currentPosition = dataFiles.indexOf(movedFile);
-				if (currentPosition < 0)
-					continue;
-				dataFiles.remove(currentPosition);
-				if (currentPosition < movePosition)
-					movePosition--;
-				dataFiles.add(movePosition, movedFile);
-				movePosition++;
-			}
-			if (MZmineCore.getCurrentProject() == this) {
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.DATAFILES_REORDERED);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-			}
+		for (RawDataFile movedFile : movedFiles) {
+			currentPosition = dataFiles.indexOf(movedFile);
+			if (currentPosition < 0)
+				continue;
+			dataFiles.remove(currentPosition);
+			if (currentPosition < movePosition)
+				movePosition--;
+			dataFiles.add(movePosition, movedFile);
+			movePosition++;
+		}
+
+		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
+
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.DATAFILES_REORDERED);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 		}
 
 	}
 
+	/**
+	 * This method is not synchronized on purpose. Making it synchronized would
+	 * cause a dead-lock whenever something is added to the project (thread A
+	 * adds a data file, causes TreeEvent, then event dispatching thread wants
+	 * to reload the tree, calls getDataFiles, causes deadlock).
+	 */
 	public RawDataFile[] getDataFiles() {
-		return dataFiles.toArray(new RawDataFile[0]);
+		return currentDataFiles;
 	}
 
-	public void addPeakList(PeakList peakList) {
-		synchronized (peakLists) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_ADDED, peakList, peakLists.size());
-			peakLists.add(peakList);
-			if (MZmineCore.getCurrentProject() == this)
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
-
-	}
-
-	public void removePeakList(PeakList peakList) {
-		synchronized (peakLists) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_REMOVED, peakList, peakLists
-							.indexOf(peakList));
-			peakLists.remove(peakList);
-			if (MZmineCore.getCurrentProject() == this)
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
-
-	}
-
-	public void movePeakLists(PeakList[] movedPeakLists, int movePosition) {
-
-		synchronized (peakLists) {
-
-			int currentPosition;
-
-			for (PeakList movedPeakList : movedPeakLists) {
-				currentPosition = peakLists.indexOf(movedPeakList);
-				if (currentPosition < 0)
-					continue;
-				peakLists.remove(currentPosition);
-				if (currentPosition < movePosition)
-					movePosition--;
-				peakLists.add(movePosition, movedPeakList);
-				movePosition++;
-			}
-
-			if (MZmineCore.getCurrentProject() == this) {
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.PEAKLISTS_REORDERED);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-			}
-		}
-	}
-
+	/**
+	 * This method is not synchronized on purpose. Making it synchronized would
+	 * cause a dead-lock whenever something is added to the project (thread A
+	 * adds a data file, causes TreeEvent, then event dispatching thread wants
+	 * to reload the tree, calls getDataFiles, causes deadlock).
+	 */
 	public PeakList[] getPeakLists() {
-		return peakLists.toArray(new PeakList[0]);
+		return currentPeakLists;
+	}
+
+	public synchronized void addPeakList(PeakList peakList) {
+		int peakListsSize = peakLists.size();
+		peakLists.add(peakList);
+		currentPeakLists = peakLists.toArray(new PeakList[0]);
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLIST_ADDED, peakList, peakListsSize);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		}
+
+	}
+
+	public synchronized void removePeakList(PeakList peakList) {
+		int peakListIndex = peakLists.indexOf(peakList);
+		peakLists.remove(peakList);
+		currentPeakLists = peakLists.toArray(new PeakList[0]);
+
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLIST_REMOVED, peakList, peakListIndex);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		}
+
+	}
+
+	public synchronized void movePeakLists(PeakList[] movedPeakLists,
+			int movePosition) {
+
+		int currentPosition;
+
+		for (PeakList movedPeakList : movedPeakLists) {
+			currentPosition = peakLists.indexOf(movedPeakList);
+			if (currentPosition < 0)
+				continue;
+			peakLists.remove(currentPosition);
+			if (currentPosition < movePosition)
+				movePosition--;
+			peakLists.add(movePosition, movedPeakList);
+			movePosition++;
+		}
+
+		currentPeakLists = peakLists.toArray(new PeakList[0]);
+
+		if (MZmineCore.getCurrentProject() == this) {
+			ProjectEvent newEvent = new ProjectEvent(
+					ProjectEventType.PEAKLISTS_REORDERED);
+			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+		}
+
 	}
 
 	public PeakList[] getPeakLists(RawDataFile file) {

@@ -3,10 +3,6 @@ TODO list for MZmine 2.0 release
 
 ***** Core modules *****
 
-Tree
-* When running isotope peak grouper with "automatically remove old peaklists" option, 
-  sometimes ArrayIndexOutOfBoundsException is thrown
-
 Desktop
 * Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
 * When data file or peak list is removed, all visualizers showing this file/peak list should be 

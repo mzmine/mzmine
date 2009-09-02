@@ -21,6 +21,7 @@ package net.sf.mzmine.project.impl;
 
 import java.util.Vector;
 
+import net.sf.mzmine.modules.io.projectload.ProjectLoader;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
@@ -28,7 +29,7 @@ import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 /**
- * Project manager implementation 
+ * Project manager implementation
  */
 public class ProjectManagerImpl implements ProjectManager {
 
@@ -54,6 +55,12 @@ public class ProjectManagerImpl implements ProjectManager {
 	public void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
 		fireProjectListeners(new ProjectEvent(ProjectEventType.ALL_CHANGED));
+
+		// This is a hack to keep correct value of last opened directory (this
+		// value was overwritten when configuration file was loaded from the new
+		// project)
+		String lastPath = project.getProjectFile().getParentFile().getPath();
+		ProjectLoader.setLastProjectOpenPath(lastPath);
 	}
 
 	public static ProjectManagerImpl getInstance() {

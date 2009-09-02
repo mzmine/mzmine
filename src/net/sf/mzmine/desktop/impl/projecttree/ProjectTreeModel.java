@@ -58,17 +58,33 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 				return peakListsItem;
 		}
 		if (parent == dataFilesItem) {
-			return MZmineCore.getCurrentProject().getDataFiles()[num];
+			RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
+					.getDataFiles();
+			// We have to check the size of the array, because the item may have
+			// been removed by another thread between calling getChildCount()
+			// and getChild()
+			if (num > dataFiles.length - 1)
+				return "";
+			return dataFiles[num];
 		}
 		if (parent == peakListsItem) {
-			return MZmineCore.getCurrentProject().getPeakLists()[num];
+			PeakList peakLists[] = MZmineCore.getCurrentProject()
+					.getPeakLists();
+			// Check size (see above)
+			if (num > peakLists.length - 1)
+				return "";
+			return peakLists[num];
 		}
 		if (parent instanceof PeakList) {
 			return ((PeakList) parent).getRow(num);
 		}
 		if (parent instanceof RawDataFile) {
-			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
-			return ((RawDataFile) parent).getScan(scanNumbers[num]);
+			RawDataFile parentFile = (RawDataFile) parent;
+			int scanNumbers[] = parentFile.getScanNumbers();
+			// Check size (see above)
+			if (num > scanNumbers.length - 1)
+				return "";
+			return parentFile.getScan(scanNumbers[num]);
 		}
 		throw (new IllegalArgumentException("Unknown parent " + parent));
 	}
@@ -161,14 +177,14 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 
 	/**
 	 * ProjectListener implementation - we have to reflect the changes of the
-	 * project by updating the tree model
+	 * project by updating the tree model.
 	 */
 	public void projectModified(final ProjectEvent projectEvent) {
 
-		// Invoking the tree event will cause the tree to repaint, so we have to
-		// do it in the event dispatching thread
-		SwingUtilities.invokeLater(new Runnable() {
+		// Prepare the code for updating the project tree
+		Runnable treeUpdate = new Runnable() {
 			public void run() {
+
 				TreeModelEvent treeEvent;
 				TreePath modifiedPath;
 
@@ -234,6 +250,7 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 					treeEvent = new TreeModelEvent(this, modifiedPath,
 							new int[] { projectEvent.getIndex() },
 							new Object[] { projectEvent.getPeakList() });
+
 					for (TreeModelListener l : listeners) {
 						l.treeNodesInserted(treeEvent);
 					}
@@ -245,6 +262,7 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 					treeEvent = new TreeModelEvent(this, modifiedPath,
 							new int[] { projectEvent.getIndex() },
 							new Object[] { projectEvent.getPeakList() });
+
 					for (TreeModelListener l : listeners) {
 						l.treeNodesRemoved(treeEvent);
 					}
@@ -272,7 +290,22 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 				}
 
 			}
-		});
+		};
+
+		// We use invokeAndWait() to avoid modifying the tree while it is
+		// being repainted. However, invokeAndWait cannot be called from the
+		// event dispatching thread, so we first check whether we are on that
+		// thread.
+		try {
+			if (SwingUtilities.isEventDispatchThread()) {
+				treeUpdate.run();
+			} else {
+				SwingUtilities.invokeAndWait(treeUpdate);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }
