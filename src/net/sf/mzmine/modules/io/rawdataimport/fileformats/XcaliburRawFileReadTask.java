@@ -121,27 +121,39 @@ public class XcaliburRawFileReadTask implements Task {
 	 */
 	public void run() {
 
+		// Check that we are running on Windows
+		String osName = System.getProperty("os.name").toUpperCase();
+		if (!osName.toUpperCase().contains("WINDOWS")) {
+			status = TaskStatus.ERROR;
+			errorMessage = "Thermo RAW file import only works on Windows";
+			return;
+		}
+
 		status = TaskStatus.PROCESSING;
 		logger.info("Started parsing file " + originalFile);
 
-		String rawDumpPath = System.getProperty("user.dir")
-				+ "\\lib\\RAWdump.exe";
+		String rawDumpPath = System.getProperty("user.dir") + File.separator
+				+ "lib" + File.separator + "RAWdump.exe";
 
 		String cmdLine[] = { rawDumpPath, originalFile.getPath() };
 		Process dumper = null;
 
 		try {
 
+			// Create a separate process and execute RAWdump.exe
 			dumper = Runtime.getRuntime().exec(cmdLine);
 
+			// Get the stdout of RAWdump.exe process as InputStream
 			InputStream dumpStream = dumper.getInputStream();
 			BufferedInputStream bufStream = new BufferedInputStream(dumpStream);
 
 			// Create new raw data file
 			newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
+			// Read the dump data
 			readRAWDump(bufStream);
 
+			// Finish
 			bufStream.close();
 
 			if (status == TaskStatus.CANCELED) {
@@ -159,12 +171,14 @@ public class XcaliburRawFileReadTask implements Task {
 
 		} catch (Throwable e) {
 
-			dumper.destroy();
+			if (dumper != null)
+				dumper.destroy();
 
 			if (status == TaskStatus.PROCESSING) {
 				status = TaskStatus.ERROR;
 				errorMessage = ExceptionUtils.exceptionToString(e);
 			}
+
 			return;
 		}
 
