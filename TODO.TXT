@@ -66,21 +66,8 @@ Scatter plot
 * When a row is removed from a peak list, scatter plot showing that peaklist starts throwing exceptions  
 
 
-TIC/XIC visualizer
-* Bug: NullPointerException when TIC visualizer setup dialog is opening. (ParameterSetupDialog.java:303)
-
-Spectrum visualizer
-* Bug: opening a spectra with a non-existent scan number throws an exception  
-* Bug: "Show isotope pattern" always opens the spectra visualizer in continuous mode
-
-
 Peak list row summary visualizer
 * After changing the peak using manual picker, the row summary is not updated
-
-Project listeners
-* Visualizers which set project listener need to remove that listener when their frame is closed, 
-  otherwise garbage collector cannot collect them. Other solution may be to use SoftReference for
-  project listeners.
 
 
 ***** Alignment *****
