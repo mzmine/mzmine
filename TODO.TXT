@@ -4,7 +4,6 @@ TODO list for MZmine 2.0 release
 ***** Core modules *****
 
 Desktop
-* Bug: when retention time format is set to hh:mm:ss, it starts at 12:00:00, instead of 00:00:00
 * When data file or peak list is removed, all visualizers showing this file/peak list should be 
   closed as well, otherwise exceptions may occur
 
@@ -17,10 +16,6 @@ Project saving/loading
 * Project parameters are lost after saving/loading project
 
 ***** Raw data import *****
-
-Parameters
-* Bug: raw data importer parameter class has to properly implement
-  StorableParameterSet - currently, the fileNames parameter is not saved
 
 mzXML parsing
 * MS/MS scans (<scan> elements) can be nested or not. Currently, MZmine only 

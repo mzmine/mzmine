@@ -112,34 +112,39 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 			ParameterSet parameters) {
 
 		RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
-		File file[] = rawDataImporterParameters.getFileNames();
-		Task openTasks[] = new Task[file.length];
+		String fileNames = (String) rawDataImporterParameters
+				.getParameterValue(RawDataImporterParameters.fileNames);
+		String splitFilenames[] = fileNames.split("\n");
 
-		for (int i = 0; i < file.length; i++) {
+		Task openTasks[] = new Task[splitFilenames.length];
 
-			String extension = file[i].getName().substring(
-					file[i].getName().lastIndexOf(".") + 1).toLowerCase();
+		for (int i = 0; i < splitFilenames.length; i++) {
+
+			File file = new File(splitFilenames[i]);
+
+			String extension = file.getName().substring(
+					file.getName().lastIndexOf(".") + 1).toLowerCase();
 
 			if (extension.endsWith("mzdata")) {
-				openTasks[i] = new MzDataReadTask(file[i]);
+				openTasks[i] = new MzDataReadTask(file);
 			}
 			if (extension.endsWith("mzxml")) {
-				openTasks[i] = new MzXMLReadTask(file[i]);
+				openTasks[i] = new MzXMLReadTask(file);
 			}
 			if (extension.endsWith("mzml")) {
-				openTasks[i] = new MzMLReadTask(file[i]);
+				openTasks[i] = new MzMLReadTask(file);
 			}
 			if (extension.endsWith("cdf")) {
-				openTasks[i] = new NetCDFReadTask(file[i]);
+				openTasks[i] = new NetCDFReadTask(file);
 			}
 			if (extension.endsWith("raw")) {
-				openTasks[i] = new XcaliburRawFileReadTask(file[i]);
+				openTasks[i] = new XcaliburRawFileReadTask(file);
 			}
 			if (openTasks[i] == null) {
 				desktop
 						.displayErrorMessage("Cannot determine file type of file "
-								+ file[i]);
-				logger.finest("Cannot determine file type of file " + file[i]);
+								+ file);
+				logger.finest("Cannot determine file type of file " + file);
 				return null;
 			}
 		}
@@ -185,16 +190,28 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 				.getMainFrame());
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			File[] selectedFiles = fileChooser.getSelectedFiles();
-			parameters.setFileNames(selectedFiles);
+
+			String lastDir = fileChooser.getCurrentDirectory().getPath();
 			parameters.setParameterValue(
-					RawDataImporterParameters.lastDirectory, fileChooser
-							.getCurrentDirectory().toString());
+					RawDataImporterParameters.lastDirectory, lastDir);
+
+			File[] selectedFiles = fileChooser.getSelectedFiles();
+			if (selectedFiles.length == 0)
+				return ExitCode.CANCEL;
+
+			StringBuilder fileNames = new StringBuilder();
+			for (int i = 0; i < selectedFiles.length; i++) {
+				if (i > 0)
+					fileNames.append("\n");
+				fileNames.append(selectedFiles[i].getPath());
+			}
+
+			parameters.setParameterValue(RawDataImporterParameters.fileNames,
+					fileNames.toString());
 
 			return ExitCode.OK;
 		} else
 			return ExitCode.CANCEL;
 
 	}
-
 }
