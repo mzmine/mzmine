@@ -58,6 +58,11 @@ public interface PeakListRow {
 	 * Has a peak?
 	 */
 	public boolean hasPeak(ChromatographicPeak peak);
+	
+	/**
+	 * Has a peak?
+	 */
+	public boolean hasPeak(RawDataFile rawData);
 
 	/**
 	 * Returns average M/Z for peaks on this row

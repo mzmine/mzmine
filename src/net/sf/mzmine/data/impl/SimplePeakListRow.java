@@ -238,6 +238,10 @@ public class SimplePeakListRow implements PeakListRow {
 		return peaks.containsValue(peak);
 	}
 
+	public boolean hasPeak(RawDataFile file) {
+		return peaks.containsKey(file);
+	}
+
 	public ChromatographicPeak getBestIsotopePatternPeak() {
 		ChromatographicPeak peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
