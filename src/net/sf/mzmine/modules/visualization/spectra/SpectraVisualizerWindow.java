@@ -452,17 +452,4 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		return spectrumPlot;
 	}
 
-	@Override
-	public void dispose() {
-
-		super.dispose();
-
-		/*
-		 * We have to remove the listener when the window is closed, because
-		 * otherwise the project would always keep a reference to this window
-		 * and the GC would not be able to collect it
-		 */
-		MZmineCore.getProjectManager().removeProjectListener(bottomPanel);
-	}
-
 }

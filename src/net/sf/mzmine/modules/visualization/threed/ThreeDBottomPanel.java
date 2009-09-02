@@ -30,8 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -43,21 +41,18 @@ import net.sf.mzmine.util.GUIUtils;
 /**
  * 3D visualizer's bottom panel
  */
-class ThreeDBottomPanel extends JPanel implements ProjectListener,
-        InternalFrameListener {
+class ThreeDBottomPanel extends JPanel implements ProjectListener {
 
     private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private JComboBox peakListSelector;
     private JCheckBox showIdChkBox;
 
-    private ThreeDVisualizerWindow masterFrame;
     private RawDataFile dataFile;
 
     ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
 
         this.dataFile = dataFile;
-        this.masterFrame = masterFrame;
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
@@ -86,8 +81,6 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
         add(showIdChkBox);
 
         MZmineCore.getProjectManager().addProjectListener(this);
-
-        masterFrame.addInternalFrameListener(this);
 
         add(Box.createHorizontalGlue());
 
@@ -126,40 +119,6 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener,
 				rebuildPeakListSelector();
 			}
 		});
-    }
-
-    public void internalFrameActivated(InternalFrameEvent event) {
-        // Ignore
-    }
-
-    /**
-     * We have to remove the listener when the window is closed, because
-     * otherwise the project would always keep a reference to this window and
-     * the GC would not be able to collect it
-     */
-    public void internalFrameClosed(InternalFrameEvent event) {
-        MZmineCore.getProjectManager().removeProjectListener(this);
-        masterFrame.removeInternalFrameListener(this);
-    }
-
-    public void internalFrameClosing(InternalFrameEvent event) {
-        // Ignore
-    }
-
-    public void internalFrameDeactivated(InternalFrameEvent event) {
-        // Ignore
-    }
-
-    public void internalFrameDeiconified(InternalFrameEvent event) {
-        // Ignore
-    }
-
-    public void internalFrameIconified(InternalFrameEvent event) {
-        // Ignore
-    }
-
-    public void internalFrameOpened(InternalFrameEvent event) {
-        // Ignore
     }
 
     boolean showCompoundNameSelected() {

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.project.impl;
 
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.Vector;
 
 import net.sf.mzmine.modules.io.projectload.ProjectLoader;
@@ -35,7 +37,10 @@ public class ProjectManagerImpl implements ProjectManager {
 
 	private static ProjectManagerImpl myInstance;
 
-	private Vector<ProjectListener> listeners;
+	// We use WeakReference to keep the reference to windows which want to be
+	// notified about project change. The reason is that we don't want to
+	// prevent the garbage collector from collecting these windows.
+	private Vector<WeakReference<ProjectListener>> listeners;
 
 	MZmineProject currentProject;
 
@@ -43,7 +48,7 @@ public class ProjectManagerImpl implements ProjectManager {
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
-		listeners = new Vector<ProjectListener>();
+		listeners = new Vector<WeakReference<ProjectListener>>();
 		currentProject = new MZmineProjectImpl();
 		myInstance = this;
 	}
@@ -67,17 +72,28 @@ public class ProjectManagerImpl implements ProjectManager {
 		return myInstance;
 	}
 
-	public void addProjectListener(ProjectListener listener) {
-		listeners.add(listener);
+	public synchronized void addProjectListener(ProjectListener listener) {
+		WeakReference<ProjectListener> newReference = new WeakReference<ProjectListener>(
+				listener);
+		listeners.add(newReference);
 	}
 
-	public void removeProjectListener(ProjectListener listener) {
+	public synchronized void removeProjectListener(ProjectListener listener) {
 		listeners.remove(listener);
 	}
 
 	public synchronized void fireProjectListeners(ProjectEvent event) {
-		for (ProjectListener listener : listeners)
+		Iterator<WeakReference<ProjectListener>> it = listeners.iterator();
+		while (it.hasNext()) {
+			WeakReference<ProjectListener> ref = it.next();
+			ProjectListener listener = ref.get();
+			if (listener == null) {
+				it.remove();
+				continue;
+			}
 			listener.projectModified(event);
+		}
+
 	}
 
 }
