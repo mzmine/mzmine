@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     BSTR bstrFilter;
 
     // Read totalnumber of scans, passing values to MZmine application
-    for (long curScanNum = 1; curScanNum <= totalNumScans; curScanNum++) {
+    for (long curScanNum = firstScanNumber; curScanNum <= lastScanNumber; curScanNum++) {
 
         bstrFilter = NULL;
         rawFile->GetFilterForScanNum(curScanNum, &bstrFilter);
