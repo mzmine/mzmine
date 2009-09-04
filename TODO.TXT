@@ -63,7 +63,6 @@ Peak list table
 Scatter plot
 * Scatter plot should be able to show average value from a group of samples 
   (defined by sample parameter)
-* When a row is removed from a peak list, scatter plot showing that peaklist starts throwing exceptions  
 
 
 Peak list row summary visualizer
