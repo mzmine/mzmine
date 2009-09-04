@@ -17,26 +17,41 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
+package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
+
+import java.text.DecimalFormat;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 
-public class DiagonalLabelGenerator implements XYItemLabelGenerator {
+public class DiagonalLineLabelGenerator implements XYItemLabelGenerator {
 
+	public static final DecimalFormat labelFormat = new DecimalFormat("0.#####");
 
-    /**
-    * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-    *      int, int)
-    */
-   public String generateLabel(XYDataset dataSet, int series, int item) {
-   	String label = null;
-   	
-		if (dataSet instanceof DiagonalPlotDataset) {
-			label = ((DiagonalPlotDataset) dataSet).getToolTipText();
+	/**
+	 * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
+	 *      int, int)
+	 */
+	public String generateLabel(XYDataset dataSet, int series, int item) {
+
+		DiagonalLineDataset diagonalDataSet = (DiagonalLineDataset) dataSet;
+
+		double doubleFold = 0;
+		switch (series) {
+		case 0:
+			doubleFold = diagonalDataSet.getFold();
+			break;
+		case 1:
+			doubleFold = 1d;
+			break;
+		case 2:
+			doubleFold = 1d / diagonalDataSet.getFold();
+			break;
 		}
 
-       return label;
+		String label = labelFormat.format(doubleFold) + "x";
 
-   }
+		return label;
+
+	}
 }

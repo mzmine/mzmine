@@ -17,27 +17,27 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
+package net.sf.mzmine.util;
 
-public enum ScatterPlotSearchDataType {
+public enum SearchDefinitionType {
 
-	NAME ("name"),
-	
-	MASS ("m/z"),
-	
-	RT ("rt");
-	
+	NAME("Name"),
+
+	MASS("m/z"),
+
+	RT("Retention time");
+
 	private String text;
-	
-	ScatterPlotSearchDataType (String text){
+
+	SearchDefinitionType(String text) {
 		this.text = text;
 	}
-	
-	public String getText(){
+
+	public String getText() {
 		return text;
 	}
-	
-	public String toString(){
+
+	public String toString() {
 		return text;
 	}
 

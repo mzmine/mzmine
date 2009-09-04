@@ -17,7 +17,10 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
+package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
+
+import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.PeakListRow;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -30,11 +33,15 @@ public class ScatterPlotItemLabelGenerator implements XYItemLabelGenerator {
 	 */
 	public String generateLabel(XYDataset dataSet, int series, int item) {
 
-		if (series > 0) {
-			String name = ((ScatterPlotDataSet) dataSet).getDataPointName(series, item);
-			return name;
-		} else
-			return null;
+		ScatterPlotDataSet scatterDataSet = (ScatterPlotDataSet) dataSet;
+
+		PeakListRow row = scatterDataSet.getRow(series, item);
+		PeakIdentity identity = row.getPreferredPeakIdentity();
+		if (identity != null) {
+			return identity.getName();
+		} else {
+			return row.toString();
+		}
 
 	}
 }

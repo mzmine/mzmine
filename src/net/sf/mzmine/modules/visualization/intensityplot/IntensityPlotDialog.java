@@ -56,281 +56,287 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class IntensityPlotDialog extends JDialog implements ActionListener {
 
-    static final int PADDING_SIZE = 5;
+	static final int PADDING_SIZE = 5;
 
-    private ExitCode exitCode = ExitCode.CANCEL;
+	private ExitCode exitCode = ExitCode.CANCEL;
 
-    private Desktop desktop;
-    private PeakList alignedPeakList;
-    private IntensityPlotParameters parameterSet;
+	private Desktop desktop;
+	private PeakList alignedPeakList;
+	private IntensityPlotParameters parameterSet;
 
-    // dialog components
-    private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
+	// dialog components
+	private JComboBox xAxisValueSourceCombo, yAxisValueSourceCombo;
 
-    private Vector<ExtendedCheckBox<RawDataFile>> rawDataFileCheckBoxes;
-    private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
+	private Vector<ExtendedCheckBox<RawDataFile>> rawDataFileCheckBoxes;
+	private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
 
-    private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
-            btnDeselectAllPeaks, btnOK, btnCancel;
+	private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
+			btnDeselectAllPeaks, btnOK, btnCancel;
 
-    public IntensityPlotDialog(PeakList peakList,
-            IntensityPlotParameters parameterSet) {
+	public IntensityPlotDialog(PeakList peakList,
+			IntensityPlotParameters parameterSet) {
 
-        // make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup",
-                true);
+		// make dialog modal
+		super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup",
+				true);
 
-        this.desktop = MZmineCore.getDesktop();
-        this.alignedPeakList = peakList;
-        this.parameterSet = parameterSet;
+		this.desktop = MZmineCore.getDesktop();
+		this.alignedPeakList = peakList;
+		this.parameterSet = parameterSet;
 
-        List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet.getSelectedDataFiles());
-        List<PeakListRow> selectedRows = Arrays.asList(parameterSet.getSelectedRows());
+		List<RawDataFile> selectedDataFiles = Arrays.asList(parameterSet
+				.getSelectedDataFiles());
+		List<PeakListRow> selectedRows = Arrays.asList(parameterSet
+				.getSelectedRows());
 
-        GridBagConstraints constraints = new GridBagConstraints();
+		GridBagConstraints constraints = new GridBagConstraints();
 
-        // set default layout constraints
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.anchor = GridBagConstraints.WEST;
-        constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE,
-                PADDING_SIZE, PADDING_SIZE);
+		// set default layout constraints
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.anchor = GridBagConstraints.WEST;
+		constraints.insets = new Insets(PADDING_SIZE, PADDING_SIZE,
+				PADDING_SIZE, PADDING_SIZE);
 
-        constraints.gridwidth = 1;
-        constraints.gridheight = 1;
+		constraints.gridwidth = 1;
+		constraints.gridheight = 1;
 
-        JComponent comp;
-        GridBagLayout layout = new GridBagLayout();
+		JComponent comp;
+		GridBagLayout layout = new GridBagLayout();
 
-        JPanel components = new JPanel(layout);
+		JPanel components = new JPanel(layout);
 
-        comp = GUIUtils.addLabel(components, "Data files");
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        layout.setConstraints(comp, constraints);
+		comp = GUIUtils.addLabel(components, "Data files");
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		layout.setConstraints(comp, constraints);
 
-        JPanel dataFileCheckBoxesPanel = new JPanel();
-        dataFileCheckBoxesPanel.setBackground(Color.white);
-        dataFileCheckBoxesPanel.setLayout(new BoxLayout(
-                dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
-        rawDataFileCheckBoxes = new Vector<ExtendedCheckBox<RawDataFile>>();
-        int minimumHorizSize = 0;
-        RawDataFile files[] = alignedPeakList.getRawDataFiles();
-        for (int i = 0; i < files.length; i++) {
-            ExtendedCheckBox<RawDataFile> ecb = new ExtendedCheckBox<RawDataFile>(
-                    files[i], selectedDataFiles.contains(files[i]));
-            rawDataFileCheckBoxes.add(ecb);
-            minimumHorizSize = Math.max(minimumHorizSize,
-                    ecb.getPreferredWidth());
-            dataFileCheckBoxesPanel.add(ecb);
-        }
-        int minimumVertSize = (int) rawDataFileCheckBoxes.get(0).getPreferredSize().getHeight() * 3;
-        JScrollPane dataFilePanelScroll = new JScrollPane(
-                dataFileCheckBoxesPanel,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        dataFilePanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
-                minimumVertSize));
-        constraints.gridx = 1;
-        components.add(dataFilePanelScroll, constraints);
+		JPanel dataFileCheckBoxesPanel = new JPanel();
+		dataFileCheckBoxesPanel.setBackground(Color.white);
+		dataFileCheckBoxesPanel.setLayout(new BoxLayout(
+				dataFileCheckBoxesPanel, BoxLayout.Y_AXIS));
+		rawDataFileCheckBoxes = new Vector<ExtendedCheckBox<RawDataFile>>();
+		int minimumHorizSize = 0;
+		RawDataFile files[] = alignedPeakList.getRawDataFiles();
+		for (int i = 0; i < files.length; i++) {
+			ExtendedCheckBox<RawDataFile> ecb = new ExtendedCheckBox<RawDataFile>(
+					files[i], selectedDataFiles.contains(files[i]));
+			rawDataFileCheckBoxes.add(ecb);
+			minimumHorizSize = Math.max(minimumHorizSize, ecb
+					.getPreferredWidth());
+			dataFileCheckBoxesPanel.add(ecb);
+		}
+		int minimumVertSize = (int) rawDataFileCheckBoxes.get(0)
+				.getPreferredSize().getHeight() * 3;
+		JScrollPane dataFilePanelScroll = new JScrollPane(
+				dataFileCheckBoxesPanel,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		dataFilePanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
+				minimumVertSize));
+		constraints.gridx = 1;
+		components.add(dataFilePanelScroll, constraints);
 
-        JPanel dataFileButtonsPanel = new JPanel();
-        dataFileButtonsPanel.setLayout(new BoxLayout(dataFileButtonsPanel,
-                BoxLayout.Y_AXIS));
-        btnSelectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
-                "Select all", null, this);
-        btnDeselectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
-                "Deselect all", null, this);
-        dataFileButtonsPanel.add(Box.createGlue());
-        constraints.gridx = 2;
-        components.add(dataFileButtonsPanel);
-        layout.setConstraints(dataFileButtonsPanel, constraints);
+		JPanel dataFileButtonsPanel = new JPanel();
+		dataFileButtonsPanel.setLayout(new BoxLayout(dataFileButtonsPanel,
+				BoxLayout.Y_AXIS));
+		btnSelectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+				"Select all", null, this);
+		btnDeselectAllFiles = GUIUtils.addButton(dataFileButtonsPanel,
+				"Deselect all", null, this);
+		dataFileButtonsPanel.add(Box.createGlue());
+		constraints.gridx = 2;
+		components.add(dataFileButtonsPanel);
+		layout.setConstraints(dataFileButtonsPanel, constraints);
 
-        comp = GUIUtils.addLabel(components, "X axis value");
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        layout.setConstraints(comp, constraints);
+		comp = GUIUtils.addLabel(components, "X axis value");
+		constraints.gridx = 0;
+		constraints.gridy = 1;
+		layout.setConstraints(comp, constraints);
 
-        Parameter[] projectParameters;
-        if (MZmineCore.isLightViewer()){
-        	projectParameters = new Parameter[0];
-        }
-        else{
-        	projectParameters = MZmineCore.getCurrentProject().getParameters();
-        }
-        Object xAxisSourceValues[] = new Object[projectParameters.length + 1];
-        xAxisSourceValues[0] = IntensityPlotParameters.DataFileOption;
-        for (int i = 0; i < projectParameters.length; i++)
-            xAxisSourceValues[i + 1] = projectParameters[i];
-        xAxisValueSourceCombo = new JComboBox(xAxisSourceValues);
-        if (parameterSet.getXAxisValueSource() != null)
-            xAxisValueSourceCombo.setSelectedItem(parameterSet.getXAxisValueSource());
-        constraints.gridx = 1;
-        components.add(xAxisValueSourceCombo, constraints);
+		Parameter[] projectParameters = MZmineCore.getCurrentProject()
+				.getParameters();
+		Object xAxisSourceValues[] = new Object[projectParameters.length + 1];
+		xAxisSourceValues[0] = IntensityPlotParameters.DataFileOption;
+		for (int i = 0; i < projectParameters.length; i++)
+			xAxisSourceValues[i + 1] = projectParameters[i];
+		xAxisValueSourceCombo = new JComboBox(xAxisSourceValues);
+		if (parameterSet.getXAxisValueSource() != null)
+			xAxisValueSourceCombo.setSelectedItem(parameterSet
+					.getXAxisValueSource());
+		constraints.gridx = 1;
+		components.add(xAxisValueSourceCombo, constraints);
 
-        comp = GUIUtils.addLabel(components, "Y axis value");
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        layout.setConstraints(comp, constraints);
+		comp = GUIUtils.addLabel(components, "Y axis value");
+		constraints.gridx = 0;
+		constraints.gridy = 2;
+		layout.setConstraints(comp, constraints);
 
-        String yAxisSourceValues[] = new String[] {
-                IntensityPlotParameters.PeakHeightOption,
-                IntensityPlotParameters.PeakAreaOption,
-                IntensityPlotParameters.PeakRTOption };
-        yAxisValueSourceCombo = new JComboBox(yAxisSourceValues);
-        if (parameterSet.getYAxisValueSource() != null)
-            yAxisValueSourceCombo.setSelectedItem(parameterSet.getYAxisValueSource());
-        constraints.gridx = 1;
-        components.add(yAxisValueSourceCombo, constraints);
+		String yAxisSourceValues[] = new String[] {
+				IntensityPlotParameters.PeakHeightOption,
+				IntensityPlotParameters.PeakAreaOption,
+				IntensityPlotParameters.PeakRTOption };
+		yAxisValueSourceCombo = new JComboBox(yAxisSourceValues);
+		if (parameterSet.getYAxisValueSource() != null)
+			yAxisValueSourceCombo.setSelectedItem(parameterSet
+					.getYAxisValueSource());
+		constraints.gridx = 1;
+		components.add(yAxisValueSourceCombo, constraints);
 
-        comp = GUIUtils.addLabel(components, "Peaks");
-        constraints.gridx = 0;
-        constraints.gridy = 3;
-        layout.setConstraints(comp, constraints);
+		comp = GUIUtils.addLabel(components, "Peaks");
+		constraints.gridx = 0;
+		constraints.gridy = 3;
+		layout.setConstraints(comp, constraints);
 
-        JPanel peakCheckBoxesPanel = new JPanel();
-        peakCheckBoxesPanel.setBackground(Color.white);
-        peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
-                BoxLayout.Y_AXIS));
-        peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
-        minimumHorizSize = 0;
-        PeakListRow rows[] = alignedPeakList.getRows();
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
+		JPanel peakCheckBoxesPanel = new JPanel();
+		peakCheckBoxesPanel.setBackground(Color.white);
+		peakCheckBoxesPanel.setLayout(new BoxLayout(peakCheckBoxesPanel,
+				BoxLayout.Y_AXIS));
+		peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
+		minimumHorizSize = 0;
+		PeakListRow rows[] = alignedPeakList.getRows();
+		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
 				SortingDirection.Ascending));
-        for (int i = 0; i < rows.length; i++) {
-            ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
-                    rows[i], selectedRows.contains(rows[i]));
-            peakCheckBoxes.add(ecb);
-            minimumHorizSize = Math.max(minimumHorizSize,
-                    ecb.getPreferredWidth());
-            peakCheckBoxesPanel.add(ecb);
-        }
-        minimumVertSize = (int) peakCheckBoxes.get(0).getPreferredSize().getHeight() * 6;
-        JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        peakPanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
-                minimumVertSize));
-        constraints.gridx = 1;
-        constraints.weightx = 1;
-        constraints.weighty = 1;
-        components.add(peakPanelScroll, constraints);
+		for (int i = 0; i < rows.length; i++) {
+			ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
+					rows[i], selectedRows.contains(rows[i]));
+			peakCheckBoxes.add(ecb);
+			minimumHorizSize = Math.max(minimumHorizSize, ecb
+					.getPreferredWidth());
+			peakCheckBoxesPanel.add(ecb);
+		}
+		minimumVertSize = (int) peakCheckBoxes.get(0).getPreferredSize()
+				.getHeight() * 6;
+		JScrollPane peakPanelScroll = new JScrollPane(peakCheckBoxesPanel,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		peakPanelScroll.setPreferredSize(new Dimension(minimumHorizSize,
+				minimumVertSize));
+		constraints.gridx = 1;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		components.add(peakPanelScroll, constraints);
 
-        JPanel peakButtonsPanel = new JPanel();
-        peakButtonsPanel.setLayout(new BoxLayout(peakButtonsPanel,
-                BoxLayout.Y_AXIS));
-        btnSelectAllPeaks = GUIUtils.addButton(peakButtonsPanel, "Select all",
-                null, this);
-        btnDeselectAllPeaks = GUIUtils.addButton(peakButtonsPanel,
-                "Deselect all", null, this);
-        peakButtonsPanel.add(Box.createGlue());
-        constraints.gridx = 2;
-        components.add(peakButtonsPanel);
-        layout.setConstraints(peakButtonsPanel, constraints);
+		JPanel peakButtonsPanel = new JPanel();
+		peakButtonsPanel.setLayout(new BoxLayout(peakButtonsPanel,
+				BoxLayout.Y_AXIS));
+		btnSelectAllPeaks = GUIUtils.addButton(peakButtonsPanel, "Select all",
+				null, this);
+		btnDeselectAllPeaks = GUIUtils.addButton(peakButtonsPanel,
+				"Deselect all", null, this);
+		peakButtonsPanel.add(Box.createGlue());
+		constraints.gridx = 2;
+		components.add(peakButtonsPanel);
+		layout.setConstraints(peakButtonsPanel, constraints);
 
-        comp = GUIUtils.addSeparator(components, PADDING_SIZE);
-        constraints.gridx = 0;
-        constraints.gridy = 4;
-        constraints.weightx = 0;
-        constraints.weighty = 0;
-        constraints.gridheight = 1;
-        constraints.gridwidth = 3;
-        layout.setConstraints(comp, constraints);
+		comp = GUIUtils.addSeparator(components, PADDING_SIZE);
+		constraints.gridx = 0;
+		constraints.gridy = 4;
+		constraints.weightx = 0;
+		constraints.weighty = 0;
+		constraints.gridheight = 1;
+		constraints.gridwidth = 3;
+		layout.setConstraints(comp, constraints);
 
-        JPanel buttonsPanel = new JPanel();
-        btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
-        btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
-        constraints.gridx = 0;
-        constraints.gridy = 5;
-        constraints.gridwidth = 3;
-        components.add(buttonsPanel, constraints);
+		JPanel buttonsPanel = new JPanel();
+		btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
+		btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
+		constraints.gridx = 0;
+		constraints.gridy = 5;
+		constraints.gridwidth = 3;
+		components.add(buttonsPanel, constraints);
 
-        GUIUtils.addMargin(components, PADDING_SIZE);
-        add(components);
+		GUIUtils.addMargin(components, PADDING_SIZE);
+		add(components);
 
-        // finalize the dialog
-        pack();
-        setLocationRelativeTo(desktop.getMainFrame());
-        setResizable(true);
+		// finalize the dialog
+		pack();
+		setLocationRelativeTo(desktop.getMainFrame());
+		setResizable(true);
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        Object src = event.getSource();
+		Object src = event.getSource();
 
-        if (src == btnOK) {
+		if (src == btnOK) {
 
-            Vector<RawDataFile> selectedFiles = new Vector<RawDataFile>();
-            Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
+			Vector<RawDataFile> selectedFiles = new Vector<RawDataFile>();
+			Vector<PeakListRow> selectedPeaks = new Vector<PeakListRow>();
 
-            for (ExtendedCheckBox<RawDataFile> box : rawDataFileCheckBoxes) {
-                if (box.isSelected())
-                    selectedFiles.add(box.getObject());
-            }
+			for (ExtendedCheckBox<RawDataFile> box : rawDataFileCheckBoxes) {
+				if (box.isSelected())
+					selectedFiles.add(box.getObject());
+			}
 
-            for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
-                if (box.isSelected())
-                    selectedPeaks.add(box.getObject());
-            }
+			for (ExtendedCheckBox<PeakListRow> box : peakCheckBoxes) {
+				if (box.isSelected())
+					selectedPeaks.add(box.getObject());
+			}
 
-            if (selectedFiles.size() == 0) {
-                desktop.displayErrorMessage("Please select at least one data file");
-                return;
-            }
+			if (selectedFiles.size() == 0) {
+				desktop
+						.displayErrorMessage("Please select at least one data file");
+				return;
+			}
 
-            if (selectedPeaks.size() == 0) {
-                desktop.displayErrorMessage("Please select at least one peak");
-                return;
-            }
+			if (selectedPeaks.size() == 0) {
+				desktop.displayErrorMessage("Please select at least one peak");
+				return;
+			}
 
-            parameterSet.setSourcePeakList(alignedPeakList);
-            parameterSet.setSelectedDataFiles(selectedFiles.toArray(new RawDataFile[0]));
-            parameterSet.setSelectedRows(selectedPeaks.toArray(new PeakListRow[0]));
-            parameterSet.setXAxisValueSource(xAxisValueSourceCombo.getSelectedItem());
-            parameterSet.setYAxisValueSource(yAxisValueSourceCombo.getSelectedItem());
+			parameterSet.setSourcePeakList(alignedPeakList);
+			parameterSet.setSelectedDataFiles(selectedFiles
+					.toArray(new RawDataFile[0]));
+			parameterSet.setSelectedRows(selectedPeaks
+					.toArray(new PeakListRow[0]));
+			parameterSet.setXAxisValueSource(xAxisValueSourceCombo
+					.getSelectedItem());
+			parameterSet.setYAxisValueSource(yAxisValueSourceCombo
+					.getSelectedItem());
 
-            exitCode = ExitCode.OK;
-            dispose();
-            return;
-        }
+			exitCode = ExitCode.OK;
+			dispose();
+			return;
+		}
 
-        if (src == btnCancel) {
-            exitCode = ExitCode.CANCEL;
-            dispose();
-            return;
-        }
+		if (src == btnCancel) {
+			exitCode = ExitCode.CANCEL;
+			dispose();
+			return;
+		}
 
-        if (src == btnSelectAllFiles) {
-            for (JCheckBox box : rawDataFileCheckBoxes)
-                box.setSelected(true);
-            return;
-        }
+		if (src == btnSelectAllFiles) {
+			for (JCheckBox box : rawDataFileCheckBoxes)
+				box.setSelected(true);
+			return;
+		}
 
-        if (src == btnDeselectAllFiles) {
-            for (JCheckBox box : rawDataFileCheckBoxes)
-                box.setSelected(false);
-            return;
-        }
+		if (src == btnDeselectAllFiles) {
+			for (JCheckBox box : rawDataFileCheckBoxes)
+				box.setSelected(false);
+			return;
+		}
 
-        if (src == btnSelectAllPeaks) {
-            for (JCheckBox box : peakCheckBoxes)
-                box.setSelected(true);
-            return;
-        }
+		if (src == btnSelectAllPeaks) {
+			for (JCheckBox box : peakCheckBoxes)
+				box.setSelected(true);
+			return;
+		}
 
-        if (src == btnDeselectAllPeaks) {
-            for (JCheckBox box : peakCheckBoxes)
-                box.setSelected(false);
-            return;
-        }
+		if (src == btnDeselectAllPeaks) {
+			for (JCheckBox box : peakCheckBoxes)
+				box.setSelected(false);
+			return;
+		}
 
-    }
+	}
 
-    public ExitCode getExitCode() {
-        return exitCode;
-    }
+	public ExitCode getExitCode() {
+		return exitCode;
+	}
 
 }

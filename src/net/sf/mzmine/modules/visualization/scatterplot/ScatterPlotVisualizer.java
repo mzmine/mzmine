@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -35,16 +34,13 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private Desktop desktop;
-
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
 
-		this.desktop = MZmineCore.getDesktop();
-
-		desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Scatter plot",
+		MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
+				"Scatter plot",
 				"Visualization of peak list data in scatter plot",
 				KeyEvent.VK_S, false, this, null);
 
@@ -57,15 +53,10 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
 		logger.finest("Opening scatter plot window");
 
-		PeakList[] peaklists = desktop.getSelectedPeakLists();
+		PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
-		if (peaklists.length != 1) {
-			desktop
-					.displayErrorMessage("Please select a peak list for visualization in scatter plot");
-			return;
-		}
-
-		showNewScatterPlotWindow(peaklists[0]);
+		for (PeakList peakList : peakLists)
+			showNewScatterPlotWindow(peakList);
 
 	}
 
@@ -80,8 +71,7 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 			return;
 		}
 
-		ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList,
-				"Scatter plot of " + peakList);
+		ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
 
 		MZmineCore.getDesktop().addInternalFrame(newWindow);
 

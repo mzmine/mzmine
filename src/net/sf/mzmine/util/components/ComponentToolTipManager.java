@@ -30,7 +30,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseMotionListener;
-import java.util.logging.Logger;
 
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
@@ -39,8 +38,6 @@ import javax.swing.ToolTipManager;
 
 public class ComponentToolTipManager extends MouseAdapter implements
 		MouseMotionListener {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	String toolTipText;
 	Point preferredLocation;
@@ -52,11 +49,9 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	boolean tipShowing = false;
 	static boolean ignore = false;
 	private MouseMotionListener moveBeforeEnterListener = null;
-	
+
 	public static String CUSTOM = "Custom - ";
 	public static final Color bg = new Color(255, 250, 205);
-
-	
 
 	/**
      * 
@@ -152,7 +147,6 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		}
 	}
 
-	// add keylistener here to trigger tip for access
 	/**
 	 * Registers a component for tooltip management.
 	 * <p>
@@ -168,17 +162,10 @@ public class ComponentToolTipManager extends MouseAdapter implements
 	 */
 	public void registerComponent(JComponent component) {
 
-		try {
-			if (!isComponentToolTipProvider(component))
-				return;
-		} catch (ClassNotFoundException e) {
-			logger.severe("Error trying to register a ComponentToolTipProvider " + e.getMessage());
+		if (!(component instanceof ComponentToolTipProvider))
 			return;
-		}
-		
-		component.removeMouseListener(this);
+
 		component.addMouseListener(this);
-		component.removeMouseMotionListener(moveBeforeEnterListener);
 		component.addMouseMotionListener(moveBeforeEnterListener);
 
 		ToolTipManager.sharedInstance().unregisterComponent(component);
@@ -197,7 +184,6 @@ public class ComponentToolTipManager extends MouseAdapter implements
 
 	}
 
-	// implements java.awt.event.MouseListener
 	/**
 	 * Called when the mouse enters the region of a component. This determines
 	 * whether the tool tip should be shown.
@@ -243,7 +229,6 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		showTipWindow();
 	}
 
-	// implements java.awt.event.MouseListener
 	/**
 	 * Called when the mouse exits the region of a component. Any tool tip
 	 * showing should be hidden.
@@ -256,7 +241,6 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		hideTipWindow();
 	}
 
-	// implements java.awt.event.MouseListener
 	/**
 	 * Called when the mouse is pressed. Any tool tip showing should be hidden.
 	 * 
@@ -368,38 +352,6 @@ public class ComponentToolTipManager extends MouseAdapter implements
 			component = component.getParent();
 		}
 		return (Frame) component;
-	}
-
-	/**
-	 * Verifies if a component implements certain interface
-	 * 
-	 * @param obj
-	 * @param behavior
-	 * @return
-	 * @throws ClassNotFoundException
-	 */
-	public static boolean isComponentToolTipProvider(Object obj)	throws ClassNotFoundException {
-
-		// get interface of ComponentToolTipProvider
-		Class bClass = Class.forName("net.sf.mzmine.util.components.ComponentToolTipProvider");
-		Class c = obj.getClass();
-
-		// walk back up hierarchy to check interfaces
-		while (c != null) {
-
-			// get interfaces for this class
-			Class[] ia = c.getInterfaces();
-
-			// is behavior among them?
-			for (int i = 0; i < ia.length; i++) {
-				if (ia[i] == bClass)
-					return true;
-			}
-			c = c.getSuperclass();
-
-		}
-
-		return false;
 	}
 
 }

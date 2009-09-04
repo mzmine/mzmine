@@ -166,8 +166,6 @@ public class MZmineClient extends MZmineCore implements Runnable {
 			MZmineCore.initializedModules = moduleSet
 					.toArray(new MZmineModule[0]);
 
-			MZmineCore.isLightViewer = false;
-
 			// load module configuration
 			loadConfiguration(CONFIG_FILE);
 

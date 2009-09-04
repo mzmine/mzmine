@@ -22,10 +22,6 @@ package net.sf.mzmine.modules.io.xmlimport;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.File;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterSet;
@@ -78,32 +74,14 @@ public class XMLImporter implements MZmineModule, ActionListener {
 
 	public void actionPerformed(ActionEvent e) {
 
-		if (MZmineCore.isLightViewer()) {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setMultiSelectionEnabled(true);
-			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"MZmine peak list files", "mpl");
-			fileChooser.addChoosableFileFilter(filter);
-			int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
-					.getMainFrame());
+		ExitCode setupExitCode = setupParameters(parameters);
 
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				File[] selectedFiles = fileChooser.getSelectedFiles();
-				String[] filenames = new String[selectedFiles.length];
-				for (int i = 0; i < filenames.length; i++) {
-					filenames[i] = selectedFiles[i].getAbsolutePath();
-				}
-				this.loadPeakLists(filenames);
-			}
-		} else {
-			ExitCode setupExitCode = setupParameters(parameters);
-
-			if (setupExitCode != ExitCode.OK) {
-				return;
-			}
-
-			runModule(null, null, parameters);
+		if (setupExitCode != ExitCode.OK) {
+			return;
 		}
+
+		runModule(null, null, parameters);
+
 	}
 
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,

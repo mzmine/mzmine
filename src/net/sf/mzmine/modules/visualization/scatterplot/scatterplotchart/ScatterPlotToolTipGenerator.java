@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.scatterplot.plotdatalabel;
+package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -25,11 +25,7 @@ import org.jfree.data.xy.XYDataset;
 public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 
 	public String generateToolTip(XYDataset dataset, int series, int item) {
-		
-		int index = ((ScatterPlotDataSet) dataset).getArrayIndex(series, item);
-		return String.valueOf(index);
-		
-		
+		return String.valueOf(series + ":" + item);
 	}
 
 }

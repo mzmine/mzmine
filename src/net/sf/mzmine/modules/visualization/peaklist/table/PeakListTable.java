@@ -69,7 +69,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
 	public PeakListTable(PeakListTableVisualizer visualizer,
 			PeakListTableWindow window, PeakListTableParameters parameters,
-			PeakList peakList, boolean isLightViewer) {
+			PeakList peakList) {
 
 		this.peakList = peakList;
 
@@ -94,11 +94,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 		sorter = new TableRowSorter<PeakListTableModel>(pkTableModel);
 		setRowSorter(sorter);
 
-		if (!isLightViewer) {
-			PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(
-					window, this, cm, peakList);
-			addMouseListener(new PopupListener(popupMenu));
-		}
+		PeakListTablePopupMenu popupMenu = new PeakListTablePopupMenu(window,
+				this, cm, peakList);
+		addMouseListener(new PopupListener(popupMenu));
 
 		setRowHeight(parameters.getRowHeight());
 

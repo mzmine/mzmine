@@ -111,9 +111,6 @@ public class MZviewer extends MZmineCore implements Runnable {
 
             MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
             
-            MZmineCore.isLightViewer = true;
-           
-
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Could not initialize MZviewer ", e);
             System.exit(1);

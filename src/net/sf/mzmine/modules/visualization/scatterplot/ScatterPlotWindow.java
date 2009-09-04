@@ -21,41 +21,56 @@ package net.sf.mzmine.modules.visualization.scatterplot;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JComponent;
 import javax.swing.JInternalFrame;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 
+/**
+ * Main window of the scatter plot visualizer.
+ * 
+ */
 public class ScatterPlotWindow extends JInternalFrame {
 
-	private ScatterPlotPanel scatterPlotPanel;
+	private ScatterPlotToolBar toolbar;
+	private ScatterPlotChart chart;
+	private ScatterPlotTopPanel topPanel;
+	private ScatterPlotBottomPanel bottomPanel;
 
-	public ScatterPlotWindow(PeakList peakList, String title) {
+	public ScatterPlotWindow(PeakList peakList) {
 
-		super(title, true, true, true, true);
-	
+		super("Scatter plot of " + peakList, true, true, true, true);
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
 
-		try {
+		topPanel = new ScatterPlotTopPanel();
+		add(topPanel, BorderLayout.NORTH);
 
-			scatterPlotPanel = new ScatterPlotPanel();
-			add(scatterPlotPanel, BorderLayout.CENTER);
+		chart = new ScatterPlotChart(topPanel, peakList);
+		Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+		chart.setBorder(border);
+		chart.setBackground(Color.white);
+		add(chart, BorderLayout.CENTER);
 
-			if (peakList != null) {
-				scatterPlotPanel.setPeakList(peakList);
-			}
+		toolbar = new ScatterPlotToolBar(chart);
+		add(toolbar, BorderLayout.EAST);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		JComponent leftMargin = (JComponent) Box.createRigidArea(new Dimension(10,10));
+		leftMargin.setOpaque(false);
+		add(leftMargin, BorderLayout.WEST);
+		
+		bottomPanel = new ScatterPlotBottomPanel(chart, peakList);
+		add(bottomPanel, BorderLayout.SOUTH);
 
 		pack();
 
-	}
-
-	public ScatterPlotChart getPlotChart() {
-		return scatterPlotPanel.getPlot();
 	}
 
 }

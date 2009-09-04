@@ -45,20 +45,20 @@ public interface IsotopePattern {
 	 * of the array is same as returned by getNumberOfIsotopes()
 	 */
 	public DataPoint[] getDataPoints();
-	
+
 	/**
 	 * Returns the highest (in terms of intensity) isotope of this pattern.
 	 */
 	public DataPoint getHighestIsotope();
 
 	/**
-	 * Creates a new isotope pattern which has same ratios but maximum intensity
-	 * is normalized to given value
+	 * Creates a new isotope pattern which has same ratios between isotopes, but
+	 * maximum intensity is normalized to given value
 	 */
 	public IsotopePattern normalizeTo(double value);
-	
+
 	/**
-	 * Returns a description of this isotope pattern (formula, etc.) 
+	 * Returns a description of this isotope pattern (formula, etc.)
 	 */
 	public String getDescription();
 

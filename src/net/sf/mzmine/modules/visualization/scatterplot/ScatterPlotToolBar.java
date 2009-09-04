@@ -19,34 +19,31 @@
 
 package net.sf.mzmine.modules.visualization.scatterplot;
 
-import java.awt.Color;
 import java.awt.Insets;
-import java.awt.event.ActionListener;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
+import net.sf.mzmine.util.GUIUtils;
+
 public class ScatterPlotToolBar extends JToolBar {
-	
+
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
-	public ScatterPlotToolBar(ActionListener actionPerfomer) {
-		
+	public ScatterPlotToolBar(ScatterPlotChart chart) {
+
 		super(JToolBar.VERTICAL);
 
 		setFloatable(false);
 		setFocusable(false);
+		setOpaque(true);
 		setMargin(new Insets(5, 5, 5, 5));
-		setBackground(Color.white);
 
-		JButton button1 = new JButton(axesIcon);
-        button1.addActionListener(actionPerfomer);
-        button1.setActionCommand("SETUP_AXES");
-        button1.setToolTipText("Setup ranges for axes");
-        this.add(button1);
+		GUIUtils.addButton(this, null, axesIcon, chart, "SETUP_AXES",
+				"Setup ranges for axes");
 
-}
+	}
 
 }
