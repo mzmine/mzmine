@@ -26,7 +26,8 @@ import org.jfree.data.xy.XYDataset;
 
 public class DiagonalLineLabelGenerator implements XYItemLabelGenerator {
 
-	public static final DecimalFormat labelFormat = new DecimalFormat("0.#####");
+	// We use 3 decimal digits, to show ratios such as "0.125x"
+	public static final DecimalFormat labelFormat = new DecimalFormat("0.###");
 
 	/**
 	 * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
