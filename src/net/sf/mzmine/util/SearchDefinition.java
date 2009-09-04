@@ -70,8 +70,13 @@ public class SearchDefinition {
 			throws PatternSyntaxException {
 
 		this.type = type;
-		this.nameRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		this.range = range;
+
+		// Avoid compiling the regex pattern (may cause exceptions) unless the
+		// search type is set to NAME
+		if (type == SearchDefinitionType.NAME) {
+			this.nameRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
+		}
 
 	}
 
