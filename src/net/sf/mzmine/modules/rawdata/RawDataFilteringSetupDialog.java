@@ -156,7 +156,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		c.gridwidth = 1;
 		c.gridx = 0;
 		c.gridy = 1;
-		pnlCombo.add(new JLabel("Raw Data Filer"), c);
+		pnlCombo.add(new JLabel("Scan by Scan Filter"), c);
 		c.gridwidth = 3;
 		c.gridx = 1;
 		pnlCombo.add(comboRawDataFilters, c);
