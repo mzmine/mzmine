@@ -210,44 +210,8 @@
           </parameters>
         </batchstep>
       </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.cropper.CropFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">cropped</parameter>
-        <parameter name="m/z range" type="RANGE">300.0-310.0</parameter>
-        <parameter name="Retention time" type="RANGE">480.0-1080.0</parameter>
-        <parameter name="Remove source file" type="BOOLEAN">false</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.mean.MeanFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">filtered</parameter>
-        <parameter name="Window length" type="DOUBLE">0.1</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.savitzkygolay.SGFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">filtered</parameter>
-        <parameter name="Number of datapoints" type="INTEGER">5</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.chromatmedian.CMFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">filtered</parameter>
-        <parameter name="Window length" type="INTEGER">1</parameter>
-        <parameter name="M/Z tolerance" type="DOUBLE">0.1</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.zoomscan.ZoomScanFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">filtered</parameter>
-        <parameter name="Minimum M/Z range" type="DOUBLE">100.0</parameter>
-        <parameter name="Remove source file after filtering" type="BOOLEAN">true</parameter>
-      </parameters> 
-    </module>  
+    </module> 
+    <module class="net.sf.mzmine.modules.rawdata.RawDataFiltering"/>     
     <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder"> 
       <parameters>
@@ -471,14 +435,7 @@
       <parameters>
         <parameter name="Filename" type="FILE_NAME">/Users/plusik/Documents/Metabolome paper 2/Tranche upload/Schizosaccharomyces pombe metabolome/MZviewer/data/hcs1_pos.mpl</parameter>
       </parameters> 
-    </module>  
-    <module class="net.sf.mzmine.modules.rawdata.resample.ResampleFilter"> 
-      <parameters>
-        <parameter name="Filename suffix" type="STRING">resampled</parameter>
-        <parameter name="m/z bin length" type="DOUBLE">0.01</parameter>
-        <parameter name="Remove source file" type="BOOLEAN">false</parameter>
-      </parameters> 
-    </module>  
+    </module>     
     <module class="net.sf.mzmine.modules.peakpicking.msms.MsMsPeakPicker"> 
       <parameters>
         <parameter name="m/z window" type="DOUBLE">0.0050</parameter>

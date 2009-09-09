@@ -51,10 +51,10 @@ public class CMFilter implements BatchStep, ActionListener {
 
         parameters = new CMFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING,
+        /*desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING,
                 "Chromatographic median filter",
                 "Smoothing filter in chromatographic direction", KeyEvent.VK_H,
-                false, this, null);
+                false, this, null);*/
 
     }
 

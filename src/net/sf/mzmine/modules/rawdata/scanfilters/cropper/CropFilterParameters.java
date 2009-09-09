@@ -16,32 +16,30 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.modules.rawdata.savitzkygolay;
+package net.sf.mzmine.modules.rawdata.scanfilters.cropper;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
-public class SGFilterParameters extends SimpleParameterSet {
+public class CropFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Filename suffix",
-            "Suffix to be added to filename", null, "filtered", null);
+	public static final Parameter mzRange = new SimpleParameter(
+			ParameterType.RANGE, "m/z range",
+			"m/z boundary of the cropped region", "m/z", new Range(0, 1000),
+			new Double(0), null, MZmineCore.getMZFormat());
+	
+	public static final Parameter retentionTimeRange = new SimpleParameter(
+			ParameterType.RANGE, "Retention time",
+			"retention time boundary of the cropped region", null, new Range(0,
+			600), new Double(0), null, MZmineCore.getRTFormat());
 
-    public static final Parameter datapoints = new SimpleParameter(
-            ParameterType.INTEGER, "Number of datapoints",
-            "Number of datapoints", 5, new Object[] { 5, 7, 9, 11, 13, 15 });
-
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove source file after filtering",
-            "If checked, original file will be removed and only filtered version remains",
-            new Boolean(true));
-
-    public SGFilterParameters() {
-        super(new Parameter[] { suffix, datapoints, autoRemove });
-    }
-
+	public CropFilterParameters() {
+		super(
+				new Parameter[]{mzRange, retentionTimeRange
+				});
+	}
 }

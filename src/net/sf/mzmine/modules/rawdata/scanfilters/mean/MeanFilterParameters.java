@@ -16,8 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.modules.rawdata.mean;
+package net.sf.mzmine.modules.rawdata.scanfilters.mean;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -27,23 +26,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Filename suffix",
-            "Suffix to be added to filename", null, "filtered", null);
+	public static final Parameter oneSidedWindowLength = new SimpleParameter(
+			ParameterType.DOUBLE, "Window length",
+			"One-sided length of the smoothing window", "m/z", new Double(0.1),
+			new Double(0.0), null, MZmineCore.getMZFormat());
 
-    public static final Parameter oneSidedWindowLength = new SimpleParameter(
-            ParameterType.DOUBLE, "Window length",
-            "One-sided length of the smoothing window", "m/z", new Double(0.1),
-            new Double(0.0), null, MZmineCore.getMZFormat());
-
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove source file after filtering",
-            "If checked, original file will be removed and only filtered version remains",
-            new Boolean(true));
-
-    public MeanFilterParameters() {
-        super(new Parameter[] { suffix, oneSidedWindowLength, autoRemove });
-    }
-
+	public MeanFilterParameters() {
+		super(new Parameter[]{oneSidedWindowLength});
+	}
 }

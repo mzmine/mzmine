@@ -13,11 +13,10 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
- * Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
+ * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-package net.sf.mzmine.modules.rawdata.resample;
+package net.sf.mzmine.modules.rawdata;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +25,6 @@ import java.awt.event.KeyEvent;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -34,12 +32,10 @@ import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class ResampleFilter implements BatchStep, ActionListener {
+public class RawDataFiltering implements BatchStep, ActionListener {
 
-	private ResampleFilterParameters parameters;
-
+	private RawDataFilteringParameters parameters;
 	private Desktop desktop;
 
 	/**
@@ -49,12 +45,11 @@ public class ResampleFilter implements BatchStep, ActionListener {
 
 		this.desktop = MZmineCore.getDesktop();
 
-		parameters = new ResampleFilterParameters();
+		parameters = new RawDataFilteringParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "m/z resample filter",
-				"Performing a simple m/z binning", KeyEvent.VK_C, false, this,
-				null);
-
+		desktop.addMenuItem(MZmineMenu.RAWDATA, "Raw Data Filtering",
+				"Raw Data Filtering",
+				KeyEvent.VK_F, true, this, null);
 	}
 
 	/**
@@ -69,8 +64,9 @@ public class ResampleFilter implements BatchStep, ActionListener {
 		}
 
 		ExitCode exitCode = setupParameters(parameters);
-		if (exitCode != ExitCode.OK)
+		if (exitCode != ExitCode.OK) {
 			return;
+		}
 
 		runModule(dataFiles, null, parameters.clone());
 
@@ -80,49 +76,18 @@ public class ResampleFilter implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Resample filter";
+		return "Raw Data Filtering";
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters()
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public ExitCode setupParameters(ParameterSet currentParameters) {
-
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
+	public ExitCode setupParameters(ParameterSet parameters) {
+		RawDataFilteringSetupDialog dialog = new RawDataFilteringSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters);
-
+				(RawDataFilteringParameters) parameters);
 		dialog.setVisible(true);
-
 		return dialog.getExitCode();
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters) {
-
-		// check data files
-		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select data files for filtering");
-			return null;
-		}
-
-		// prepare a new task group
-		Task tasks[] = new ResampleFilterTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ResampleFilterTask(dataFiles[i],
-					(ResampleFilterParameters) parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
 	}
 
 	/**
@@ -132,11 +97,34 @@ public class ResampleFilter implements BatchStep, ActionListener {
 		return parameters;
 	}
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
 	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ResampleFilterParameters) parameters;
+		this.parameters = (RawDataFilteringParameters) parameters;
+	}
+
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+	 *      net.sf.mzmine.data.AlignmentResult[],
+	 *      net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
+		// check data files
+		if ((dataFiles == null) || (dataFiles.length == 0)) {
+			desktop.displayErrorMessage("Please select data files for peak picking");
+			return null;
+		}
+
+		// prepare a new group of tasks
+		Task tasks[] = new RawDataFilteringTask[dataFiles.length];
+		for (int i = 0; i < dataFiles.length; i++) {
+			tasks[i] = new RawDataFilteringTask(dataFiles[i],
+					(RawDataFilteringParameters) parameters);
+		}
+
+		MZmineCore.getTaskController().addTasks(tasks);
+
+		return tasks;
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

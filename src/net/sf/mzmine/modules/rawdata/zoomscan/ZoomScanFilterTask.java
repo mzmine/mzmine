@@ -129,7 +129,7 @@ class ZoomScanFilterTask implements Task {
                         || (oldScan.getMZRange().getSize() >= minMZRange)) {
                     rawDataFileWriter.addScan(oldScan);
                 }
-
+				
                 filteredScans++;
 
             }

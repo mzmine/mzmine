@@ -17,11 +17,18 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop;
+package net.sf.mzmine.modules.rawdata.scanfilters;
 
-public enum MZmineMenu {
-    PROJECTIO, PROJECT, RAWDATA, PEAKPICKING, GAPFILLING, 
-    ISOTOPES, PEAKLISTFILTERING, ALIGNMENT, NORMALIZATION, 
-    IDENTIFICATION, PEAKLISTEXPORT, VISUALIZATIONRAWDATA, 
-    VISUALIZATIONPEAKLIST, DATAANALYSIS, HELPSYSTEM
-};
+import net.sf.mzmine.data.Scan;
+/**
+ * 
+ */
+public interface RawDataFilter {
+
+    /**
+     * 
+     * @return return the modified scan after being process by the filter
+     */
+    public Scan getNewScan(Scan scan);
+    
+}

@@ -17,33 +17,22 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdata.resample;
+package net.sf.mzmine.modules.rawdata.scanfilters.savitzkygolay;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
 
-public class ResampleFilterParameters extends SimpleParameterSet {
+public class SGFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter suffix = new SimpleParameter(
-			ParameterType.STRING, "Filename suffix",
-			"Suffix to be added to filename", null, "resampled", null);
+     public static final Parameter datapoints = new SimpleParameter(
+            ParameterType.INTEGER, "Number of datapoints",
+            "Number of datapoints", 5, new Object[] { 5, 7, 9, 11, 13, 15 });
 
-	public static final Parameter binSize = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z bin length", "The length of on m/z bin",
-			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
-			MZmineCore.getMZFormat());
-
-	public static final Parameter autoRemove = new SimpleParameter(
-			ParameterType.BOOLEAN,
-			"Remove source file",
-			"If checked, original file will be removed and only resampled version remains",
-			new Boolean(true));
-
-	public ResampleFilterParameters() {
-		super(new Parameter[] { suffix, binSize, autoRemove });
-	}
+  
+    public SGFilterParameters() {
+        super(new Parameter[] { datapoints });
+    }
 
 }

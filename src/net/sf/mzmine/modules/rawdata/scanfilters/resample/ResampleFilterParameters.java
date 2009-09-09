@@ -16,12 +16,22 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+package net.sf.mzmine.modules.rawdata.scanfilters.resample;
 
-package net.sf.mzmine.desktop;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
+import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 
-public enum MZmineMenu {
-    PROJECTIO, PROJECT, RAWDATA, PEAKPICKING, GAPFILLING, 
-    ISOTOPES, PEAKLISTFILTERING, ALIGNMENT, NORMALIZATION, 
-    IDENTIFICATION, PEAKLISTEXPORT, VISUALIZATIONRAWDATA, 
-    VISUALIZATIONPEAKLIST, DATAANALYSIS, HELPSYSTEM
-};
+public class ResampleFilterParameters extends SimpleParameterSet {
+
+	public static final Parameter binSize = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z bin length", "The length of on m/z bin",
+			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
+			MZmineCore.getMZFormat());
+
+	public ResampleFilterParameters() {
+		super(new Parameter[]{binSize});
+	}
+}
