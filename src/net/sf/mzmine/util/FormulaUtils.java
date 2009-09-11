@@ -50,7 +50,8 @@ public class FormulaUtils {
 	 * Modifies the formula according to polarity - for negative, remove one
 	 * hydrogen; for positive, add one hydrogen
 	 */
-	public static String ionizeFormula(String formula, Polarity polarity) {
+	public static String ionizeFormula(String formula, Polarity polarity,
+			int charge) {
 
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
@@ -59,9 +60,12 @@ public class FormulaUtils {
 
 		for (IIsotope isotope : formulaObject.isotopes()) {
 			if (isotope.getSymbol().equals("H")) {
-				int current = formulaObject.getIsotopeCount(isotope);
+				int currentHydrogen = formulaObject.getIsotopeCount(isotope);
 				formulaObject.removeIsotope(isotope);
-				formulaObject.addIsotope(isotope, current + polarity.getSign());
+				int newHydrogen = currentHydrogen
+						+ (polarity.getSign() * charge);
+				if (newHydrogen > 0)
+					formulaObject.addIsotope(isotope, newHydrogen);
 				break;
 			}
 		}
