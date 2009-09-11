@@ -122,6 +122,8 @@ public class BatchTask implements Task {
 				// whole batch
 				if (stepStatus == TaskStatus.CANCELED) {
 					taskStatus = TaskStatus.CANCELED;
+					for (Task t : currentStepTasks)
+						t.cancel();
 					return;
 				}
 
