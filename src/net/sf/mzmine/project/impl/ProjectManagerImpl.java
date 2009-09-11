@@ -72,26 +72,40 @@ public class ProjectManagerImpl implements ProjectManager {
 		return myInstance;
 	}
 
-	public synchronized void addProjectListener(ProjectListener listener) {
-		WeakReference<ProjectListener> newReference = new WeakReference<ProjectListener>(
-				listener);
-		listeners.add(newReference);
+	public void addProjectListener(ProjectListener listener) {
+		synchronized (listeners) {
+			WeakReference<ProjectListener> newReference = new WeakReference<ProjectListener>(
+					listener);
+			listeners.add(newReference);
+		}
 	}
 
-	public synchronized void removeProjectListener(ProjectListener listener) {
-		listeners.remove(listener);
-	}
-
-	public synchronized void fireProjectListeners(ProjectEvent event) {
-		Iterator<WeakReference<ProjectListener>> it = listeners.iterator();
-		while (it.hasNext()) {
-			WeakReference<ProjectListener> ref = it.next();
-			ProjectListener listener = ref.get();
-			if (listener == null) {
-				it.remove();
-				continue;
+	public void removeProjectListener(ProjectListener listener) {
+		synchronized (listeners) {
+			Iterator<WeakReference<ProjectListener>> it = listeners.iterator();
+			while (it.hasNext()) {
+				WeakReference<ProjectListener> ref = it.next();
+				ProjectListener refList = ref.get();
+				if ((refList == null) || (refList == listener)) {
+					it.remove();
+					continue;
+				}
 			}
-			listener.projectModified(event);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public void fireProjectListeners(ProjectEvent event) {
+		WeakReference<ProjectListener> listenersCopy[];
+		synchronized (listeners) {
+			listenersCopy = listeners.toArray(new WeakReference[0]);
+		}
+		// Now we released the lock of listeners, so we can safely call the
+		// actual methods
+		for (WeakReference<ProjectListener> ref : listenersCopy) {
+			ProjectListener listener = ref.get();
+			if (listener != null)
+				listener.projectModified(event);
 		}
 
 	}

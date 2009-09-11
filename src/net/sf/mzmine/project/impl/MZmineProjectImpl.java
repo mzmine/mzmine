@@ -43,22 +43,12 @@ public class MZmineProjectImpl implements MZmineProject {
 	private Vector<RawDataFile> dataFiles;
 	private Vector<PeakList> peakLists;
 
-	/**
-	 * These arrays are used to avoid locking the dataFiles and peakLists
-	 * Vectors every time when project tree is repainted. That would cause dead
-	 * locks when a new object is added to the project.
-	 */
-	private RawDataFile currentDataFiles[];
-	private PeakList currentPeakLists[];
-
 	private File projectFile;
 
 	public MZmineProjectImpl() {
 
 		this.dataFiles = new Vector<RawDataFile>();
-		this.currentDataFiles = new RawDataFile[0];
 		this.peakLists = new Vector<PeakList>();
-		this.currentPeakLists = new PeakList[0];
 		projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
 
 	}
@@ -103,11 +93,13 @@ public class MZmineProjectImpl implements MZmineProject {
 		return value;
 	}
 
-	public synchronized void addFile(RawDataFile newFile) {
+	public void addFile(RawDataFile newFile) {
 
-		int newFileIndex = dataFiles.size();
-		dataFiles.add(newFile);
-		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
+		int newFileIndex;
+		synchronized (dataFiles) {
+			newFileIndex = dataFiles.size();
+			dataFiles.add(newFile);
+		}
 
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
@@ -117,7 +109,7 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	}
 
-	public synchronized void removeFile(RawDataFile file) {
+	public void removeFile(RawDataFile file) {
 
 		// If the data file is present in any peak list, we must not remove it
 		PeakList currentPeakLists[] = getPeakLists();
@@ -131,11 +123,12 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		}
 
-		int removedFileIndex = dataFiles.indexOf(file);
-		dataFiles.remove(file);
-		file.close();
-
-		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
+		int removedFileIndex;
+		synchronized (dataFiles) {
+			removedFileIndex = dataFiles.indexOf(file);
+			dataFiles.remove(file);
+			file.close();
+		}
 
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
@@ -145,23 +138,22 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	}
 
-	public synchronized void moveDataFiles(RawDataFile[] movedFiles,
-			int movePosition) {
+	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
 
 		int currentPosition;
 
-		for (RawDataFile movedFile : movedFiles) {
-			currentPosition = dataFiles.indexOf(movedFile);
-			if (currentPosition < 0)
-				continue;
-			dataFiles.remove(currentPosition);
-			if (currentPosition < movePosition)
-				movePosition--;
-			dataFiles.add(movePosition, movedFile);
-			movePosition++;
+		synchronized (dataFiles) {
+			for (RawDataFile movedFile : movedFiles) {
+				currentPosition = dataFiles.indexOf(movedFile);
+				if (currentPosition < 0)
+					continue;
+				dataFiles.remove(currentPosition);
+				if (currentPosition < movePosition)
+					movePosition--;
+				dataFiles.add(movePosition, movedFile);
+				movePosition++;
+			}
 		}
-
-		currentDataFiles = dataFiles.toArray(new RawDataFile[0]);
 
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
@@ -172,29 +164,27 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	/**
-	 * This method is not synchronized on purpose. Making it synchronized would
-	 * cause a dead-lock whenever something is added to the project (thread A
-	 * adds a data file, causes TreeEvent, then event dispatching thread wants
-	 * to reload the tree, calls getDataFiles, causes deadlock).
 	 */
 	public RawDataFile[] getDataFiles() {
-		return currentDataFiles;
+		synchronized (dataFiles) {
+			return dataFiles.toArray(new RawDataFile[0]);
+		}
 	}
 
 	/**
-	 * This method is not synchronized on purpose. Making it synchronized would
-	 * cause a dead-lock whenever something is added to the project (thread A
-	 * adds a data file, causes TreeEvent, then event dispatching thread wants
-	 * to reload the tree, calls getDataFiles, causes deadlock).
 	 */
 	public PeakList[] getPeakLists() {
-		return currentPeakLists;
+		synchronized (peakLists) {
+			return peakLists.toArray(new PeakList[0]);
+		}
 	}
 
-	public synchronized void addPeakList(PeakList peakList) {
-		int peakListsSize = peakLists.size();
-		peakLists.add(peakList);
-		currentPeakLists = peakLists.toArray(new PeakList[0]);
+	public void addPeakList(PeakList peakList) {
+		int peakListsSize;
+		synchronized (peakLists) {
+			peakListsSize = peakLists.size();
+			peakLists.add(peakList);
+		}
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
 					ProjectEventType.PEAKLIST_ADDED, peakList, peakListsSize);
@@ -203,10 +193,12 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	}
 
-	public synchronized void removePeakList(PeakList peakList) {
-		int peakListIndex = peakLists.indexOf(peakList);
-		peakLists.remove(peakList);
-		currentPeakLists = peakLists.toArray(new PeakList[0]);
+	public void removePeakList(PeakList peakList) {
+		int peakListIndex;
+		synchronized (peakLists) {
+			peakListIndex = peakLists.indexOf(peakList);
+			peakLists.remove(peakList);
+		}
 
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
@@ -216,23 +208,23 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	}
 
-	public synchronized void movePeakLists(PeakList[] movedPeakLists,
-			int movePosition) {
+	public void movePeakLists(PeakList[] movedPeakLists, int movePosition) {
 
 		int currentPosition;
 
-		for (PeakList movedPeakList : movedPeakLists) {
-			currentPosition = peakLists.indexOf(movedPeakList);
-			if (currentPosition < 0)
-				continue;
-			peakLists.remove(currentPosition);
-			if (currentPosition < movePosition)
-				movePosition--;
-			peakLists.add(movePosition, movedPeakList);
-			movePosition++;
-		}
+		synchronized (peakLists) {
 
-		currentPeakLists = peakLists.toArray(new PeakList[0]);
+			for (PeakList movedPeakList : movedPeakLists) {
+				currentPosition = peakLists.indexOf(movedPeakList);
+				if (currentPosition < 0)
+					continue;
+				peakLists.remove(currentPosition);
+				if (currentPosition < movePosition)
+					movePosition--;
+				peakLists.add(movePosition, movedPeakList);
+				movePosition++;
+			}
+		}
 
 		if (MZmineCore.getCurrentProject() == this) {
 			ProjectEvent newEvent = new ProjectEvent(
