@@ -254,9 +254,12 @@ public class MzXMLReadTask extends DefaultHandler implements Task {
 			// clean the current char buffer for the new element
 			charBuffer.setLength(0);
 			compressFlag = false;
-			if ((attrs.getValue("compressionType")) != null) {
+			String compressionType = attrs.getValue("compressionType");
+			if ((compressionType == null) || (compressionType.equals("none")))
+				compressFlag = false;
+			else
 				compressFlag = true;
-			}
+
 		}
 
 		// <precursorMz>

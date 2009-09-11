@@ -75,12 +75,8 @@ public class MzMLReadTask extends DefaultHandler implements Task {
 	private boolean mzArrayBinaryFlag = false;
 	private boolean intenArrayBinaryFlag = false;
 	private boolean compressFlag = false;
-	private int precision;
-	private int scanNumber;
-	private int msLevel;
-	private int parentScan;
-	private double retentionTime;
-	private double precursorMz;
+	private int precision, scanNumber, msLevel, parentScan;
+	private double retentionTime, precursorMz;
 	private int precursorCharge = 0;
 
 	private HashMap<String, Integer> scanId = new HashMap<String, Integer>();

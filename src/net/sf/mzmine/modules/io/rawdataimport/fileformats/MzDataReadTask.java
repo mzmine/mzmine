@@ -64,8 +64,7 @@ public class MzDataReadTask extends DefaultHandler implements Task {
 	private boolean spectrumInstrumentFlag = false;
 	private boolean mzArrayBinaryFlag = false;
 	private boolean intenArrayBinaryFlag = false;
-	private String precision;
-	private String endian;
+	private String precision, endian;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
