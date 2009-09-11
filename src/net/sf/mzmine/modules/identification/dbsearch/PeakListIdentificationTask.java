@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
@@ -189,11 +190,15 @@ public class PeakListIdentificationTask implements Task {
 
 		int charge = 1;
 
-		IsotopePattern rowIsotopePattern = row.getBestIsotopePatternPeak()
-				.getIsotopePattern();
-		if (rowIsotopePattern != null) {
-			if (rowIsotopePattern.getCharge() != 0)
-				charge = rowIsotopePattern.getCharge();
+		IsotopePattern rowIsotopePattern = null;
+		ChromatographicPeak bestIsotopePatternPeak = row
+				.getBestIsotopePatternPeak();
+		if (bestIsotopePatternPeak != null) {
+			rowIsotopePattern = bestIsotopePatternPeak.getIsotopePattern();
+			if (rowIsotopePattern != null) {
+				if (rowIsotopePattern.getCharge() != 0)
+					charge = rowIsotopePattern.getCharge();
+			}
 		}
 
 		double massValue = (row.getAverageMZ() - ionType.getAddedMass())
@@ -217,7 +222,7 @@ public class PeakListIdentificationTask implements Task {
 				// First modify the formula according to polarity - for
 				// negative, remove one hydrogen; for positive, add one hydrogen
 				String adjustedFormula = FormulaUtils.ionizeFormula(compound
-						.getCompoundFormula(), ionType.getPolarity());
+						.getCompoundFormula(), ionType.getPolarity(), charge);
 
 				logger
 						.finest("Calculating isotope pattern for compound formula "

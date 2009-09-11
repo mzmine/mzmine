@@ -27,7 +27,6 @@ import java.beans.PropertyChangeListener;
 
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
@@ -41,7 +40,7 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 
 	private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
 	private double rawMassValue;
-	private JTextField chargeField;
+	private JFormattedTextField chargeField;
 	private JFormattedTextField neutralMassField;
 	private JComboBox ionizationMethodCombo;
 
@@ -54,16 +53,16 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		// Make dialog modal
 		super("Online database search setup dialog ", parameters);
 
-		chargeField = (JTextField) getComponentForParameter(OnlineDBSearchParameters.charge);
+		chargeField = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.charge);
 		chargeField.addPropertyChangeListener("value", this);
 
 		if (row != null) {
 			this.rawMassValue = row.getAverageMZ();
 			ChromatographicPeak peak = row.getBestIsotopePatternPeak();
-			if (peak!= null) {
+			if (peak != null) {
 				IsotopePattern pattern = peak.getIsotopePattern();
 				int rowCharge = pattern.getCharge();
-				chargeField.setText(String.valueOf(rowCharge));
+				chargeField.setValue(rowCharge);
 			}
 		}
 

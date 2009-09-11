@@ -186,7 +186,7 @@ public class SingleRowIdentificationTask implements Task {
 					// hydrogen
 					String adjustedFormula = FormulaUtils.ionizeFormula(
 							compound.getCompoundFormula(), ionType
-									.getPolarity());
+									.getPolarity(), charge);
 
 					logger
 							.finest("Calculating isotope pattern for compound formula "
