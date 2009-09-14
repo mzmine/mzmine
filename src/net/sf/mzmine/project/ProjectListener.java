@@ -20,10 +20,10 @@
 
 package net.sf.mzmine.project;
 
-
 /**
  * This interface defines a listener which can be registered to the project and
- * is notified when project is modified.
+ * is notified when project is modified. The projectModified() method will be
+ * always called in the Swing event dispatching thread.
  */
 public interface ProjectListener {
 

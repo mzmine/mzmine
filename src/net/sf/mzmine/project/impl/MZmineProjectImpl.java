@@ -23,6 +23,8 @@ import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -93,23 +95,31 @@ public class MZmineProjectImpl implements MZmineProject {
 		return value;
 	}
 
-	public void addFile(RawDataFile newFile) {
+	public void addFile(final RawDataFile newFile) {
 
-		int newFileIndex;
-		synchronized (dataFiles) {
-			newFileIndex = dataFiles.size();
+		// In case we are loading new project, we don't want to fire listeners
+		if (MZmineCore.getCurrentProject() != this) {
 			dataFiles.add(newFile);
+			return;
 		}
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
+		// We will perform the actual addition (and listener firing) in the
+		// swing thread, because it will cause repainting the project tree.
+		Runnable swingThreadCode = new Runnable() {
+			public void run() {
+				int newFileIndex = dataFiles.size();
+				dataFiles.add(newFile);
+
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
+		};
+		SwingUtilities.invokeLater(swingThreadCode);
 
 	}
 
-	public void removeFile(RawDataFile file) {
+	public void removeFile(final RawDataFile file) {
 
 		// If the data file is present in any peak list, we must not remove it
 		PeakList currentPeakLists[] = getPeakLists();
@@ -123,114 +133,132 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		}
 
-		int removedFileIndex;
-		synchronized (dataFiles) {
-			removedFileIndex = dataFiles.indexOf(file);
-			dataFiles.remove(file);
-			file.close();
-		}
+		Runnable swingThreadCode = new Runnable() {
+			public void run() {
+				int removedFileIndex = dataFiles.indexOf(file);
+				dataFiles.remove(file);
+				file.close();
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.DATAFILE_REMOVED, file, removedFileIndex);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.DATAFILE_REMOVED, file,
+						removedFileIndex);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
+		};
+
+		SwingUtilities.invokeLater(swingThreadCode);
 
 	}
 
-	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition) {
+	public void moveDataFiles(final RawDataFile[] movedFiles,
+			final int toPosition) {
 
-		int currentPosition;
+		Runnable swingThreadCode = new Runnable() {
+			public void run() {
+				int currentPosition, movePosition = toPosition;
 
-		synchronized (dataFiles) {
-			for (RawDataFile movedFile : movedFiles) {
-				currentPosition = dataFiles.indexOf(movedFile);
-				if (currentPosition < 0)
-					continue;
-				dataFiles.remove(currentPosition);
-				if (currentPosition < movePosition)
-					movePosition--;
-				dataFiles.add(movePosition, movedFile);
-				movePosition++;
-			}
-		}
+				for (RawDataFile movedFile : movedFiles) {
+					currentPosition = dataFiles.indexOf(movedFile);
+					if (currentPosition < 0)
+						continue;
+					dataFiles.remove(currentPosition);
+					if (currentPosition < movePosition)
+						movePosition--;
+					dataFiles.add(movePosition, movedFile);
+					movePosition++;
+				}
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.DATAFILES_REORDERED);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.DATAFILES_REORDERED);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			};
+		};
+
+		SwingUtilities.invokeLater(swingThreadCode);
 
 	}
 
 	/**
+
 	 */
 	public RawDataFile[] getDataFiles() {
-		synchronized (dataFiles) {
-			return dataFiles.toArray(new RawDataFile[0]);
-		}
+		return dataFiles.toArray(new RawDataFile[0]);
+
 	}
 
-	/**
-	 */
 	public PeakList[] getPeakLists() {
-		synchronized (peakLists) {
-			return peakLists.toArray(new PeakList[0]);
-		}
+		return peakLists.toArray(new PeakList[0]);
 	}
 
-	public void addPeakList(PeakList peakList) {
-		int peakListsSize;
-		synchronized (peakLists) {
-			peakListsSize = peakLists.size();
+	public void addPeakList(final PeakList peakList) {
+
+		// In case we are loading new project, we don't want to fire listeners
+		if (MZmineCore.getCurrentProject() != this) {
 			peakLists.add(peakList);
-		}
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_ADDED, peakList, peakListsSize);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			return;
 		}
 
-	}
+		Runnable swingThreadCode = new Runnable() {
 
-	public void removePeakList(PeakList peakList) {
-		int peakListIndex;
-		synchronized (peakLists) {
-			peakListIndex = peakLists.indexOf(peakList);
-			peakLists.remove(peakList);
-		}
+			public void run() {
+				int peakListsSize = peakLists.size();
+				peakLists.add(peakList);
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.PEAKLIST_ADDED, peakList,
+						peakListsSize);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_REMOVED, peakList, peakListIndex);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
-
-	}
-
-	public void movePeakLists(PeakList[] movedPeakLists, int movePosition) {
-
-		int currentPosition;
-
-		synchronized (peakLists) {
-
-			for (PeakList movedPeakList : movedPeakLists) {
-				currentPosition = peakLists.indexOf(movedPeakList);
-				if (currentPosition < 0)
-					continue;
-				peakLists.remove(currentPosition);
-				if (currentPosition < movePosition)
-					movePosition--;
-				peakLists.add(movePosition, movedPeakList);
-				movePosition++;
 			}
-		}
+		};
 
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLISTS_REORDERED);
-			ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-		}
+		SwingUtilities.invokeLater(swingThreadCode);
+
+	}
+
+	public void removePeakList(final PeakList peakList) {
+
+		Runnable swingThreadCode = new Runnable() {
+
+			public void run() {
+				int peakListIndex = peakLists.indexOf(peakList);
+				peakLists.remove(peakList);
+
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.PEAKLIST_REMOVED, peakList,
+						peakListIndex);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
+		};
+
+		SwingUtilities.invokeLater(swingThreadCode);
+
+	}
+
+	public void movePeakLists(final PeakList[] movedPeakLists,
+			final int toPosition) {
+
+		Runnable swingThreadCode = new Runnable() {
+			public void run() {
+				int currentPosition, movePosition = toPosition;
+
+				for (PeakList movedPeakList : movedPeakLists) {
+					currentPosition = peakLists.indexOf(movedPeakList);
+					if (currentPosition < 0)
+						continue;
+					peakLists.remove(currentPosition);
+					if (currentPosition < movePosition)
+						movePosition--;
+					peakLists.add(movePosition, movedPeakList);
+					movePosition++;
+				}
+
+				ProjectEvent newEvent = new ProjectEvent(
+						ProjectEventType.PEAKLISTS_REORDERED);
+				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+			}
+		};
+
+		SwingUtilities.invokeLater(swingThreadCode);
 
 	}
 
