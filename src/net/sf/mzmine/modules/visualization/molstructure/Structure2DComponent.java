@@ -20,9 +20,6 @@
 package net.sf.mzmine.modules.visualization.molstructure;
 
 import java.io.StringReader;
-import java.text.NumberFormat;
-
-import net.sf.mzmine.main.MZmineCore;
 
 import org.openscience.cdk.ChemModel;
 import org.openscience.cdk.exception.CDKException;
@@ -30,8 +27,6 @@ import org.openscience.cdk.io.MDLReader;
 import org.openscience.jchempaint.JChemPaintViewerPanel;
 
 public class Structure2DComponent extends JChemPaintViewerPanel {
-
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	public Structure2DComponent(String structure) throws CDKException {
 
