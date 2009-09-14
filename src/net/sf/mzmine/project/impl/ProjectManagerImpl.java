@@ -23,6 +23,8 @@ import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Vector;
 
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.modules.io.projectload.ProjectLoader;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
@@ -59,7 +61,15 @@ public class ProjectManagerImpl implements ProjectManager {
 
 	public void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
-		fireProjectListeners(new ProjectEvent(ProjectEventType.ALL_CHANGED));
+
+		// Fire the project listeners in swing thread
+		Runnable swingCode = new Runnable() {
+			public void run() {
+				fireProjectListeners(new ProjectEvent(
+						ProjectEventType.ALL_CHANGED));
+			}
+		};
+		SwingUtilities.invokeLater(swingCode);
 
 		// This is a hack to keep correct value of last opened directory (this
 		// value was overwritten when configuration file was loaded from the new
