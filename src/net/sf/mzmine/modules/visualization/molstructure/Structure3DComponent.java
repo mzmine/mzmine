@@ -30,7 +30,7 @@ import org.jmol.api.JmolAdapter;
 import org.jmol.api.JmolViewer;
 
 public class Structure3DComponent extends JPanel {
-	
+
 	private JmolViewer viewer;
 	private JmolAdapter adapter;
 	final Dimension currentSize = new Dimension();
@@ -41,7 +41,8 @@ public class Structure3DComponent extends JPanel {
 	 */
 	public Structure3DComponent(String structure) {
 		adapter = new SmarterJmolAdapter();
-		viewer = JmolViewer.allocateViewer(this, adapter);
+		viewer = JmolViewer.allocateViewer(this, adapter, null, null, null,
+				null, null);
 		viewer.setColorBackground("white");
 		viewer.setShowHydrogens(false);
 		viewer.loadInline(structure);
