@@ -327,6 +327,10 @@ public class SpectraPlot extends ChartPanel {
 		plot.setDataset(0, scanData);
 	}
 
+	public void setSpectrumDataSet(int level, ScanDataSet scanData) {
+		plot.setDataset(level, scanData);
+	}
+
 	public void setPeaksDataSet(PeakListDataSet peakDataSet) {
 		plot.setDataset(1, peakDataSet);
 	}

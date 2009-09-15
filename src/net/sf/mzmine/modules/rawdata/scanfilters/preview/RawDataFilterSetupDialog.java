@@ -87,7 +87,7 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialog implements
 
 	// XYPlot
 	private SpectraPlot spectrumPlot;
-	private ScanDataSet spectraDataSet;
+	private ScanDataSet spectraDataSet, spectraOriginalDataSet;
 	// Raw Data Filter;
 	private RawDataFilter rawDataFilter;
 	private SimpleParameterSet mdParameters;
@@ -176,8 +176,10 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialog implements
 
 		if (newScan != null) {
 			spectraDataSet = new ScanDataSet(newScan);
+			spectraOriginalDataSet = new ScanDataSet(currentScan);
 
-			spectrumPlot.setSpectrumDataSet(spectraDataSet);
+			spectrumPlot.setSpectrumDataSet(0, spectraOriginalDataSet);
+			spectrumPlot.setSpectrumDataSet(1, spectraDataSet);
 
 			// Set plot mode only if it hasn't been set before
 			// if the scan is centroided, switch to centroid mode
