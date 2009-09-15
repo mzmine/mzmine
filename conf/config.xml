@@ -211,7 +211,7 @@
         </batchstep>
       </parameters> 
     </module> 
-    <module class="net.sf.mzmine.modules.rawdata.RawDataFiltering"/>     
+    <module class="net.sf.mzmine.modules.rawdata.scanfilters.RawDataFiltering"/>     
     <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder"> 
       <parameters>
