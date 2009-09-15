@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.spectra.datasets;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerParameters;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -74,13 +73,11 @@ public class IsotopesDataSet extends AbstractXYDataset implements
 	}
 
 	public Number getEndX(int series, int item) {
-		return getX(series, item).doubleValue()
-				+ SpectraVisualizerParameters.getBarThickness();
+		return getX(series, item).doubleValue();
 	}
 
 	public double getEndXValue(int series, int item) {
-		return getX(series, item).doubleValue()
-				+ SpectraVisualizerParameters.getBarThickness();
+		return getX(series, item).doubleValue();
 	}
 
 	public Number getEndY(int series, int item) {
@@ -92,13 +89,11 @@ public class IsotopesDataSet extends AbstractXYDataset implements
 	}
 
 	public Number getStartX(int series, int item) {
-		return getX(series, item).doubleValue()
-				- SpectraVisualizerParameters.getBarThickness();
+		return getX(series, item).doubleValue();
 	}
 
 	public double getStartXValue(int series, int item) {
-		return getX(series, item).doubleValue()
-				- SpectraVisualizerParameters.getBarThickness();
+		return getX(series, item).doubleValue();
 	}
 
 	public Number getStartY(int series, int item) {

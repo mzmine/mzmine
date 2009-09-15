@@ -44,7 +44,6 @@ public class SpectraToolBar extends JToolBar {
 	static final Icon isotopePeakIcon = new ImageIcon(
 			"icons/isotopepeakicon.png");
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-	static final Icon thicknessIcon = new ImageIcon("icons/thicknessicon.png");
 
 	private JButton centroidContinuousButton, dataPointsButton;
 
@@ -88,10 +87,6 @@ public class SpectraToolBar extends JToolBar {
 		GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
 				"Setup ranges for axes");
 
-		addSeparator();
-
-		GUIUtils.addButton(this, null, thicknessIcon, masterFrame, "THICKNESS",
-				"Setup thickness of isotope bar");
 	}
 
 	public void setCentroidButton(boolean centroid) {

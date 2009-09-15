@@ -43,7 +43,6 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
-import net.sf.mzmine.util.dialogs.ThicknessSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
@@ -386,11 +385,6 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		if (command.equals("SETUP_AXES")) {
 			AxesSetupDialog dialog = new AxesSetupDialog(spectrumPlot
 					.getXYPlot());
-			dialog.setVisible(true);
-		}
-
-		if (command.equals("THICKNESS")) {
-			ThicknessSetupDialog dialog = new ThicknessSetupDialog(spectrumPlot);
 			dialog.setVisible(true);
 		}
 
