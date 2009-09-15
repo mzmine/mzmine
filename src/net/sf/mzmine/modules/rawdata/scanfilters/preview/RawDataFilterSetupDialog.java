@@ -16,9 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.rawdata.scanfilters;
+package net.sf.mzmine.modules.rawdata.scanfilters.preview;
 
-import net.sf.mzmine.modules.rawdata.RawDataFilteringParameters;
+import net.sf.mzmine.modules.rawdata.scanfilters.RawDataFilteringParameters;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;

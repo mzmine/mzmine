@@ -43,7 +43,7 @@ import net.sf.mzmine.util.dialogs.PreferencesDialog;
 public class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
-			helpMenu, peakDetectionMenu, gapFillingMenu,
+			helpMenu, rawDataFilteringMenu, peakDetectionMenu, gapFillingMenu,
 			isotopesMenu, peakListFilteringMenu, alignmentMenu,
 			normalizationMenu, identificationMenu, dataAnalysisMenu,
 			peakListExportMenu;
@@ -102,7 +102,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 		rawDataMenu = new JMenu("Raw data methods");
 		rawDataMenu.setMnemonic(KeyEvent.VK_R);
-		add(rawDataMenu);		
+		add(rawDataMenu);
+
+		rawDataFilteringMenu = new JMenu("Filtering");
+		rawDataFilteringMenu.setMnemonic(KeyEvent.VK_F);
+		rawDataMenu.add(rawDataFilteringMenu);
 
 		peakDetectionMenu = new JMenu("Peak detection");
 		peakDetectionMenu.setMnemonic(KeyEvent.VK_D);
@@ -191,7 +195,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		case RAWDATA:
 			rawDataMenu.add(newItem, rawDataMenuIndex);
 			rawDataMenuIndex++;
-			break;		
+			break;
+		case RAWDATAFILTERING:
+			rawDataFilteringMenu.add(newItem);
+			break;
 		case PEAKPICKING:
 			peakDetectionMenu.add(newItem);
 			break;

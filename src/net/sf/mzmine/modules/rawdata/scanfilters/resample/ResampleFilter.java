@@ -22,7 +22,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdata.scanfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdata.scanfilters.preview.RawDataFilter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
