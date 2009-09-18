@@ -24,13 +24,7 @@ mzXML parsing
 Polarity support
 * polarity attribute (+/-/?) should be added to Scan interface and import modules
   should recognize polarity
-  
-***** Peak detection *****
-
-Shoulder peaks
-* It should be possible to remove shoulder peaks even when using centroided data. 
-  Currently, it is only implemented in exact mass detector.
-  
+   
 
 ***** Raw data filtering *****
 
