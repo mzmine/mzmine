@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
 
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 
 /**
@@ -27,11 +28,15 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
  */
 public interface MassDetector {
 
-    /**
-     * 
-     * @return Mass and intensity values (m/z and intensity pairs) of a
-     *         given scan that fill the criteria of Mass Detector for a m/z peak
-     */
-    public MzPeak[] getMassValues(Scan scan);
-    
+	public String getName();
+
+	public String getHelpFileLocation();
+
+	public SimpleParameterSet getParameters();
+	
+	/**
+	 * Returns mass and intensity values detected in given scan
+	 */
+	public MzPeak[] getMassValues(Scan scan);
+
 }

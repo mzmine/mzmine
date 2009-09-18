@@ -17,11 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra;
+package net.sf.mzmine.modules.visualization.spectra.renderers;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -29,7 +30,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Label generator for spectra visualizer. Only used to generate labels for the raw data (ScanDataSet)
  */
-class SpectraItemLabelGenerator implements XYItemLabelGenerator {
+public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
 	/*
 	 * Number of screen pixels to reserve for each label, so that the labels do
@@ -41,7 +42,7 @@ class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
 	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 
-	SpectraItemLabelGenerator(SpectraPlot plot) {
+	public SpectraItemLabelGenerator(SpectraPlot plot) {
 		this.plot = plot;
 	}
 

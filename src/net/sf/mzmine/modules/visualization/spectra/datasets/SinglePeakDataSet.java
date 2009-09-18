@@ -19,54 +19,24 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import java.util.Vector;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
- * Picked peaks data set;
+ * Data set for a single highlighted peak
  */
-public class PeakListDataSet extends AbstractXYDataset implements
+public class SinglePeakDataSet extends AbstractXYDataset implements
 		IntervalXYDataset {
 
-	private PeakList peakList;
-
-	private ChromatographicPeak displayedPeaks[];
-	private double mzValues[], intensityValues[];
+	private DataPoint dataPoint;
 	private String label;
 
-	public PeakListDataSet(RawDataFile dataFile, int scanNumber,
-			PeakList peakList) {
-
-		this.peakList = peakList;
-
-		ChromatographicPeak peaks[] = peakList.getPeaks(dataFile);
-
-		Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
-		for (ChromatographicPeak peak : peaks) {
-			DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
-			if (peakDataPoint != null)
-				candidates.add(peak);
-		}
-		displayedPeaks = candidates.toArray(new ChromatographicPeak[0]);
-
-		mzValues = new double[displayedPeaks.length];
-		intensityValues = new double[displayedPeaks.length];
-
-		for (int i = 0; i < displayedPeaks.length; i++) {
-			mzValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getMZ();
-			intensityValues[i] = displayedPeaks[i].getDataPoint(scanNumber)
-					.getIntensity();
-		}
-
-		label = "Peaks in " + peakList.getName();
-
+	public SinglePeakDataSet(int scanNumber, ChromatographicPeak peak) {
+		this.label = peak.toString();
+		this.dataPoint = peak.getDataPoint(scanNumber);
 	}
 
 	@Override
@@ -79,24 +49,16 @@ public class PeakListDataSet extends AbstractXYDataset implements
 		return label;
 	}
 
-	public PeakList getPeakList() {
-		return peakList;
-	}
-
-	public ChromatographicPeak getPeak(int series, int item) {
-		return displayedPeaks[item];
-	}
-
 	public int getItemCount(int series) {
-		return mzValues.length;
+		return 1;
 	}
 
 	public Number getX(int series, int item) {
-		return mzValues[item];
+		return dataPoint.getMZ();
 	}
 
 	public Number getY(int series, int item) {
-		return intensityValues[item];
+		return dataPoint.getIntensity();
 	}
 
 	public Number getEndX(int series, int item) {

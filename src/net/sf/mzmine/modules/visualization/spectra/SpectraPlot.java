@@ -22,21 +22,21 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Shape;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.IsotopePatternStatus;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.modules.visualization.spectra.renderers.ContinuousRenderer;
+import net.sf.mzmine.modules.visualization.spectra.renderers.PeakRenderer;
+import net.sf.mzmine.modules.visualization.spectra.renderers.SpectraItemLabelGenerator;
 import net.sf.mzmine.util.GUIUtils;
 
 import org.jfree.chart.ChartFactory;
@@ -47,24 +47,14 @@ import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYBarRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
-import org.jfree.data.general.DatasetChangeEvent;
+import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
- * This chart may contain up to 4 data sets. The number of each data set is
- * fixed:
  * 
- * DataSet 0 = raw data (scan data points, displayed in blue)
- * 
- * DataSet 1 = picked peaks (displayed in red)
- * 
- * DataSet 2 = Highlighted isotopes of a single detected peak
- * 
- * DataSet 3 = Isotopes of a predicted (calculated) isotope pattern
  */
 public class SpectraPlot extends ChartPanel {
 
@@ -74,21 +64,11 @@ public class SpectraPlot extends ChartPanel {
 	// initially, plotMode is set to null, until we load first scan
 	private PlotMode plotMode = null;
 
-	// one color for each data set
-	private static final Color[] plotColors = { new Color(0, 0, 192),
-			Color.red, Color.magenta, Color.green };
-
 	// peak labels color
 	private static final Color labelsColor = Color.darkGray;
 
 	// grid color
 	private static final Color gridColor = Color.lightGray;
-
-	// data points shape
-	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
-			5, 5);
-
-	private SpectraToolTipGenerator toolTipGenerator;
 
 	// title font
 	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
@@ -99,9 +79,8 @@ public class SpectraPlot extends ChartPanel {
 	// legend
 	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
-	XYBarRenderer centroidRenderer, peakRenderer, detectedIsotopeRenderer,
-			predictedIsotopeRenderer;
-	XYLineAndShapeRenderer continuousRenderer;
+	private boolean isotopesVisible = true, peaksVisible = true,
+			itemLabelsVisible = true, dataPointsVisible = false;
 
 	public SpectraPlot(ActionListener masterPlot) {
 
@@ -173,46 +152,6 @@ public class SpectraPlot extends ChartPanel {
 		NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
 		yAxis.setNumberFormatOverride(intensityFormat);
 
-		// set toolTipGenerator
-		toolTipGenerator = new SpectraToolTipGenerator();
-		SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
-				this);
-
-		// set default renderer properties
-		continuousRenderer = new XYLineAndShapeRenderer();
-		continuousRenderer.setBaseShapesFilled(true);
-		continuousRenderer.setDrawOutlines(false);
-		continuousRenderer.setUseFillPaint(true);
-		continuousRenderer.setSeriesShape(0, dataPointsShape);
-		continuousRenderer.setSeriesPaint(0, plotColors[0]);
-		continuousRenderer.setBaseFillPaint(plotColors[0]);
-		continuousRenderer.setBaseShapesVisible(false);
-		continuousRenderer.setBaseToolTipGenerator(toolTipGenerator);
-		continuousRenderer.setBaseItemLabelGenerator(labelGenerator);
-		continuousRenderer.setBaseItemLabelsVisible(true);
-		continuousRenderer.setBaseItemLabelPaint(labelsColor);
-
-		centroidRenderer = new PeakRenderer(plotColors[0], false);
-		centroidRenderer.setShadowVisible(false);
-		centroidRenderer.setSeriesShape(0, dataPointsShape);
-		centroidRenderer.setSeriesPaint(0, plotColors[0]);
-		centroidRenderer.setBaseItemLabelGenerator(labelGenerator);
-		centroidRenderer.setBaseItemLabelsVisible(true);
-		centroidRenderer.setBaseItemLabelPaint(labelsColor);
-		centroidRenderer.setBaseToolTipGenerator(toolTipGenerator);
-
-		peakRenderer = new PeakRenderer(plotColors[1], true);
-		peakRenderer.setBaseToolTipGenerator(toolTipGenerator);
-		plot.setRenderer(1, peakRenderer);
-
-		detectedIsotopeRenderer = new PeakRenderer(plotColors[2], true);
-		detectedIsotopeRenderer.setBaseToolTipGenerator(toolTipGenerator);
-		plot.setRenderer(2, detectedIsotopeRenderer);
-
-		predictedIsotopeRenderer = new PeakRenderer(plotColors[3], true);
-		predictedIsotopeRenderer.setBaseToolTipGenerator(toolTipGenerator);
-		plot.setRenderer(3, predictedIsotopeRenderer);
-
 		// set focusable state to receive key events
 		setFocusable(true);
 
@@ -262,48 +201,81 @@ public class SpectraPlot extends ChartPanel {
 	 */
 	public void setPlotMode(PlotMode plotMode) {
 		this.plotMode = plotMode;
-		if (plotMode == PlotMode.CENTROID)
-			plot.setRenderer(0, centroidRenderer);
-		else
-			plot.setRenderer(0, continuousRenderer);
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYDataset dataSet = plot.getDataset(i);
+			if (!(dataSet instanceof ScanDataSet))
+				continue;
+			XYItemRenderer renderer = plot.getRenderer(i);
+			Color currentColor = (Color) renderer.getBasePaint();
 
+			XYItemRenderer newRenderer;
+			if (plotMode == PlotMode.CENTROID)
+				newRenderer = new PeakRenderer(currentColor, false);
+			else {
+				newRenderer = new ContinuousRenderer(currentColor, false);
+				((ContinuousRenderer) newRenderer)
+						.setBaseShapesVisible(dataPointsVisible);
+			}
+
+			// Add label generator for the dataset
+			SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
+					this);
+			newRenderer.setBaseItemLabelGenerator(labelGenerator);
+			newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
+			newRenderer.setBaseItemLabelPaint(labelsColor);
+			
+			plot.setRenderer(i, newRenderer);
+		}
+		
 	}
 
 	public PlotMode getPlotMode() {
 		return plotMode;
 	}
 
-	XYPlot getXYPlot() {
+	public XYPlot getXYPlot() {
 		return plot;
 	}
 
 	void switchItemLabelsVisible() {
-
-		boolean itemLabelsVisible = continuousRenderer
-				.getBaseItemLabelsVisible();
-		centroidRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
-		continuousRenderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+		itemLabelsVisible = !itemLabelsVisible;
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYItemRenderer renderer = plot.getRenderer(i);
+			renderer.setBaseItemLabelsVisible(itemLabelsVisible);
+		}
 	}
 
 	void switchDataPointsVisible() {
-
-		boolean dataPointsVisible = continuousRenderer.getBaseShapesVisible();
-		continuousRenderer.setBaseShapesVisible(!dataPointsVisible);
-
+		dataPointsVisible = !dataPointsVisible;
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYItemRenderer renderer = plot.getRenderer(i);
+			if (!(renderer instanceof ContinuousRenderer))
+				continue;
+			ContinuousRenderer contRend = (ContinuousRenderer) renderer;
+			contRend.setBaseShapesVisible(dataPointsVisible);
+		}
 	}
 
 	void switchPickedPeaksVisible() {
-		boolean pickedPeaksVisible = peakRenderer.getBaseSeriesVisible();
-		peakRenderer.setBaseSeriesVisible(!pickedPeaksVisible);
+		peaksVisible = !peaksVisible;
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYDataset dataSet = plot.getDataset(i);
+			if (!(dataSet instanceof PeakListDataSet))
+				continue;
+			XYItemRenderer renderer = plot.getRenderer(i);
+			renderer.setBaseSeriesVisible(peaksVisible);
+		}
 	}
 
 	void switchIsotopePeaksVisible() {
-
-		boolean isotopesVisible = detectedIsotopeRenderer
-				.getBaseSeriesVisible();
-		detectedIsotopeRenderer.setBaseSeriesVisible(!isotopesVisible);
-		predictedIsotopeRenderer.setBaseSeriesVisible(!isotopesVisible);
-
+		isotopesVisible = !isotopesVisible;
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYDataset dataSet = plot.getDataset(i);
+			if (!(dataSet instanceof IsotopesDataSet))
+				continue;
+			XYItemRenderer renderer = plot.getRenderer(i);
+			renderer.setBaseSeriesVisible(isotopesVisible);
+		}
 	}
 
 	public void setTitle(String title, String subTitle) {
@@ -323,41 +295,61 @@ public class SpectraPlot extends ChartPanel {
 		requestFocus();
 	}
 
-	public void setSpectrumDataSet(ScanDataSet scanData) {
-		plot.setDataset(0, scanData);
+	public synchronized void removeAllDataSets() {
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			plot.setDataset(i, null);
+		}
 	}
 
-	public void setSpectrumDataSet(int level, ScanDataSet scanData) {
-		plot.setDataset(level, scanData);
+	public synchronized void addDataSet(XYDataset dataSet, Color color,
+			boolean transparency) {
+
+		XYItemRenderer newRenderer;
+
+		if (dataSet instanceof ScanDataSet) {
+			ScanDataSet scanDataSet = (ScanDataSet) dataSet;
+			Scan scan = scanDataSet.getScan();
+			if (scan.isCentroided())
+				newRenderer = new PeakRenderer(color, transparency);
+			else {
+				newRenderer = new ContinuousRenderer(color, transparency);
+				((ContinuousRenderer) newRenderer)
+						.setBaseShapesVisible(dataPointsVisible);
+			}
+
+			// Add label generator for the dataset
+			SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
+					this);
+			newRenderer.setBaseItemLabelGenerator(labelGenerator);
+			newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
+			newRenderer.setBaseItemLabelPaint(labelsColor);
+
+		} else {
+			newRenderer = new PeakRenderer(color, transparency);
+		}
+		int dataSetCount = plot.getDatasetCount();
+		plot.setDataset(dataSetCount, dataSet);
+		plot.setRenderer(dataSetCount, newRenderer);
+
 	}
 
-	public void setPeaksDataSet(PeakListDataSet peakDataSet) {
-		plot.setDataset(1, peakDataSet);
+	public synchronized void removePeakListDataSets() {
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYDataset dataSet = plot.getDataset(i);
+			if (dataSet instanceof PeakListDataSet) {
+				plot.setDataset(i, null);
+			}
+		}
 	}
 
-	public void setIsotopeDataSet(IsotopesDataSet isotopesDataSet) {
-
-		IsotopePattern pattern = isotopesDataSet.getIsotopePattern();
-		int dataSetIndex = 2;
-		if (pattern.getStatus() == IsotopePatternStatus.PREDICTED)
-			dataSetIndex = 3;
-
-		plot.setDataset(dataSetIndex, isotopesDataSet);
-
-	}
-	
-	public void removeIsotopeDataSets() {
-		plot.setDataset(2, null);
-		plot.setDataset(3, null);
-	}
-
-	ScanDataSet getScanDataSet() {
-		ScanDataSet dataSet = (ScanDataSet) plot.getDataset(0);
-		return dataSet;
-	}
-
-	public void thicknessUpdated() {
-		plot.datasetChanged(new DatasetChangeEvent(this, plot.getDataset()));
+	ScanDataSet getMainScanDataSet() {
+		for (int i = 0; i < plot.getDatasetCount(); i++) {
+			XYDataset dataSet = plot.getDataset(i);
+			if (dataSet instanceof ScanDataSet) {
+				return (ScanDataSet) dataSet;
+			}
+		}
+		return null;
 	}
 
 }

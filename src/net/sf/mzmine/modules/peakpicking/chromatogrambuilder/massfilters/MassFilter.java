@@ -17,22 +17,25 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdata.scanfilters.resample;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 
-public class ResampleFilterParameters extends SimpleParameterSet {
+/**
+ * 
+ */
+public interface MassFilter {
 
-	public static final Parameter binSize = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z bin length", "The length of m/z bin",
-			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
-			MZmineCore.getMZFormat());
+	public String getName();
 
-	public ResampleFilterParameters() {
-		super(new Parameter[]{binSize});
-	}
+	public String getHelpFileLocation();
+	
+	public SimpleParameterSet getParameters();
+
+    /**
+     * Performs filtering of detected mass values 
+     */
+    public MzPeak[] filterMassValues(MzPeak mzPeaks[]);
+    
 }

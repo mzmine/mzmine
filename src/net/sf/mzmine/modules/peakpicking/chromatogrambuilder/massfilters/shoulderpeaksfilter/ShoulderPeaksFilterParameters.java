@@ -17,22 +17,32 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdata.scanfilters.resample;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter;
+
+import java.text.NumberFormat;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
 
-public class ResampleFilterParameters extends SimpleParameterSet {
+public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter binSize = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z bin length", "The length of m/z bin",
-			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
-			MZmineCore.getMZFormat());
+	public static final Parameter resolution = new SimpleParameter(
+			ParameterType.INTEGER,
+			"Mass resolution",
+			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
+					+ " Peak width is taken as the full width at half maximum intensity (FWHM).",
+			null, new Integer(60000), new Integer(0), null, NumberFormat
+					.getIntegerInstance());
 
-	public ResampleFilterParameters() {
-		super(new Parameter[]{binSize});
+	public static final Parameter peakModel = new SimpleParameter(
+			ParameterType.STRING, "Peak model function",
+			"Peaks under the curve of this peak model are removed", null,
+			PeakModelType.values());
+
+	public ShoulderPeaksFilterParameters() {
+		super(new Parameter[] { resolution, peakModel });
 	}
+
 }

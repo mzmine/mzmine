@@ -32,7 +32,8 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
 	private String label;
-
+    private Scan scan;
+    
 	/*
 	 * Save a local copy of m/z and intensity values, because accessing the scan
 	 * every time may cause reloading the data from HDD
@@ -41,6 +42,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
 	public ScanDataSet(Scan scan) {
 		this.dataPoints = scan.getDataPoints();
+		this.scan = scan;
 		this.label = "Scan #" + scan.getScanNumber();
 	}
 
@@ -112,6 +114,10 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 		}
 
 		return maxIntensity;
+	}
+	
+	public Scan getScan() {
+		return scan;
 	}
 
 }

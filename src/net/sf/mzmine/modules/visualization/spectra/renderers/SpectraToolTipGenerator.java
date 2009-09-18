@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra;
+package net.sf.mzmine.modules.visualization.spectra.renderers;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -27,10 +27,8 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetectorPreviewPeak;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
-import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
@@ -53,28 +51,11 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
 		double intValue = dataset.getYValue(series, item);
 		double mzValue = dataset.getXValue(series, item);
 
-		if (dataset instanceof ScanDataSet) {
-
-			String tooltip = "m/z: " + mzFormat.format(mzValue)
-					+ "\nIntensity: " + intensityFormat.format(intValue);
-
-			return tooltip;
-		}
-
 		if (dataset instanceof PeakListDataSet) {
 
 			PeakListDataSet peakListDataSet = (PeakListDataSet) dataset;
 
 			ChromatographicPeak peak = peakListDataSet.getPeak(series, item);
-
-			// In case this spectrum visualizer is not actually a visualizer,
-			// but only peak detection preview, show a simple tooltip
-			if (peak instanceof MassDetectorPreviewPeak) {
-				String tooltip = "Detected peak preview\nm/z: "
-						+ mzFormat.format(mzValue) + "\nIntensity: "
-						+ intensityFormat.format(intValue);
-				return tooltip;
-			}
 
 			PeakList peakList = peakListDataSet.getPeakList();
 			PeakListRow row = peakList.getPeakRow(peak);
@@ -108,7 +89,10 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
 
 		}
 
-		return null;
+		String tooltip = "m/z: " + mzFormat.format(mzValue) + "\nIntensity: "
+				+ intensityFormat.format(intValue);
+
+		return tooltip;
 
 	}
 }

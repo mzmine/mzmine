@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 
@@ -33,14 +34,16 @@ import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassD
 public class LocalMaxMassDetector implements MassDetector {
 
 	// Parameter value
-	private double noiseLevel;
+	private LocalMaxMassDetectorParameters parameters;
 
-	public LocalMaxMassDetector(LocalMaxMassDetectorParameters parameters) {
-		noiseLevel = (Double) parameters
-				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+	public LocalMaxMassDetector() {
+		parameters = new LocalMaxMassDetectorParameters();
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
+
+		double noiseLevel = (Double) parameters
+				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
 
 		// List of found mz peaks
 		ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
@@ -98,4 +101,19 @@ public class LocalMaxMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
+	public String getHelpFileLocation() {
+		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/localmaxima/help/LocalMaxMassDetector.html";
+	}
+
+	public String getName() {
+		return "Local maxima";
+	}
+
+	public SimpleParameterSet getParameters() {
+		return parameters;
+	}
+
+	public String toString() {
+		return getName();
+	}
 }

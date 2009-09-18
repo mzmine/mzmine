@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
@@ -32,6 +33,7 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class RecursiveMassDetector implements MassDetector {
 
+	private RecursiveMassDetectorParameters parameters;
 	// Parameter values
 	private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 	private TreeSet<MzPeak> mzPeaks;
@@ -39,16 +41,18 @@ public class RecursiveMassDetector implements MassDetector {
 
 	// private Scan scan;
 
-	public RecursiveMassDetector(RecursiveMassDetectorParameters parameters) {
+	public RecursiveMassDetector() {
+		parameters = new RecursiveMassDetectorParameters();
+	}
+
+	public MzPeak[] getMassValues(Scan scan) {
+
 		noiseLevel = (Double) parameters
 				.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
 		minimumMZPeakWidth = (Double) parameters
 				.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
 		maximumMZPeakWidth = (Double) parameters
 				.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
-	}
-
-	public MzPeak[] getMassValues(Scan scan) {
 
 		// this.scan = scan;
 		dataPoints = scan.getDataPoints();
@@ -149,4 +153,20 @@ public class RecursiveMassDetector implements MassDetector {
 
 	}
 
+	public String getHelpFileLocation() {
+		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/recursive/help/RecursiveMassDetector.html";
+	}
+
+	public String getName() {
+		return "Recursive threshold";
+	}
+
+	public SimpleParameterSet getParameters() {
+		return parameters;
+	}
+
+	public String toString() {
+		return getName();
+	}
+	
 }

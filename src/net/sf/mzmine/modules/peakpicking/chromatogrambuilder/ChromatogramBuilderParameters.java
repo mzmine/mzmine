@@ -19,116 +19,116 @@
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint.HighestDataPointConnector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.centroid.CentroidMassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.ExactMassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.recursive.RecursiveMassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.wavelet.WaveletMassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.MassFilter;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.ShoulderPeaksFilter;
+import net.sf.mzmine.util.ExceptionUtils;
 
 import org.dom4j.Element;
 
 public class ChromatogramBuilderParameters implements StorableParameterSet {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-	// Mass Detectors
-	public static final String massDetectorNames[] = { "Centroid",
-			"Exact mass", "Local maxima", "Recursive threshold",
-			"Wavelet transform" };
+	private static final Class massDetectorClasses[] = {
+			CentroidMassDetector.class, ExactMassDetector.class,
+			LocalMaxMassDetector.class, RecursiveMassDetector.class,
+			WaveletMassDetector.class };
 
-	public static final String massDetectorClasses[] = {
-			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.centroid.CentroidMassDetector",
-			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.ExactMassDetector",
-			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector",
-			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.recursive.RecursiveMassDetector",
-			"net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.wavelet.WaveletMassDetector" };
+	private static final Class massFilterClasses[] = { ShoulderPeaksFilter.class };
 
-	public static final String massDetectorHelpFiles[] = {
-			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/centroid/help/CentroidMassDetector.html",
-			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/exactmass/help/ExactMassDetector.html",
-			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/localmaxima/help/LocalMaxMassDetector.html",
-			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/recursive/help/RecursiveMassDetector.html",
-			"net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/wavelet/help/WaveletMassDetector.html" };
-
-	// Chromatogram Builders
-	public static final String massConnectorNames[] = { "Highest data point" };
-
-	public static final String massConnectorClasses[] = { "net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.highestdatapoint.HighestDataPointConnector" };
-
-	public static final String massConnectorHelpFiles[] = { "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/highestdatapoint/help/HighestDatapointConnector.html" };
+	private static final Class massConnectorClasses[] = { HighestDataPointConnector.class };
 
 	// All parameters
-	private SimpleParameterSet massDetectorParameters[],
-			massConnectorParameters[], myParameters;
+	private SimpleParameterSet myParameters;
 
 	private static final Parameter massDetectorTypeNumber = new SimpleParameter(
-			ParameterType.INTEGER,
-			"Mass Detector type",
-			"This value defines the type of mass detector to use in three steps peak picking process",
-			0);
+			ParameterType.INTEGER, "Mass detector type", null, 0);
+
+	private static final Parameter massFilterTypeNumber = new SimpleParameter(
+			ParameterType.INTEGER, "Filter type", null, 0);
 
 	private static final Parameter massConnectorTypeNumber = new SimpleParameter(
-			ParameterType.INTEGER,
-			"Chromatogram Builder type",
-			"This value defines the type of chromatogram builder to use in three steps peak picking process",
-			0);
+			ParameterType.INTEGER, "Mass connector type", null, 0);
 
 	private static final Parameter suffix = new SimpleParameter(
 			ParameterType.STRING, "Suffix",
 			"This string is added to filename as suffix", "peaklist");
 
+	private MassDetector massDetectors[];
+	private MassFilter massFilters[];
+	private MassConnector massConnectors[];
+
 	public ChromatogramBuilderParameters() {
 
-		massDetectorParameters = new SimpleParameterSet[massDetectorClasses.length];
-		massConnectorParameters = new SimpleParameterSet[massConnectorClasses.length];
-
 		myParameters = new SimpleParameterSet(new Parameter[] {
-				massDetectorTypeNumber, massConnectorTypeNumber, suffix });
+				massDetectorTypeNumber, massFilterTypeNumber,
+				massConnectorTypeNumber, suffix });
 
+		ArrayList<Object> newInstances = new ArrayList<Object>();
+
+		// Create an instance of each mass detector
 		for (int i = 0; i < massDetectorClasses.length; i++) {
-			String className = massDetectorClasses[i] + "Parameters";
-			Class paramClass;
 			try {
-				paramClass = Class.forName(className);
-				massDetectorParameters[i] = (SimpleParameterSet) paramClass
-						.newInstance();
+				Object newInstance = massDetectorClasses[i].newInstance();
+				newInstances.add(newInstance);
 			} catch (Exception e) {
-				e.printStackTrace();
+				String message = "Could not create instance of class "
+						+ massDetectorClasses[i] + ": "
+						+ ExceptionUtils.exceptionToString(e);
+				logger.warning(message);
 			}
 		}
+		massDetectors = newInstances.toArray(new MassDetector[0]);
+		newInstances.clear();
 
+		// Create an instance of each mass filter
+		for (int i = 0; i < massFilterClasses.length; i++) {
+			try {
+				Object newInstance = massFilterClasses[i].newInstance();
+				newInstances.add(newInstance);
+			} catch (Exception e) {
+				String message = "Could not create instance of class "
+						+ massFilterClasses[i] + ": "
+						+ ExceptionUtils.exceptionToString(e);
+				logger.warning(message);
+			}
+		}
+		massFilters = newInstances.toArray(new MassFilter[0]);
+		newInstances.clear();
+
+		// Create an instance of each mass connector
 		for (int i = 0; i < massConnectorClasses.length; i++) {
-			String className = massConnectorClasses[i] + "Parameters";
-			Class paramClass;
 			try {
-				paramClass = Class.forName(className);
-				massConnectorParameters[i] = (SimpleParameterSet) paramClass
-						.newInstance();
+				Object newInstance = massConnectorClasses[i].newInstance();
+				newInstances.add(newInstance);
 			} catch (Exception e) {
-				e.printStackTrace();
+				String message = "Could not create instance of class "
+						+ massConnectorClasses[i] + ": "
+						+ ExceptionUtils.exceptionToString(e);
+				logger.warning(message);
 			}
 		}
+		massConnectors = newInstances.toArray(new MassConnector[0]);
 
-	}
-
-	/**
-	 * 
-	 * @param int index
-	 * @return SimpleParameterSet
-	 */
-	public SimpleParameterSet getMassDetectorParameters(int ind) {
-		return massDetectorParameters[ind];
-	}
-
-	/**
-	 * 
-	 * @param int index
-	 * @return SimpleParameterSet
-	 */
-	public SimpleParameterSet getMassConnectorParameters(int ind) {
-		return massConnectorParameters[ind];
 	}
 
 	/**
@@ -137,8 +137,6 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 	 *            title
 	 */
 	public void setSuffix(String title) {
-		if (title.equals(""))
-			title = "peakList";
 		myParameters.setParameterValue(suffix, title);
 	}
 
@@ -147,12 +145,10 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 	 * @return String
 	 */
 	public String getSuffix() {
-		String Suffix = (String) myParameters.getParameterValue(suffix);
-		if (Suffix == null)
-			return "peaklist";
-		if (Suffix.equals(""))
-			return "peaklist";
-		return Suffix;
+		String suffixValue = (String) myParameters.getParameterValue(suffix);
+		if ((suffixValue == null) || (suffixValue.equals("")))
+			return "peak list";
+		return suffixValue;
 	}
 
 	/**
@@ -161,27 +157,12 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 	 * @param int massConnectorInd
 	 * @param int peakBuilderInd
 	 */
-	public void setTypeNumber(int massDetectorInd, int massConnectorInd) {
+	public void setTypeNumber(int massDetectorInd, int massFilterInd,
+			int massConnectorInd) {
 		myParameters.setParameterValue(massDetectorTypeNumber, massDetectorInd);
+		myParameters.setParameterValue(massFilterTypeNumber, massFilterInd);
 		myParameters.setParameterValue(massConnectorTypeNumber,
 				massConnectorInd);
-	}
-
-	/**
-	 * 
-	 * @return Integer massDetectorTypeNumber
-	 */
-	public int getMassDetectorTypeNumber() {
-		return (Integer) myParameters.getParameterValue(massDetectorTypeNumber);
-	}
-
-	/**
-	 * 
-	 * @return Integer massConnectorTypeNumber
-	 */
-	public int getMassConnectorTypeNumber() {
-		return (Integer) myParameters
-				.getParameterValue(massConnectorTypeNumber);
 	}
 
 	/**
@@ -190,18 +171,28 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 	 */
 	public void exportValuesToXML(Element element) {
 
-		for (int i = 0; i < massDetectorParameters.length; i++) {
+		for (int i = 0; i < massDetectors.length; i++) {
 			Element subElement = element.addElement("massdetector");
-			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
-					massDetectorNames[i]);
-			massDetectorParameters[i].exportValuesToXML(subElement);
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE, massDetectors[i]
+					.getName());
+			SimpleParameterSet params = massDetectors[i].getParameters();
+			params.exportValuesToXML(subElement);
 		}
 
-		for (int i = 0; i < massConnectorParameters.length; i++) {
+		for (int i = 0; i < massFilters.length; i++) {
+			Element subElement = element.addElement("massfilter");
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE, massFilters[i]
+					.getName());
+			SimpleParameterSet params = massFilters[i].getParameters();
+			params.exportValuesToXML(subElement);
+		}
+
+		for (int i = 0; i < massConnectors.length; i++) {
 			Element subElement = element.addElement("massconnector");
-			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
-					massConnectorNames[i]);
-			massConnectorParameters[i].exportValuesToXML(subElement);
+			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE, massConnectors[i]
+					.getName());
+			SimpleParameterSet params = massConnectors[i].getParameters();
+			params.exportValuesToXML(subElement);
 		}
 
 		myParameters.exportValuesToXML(element);
@@ -216,10 +207,26 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 		Iterator paramIter = element.elementIterator("massdetector");
 		while (paramIter.hasNext()) {
 			Element paramElem = (Element) paramIter.next();
-			for (int i = 0; i < massDetectorNames.length; i++) {
-				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
-						massDetectorNames[i])) {
-					massDetectorParameters[i].importValuesFromXML(paramElem);
+			String name = paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE);
+			for (int i = 0; i < massDetectors.length; i++) {
+				if (name.equals(massDetectors[i].getName())) {
+					SimpleParameterSet params = massDetectors[i]
+							.getParameters();
+					params.importValuesFromXML(paramElem);
+					break;
+				}
+			}
+		}
+
+		paramIter = element.elementIterator("massfilter");
+		while (paramIter.hasNext()) {
+			Element paramElem = (Element) paramIter.next();
+			for (int i = 0; i < massFilters.length; i++) {
+				String name = paramElem
+						.attributeValue(PARAMETER_NAME_ATTRIBUTE);
+				if (name.equals(massFilters[i].getName())) {
+					SimpleParameterSet params = massFilters[i].getParameters();
+					params.importValuesFromXML(paramElem);
 					break;
 				}
 			}
@@ -228,10 +235,14 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 		paramIter = element.elementIterator("massconnector");
 		while (paramIter.hasNext()) {
 			Element paramElem = (Element) paramIter.next();
-			for (int i = 0; i < massConnectorNames.length; i++) {
-				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
-						massConnectorNames[i])) {
-					massConnectorParameters[i].importValuesFromXML(paramElem);
+			for (int i = 0; i < massConnectors.length; i++) {
+				String name = paramElem
+						.attributeValue(PARAMETER_NAME_ATTRIBUTE);
+
+				if (name.equals(massConnectors[i].getName())) {
+					SimpleParameterSet params = massConnectors[i]
+							.getParameters();
+					params.importValuesFromXML(paramElem);
 					break;
 				}
 			}
@@ -251,41 +262,68 @@ public class ChromatogramBuilderParameters implements StorableParameterSet {
 
 		ChromatogramBuilderParameters newSet = new ChromatogramBuilderParameters();
 
-		newSet.massDetectorParameters = new SimpleParameterSet[massDetectorParameters.length];
-		for (int i = 0; i < massDetectorParameters.length; i++) {
-			newSet.massDetectorParameters[i] = massDetectorParameters[i]
-					.clone();
+		for (int i = 0; i < massDetectors.length; i++) {
+			SimpleParameterSet currentParam = massDetectors[i].getParameters();
+			SimpleParameterSet newParam = newSet.massDetectors[i]
+					.getParameters();
+			newParam.importValuesFrom(currentParam);
 		}
 
-		newSet.massConnectorParameters = new SimpleParameterSet[massConnectorParameters.length];
-		for (int i = 0; i < massConnectorParameters.length; i++) {
-			newSet.massConnectorParameters[i] = massConnectorParameters[i]
-					.clone();
+		for (int i = 0; i < massFilters.length; i++) {
+			SimpleParameterSet currentParam = massFilters[i].getParameters();
+			SimpleParameterSet newParam = newSet.massFilters[i].getParameters();
+			newParam.importValuesFrom(currentParam);
+		}
+
+		for (int i = 0; i < massConnectors.length; i++) {
+			SimpleParameterSet currentParam = massConnectors[i].getParameters();
+			SimpleParameterSet newParam = newSet.massConnectors[i]
+					.getParameters();
+			newParam.importValuesFrom(currentParam);
 		}
 
 		newSet.myParameters = myParameters.clone();
+
 		return newSet;
 
 	}
 
-	public Object getParameterValue(Parameter parameter) {
-		Object objectValue = myParameters.getParameterValue(parameter);
-		if (objectValue instanceof String)
-			return objectValue.toString();
-
-		int index = (Integer) objectValue;
-		String parameterName = parameter.getName();
-		if (parameterName.equals("Mass Detector type")) {
-			return massDetectorNames[index];
-		}
-		if (parameterName.equals("Chromatogram Builder type")) {
-			return massConnectorNames[index];
-		}
-		return null;
+	public MassDetector[] getMassDetectors() {
+		return massDetectors;
 	}
 
-	public Parameter[] getParameters() {
-		return myParameters.getParameters();
+	public MassFilter[] getMassFilters() {
+		return massFilters;
+	}
+
+	public MassConnector[] getMassConnectors() {
+		return massConnectors;
+	}
+
+	public MassDetector getMassDetector() {
+		int massDetectorIndex = (Integer) myParameters
+				.getParameterValue(massDetectorTypeNumber);
+		if (massDetectorIndex >= massDetectors.length)
+			massDetectorIndex = 0;
+		return massDetectors[massDetectorIndex];
+	}
+
+	public MassFilter getMassFilter() {
+		int massFilterIndex = (Integer) myParameters
+				.getParameterValue(massFilterTypeNumber);
+		if (massFilterIndex < 0)
+			return null;
+		if (massFilterIndex >= massFilters.length)
+			massFilterIndex = 0;
+		return massFilters[massFilterIndex];
+	}
+
+	public MassConnector getMassConnector() {
+		int massConnectorIndex = (Integer) myParameters
+				.getParameterValue(massConnectorTypeNumber);
+		if (massConnectorIndex >= massDetectors.length)
+			massConnectorIndex = 0;
+		return massConnectors[massConnectorIndex];
 	}
 
 }

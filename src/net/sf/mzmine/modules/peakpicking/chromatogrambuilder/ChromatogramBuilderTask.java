@@ -19,11 +19,9 @@
 
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder;
 
-import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -31,12 +29,13 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.MassFilter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
- * @see
+ *
  */
 class ChromatogramBuilderTask implements Task {
 
@@ -54,16 +53,15 @@ class ChromatogramBuilderTask implements Task {
 	// User parameters
 	private String suffix;
 
-	private int massDetectorTypeNumber, massConnectorTypeNumber;
-
 	// Mass detector
 	private MassDetector massDetector;
+
+	// Mass filter
+	private MassFilter massFilter;
 
 	// Mass connector
 	private MassConnector massConnector;
 
-	private ParameterSet mdParameters, mcParameters;
-	
 	private SimplePeakList newPeakList;
 
 	/**
@@ -75,13 +73,9 @@ class ChromatogramBuilderTask implements Task {
 
 		this.dataFile = dataFile;
 
-		massDetectorTypeNumber = parameters.getMassDetectorTypeNumber();
-		mdParameters = parameters
-				.getMassDetectorParameters(massDetectorTypeNumber);
-
-		massConnectorTypeNumber = parameters.getMassConnectorTypeNumber();
-		mcParameters = parameters
-				.getMassConnectorParameters(massConnectorTypeNumber);
+		this.massDetector = parameters.getMassDetector();
+		this.massFilter = parameters.getMassFilter();
+		this.massConnector = parameters.getMassConnector();
 
 		suffix = parameters.getSuffix();
 
@@ -141,39 +135,8 @@ class ChromatogramBuilderTask implements Task {
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
 
-		// Create new mass detector according with the user's selection
-		String massDetectorClassName = ChromatogramBuilderParameters.massDetectorClasses[massDetectorTypeNumber];
-		try {
-			Class massDetectorClass = Class.forName(massDetectorClassName);
-			Constructor massDetectorConstruct = massDetectorClass
-					.getConstructors()[0];
-			massDetector = (MassDetector) massDetectorConstruct
-					.newInstance(mdParameters);
-		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of mass detector "
-					+ massDetectorClassName;
-			status = TaskStatus.ERROR;
-			return;
-		}
-
-		// Create new chromatogram builder according with the user's selection
-		String massConnectorClassName = ChromatogramBuilderParameters.massConnectorClasses[massConnectorTypeNumber];
-		try {
-			Class massConnectorClass = Class.forName(massConnectorClassName);
-			Constructor chromtogramBuilderConstruct = massConnectorClass
-					.getConstructors()[0];
-			massConnector = (MassConnector) chromtogramBuilderConstruct
-					.newInstance(mcParameters);
-		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of chromatogram builder "
-					+ massConnectorClassName;
-			status = TaskStatus.ERROR;
-			return;
-		}
-
 		// Create new peak list
-		newPeakList = new SimplePeakList(
-				dataFile + " " + suffix, dataFile);
+		newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
 		MzPeak[] mzValues;
 		Chromatogram[] chromatograms;
@@ -186,6 +149,9 @@ class ChromatogramBuilderTask implements Task {
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 
 			mzValues = massDetector.getMassValues(scan);
+
+			if (massFilter != null)
+				mzValues = massFilter.filterMassValues(mzValues);
 
 			massConnector.addScan(dataFile, scanNumbers[i], mzValues);
 			processedScans++;

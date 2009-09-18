@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
@@ -35,6 +36,7 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class HighestDataPointConnector implements MassConnector {
 
+	private HighestDataPointConnectorParameters parameters;
 	private double mzTolerance, minimumTimeSpan, minimumHeight;
 
 	// Mapping of last data point m/z --> chromatogram
@@ -48,15 +50,9 @@ public class HighestDataPointConnector implements MassConnector {
 	// (searching the connectedChromatograms TreeMap is too slow)
 	private HashSet<Chromatogram> connectedChromatogramsSet;
 
-	public HighestDataPointConnector(
-			HighestDataPointConnectorParameters parameters) {
+	public HighestDataPointConnector() {
 
-		minimumTimeSpan = (Double) parameters
-				.getParameterValue(HighestDataPointConnectorParameters.minimumTimeSpan);
-		minimumHeight = (Double) parameters
-				.getParameterValue(HighestDataPointConnectorParameters.minimumHeight);
-		mzTolerance = (Double) parameters
-				.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
+		parameters = new HighestDataPointConnectorParameters();
 
 		buildingChromatograms = new TreeMap<Double, Chromatogram>();
 		connectedChromatogramsSet = new HashSet<Chromatogram>();
@@ -64,6 +60,13 @@ public class HighestDataPointConnector implements MassConnector {
 	}
 
 	public void addScan(RawDataFile dataFile, int scanNumber, MzPeak[] mzValues) {
+
+		minimumTimeSpan = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumTimeSpan);
+		minimumHeight = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.minimumHeight);
+		mzTolerance = (Double) parameters
+				.getParameterValue(HighestDataPointConnectorParameters.mzTolerance);
 
 		// Sort m/z peaks by descending intensity
 		Arrays.sort(mzValues, new DataPointSorter(SortingProperty.Intensity,
@@ -189,6 +192,22 @@ public class HighestDataPointConnector implements MassConnector {
 		Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
 				new Chromatogram[0]);
 		return chromatograms;
+	}
+
+	public String getHelpFileLocation() {
+		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/highestdatapoint/help/HighestDatapointConnector.html";
+	}
+
+	public String getName() {
+		return "Highest data point";
+	}
+	
+	public String toString() {
+		return getName();
+	}
+
+	public SimpleParameterSet getParameters() {
+		return parameters;
 	}
 
 }

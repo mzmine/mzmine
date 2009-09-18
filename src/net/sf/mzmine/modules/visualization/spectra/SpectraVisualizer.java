@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
@@ -105,16 +106,21 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
 	public static void showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber) {
-		showNewSpectrumWindow(dataFile, scanNumber, null, null);
+		showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
+	}
+
+	public static void showNewSpectrumWindow(RawDataFile dataFile,
+			int scanNumber, ChromatographicPeak peak) {
+		showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
 	}
 
 	public static void showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber, IsotopePattern detectedPattern) {
-		showNewSpectrumWindow(dataFile, scanNumber, detectedPattern, null);
+		showNewSpectrumWindow(dataFile, scanNumber, null, detectedPattern, null);
 	}
 
 	public static void showNewSpectrumWindow(RawDataFile dataFile,
-			int scanNumber, IsotopePattern detectedPattern,
+			int scanNumber, ChromatographicPeak peak, IsotopePattern detectedPattern,
 			IsotopePattern predictedPattern) {
 
 		Scan scan = dataFile.getScan(scanNumber);
@@ -130,6 +136,9 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 				dataFile);
 		newWindow.loadRawData(scan);
 
+		if (peak != null) 
+			newWindow.loadSinglePeak(peak);
+		
 		if (detectedPattern != null)
 			newWindow.loadIsotopes(detectedPattern);
 

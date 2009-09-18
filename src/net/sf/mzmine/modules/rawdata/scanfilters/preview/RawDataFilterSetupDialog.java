@@ -55,6 +55,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -174,14 +175,12 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialog implements
 
 		Scan newScan = rawDataFilter.getNewScan(currentScan);
 
-		if (newScan != null) {
 			spectraDataSet = new ScanDataSet(newScan);
 			spectraOriginalDataSet = new ScanDataSet(currentScan);
 
-			spectrumPlot.setSpectrumDataSet(0, spectraOriginalDataSet);
-			spectrumPlot.setSpectrumDataSet(1, spectraDataSet);
+			spectrumPlot.addDataSet(spectraOriginalDataSet, SpectraVisualizerWindow.scanColor, true);
+			spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
 
-			// Set plot mode only if it hasn't been set before
 			// if the scan is centroided, switch to centroid mode
 			if (newScan.isCentroided()) {
 				spectrumPlot.setPlotMode(PlotMode.CENTROID);
@@ -198,21 +197,6 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialog implements
 				subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ()) + " m/z (" + intensityFormat.format(basePeak.getIntensity()) + ")";
 			}
 			spectrumPlot.setTitle(title, subTitle);
-
-
-		} else {
-			spectrumPlot.setSpectrumDataSet(null);
-			String title = "[" + previewDataFile.toString() + "] scan #" + currentScan.getScanNumber();
-
-			String subTitle = "MS" + currentScan.getMSLevel() + ", RT " + rtFormat.format(currentScan.getRetentionTime());
-
-			DataPoint basePeak = currentScan.getBasePeak();
-			if (basePeak != null) {
-				subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ()) + " m/z (" + intensityFormat.format(basePeak.getIntensity()) + ")";
-			}
-			spectrumPlot.setTitle(title, subTitle);
-
-		}
 
 	}
 
@@ -422,9 +406,6 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialog implements
 		pnlPlotXY.setBackground(Color.white);
 
 		spectrumPlot = new SpectraPlot(this);
-
-		// Hide legend for the preview purpose
-		spectrumPlot.getChart().removeLegend();
 
 		pnlPlotXY.add(spectrumPlot, BorderLayout.CENTER);
 

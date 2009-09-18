@@ -17,27 +17,28 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.peakmodels;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.peakmodels;
 
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;
 
 /**
  * 
- * This class represents a Lorentzian function model, using the formula:
+ * This class represents a Gaussian model, using the formula:
  * 
- * f(x) = a / (1 + ((x-b)^2 / (HWHM^2)))
+ * f(x) = a * e ^ ((x-b)^2 / (-2 * c^2)) 
  * 
  * where
  * 
- * a... height of the model (intensityMain) b... center of the model (mzMain)
- * HWHM... Half Width at Half Maximum
- * 
+ * a... height of the model (intensityMain)
+ * b... center of the model (mzMain)
+ * c... FWHM / (2 * sqrt(2 . ln(2)))  
+ * FWHM... Full Width at Half Maximum         
+ *
  */
+public class GaussPeak implements PeakModel {
 
-public class LorentzianPeak implements PeakModel {
-
-    private double mzMain, intensityMain, squareHWHM;
+    private double mzMain, intensityMain, FWHM, partC, part2C2;
 
     /**
      * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
@@ -45,12 +46,14 @@ public class LorentzianPeak implements PeakModel {
      */
     public void setParameters(double mzMain, double intensityMain,
             double resolution) {
-
+        
         this.mzMain = mzMain;
         this.intensityMain = intensityMain;
 
-        // HWFM (Half Width at Half Maximum) ^ 2
-        squareHWHM = (double) Math.pow((mzMain / resolution) / 2, 2);
+        // FWFM (Full Width at Half Maximum)
+        FWHM = (mzMain / resolution);
+        partC = FWHM / 2.354820045f;
+        part2C2 = 2f * (double) Math.pow(partC, 2);
     }
 
     /**
@@ -62,12 +65,15 @@ public class LorentzianPeak implements PeakModel {
         if (partialIntensity <= 0)
             return new Range(0, Double.MAX_VALUE);
 
-        // Using the Lorentzian function we calculate the peak width
-        double squareX = ((intensityMain / partialIntensity) - 1) * squareHWHM;
+        // Using the Gaussian function we calculate the peak width at intensity
+        // given (partialIntensity)
 
-        double sideRange = (double) Math.sqrt(squareX);
+        double portion = partialIntensity / intensityMain;
+        double ln = -1 * (double) Math.log(portion);
 
-        // This range represents the width of our peak in m/z terms
+        double sideRange = (double) (Math.sqrt(part2C2 * ln));
+
+        // This range represents the width of our peak in m/z
         Range rangePeak = new Range(mzMain - sideRange, mzMain + sideRange);
 
         return rangePeak;
@@ -78,11 +84,11 @@ public class LorentzianPeak implements PeakModel {
      */
     public double getIntensity(double mz) {
 
-        // Using the Lorentzian function we calculate the intensity at given
-        // m/z
-        double squareX = (double) Math.pow((mz - mzMain), 2);
-        double ratio = squareX / squareHWHM;
-        double intensity = intensityMain / (1 + ratio);
+        // Using the Gaussian function we calculate the intensity at given m/z
+        double diff2 = (double) Math.pow(mz - mzMain, 2);
+        double exponent = -1 * (diff2 / part2C2);
+        double eX = (double) Math.exp(exponent);
+        double intensity = intensityMain * eX;
         return intensity;
     }
 

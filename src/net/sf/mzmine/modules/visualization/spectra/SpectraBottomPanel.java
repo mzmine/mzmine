@@ -29,7 +29,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -53,11 +52,13 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 	private JComboBox msmsSelector, peakListSelector;
 
 	private RawDataFile dataFile;
+	private SpectraVisualizerWindow masterFrame;
 
 	SpectraBottomPanel(SpectraVisualizerWindow masterFrame, RawDataFile dataFile) {
 
 		super(new BorderLayout());
 		this.dataFile = dataFile;
+		this.masterFrame = masterFrame;
 
 		setBackground(Color.white);
 
@@ -137,10 +138,13 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 	 * Reloads peak lists from the project to the selector combo box
 	 */
 	void rebuildPeakListSelector() {
+		
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
 				.getPeakLists(dataFile);
+		peakListSelector.setEnabled(false);
+		peakListSelector.removeActionListener(masterFrame);		
 		peakListSelector.removeAllItems();
 
 		// Add all peak lists in reverse order (last added peak list will be
@@ -151,6 +155,8 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 
 		// If there is any peak list, make a selection
 		if (currentPeakLists.length > 0) {
+			peakListSelector.setEnabled(true);
+			peakListSelector.addActionListener(masterFrame);		
 			if (selectedPeakList != null)
 				peakListSelector.setSelectedItem(selectedPeakList);
 			else
@@ -159,13 +165,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 	}
 
 	public void projectModified(ProjectEvent event) {
-		// Rebuild the peak list combo in the event dispatching thread to
-		// avoid dead locks
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				rebuildPeakListSelector();
-			}
-		});
+		rebuildPeakListSelector();
 	}
 
 }

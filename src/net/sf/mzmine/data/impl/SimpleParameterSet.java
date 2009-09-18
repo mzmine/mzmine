@@ -365,6 +365,14 @@ public class SimpleParameterSet implements StorableParameterSet {
 
 	}
 
+	public void importValuesFrom(SimpleParameterSet valueSet) {
+		for (Parameter p : parameters) {
+			Object value = valueSet.getParameterValue(p);
+			if (value != null)
+				this.setParameterValue(p, value);
+		}
+	}
+
 	public SimpleParameterSet clone() {
 
 		try {

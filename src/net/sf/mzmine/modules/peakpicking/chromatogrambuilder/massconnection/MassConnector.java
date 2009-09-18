@@ -20,11 +20,18 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 
 public interface MassConnector {
 
+	public String getName();
+
+	public String getHelpFileLocation();
+	
+	public SimpleParameterSet getParameters();
+	
 	/**
 	 * Adds another scan with detected m/z values
 	 */

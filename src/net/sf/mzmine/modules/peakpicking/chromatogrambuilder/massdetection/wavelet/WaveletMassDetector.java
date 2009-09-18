@@ -25,20 +25,22 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-/*
+/**
  * This class implements the Continuous Wavelet Transform (CWT), Mexican Hat,
  * over raw datapoints of a certain spectrum. After get the spectrum in the
  * wavelet's time domain, we use the local maxima to detect possible peaks in
  * the original raw datapoints.
  */
-
 public class WaveletMassDetector implements MassDetector {
+
+	private WaveletMassDetectorParameters parameters;
 
 	// Parameter value
 	private int scaleLevel;
@@ -53,16 +55,18 @@ public class WaveletMassDetector implements MassDetector {
 	private static final int WAVELET_ESL = -5;
 	private static final int WAVELET_ESR = 5;
 
-	public WaveletMassDetector(WaveletMassDetectorParameters parameters) {
+	public WaveletMassDetector() {
+		parameters = new WaveletMassDetectorParameters();
+	}
+
+	public MzPeak[] getMassValues(Scan scan) {
 		noiseLevel = (Double) parameters
 				.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
 		scaleLevel = (Integer) parameters
 				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
 		waveletWindow = (Double) parameters
 				.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
-	}
 
-	public MzPeak[] getMassValues(Scan scan) {
 		DataPoint[] originalDataPoints = scan.getDataPoints();
 		mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(SortingProperty.MZ,
 				SortingDirection.Ascending));
@@ -215,4 +219,19 @@ public class WaveletMassDetector implements MassDetector {
 		return aproxIntensity;
 	}
 
+	public String getHelpFileLocation() {
+		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/wavelet/help/WaveletMassDetector.html";
+	}
+
+	public String getName() {
+		return "Wavelet transform";
+	}
+
+	public SimpleParameterSet getParameters() {
+		return parameters;
+	}
+
+	public String toString() {
+		return getName();
+	}
 }

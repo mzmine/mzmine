@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdata.scanfilters.resample;
 
 import net.sf.mzmine.data.DataPoint;
@@ -28,7 +29,7 @@ import net.sf.mzmine.util.ScanUtils;
 
 public class ResampleFilter implements RawDataFilter {
 
-	private Double binSize;
+	private double binSize;
 
 	public ResampleFilter(ResampleFilterParameters parameters) {
 		binSize = (Double) parameters.getParameterValue(ResampleFilterParameters.binSize);

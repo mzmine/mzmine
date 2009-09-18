@@ -39,7 +39,11 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetectorSetupDialog;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.MassFilter;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.MassFilterSetupDialog;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -54,9 +58,15 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 	private String title;
 
 	// Dialog components
-	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetConnector;
-	private JComboBox comboMassDetectors, comboChromatoBuilder;
+	private JButton btnOK, btnCancel, btnHelp, btnSetMass, btnSetFilter,
+			btnSetConnector;
+	private JComboBox comboMassDetectors, comboMassFilters,
+			comboMassConnectors;
 	private JTextField txtField;
+
+	private MassDetector massDetectors[];
+	private MassFilter massFilters[];
+	private MassConnector massConnectors[];
 
 	public ChromatogramBuilderSetupDialog(String title,
 			ChromatogramBuilderParameters parameters) {
@@ -66,6 +76,10 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 		this.parameters = parameters;
 		this.title = title;
+
+		this.massDetectors = parameters.getMassDetectors();
+		this.massFilters = parameters.getMassFilters();
+		this.massConnectors = parameters.getMassConnectors();
 
 		addComponentsToDialog();
 		this.setResizable(false);
@@ -80,22 +94,38 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 
 		if (src == btnSetMass) {
-			int ind = comboMassDetectors.getSelectedIndex();
-
+			MassDetector detector = (MassDetector) comboMassDetectors
+					.getSelectedItem();
+			if (detector == null)
+				return;
 			MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-					parameters, ind);
+					detector);
+			dialog.setVisible(true);
+		}
+
+		if (src == btnSetFilter) {
+			MassDetector detector = (MassDetector) comboMassDetectors
+					.getSelectedItem();
+			if (detector == null)
+				return;
+			int ind = comboMassFilters.getSelectedIndex() - 1;
+			if (ind < 0)
+				return;
+			MassFilterSetupDialog dialog = new MassFilterSetupDialog(detector,
+					massFilters[ind]);
 			dialog.setVisible(true);
 
 		}
 
 		if (src == btnSetConnector) {
-			int ind = comboChromatoBuilder.getSelectedIndex();
-
-			ParameterSetupDialog dialog = new ParameterSetupDialog(
-					ChromatogramBuilderParameters.massConnectorNames[ind]
-							+ "'s parameter setup dialog ", parameters
-							.getMassConnectorParameters(ind),
-					ChromatogramBuilderParameters.massConnectorHelpFiles[ind]);
+			MassConnector connector = (MassConnector) comboMassConnectors
+					.getSelectedItem();
+			if (connector == null)
+				return;
+			ParameterSetupDialog dialog = new ParameterSetupDialog(connector
+					.getName()
+					+ "'s parameter setup dialog ", connector.getParameters(),
+					connector.getHelpFileLocation());
 
 			dialog.setVisible(true);
 		}
@@ -103,7 +133,8 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		if (src == btnOK) {
 			inform();
 			parameters.setTypeNumber(comboMassDetectors.getSelectedIndex(),
-					comboChromatoBuilder.getSelectedIndex());
+					comboMassFilters.getSelectedIndex() - 1,
+					comboMassConnectors.getSelectedIndex());
 			parameters.setSuffix(txtField.getText());
 			exitCode = ExitCode.OK;
 			dispose();
@@ -112,6 +143,11 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		if (src == btnCancel) {
 			exitCode = ExitCode.CANCEL;
 			dispose();
+		}
+
+		if (src == comboMassFilters) {
+			int ind = comboMassFilters.getSelectedIndex();
+			btnSetFilter.setEnabled(ind > 0);
 		}
 
 	}
@@ -129,22 +165,33 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		txtField.setMaximumSize(new Dimension(250, 30));
 
 		// Elements of Mass detector
-		comboMassDetectors = new JComboBox(
-				ChromatogramBuilderParameters.massDetectorNames);
-		comboMassDetectors.setSelectedIndex(parameters
-				.getMassDetectorTypeNumber());
+		comboMassDetectors = new JComboBox(massDetectors);
+		comboMassDetectors.setSelectedItem(parameters.getMassDetector());
 		comboMassDetectors.addActionListener(this);
 		comboMassDetectors.setMaximumSize(new Dimension(200, 30));
 		btnSetMass = new JButton("Set parameters");
 		btnSetMass.addActionListener(this);
 
-		// Elements of Chromatogram builder
-		comboChromatoBuilder = new JComboBox(
-				ChromatogramBuilderParameters.massConnectorNames);
-		comboChromatoBuilder.setSelectedIndex(parameters
-				.getMassConnectorTypeNumber());
-		comboChromatoBuilder.addActionListener(this);
-		comboChromatoBuilder.setMaximumSize(new Dimension(200, 30));
+		// Elements of mass connector
+		comboMassFilters = new JComboBox(massFilters);
+		comboMassFilters.insertItemAt("None", 0);
+		MassFilter selectedFilter = parameters.getMassFilter();
+		if (selectedFilter != null) {
+			comboMassFilters.setSelectedItem(selectedFilter);
+		} else {
+			comboMassFilters.setSelectedIndex(0);
+		}
+		comboMassFilters.addActionListener(this);
+		comboMassFilters.setMaximumSize(new Dimension(200, 30));
+		btnSetFilter = new JButton("Set parameters");
+		btnSetFilter.addActionListener(this);
+		btnSetFilter.setEnabled(selectedFilter != null);
+
+		// Elements of mass connector
+		comboMassConnectors = new JComboBox(massConnectors);
+		comboMassConnectors.setSelectedItem(parameters.getMassConnector());
+		comboMassConnectors.addActionListener(this);
+		comboMassConnectors.setMaximumSize(new Dimension(200, 30));
 		btnSetConnector = new JButton("Set parameters");
 		btnSetConnector.addActionListener(this);
 
@@ -183,11 +230,21 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 		c.gridx = 0;
 		c.gridy = 2;
+		pnlCombo.add(new JLabel("Filtering"), c);
+		c.gridwidth = 3;
+		c.gridx = 1;
+		pnlCombo.add(comboMassFilters, c);
+		c.gridwidth = 1;
+		c.gridx = 4;
+		pnlCombo.add(btnSetFilter, c);
+
+		c.gridx = 0;
+		c.gridy = 3;
 		pnlCombo
 				.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
 		c.gridwidth = 3;
 		c.gridx = 1;
-		pnlCombo.add(comboChromatoBuilder, c);
+		pnlCombo.add(comboMassConnectors, c);
 		c.gridwidth = 1;
 		c.gridx = 4;
 		pnlCombo.add(btnSetConnector, c);
@@ -219,8 +276,8 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 		Desktop desktop = MZmineCore.getDesktop();
 		RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-		int massDetectorNumber = comboMassDetectors.getSelectedIndex();
-		String massDetectorName = ChromatogramBuilderParameters.massDetectorNames[massDetectorNumber];
+		MassDetector md = (MassDetector) comboMassDetectors.getSelectedItem();
+		String massDetectorName = md.getName();
 		boolean centroid = false;
 		boolean notMsLevelOne = false;
 
@@ -250,20 +307,20 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 			if (notMsLevelOne) {
 				desktop
-						.displayMessage(" One or more selected files does not contain spectrum of MS level 1."
+						.displayMessage("One or more selected files does not contain spectrum of MS level 1."
 								+ " The actual mass detector only works over spectrum of this level.");
 			}
 
-			if ((centroid) && (!massDetectorName.equals("Centroid"))) {
+			if ((centroid) && (!massDetectorName.startsWith("Centroid"))) {
 				desktop
-						.displayMessage(" One or more selected files contains centroided data points."
-								+ " The actual mass detector could give an unexpected result ");
+						.displayMessage("One or more selected files contains centroided data points."
+								+ " The actual mass detector could give an unexpected result");
 			}
 
-			if ((!centroid) && (massDetectorName.equals("Centroid"))) {
+			if ((!centroid) && (massDetectorName.startsWith("Centroid"))) {
 				desktop
-						.displayMessage(" Neither one of the selected files contains centroided data points."
-								+ " The actual mass detector could give an unexpected result ");
+						.displayMessage("Neither one of the selected files contains centroided data points."
+								+ " The actual mass detector could give an unexpected result");
 			}
 		}
 	}

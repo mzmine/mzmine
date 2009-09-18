@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra;
+package net.sf.mzmine.modules.visualization.spectra.renderers;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -26,6 +26,7 @@ import java.awt.geom.Rectangle2D;
 
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
+import org.jfree.chart.plot.DrawingSupplier;
 import org.jfree.chart.plot.PlotRenderingInfo;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.StandardXYBarPainter;
@@ -47,10 +48,14 @@ public class PeakRenderer extends XYBarRenderer {
 		this.isTransparent = isTransparent;
 
 		// Set painting color
-		setSeriesPaint(0, color);
+		setBasePaint(color);
 
 		// Shadow makes fake peaks
 		setShadowVisible(false);
+
+		// Set the tooltip generator
+		SpectraToolTipGenerator tooltipGenerator = new SpectraToolTipGenerator();
+		setBaseToolTipGenerator(tooltipGenerator);
 
 		// We want to paint the peaks using simple color without any gradient
 		// effects
@@ -68,6 +73,14 @@ public class PeakRenderer extends XYBarRenderer {
 		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
 				dataset, series, item, crosshairState, pass);
 
+	}
+
+	/**
+	 * This method returns null, because we don't want to change the colors
+	 * dynamically.
+	 */
+	public DrawingSupplier getDrawingSupplier() {
+		return null;
 	}
 
 }

@@ -356,7 +356,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				return;
 
 			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
-					showPeak.getRepresentativeScanNumber());
+					showPeak.getRepresentativeScanNumber(), showPeak);
 		}
 
 		if (src == showMSMSItem) {

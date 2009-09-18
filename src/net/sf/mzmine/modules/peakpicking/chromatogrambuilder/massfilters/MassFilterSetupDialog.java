@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection;
+package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -27,6 +27,8 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -51,6 +53,7 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -64,8 +67,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * is used to preview how the selected mass detector and his parameters works
  * over the raw data file.
  */
-public class MassDetectorSetupDialog extends ParameterSetupDialog implements
+public class MassFilterSetupDialog extends ParameterSetupDialog implements
 		ActionListener, PropertyChangeListener {
+
+	public static final Color removedPeaksColor = Color.orange;
 
 	private RawDataFile previewDataFile;
 	private RawDataFile[] dataFiles;
@@ -86,29 +91,28 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 	// XYPlot
 	private SpectraPlot spectrumPlot;
-	private ScanDataSet spectraDataSet;
-	private MzPeaksDataSet peaksDataSet;
+	private MzPeaksDataSet removedPeaksDataSet, remainingPeaksDataSet;
 
-	// Mass Detector;
+	// Mass detector and filter;
 	private MassDetector massDetector;
+	private MassFilter massFilter;
 
 	// Desktop
 	private Desktop desktop = MZmineCore.getDesktop();
 
 	/**
 	 * @param parameters
-	 * @param massDetectorTypeNumber
+	 * @param massFilterTypeNumber
 	 */
-	public MassDetectorSetupDialog(MassDetector massDetector) {
+	public MassFilterSetupDialog(MassDetector massDetector,
+			MassFilter massFilter) {
 
-		super(
-				massDetector.getName()
-						+ "'s parameter setup dialog ",
-						massDetector.getParameters(),
-						massDetector.getHelpFileLocation());
+		super(massFilter.getName() + "'s parameter setup dialog ", massFilter
+				.getParameters(), massFilter.getHelpFileLocation());
 
-		this.massDetector = massDetector;
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+		this.massFilter = massFilter;
+		this.massDetector = massDetector;
 
 		if (dataFiles.length != 0) {
 
@@ -117,7 +121,6 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 			else
 				previewDataFile = dataFiles[0];
 
-			
 			// List of scan to apply mass detector
 			listScans = previewDataFile.getScanNumbers(1);
 			currentScanNumberlist = new String[listScans.length];
@@ -134,7 +137,7 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 
 			// Set a listener in all parameters's fields to add functionality to
 			// this dialog
-			for (Parameter p : massDetector.getParameters().getParameters()) {
+			for (Parameter p : massFilter.getParameters().getParameters()) {
 
 				JComponent field = getComponentForParameter(p);
 				field.addPropertyChangeListener("value", this);
@@ -162,13 +165,15 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
 		currentScan = previewDataFile.getScan(scanNumber);
-		spectraDataSet = new ScanDataSet(currentScan);
+		ScanDataSet scanDataSet = new ScanDataSet(currentScan);
 
 		spectrumPlot.removeAllDataSets();
-		spectrumPlot.addDataSet(spectraDataSet, SpectraVisualizerWindow.scanColor, false);
-		spectrumPlot.addDataSet(peaksDataSet, SpectraVisualizerWindow.peaksColor, false);
+		spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor,
+				false);
+		spectrumPlot.addDataSet(removedPeaksDataSet, removedPeaksColor, false);
+		spectrumPlot.addDataSet(remainingPeaksDataSet,
+				SpectraVisualizerWindow.peaksColor, false);
 
-		// Set plot mode only if it hasn't been set before
 		// if the scan is centroided, switch to centroid mode
 		if (currentScan.isCentroided()) {
 			spectrumPlot.setPlotMode(PlotMode.CENTROID);
@@ -266,20 +271,25 @@ public class MassDetectorSetupDialog extends ParameterSetupDialog implements
 	}
 
 	/**
-	 * First get the actual values in the form, upgrade parameters for our local
-	 * mass detector. After calculate all possible peaks, we create a new
-	 * PeakListSet for the selected DataFile and Scan in the form.
 	 * 
-	 * @param ind
 	 */
-	public void setPeakListDataSet(int ind) {
+	private void setPeakListDataSet(int ind) {
 
 		updateParameterSetFromComponents();
 
 		Scan scan = previewDataFile.getScan(listScans[ind]);
-		MzPeak[] mzValues = massDetector.getMassValues(scan);
+		MzPeak mzValues[] = massDetector.getMassValues(scan);
+		MzPeak remainingMzValues[] = massFilter.filterMassValues(mzValues);
 
-		peaksDataSet = new MzPeaksDataSet("Detected peaks", mzValues);
+		Vector<MzPeak> removedPeaks = new Vector<MzPeak>();
+		removedPeaks.addAll(Arrays.asList(mzValues));
+		removedPeaks.removeAll(Arrays.asList(remainingMzValues));
+		MzPeak removedMzValues[] = removedPeaks.toArray(new MzPeak[0]);
+
+		removedPeaksDataSet = new MzPeaksDataSet("Removed peaks",
+				removedMzValues);
+		remainingPeaksDataSet = new MzPeaksDataSet("Remaining peaks",
+				remainingMzValues);
 
 	}
 

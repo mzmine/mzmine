@@ -22,21 +22,21 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exac
 import net.sf.mzmine.util.Range;
 
 public interface PeakModel {
-	
+
 	/**
 	 * This function calculates the width of the peak at the base
 	 * 
 	 * @return Range base width
 	 * 
 	 */
-	public Range getWidth(double	partialIntensity);
-	
+	public Range getWidth(double partialIntensity);
+
 	/**
 	 * This function returns the intensity of modeled peak at certain m/z
 	 * 
 	 * @return double intensity
 	 */
-	public double getIntensity (double mz);
+	public double getIntensity(double mz);
 
 	/**
 	 * This function set all required parameters to construct a peak model

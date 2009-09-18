@@ -19,54 +19,23 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import java.util.Vector;
-
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
 /**
- * Picked peaks data set;
+ * Data set for MzPeaks, used in peak detection preview
  */
-public class PeakListDataSet extends AbstractXYDataset implements
+public class MzPeaksDataSet extends AbstractXYDataset implements
 		IntervalXYDataset {
 
-	private PeakList peakList;
-
-	private ChromatographicPeak displayedPeaks[];
-	private double mzValues[], intensityValues[];
+	private MzPeak mzPeaks[];
 	private String label;
 
-	public PeakListDataSet(RawDataFile dataFile, int scanNumber,
-			PeakList peakList) {
-
-		this.peakList = peakList;
-
-		ChromatographicPeak peaks[] = peakList.getPeaks(dataFile);
-
-		Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
-		for (ChromatographicPeak peak : peaks) {
-			DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
-			if (peakDataPoint != null)
-				candidates.add(peak);
-		}
-		displayedPeaks = candidates.toArray(new ChromatographicPeak[0]);
-
-		mzValues = new double[displayedPeaks.length];
-		intensityValues = new double[displayedPeaks.length];
-
-		for (int i = 0; i < displayedPeaks.length; i++) {
-			mzValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getMZ();
-			intensityValues[i] = displayedPeaks[i].getDataPoint(scanNumber)
-					.getIntensity();
-		}
-
-		label = "Peaks in " + peakList.getName();
-
+	public MzPeaksDataSet(String label, MzPeak mzPeaks[]) {
+		this.label = label;
+		this.mzPeaks = mzPeaks;
 	}
 
 	@Override
@@ -79,24 +48,16 @@ public class PeakListDataSet extends AbstractXYDataset implements
 		return label;
 	}
 
-	public PeakList getPeakList() {
-		return peakList;
-	}
-
-	public ChromatographicPeak getPeak(int series, int item) {
-		return displayedPeaks[item];
-	}
-
 	public int getItemCount(int series) {
-		return mzValues.length;
+		return mzPeaks.length;
 	}
 
 	public Number getX(int series, int item) {
-		return mzValues[item];
+		return mzPeaks[item].getMZ();
 	}
 
 	public Number getY(int series, int item) {
-		return intensityValues[item];
+		return mzPeaks[item].getIntensity();
 	}
 
 	public Number getEndX(int series, int item) {

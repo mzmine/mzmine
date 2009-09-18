@@ -40,10 +40,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	// Scan numbers
 	private int scanNumbers[];
 
-	// We store the values of data points as double[] arrays in order to save
-	// memory, which would be wasted by keeping a lot of instances of
-	// SimpleDataPoint (each instance takes 16 or 32 bytes of extra memory)
-	private double dataPointMZValues[], dataPointIntensityValues[];
+	private DataPoint dataPointsPerScan[];
 
 	// M/Z, RT, Height and Area
 	private double mz, rt, height, area;
@@ -56,8 +53,9 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
 	// Number of most intense fragment scan
 	private int fragmentScanNumber;
-	
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
 
 	/**
@@ -87,16 +85,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 		this.rtRange = rtRange;
 		this.mzRange = mzRange;
 		this.intensityRange = intensityRange;
-
-		this.dataPointMZValues = new double[scanNumbers.length];
-		this.dataPointIntensityValues = new double[scanNumbers.length];
-		for (int i = 0; i < scanNumbers.length; i++) {
-			DataPoint dp = dataPointsPerScan[i];
-			if (dp != null) {
-				dataPointMZValues[i] = dp.getMZ();
-				dataPointIntensityValues[i] = dp.getIntensity();
-			}
-		}
+		this.dataPointsPerScan = dataPointsPerScan;
 
 	}
 
@@ -118,14 +107,10 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
 		this.scanNumbers = p.getScanNumbers();
 
-		this.dataPointMZValues = new double[scanNumbers.length];
-		this.dataPointIntensityValues = new double[scanNumbers.length];
+		this.dataPointsPerScan = new DataPoint[scanNumbers.length];
+
 		for (int i = 0; i < scanNumbers.length; i++) {
-			DataPoint dp = p.getDataPoint(scanNumbers[i]);
-			if (dp != null) {
-				dataPointMZValues[i] = dp.getMZ();
-				dataPointIntensityValues[i] = dp.getIntensity();
-			}
+			dataPointsPerScan[i] = p.getDataPoint(scanNumbers[i]);
 		}
 
 		this.peakStatus = p.getPeakStatus();
@@ -209,9 +194,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 		int index = Arrays.binarySearch(scanNumbers, scanNumber);
 		if (index < 0)
 			return null;
-		SimpleDataPoint dp = new SimpleDataPoint(dataPointMZValues[index],
-				dataPointIntensityValues[index]);
-		return dp;
+		return dataPointsPerScan[index];
 	}
 
 	/**

@@ -20,66 +20,23 @@
 package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.exactmass;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
-	// Parameter values
-	private double noiseLevel;
-	private int resolution;
-	private PeakModel peakModel;
+	private ExactMassDetectorParameters parameters;
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	public ExactMassDetector(ExactMassDetectorParameters parameters) {
-
-		noiseLevel = (Double) parameters
-				.getParameterValue(ExactMassDetectorParameters.noiseLevel);
-		resolution = (Integer) parameters
-				.getParameterValue(ExactMassDetectorParameters.resolution);
-
-		String peakModelname = (String) parameters
-				.getParameterValue(ExactMassDetectorParameters.peakModel);
-
-		// Create an instance of selected model class
-		try {
-
-			String peakModelClassName = null;
-
-			for (int modelIndex = 0; modelIndex < ExactMassDetectorParameters.peakModelNames.length; modelIndex++) {
-				if (ExactMassDetectorParameters.peakModelNames[modelIndex]
-						.equals(peakModelname))
-					peakModelClassName = ExactMassDetectorParameters.peakModelClasses[modelIndex];
-				;
-			}
-
-			if (peakModelClassName == null)
-				throw new ClassNotFoundException();
-
-			Class peakModelClass = Class.forName(peakModelClassName);
-
-			peakModel = (PeakModel) peakModelClass.newInstance();
-
-		} catch (Exception e) {
-			logger.severe("Error trying to make an instance of peak model "
-					+ peakModelname);
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Error trying to make an instance of peak model "
-							+ peakModelname);
-		}
-
+	public ExactMassDetector() {
+		parameters = new ExactMassDetectorParameters();
 	}
 
 	/**
@@ -87,6 +44,7 @@ public class ExactMassDetector implements MassDetector {
 	 */
 	public MzPeak[] getMassValues(Scan scan) {
 
+		
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
 		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(
 				SortingProperty.MZ, SortingDirection.Ascending));
@@ -100,7 +58,7 @@ public class ExactMassDetector implements MassDetector {
 		// First get all candidate peaks (local maximum)
 		getLocalMaxima(scan, candidatePeaks);
 
-		// We calculate the exact mass for each peak and remove lateral peaks,
+		// We calculate the exact mass for each peak,
 		// starting with biggest intensity peak and so on
 		while (candidatePeaks.size() > 0) {
 
@@ -116,10 +74,6 @@ public class ExactMassDetector implements MassDetector {
 			// from tree set sorted by intensity
 			mzPeaks.add(currentCandidate);
 			candidatePeaks.remove(currentCandidate);
-
-			// Remove from tree set sorted by intensity all FTMS shoulder peaks,
-			// taking as a main peak the current candidate
-			removeLateralPeaks(currentCandidate, candidatePeaks);
 
 		}
 
@@ -138,6 +92,9 @@ public class ExactMassDetector implements MassDetector {
 	 */
 	private void getLocalMaxima(Scan scan, TreeSet<MzPeak> candidatePeaks) {
 
+		double noiseLevel = (Double) parameters
+		.getParameterValue(ExactMassDetectorParameters.noiseLevel);
+		
 		DataPoint[] scanDataPoints = scan.getDataPoints();
 		if (scanDataPoints.length == 0)
 			return;
@@ -281,50 +238,20 @@ public class ExactMassDetector implements MassDetector {
 		return exactMass;
 	}
 
-	/**
-	 * This function remove peaks encountered in the lateral of a main peak
-	 * (currentCandidate) that are considered as garbage, for example FTMS
-	 * shoulder peaks.
-	 * 
-	 * First calculates a peak model (Gauss, Lorenzian, etc) defined by
-	 * peakModelName parameter, with the same position (m/z) and height
-	 * (intensity) of the currentCandidate, and the defined resolution
-	 * (resolution parameter). Second search and remove all the lateral peaks
-	 * that are under the curve of the modeled peak.
-	 * 
-	 */
-	private void removeLateralPeaks(MzPeak currentCandidate,
-			TreeSet<MzPeak> candidates) {
-
-		// If there was any problem creating the model
-		if (peakModel == null)
-			return;
-
-		// We set our peak model with same position(m/z), height(intensity) and
-		// resolution of the current peak
-		peakModel.setParameters(currentCandidate.getMZ(), currentCandidate
-				.getIntensity(), resolution);
-
-		// We use the width of the modeled peak at noise level to set the range
-		// of search for lateral peaks.
-		Range rangePeak = peakModel.getWidth(noiseLevel);
-
-		// We search over all peak candidates and remove all of them that are
-		// under the curve defined by our peak model
-		Iterator<MzPeak> candidatesIterator = candidates.iterator();
-		while (candidatesIterator.hasNext()) {
-
-			MzPeak lateralCandidate = candidatesIterator.next();
-
-			// Condition in x domain (m/z)
-			if ((rangePeak.contains(lateralCandidate.getMZ()))
-			// Condition in y domain (intensity)
-					&& (lateralCandidate.getIntensity() < peakModel
-							.getIntensity(lateralCandidate.getMZ()))) {
-
-				candidatesIterator.remove();
-			}
-		}
-
+	public String getHelpFileLocation() {
+		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/exactmass/help/ExactMassDetector.html";
 	}
+
+	public String getName() {
+		return "Exact mass";
+	}
+
+	public SimpleParameterSet getParameters() {
+		return parameters;
+	}
+
+	public String toString() {
+		return getName();
+	}
+	
 }

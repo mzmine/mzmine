@@ -31,8 +31,10 @@ import javax.swing.JComboBox;
 import javax.swing.JInternalFrame;
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -41,6 +43,7 @@ import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -54,6 +57,12 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	public static final Color scanColor = new Color(0, 0, 192);
+	public static final Color peaksColor = Color.red;
+	public static final Color singlePeakColor = Color.magenta;
+	public static final Color detectedIsotopesColor = Color.magenta;
+	public static final Color predictedIsotopesColor = Color.green;
 
 	private SpectraToolBar toolBar;
 	private SpectraPlot spectrumPlot;
@@ -205,11 +214,9 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		spectrumPlot.setTitle(title, subTitle);
 
 		// Set plot data set
-		spectrumPlot.setSpectrumDataSet(spectrumDataSet);
+		spectrumPlot.removeAllDataSets();
+		spectrumPlot.addDataSet(spectrumDataSet, scanColor, false);
 
-		// Clear isotope peaks
-		spectrumPlot.removeIsotopeDataSets();
-		
 		// Reload peak list
 		bottomPanel.rebuildPeakListSelector();
 
@@ -217,29 +224,40 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	public void loadPeaks(PeakList selectedPeakList) {
 
+		spectrumPlot.removePeakListDataSets();
+		
 		if (selectedPeakList == null) {
-			spectrumPlot.setPeaksDataSet(null);
 			return;
 		}
-		
+
 		logger.finest("Loading a peak list " + selectedPeakList
 				+ " to a spectrum window " + getTitle());
-		
+
 		PeakListDataSet peaksDataSet = new PeakListDataSet(dataFile,
 				currentScan.getScanNumber(), selectedPeakList);
 
 		// Set plot data sets
-		spectrumPlot.setPeaksDataSet(peaksDataSet);
+		spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
 
 	}
 	
+	public void loadSinglePeak(ChromatographicPeak peak) {
+
+		SinglePeakDataSet peakDataSet = new SinglePeakDataSet(
+				currentScan.getScanNumber(), peak);
+
+		// Set plot data sets
+		spectrumPlot.addDataSet(peakDataSet, singlePeakColor, true);
+
+	}
+
 	public void loadIsotopes(IsotopePattern newPattern) {
 
 		// We need to find a normalization factor for the new isotope
 		// pattern, to show meaningful intensity range
 		double mz = newPattern.getHighestIsotope().getMZ();
 		Range searchMZRange = new Range(mz - 0.5, mz + 0.5);
-		ScanDataSet scanDataSet = spectrumPlot.getScanDataSet();
+		ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
 		double normalizationFactor = scanDataSet
 				.getHighestIntensity(searchMZRange);
 
@@ -254,10 +272,13 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 		IsotopePattern normalizedPattern = newPattern
 				.normalizeTo(normalizationFactor);
-
+		Color newColor;
+		if (newPattern.getStatus() == IsotopePatternStatus.DETECTED)
+			newColor = detectedIsotopesColor;
+		else
+			newColor = predictedIsotopesColor;
 		IsotopesDataSet newDataSet = new IsotopesDataSet(normalizedPattern);
-		spectrumPlot.setIsotopeDataSet(newDataSet);
-
+		spectrumPlot.addDataSet(newDataSet, newColor, true);
 
 	}
 
@@ -395,7 +416,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 			if (newPattern == null)
 				return;
-			
+
 			loadIsotopes(newPattern);
 
 		}

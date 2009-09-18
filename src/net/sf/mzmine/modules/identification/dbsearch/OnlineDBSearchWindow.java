@@ -193,7 +193,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, peak
+			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null, peak
 					.getIsotopePattern(), predictedPattern);
 
 		}
