@@ -82,6 +82,10 @@ public class SpectraPlot extends ChartPanel {
 	private boolean isotopesVisible = true, peaksVisible = true,
 			itemLabelsVisible = true, dataPointsVisible = false;
 
+	// We use our own counter, because plot.getDatasetCount() just keeps
+	// increasing even when we remove old data sets
+	private int numOfDataSets = 0;
+
 	public SpectraPlot(ActionListener masterPlot) {
 
 		super(null, true);
@@ -302,6 +306,7 @@ public class SpectraPlot extends ChartPanel {
 		for (int i = 0; i < plot.getDatasetCount(); i++) {
 			plot.setDataset(i, null);
 		}
+		numOfDataSets = 0;
 	}
 
 	public synchronized void addDataSet(XYDataset dataSet, Color color,
@@ -330,9 +335,10 @@ public class SpectraPlot extends ChartPanel {
 		} else {
 			newRenderer = new PeakRenderer(color, transparency);
 		}
-		int dataSetCount = plot.getDatasetCount();
-		plot.setDataset(dataSetCount, dataSet);
-		plot.setRenderer(dataSetCount, newRenderer);
+		
+		plot.setDataset(numOfDataSets, dataSet);
+		plot.setRenderer(numOfDataSets, newRenderer);
+		numOfDataSets++;
 
 	}
 
