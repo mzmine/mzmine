@@ -20,7 +20,7 @@
 package net.sf.mzmine.main;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -213,7 +213,11 @@ public abstract class MZmineCore {
 
 			// write the config file
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			XMLWriter writer = new XMLWriter(new FileWriter(file), format);
+			
+			// It is important to use FileOutputStream, not FileWriter. If we
+			// use FileWriter, the file will be written using incorrect encoding
+			// (not UTF8).
+			XMLWriter writer = new XMLWriter(new FileOutputStream(file), format);
 			writer.write(configuration);
 			writer.close();
 
