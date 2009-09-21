@@ -28,39 +28,50 @@ import java.util.Iterator;
  */
 public class CollectionUtils {
 
-    /**
-     * Returns an array of ints consisting of the elements of the specified
-     * collection.
-     * 
-     * @param collection Collection of Integers
-     * @return Array of ints
-     */
-    public static int[] toIntArray(Collection<Integer> collection) {
-        int array[] = new int[collection.size()];
-        int index = 0;
-        Iterator<Integer> it = collection.iterator();
-        while (it.hasNext()) {
-            array[index++] = it.next();
-        }
-        return array;
-    }
+	/**
+	 * Returns an array of ints consisting of the elements of the specified
+	 * collection.
+	 * 
+	 * @param collection
+	 *            Collection of Integers
+	 * @return Array of ints
+	 */
+	public static int[] toIntArray(Collection<Integer> collection) {
+		int array[] = new int[collection.size()];
+		int index = 0;
+		Iterator<Integer> it = collection.iterator();
+		while (it.hasNext()) {
+			array[index++] = it.next();
+		}
+		return array;
+	}
 
-    /**
-     * Change the type of array of Objects to an array of objects of type
-     * newClass.
-     * 
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
+	/**
+	 * Converts an array of ints to array of Integers
+	 */
+	public static Integer[] toIntegerArray(int array[]) {
+		Integer newArray[] = new Integer[array.length];
+		for (int i = 0; i < array.length; i++)
+			newArray[i] = Integer.valueOf(array[i]);
+		return newArray;
+	}
 
-        T newArray[] = (T[]) Array.newInstance(newClass, array.length);
+	/**
+	 * Change the type of array of Objects to an array of objects of type
+	 * newClass.
+	 * 
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
-        for (int i = 0; i < array.length; i++) {
-            newArray[i] = newClass.cast(array[i]);
-        }
+		T newArray[] = (T[]) Array.newInstance(newClass, array.length);
 
-        return newArray;
-    }
+		for (int i = 0; i < array.length; i++) {
+			newArray[i] = newClass.cast(array[i]);
+		}
+
+		return newArray;
+	}
 
 	/**
 	 * Returns an array of doubles consisting of the elements of the specified
@@ -89,30 +100,32 @@ public class CollectionUtils {
 	 *            array of ints
 	 * @return true if haystack contains all elements of needles
 	 */
-    public static boolean isSubset(int haystack[], int needles[]) {
-        needleTraversal: for (int i = 0; i < needles.length; i++) {
-            for (int j = 0; j < haystack.length; j++) {
-                if (needles[i] == haystack[j])
-                    continue needleTraversal;
-            }
-            return false;
-        }
-        return true;
-    }
+	public static boolean isSubset(int haystack[], int needles[]) {
+		needleTraversal: for (int i = 0; i < needles.length; i++) {
+			for (int j = 0; j < haystack.length; j++) {
+				if (needles[i] == haystack[j])
+					continue needleTraversal;
+			}
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Checks if the haystack array contains a specified element
-     * 
-     * @param haystack array of objects
-     * @param needle object
-     * @return true if haystack contains needle
-     */
-    public static <T> boolean arrayContains(T haystack[], T needle) {
-        for (T test : haystack) {
-            if (needle.equals(test))
-                return true;
-        }
-        return false;
-    }
+	/**
+	 * Checks if the haystack array contains a specified element
+	 * 
+	 * @param haystack
+	 *            array of objects
+	 * @param needle
+	 *            object
+	 * @return true if haystack contains needle
+	 */
+	public static <T> boolean arrayContains(T haystack[], T needle) {
+		for (T test : haystack) {
+			if (needle.equals(test))
+				return true;
+		}
+		return false;
+	}
 
 }

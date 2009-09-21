@@ -166,32 +166,35 @@ public class SpectraPlot extends ChartPanel {
 				"ZOOM_OUT");
 
 		// add items to popup menu
-		JPopupMenu popupMenu = getPopupMenu();
+		if (masterPlot instanceof SpectraVisualizerWindow) {
+			JPopupMenu popupMenu = getPopupMenu();
 
-		popupMenu.addSeparator();
+			popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
-				masterPlot, "TOGGLE_PLOT_MODE");
-		GUIUtils.addMenuItem(popupMenu,
-				"Toggle displaying of data points in continuous mode",
-				masterPlot, "SHOW_DATA_POINTS");
-		GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values",
-				masterPlot, "SHOW_ANNOTATIONS");
-		GUIUtils.addMenuItem(popupMenu, "Toggle displaying of picked peaks",
-				masterPlot, "SHOW_PICKED_PEAKS");
+			GUIUtils.addMenuItem(popupMenu, "Toggle centroid/continuous mode",
+					masterPlot, "TOGGLE_PLOT_MODE");
+			GUIUtils.addMenuItem(popupMenu,
+					"Toggle displaying of data points in continuous mode",
+					masterPlot, "SHOW_DATA_POINTS");
+			GUIUtils.addMenuItem(popupMenu, "Toggle displaying of peak values",
+					masterPlot, "SHOW_ANNOTATIONS");
+			GUIUtils.addMenuItem(popupMenu,
+					"Toggle displaying of picked peaks", masterPlot,
+					"SHOW_PICKED_PEAKS");
 
-		popupMenu.addSeparator();
+			popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Set axes range", masterPlot,
-				"SETUP_AXES");
+			GUIUtils.addMenuItem(popupMenu, "Set axes range", masterPlot,
+					"SETUP_AXES");
 
-		GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-				masterPlot, "SET_SAME_RANGE");
+			GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
+					masterPlot, "SET_SAME_RANGE");
 
-		popupMenu.addSeparator();
+			popupMenu.addSeparator();
 
-		GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", masterPlot,
-				"ADD_ISOTOPE_PATTERN");
+			GUIUtils.addMenuItem(popupMenu, "Add isotope pattern", masterPlot,
+					"ADD_ISOTOPE_PATTERN");
+		}
 
 	}
 
@@ -223,10 +226,10 @@ public class SpectraPlot extends ChartPanel {
 			newRenderer.setBaseItemLabelGenerator(labelGenerator);
 			newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
 			newRenderer.setBaseItemLabelPaint(labelsColor);
-			
+
 			plot.setRenderer(i, newRenderer);
 		}
-		
+
 	}
 
 	public PlotMode getPlotMode() {

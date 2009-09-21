@@ -104,7 +104,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Derived classed may add their components to these panels. Both panels use
-	 * BorderLayout. mainPanel containts componentPanel in the CENTER position
+	 * BorderLayout. mainPanel containts componentPanel in the WEST position
 	 * and nothing else. componentsPanel contains parameter components in the
 	 * NORTH position and buttons in the SOUTH position. Other positions are
 	 * free to use by derived (specialized) dialogs.
@@ -220,7 +220,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 		componentsPanel.add(pnlButtons, BorderLayout.SOUTH);
 
 		mainPanel = new JPanel(new BorderLayout());
-		mainPanel.add(componentsPanel, BorderLayout.CENTER);
+		mainPanel.add(componentsPanel, BorderLayout.WEST);
 
 		add(mainPanel);
 
