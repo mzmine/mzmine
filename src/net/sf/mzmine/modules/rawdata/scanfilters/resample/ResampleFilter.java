@@ -68,7 +68,7 @@ public class ResampleFilter implements RawDataFilter {
 		// Create updated scan
 		SimpleScan newScan = new SimpleScan(scan);
 		newScan.setDataPoints(newPoints);
-
+		newScan.setCentroided(true);
 
 		return newScan;
 	}

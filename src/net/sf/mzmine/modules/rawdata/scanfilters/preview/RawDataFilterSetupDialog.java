@@ -97,9 +97,11 @@ public class RawDataFilterSetupDialog extends
 
 		Scan newScan = rawDataFilter.getNewScan(previewScan);
 
-		ScanDataSet spectraDataSet = new ScanDataSet(newScan);
-		ScanDataSet spectraOriginalDataSet = new ScanDataSet(previewScan);
+		ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
+		ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan", previewScan);
 
+		spectrumPlot.removeAllDataSets();
+		
 		spectrumPlot.addDataSet(spectraOriginalDataSet,
 				SpectraVisualizerWindow.scanColor, true);
 		spectrumPlot.addDataSet(spectraDataSet, Color.green, true);

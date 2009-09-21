@@ -41,9 +41,13 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 	private DataPoint dataPoints[];
 
 	public ScanDataSet(Scan scan) {
+		this("Scan #" + scan.getScanNumber(), scan);
+	}
+	
+	public ScanDataSet(String label, Scan scan) {
 		this.dataPoints = scan.getDataPoints();
 		this.scan = scan;
-		this.label = "Scan #" + scan.getScanNumber();
+		this.label = label;
 	}
 
 	@Override

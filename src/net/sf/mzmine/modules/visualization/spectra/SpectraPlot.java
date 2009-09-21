@@ -199,36 +199,36 @@ public class SpectraPlot extends ChartPanel {
 	}
 
 	/**
-	 * @param plotMode
-	 *            The plotMode to set.
+	 * This will set either centroid or continuous renderer to the first data
+	 * set, assuming that dataset with index 0 contains the raw data.
 	 */
 	public void setPlotMode(PlotMode plotMode) {
+
 		this.plotMode = plotMode;
-		for (int i = 0; i < plot.getDatasetCount(); i++) {
-			XYDataset dataSet = plot.getDataset(i);
-			if (!(dataSet instanceof ScanDataSet))
-				continue;
-			XYItemRenderer renderer = plot.getRenderer(i);
-			Color currentColor = (Color) renderer.getBasePaint();
 
-			XYItemRenderer newRenderer;
-			if (plotMode == PlotMode.CENTROID)
-				newRenderer = new PeakRenderer(currentColor, false);
-			else {
-				newRenderer = new ContinuousRenderer(currentColor, false);
-				((ContinuousRenderer) newRenderer)
-						.setBaseShapesVisible(dataPointsVisible);
-			}
+		XYDataset dataSet = plot.getDataset(0);
+		if (!(dataSet instanceof ScanDataSet))
+			return;
 
-			// Add label generator for the dataset
-			SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
-					this);
-			newRenderer.setBaseItemLabelGenerator(labelGenerator);
-			newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
-			newRenderer.setBaseItemLabelPaint(labelsColor);
-
-			plot.setRenderer(i, newRenderer);
+		XYItemRenderer newRenderer;
+		if (plotMode == PlotMode.CENTROID) {
+			newRenderer = new PeakRenderer(SpectraVisualizerWindow.scanColor,
+					false);
+		} else {
+			newRenderer = new ContinuousRenderer(
+					SpectraVisualizerWindow.scanColor, false);
+			((ContinuousRenderer) newRenderer)
+					.setBaseShapesVisible(dataPointsVisible);
 		}
+
+		// Add label generator for the dataset
+		SpectraItemLabelGenerator labelGenerator = new SpectraItemLabelGenerator(
+				this);
+		newRenderer.setBaseItemLabelGenerator(labelGenerator);
+		newRenderer.setBaseItemLabelsVisible(itemLabelsVisible);
+		newRenderer.setBaseItemLabelPaint(labelsColor);
+
+		plot.setRenderer(0, newRenderer);
 
 	}
 

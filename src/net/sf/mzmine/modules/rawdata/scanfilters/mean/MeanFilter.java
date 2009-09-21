@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdata.scanfilters.mean;
 
 import java.util.Vector;
@@ -96,7 +97,7 @@ public class MeanFilter implements RawDataFilter {
 		Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
 				sc.getMSLevel(), sc.getRetentionTime(),
 				sc.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-				sc.getFragmentScanNumbers(), newDataPoints, sc.isCentroided());
+				sc.getFragmentScanNumbers(), newDataPoints, true);
 
 
 		return newScan;
