@@ -108,8 +108,8 @@ public class ProjectSaver implements BatchStep, ActionListener {
 		}
 
 		if (selectedFile.exists()) {
-			int selectedValue = JOptionPane.showInternalConfirmDialog(
-					MZmineCore.getDesktop().getMainFrame().getContentPane(),
+			int selectedValue = JOptionPane.showConfirmDialog(
+					MZmineCore.getDesktop().getMainFrame(),
 					selectedFile.getName() + " already exists, overwrite ?",
 					"Question...", JOptionPane.YES_NO_OPTION,
 					JOptionPane.WARNING_MESSAGE);
