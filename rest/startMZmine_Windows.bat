@@ -24,7 +24,7 @@ set JAVA_COMMAND=java
 
 rem It is not necessary to modify the following section
 set LOGGING_CONFIG_FILE=conf/logging.properties
-set JAVA_PARAMETERS=%USE_64_BIT% -XX:+UseParallelGC -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=%USE_64_BIT% -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
 set CLASS_PATH=MZmine2.jar
 set MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
 
