@@ -30,9 +30,12 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
+import org.dom4j.DocumentException;
+
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
 import net.sf.mzmine.util.dialogs.PreferencesDialog;
@@ -288,7 +291,13 @@ public class MainMenu extends JMenuBar implements ActionListener {
 					.getMainFrame());
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File configFile = chooser.getSelectedFile();
-				MZmineCore.loadConfiguration(configFile);
+				try {
+					MZmineCore.loadConfiguration(configFile);
+				} catch (DocumentException ex) {
+					MZmineCore.getDesktop().displayErrorMessage(
+							"Could not load configuration: "
+									+ ExceptionUtils.exceptionToString(ex));
+				}
 			}
 		}
 

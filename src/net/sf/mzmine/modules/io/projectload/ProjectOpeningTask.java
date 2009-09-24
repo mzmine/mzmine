@@ -46,6 +46,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
 
+import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
 
 import de.schlichtherle.util.zip.ZipEntry;
@@ -144,7 +145,7 @@ public class ProjectOpeningTask implements Task {
 				zipFile.close();
 				return;
 			}
-			
+
 			// Stage 2 - load raw data files
 			currentStage++;
 			loadRawDataFiles(zipFile);
@@ -152,7 +153,7 @@ public class ProjectOpeningTask implements Task {
 				zipFile.close();
 				return;
 			}
-			
+
 			// Stage 3 - load peak lists
 			currentStage++;
 			loadPeakLists(zipFile);
@@ -231,17 +232,18 @@ public class ProjectOpeningTask implements Task {
 		InputStream versionInputStream = zipFile.getInputStream(versionEntry);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				versionInputStream));
-		
+
 		String mzmineVersion = MZmineCore.getMZmineVersion();
 		String projectVersion = reader.readLine();
 		reader.close();
-		
-		// Strip any extra characters from project version and convert it to double
+
+		// Strip any extra characters from project version and convert it to
+		// double
 		Pattern p = Pattern.compile("(\\d+\\.\\d+)");
 		Matcher m = p.matcher(projectVersion);
 		m.find();
 		projectVersion = m.group(1);
-		
+
 		double projectVersionNumber = Double.parseDouble(projectVersion);
 
 		// Check if project was saved with compatible version
@@ -275,7 +277,12 @@ public class ProjectOpeningTask implements Task {
 		copyMachine.copy(configInputStream, fileStream);
 		fileStream.close();
 
-		MZmineCore.loadConfiguration(tempConfigFile);
+		try {
+			MZmineCore.loadConfiguration(tempConfigFile);
+		} catch (DocumentException e) {
+			throw (new IOException("Could not load configuration: "
+					+ ExceptionUtils.exceptionToString(e)));
+		}
 
 		tempConfigFile.delete();
 	}

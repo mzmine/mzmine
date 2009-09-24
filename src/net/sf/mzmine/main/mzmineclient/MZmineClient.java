@@ -21,6 +21,7 @@ package net.sf.mzmine.main.mzmineclient;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.util.Iterator;
@@ -39,6 +40,7 @@ import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
@@ -79,9 +81,10 @@ public class MZmineClient extends MZmineCore implements Runnable {
 		// load configuration from XML
 		Document configuration = null;
 		MainWindow desktop = null;
-		try {
 
-			logger.finest("Checking for old temporary files...");
+		logger.finest("Checking for old temporary files...");
+
+		try {
 
 			// Get the temporary directory
 			File tempDir = new File(System.getProperty("java.io.tmpdir"));
@@ -114,64 +117,87 @@ public class MZmineClient extends MZmineCore implements Runnable {
 				}
 
 			}
+		} catch (IOException e) {
+			logger.log(Level.WARNING,
+					"Error while checking for old temporary files", e);
+		}
 
-			SAXReader reader = new SAXReader();
+		SAXReader reader = new SAXReader();
+		try {
 			configuration = reader.read(CONFIG_FILE);
-			Element configRoot = configuration.getRootElement();
+		} catch (DocumentException e1) {
 
-			logger.info("Starting MZmine 2");
-			logger.info("Loading core classes..");
-
-			// create instance of preferences
-			MZmineCore.preferences = new MZminePreferences();
-
-			// create instances of core modules
-			TaskControllerImpl taskController = new TaskControllerImpl();
-			projectManager = new ProjectManagerImpl();
-			desktop = new MainWindow();
-			help = new HelpImp();
-
-			// save static references to MZmineCore
-			MZmineCore.taskController = taskController;
-			MZmineCore.desktop = desktop;
-
-			logger.finer("Initializing core classes..");
-
-			// First initialize project manager, because desktop needs to
-			// register project listener
-			projectManager.initModule();
-
-			// Second, initialize desktop, because task controller needs to add
-			// TaskProgressWindow to the desktop
-			desktop.initModule();
-
-			// Last, initialize task controller
-			taskController.initModule();
-
-			logger.finer("Loading modules");
-
-			moduleSet = new Vector<MZmineModule>();
-
-			Iterator<Element> modIter = configRoot
-					.element(MODULES_ELEMENT_NAME).elementIterator(
-							MODULE_ELEMENT_NAME);
-
-			while (modIter.hasNext()) {
-				Element moduleElement = modIter.next();
-				String className = moduleElement
-						.attributeValue(CLASS_ATTRIBUTE_NAME);
-				loadModule(className);
+			// If the file actually exists, show an error message
+			if (CONFIG_FILE.exists()) {
+				logger.log(Level.WARNING,
+						"Error parsing the configuration file " + CONFIG_FILE
+								+ ", loading default configuration", e1);
 			}
 
-			MZmineCore.initializedModules = moduleSet
-					.toArray(new MZmineModule[0]);
+			// Try to read the default config file
+			try {
+				configuration = reader.read(DEFAULT_CONFIG_FILE);
+			} catch (DocumentException e2) {
+				logger.log(Level.SEVERE,
+						"Error parsing the default configuration file "
+								+ DEFAULT_CONFIG_FILE, e2);
+				System.exit(1);
+			}
+		}
+		Element configRoot = configuration.getRootElement();
 
-			// load module configuration
-			loadConfiguration(CONFIG_FILE);
+		logger.info("Starting MZmine 2");
+		logger.info("Loading core classes..");
 
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not start MZmine ", e);
-			System.exit(1);
+		// create instance of preferences
+		MZmineCore.preferences = new MZminePreferences();
+
+		// create instances of core modules
+		TaskControllerImpl taskController = new TaskControllerImpl();
+		projectManager = new ProjectManagerImpl();
+		desktop = new MainWindow();
+		help = new HelpImp();
+
+		// save static references to MZmineCore
+		MZmineCore.taskController = taskController;
+		MZmineCore.desktop = desktop;
+
+		logger.finer("Initializing core classes..");
+
+		// First initialize project manager, because desktop needs to
+		// register project listener
+		projectManager.initModule();
+
+		// Second, initialize desktop, because task controller needs to add
+		// TaskProgressWindow to the desktop
+		desktop.initModule();
+
+		// Last, initialize task controller
+		taskController.initModule();
+
+		logger.finer("Loading modules");
+
+		moduleSet = new Vector<MZmineModule>();
+
+		Iterator<Element> modIter = configRoot.element(MODULES_ELEMENT_NAME)
+				.elementIterator(MODULE_ELEMENT_NAME);
+
+		while (modIter.hasNext()) {
+			Element moduleElement = modIter.next();
+			String className = moduleElement
+					.attributeValue(CLASS_ATTRIBUTE_NAME);
+			loadModule(className);
+		}
+
+		MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+
+		// load module configuration
+		try {
+			if (CONFIG_FILE.exists())
+				loadConfiguration(CONFIG_FILE);
+		} catch (DocumentException e) {
+			logger.log(Level.WARNING,
+					"Error while loading module configuration", e);
 		}
 
 		// register shutdown hook

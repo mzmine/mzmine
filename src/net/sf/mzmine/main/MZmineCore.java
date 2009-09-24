@@ -40,6 +40,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.util.NumberFormatter;
 
 import org.dom4j.Document;
+import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
@@ -50,9 +51,11 @@ import org.dom4j.io.XMLWriter;
  */
 public abstract class MZmineCore {
 
-	public static final String MZMINE_VERSION = "1.96";
-	
+	public static final String MZMINE_VERSION = "1.97";
+
 	public static final File CONFIG_FILE = new File("conf/config.xml");
+	public static final File DEFAULT_CONFIG_FILE = new File(
+			"conf/config-default.xml");
 
 	// configuration XML structure
 	public static final String PARAMETER_ELEMENT_NAME = "parameter";
@@ -63,7 +66,7 @@ public abstract class MZmineCore {
 	public static final String PREFERENCES_ELEMENT_NAME = "preferences";
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
- 
+
 	protected static MZminePreferences preferences;
 
 	protected static TaskController taskController;
@@ -158,7 +161,12 @@ public abstract class MZmineCore {
 
 			// load current configuration from XML
 			SAXReader reader = new SAXReader();
-			Document configuration = reader.read(CONFIG_FILE);
+			Document configuration = null;
+			try {
+				configuration = reader.read(CONFIG_FILE);
+			} catch (DocumentException e) {
+				configuration = reader.read(DEFAULT_CONFIG_FILE);
+			}
 			Element configRoot = configuration.getRootElement();
 
 			// save desktop configuration
@@ -213,7 +221,7 @@ public abstract class MZmineCore {
 
 			// write the config file
 			OutputFormat format = OutputFormat.createPrettyPrint();
-			
+
 			// It is important to use FileOutputStream, not FileWriter. If we
 			// use FileWriter, the file will be written using incorrect encoding
 			// (not UTF8).
@@ -230,51 +238,45 @@ public abstract class MZmineCore {
 
 	}
 
-	public static void loadConfiguration(File file) {
+	public static void loadConfiguration(File file) throws DocumentException {
 
-		try {
-			SAXReader reader = new SAXReader();
-			Document configuration = reader.read(file);
-			Element configRoot = configuration.getRootElement();
+		SAXReader reader = new SAXReader();
+		Document configuration = reader.read(file);
+		Element configRoot = configuration.getRootElement();
 
-			logger.finest("Loading desktop configuration");
+		logger.finest("Loading desktop configuration");
 
-			Element preferencesConfigElement = configRoot
-					.element(PREFERENCES_ELEMENT_NAME);
-			if (preferencesConfigElement != null)
-				preferences.importValuesFromXML(preferencesConfigElement);
+		Element preferencesConfigElement = configRoot
+				.element(PREFERENCES_ELEMENT_NAME);
+		if (preferencesConfigElement != null)
+			preferences.importValuesFromXML(preferencesConfigElement);
 
-			logger.finest("Loading modules configuration");
+		logger.finest("Loading modules configuration");
 
-			for (MZmineModule module : getAllModules()) {
-				String className = module.getClass().getName();
-				String xpathLocation = "//configuration/modules/module[@class='"
-						+ className + "']";
+		for (MZmineModule module : getAllModules()) {
+			String className = module.getClass().getName();
+			String xpathLocation = "//configuration/modules/module[@class='"
+					+ className + "']";
 
-				Element moduleElement = (Element) configuration
-						.selectSingleNode(xpathLocation);
-				if (moduleElement == null)
-					continue;
+			Element moduleElement = (Element) configuration
+					.selectSingleNode(xpathLocation);
+			if (moduleElement == null)
+				continue;
 
-				Element parametersElement = moduleElement
-						.element(PARAMETERS_ELEMENT_NAME);
+			Element parametersElement = moduleElement
+					.element(PARAMETERS_ELEMENT_NAME);
 
-				if (parametersElement != null) {
-					ParameterSet moduleParameters = module.getParameterSet();
-					if ((moduleParameters != null)
-							&& (moduleParameters instanceof StorableParameterSet))
-						((StorableParameterSet) moduleParameters)
-								.importValuesFromXML(parametersElement);
-				}
-
+			if (parametersElement != null) {
+				ParameterSet moduleParameters = module.getParameterSet();
+				if ((moduleParameters != null)
+						&& (moduleParameters instanceof StorableParameterSet))
+					((StorableParameterSet) moduleParameters)
+							.importValuesFromXML(parametersElement);
 			}
 
-			logger.finest("Loaded configuration from file " + file);
-
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not parse configuration file "
-					+ file, e);
 		}
+
+		logger.finest("Loaded configuration from file " + file);
 
 	}
 
@@ -295,7 +297,7 @@ public abstract class MZmineCore {
 			throws IOException {
 		return new RawDataFileImpl(name);
 	}
-	
+
 	public static String getMZmineVersion() {
 		return MZMINE_VERSION;
 	}
