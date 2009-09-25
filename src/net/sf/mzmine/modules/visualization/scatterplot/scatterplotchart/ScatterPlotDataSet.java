@@ -21,10 +21,9 @@ package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import net.sf.mzmine.util.SearchDefinition;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -42,32 +41,26 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 	private PeakList peakList;
 	private PeakListRow displayedRows[], selectedRows[];
 
-	private RawDataFile fileOnXAxis, fileOnYAxis;
+	private ScatterPlotAxisSelection axisX, axisY;
 	private SearchDefinition currentSearch;
 
 	public ScatterPlotDataSet(PeakList peakList) {
-
 		this.peakList = peakList;
-
-		RawDataFile dataFiles[] = peakList.getRawDataFiles();
-		setDisplayedFiles(dataFiles[0], dataFiles[1]);
-
 	}
 
-	void setDisplayedFiles(RawDataFile axisX, RawDataFile axisY) {
+	void setDisplayedAxes(ScatterPlotAxisSelection axisX,
+			ScatterPlotAxisSelection axisY) {
 
-		this.fileOnXAxis = axisX;
-		this.fileOnYAxis = axisY;
+		this.axisX = axisX;
+		this.axisY = axisY;
 
 		PeakListRow allRows[] = peakList.getRows();
 		ArrayList<PeakListRow> commonRows = new ArrayList<PeakListRow>();
 
 		for (PeakListRow row : allRows) {
 
-			ChromatographicPeak peakX = row.getPeak(axisX);
-			ChromatographicPeak peakY = row.getPeak(axisY);
-			boolean hasPeakX = ((peakX != null) && (peakX.getArea() > 0));
-			boolean hasPeakY = ((peakY != null) && (peakY.getArea() > 0));
+			boolean hasPeakX = axisX.hasValue(row);
+			boolean hasPeakY = axisY.hasValue(row);
 
 			if (hasPeakX && hasPeakY) {
 				commonRows.add(row);
@@ -91,6 +84,8 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 	@Override
 	public int getSeriesCount() {
+		if (displayedRows == null)
+			return 0;
 		if (selectedRows.length == 0)
 			return 1;
 		else
@@ -117,9 +112,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
      */
 	public Number getX(int series, int item) {
 		if (series == 0)
-			return displayedRows[item].getPeak(fileOnXAxis).getArea();
+			return axisX.getValue(displayedRows[item]);
 		else
-			return selectedRows[item].getPeak(fileOnXAxis).getArea();
+			return axisX.getValue(selectedRows[item]);
 	}
 
 	/**
@@ -127,9 +122,9 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
      */
 	public Number getY(int series, int item) {
 		if (series == 0)
-			return displayedRows[item].getPeak(fileOnYAxis).getArea();
+			return axisY.getValue(displayedRows[item]);
 		else
-			return selectedRows[item].getPeak(fileOnYAxis).getArea();
+			return axisY.getValue(selectedRows[item]);
 	}
 
 	/**

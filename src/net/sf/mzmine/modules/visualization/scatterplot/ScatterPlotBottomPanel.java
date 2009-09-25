@@ -44,7 +44,6 @@ import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import net.sf.mzmine.util.GUIUtils;
@@ -73,11 +72,12 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 		this.chart = chart;
 
 		// Axes combo boxes
-		RawDataFile dataFiles[] = peakList.getRawDataFiles();
-		comboX = new JComboBox(dataFiles);
+		ScatterPlotAxisSelection axesOptions[] = ScatterPlotAxisSelection.generateOptionsForPeakList(peakList);
+		
+		comboX = new JComboBox(axesOptions);
 		comboX.addActionListener(this);
 		comboX.setActionCommand("DATA_CHANGE");
-		comboY = new JComboBox(dataFiles);
+		comboY = new JComboBox(axesOptions);
 		comboY.addActionListener(this);
 		comboY.setActionCommand("DATA_CHANGE");
 
@@ -205,10 +205,10 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 
 		if (command.equals("DATA_CHANGE")) {
 
-			RawDataFile fileX = (RawDataFile) comboX.getSelectedItem();
-			RawDataFile fileY = (RawDataFile) comboY.getSelectedItem();
+			ScatterPlotAxisSelection optionX = (ScatterPlotAxisSelection) comboX.getSelectedItem();
+			ScatterPlotAxisSelection optionY = (ScatterPlotAxisSelection) comboY.getSelectedItem();
 
-			if ((fileX == null) || (fileY == null))
+			if ((optionX == null) || (optionY == null))
 				return;
 
 			String foldText = foldXvalues[comboFold.getSelectedIndex()];
@@ -216,7 +216,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 			if (foldValue <= 0)
 				foldValue = 2;
 
-			chart.setDisplayedFiles(fileX, fileY, foldValue);
+			chart.setDisplayedAxes(optionX, optionY, foldValue);
 			return;
 		}
 

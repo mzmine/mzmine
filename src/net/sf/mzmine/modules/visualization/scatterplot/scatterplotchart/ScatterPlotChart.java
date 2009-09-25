@@ -30,8 +30,8 @@ import javax.swing.JPopupMenu;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
@@ -83,7 +83,7 @@ public class ScatterPlotChart extends ChartPanel implements
 	private ComponentToolTipManager ttm;
 
 	private PeakList peakList;
-	private RawDataFile axisX, axisY;
+	private ScatterPlotAxisSelection axisX, axisY;
 	private int fold;
 
 	public ScatterPlotChart(ScatterPlotTopPanel topPanel, PeakList peakList) {
@@ -246,7 +246,7 @@ public class ScatterPlotChart extends ChartPanel implements
 
 	}
 
-	public void setDisplayedFiles(RawDataFile axisX, RawDataFile axisY, int fold) {
+	public void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY, int fold) {
 
 		// Save values
 		this.axisX = axisX;
@@ -254,11 +254,11 @@ public class ScatterPlotChart extends ChartPanel implements
 		this.fold = fold;
 
 		// Update axes
-		plot.getDomainAxis().setLabel(axisX.getName());
-		plot.getRangeAxis().setLabel(axisY.getName());
+		plot.getDomainAxis().setLabel(axisX.toString());
+		plot.getRangeAxis().setLabel(axisY.toString());
 
 		// Update data sets
-		mainDataSet.setDisplayedFiles(axisX, axisY);
+		mainDataSet.setDisplayedAxes(axisX, axisY);
 		diagonalLineDataset.updateDiagonalData(mainDataSet, fold);
 
 		topPanel

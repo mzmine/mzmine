@@ -28,11 +28,9 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotDataSet;
 
 public class ScatterPlotTopPanel extends JPanel {
@@ -57,17 +55,15 @@ public class ScatterPlotTopPanel extends JPanel {
 	}
 
 	public void updateNumOfItemsText(PeakList peakList,
-			ScatterPlotDataSet dataSet, RawDataFile axisX, RawDataFile axisY,
+			ScatterPlotDataSet dataSet, ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY,
 			int fold) {
 
 		int presentOnlyX = 0, presentOnlyY = 0;
 
 		for (PeakListRow row : peakList.getRows()) {
 
-			ChromatographicPeak peakX = row.getPeak(axisX);
-			ChromatographicPeak peakY = row.getPeak(axisY);
-			boolean hasPeakX = ((peakX != null) && (peakX.getArea() > 0));
-			boolean hasPeakY = ((peakY != null) && (peakY.getArea() > 0));
+			boolean hasPeakX = axisX.hasValue(row);
+			boolean hasPeakY = axisY.hasValue(row);
 
 			if (hasPeakX && !hasPeakY) {
 				presentOnlyX++;
@@ -128,8 +124,8 @@ public class ScatterPlotTopPanel extends JPanel {
 		}
 
 		display += "<br><b>" + presentOnlyX + "</b> peaks only in "
-				+ axisX.getName() + ", <b>" + presentOnlyY
-				+ "</b> peaks only in " + axisY.getName() + "</html>";
+				+ axisX.toString() + ", <b>" + presentOnlyY
+				+ "</b> peaks only in " + axisY.toString() + "</html>";
 
 		numOfDisplayedItems.setText(display);
 	}
