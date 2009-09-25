@@ -53,11 +53,23 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		// Make dialog modal
 		super("Online database search setup dialog ", parameters);
 
+		ionizationMethodCombo = (JComboBox) getComponentForParameter(OnlineDBSearchParameters.ionizationMethod);
+		ionizationMethodCombo.addActionListener(this);
+
+		JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.rawMass);
+		peakMass.setEditable(false);
+		peakMass.setBackground(BACKGROUND_COLOR);
+
+		neutralMassField = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.neutralMass);
+		neutralMassField.setEditable(false);
+		neutralMassField.setBackground(BACKGROUND_COLOR);
+
 		chargeField = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.charge);
 		chargeField.addPropertyChangeListener("value", this);
 
 		if (row != null) {
 			this.rawMassValue = row.getAverageMZ();
+			peakMass.setValue(rawMassValue);
 			ChromatographicPeak peak = row.getBestIsotopePatternPeak();
 			if (peak != null) {
 				IsotopePattern pattern = peak.getIsotopePattern();
@@ -65,18 +77,6 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 				chargeField.setValue(rowCharge);
 			}
 		}
-
-		neutralMassField = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.neutralMass);
-		neutralMassField.setEditable(false);
-		neutralMassField.setBackground(BACKGROUND_COLOR);
-
-		JFormattedTextField peakMass = (JFormattedTextField) getComponentForParameter(OnlineDBSearchParameters.rawMass);
-		peakMass.setEditable(false);
-		peakMass.setBackground(BACKGROUND_COLOR);
-		peakMass.setValue(rawMassValue);
-
-		ionizationMethodCombo = (JComboBox) getComponentForParameter(OnlineDBSearchParameters.ionizationMethod);
-		ionizationMethodCombo.addActionListener(this);
 
 		setNeutralMassValue();
 
