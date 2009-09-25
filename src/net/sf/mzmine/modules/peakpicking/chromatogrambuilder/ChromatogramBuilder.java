@@ -72,7 +72,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(dataFiles, null, parameters.clone());
+		runModule(dataFiles, null, parameters);
 
 	}
 
@@ -106,8 +106,9 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.AlignmentResult[],
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
@@ -124,9 +125,9 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 		Task tasks[] = new ChromatogramBuilderTask[dataFiles.length];
 		for (int i = 0; i < dataFiles.length; i++) {
 			tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
-					(ChromatogramBuilderParameters) parameters);
+					(ChromatogramBuilderParameters) parameters.clone());
 		}
-		
+
 		MZmineCore.getTaskController().addTasks(tasks);
 
 		return tasks;
