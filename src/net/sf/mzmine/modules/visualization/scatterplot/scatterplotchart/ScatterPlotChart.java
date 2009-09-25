@@ -179,8 +179,15 @@ public class ScatterPlotChart extends ChartPanel implements
 
 		PeakListRow row = mainDataSet.getRow(series, item);
 
-		return new PeakSummaryComponent(row, peakList.getRawDataFiles(), true,
-				true, true, true, false, ComponentToolTipManager.bg);
+		PeakSummaryComponent newSummary = new PeakSummaryComponent(row,
+				peakList.getRawDataFiles(), true, true, true, true, false,
+				ComponentToolTipManager.bg);
+		
+		double xValue = mainDataSet.getXValue(series, item);
+		double yValue = mainDataSet.getYValue(series, item);
+		newSummary.setRatio(xValue, yValue);
+		
+		return newSummary;
 
 	}
 
@@ -246,7 +253,8 @@ public class ScatterPlotChart extends ChartPanel implements
 
 	}
 
-	public void setDisplayedAxes(ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY, int fold) {
+	public void setDisplayedAxes(ScatterPlotAxisSelection axisX,
+			ScatterPlotAxisSelection axisY, int fold) {
 
 		// Save values
 		this.axisX = axisX;

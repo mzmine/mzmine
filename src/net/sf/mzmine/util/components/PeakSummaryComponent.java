@@ -71,6 +71,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 	private JButton btnChange, btnShow;
 	private JComboBox comboShow;
+	private JLabel ratio;
 
 	private PeakSummaryTableModel listElementModel;
 	private JTable peaksInfoList;
@@ -81,9 +82,6 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			"Peak in 2D", "Peak in 3D", "MS/MS", "Isotope pattern" };
 
 	private Color bg = new Color(255, 250, 205); // default color
-
-	static int indX = 0;
-	static int indY = 1;
 
 	public PeakSummaryComponent(PeakListRow row, boolean headerVisible,
 			boolean ratioVisible, boolean graphVisible, boolean tableVisible,
@@ -154,40 +152,11 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 		// Ratio between peaks
 		JPanel ratioPanel = new JPanel(new BorderLayout());
-		JLabel ratio;
-
-		if (peaks.length > 1) {
-			double area1 = -1, area2 = -1;
-			if (peaks[indX] != null) {
-				area1 = peaks[indX].getArea();
-			}
-			if (peaks[indY] != null) {
-				area2 = peaks[indY].getArea();
-			}
-
-			if ((area1 < 0) || (area2 < 0)) {
-				ratio = new JLabel("   ");
-			} else {
-
-				String text = null;
-				Color ratioColor = null;
-
-				if (area1 > area2) {
-					text = formatter.format(area1 / area2) + "x";
-					ratioColor = CombinedXICComponent.plotColors[0];
-				} else {
-					text = formatter.format(area2 / area1) + "x";
-					ratioColor = CombinedXICComponent.plotColors[1];
-				}
-
-				ratio = new JLabel(text, SwingUtilities.LEFT);
+		ratio = new JLabel("", SwingUtilities.LEFT);
 				ratio.setFont(ratioFont);
-				ratio.setForeground(ratioColor);
+				
 				ratio.setBackground(bg);
-			}
-			if (ratio != null)
 				ratioPanel.add(ratio, BorderLayout.CENTER);
-		}
 
 		ratioPanel.setBackground(bg);
 		ratioPanel.setVisible(ratioVisible);
@@ -292,6 +261,20 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 	}
 
+	public void setRatio(double area1, double area2) {
+		String text;
+		Color ratioColor;
+		if (area1 > area2) {
+			text = formatter.format(area1 / area2) + "x";
+			ratioColor = CombinedXICComponent.plotColors[0];
+		} else {
+			text = formatter.format(area2 / area1) + "x";
+			ratioColor = CombinedXICComponent.plotColors[1];
+		}
+		ratio.setForeground(ratioColor);
+		ratio.setText(text);
+	}
+	
 	/**
 	 * 
 	 * @param peaksInfoList
