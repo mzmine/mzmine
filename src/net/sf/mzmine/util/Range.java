@@ -73,8 +73,13 @@ public class Range {
 	public Range(String rangeString) {
 		String vals[] = rangeString.split("~");
 		if (vals.length != 2) {
-			throw new IllegalArgumentException("Invalid range value "
-					+ rangeString);
+			// In previous MZmine versions, Range was represented using '-'
+			// character
+			vals = rangeString.split("-");
+			if (vals.length != 2) {
+				throw new IllegalArgumentException("Invalid range value "
+						+ rangeString);
+			}
 		}
 		this.min = Double.parseDouble(vals[0]);
 		this.max = Double.parseDouble(vals[1]);
