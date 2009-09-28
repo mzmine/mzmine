@@ -114,13 +114,18 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 		RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
 		String fileNames = (String) rawDataImporterParameters
 				.getParameterValue(RawDataImporterParameters.fileNames);
-		String splitFilenames[] = fileNames.split("\n");
+		String splitFilenames[] = fileNames.split(":");
 
 		Task openTasks[] = new Task[splitFilenames.length];
 
 		for (int i = 0; i < splitFilenames.length; i++) {
 
-			File file = new File(splitFilenames[i]);
+			String filePath = splitFilenames[i];
+			
+			filePath.replaceAll("&colon", ":");
+			filePath.replaceAll("&amp", "&");
+			
+			File file = new File(filePath);
 
 			String extension = file.getName().substring(
 					file.getName().lastIndexOf(".") + 1).toLowerCase();
@@ -144,7 +149,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 				desktop
 						.displayErrorMessage("Cannot determine file type of file "
 								+ file);
-				logger.finest("Cannot determine file type of file " + file);
+				logger.warning("Cannot determine file type of file " + file);
 				return null;
 			}
 		}
@@ -201,9 +206,12 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
 			StringBuilder fileNames = new StringBuilder();
 			for (int i = 0; i < selectedFiles.length; i++) {
+				String filePath = selectedFiles[i].getPath();
+				filePath.replaceAll("&", "&amp");
+				filePath.replaceAll(":", "&colon");
 				if (i > 0)
-					fileNames.append("\n");
-				fileNames.append(selectedFiles[i].getPath());
+					fileNames.append(":");
+				fileNames.append(filePath);
 			}
 
 			parameters.setParameterValue(RawDataImporterParameters.fileNames,
