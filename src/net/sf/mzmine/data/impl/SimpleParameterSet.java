@@ -313,10 +313,7 @@ public class SimpleParameterSet implements StorableParameterSet {
 				value = Double.parseDouble(valueText);
 				break;
 			case RANGE:
-				String values[] = valueText.split("-");
-				double min = Double.parseDouble(values[0]);
-				double max = Double.parseDouble(values[1]);
-				value = new Range(min, max);
+				value = new Range(valueText);
 				break;
 			case STRING:
 				value = valueText;
