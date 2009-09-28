@@ -121,9 +121,8 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 		for (int i = 0; i < splitFilenames.length; i++) {
 
 			String filePath = splitFilenames[i];
-			
-			filePath.replaceAll("&colon", ":");
-			filePath.replaceAll("&amp", "&");
+			filePath = filePath.replaceAll("&colon", ":");
+			filePath = filePath.replaceAll("&amp", "&");
 			
 			File file = new File(filePath);
 
@@ -207,8 +206,8 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 			StringBuilder fileNames = new StringBuilder();
 			for (int i = 0; i < selectedFiles.length; i++) {
 				String filePath = selectedFiles[i].getPath();
-				filePath.replaceAll("&", "&amp");
-				filePath.replaceAll(":", "&colon");
+				filePath = filePath.replaceAll("&", "&amp");
+				filePath = filePath.replaceAll(":", "&colon");
 				if (i > 0)
 					fileNames.append(":");
 				fileNames.append(filePath);
