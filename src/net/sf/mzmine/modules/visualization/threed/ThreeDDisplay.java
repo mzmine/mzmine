@@ -432,5 +432,15 @@ class ThreeDDisplay extends DisplayImplJ3D {
     RealTupleType getDomainTuple() {
         return domainTuple;
     }
+    
+    void normalizeIntensityAxis(double normalizeValue) {
+    	try {
+			intensityMap.setRange(0, normalizeValue);
+			heightMap.setRange(0, normalizeValue);
+			maxIntensity = normalizeValue;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} 
+    }
 
 }

@@ -23,7 +23,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -37,50 +40,79 @@ import visad.util.GMCWidget;
  */
 class ThreeDPropertiesDialog extends JDialog implements ActionListener {
 
-    private static final String title = "3D visualizer properties";
+	private static final String title = "3D visualizer properties";
 
-    private GMCWidget gmcWidget;
-    private ColorMapWidget colorWidget;
+	private ThreeDDisplay display;
+	private GMCWidget gmcWidget;
+	private ColorMapWidget colorWidget;
+	private JFormattedTextField normalizeIntensityField;
+	private JButton normalizeButton, okButton;
 
-    ThreeDPropertiesDialog(ThreeDDisplay display) {
+	ThreeDPropertiesDialog(ThreeDDisplay display) {
 
-        super(MZmineCore.getDesktop().getMainFrame(), title, true);
+		super(MZmineCore.getDesktop().getMainFrame(), title, false);
 
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+		this.display = display;
 
-        try {
+		setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-            ScalarMap colorMap = (ScalarMap) display.getMapVector().get(4);
+		ScalarMap colorMap = (ScalarMap) display.getMapVector().get(4);
 
-            GUIUtils.addLabel(this, "Color mapping", SwingConstants.CENTER);
+		GUIUtils.addLabel(this, "Color mapping");
 
-            colorWidget = new ColorMapWidget(colorMap);
-            add(colorWidget);
+		try {
+			colorWidget = new ColorMapWidget(colorMap);
+			add(colorWidget);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
-            GUIUtils.addLabel(this, "Graphics mode control",
-                    SwingConstants.CENTER);
+		GUIUtils.addLabel(this, "Graphics mode control");
 
-            gmcWidget = new GMCWidget(display.getGraphicsModeControl());
-            add(gmcWidget);
+		gmcWidget = new GMCWidget(display.getGraphicsModeControl());
+		add(gmcWidget);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+		GUIUtils.addLabel(this, "Normalize Z axis");
 
-        GUIUtils.addSeparator(this);
+		JPanel normalizePanel = new JPanel();
+		GUIUtils.addLabel(normalizePanel, "Normalize to: ",
+				SwingConstants.CENTER);
+		normalizeIntensityField = new JFormattedTextField(MZmineCore
+				.getIntensityFormat());
+		normalizeIntensityField.setColumns(10);
+		normalizePanel.add(normalizeIntensityField);
+		normalizeButton = GUIUtils.addButton(normalizePanel, "Normalize", null,
+				this);
+		add(normalizePanel);
+		
+		GUIUtils.addSeparator(this);
 
-        GUIUtils.addButton(this, "OK", null, this);
+		okButton = GUIUtils.addButton(this, "OK", null, this);
 
-        pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		pack();
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
-        dispose();
-    }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
+		Object src = event.getSource();
+
+		if (src == okButton) {
+			dispose();
+		}
+
+		if (src == normalizeButton) {
+			Number normalizeFieldValue = (Number) normalizeIntensityField
+					.getValue();
+			if (normalizeFieldValue == null)
+				return;
+			double normalizeValue = normalizeFieldValue.doubleValue();
+			display.normalizeIntensityAxis(normalizeValue);
+		}
+
+	}
 
 }
