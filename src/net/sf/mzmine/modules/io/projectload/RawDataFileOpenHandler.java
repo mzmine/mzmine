@@ -89,7 +89,7 @@ class RawDataFileOpenHandler extends DefaultHandler {
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
 				+ " to the temporary folder");
-		stepNumber++;
+		
 		File tempFile = File.createTempFile("mzmine", ".scans");
 		tempFile.deleteOnExit();
 
@@ -99,6 +99,7 @@ class RawDataFileOpenHandler extends DefaultHandler {
 		// Extracts the scan file from the zip project file to the temporary
 		// folder
 		copyMachine = new StreamCopy();
+		stepNumber++;
 		copyMachine.copy(scanInputStream, fileStream, scansEntry.getSize());
 		fileStream.close();
 
