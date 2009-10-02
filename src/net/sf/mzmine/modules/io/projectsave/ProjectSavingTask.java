@@ -166,6 +166,7 @@ public class ProjectSavingTask implements Task {
 			if (status == TaskStatus.CANCELED) {
 				zipStream.close();
 				tempFile.delete();
+				return;
 			}
 
 			// Stage 2 - save RawDataFile objects
@@ -174,6 +175,7 @@ public class ProjectSavingTask implements Task {
 			if (status == TaskStatus.CANCELED) {
 				zipStream.close();
 				tempFile.delete();
+				return;
 			}
 
 			// Stage 3 - save PeakList objects
@@ -182,6 +184,7 @@ public class ProjectSavingTask implements Task {
 			if (status == TaskStatus.CANCELED) {
 				zipStream.close();
 				tempFile.delete();
+				return;
 			}
 
 			// Stage 4 - finish and close the temporary ZIP file
@@ -192,6 +195,7 @@ public class ProjectSavingTask implements Task {
 			// Final check for cancel
 			if (status == TaskStatus.CANCELED) {
 				tempFile.delete();
+				return;
 			}
 
 			// Move the temporary ZIP file to the final location
