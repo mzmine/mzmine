@@ -31,6 +31,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import visad.AxisScale;
+import visad.ColorControl;
 import visad.ConstantMap;
 import visad.Data;
 import visad.DataReference;
@@ -101,7 +102,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
     private FunctionType intensityFunction, annotationFunction;
 
     private ScalarMap retentionTimeMap, mzMap, intensityMap, heightMap,
-            colorMap, annotationMap;
+            colorMap, annotationMap, annotationAlphaMap;
 
     // data references
     private DataReference dataReference, peaksReference;
@@ -149,7 +150,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
         heightMap = new ScalarMap(peakHeightType, Display.ZAxis);
         colorMap = new ScalarMap(intensityType, Display.RGB);
         annotationMap = new ScalarMap(annotationType, Display.Text);
-
+        annotationAlphaMap = new ScalarMap(peakHeightType, Display.Alpha);
+        
         // Add maps to display
         addMap(retentionTimeMap);
         addMap(mzMap);
@@ -157,6 +159,17 @@ class ThreeDDisplay extends DisplayImplJ3D {
         addMap(heightMap);
         addMap(colorMap);
         addMap(annotationMap);
+        addMap(annotationAlphaMap);
+
+        // Set colors
+		float[][] myColorTable = new float[3][20];
+		myColorTable[0][0] = 1f;
+		myColorTable[1][0] = 1f;
+		for (int i = 0; i < myColorTable[0].length; i++)
+			myColorTable[2][i] = 1f;
+
+		ColorControl colCont = (ColorControl) colorMap.getControl();
+		colCont.setTable(myColorTable);
 
         // Get formatters
         NumberFormat rtFormat = MZmineCore.getRTFormat();
@@ -282,9 +295,9 @@ class ThreeDDisplay extends DisplayImplJ3D {
         projCont.setMatrix(pControlMatrix);
 
         // color of text annotations
-        peakColorMap = new ConstantMap[] { new ConstantMap(1, Display.Red),
-                new ConstantMap(1, Display.Green),
-                new ConstantMap(0.0, Display.Blue) };
+        peakColorMap = new ConstantMap[] { new ConstantMap(0.5f, Display.Red),
+                new ConstantMap(0.0f, Display.Green),
+                new ConstantMap(0.0f, Display.Blue) };
 
         // create a pick renderer, so we can track user clicks
         pickRenderer = new PickManipulationRendererJ3D();
@@ -317,10 +330,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
             mzMap.setRange(mzMin, mzMax);
             intensityMap.setRange(0, maxIntensity);
             heightMap.setRange(0, maxIntensity);
-
-            // set the color axis top intensity to 20% of the maximum intensity
-            // value, because the peaks are usually sharp
-            colorMap.setRange(0, maxIntensity / 5);
+            colorMap.setRange(0, maxIntensity);
+            annotationAlphaMap.setRange(0, maxIntensity);
 
             dataReference.setData(intensityValuesFlatField);
             addReference(dataReference);
@@ -437,6 +448,8 @@ class ThreeDDisplay extends DisplayImplJ3D {
     	try {
 			intensityMap.setRange(0, normalizeValue);
 			heightMap.setRange(0, normalizeValue);
+			colorMap.setRange(0, normalizeValue);
+			annotationAlphaMap.setRange(0, normalizeValue);
 			maxIntensity = normalizeValue;
 		} catch (Exception e) {
 			e.printStackTrace();

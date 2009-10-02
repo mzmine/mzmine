@@ -110,9 +110,9 @@ class ThreeDPeakCells extends CellImpl {
         dataReferences[index].setData(set);
 
         // Color and transparency of peak box
-        ConstantMap[] colorMap = { new ConstantMap(1f, Display.Red),
-                new ConstantMap(1.0f, Display.Green),
-                new ConstantMap(0f, Display.Blue),
+        ConstantMap[] colorMap = { new ConstantMap(0.8f, Display.Red),
+                new ConstantMap(0.2f, Display.Green),
+                new ConstantMap(0.2f, Display.Blue),
                 new ConstantMap(0.25f, Display.Alpha) };
 
         // Add the reference to the display
