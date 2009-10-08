@@ -45,6 +45,7 @@ public class CropFilter implements RawDataFilter {
 			}
 
 			// Pickup datapoints inside the m/z range
+
 			DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
 
 			// Create updated scan

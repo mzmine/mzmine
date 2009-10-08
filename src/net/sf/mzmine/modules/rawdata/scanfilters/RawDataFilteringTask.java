@@ -132,7 +132,7 @@ class RawDataFilteringTask implements Task {
 		try {
 			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
 			Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
-			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(dataFile, parameters);
+			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(parameters);
 		} catch (Exception e) {
 			errorMessage = "Error trying to make an instance of raw data filter " + rawDataFilterClassName;
 			status = TaskStatus.ERROR;
@@ -152,6 +152,9 @@ class RawDataFilteringTask implements Task {
 				}
 
 				Scan scan = dataFile.getScan(scanNumbers[i]);
+				if ((scan.getMSLevel() != 1) && (scan.getParentScanNumber() <= 0)) {
+					return;
+				}
 				Scan newScan = rawDataFilter.getNewScan(scan);
 				if (newScan != null) {
 					rawDataFileWriter.addScan(newScan);
@@ -160,13 +163,18 @@ class RawDataFilteringTask implements Task {
 				processedScans++;
 			}
 
-			// Finalize writing
-			filteredRawDataFile = rawDataFileWriter.finishWriting();
-			MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
-			// Remove the original file if requested
-			if (removeOriginal) {
-				MZmineCore.getCurrentProject().removeFile(dataFile);
+			// Finalize writing
+			try {
+				filteredRawDataFile = rawDataFileWriter.finishWriting();
+				MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
+
+
+				// Remove the original file if requested
+				if (removeOriginal) {
+					MZmineCore.getCurrentProject().removeFile(dataFile);
+				}
+			} catch (Exception exception) {
 			}
 
 			status = TaskStatus.FINISHED;
