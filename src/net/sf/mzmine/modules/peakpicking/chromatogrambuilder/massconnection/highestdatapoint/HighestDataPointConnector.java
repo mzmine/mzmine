@@ -22,14 +22,13 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.hig
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.TreeMap;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.Chromatogram;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massconnection.MassConnector;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -40,22 +39,16 @@ public class HighestDataPointConnector implements MassConnector {
 	private double mzTolerance, minimumTimeSpan, minimumHeight;
 
 	// Mapping of last data point m/z --> chromatogram
-	private TreeMap<Double, Chromatogram> buildingChromatograms;
+	private HashSet<Chromatogram> buildingChromatograms;
 
-	// Mapping of last data point m/z --> chromatogram, used in each iteration
-	// for connected chromatograms
-	private TreeMap<Double, Chromatogram> connectedChromatograms;
-
-	// Set of already connected chromatograms in each iteration, for speeding up
-	// (searching the connectedChromatograms TreeMap is too slow)
-	private HashSet<Chromatogram> connectedChromatogramsSet;
+	// Set of already connected chromatograms in each iteration
+	private HashSet<Chromatogram> connectedChromatograms;
 
 	public HighestDataPointConnector() {
 
 		parameters = new HighestDataPointConnectorParameters();
 
-		buildingChromatograms = new TreeMap<Double, Chromatogram>();
-		connectedChromatogramsSet = new HashSet<Chromatogram>();
+		buildingChromatograms = new HashSet<Chromatogram>();
 
 	}
 
@@ -73,35 +66,25 @@ public class HighestDataPointConnector implements MassConnector {
 				SortingDirection.Descending));
 
 		// Empty the collection of connected chromatograms
-		connectedChromatograms = new TreeMap<Double, Chromatogram>();
-		connectedChromatogramsSet.clear();
+		connectedChromatograms = new HashSet<Chromatogram>();
 
+		// TODO: these two nested cycles should be optimized for speed
 		for (MzPeak mzPeak : mzValues) {
-
-			// Use binary search to find chromatograms within m/z tolerance
-			double mzKeys[] = CollectionUtils
-					.toDoubleArray(buildingChromatograms.keySet());
-			int index = Arrays.binarySearch(mzKeys, mzPeak.getMZ()
-					- mzTolerance);
-			if (index < 0)
-				index = (index + 1) * -1;
 
 			// Search for best chromatogram, which has highest last data point
 			Chromatogram bestChromatogram = null;
 
-			while (index < mzKeys.length) {
+			for (Chromatogram testChrom : buildingChromatograms) {
 
-				if (mzKeys[index] > mzPeak.getMZ() + mzTolerance)
-					break;
-
-				Chromatogram chrom = buildingChromatograms.get(mzKeys[index]);
-				if ((bestChromatogram == null)
-						|| (chrom.getLastMzPeak().getIntensity() > bestChromatogram
-								.getLastMzPeak().getIntensity())) {
-					bestChromatogram = chrom;
+				DataPoint lastMzPeak = testChrom.getLastMzPeak();
+				if ((lastMzPeak.getMZ() >= mzPeak.getMZ() - mzTolerance)
+						&& (lastMzPeak.getMZ() <= mzPeak.getMZ() + mzTolerance)) {
+					if ((bestChromatogram == null)
+							|| (testChrom.getLastMzPeak().getIntensity() > bestChromatogram
+									.getLastMzPeak().getIntensity())) {
+						bestChromatogram = testChrom;
+					}
 				}
-
-				index++;
 
 			}
 
@@ -109,8 +92,9 @@ public class HighestDataPointConnector implements MassConnector {
 			// In such case, we may discard this mass and continue. If we
 			// haven't found a chromatogram, we may create a new one.
 			if (bestChromatogram != null) {
-				if (connectedChromatogramsSet.contains(bestChromatogram))
+				if (connectedChromatograms.contains(bestChromatogram)) {
 					continue;
+				}
 			} else {
 				bestChromatogram = new Chromatogram(dataFile);
 			}
@@ -119,26 +103,24 @@ public class HighestDataPointConnector implements MassConnector {
 			bestChromatogram.addMzPeak(scanNumber, mzPeak);
 
 			// Move the chromatogram to the set of connected chromatograms
-			connectedChromatograms.put(mzPeak.getMZ(), bestChromatogram);
-			connectedChromatogramsSet.add(bestChromatogram);
+			connectedChromatograms.add(bestChromatogram);
 
 		}
 
 		// Process those chromatograms which were not connected to any m/z peak
-		for (Chromatogram testChrom : buildingChromatograms.values()) {
+		for (Chromatogram testChrom : buildingChromatograms) {
 
 			// Skip those which were connected
-			if (connectedChromatogramsSet.contains(testChrom))
+			if (connectedChromatograms.contains(testChrom)) {
 				continue;
+			}
 
 			// Check if we just finished a long-enough segment
 			if (testChrom.getBuildingSegmentLength() >= minimumTimeSpan) {
 				testChrom.commitBuildingSegment();
 
 				// Move the chromatogram to the set of connected chromatograms
-				connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
-						testChrom);
-				connectedChromatogramsSet.add(testChrom);
+				connectedChromatograms.add(testChrom);
 				continue;
 			}
 
@@ -147,8 +129,8 @@ public class HighestDataPointConnector implements MassConnector {
 				testChrom.removeBuildingSegment();
 
 				// Move the chromatogram to the set of connected chromatograms
-				connectedChromatograms.put(testChrom.getLastMzPeak().getMZ(),
-						testChrom);
+				connectedChromatograms.add(testChrom);
+				continue;
 			}
 
 		}
@@ -163,8 +145,7 @@ public class HighestDataPointConnector implements MassConnector {
 
 		// Iterate through current chromatograms and remove those which do not
 		// contain any committed segment nor long-enough building segment
-		Iterator<Chromatogram> chromIterator = buildingChromatograms.values()
-				.iterator();
+		Iterator<Chromatogram> chromIterator = buildingChromatograms.iterator();
 		while (chromIterator.hasNext()) {
 
 			Chromatogram chromatogram = chromIterator.next();
@@ -189,8 +170,8 @@ public class HighestDataPointConnector implements MassConnector {
 		}
 
 		// All remaining chromatograms are good, so we can return them
-		Chromatogram[] chromatograms = buildingChromatograms.values().toArray(
-				new Chromatogram[0]);
+		Chromatogram[] chromatograms = buildingChromatograms
+				.toArray(new Chromatogram[0]);
 		return chromatograms;
 	}
 
@@ -201,7 +182,7 @@ public class HighestDataPointConnector implements MassConnector {
 	public String getName() {
 		return "Highest data point";
 	}
-	
+
 	public String toString() {
 		return getName();
 	}
