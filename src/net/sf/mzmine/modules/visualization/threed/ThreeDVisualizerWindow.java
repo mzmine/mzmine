@@ -208,5 +208,12 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
         }
 
     }
+    
+    /**
+     * When this window is closed, we need to remove the project listener.
+     */
+    public void dispose() {
+    	MZmineCore.getProjectManager().removeProjectListener(bottomPanel);
+    }
 
 }
