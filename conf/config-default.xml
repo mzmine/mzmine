@@ -23,6 +23,7 @@
     <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer" />  
     <module class="net.sf.mzmine.modules.batchmode.BatchMode" /> 
     <module class="net.sf.mzmine.modules.rawdata.scanfilters.RawDataFiltering" /> 
+    <module class="net.sf.mzmine.modules.rawdata.datasetfilters.RawDataFiltering" /> 
     <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder" /> 
     <module class="net.sf.mzmine.modules.gapfilling.peakfinderRansac.PeakFinder" /> 
