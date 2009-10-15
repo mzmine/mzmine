@@ -96,7 +96,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	// Parameters and their representation in the dialog
 	private SimpleParameterSet parameterSet;
-	private Hashtable<Parameter, JComponent> parametersAndComponents;
+	protected Hashtable<Parameter, JComponent> parametersAndComponents;
 	private Hashtable<Parameter, Object> autoValues;
 
 	// Buttons
@@ -229,7 +229,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	/**
 	 * Creates a dialog component to control given parameter.
 	 */
-	private JComponent createComponentForParameter(Parameter p) {
+	protected JComponent createComponentForParameter(Parameter p) {
 
 		Object[] possibleValues = p.getPossibleValues();
 		if ((possibleValues != null)
@@ -564,7 +564,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 * This function collects all the information from the form components and
 	 * set the ParameterSet values accordingly.
 	 */
-	protected void updateParameterSetFromComponents()
+	public void updateParameterSetFromComponents()
 			throws IllegalArgumentException {
 		for (Parameter p : parameterSet.getParameters()) {
 			Object value = getComponentValue(p);

@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.rawdata.scanfilters;
+package net.sf.mzmine.modules.rawdata.datasetfilters;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,9 +47,9 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 
 		parameters = new RawDataFilteringParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Scan by Scan Filtering",
+		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Raw Data Filtering",
 				"Raw Data Filtering",
-				KeyEvent.VK_F, true, this, null);
+				KeyEvent.VK_R, true, this, null);
 	}
 
 	/**
@@ -116,11 +116,11 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 		}
 
 		// prepare a new group of tasks
-		Task tasks[] = new RawDataFilteringTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new RawDataFilteringTask(dataFiles[i],
-					(RawDataFilteringParameters) parameters);
-		}
+		Task tasks[] = new RawDataFilteringTask[1];
+
+		tasks[0] = new RawDataFilteringTask(dataFiles,
+				(RawDataFilteringParameters) parameters);
+
 
 		MZmineCore.getTaskController().addTasks(tasks);
 
