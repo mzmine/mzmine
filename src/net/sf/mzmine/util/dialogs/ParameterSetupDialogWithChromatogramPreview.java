@@ -207,7 +207,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 			component[componentCounter++] = label;
 			JComponent comp = null;
 			if (p.getType() == ParameterType.MULTIPLE_SELECTION) {
-				comp = createMComponentForParameter(p);
+				comp = createMultipleSelectionComponent(p);
 			} else {
 				comp = createComponentForParameter(p);
 			}
@@ -233,7 +233,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		return labelsAndFields;
 	}
 
-	protected JComponent createMComponentForParameter(Parameter p) {
+	private JComponent createMultipleSelectionComponent(Parameter p) {
 
 		JComponent comp = null;
 
@@ -281,21 +281,20 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	}
 
-	private void loadPreview() {
-		try {
-			for (Parameter p : TICParameters.getParameters()) {
-				Object value = getComponentValue(p);
-				if (value != null) {
-					TICParameters.setParameterValue(p, value);
-				}
-			}
-		} catch (Exception e) {
+	private void updateParameterValue()throws IllegalArgumentException  {
+		for (Parameter p : TICParameters.getParameters()) {
+			Object value = getComponentValue(p);
+			if (value != null)
+				TICParameters.setParameterValue(p, value);
 		}
+	}
 
+	private void loadPreview() {
+		updateParameterValue();
 
 		// Hide legend for the preview purpose
-
 		ticPlot.getChart().removeLegend();
+
 		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.dataFiles);
 
 		RawDataFile selectedDataFiles[] = CollectionUtils.changeArrayType(
@@ -344,10 +343,8 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		ticDataSets.remove(file);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) {
-		System.out.println("no entra");
-		if (preview.isSelected()) {
-			System.out.println("entra");
+	public void propertyChange(PropertyChangeEvent evt) {		
+		if (preview.isSelected()) {		
 			loadPreview();
 		}
 	}
