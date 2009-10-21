@@ -133,8 +133,6 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 						Component[] childComponents = ((JViewport) component).getComponents();
 						JPanel panel = (JPanel) childComponents[0];
 						for (Component childs : panel.getComponents()) {
-							System.out.println("component: " + childs.getClass().getName());
-
 							if (childs instanceof JCheckBox) {
 								((JCheckBox) childs).addActionListener(this);
 							}
@@ -281,16 +279,24 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	}
 
-	private void updateParameterValue()throws IllegalArgumentException  {
+	private void updateParameterValue() throws Exception {
 		for (Parameter p : TICParameters.getParameters()) {
 			Object value = getComponentValue(p);
-			if (value != null)
+			if (value != null) {
 				TICParameters.setParameterValue(p, value);
+			}
 		}
 	}
 
 	private void loadPreview() {
-		updateParameterValue();
+		try {
+			updateParameterValue();
+		} catch (Exception ex) {
+			for (RawDataFile dataFile : getRawDataFiles()) {
+				removeRawDataFile(dataFile);
+			}
+			return;
+		}
 
 		// Hide legend for the preview purpose
 		ticPlot.getChart().removeLegend();
@@ -343,8 +349,8 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		ticDataSets.remove(file);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) {		
-		if (preview.isSelected()) {		
+	public void propertyChange(PropertyChangeEvent evt) {
+		if (preview.isSelected()) {
 			loadPreview();
 		}
 	}
