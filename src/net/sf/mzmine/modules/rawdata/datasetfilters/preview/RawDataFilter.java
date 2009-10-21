@@ -29,7 +29,7 @@ public interface RawDataFilter {
      * 
      * @return return the modified scan after being process by the filter
      */
-    public RawDataFile[] getNewDataFiles(RawDataFile[] dataFile);
+    public RawDataFile getNewDataFiles(RawDataFile dataFile);
 
 	public double getProgres();
     

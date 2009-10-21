@@ -31,8 +31,8 @@ public class RTCorrectionFilter implements RawDataFilter {
 		rtRange = (Range) parameters.getParameterValue(RTCorrectionFilterParameters.retentionTimeRange);
 	}
 
-	public RawDataFile[] getNewDataFiles(RawDataFile[] dataFile) {
-		return dataFile.clone();
+	public RawDataFile getNewDataFiles(RawDataFile dataFile) {
+		return dataFile;
 	}
 
 	public double getProgres() {

@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.rawdata.datasetfilters;
 
-
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
@@ -131,19 +130,16 @@ class RawDataFilteringTask implements Task {
 			return;
 		}
 		try {
+			for (RawDataFile dataFile : dataFiles) {
+				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile);
 
-			RawDataFile[] newDataFiles = rawDataFilter.getNewDataFiles(dataFiles);
+				newDataFiles.setName(newDataFiles.getName() + suffix);
+				MZmineCore.getCurrentProject().addFile(newDataFiles);
 
-
-			for (RawDataFile dataFile : newDataFiles) {
-				dataFile.setName(dataFile.getName() + suffix);
-				MZmineCore.getCurrentProject().addFile(dataFile);
-			}
-
-			// Remove the original file if requested
-			if (removeOriginal) {
-				for (RawDataFile dataFile : dataFiles) {
+				// Remove the original file if requested
+				if (removeOriginal) {
 					MZmineCore.getCurrentProject().removeFile(dataFile);
+
 				}
 			}
 

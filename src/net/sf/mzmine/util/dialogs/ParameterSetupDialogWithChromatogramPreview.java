@@ -61,10 +61,10 @@ import net.sf.mzmine.util.components.ExtendedCheckBox;
 public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog
 		implements ActionListener, PropertyChangeListener {
 
-	private SimpleParameterSet TICParameters;
+	protected SimpleParameterSet TICParameters;
 	private RawDataFile[] selectedFiles;
 	private JCheckBox preview;
-	private TICPlot ticPlot;
+	protected TICPlot ticPlot;
 	private JPanel pnlPlotXY,  pnlFileNameScanNumber;
 	private JPanel components;
 	private Hashtable<RawDataFile, TICDataSet> ticDataSets;
@@ -79,7 +79,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 		if (selectedFiles.length != 0) {
 			TICParameters.setMultipleSelection(RawDataFilterVisualizerParameters.dataFiles,
-					selectedFiles);
+					MZmineCore.getCurrentProject().getDataFiles());
 			TICParameters.setParameterValue(RawDataFilterVisualizerParameters.dataFiles,
 					selectedFiles);
 			addActionListener(parameters);
@@ -115,7 +115,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 							public void keyPressed(KeyEvent e) {
 								if (e.getKeyCode() == KeyEvent.VK_ENTER && preview.isSelected()) {
-									loadPreview();
+									reloadPreview();
 								}
 							}
 
@@ -279,7 +279,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	}
 
-	private void updateParameterValue() throws Exception {
+	protected void updateParameterValue() throws Exception {
 		for (Parameter p : TICParameters.getParameters()) {
 			Object value = getComponentValue(p);
 			if (value != null) {
@@ -288,41 +288,42 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		}
 	}
 
-	private void loadPreview() {
+	private void reloadPreview() {
+		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.dataFiles);
+
+		RawDataFile selectedDataFiles[] = CollectionUtils.changeArrayType(
+				dataFileObjects, RawDataFile.class);
+		for (RawDataFile dataFile : getRawDataFiles()) {
+			removeRawDataFile(dataFile);
+		}
+		for (RawDataFile dataFile : selectedDataFiles) {
+			loadPreview(dataFile);
+		}
+
+	}
+
+	private void loadPreview(RawDataFile dataFile) {
 		try {
 			updateParameterValue();
 		} catch (Exception ex) {
-			for (RawDataFile dataFile : getRawDataFiles()) {
-				removeRawDataFile(dataFile);
-			}
 			return;
 		}
 
 		// Hide legend for the preview purpose
 		ticPlot.getChart().removeLegend();
 
-		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.dataFiles);
+		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
+		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
+		int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
+		this.addRawDataFile(dataFile, level, mzRange, rtRange);
 
-		RawDataFile selectedDataFiles[] = CollectionUtils.changeArrayType(
-				dataFileObjects, RawDataFile.class);
-
-		for (RawDataFile dataFile : getRawDataFiles()) {
-			removeRawDataFile(dataFile);
-		}
-
-		for (RawDataFile dataFile : selectedDataFiles) {
-			Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
-			Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
-			int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
-			this.addRawDataFile(dataFile, level, mzRange, rtRange);
-		}
 	}
 
 	public RawDataFile[] getRawDataFiles() {
 		return ticDataSets.keySet().toArray(new RawDataFile[0]);
 	}
 
-	public void addRawDataFile(RawDataFile newFile, int level, Range mzRange, Range rtRange) {
+	protected void addRawDataFile(RawDataFile newFile, int level, Range mzRange, Range rtRange) {
 		int scanNumbers[] = newFile.getScanNumbers(level, rtRange);
 		TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
 
@@ -351,7 +352,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	public void propertyChange(PropertyChangeEvent evt) {
 		if (preview.isSelected()) {
-			loadPreview();
+			reloadPreview();
 		}
 	}
 
@@ -364,7 +365,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		if (src == preview) {
 			if (preview.isSelected()) {
 				mainPanel.add(pnlPlotXY, BorderLayout.CENTER);
-				loadPreview();
+				reloadPreview();
 				pnlFileNameScanNumber.setVisible(true);
 				pack();
 				this.setResizable(true);
@@ -380,7 +381,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 		if (((src instanceof JCheckBox) && (src != preview)) || ((src instanceof JComboBox))) {
 			if (preview.isSelected()) {
-				loadPreview();
+				reloadPreview();
 			}
 		}
 

@@ -18,8 +18,13 @@
  */
 package net.sf.mzmine.modules.rawdata.datasetfilters.preview;
 
+import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdata.datasetfilters.RawDataFilteringParameters;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
 
 /**
@@ -30,8 +35,12 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
 public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	
+
+	// Raw Data Filter;
+	private RawDataFilter rawDataFilter;
+	private SimpleParameterSet mdParameters;
+	private int rawDataFilterTypeNumber;
+
 	/**
 	 * @param parameters
 	 * @param rawDataFilterTypeNumber
@@ -44,14 +53,40 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 				parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
 				RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
 
-		
+		this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
+
+		// Parameters of local raw data filter to get preview values
+		mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
+
 	}
 
+	private void loadPreview(RawDataFile dataFile) {
+		String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
+		try {
+			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
+			Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
+			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(mdParameters);
+		} catch (Exception e) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Error trying to make an instance of raw data filter " + rawDataFilterClassName);
+			logger.warning("Error trying to make an instance of raw data filter " + rawDataFilterClassName);
+			return;
+		}
 
-	private void reloadPreview() {
-		
+		RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
+
+		try {
+			updateParameterValue();
+		} catch (Exception ex) {
+			return;
+		}
+
+		// Hide legend for the preview purpose
+		ticPlot.getChart().removeLegend();
+
+		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
+		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
+		int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
+		this.addRawDataFile(newDataFile, level, mzRange, rtRange);
 	}
-
-	
-	
 }
