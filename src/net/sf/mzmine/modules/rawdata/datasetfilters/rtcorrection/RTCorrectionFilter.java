@@ -19,25 +19,40 @@
 package net.sf.mzmine.modules.rawdata.datasetfilters.rtcorrection;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdata.datasetfilters.preview.RawDataFilter;
-import net.sf.mzmine.util.Range;
 
 public class RTCorrectionFilter implements RawDataFilter {
 
-	private Range mzRange,  rtRange;
-
 	public RTCorrectionFilter(RTCorrectionFilterParameters parameters) {
-		mzRange = (Range) parameters.getParameterValue(RTCorrectionFilterParameters.mzRange);
-		rtRange = (Range) parameters.getParameterValue(RTCorrectionFilterParameters.retentionTimeRange);
 	}
 
 	public RawDataFile getNewDataFiles(RawDataFile dataFile) {
-		return dataFile;
+
+		try {
+			int[] scanNumbers = dataFile.getScanNumbers(1);
+			int totalScans = scanNumbers.length;
+
+			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile("");
+
+			for (int i = 0; i < totalScans; i++) {
+				Scan scan = dataFile.getScan(scanNumbers[i]);			
+				if (scan != null) {
+					rawDataFileWriter.addScan(scan);
+				}
+			}
+
+			return rawDataFileWriter.finishWriting();
+
+
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	public double getProgres() {
 		return 0.5f;
 	}
-
-	
 }

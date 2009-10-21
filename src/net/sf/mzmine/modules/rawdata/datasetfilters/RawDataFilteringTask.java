@@ -132,14 +132,15 @@ class RawDataFilteringTask implements Task {
 		try {
 			for (RawDataFile dataFile : dataFiles) {
 				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile);
+				if (newDataFiles != null) {
+					newDataFiles.setName(newDataFiles.getName() + suffix);
+					MZmineCore.getCurrentProject().addFile(newDataFiles);
 
-				newDataFiles.setName(newDataFiles.getName() + suffix);
-				MZmineCore.getCurrentProject().addFile(newDataFiles);
+					// Remove the original file if requested
+					if (removeOriginal) {
+						MZmineCore.getCurrentProject().removeFile(dataFile);
 
-				// Remove the original file if requested
-				if (removeOriginal) {
-					MZmineCore.getCurrentProject().removeFile(dataFile);
-
+					}
 				}
 			}
 
