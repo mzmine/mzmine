@@ -37,7 +37,7 @@ public class RawDataFilterVisualizerParameters extends SimpleParameterSet {
 	public static final Parameter dataFiles = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Raw data files",
 			"List of raw data files to display in TIC visualizer", null, null,
-			new Integer(1), null);
+			new Integer(0), null);
 
 	public static final Parameter msLevel = new SimpleParameter(
 			ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,

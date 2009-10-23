@@ -28,7 +28,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -62,21 +64,23 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		implements ActionListener, PropertyChangeListener {
 
 	protected SimpleParameterSet TICParameters;
-	private RawDataFile[] selectedFiles;
+	protected RawDataFile[] selectedFiles;
 	private JCheckBox preview;
 	protected TICPlot ticPlot;
 	private JPanel pnlPlotXY,  pnlFileNameScanNumber;
 	private JPanel components;
-	private Hashtable<RawDataFile, TICDataSet> ticDataSets;
+	private List<RawDataFile> rawDataList;
+	private List<TICDataSet> ticDataSets;
 
 	public ParameterSetupDialogWithChromatogramPreview(String name,
 			SimpleParameterSet parameters, String helpFile) {
 		super(name, parameters, helpFile);
 
 		TICParameters = new RawDataFilterVisualizerParameters();
-		this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
-		selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
+		this.ticDataSets = new ArrayList<TICDataSet>();
+		this.rawDataList = new ArrayList<RawDataFile>();
 
+		selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 		if (selectedFiles.length != 0) {
 			TICParameters.setMultipleSelection(RawDataFilterVisualizerParameters.dataFiles,
 					MZmineCore.getCurrentProject().getDataFiles());
@@ -84,7 +88,6 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 					selectedFiles);
 			addActionListener(parameters);
 		}
-
 		addComponents();
 		addActionListener(TICParameters);
 	}
@@ -93,54 +96,57 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 	 * Set a listener in all parameters's fields to add functionality to this dialog
 	 *
 	 */
-	private void addActionListener(SimpleParameterSet parameters) {
-		for (Parameter p : parameters.getParameters()) {
+	protected void addActionListener(SimpleParameterSet parameters) {
+		try {
+			for (Parameter p : parameters.getParameters()) {
 
-			JComponent field = getComponentForParameter(p);
-			field.addPropertyChangeListener("value", this);
-			if (field instanceof JCheckBox) {
-				((JCheckBox) field).addActionListener(this);
-			}
-			if (field instanceof JComboBox) {
-				((JComboBox) field).addActionListener(this);
-			}
-			if (field instanceof JPanel) {
-				Component[] panelComponents = field.getComponents();
-				for (Component component : panelComponents) {
-					if (component instanceof JTextField) {
-						component.addKeyListener(new KeyListener() {
+				JComponent field = getComponentForParameter(p);
+				field.addPropertyChangeListener("value", this);
+				if (field instanceof JCheckBox) {
+					((JCheckBox) field).addActionListener(this);
+				}
+				if (field instanceof JComboBox) {
+					((JComboBox) field).addActionListener(this);
+				}
+				if (field instanceof JPanel) {
+					Component[] panelComponents = field.getComponents();
+					for (Component component : panelComponents) {
+						if (component instanceof JTextField) {
+							component.addKeyListener(new KeyListener() {
 
-							public void keyTyped(KeyEvent e) {
-							}
-
-							public void keyPressed(KeyEvent e) {
-								if (e.getKeyCode() == KeyEvent.VK_ENTER && preview.isSelected()) {
-									reloadPreview();
+								public void keyTyped(KeyEvent e) {
 								}
-							}
 
-							public void keyReleased(KeyEvent e) {
-							}
-						});
+								public void keyPressed(KeyEvent e) {
+									if (e.getKeyCode() == KeyEvent.VK_ENTER && preview.isSelected()) {
+										reloadPreview();
+									}
+								}
+
+								public void keyReleased(KeyEvent e) {
+								}
+							});
+						}
 					}
 				}
-			}
-			if (field instanceof JScrollPane) {
+				if (field instanceof JScrollPane) {
 
-				Component[] panelComponents = field.getComponents();
-				for (Component component : panelComponents) {
-					if (component instanceof JViewport) {
-						Component[] childComponents = ((JViewport) component).getComponents();
-						JPanel panel = (JPanel) childComponents[0];
-						for (Component childs : panel.getComponents()) {
-							if (childs instanceof JCheckBox) {
-								((JCheckBox) childs).addActionListener(this);
+					Component[] panelComponents = field.getComponents();
+					for (Component component : panelComponents) {
+						if (component instanceof JViewport) {
+							Component[] childComponents = ((JViewport) component).getComponents();
+							JPanel panel = (JPanel) childComponents[0];
+							for (Component childs : panel.getComponents()) {
+								if (childs instanceof JCheckBox) {
+									((JCheckBox) childs).addActionListener(this);
+								}
 							}
 						}
 					}
 				}
-			}
 
+			}
+		} catch (Exception e) {
 		}
 	}
 
@@ -149,7 +155,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 	 * original ParameterSetupDialog.
 	 *
 	 */
-	private void addComponents() {
+	protected void addComponents() {
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
@@ -279,36 +285,50 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	}
 
-	protected void updateParameterValue() throws Exception {
-		for (Parameter p : TICParameters.getParameters()) {
-			Object value = getComponentValue(p);
-			if (value != null) {
-				TICParameters.setParameterValue(p, value);
+	protected void updateParameterValue() {
+		try {
+			for (Parameter p : TICParameters.getParameters()) {				
+				Object value = getComponentValue(p);
+				if (value != null) {
+					TICParameters.setParameterValue(p, value);
+				}
 			}
+		} catch (Exception ex) {			
 		}
 	}
 
 	private void reloadPreview() {
+
+		updateParameterValue();
+
 		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.dataFiles);
 
 		RawDataFile selectedDataFiles[] = CollectionUtils.changeArrayType(
 				dataFileObjects, RawDataFile.class);
-		for (RawDataFile dataFile : getRawDataFiles()) {
-			removeRawDataFile(dataFile);
+
+		for (int index = 0; index < rawDataList.size(); index++) {
+			if (!isCheckBoxSelected(selectedDataFiles, rawDataList.get(index))) {
+				ticPlot.getXYPlot().setDataset(index,
+						null);
+			}
 		}
+
 		for (RawDataFile dataFile : selectedDataFiles) {
 			loadPreview(dataFile);
 		}
 
 	}
 
-	private void loadPreview(RawDataFile dataFile) {
-		try {
-			updateParameterValue();
-		} catch (Exception ex) {
-			return;
+	private boolean isCheckBoxSelected(RawDataFile selectedDataFiles[], RawDataFile dataFile) {
+		for (RawDataFile selectedDataFile : selectedDataFiles) {
+			if (selectedDataFile.equals(dataFile)) {
+				return true;
+			}
 		}
+		return false;
+	}
 
+	protected void loadPreview(RawDataFile dataFile) {
 		// Hide legend for the preview purpose
 		ticPlot.getChart().removeLegend();
 
@@ -320,20 +340,26 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 	}
 
 	public RawDataFile[] getRawDataFiles() {
-		return ticDataSets.keySet().toArray(new RawDataFile[0]);
+		return rawDataList.toArray(new RawDataFile[0]);
 	}
 
 	protected void addRawDataFile(RawDataFile newFile, int level, Range mzRange, Range rtRange) {
 		int scanNumbers[] = newFile.getScanNumbers(level, rtRange);
 		TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
+		if (!rawDataList.contains(newFile)) {
+			ticDataSets.add(ticDataset);
+			rawDataList.add(newFile);
+			ticPlot.addTICDataset(ticDataset);
+		} else {
+			int index = rawDataList.indexOf(newFile);
+			ticPlot.getXYPlot().setDataset(index,
+					ticDataset);
+		}
 
-		ticDataSets.put(newFile, ticDataset);
-		ticPlot.addTICDataset(ticDataset);
-
-		if (ticDataSets.size() == 1) {
+		//if (ticDataSets.size() == 1) {
 			// when adding first file, set the retention time range
 			setRTRange(rtRange);
-		}
+		//}
 	}
 
 	/**
@@ -341,13 +367,6 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 	public void setRTRange(Range rtRange) {
 		ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
 				rtRange.getMax());
-	}
-
-	public void removeRawDataFile(RawDataFile file) {
-		TICDataSet dataset = ticDataSets.get(file);
-		ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
-				null);
-		ticDataSets.remove(file);
 	}
 
 	public void propertyChange(PropertyChangeEvent evt) {

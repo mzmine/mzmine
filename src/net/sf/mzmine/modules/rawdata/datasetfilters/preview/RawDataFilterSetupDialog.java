@@ -35,10 +35,9 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
 public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
+	protected SimpleParameterSet mdParameters;
 	// Raw Data Filter;
 	private RawDataFilter rawDataFilter;
-	private SimpleParameterSet mdParameters;
 	private int rawDataFilterTypeNumber;
 
 	/**
@@ -57,10 +56,9 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
 		// Parameters of local raw data filter to get preview values
 		mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
-
 	}
 
-	private void loadPreview(RawDataFile dataFile) {
+	protected void loadPreview(RawDataFile dataFile) {
 		String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
 		try {
 			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
@@ -75,18 +73,19 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
 		RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
 
-		try {
-			updateParameterValue();
-		} catch (Exception ex) {
-			return;
-		}
 
+		
 		// Hide legend for the preview purpose
 		ticPlot.getChart().removeLegend();
 
 		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
 		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
 		int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
-		this.addRawDataFile(newDataFile, level, mzRange, rtRange);
+		if (newDataFile != null) {
+			this.addRawDataFile(newDataFile, level, mzRange, rtRange);
+		}
+		this.addRawDataFile(dataFile, level, mzRange, rtRange);
+		
+
 	}
 }
