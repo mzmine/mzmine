@@ -20,6 +20,7 @@
 package net.sf.mzmine.util;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -127,5 +128,22 @@ public class CollectionUtils {
 		}
 		return false;
 	}
+	
+	/**
+	 * Concatenate two arrays
+	 * 
+	 * @param first
+	 *            array of objects
+	 * @param second
+	 *            array of objects
+	 * @return both
+	 *  		  array of objects
+	 */	
+	public static <T> T[] concat(T[] first, T[] second) {
+		  T[] result = Arrays.copyOf(first, first.length + second.length);
+		  System.arraycopy(second, 0, result, first.length, second.length);
+		  return result;
+		}
+
 
 }
