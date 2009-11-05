@@ -29,7 +29,6 @@ import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -76,7 +75,9 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 			SimpleParameterSet parameters, String helpFile) {
 		super(name, parameters, helpFile);
 
+        // Parameters for the visualization
 		TICParameters = new RawDataFilterVisualizerParameters();
+
 		this.ticDataSets = new ArrayList<TICDataSet>();
 		this.rawDataList = new ArrayList<RawDataFile>();
 
@@ -112,20 +113,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 					Component[] panelComponents = field.getComponents();
 					for (Component component : panelComponents) {
 						if (component instanceof JTextField) {
-							component.addKeyListener(new KeyListener() {
-
-								public void keyTyped(KeyEvent e) {
-								}
-
-								public void keyPressed(KeyEvent e) {
-									if (e.getKeyCode() == KeyEvent.VK_ENTER && preview.isSelected()) {
-										reloadPreview();
-									}
-								}
-
-								public void keyReleased(KeyEvent e) {
-								}
-							});
+                            component.addPropertyChangeListener("value", this);							
 						}
 					}
 				}
@@ -334,7 +322,9 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
 		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
-		int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
+
+      
+        int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
 		this.addRawDataFile(dataFile, level, mzRange, rtRange);
 
 	}
@@ -356,10 +346,8 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 					ticDataset);
 		}
 
-		//if (ticDataSets.size() == 1) {
-			// when adding first file, set the retention time range
-			setRTRange(rtRange);
-		//}
+		setRTRange(rtRange);
+		
 	}
 
 	/**

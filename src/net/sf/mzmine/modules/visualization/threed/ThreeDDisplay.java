@@ -241,7 +241,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
                 mouseBehavior);
 
         // set the keyboard behavior
-        KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
+      /*  KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
         keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS,
                 KeyEvent.VK_DOWN, 0);
         keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG,
@@ -262,7 +262,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
                 KeyEvent.VK_ADD, 0);
         keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_OUT,
                 KeyEvent.VK_SUBTRACT, 0);
-        dRenderer.addKeyboardBehavior(keyBehavior);
+        dRenderer.addKeyboardBehavior(keyBehavior);*/
 
         // set text control properties
         TextControl textControl = (TextControl) annotationMap.getControl();
@@ -281,7 +281,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
         double[] pControlMatrix = projCont.getMatrix();
 
         // prepare rotation and scaling matrix
-        double[] mult = MouseBehaviorJ3D.static_make_matrix(75, 0, 0, // rotation
+       /* double[] mult = MouseBehaviorJ3D.static_make_matrix(75, 0, 0, // rotation
                                                                         // X,Y,Z
                 1, // scaling
                 0.1, 0.2, 0 // translation (moving) X,Y,Z
@@ -289,7 +289,7 @@ class ThreeDDisplay extends DisplayImplJ3D {
 
         // multiply projection matrix
         pControlMatrix = MouseBehaviorJ3D.static_multiply_matrix(mult,
-                pControlMatrix);
+                pControlMatrix);*/
 
         // set new projection matrix
         projCont.setMatrix(pControlMatrix);

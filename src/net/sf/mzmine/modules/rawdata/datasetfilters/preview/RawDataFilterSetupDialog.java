@@ -80,7 +80,9 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
 		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
 		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
-		int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
+
+          System.out.println(rtRange + " - " + mzRange);
+        int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
 		if (newDataFile != null) {
 			this.addRawDataFile(newDataFile, level, mzRange, rtRange);
 		}
