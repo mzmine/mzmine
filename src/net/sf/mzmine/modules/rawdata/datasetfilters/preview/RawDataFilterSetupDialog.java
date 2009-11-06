@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.modules.rawdata.datasetfilters.preview;
 
+import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 import net.sf.mzmine.data.RawDataFile;
@@ -34,60 +35,63 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
  */
 public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	protected SimpleParameterSet mdParameters;
-	// Raw Data Filter;
-	private RawDataFilter rawDataFilter;
-	private int rawDataFilterTypeNumber;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    protected SimpleParameterSet mdParameters;
+    // Raw Data Filter;
+    private RawDataFilter rawDataFilter;
+    private int rawDataFilterTypeNumber;
 
-	/**
-	 * @param parameters
-	 * @param rawDataFilterTypeNumber
-	 */
-	public RawDataFilterSetupDialog(RawDataFilteringParameters parameters,
-			int rawDataFilterTypeNumber) {
+    /**
+     * @param parameters
+     * @param rawDataFilterTypeNumber
+     */
+    public RawDataFilterSetupDialog(RawDataFilteringParameters parameters,
+            int rawDataFilterTypeNumber) {
 
-		super(
-				RawDataFilteringParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
-				parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
-				RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
+        super(
+                RawDataFilteringParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
+                parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
+                RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
 
-		this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
+        this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
 
-		// Parameters of local raw data filter to get preview values
-		mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
-	}
+        // Parameters of local raw data filter to get preview values
+        mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
+    }
 
-	protected void loadPreview(RawDataFile dataFile) {
-		String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
-		try {
-			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
-			Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
-			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(mdParameters);
-		} catch (Exception e) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Error trying to make an instance of raw data filter " + rawDataFilterClassName);
-			logger.warning("Error trying to make an instance of raw data filter " + rawDataFilterClassName);
-			return;
-		}
+    protected void loadPreview(RawDataFile dataFile) {
+        String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
+        try {
+            Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
+            Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
+            rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(mdParameters);
+        } catch (Exception e) {
+            MZmineCore.getDesktop().displayErrorMessage(
+                    "Error trying to make an instance of raw data filter " + rawDataFilterClassName);
+            logger.warning("Error trying to make an instance of raw data filter " + rawDataFilterClassName);
+            return;
+        }
 
-		RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
+        RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
 
 
-		
-		// Hide legend for the preview purpose
-		ticPlot.getChart().removeLegend();
+        Range rtRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.retentionTimeRange);
+        Range mzRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.mzRange);
 
-		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
-		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
+        Boolean setLegend = (Boolean) TICParameters.getParameterValue(DialogWithChromatogramParameters.plotLegend);
+        
+        if (!setLegend) {            
+            legend.setVisible(false);
+        } else {
+            legend.setVisible(true);
+        }
+        
+        int level = (Integer) TICParameters.getParameterValue(DialogWithChromatogramParameters.msLevel);
+        if (newDataFile != null) {
+            this.addRawDataFile(newDataFile, level, mzRange, rtRange);
+        }
+        this.addRawDataFile(dataFile, level, mzRange, rtRange);
 
-          System.out.println(rtRange + " - " + mzRange);
-        int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
-		if (newDataFile != null) {
-			this.addRawDataFile(newDataFile, level, mzRange, rtRange);
-		}
-		this.addRawDataFile(dataFile, level, mzRange, rtRange);
-		
 
-	}
+    }
 }

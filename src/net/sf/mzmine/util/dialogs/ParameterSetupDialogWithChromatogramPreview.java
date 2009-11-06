@@ -24,8 +24,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -51,13 +49,13 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdata.datasetfilters.preview.RawDataFilterVisualizerParameters;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
+import org.jfree.chart.title.LegendTitle;
 
 public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupDialog
 		implements ActionListener, PropertyChangeListener {
@@ -70,26 +68,30 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 	private JPanel components;
 	private List<RawDataFile> rawDataList;
 	private List<TICDataSet> ticDataSets;
+    protected LegendTitle legend;
 
 	public ParameterSetupDialogWithChromatogramPreview(String name,
 			SimpleParameterSet parameters, String helpFile) {
 		super(name, parameters, helpFile);
 
         // Parameters for the visualization
-		TICParameters = new RawDataFilterVisualizerParameters();
+		TICParameters = new DialogWithChromatogramParameters();
 
 		this.ticDataSets = new ArrayList<TICDataSet>();
 		this.rawDataList = new ArrayList<RawDataFile>();
 
 		selectedFiles = MZmineCore.getDesktop().getSelectedDataFiles();
 		if (selectedFiles.length != 0) {
-			TICParameters.setMultipleSelection(RawDataFilterVisualizerParameters.dataFiles,
+			TICParameters.setMultipleSelection(DialogWithChromatogramParameters.dataFiles,
 					MZmineCore.getCurrentProject().getDataFiles());
-			TICParameters.setParameterValue(RawDataFilterVisualizerParameters.dataFiles,
+			TICParameters.setParameterValue(DialogWithChromatogramParameters.dataFiles,
 					selectedFiles);
 			addActionListener(parameters);
 		}
+
 		addComponents();
+
+        // Add the listener for each component of the parameters
 		addActionListener(TICParameters);
 	}
 
@@ -121,11 +123,15 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 					Component[] panelComponents = field.getComponents();
 					for (Component component : panelComponents) {
+
 						if (component instanceof JViewport) {
+
 							Component[] childComponents = ((JViewport) component).getComponents();
 							JPanel panel = (JPanel) childComponents[0];
+
 							for (Component childs : panel.getComponents()) {
 								if (childs instanceof JCheckBox) {
+
 									((JCheckBox) childs).addActionListener(this);
 								}
 							}
@@ -177,9 +183,7 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		pnlPlotXY.setBackground(Color.white);
 
 		ticPlot = new TICPlot(this);
-
-		// Hide legend for the preview purpose
-		ticPlot.getChart().removeLegend();
+        this.legend = ticPlot.getChart().getLegend();
 
 		pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
 		componentsPanel.add(pnlVisible, BorderLayout.CENTER);
@@ -273,6 +277,9 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
 	}
 
+    /**
+     * Set the value of the parameters from their correspondent component
+     */
 	protected void updateParameterValue() {
 		try {
 			for (Parameter p : TICParameters.getParameters()) {				
@@ -285,11 +292,15 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		}
 	}
 
+
+    /**
+     * Remove all the data files from the plot and add the new selected data files to the plot using the function loadPreview()
+     */
 	private void reloadPreview() {
 
 		updateParameterValue();
 
-		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.dataFiles);
+		Object dataFileObjects[] = (Object[]) TICParameters.getParameterValue(DialogWithChromatogramParameters.dataFiles);
 
 		RawDataFile selectedDataFiles[] = CollectionUtils.changeArrayType(
 				dataFileObjects, RawDataFile.class);
@@ -316,27 +327,40 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 		return false;
 	}
 
-	protected void loadPreview(RawDataFile dataFile) {
-		// Hide legend for the preview purpose
-		ticPlot.getChart().removeLegend();
+    /**
+     * Get the parameters related to the plot and call the function addRawDataFile() to add the data file to the plot
+     * @param dataFile
+     */
+    protected void loadPreview(RawDataFile dataFile) {
+		Range rtRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.retentionTimeRange);
+		Range mzRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.mzRange);
 
-		Range rtRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.retentionTimeRange);
-		Range mzRange = (Range) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.mzRange);
+        Boolean setLegend = (Boolean) TICParameters.getParameterValue(DialogWithChromatogramParameters.plotLegend);
 
-      
-        int level = (Integer) TICParameters.getParameterValue(RawDataFilterVisualizerParameters.msLevel);
+        if(!setLegend){        
+             legend.setVisible(false);
+        }else{
+             legend.setVisible(true);
+        }
+
+        int level = (Integer) TICParameters.getParameterValue(DialogWithChromatogramParameters.msLevel);
 		this.addRawDataFile(dataFile, level, mzRange, rtRange);
 
-	}
+	}	
 
-	public RawDataFile[] getRawDataFiles() {
-		return rawDataList.toArray(new RawDataFile[0]);
-	}
-
+    /**
+     * Add the data file into the plot
+     * @param newFile
+     * @param level
+     * @param mzRange
+     * @param rtRange
+     */
 	protected void addRawDataFile(RawDataFile newFile, int level, Range mzRange, Range rtRange) {
 		int scanNumbers[] = newFile.getScanNumbers(level, rtRange);
-		TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
-		if (!rawDataList.contains(newFile)) {
+
+        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange, this);
+
+        if (!rawDataList.contains(newFile)) {
 			ticDataSets.add(ticDataset);
 			rawDataList.add(newFile);
 			ticPlot.addTICDataset(ticDataset);
@@ -346,12 +370,10 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 					ticDataset);
 		}
 
-		setRTRange(rtRange);
-		
+		setRTRange(rtRange);	
 	}
 
-	/**
-	 */
+	
 	public void setRTRange(Range rtRange) {
 		ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
 				rtRange.getMax());
