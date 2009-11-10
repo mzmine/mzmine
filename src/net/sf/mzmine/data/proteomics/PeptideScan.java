@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.data.proteomics;
 
+import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -26,16 +27,18 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.PeptideSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.util.SortingDirection;
 
 public class PeptideScan implements Scan {
 	
 	private PeptideIdentityDataFile dataFile;
 	private RawDataFile rawDataFile;
-	private int scanNumber;
+	private int rawScanNumber;
 	private Vector<Peptide> peptides;
-	//private int queryNumber;
+	private int queryNumber;
 	private int msLevel;
 	private int parentScan;
 	private int fragmentScans[];
@@ -49,23 +52,23 @@ public class PeptideScan implements Scan {
 	private boolean centroided;
 
 	/**
-	 * Constructor 
+	 * This class represents the scan (collection of DataPoints)  with MS level 2 or more,
+	 * which contains peaks with masses equal to the calculated fragment ion's masses for one or many peptides.
 	 */
-	public PeptideScan(PeptideIdentityDataFile dataFile, String rawDataFile, int queryNumber) {
-
-		if (dataPoints != null)
-			setDataPoints(dataPoints);
-		else
-			throw new IllegalArgumentException(
-					"Missing data points for query #" + queryNumber);
+	public PeptideScan(PeptideIdentityDataFile dataFile, String rawDataFile, int queryNumber, int rawScanNumber) {
 
 		this.dataFile = dataFile;
 		this.peptides = new Vector<Peptide>();
-		//this.queryNumber = queryNumber;
+		this.queryNumber = queryNumber;
+		this.rawScanNumber = rawScanNumber;
 			
 	}
 
-
+	/**
+	 * Sets the original raw data file
+	 * 
+	 * @param rawDataFile
+	 */
 	public void setRawDataFile(RawDataFile rawDataFile){
 		this.rawDataFile = rawDataFile;
 	}
@@ -167,7 +170,7 @@ public class PeptideScan implements Scan {
 	 * @see net.sf.mzmine.data.Scan#getScanNumber()
 	 */
 	public int getScanNumber() {
-		return scanNumber;
+		return rawScanNumber;
 	}
 
 	/**
@@ -175,7 +178,7 @@ public class PeptideScan implements Scan {
 	 *            The scanNumber to set.
 	 */
 	public void setScanNumber(int scanNumber) {
-		this.scanNumber = scanNumber;
+		this.rawScanNumber = scanNumber;
 	}
 
 	/**
@@ -282,6 +285,11 @@ public class PeptideScan implements Scan {
 		this.fragmentScans = fragmentScans;
 	}
 
+	/**
+	 * Adds a fragment scan
+	 * 
+	 * @param fragmentScan
+	 */
 	public void addFragmentScan(int fragmentScan) {
 		TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
 		if (fragmentScans != null) {
@@ -307,6 +315,9 @@ public class PeptideScan implements Scan {
 		this.centroided = centroided;
 	}
 
+	/**
+	 * Returns the total ion current
+	 */
 	public double getTIC() {
 		return totalIonCurrent;
 	}
@@ -315,20 +326,62 @@ public class PeptideScan implements Scan {
 		return ScanUtils.scanToString(this);
 	}
 
+	/**
+	 * Returns the raw data file that this scan belongs.
+	 */
 	public RawDataFile getDataFile() {
 		return rawDataFile;
 	}
 	
+	/**
+	 * Returns the PeptideDataFile from where the information of the peptide was extracted.
+	 * 
+	 * @return PeptideIdentityDataFile
+	 */
 	public PeptideIdentityDataFile getPeptideDataFile() {
 		return dataFile;
 	}
 
-	public void setPeptides(Peptide peptide) {
+	/**
+	 * Adds a peptide. This scan can be related to different peptides.
+	 * 
+	 * @param peptide
+	 */
+	public void addPeptide(Peptide peptide) {
 		peptides.add(peptide);
 	}
 	
-	public Vector<Peptide> getPeptides() {
-		return peptides;
+	/**
+	 * Returns all the peptides that fix into this scan (masses)
+	 * 
+	 * @return Peptide[]
+	 */
+	public Peptide[] getPeptides() {
+		return peptides.toArray(new Peptide[0]);
 	}
+	
+	/**
+	 * 
+	 * Returns the most probable peptide identity of this scan (collection of data points).
+	 * 
+	 * @return Peptide
+	 */
+	public Peptide getHighScorePeptide(){
+		// Sort m/z peaks by descending intensity
+		Peptide[] sortedPeptides =peptides.toArray(new Peptide[0]);
+		Arrays.sort(sortedPeptides, new PeptideSorter(SortingDirection.Descending));
+		return sortedPeptides[0];
+	}
+	
+	/**
+	 * Returns the number of query associated to this scan (number from identification file).
+	 * 
+	 * @return queryNumber
+	 */
+	public int getQueryNumber(){
+		return queryNumber;
+	}
+
+
 	
 }

@@ -28,70 +28,48 @@ public class FragmentIon {
 	private int position;
 	private double intensity = 0;
 	
+	/**
+	 * This class represents a fragment ion comming from a sequence of amino acids (peptide) 
+	 * 
+	 * @param mass
+	 * @param fragmentIonType
+	 * @param position
+	 */
 	public FragmentIon(double mass, FragmentIonType fragmentIonType, int position){
 		this.mass = mass;
 		this.ionType = fragmentIonType;
-		this.position = position;
 	}
 	
+	/**
+	 * Returns the mass value for this fragment ion
+	 * 
+	 * @return mass
+	 */
 	public double getMass(){
 		return mass;
 	}
 
-    public double getIntensity(){
-    	return intensity;
-    }
-
-    public void setIntensity(double intensity){
-    	this.intensity = intensity;
-    }
-
-    public FragmentIonType getType(){
+    /**
+     * Returns the enum FragmentIonType assigned to this fragment ion
+     * 
+     * @return ionType
+     */
+	public FragmentIonType getType(){
     	return ionType;
     }
 
-    public int getPosition(){
+    /**
+     * Returns the position of this fragment (Example: b2 where b is the type and 2 is the position)
+     * 
+     * @return position
+     */
+	public int getPosition(){
     	return position;
     }
     
-    public String toString(){
+	public String toString(){
     	return ProteomeUtils.fragmentIonToString(this); 
     }
 
-    //Include in parser or peptide verification.
-    /**
-     * This method checks if the mass of this fragmention was found in the original spectrum with a given MassError. This method does not take any intensity parameters in count!<br>
-     * If the mass was matched, <b>the instance boolean iMatch will be set to true</b>, if there is no match, the boolean will stay false.
-     * This boolean will be returned in the end of this method!
-     *
-     * @param aPeaks     Peak[] containing all the peak masses from the mass spectrum that was used by the query that delivered this peptidehit.
-     * @param aMassError This is the mass error to check if this theoretical fragment ion was found in the spectrum.
-     * @return boolean      This boolean says if this theoretical FragmentIon wass found with a mass error iMassError in the spectrum.
-     */
-    //public boolean isMatch(Peak[] aPeaks, double aMassError);
 
-    /**
-     * This method checks if the mass of this fragmention was found in the original spectrum with a given MassError.<br>
-     * The Peak that is matched must have an intensity above a threshold that is based on the highest intensity of the spectrum.<br>
-     * If the mass was matched, <b>the instance boolean iMatch will be set to true</b>, if there is no match, the boolean will stay false.
-     * This boolean will be returned in the end of this method!
-     *
-     * @param aPeaks               Peak[] containing all the peak masses of the Query wherefrom this PeptideHit was created.
-     * @param aMaxIntensity        double with the max intensity of the spectrum.
-     * @param aIntensityPercentage This double is a percent (ex: 0.10) , The relative intensityThreshold will then be (aMaxIntensity*aIntensityPercentage),
-     *                             only matches that are above this threshold will be added to the Vector.
-     * @param aMassError           This is the mass error to check if this theoretical fragment ion was found in the spectrum.
-     * @return boolean      This boolean says if this theoretical FragmentIon wass found with a mass error iMassError in the spectrum.
-     */
-    //public boolean isMatchAboveIntensityThreshold(Peak[] aPeaks, double aMaxIntensity, double aIntensityPercentage, double aMassError);
-
-    /**
-     * Returns this double holds the mass error between the theoretical fragmention and the matched peakmass.
-     * <b>The fragmention must be a match in the mass spectrum before this method can be used!</b>
-     *
-     * @return this double holds the mass error between the theoretical fragmention and the matched peakmass.
-     */
-    //public double getTheoreticalExperimentalMassError();
-
-    //boolean hasBeenMatched();
 }

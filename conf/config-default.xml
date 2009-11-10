@@ -47,6 +47,7 @@
     <module class="net.sf.mzmine.modules.identification.complexsearch.ComplexSearch" /> 
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch" /> 
     <module class="net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch" /> 
+    <module class="net.sf.mzmine.modules.identification.peptidesearch.PeptideSearch" /> 
   </modules>  
   <preferences>
     <format type="m/z">

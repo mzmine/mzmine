@@ -26,20 +26,42 @@ public class PeptideIonSerie {
 	
 	private HashMap<SerieIonType,IonSignificance> fragmentSeries;
 	
+	/**
+	 * This class represents the ion series for one peptide, 
+	 * containing type of series and significance for score calculation
+	 */
 	public PeptideIonSerie(){
 		this.fragmentSeries = new HashMap<SerieIonType,IonSignificance>();
 	}
 
+	/**
+	 * This class represents the ion series for one peptide, 
+	 * containing type of series and significance for score calculation
+	 * 
+	 * @param serie
+	 * @param significance
+	 */
 	public PeptideIonSerie(SerieIonType serie, IonSignificance significance){
 		this.fragmentSeries = new HashMap<SerieIonType,IonSignificance>();
 		fragmentSeries.put(serie, significance);
 	}
 
+	/**
+	 * Add an ion serie to this peptideIonSerie
+	 * 
+	 * @param serie
+	 * @param significance
+	 */
 	public void addSerie(SerieIonType serie, IonSignificance significance){
 		if (!fragmentSeries.containsKey(serie))
 			fragmentSeries.put(serie, significance);
 	}
 	
+	/**
+	 * Returns all the fragment series and their significance
+	 * 
+	 * @return fragmentSeries
+	 */
 	public HashMap<SerieIonType,IonSignificance> getFragmentSeries(){
 		return fragmentSeries;
 	}

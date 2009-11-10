@@ -85,6 +85,7 @@ public class PeptideFragmentation {
 
 		// b-ion with a loss of NH3
 		index = PeptideUtils.getFirstBionLossNH3(sequence);
+		
 		bSeries.addAll(PeptideUtils.calculateIonsLossNH3(singleBIons,
 				hydrogenMass, nitrogenMass, index, false,
 				FragmentIonType.B_NH3_ION));
@@ -498,7 +499,7 @@ public class PeptideFragmentation {
 				case ZHH_SERIES:
 					ionFragments = CollectionUtils.concat(ionFragments, zhhIons);
 					break;
-				case ZHHD_OUBLE_SERIES:
+				case ZHH_DOUBLE_SERIES:
 					ionFragments = CollectionUtils.concat(ionFragments,
 							zhhDoubleIons);
 					break;
@@ -516,6 +517,8 @@ public class PeptideFragmentation {
 
 	/**
 	 * This method returns all the theoretical fragment ions
+	 * 
+	 * @return FragmenIon[]
 	 */
 	public FragmentIon[] getFragmentIons() {
 
@@ -559,6 +562,13 @@ public class PeptideFragmentation {
 		return ionFragments;
 	}
 
+	/**
+	 * This method returns the theoretical fragment ions equal to the parameter type
+	 * 
+	 * @param SerieIonType
+	 * 
+	 * @return FragmenIon[]
+	 */
 	public FragmentIon[] getFragmentIons(SerieIonType ionType) {
 		switch (ionType) {
 		case A_SERIES:
@@ -591,7 +601,7 @@ public class PeptideFragmentation {
 			return zhDoubleIons;
 		case ZHH_SERIES:
 			return zhhIons;
-		case ZHHD_OUBLE_SERIES:
+		case ZHH_DOUBLE_SERIES:
 			return zhhDoubleIons;
 		default:
 			return null;

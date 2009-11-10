@@ -26,6 +26,7 @@ import net.sf.mzmine.data.proteomics.FragmentIon;
 import net.sf.mzmine.data.proteomics.ModificationPeptide;
 import net.sf.mzmine.data.proteomics.Peptide;
 import net.sf.mzmine.data.proteomics.Protein;
+import net.sf.mzmine.data.proteomics.ProteinSection;
 import net.sf.mzmine.main.MZmineCore;
 
 public class ProteomeUtils {
@@ -40,12 +41,22 @@ public class ProteomeUtils {
 	public static String peptideToString(Peptide peptide) {
 		StringBuffer buf = new StringBuffer();
 		Format mzFormat = MZmineCore.getMZFormat();
-		buf.append("#");
-		buf.append(peptide.getQueryNumber());
-		buf.append(" ;");
 		buf.append(peptide.getSequence());
-		buf.append(" ;Mass ");
+		buf.append("\nPeptideMz ");
 		buf.append( mzFormat.format(peptide.getMass()) );
+		buf.append(" ;CalculatedMz ");
+		buf.append(  mzFormat.format(peptide.getMassExpected()) );
+		buf.append(" ;Charge ");
+		buf.append( peptide.getPrecursorCharge() );
+		buf.append(" ;FragmentScan ");
+		buf.append( peptide.getScan().getScanNumber() );
+		Protein[] proteins = peptide.getProteins();
+		ProteinSection section;
+		for (Protein prot: proteins){
+			section = prot.getSection(peptide);
+			buf.append("\nProtein \""+prot.getSysname()+"\":"+section.getStartRegion()+
+					" - "+section.getStopRegion() + "; "+prot.getHits()+" hits");
+		}
 
 		return buf.toString();
 	}

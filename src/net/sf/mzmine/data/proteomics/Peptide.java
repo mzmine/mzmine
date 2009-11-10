@@ -20,6 +20,7 @@
 package net.sf.mzmine.data.proteomics;
 
 import java.util.HashMap;
+import java.util.Vector;
 
 import net.sf.mzmine.util.ProteomeUtils;
 
@@ -32,32 +33,39 @@ public class Peptide {
 	private double massExpected;
 	private double precursorMass;
 	private int precursorCharge;
+	private double deltaMass;
 	private int missedCleavages;
 	private HashMap<Integer,ModificationPeptide> modifications;
 	private PeptideIonSerie ionSerie;
 	private PeptideScan scan;
 	private PeptideFragmentation fragmentation;
+
 	// Protein info
-	private Protein protein;
-	private int startRegion;
-	private int stopRegion;
-    private int multiplicity = 0;
+	private Vector<Protein> proteins;
+    
+    private String identificationMethod;
 	
 	
 	public Peptide(int queryNumber, String sequence, float ion_score,double mass, 
-			double mass_expected, int charge, int missed, PeptideScan scan){
+			double massExpected, int charge, double precursorMass, double deltaMass, 
+			int missed, PeptideScan scan, String identificationMethod){
 		this.queryNumber = queryNumber;
 		this.sequence = sequence;
 		this.ionScore = ion_score;
 		this.mass = mass;
-		this.massExpected = mass_expected;
+		this.massExpected = massExpected;
 		this.precursorCharge = charge;
+		this.precursorMass = precursorMass;
+		this.deltaMass = deltaMass;
 		this.missedCleavages = missed;
 		this.scan = scan;
+		this.identificationMethod = identificationMethod;
+		
+		proteins = new Vector<Protein>();
 	}
 
 	/**
-	 * Returns the amino acid sequence
+	 * Returns the number of query
 	 */
 	public int getQueryNumber(){
 		return queryNumber;
@@ -87,7 +95,7 @@ public class Peptide {
 	/**
 	 * Returns the expected mass for this peptide
 	 */
-	public double getMass_expected(){
+	public double getMassExpected(){
 		return massExpected;
 	}
 	
@@ -121,20 +129,54 @@ public class Peptide {
 	}
 	
 	/**
+	 * Sets the scan related with this peptide
+	 * 
+	 * @param peptideScan
+	 */
+	public void setScan(PeptideScan peptideScan) {
+		this.scan = peptideScan;
+	}
+
+	
+	/**
 	 * Returns a precursor mass.
 	 */
 	public double getPrecursorMass() {
 		return precursorMass;
 	}
+	
+	/**
+	 * Returns the delta mass or difference between the calculated mass and detected mass by the instrument
+	 * 
+	 * @return deltaMass
+	 */
+	public double getDeltaMass(){
+		return deltaMass;
+	}
 
+	/**
+	 * Returns the charge of the peptide, according with the parent scan.
+	 * 
+	 * @return charge
+	 */
 	public int getPrecursorCharge() {
 		return precursorCharge;
 	}
 	
+	/**
+	 * Return the fragmentation of this peptide (B-ions, Y-ions, etc.)
+	 * 
+	 * @return fragmentation
+	 */
 	public PeptideFragmentation getFragmentation(){
 		return fragmentation;
 	}
 	
+	/**
+	 * Set the fragmentation for this peptide
+	 * 
+	 * @param fragmentation
+	 */
 	public void setFragmentation(PeptideFragmentation fragmentation){
 		this.fragmentation = fragmentation;
 	}
@@ -147,11 +189,48 @@ public class Peptide {
 	}
 	
 	/**
-	 * Returns the amino acid sequence
+	 * Sets the Ion Series
 	 */
 	public void setIonSeries(PeptideIonSerie ionSerie){
 		this.ionSerie = ionSerie;
 	}
+	
+	/**
+	 * Returns an array of Proteins that this peptide's sequence could fix into
+	 * 
+	 * @return proteins
+	 */
+	public Protein[] getProteins() {
+		return proteins.toArray(new Protein[0]);
+	}
+
+	/**
+	 * Add a protein to the group of that this peptide could belong.
+	 * 
+	 * @param protein
+	 */
+	public void addProtein(Protein protein) {
+		this.proteins.add(protein);
+	}
+	
+	/**
+	 * Returns a description of how this data was generated (Mascot, etc.)
+	 * 
+	 * @return identificationMethod
+	 */
+	public String getIdentificationMethod() {
+		return identificationMethod;
+	}
+
+	/**
+	 * Sets the identification method
+	 * 
+	 * @param identificationMethod
+	 */
+	public void setIdentificationMethod(String identificationMethod) {
+		this.identificationMethod = identificationMethod;
+	}
+
 	
 	/**
 	 * Returns a description of this peptide
@@ -159,7 +238,6 @@ public class Peptide {
 	public String toString() {
 		return ProteomeUtils.peptideToString(this);
 	}
-
 
 	
 

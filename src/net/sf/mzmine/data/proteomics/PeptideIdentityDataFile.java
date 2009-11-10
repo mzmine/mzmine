@@ -30,10 +30,9 @@ import net.sf.mzmine.util.MascotParserUtils;
 
 public class PeptideIdentityDataFile{
 
-	
 	private Vector<RawDataFile> rawDataFiles;
 	private String filename;
-	private int queryNumber;
+	private int numOfQueries;
 	private HashMap<String,String> parameters;
 	private Vector<ModificationPeptide> modifications;
 	private HashMap<String,Protein> proteins;
@@ -50,11 +49,13 @@ public class PeptideIdentityDataFile{
 		this.parameters = new HashMap<String,String>();
 		this.modifications = new Vector<ModificationPeptide>();
 		this.defaultMasses = new HashMap<String,Double>();
+		rawDataFiles = new Vector<RawDataFile>();
+		scans = new Hashtable<Integer, PeptideScan>();
+		proteins = new HashMap<String,Protein>() ;
 	}
 	
 	/**
-	 * Returns the name of this data file (can be a descriptive name, not
-	 * necessarily the original file name)
+	 * Returns the name of original data file 
 	 */
 	public String getName(){
 		return filename;
@@ -73,7 +74,7 @@ public class PeptideIdentityDataFile{
 	 * Returns the number of identified peptides
 	 */
 	public int getNumOfPeptideQueries(){
-		return queryNumber;
+		return numOfQueries;
 	}
 	
 	/**
@@ -81,13 +82,12 @@ public class PeptideIdentityDataFile{
 	 * 
  	 * @param int queryNumber 
 	 */
-	public void setNumOfPeptideQueries(int queryNumber){
-		this.queryNumber = queryNumber;
+	public void setNumOfPeptideQueries(int numOfQueries){
+		this.numOfQueries = numOfQueries;
 	}
 
 	/**
-	 * Returns the rawDataFile instance
-	 * @param String name 
+	 * Returns an array of RawDataFile linked to this file
 	 */
 	public RawDataFile[] getRawDataFiles(){
 		return rawDataFiles.toArray(new RawDataFile[0]);
@@ -226,6 +226,8 @@ public class PeptideIdentityDataFile{
 			fragmentIonMassErrorTol = Double.parseDouble((String) this.getParameters().get("ITOL"));
 		return fragmentIonMassErrorTol;
 	}
+	
+	
 	
 	
 	/**

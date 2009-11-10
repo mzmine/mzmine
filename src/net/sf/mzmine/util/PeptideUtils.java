@@ -22,14 +22,20 @@ package net.sf.mzmine.util;
 import java.util.HashMap;
 import java.util.Vector;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.proteomics.FragmentIon;
 import net.sf.mzmine.data.proteomics.FragmentIonType;
 import net.sf.mzmine.data.proteomics.ModificationPeptide;
 import net.sf.mzmine.data.proteomics.Peptide;
 import net.sf.mzmine.data.proteomics.PeptideFragmentation;
 import net.sf.mzmine.data.proteomics.PeptideIdentityDataFile;
+import net.sf.mzmine.data.proteomics.PeptideScan;
 import net.sf.mzmine.data.proteomics.SerieIonType;
+import net.sf.mzmine.modules.identification.peptidesearch.PeptideIdentity;
 
 public class PeptideUtils {
 	
@@ -100,7 +106,7 @@ public class PeptideUtils {
         	indexBionLossNH3 = sequence.indexOf('R');
         	}
         if (sequence.indexOf('K') != -1 && sequence.indexOf('K') < indexBionLossNH3) {
-        	indexBionLossNH3 = sequence.indexOf('T');
+        	indexBionLossNH3 = sequence.indexOf('K');
         }
         if (sequence.indexOf('N') != -1 && sequence.indexOf('N') < indexBionLossNH3) {
         	indexBionLossNH3 = sequence.indexOf('N');
@@ -144,6 +150,7 @@ public class PeptideUtils {
     		HashMap<Integer, ModificationPeptide> modifications) {
     	
         int length = sequence.length();
+        String aminoKey;
         // Calculated the mass of each amino acid including detected modification
         double[] peptideMasses = new double[length];
         for (int i = 0; i < length; i++) {
@@ -167,7 +174,8 @@ public class PeptideUtils {
                     aminoMass += modifications.get(i + 2).getMass();
             }
             // For aa i, count its mass to the UnitMass.
-            aminoMass = aminoMass + defaultMasses.get(sequence.charAt(i));
+            aminoKey = Character.toString(sequence.charAt(i));
+            aminoMass = aminoMass + defaultMasses.get(aminoKey);
             /* If there is a modification on aa i, count the mass at the UnitMass.
             * if the modification is fixed , don't add the mass because Mascot already 
             * included an equivalent modified amino acid mass.
@@ -521,6 +529,15 @@ public class PeptideUtils {
     }
     
     
+    /**
+     * Return the matched ions (MS/MS masses) between a calculated fragment ions and scan's data points 
+     * 
+     * @param scanDataPoints
+     * @param fragmentIons
+     * @param fragmentIonMassErrorTol
+     * @param intensityThreshold
+     * @return
+     */
     public static DataPoint[] getMatchedIons (DataPoint[] scanDataPoints, FragmentIon[] fragmentIons,
     		double fragmentIonMassErrorTol, double intensityThreshold){
     	DataPoint[] matchedDataPoints = null;
@@ -529,6 +546,15 @@ public class PeptideUtils {
     }
     
 
+    /**
+     * Returns the coverage of the ion series.
+     * 
+     * @param dataPoints
+     * @param peptide
+     * @param ionType
+     * @param intensityThreshold
+     * @return
+     */
 	public static double getIonCoverage(DataPoint[] dataPoints, Peptide peptide, 
 			SerieIonType ionType, double intensityThreshold) {
 		
@@ -544,8 +570,79 @@ public class PeptideUtils {
 		return ionCoverage;
 	}
 	
-	private static double calculateSerieCoverage(DataPoint[] matchedDataPoints, FragmentIon[] fragmentIons){
+	
+	/**
+	 * Calculates the ion coverage
+	 * 
+	 * @param matchedDataPoints
+	 * @param fragmentIons
+	 * @return
+	 */
+	public static double calculateSerieCoverage(DataPoint[] matchedDataPoints, FragmentIon[] fragmentIons){
+		//TODO
 		return 0;
+	}
+
+	/**
+	 * Finds a peak which match with the peptide's information. 
+	 * First look for the raw data file in the peak list that contains 
+	 * a scan with same number, ms level and data points. Then gets the 
+	 * parent scan number and verifies if one of the peaks (from peaklist 
+	 * and those that belongs to the selected raw data file) contains 
+	 * this scan.
+	 * 
+	 * @param peptideScan
+	 * @param peakList
+	 * @return boolean	True if a match is found.
+	 */
+	public static boolean findMatch(PeptideScan peptideScan, PeakList peakList) {
+		
+		if (peptideScan == null)
+			return false;
+		
+		int rawScanNumber = peptideScan.getScanNumber();
+		int precursorScanNumber = -1;
+		Peptide highScorePeptide = peptideScan.getHighScorePeptide();
+		Scan scan;
+		
+		RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+		RawDataFile rawFile = null;
+		
+		for (int i=0; i<rawDataFiles.length; i++){
+			scan = rawDataFiles[i].getScan(rawScanNumber);
+			if ( scan != null){
+				if ((scan.getMSLevel() >= 2) && 
+						(MascotParserUtils.compareDataPointsByMass(scan.getDataPoints(),peptideScan.getDataPoints())) ){
+					precursorScanNumber = scan.getParentScanNumber();
+					rawFile = rawDataFiles[i];
+				}
+			}
+		}
+		
+		if (precursorScanNumber < 0)
+			return false;
+		
+		boolean flag = false;
+		
+		ChromatographicPeak[] peaks = peakList.getPeaks(rawFile);
+		int massPeak;
+		int expectedMassPeptide = (int) peptideScan.getPrecursorMZ();
+		for (int j=0;j < peaks.length ; j++){
+			massPeak = (int) peaks[j].getMZ();
+			if (massPeak == expectedMassPeptide){
+				int[] scanNumbers =  peaks[j].getScanNumbers();
+				for (int i=0; i< scanNumbers.length; i++){
+					if (scanNumbers[i] == precursorScanNumber){
+						PeptideIdentity identity = new PeptideIdentity(highScorePeptide);
+						peakList.getPeakRow(peaks[j]).addPeakIdentity(identity, true);
+						flag = true;
+					}
+				}
+			}
+		}
+		
+		return flag;
+		
 	}
 
 

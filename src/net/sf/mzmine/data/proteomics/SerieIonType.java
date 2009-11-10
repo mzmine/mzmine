@@ -42,7 +42,7 @@ public enum SerieIonType {
 	ZH_SERIES("zH", new FragmentIonType[]{FragmentIonType.ZH_ION}),
 	ZH_DOUBLE_SERIES("zH++", new FragmentIonType[]{FragmentIonType.ZH_DOUBLE_ION}),
 	ZHH_SERIES("zHH", new FragmentIonType[]{FragmentIonType.ZHH_ION}),
-	ZHHD_OUBLE_SERIES("zHH++", new FragmentIonType[]{FragmentIonType.ZHH_DOUBLE_ION});
+	ZHH_DOUBLE_SERIES("zHH++", new FragmentIonType[]{FragmentIonType.ZHH_DOUBLE_ION});
 	
 
 
