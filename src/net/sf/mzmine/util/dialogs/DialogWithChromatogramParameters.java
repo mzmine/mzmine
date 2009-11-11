@@ -63,11 +63,12 @@ public class DialogWithChromatogramParameters extends SimpleParameterSet {
     public static final Parameter plotLegend = new SimpleParameter(
 			ParameterType.BOOLEAN, "Show Legend", "Show / Hide Legend", new Boolean(false));
 
+    public static final Parameter originalRawData = new SimpleParameter(
+			ParameterType.BOOLEAN, "Show Original Raw Data File", "Show Original Raw Data File", new Boolean(true));
 
 
 	public DialogWithChromatogramParameters() {
-		super(new Parameter[] { dataFiles, /*msLevel, plotType,*/
-				retentionTimeRange, mzRange, plotLegend});
+		super(new Parameter[] { dataFiles, msLevel, plotType, retentionTimeRange, mzRange, plotLegend, originalRawData});
 	}
 
 }

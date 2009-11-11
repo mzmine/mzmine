@@ -21,12 +21,15 @@ package net.sf.mzmine.modules.rawdata.datasetfilters.rtcorrection;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdata.datasetfilters.preview.RawDataFilter;
 
 public class RTCorrectionFilter implements RawDataFilter {
 
+    RTCorrectionFilterParameters parameters;
 	public RTCorrectionFilter(RTCorrectionFilterParameters parameters) {
+        this.parameters = parameters;
 	}
 
 	public RawDataFile getNewDataFiles(RawDataFile dataFile) {
@@ -35,12 +38,12 @@ public class RTCorrectionFilter implements RawDataFilter {
 			int[] scanNumbers = dataFile.getScanNumbers(1);
 			int totalScans = scanNumbers.length;
 
-			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile("");
+			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + "-Filtered");
 
 			for (int i = 0; i < totalScans; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);			
-				if (scan != null) {
-					rawDataFileWriter.addScan(scan);
+				Scan scan = dataFile.getScan(scanNumbers[i]);               
+				if (scan != null) {               
+					rawDataFileWriter.addScan(new SimpleScan(scan));
 				}
 			}
 
@@ -48,6 +51,7 @@ public class RTCorrectionFilter implements RawDataFilter {
 
 
 		} catch (Exception e) {
+            e.printStackTrace();
 			return null;
 		}
 	}

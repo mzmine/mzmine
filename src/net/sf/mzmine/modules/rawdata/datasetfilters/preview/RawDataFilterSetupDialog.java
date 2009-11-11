@@ -18,14 +18,20 @@
  */
 package net.sf.mzmine.modules.rawdata.datasetfilters.preview;
 
-import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdata.datasetfilters.RawDataFilteringParameters;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
 
 /**
@@ -53,12 +59,15 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
                 parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
                 RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
 
+
         this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
 
         // Parameters of local raw data filter to get preview values
         mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
-    }
 
+
+    }
+ 
     protected void loadPreview(RawDataFile dataFile) {
         String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
         try {
@@ -75,22 +84,33 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
         RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
 
 
-        Range rtRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.retentionTimeRange);
-        Range mzRange = (Range) TICParameters.getParameterValue(DialogWithChromatogramParameters.mzRange);
+        Range rtRange = (Range) TICparameters.getParameterValue(DialogWithChromatogramParameters.retentionTimeRange);
+        Range mzRange = (Range) TICparameters.getParameterValue(DialogWithChromatogramParameters.mzRange);
 
-        Boolean setLegend = (Boolean) TICParameters.getParameterValue(DialogWithChromatogramParameters.plotLegend);
-        
-        if (!setLegend) {            
+        Boolean setLegend = (Boolean) TICparameters.getParameterValue(DialogWithChromatogramParameters.plotLegend);
+
+        if (!setLegend) {
             legend.setVisible(false);
         } else {
             legend.setVisible(true);
         }
-        
-        int level = (Integer) TICParameters.getParameterValue(DialogWithChromatogramParameters.msLevel);
+
+        int level = (Integer) TICparameters.getParameterValue(DialogWithChromatogramParameters.msLevel);
         if (newDataFile != null) {
             this.addRawDataFile(newDataFile, level, mzRange, rtRange);
         }
-        this.addRawDataFile(dataFile, level, mzRange, rtRange);
+
+        Boolean orginalRawDataView = (Boolean) TICparameters.getParameterValue(DialogWithChromatogramParameters.originalRawData);
+
+        if (orginalRawDataView) {
+            this.addRawDataFile(dataFile, level, mzRange, rtRange);
+        } else {
+            /* for (int index = 0; index < rawDataList.size(); index++) {
+            ticPlot.getXYPlot().setDataset(index,
+            null);
+
+            }*/
+        }
 
 
     }

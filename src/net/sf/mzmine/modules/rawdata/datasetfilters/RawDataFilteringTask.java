@@ -133,7 +133,8 @@ class RawDataFilteringTask implements Task {
 			for (RawDataFile dataFile : dataFiles) {
 				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile);
 				if (newDataFiles != null) {
-					newDataFiles.setName(newDataFiles.getName() + suffix);
+                    String name = newDataFiles.getName().replace("-Filtered", "");
+					newDataFiles.setName(name + suffix);
 					MZmineCore.getCurrentProject().addFile(newDataFiles);
 
 					// Remove the original file if requested

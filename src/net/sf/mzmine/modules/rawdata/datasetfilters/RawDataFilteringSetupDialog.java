@@ -79,8 +79,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 
 		if (src == btnSetFilter) {
-			int ind = comboRawDataFilters.getSelectedIndex();
-
+			int ind = comboRawDataFilters.getSelectedIndex();            
 			RawDataFilterSetupDialog dialog = new RawDataFilterSetupDialog(
 					parameters, ind);
 			dialog.setVisible(true);
