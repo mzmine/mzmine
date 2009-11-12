@@ -46,7 +46,9 @@ public class ProteomeUtils {
 		buf.append( mzFormat.format(peptide.getMass()) );
 		buf.append(" ;CalculatedMz ");
 		buf.append(  mzFormat.format(peptide.getMassExpected()) );
-		buf.append(" ;Charge ");
+		buf.append(" ;Score ");
+		buf.append(  peptide.getIonScore() );
+		buf.append(" \nCharge ");
 		buf.append( peptide.getPrecursorCharge() );
 		buf.append(" ;FragmentScan ");
 		buf.append( peptide.getScan().getScanNumber() );

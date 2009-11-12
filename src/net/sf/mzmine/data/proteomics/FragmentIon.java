@@ -26,7 +26,6 @@ public class FragmentIon {
 	private double mass;
 	private FragmentIonType ionType;
 	private int position;
-	private double intensity = 0;
 	
 	/**
 	 * This class represents a fragment ion comming from a sequence of amino acids (peptide) 

@@ -11,7 +11,8 @@
     <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder" /> 
     <module class="net.sf.mzmine.modules.peakpicking.deconvolution.Deconvolution" /> 
     <module class="net.sf.mzmine.modules.peakpicking.shapemodeler.ShapeModeler" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.msms.MsMsPeakPicker" /> 
+    <module class="net.sf.mzmine.modules.peakpicking.msms.MsMsPeakPicker" />
+    <module class="net.sf.mzmine.modules.peakpicking.peakextender.PeakExtender" /> 
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer" /> 

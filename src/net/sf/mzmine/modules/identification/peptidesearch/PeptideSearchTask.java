@@ -23,9 +23,14 @@ import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.data.proteomics.Peptide;
 import net.sf.mzmine.data.proteomics.PeptideIdentityDataFile;
+import net.sf.mzmine.data.proteomics.PeptideScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.identification.peptidesearch.fileformats.MascotParser;
 import net.sf.mzmine.project.ProjectEvent;
@@ -33,7 +38,7 @@ import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.PeptideUtils;
+import net.sf.mzmine.util.MascotParserUtils;
 
 public class PeptideSearchTask implements Task {
 
@@ -135,7 +140,7 @@ public class PeptideSearchTask implements Task {
 			for (int i=1; i<=numOfQueries; i++){
 				
 				parser.parseQuery(i,pepDataFile);
-				PeptideUtils.findMatch(pepDataFile.getPeptideScan(i),peakList);
+				this.findMatch(pepDataFile.getPeptideScan(i),peakList);
 				finishedLines++;
 				
 			}
@@ -169,6 +174,72 @@ public class PeptideSearchTask implements Task {
 
 		
 	}
+	
+	/**
+	 * Finds a peak which match with the peptide's information. 
+	 * First look for the raw data file in the peak list that contains 
+	 * a scan with same number, ms level and data points. Then gets the 
+	 * parent scan number and verifies if one of the peaks (from peaklist 
+	 * and those that belongs to the selected raw data file) contains 
+	 * this scan.
+	 * 
+	 * @param peptideScan
+	 * @param peakList
+	 * @return boolean	True if a match is found.
+	 */
+	public boolean findMatch(PeptideScan peptideScan, PeakList peakList) {
+		
+		if (peptideScan == null)
+			return false;
+		
+		int rawScanNumber = peptideScan.getScanNumber();
+		int precursorScanNumber = -1;
+		Peptide highScorePeptide = peptideScan.getHighScorePeptide();
+		Scan scan;
+		
+		RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
+		RawDataFile rawFile = null;
+		
+		for (int i=0; i<rawDataFiles.length; i++){
+			scan = rawDataFiles[i].getScan(rawScanNumber);
+			if ( scan != null){
+				if ((scan.getMSLevel() >= 2) && 
+						(MascotParserUtils.compareDataPointsByMass(scan.getDataPoints(),peptideScan.getDataPoints())) ){
+					precursorScanNumber = scan.getParentScanNumber();
+					rawFile = rawDataFiles[i];
+				}
+			}
+		}
+		
+		if (precursorScanNumber < 0)
+			return false;
+		
+		
+		boolean flag = false;
+		
+		ChromatographicPeak[] peaks = peakList.getPeaks(rawFile);
+		int massPeak;
+		int expectedMassPeptide = (int) peptideScan.getPrecursorMZ();
+		for (int j=0;j < peaks.length ; j++){
+			massPeak = (int) peaks[j].getMZ();
+			if (massPeak == expectedMassPeptide){
+				int[] scanNumbers =  peaks[j].getScanNumbers();
+				for (int i=0; i< scanNumbers.length; i++){
+					if (scanNumbers[i] == precursorScanNumber){
+						PeptideIdentity identity = new PeptideIdentity(highScorePeptide);
+						peakList.getPeakRow(peaks[j]).addPeakIdentity(identity, true);
+						flag = true;
+						logger.info("Scan number = "+ precursorScanNumber+" peptide " +highScorePeptide.toString());
+						logger.info("Matched with peak Scan number = "+ scanNumbers[i] + "from peak " + scanNumbers[0]+" - " + scanNumbers[scanNumbers.length-1]);
+					}
+				}
+			}
+		}
+		
+		return flag;
+		
+	}
+
 	
 	
 	public Object[] getCreatedObjects() {
