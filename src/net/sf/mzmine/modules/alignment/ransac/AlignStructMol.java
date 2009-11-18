@@ -30,6 +30,7 @@ public class AlignStructMol {
 	public boolean ransacMaybeInLiers;
 	public boolean ransacAlsoInLiers;
 
+
 	public AlignStructMol(PeakListRow row1, PeakListRow row2) {
 		this.row1 = row1;
 		this.row2 = row2;
