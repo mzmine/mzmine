@@ -354,7 +354,7 @@ public class MascotParserUtils {
      * R,T:R,T:R,T '
      */
 	public static Peptide[] parsePeptideInfo(int queryNumber, String info, double mass, double massExpected,
-			int precursorCharge,PeptideIdentityDataFile pepDataFile) {
+			int precursorCharge,PeptideIdentityDataFile pepDataFile, double identityThreshold, boolean isTopScore) {
 		
 		String[] tokens = info.split(";");
 		String peptideSection = tokens[0];
@@ -377,7 +377,7 @@ public class MascotParserUtils {
 		
 		if (proteinInfos.length != peptideInfos.length)
 			return null;
-		Peptide[] peptides = new Peptide[peptideInfos.length];
+		Vector<Peptide> peptides = new Vector<Peptide>();
 		
 		//Peptide
 		for (int pepIndex=0;pepIndex<peptideInfos.length;pepIndex++){
@@ -388,10 +388,13 @@ public class MascotParserUtils {
 			double deltaMass = Double.parseDouble(tokens[2]);
 			String sequence = tokens[11]+tokens[4]+tokens[12];
 			String modSeries = tokens[6];
-			float ionScore = Float.parseFloat(tokens[7]);
-
+			double ionScore = Double.parseDouble(tokens[7]);
+			
+			if (ionScore >= identityThreshold)
+				continue;
+			
 			Peptide peptide = new Peptide(queryNumber, sequence, ionScore, mass, 
-					massExpected, precursorCharge, precursorMass, deltaMass, missedCleavages, null, "Mascot");
+					massExpected, precursorCharge, precursorMass, deltaMass, missedCleavages, null, "Mascot",isTopScore);
 
 			HashMap<Integer,ModificationPeptide> modifications = new HashMap<Integer,ModificationPeptide>();
 			ModificationPeptide[] searchedMods = pepDataFile.getSearchedModifications();
@@ -422,7 +425,7 @@ public class MascotParserUtils {
 			ProteinSection section;
 			tokens = proteinInfos[pepIndex].split(":");
 			String sysname = tokens[0].replace("\"", "");
-				
+			
 			Protein protein = pepDataFile.getProtein(sysname);
 			if (protein == null)
 				protein = new Protein(sysname);
@@ -433,14 +436,14 @@ public class MascotParserUtils {
 			section = new ProteinSection(startRegion,stopRegion,multiplicity);
 		   		   
 			// Link peptide and protein
-			peptide.addProtein(protein);
-			protein.addPeptide(peptide,section);
+			peptide.setProtein(protein);
+			protein.addPeptide(peptide,section, isTopScore);
 			
-			peptides[pepIndex] = peptide;
+			peptides.add(peptide);
 		   		   
 		}
 
-		return peptides;
+		return peptides.toArray(new Peptide[0]);
 	}
 
 	/**
@@ -463,7 +466,7 @@ public class MascotParserUtils {
 			sites = sites.replace("(", "");
 			sites = sites.replace(")", "");
 			for (int i=0;i<sites.length(); i++){
-				mass = (Double) section.get(name);
+				mass = Double.parseDouble((String) section.get(name));
 				mods.add(new ModificationPeptide(name, mass, sites.charAt(i), fixed));
 			}
 		}
@@ -528,6 +531,49 @@ public class MascotParserUtils {
 		
 		return flag;
 		
+	}
+	
+	public static HashMap<String, Object> parseModificationMass (String keyPart, HashMap<String, Object> section){
+		
+		int count = 1;
+		String key = keyPart+count;
+		String value;
+		
+		while (section.containsKey(key)){
+			value = (String) section.get(key);
+			//No variable modifications
+			if (value == null)
+				break;
+			if (value.equalsIgnoreCase("-1"))
+				break;
+			
+			//Parse mass
+			String[] tokens = value.split(",");
+			String mass = tokens[0];
+			//Oxidation (M)
+			int endIndex = tokens[1].lastIndexOf(" ");
+			value = tokens[1].substring(0, endIndex);
+			value = value.trim();
+			section.remove(key);
+			section.put(value, mass);
+			count++;
+			key = keyPart+count;
+			value = null;
+		}
+		
+		return section;
+	}
+
+	public static double calculateIdentityThreshold(double significanceThreshold,
+			double identityQueryScore) {
+		
+		/*
+		 * This formula comes from Mascot software.
+		 */
+		double identityThreshold = identityQueryScore / (significanceThreshold * 20);
+		identityThreshold = Math.log(identityThreshold) * 10.0;
+		
+		return identityThreshold;
 	}
 
 }

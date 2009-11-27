@@ -41,6 +41,7 @@ public class PeptideIdentityDataFile{
     private SerieIonType[] ionSeriesRules;
 	private double peptideMassErrorTol = -1;
 	private double fragmentIonMassErrorTol = -1;
+	private double significanceThreshold;
 	
 	
 	
@@ -53,6 +54,28 @@ public class PeptideIdentityDataFile{
 		scans = new Hashtable<Integer, PeptideScan>();
 		proteins = new HashMap<String,Protein>() ;
 	}
+	
+	/**
+	 * Sets the significance threshold to recognize a valid peptide's identity
+	 * 
+	 * @param significanceThreshold
+	 */
+	public void setSignificanceThreshold(double significanceThreshold) {
+		this.significanceThreshold = significanceThreshold;
+		
+	}
+	
+	/**
+	 * Returns the threshold value for valid peptide's score to assign protein's identity
+	 * 
+	 * @return
+	 */
+	public double getSignificanceThreshold() {
+		return significanceThreshold;
+		
+	}
+
+
 	
 	/**
 	 * Returns the name of original data file 

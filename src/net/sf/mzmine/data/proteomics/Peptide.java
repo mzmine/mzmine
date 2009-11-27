@@ -28,30 +28,31 @@ public class Peptide {
 	
 	private int queryNumber;
 	private String sequence;
-	private float ionScore;
+	private double ionScore;
 	private double mass;
 	private double massExpected;
 	private double precursorMass;
 	private int precursorCharge;
 	private double deltaMass;
 	private int missedCleavages;
+	private boolean isTopScore;
 	private HashMap<Integer,ModificationPeptide> modifications;
 	private PeptideIonSerie ionSerie;
 	private PeptideScan scan;
 	private PeptideFragmentation fragmentation;
 
 	// Protein info
-	private Vector<Protein> proteins;
+	private Protein protein;
     
     private String identificationMethod;
 	
 	
-	public Peptide(int queryNumber, String sequence, float ion_score,double mass, 
+	public Peptide(int queryNumber, String sequence, double ionScore2,double mass, 
 			double massExpected, int charge, double precursorMass, double deltaMass, 
-			int missed, PeptideScan scan, String identificationMethod){
+			int missed, PeptideScan scan, String identificationMethod, boolean isTopScore){
 		this.queryNumber = queryNumber;
 		this.sequence = sequence;
-		this.ionScore = ion_score;
+		this.ionScore = ionScore2;
 		this.mass = mass;
 		this.massExpected = massExpected;
 		this.precursorCharge = charge;
@@ -60,8 +61,7 @@ public class Peptide {
 		this.missedCleavages = missed;
 		this.scan = scan;
 		this.identificationMethod = identificationMethod;
-		
-		proteins = new Vector<Protein>();
+		this.isTopScore = isTopScore;
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class Peptide {
 	/**
 	 * Returns the ion score 
 	 */
-	public float getIonScore(){
+	public double getIonScore(){
 		return ionScore;
 	}
 	
@@ -200,8 +200,8 @@ public class Peptide {
 	 * 
 	 * @return proteins
 	 */
-	public Protein[] getProteins() {
-		return proteins.toArray(new Protein[0]);
+	public Protein getProtein() {
+		return protein;
 	}
 
 	/**
@@ -209,8 +209,8 @@ public class Peptide {
 	 * 
 	 * @param protein
 	 */
-	public void addProtein(Protein protein) {
-		this.proteins.add(protein);
+	public void setProtein(Protein protein) {
+		this.protein = protein;
 	}
 	
 	/**
@@ -237,6 +237,10 @@ public class Peptide {
 	 */
 	public String toString() {
 		return ProteomeUtils.peptideToString(this);
+	}
+	
+	public boolean isTopScore(){
+		return isTopScore;
 	}
 
 	

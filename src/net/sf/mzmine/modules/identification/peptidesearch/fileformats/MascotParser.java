@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.proteomics.ModificationPeptide;
 import net.sf.mzmine.data.proteomics.Peptide;
@@ -38,6 +39,8 @@ import net.sf.mzmine.modules.identification.peptidesearch.PeptideFileParser;
 import net.sf.mzmine.util.MascotParserUtils;
 
 public class MascotParser implements PeptideFileParser {
+	
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private BufferedReader bufferReader;
 	private int numOfQueries = -1;
@@ -121,13 +124,27 @@ public class MascotParser implements PeptideFileParser {
         
     }
 
-    public void parseParameters(PeptideIdentityDataFile pepDataFile) {
+	public void parseParameters(PeptideIdentityDataFile pepDataFile) {
 		// Parameters, unimod, enzyme & header section
 		
-		HashMap section = sections.get("unimod");
-		String xml = (String) section.get("XML");
-		MascotXMLParser xmlParser = new MascotXMLParser(xml);
-		sections.put("unimod", xmlParser.getMassesMap());
+		HashMap<String, Object> section = sections.get("unimod");
+		if (section != null){
+			String xml = (String) section.get("XML");
+			MascotXMLParser xmlParser = new MascotXMLParser(xml);
+			sections.put("unimod", xmlParser.getMassesMap());
+		}
+		else {
+			section = sections.get("masses");
+			//delta1=16.003006,Oxidation (M)
+			section = MascotParserUtils.parseModificationMass("delta", section);
+			//FixedMod1=57.055400, Carbamidomethyl (C)
+			section = MascotParserUtils.parseModificationMass("FixedMod", section);
+			//Include terminal
+			section.put("-",new String("0.0"));
+			
+			sections.put("unimod", section);
+
+		}
 		
 		section = sections.get("parameters");
 		pepDataFile.setParameter("TOL", (String) section.get("TOL"));
@@ -169,13 +186,18 @@ public class MascotParser implements PeptideFileParser {
 
 	public void parseDefaultMasses(PeptideIdentityDataFile pepDataFile) {
 		// Masses & unimod section
-		HashMap section = sections.get("unimod");
+		HashMap<String, Object> section = sections.get("unimod");
 		
 		String element = null;
 		Iterator it = section.keySet().iterator();
 		while(it.hasNext()) { 
 			element = (String) it.next(); 
-			pepDataFile.setDefaultMass(element, (Double) section.get(element) ); 
+			try{
+				pepDataFile.setDefaultMass(element, Double.parseDouble((String) section.get(element) ) ); 
+			}
+			catch (Exception e){
+
+			}
 		} 
 		
 		
@@ -185,10 +207,11 @@ public class MascotParser implements PeptideFileParser {
 			PeptideIdentityDataFile pepDataFile) {
 		// Summary, peptides, proteins & queries 
 		
-	    //Peptide peptide;
-	    Protein[] proteins;
 	    double mass;
 	    double massExpected;
+	    double identityScore;
+	    double homologyScore;
+	    double significanceThreshold = pepDataFile.getSignificanceThreshold();
 	    int precursorCharge;
 	    int count = 1;
 		
@@ -206,6 +229,23 @@ public class MascotParser implements PeptideFileParser {
 		value = tokens[1].substring(0, tokens[1].indexOf("+"));
 		precursorCharge = Integer.parseInt(value);
 		
+		//Identity and homology score
+		//Example:
+		//qmatch100=81 (identity)
+		//qplughole100=25.351217 (homology)
+		value = (String) section.get("qmatch"+String.valueOf(queryNumber));
+		identityScore = Double.parseDouble((String) value);
+		
+		value = (String) section.get("qplughole"+String.valueOf(queryNumber));
+		homologyScore = Double.parseDouble((String) value);
+		
+		/*
+		 * Calculates the identity score threshold value.
+		 * This means the probability the relationship between
+		 * the likelihood of random sequence and a true peptide's identity.
+		*/
+		double identityThreshold = MascotParserUtils.calculateIdentityThreshold(significanceThreshold,identityScore);		
+		
 		value = null;
 		section = sections.get("peptides");
 		String key = "q"+String.valueOf(queryNumber)+"_p"+String.valueOf(count);
@@ -216,6 +256,7 @@ public class MascotParser implements PeptideFileParser {
 			//No peptide sequence asigned
 			if (value.equalsIgnoreCase("-1"))
 				break;
+			
 			key += "_terms";
 			value += ";"+(String) section.get(key);
 			hitSequences.add(value);
@@ -228,30 +269,53 @@ public class MascotParser implements PeptideFileParser {
 			return;
 		
 		Vector<Peptide> peptides = new Vector<Peptide>();
+		Vector<Peptide> alterPeptides = new Vector<Peptide>();
 		Iterator it = hitSequences.iterator ();
-		section = sections.get("proteins");		
-		while (it.hasNext ()) {
+		section = sections.get("proteins");
+	    Protein protein;
+
+	    boolean onlyHighScore = true;
+	    boolean highScoreAdded = false;
+
+	    while (it.hasNext ()) {
 			//Get peptide info 
 		    value = (String) it.next ();
 		    
 		    //Parse info and create peptide instances
-		    Peptide[] pepsFromSequence = MascotParserUtils.parsePeptideInfo(queryNumber,value,mass,massExpected,precursorCharge,pepDataFile);
+		    Peptide[] pepsFromSequence = MascotParserUtils.parsePeptideInfo(queryNumber,value,
+		    		mass,massExpected,precursorCharge,pepDataFile,identityThreshold,onlyHighScore);
+		    
 		    for (Peptide pep: pepsFromSequence){
 			    
 		    	// Set link of identified proteins and peptideIdentityDataFile
-		    	proteins = pep.getProteins();
-			    
-			    for (int i=0;i<proteins.length; i++){
-			    	if (proteins[i].getDescription() == null){
-			    		proteins[i].setDescription((String) section.get("\""+proteins[i].getSysname()+"\""));
-			    	}
-			    	pepDataFile.addIdentifiedProtein(proteins[i].getSysname(), proteins[i]);
-			    }
-
-			    peptides.add(pep);
+		    	protein = pep.getProtein();
+		    	if (protein.getDescription() == null){
+		    		protein.setDescription((String) section.get("\""+protein.getSysname()+"\""));
+		    	}
+		    	
+		    	//Just register as identified protein the one that has highest score peptide
+		    	//This works based on Mascot results are already sorted by score (descending).
+		    	if (onlyHighScore){
+		    		pepDataFile.addIdentifiedProtein(protein.getSysname(), protein);
+		    		peptides.add(pep);
+		    		highScoreAdded = true;
+		    	}
+		    	else
+		    		alterPeptides.add(pep);
 		    }
+		    
+		    if (highScoreAdded)
+		    	onlyHighScore = false;
+		    
 
 		}
+	    
+	    if (peptides.size() == 0){
+	    	//logger.info(" No peptides pass filter in query "+queryNumber);
+	    	return;
+	    }
+	    
+    	//logger.info(" Pass filter "+peptides.size()+" peptides in query "+queryNumber);
 
 		//Retrieve info of data points of each peptide (MS/MS data point values)
 		section = sections.get("query"+String.valueOf(queryNumber));
@@ -267,6 +331,8 @@ public class MascotParser implements PeptideFileParser {
 			peptide.setScan(peptideScan);
 			peptideScan.addPeptide(peptide);
 		}
+		
+		peptideScan.setAlterPeptides(alterPeptides.toArray(new Peptide[0]));
 		
 		//Links the scan to the peptideIdentityFile
 		pepDataFile.addPeptideScan(queryNumber, peptideScan);

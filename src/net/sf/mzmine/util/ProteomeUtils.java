@@ -41,7 +41,13 @@ public class ProteomeUtils {
 	public static String peptideToString(Peptide peptide) {
 		StringBuffer buf = new StringBuffer();
 		Format mzFormat = MZmineCore.getMZFormat();
-		buf.append(peptide.getSequence());
+
+		Protein protein = peptide.getProtein();
+		ProteinSection section;
+		section = protein.getSection(peptide);
+		buf.append(protein.getSysname()+":"+section.toString() + "; "+protein.getHits()+" hits");
+		
+		buf.append("\n"+peptide.getSequence());
 		buf.append("\nPeptideMz ");
 		buf.append( mzFormat.format(peptide.getMass()) );
 		buf.append(" ;CalculatedMz ");
@@ -52,13 +58,6 @@ public class ProteomeUtils {
 		buf.append( peptide.getPrecursorCharge() );
 		buf.append(" ;FragmentScan ");
 		buf.append( peptide.getScan().getScanNumber() );
-		Protein[] proteins = peptide.getProteins();
-		ProteinSection section;
-		for (Protein prot: proteins){
-			section = prot.getSection(peptide);
-			buf.append("\nProtein \""+prot.getSysname()+"\":"+section.getStartRegion()+
-					" - "+section.getStopRegion() + "; "+prot.getHits()+" hits");
-		}
 
 		return buf.toString();
 	}

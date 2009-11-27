@@ -33,8 +33,8 @@ public class PeptideSorter implements Comparator<Peptide> {
 
 	public int compare(Peptide pep1, Peptide pep2) {
 
-		Float pep1Value = pep1.getIonScore();
-		Float pep2Value = pep2.getIonScore();
+		Double pep1Value = pep1.getIonScore();
+		Double pep2Value = pep2.getIonScore();
 
 		if (direction == SortingDirection.Ascending)
 			return pep1Value.compareTo(pep2Value);

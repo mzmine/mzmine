@@ -29,9 +29,15 @@ public class PeptideSearchParameters extends SimpleParameterSet {
 	public static final Parameter proteinFile = new SimpleParameter(
 			ParameterType.FILE_NAME, "Protein identification file",
 			"Name of file that contains information for peptide identification");
+	
+	public static final Parameter significanceThreshold = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"Significance threshold",
+			"Threshold value to accept peptide's identity as true by peptide score",
+			null, new Double(0.05), new Double(0.0), new Double(99.0), null);
 
 	public PeptideSearchParameters() {
-		super(new Parameter[] { proteinFile });
+		super(new Parameter[] { proteinFile, significanceThreshold});
 	}
 
 }

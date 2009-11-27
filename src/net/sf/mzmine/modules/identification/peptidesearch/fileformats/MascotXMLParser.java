@@ -36,7 +36,7 @@ public class MascotXMLParser extends DefaultHandler {
 	private HashMap<String,Object> massesMap;
 	private String modification = null;
 	private String attribute = null;
-	private double mass = 0.0;
+	private Object mass = null;
 
 	/**
 	 * This class parse the section "unimod" of a Mascot result .dat file.
@@ -70,14 +70,14 @@ public class MascotXMLParser extends DefaultHandler {
 			String qName, // qualified name
 			Attributes attrs) throws SAXException {
 
-		mass = 0.0;
+		mass = null;
 		attribute = null;
 		
 		// <umod:elem>
 		if (qName.equals("umod:elem")) {
 			attribute = attrs.getValue("mono_mass");
 			if (attribute != null)
-				mass = Double.parseDouble(attribute);
+				mass = attribute;
 			attribute = attrs.getValue("full_name");
 			massesMap.put(attribute, mass);
 		}
@@ -90,7 +90,7 @@ public class MascotXMLParser extends DefaultHandler {
 		if (qName.equals("umod:delta")) {
 			attribute = attrs.getValue("mono_mass");
 			if (attribute != null)
-				mass = Double.parseDouble(attribute);
+				mass = attribute;
 			if (modification != null){
 				massesMap.put(modification, mass);
 			}
@@ -100,7 +100,7 @@ public class MascotXMLParser extends DefaultHandler {
 		if (qName.equals("umod:aa")) {
 			attribute = attrs.getValue("mono_mass");
 			if (attribute != null)
-				mass = Double.parseDouble(attribute);
+				mass = attribute;
 			attribute = attrs.getValue("title");
 			massesMap.put(attribute, mass);
 		}

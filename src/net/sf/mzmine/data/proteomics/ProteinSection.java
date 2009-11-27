@@ -61,4 +61,8 @@ public class ProteinSection {
 		return multiplicity;
 	}
 	
+	public String toString(){
+		return this.startRegion + " - "+ this.stopRegion;
+	}
+	
 }

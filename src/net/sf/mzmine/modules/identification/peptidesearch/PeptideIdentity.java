@@ -45,7 +45,7 @@ public class PeptideIdentity implements PeakIdentity {
 	}
 
 	public String getName() {
-		return peptide.getSequence();
+		return peptide.toString();
 	}
 	
 	public Peptide getPeptide(){
@@ -53,7 +53,7 @@ public class PeptideIdentity implements PeakIdentity {
 	}
 	
 	public String toString(){
-		return peptide.getSequence();
+		return peptide.toString();
 	}
 
 }

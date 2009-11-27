@@ -38,6 +38,7 @@ public class PeptideScan implements Scan {
 	private RawDataFile rawDataFile;
 	private int rawScanNumber;
 	private Vector<Peptide> peptides;
+	private Peptide[] alterPeptides;
 	private int queryNumber;
 	private int msLevel;
 	private int parentScan;
@@ -368,7 +369,7 @@ public class PeptideScan implements Scan {
 	 */
 	public Peptide getHighScorePeptide(){
 		// Sort m/z peaks by descending intensity
-		Peptide[] sortedPeptides =peptides.toArray(new Peptide[0]);
+		Peptide[] sortedPeptides = peptides.toArray(new Peptide[0]);
 		Arrays.sort(sortedPeptides, new PeptideSorter(SortingDirection.Descending));
 		return sortedPeptides[0];
 	}
@@ -382,6 +383,15 @@ public class PeptideScan implements Scan {
 		return queryNumber;
 	}
 
+	public void setAlterPeptides(Peptide[] alterPeptides) {
+		this.alterPeptides = alterPeptides;
+		
+	}
+
+	public Peptide[] getAlterPeptides() {
+		return alterPeptides;
+		
+	}
 
 	
 }
