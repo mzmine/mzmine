@@ -20,7 +20,6 @@ package net.sf.mzmine.modules.alignment.ransac;
 
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -279,12 +278,16 @@ class RansacAlignerTask implements Task {
      * @return
      */
     private Vector<AlignStructMol> ransacPeakLists(PeakList alignedPeakList, PeakList peakList) {
-        
-        Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList);
-        RANSAC ransac = new RANSAC(parameters);
-        ransac.alignment(list);
+        Vector<AlignStructMol> allLists = new Vector<AlignStructMol>();
+        for (int i = 0; i < peakList.getRowsMZRange().getMax(); i = i + (int) rtShiftChange) {
+            Range RTRange = new Range(i, i + rtShiftChange);
+            Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList, RTRange);
+            RANSAC ransac = new RANSAC(parameters);
+            ransac.alignment(list);
+            allLists.addAll(list);
+        }
 
-        return list;
+        return allLists;
     }
 
     /**
@@ -295,17 +298,11 @@ class RansacAlignerTask implements Task {
      */
     private double getRT(PeakListRow row, Vector<AlignStructMol> list) {
         try {
-            double RT = row.getAverageRT();
-            double rtMax = RT + rtShiftChange;
-            double rtMin = RT - rtShiftChange;
-            if (rtMin < 0) {
-                rtMin = 0;
-            }
-            Range rtRange = new Range(rtMin, rtMax);
+            double RT = row.getAverageRT();            
             SimpleRegression regression = new SimpleRegression();
 
             for (AlignStructMol alignMol : list) {
-                if (alignMol.Aligned && rtRange.contains(alignMol.RT)) {
+                if (alignMol.Aligned) {
                     regression.addData(alignMol.RT2, alignMol.RT);
 
                 }
@@ -324,16 +321,16 @@ class RansacAlignerTask implements Task {
      * @param peakListY
      * @return vector which contains all the possible aligned peaks.
      */
-    private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY) {
+    private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY, Range RTRange) {
 
         Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
+        PeakListRow[] rows = peakListX.getRowsInsideScanRange(RTRange);
 
-        for (PeakListRow row : peakListX.getRows()) {
+        for (PeakListRow row : rows) {
 
             if (status == TaskStatus.CANCELED) {
                 return null;
             }
-
             // Calculate limits for a row with which the row can be aligned
             double mzMin = row.getAverageMZ() - mzTolerance;
             double mzMax = row.getAverageMZ() + mzTolerance;
@@ -341,16 +338,17 @@ class RansacAlignerTask implements Task {
             double rtToleranceValue = rtTolerance;
             rtMin = row.getAverageRT() - rtToleranceValue;
             rtMax = row.getAverageRT() + rtToleranceValue;
+            Range rtRange = new Range(mzMin, mzMax);
+
 
             // Get all rows of the aligned peaklist within parameter limits
             PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(
-                    new Range(rtMin, rtMax), new Range(mzMin, mzMax));
+                    new Range(rtMin, rtMax), rtRange);
 
             for (PeakListRow candidateRow : candidateRows) {
                 alignMol.addElement(new AlignStructMol(row, candidateRow));
 
             }
-
         }
 
         return alignMol;
