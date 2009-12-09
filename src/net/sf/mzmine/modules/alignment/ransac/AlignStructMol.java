@@ -19,12 +19,14 @@
 package net.sf.mzmine.modules.alignment.ransac;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
 public class AlignStructMol {
 
 	public PeakListRow row1,  row2;
+    public DataPoint dp1, dp2;
 	public double RT,  RT2;
 	public boolean Aligned = false;
 	public boolean ransacMaybeInLiers;
@@ -36,6 +38,13 @@ public class AlignStructMol {
 		this.row2 = row2;
 		RT = row1.getAverageRT();
 		RT2 = row2.getAverageRT();
+	}
+
+    public AlignStructMol(DataPoint dp, DataPoint dp2) {
+		this.dp1 = dp;
+		this.dp2 = dp2;
+		RT = dp1.getMZ();
+		RT2 = dp2.getMZ();
 	}
 
 	public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file,RawDataFile file2) {

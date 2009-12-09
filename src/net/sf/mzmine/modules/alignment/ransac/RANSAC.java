@@ -58,7 +58,7 @@ public class RANSAC {
 
 		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
 
-	}
+	}   
 
 	/**
 	 * Set all parameters and start ransac.

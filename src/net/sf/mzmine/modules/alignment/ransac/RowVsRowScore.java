@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.alignment.ransac;
 
 import net.sf.mzmine.data.PeakListRow;
@@ -26,67 +25,68 @@ import net.sf.mzmine.data.PeakListRow;
  */
 class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-	private PeakListRow peakListRow, alignedRow;
-	double score;
-	private String errorMessage;
+    private PeakListRow peakListRow,  alignedRow;    
+    double score;
+    private String errorMessage;
 
-	RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
-			double mzMaxDiff, double rtMaxDiff) throws Exception {
+    RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
+            double mzMaxDiff, double rtMaxDiff, double correctedRT) throws Exception {
 
-		this.peakListRow = peakListRow;
-		this.alignedRow = alignedRow;
+        
+        this.alignedRow = alignedRow;
+        this.peakListRow = peakListRow;
 
-		// Calculate differences between m/z and RT values
-		double mzDiff = Math.abs(peakListRow.getAverageMZ()
-				- alignedRow.getAverageMZ());
+        // Calculate differences between m/z and RT values
+        double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
+        double rtDiff = Math.abs(correctedRT - alignedRow.getAverageRT());
+      
+        score = ((1 - mzDiff / mzMaxDiff) + (1 - rtDiff / rtMaxDiff));
 
-		double rtDiff = Math.abs(peakListRow.getAverageRT()
-				- alignedRow.getAverageRT());
 
-				
 		score = ((1 - mzDiff / mzMaxDiff)) +
 				((1 - rtDiff / rtMaxDiff));
 
-	}
+    }
 
-	/**
-	 * This method returns the peak list row which is being aligned
-	 */
-	PeakListRow getPeakListRow() {
-		return peakListRow;
-	}
+    /**
+     * This method returns the peak list row which is being aligned
+     */
+    PeakListRow getPeakListRow() {
+        return peakListRow;
+    }
 
-	/**
-	 * This method returns the row of aligned peak list
-	 */
-	PeakListRow getAlignedRow() {
-		return alignedRow;
-	}
+    /**
+     * This method returns the row of aligned peak list
+     */
+    PeakListRow getAlignedRow() {
+        return alignedRow;
+    }
 
-	/**
-	 * This method returns score between the these two peaks (the lower score,
-	 * the better match)
-	 */
-	double getScore() {
-		return score;
-	}
+    /**
+     * This method returns score between the these two peaks (the lower score,
+     * the better match)
+     */
+    double getScore() {
+        return score;
+    }
 
-	String getErrorMessage(){
-		return errorMessage;
-	}
+    String getErrorMessage() {
+        return errorMessage;
+    }
 
-	/**
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	public int compareTo(RowVsRowScore object) {
+    /**
+     * @see java.lang.Comparable#compareTo(java.lang.Object)
+     */
+    public int compareTo(RowVsRowScore object) {
 
-		// We must never return 0, because the TreeSet in JoinAlignerTask would
-		// treat such elements as equal
-		if (score < object.getScore())
-			return 1;
-		else
-			return -1;
+        // We must never return 0, because the TreeSet in JoinAlignerTask would
+        // treat such elements as equal
+        if (score < object.getScore()) {
+            return 1;
+        } else {
+            return -1;
+        }
 
-	}
-
+    }
+   
 }
