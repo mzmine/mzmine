@@ -41,11 +41,6 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
         double rtDiff = Math.abs(correctedRT - alignedRow.getAverageRT());
       
         score = ((1 - mzDiff / mzMaxDiff) + (1 - rtDiff / rtMaxDiff));
-
-
-		score = ((1 - mzDiff / mzMaxDiff)) +
-				((1 - rtDiff / rtMaxDiff));
-
     }
 
     /**
