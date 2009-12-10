@@ -67,7 +67,7 @@ public class PeakFinderParameters extends SimpleParameterSet {
             ParameterType.DOUBLE, "Relative RT tolerance",
             "Maximum allowed relative RT difference", "%", new Double(0.15),
             new Double(0.0), null, percentFormat);
-	
+
     public PeakFinderParameters() {
         super(new Parameter[] { suffix, intTolerance, MZTolerance,
                 RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent});

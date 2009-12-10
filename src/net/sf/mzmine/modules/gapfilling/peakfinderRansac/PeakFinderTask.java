@@ -18,6 +18,9 @@
  */
 package net.sf.mzmine.modules.gapfilling.peakfinderRansac;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -34,247 +37,273 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class PeakFinderTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
-	private PeakList peakList,  processedPeakList;
-	private String suffix;
-	private double intTolerance,  mzTolerance;
-	private boolean rtToleranceUseAbs;
-	private double rtToleranceValueAbs,  rtToleranceValuePercent;
-	private PeakFinderParameters parameters;
-	private int processedScans,  totalScans;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage;
+    private PeakList peakList,  processedPeakList;
+    private String suffix;
+    private double intTolerance,  mzTolerance;
+    private boolean rtToleranceUseAbs;
+    private double rtToleranceValueAbs,  rtToleranceValuePercent;
+    private PeakFinderParameters parameters;
+    private int processedScans,  totalScans;
 
-	PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
+    PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
-		this.peakList = peakList;
-		this.parameters = parameters;
+        this.peakList = peakList;
+        this.parameters = parameters;
 
-		suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
-		intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
-		mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
-		if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute) {
-			rtToleranceUseAbs = true;
-		}
-		rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
-		rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
-	}
+        suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
+        intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
+        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
+        if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute) {
+            rtToleranceUseAbs = true;
+        }
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
+        rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
+    }
 
-	public void run() {
+    public void run() {
 
-		status = TaskStatus.PROCESSING;
-		logger.info("Running Ransac gap filler on " + peakList);
+        status = TaskStatus.PROCESSING;
+        logger.info("Running Ransac gap filler on " + peakList);
 
-		// Calculate total number of scans in all files
-		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-			totalScans += dataFile.getNumOfScans(1);
-		}
+        // Calculate total number of scans in all files
+        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+            totalScans += dataFile.getNumOfScans(1);
+        }
 
-		// Create new peak list
-		processedPeakList = new SimplePeakList(peakList + " " + suffix,
-				peakList.getRawDataFiles());
+        // Create new peak list
+        processedPeakList = new SimplePeakList(peakList + " " + suffix,
+                peakList.getRawDataFiles());
 
-		// Fill new peak list with empty rows
-		for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-			PeakListRow sourceRow = peakList.getRow(row);
-			PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
-			newRow.setComment(sourceRow.getComment());
-			for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
-				newRow.addPeakIdentity(ident, false);
-			}
-			if (sourceRow.getPreferredPeakIdentity() != null) {
-				newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
-			}
-			processedPeakList.addRow(newRow);
-		}
-
-
-		// Get the information to obtain the retention time where the peaks should be
-		Vector<RegressionInfo> regressionInfo = new Vector<RegressionInfo>();
-		RawDataFile[] datafiles = peakList.getRawDataFiles();
-
-		for (int i = 0; i < datafiles.length; i++) {
-			for (int e = i + 1; e < datafiles.length; e++) {
-				SimpleRegression regression = new SimpleRegression();
-				for (PeakListRow row : peakList.getRows()) {
-					ChromatographicPeak peaki = row.getPeak(datafiles[i]);
-					ChromatographicPeak peake = row.getPeak(datafiles[e]);
-					if (peaki != null && peake != null) {
-						regression.addData(peaki.getRT(), peake.getRT());
-					}
-				}
-
-				regressionInfo.add(new RegressionInfo(regression.getSlope(), regression.getIntercept(), datafiles[i], datafiles[e]));
-			}
-		}
-
-		// Process all raw data files
-		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-
-			// Canceled?
-			if (status == TaskStatus.CANCELED) {
-				return;
-			}
-
-			Vector<Gap> gaps = new Vector<Gap>();
-
-			// Fill each row of this raw data file column, create new empty gaps
-			// if necessary
-			for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-				PeakListRow sourceRow = peakList.getRow(row);
-				PeakListRow newRow = processedPeakList.getRow(row);
-
-				ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
-
-				if (sourcePeak == null) {
-
-					// Create a new gap
-
-					double mz = sourceRow.getAverageMZ();
-					double rt = this.getRealRT(regressionInfo, dataFile, sourceRow);
-					double rtTolerance = 0;
-					if (rtToleranceUseAbs) {
-						rtTolerance = rtToleranceValueAbs;
-					} else {
-						rtTolerance = rt * rtToleranceValuePercent;
-					}
+        // Fill new peak list with empty rows
+        for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+            PeakListRow sourceRow = peakList.getRow(row);
+            PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
+            newRow.setComment(sourceRow.getComment());
+            for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
+                newRow.addPeakIdentity(ident, false);
+            }
+            if (sourceRow.getPreferredPeakIdentity() != null) {
+                newRow.setPreferredPeakIdentity(sourceRow.getPreferredPeakIdentity());
+            }
+            processedPeakList.addRow(newRow);
+        }
 
 
+        // Get the information to obtain the retention time where the peaks should be
+        Vector<RegressionInfo> regressionInfo = new Vector<RegressionInfo>();
+        RawDataFile[] datafiles = peakList.getRawDataFiles();
 
-					Gap newGap = new Gap(newRow, dataFile, mz, rt,
-							intTolerance, mzTolerance, rtTolerance);
+        for (int i = 0; i < datafiles.length; i++) {
+            for (int e = i + 1; e < datafiles.length; e++) {
+                RegressionInfo info = new RegressionInfo(datafiles[i], datafiles[e]);
+                for (PeakListRow row : peakList.getRows()) {
+                    ChromatographicPeak peaki = row.getPeak(datafiles[i]);
+                    ChromatographicPeak peake = row.getPeak(datafiles[e]);
+                    if (peaki != null && peake != null) {
+                        info.addData(peaki.getRT(), peake.getRT());
+                    }
+                }
+                regressionInfo.add(info);
+            }
+        }
 
-					gaps.add(newGap);
+        // Process all raw data files
+        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
-				} else {
-					newRow.addPeak(dataFile, sourcePeak);
-				}
+            // Canceled?
+            if (status == TaskStatus.CANCELED) {
+                return;
+            }
 
-			}
+            Vector<Gap> gaps = new Vector<Gap>();
 
-			// Stop processing this file if there are no gaps
-			if (gaps.size() == 0) {
-				processedScans += dataFile.getNumOfScans();
-				continue;
-			}
+            // Fill each row of this raw data file column, create new empty gaps
+            // if necessary
+            for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                PeakListRow sourceRow = peakList.getRow(row);
+                PeakListRow newRow = processedPeakList.getRow(row);
 
-			// Get all scans of this data file
-			int scanNumbers[] = dataFile.getScanNumbers(1);
+                ChromatographicPeak sourcePeak = sourceRow.getPeak(dataFile);
 
-			// Process each scan
-			for (int scanNumber : scanNumbers) {
+                if (sourcePeak == null) {
 
-				// Canceled?
-				if (status == TaskStatus.CANCELED) {
-					return;
-				}
+                    // Create a new gap
 
-				// Get the scan
-				Scan scan = dataFile.getScan(scanNumber);
+                    double mz = sourceRow.getAverageMZ();
+                    double rt = this.getRealRT(regressionInfo, dataFile, sourceRow);
 
-				// Feed this scan to all gaps
-				for (Gap gap : gaps) {
-					gap.offerNextScan(scan);
-				}
+                    if (rt == -1) {
+                        continue;
+                    }
+                    double rtTolerance = 0;
+                    if (rtToleranceUseAbs) {
+                        rtTolerance = rtToleranceValueAbs;
+                    } else {
+                        rtTolerance = rt * rtToleranceValuePercent;
+                    }
 
-				processedScans++;
-			}
 
-			// Finalize gaps
-			for (Gap gap : gaps) {
-				gap.noMoreOffers();
-			}
 
-		}
+                    Gap newGap = new Gap(newRow, dataFile, mz, rt,
+                            intTolerance, mzTolerance, rtTolerance);
 
-		// Append processed peak list to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(processedPeakList);
+                    gaps.add(newGap);
 
-		// Add task description to peakList
-		processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-				"Ransac Gap filling ", parameters));
+                } else {
+                    newRow.addPeak(dataFile, sourcePeak);
+                }
 
-		logger.info("Finished Ransac gap-filling on " + peakList);
-		status = TaskStatus.FINISHED;
+            }
 
-	}
-	
+            // Stop processing this file if there are no gaps
+            if (gaps.size() == 0) {
+                processedScans += dataFile.getNumOfScans();
+                continue;
+            }
 
-	/**
-	 * Return the retention time where the peak must be based on the ransac 
-	 * alignment of all the samples.	
-	 */
-	public double getRealRT(Vector<RegressionInfo> regressionInfo, RawDataFile rawDataFile, PeakListRow row) {
-		double bestY = 0;
-		int cont = 0;
-		for (RegressionInfo rinfo : regressionInfo) {
-			if (rinfo.getRawDataFile1() == rawDataFile) {
-				try {
+            // Get all scans of this data file
+            int scanNumbers[] = dataFile.getScanNumbers(1);
 
-					double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
-					double y = (RTX - rinfo.getIntercept()) / rinfo.getSlope();
-					if (y > 0 && rinfo.getSlope() > 0) {
-						bestY += y;
-						cont++;
-					}
+            // Process each scan
+            for (int scanNumber : scanNumbers) {
 
-				} catch (Exception exception) {
-				}
-			}
-			if (rinfo.getRawDataFile2() == rawDataFile) {
+                // Canceled?
+                if (status == TaskStatus.CANCELED) {
+                    return;
+                }
 
-				try {
+                // Get the scan
+                Scan scan = dataFile.getScan(scanNumber);
 
-					double RTX = row.getPeak(rinfo.getRawDataFile1()).getRT();
-					double y = rinfo.getIntercept() + (RTX * rinfo.getSlope());
-					if (y > 0) {
-						bestY += y;
-						cont++;
-					}
-				} catch (Exception exception) {
-				}
-			}
+                // Feed this scan to all gaps
+                for (Gap gap : gaps) {
+                    gap.offerNextScan(scan);
+                }
 
-		}
+                processedScans++;
+            }
 
-		return bestY / cont;
+            // Finalize gaps
+            for (Gap gap : gaps) {
+                gap.noMoreOffers();
+            }
 
-	}
+        }
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
+        // Append processed peak list to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(processedPeakList);
 
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+        // Add task description to peakList
+        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                "Ransac Gap filling ", parameters));
 
-	public double getFinishedPercentage() {
-		if (totalScans == 0) {
-			return 0;
-		}
-		return (double) processedScans / (double) totalScans;
+        logger.info("Finished Ransac gap-filling on " + peakList);
+        status = TaskStatus.FINISHED;
 
-	}
+    }
 
-	public TaskStatus getStatus() {
-		return status;
-	}
+    /**
+     * Return the retention time where the peak must be based on the ransac
+     * alignment of all the samples.
+     */
+    public double getRealRT(Vector<RegressionInfo> regressionInfo, RawDataFile rawDataFile, PeakListRow row) {
 
-	public String getTaskDescription() {
-		return "Ransac Gap filling " + peakList;
-	}
+             // loess regression
+        for (RegressionInfo rinfo : regressionInfo) {
+            if (rinfo.getRawDataFile1() == rawDataFile) {
+                try {
+                    PolynomialSplineFunction regression = rinfo.getRegression(0);
+                    ChromatographicPeak peakRTX = row.getPeak(rinfo.getRawDataFile2());
+                    if (peakRTX != null) {                      
+                        return regression.value(peakRTX.getRT());
+                    }
+                } catch (MathException ex) {
+                }
+            }
+            if (rinfo.getRawDataFile2() == rawDataFile) {
+                try {
+                    PolynomialSplineFunction regression = rinfo.getRegression(1);
+                    ChromatographicPeak peakRTX = row.getPeak(rinfo.getRawDataFile1());
+                    if (peakRTX != null) {                       
+                        return regression.value(peakRTX.getRT());
+                    }
+                } catch (MathException ex) {
+                }
+            }
+        }
+      
 
-	PeakList getPeakList() {
-		return peakList;
-	}
+        // Simple regression
+        double y = -1;
+      /*  for (RegressionInfo rinfo : regressionInfo) {
 
-	public Object[] getCreatedObjects() {
-		return new Object[]{processedPeakList};
-	}
+            if (rinfo.getRawDataFile2() == rawDataFile) {
+                try {
+                    SimpleRegression regression = rinfo.getSimpleRegression(0);
+                    double RTX = row.getPeak(rinfo.getRawDataFile1()).getRT();
+                    y = regression.predict(RTX);
+                    break;
+                } catch (Exception e) {
+                }
+            }
+            if (rinfo.getRawDataFile1() == rawDataFile) {
+                try {
+                    SimpleRegression regression = rinfo.getSimpleRegression(2);
+                    double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
+                    y = regression.predict(RTX);
+                    break;
+                } catch (Exception e) {
+                }
+            }
+
+
+        }*/
+        if (y < 0 || y == Double.NaN) {
+            return -1;
+        } else {
+            return y;
+        }
+    }
+
+    public void cancel() {
+        status = TaskStatus.CANCELED;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public double getFinishedPercentage() {
+        if (totalScans == 0) {
+            return 0;
+        }
+        return (double) processedScans / (double) totalScans;
+
+    }
+
+    public TaskStatus getStatus() {
+        return status;
+    }
+
+    public String getTaskDescription() {
+        return "Ransac Gap filling " + peakList;
+    }
+
+    PeakList getPeakList() {
+        return peakList;
+    }
+
+    public Object[] getCreatedObjects() {
+        return new Object[]{processedPeakList};
+    }
 }
