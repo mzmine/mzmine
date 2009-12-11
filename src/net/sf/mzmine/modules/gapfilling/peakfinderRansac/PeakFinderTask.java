@@ -215,7 +215,7 @@ class PeakFinderTask implements Task {
                     if (minRT < 0) {
                         minRT = 0;
                     }
-                    SimpleRegression regression = rinfo.getSimpleRegression(new Range(minRT, RTX + 60), this.rtToleranceValueAbs);
+                    SimpleRegression regression = rinfo.getSimpleRegression(new Range(minRT, RTX + 60), this.rtToleranceValueAbs*10);
                     statistics.addValue(regression.predict(RTX));
 
                 // break;
