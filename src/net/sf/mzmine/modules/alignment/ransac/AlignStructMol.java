@@ -25,56 +25,65 @@ import net.sf.mzmine.data.RawDataFile;
 
 public class AlignStructMol {
 
-	public PeakListRow row1,  row2;
-    public DataPoint dp1, dp2;
-	public double RT,  RT2;
-	public boolean Aligned = false;
-	public boolean ransacMaybeInLiers;
-	public boolean ransacAlsoInLiers;
+    public PeakListRow row1,  row2;
+    public DataPoint dp1,  dp2;
+    public double RT,  RT2;
+    public boolean Aligned = false;
+    public boolean ransacMaybeInLiers;
+    public boolean ransacAlsoInLiers;
 
-
-	public AlignStructMol(PeakListRow row1, PeakListRow row2) {
-		this.row1 = row1;
-		this.row2 = row2;
-		RT = row1.getAverageRT();
-		RT2 = row2.getAverageRT();
-	}
+    public AlignStructMol(PeakListRow row1, PeakListRow row2) {
+        this.row1 = row1;
+        this.row2 = row2;
+        RT = row1.getAverageRT();
+        RT2 = row2.getAverageRT();
+    }
 
     public AlignStructMol(DataPoint dp, DataPoint dp2) {
-		this.dp1 = dp;
-		this.dp2 = dp2;
-		RT = dp1.getMZ();
-		RT2 = dp2.getMZ();
-	}
+        this.dp1 = dp;
+        this.dp2 = dp2;
+        RT = dp1.getMZ();
+        RT2 = dp2.getMZ();
+    }
 
-	public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file,RawDataFile file2) {
-		this.row1 = row1;
-		this.row2 = row2;
-		if (row1.getPeak(file) != null) {
-			RT = row1.getPeak(file).getRT();
-		} else {
-			RT = row1.getAverageRT();
-		}
+    public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file, RawDataFile file2) {
+        this.row1 = row1;
+        this.row2 = row2;
+        if (row1.getPeak(file) != null) {
+            RT = row1.getPeak(file).getRT();
+        } else {
+            RT = row1.getAverageRT();
+        }
 
-		if (row2.getPeak(file2) != null) {
-			RT2 = row2.getPeak(file2).getRT();
-		} else {
-			RT = row1.getAverageRT();
-		}
-	}	
+        if (row2.getPeak(file2) != null) {
+            RT2 = row2.getPeak(file2).getRT();
+        } else {
+            RT = row1.getAverageRT();
+        }
+    }
 
-	public boolean isMols(PeakListRow row1, PeakListRow row2) {
-		if (this.row1 == row1 && this.row2 == row2) {
-			return true;
-		}
-		return false;
-	}
+    public boolean isMols(PeakListRow row1, PeakListRow row2) {
+        if (this.row1 == row1 && this.row2 == row2) {
+            return true;
+        }
+        return false;
+    }
 
-	public AlignStructMol(ChromatographicPeak row1, ChromatographicPeak row2) {
-		RT = row1.getRT();
-		RT2 = row2.getRT();
-	}
-	
+    public AlignStructMol(ChromatographicPeak row1, ChromatographicPeak row2) {
+        RT = row1.getRT();
+        RT2 = row2.getRT();
+    }
+
+    public double getCorrectedRT(PeakListRow row) {
+        if (this.Aligned) {
+            if (row == row1) {
+                return RT2;
+            } else if (row == row2) {
+                return RT;
+            }
+        }
+        return -1;
+    }
 }
 
 

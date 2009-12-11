@@ -38,8 +38,8 @@ public class RansacAlignerParameters extends SimpleParameterSet {
             "Maximum allowed absolute RT difference after the algorithm correction for the retention time", null, new Double(15.0),
             new Double(0.0), null, MZmineCore.getRTFormat());
     public static final Parameter RTShiftChange = new SimpleParameter(
-            ParameterType.DOUBLE, "RT range where shift is linear ",
-            "Range of RT where the shift can be consider linear", null, new Double(200.0),
+            ParameterType.DOUBLE, "RT range where the RT deviation is linear ",
+            "Range of RT where the RT deviation can be consider linear", null, new Double(200.0),
             new Double(0.0), null, MZmineCore.getRTFormat());
     public static final Parameter RTTolerance = new SimpleParameter(
             ParameterType.DOUBLE, "RT tolerance",
@@ -56,8 +56,8 @@ public class RansacAlignerParameters extends SimpleParameterSet {
             "Threshold value for determining when a data point fits a model", "seconds",
             new Double(3.0), null, MZmineCore.getRTFormat());
     public static final Parameter curve = new SimpleParameter(
-            ParameterType.BOOLEAN, "Curve model",
-            "Switch between curve model or lineal model", new Boolean(true));
+            ParameterType.BOOLEAN, "Non linear model",
+            "Switch between non linear model or lineal model", new Boolean(true));
 
     public RansacAlignerParameters() {
         super(new Parameter[]{peakListName, MZTolerance, RTShiftChange, RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints, Margin, curve});
