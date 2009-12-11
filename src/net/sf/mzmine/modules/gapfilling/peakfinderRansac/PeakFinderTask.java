@@ -1,26 +1,23 @@
 /*
  * Copyright 2006-2009 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 package net.sf.mzmine.modules.gapfilling.peakfinderRansac;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
@@ -37,8 +34,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
+import net.sf.mzmine.util.Range;
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class PeakFinderTask implements Task {
@@ -48,9 +45,8 @@ class PeakFinderTask implements Task {
     private String errorMessage;
     private PeakList peakList,  processedPeakList;
     private String suffix;
-    private double intTolerance,  mzTolerance;
-    private boolean rtToleranceUseAbs;
-    private double rtToleranceValueAbs,  rtToleranceValuePercent;
+    private double intTolerance,  mzTolerance;  
+    private double rtToleranceValueAbs;
     private PeakFinderParameters parameters;
     private int processedScans,  totalScans;
 
@@ -61,12 +57,8 @@ class PeakFinderTask implements Task {
 
         suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
         intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
-        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
-        if (parameters.getParameterValue(PeakFinderParameters.RTToleranceType) == PeakFinderParameters.RTToleranceTypeAbsolute) {
-            rtToleranceUseAbs = true;
-        }
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
-        rtToleranceValuePercent = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValuePercent);
+        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);       
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);        
     }
 
     public void run() {
@@ -103,16 +95,18 @@ class PeakFinderTask implements Task {
         RawDataFile[] datafiles = peakList.getRawDataFiles();
 
         for (int i = 0; i < datafiles.length; i++) {
-            for (int e = i + 1; e < datafiles.length; e++) {
-                RegressionInfo info = new RegressionInfo(datafiles[i], datafiles[e]);
-                for (PeakListRow row : peakList.getRows()) {
-                    ChromatographicPeak peaki = row.getPeak(datafiles[i]);
-                    ChromatographicPeak peake = row.getPeak(datafiles[e]);
-                    if (peaki != null && peake != null) {
-                        info.addData(peaki.getRT(), peake.getRT());
+            for (int e = 0; e < datafiles.length; e++) {
+                if (i != e) {
+                    RegressionInfo info = new RegressionInfo(datafiles[i], datafiles[e]);
+                    for (PeakListRow row : peakList.getRows()) {
+                        ChromatographicPeak peaki = row.getPeak(datafiles[i]);
+                        ChromatographicPeak peake = row.getPeak(datafiles[e]);
+                        if (peaki != null && peake != null) {                            
+                            info.addData(peaki.getRT(), peake.getRT());
+                        }
                     }
+                    regressionInfo.add(info);
                 }
-                regressionInfo.add(info);
             }
         }
 
@@ -143,18 +137,10 @@ class PeakFinderTask implements Task {
 
                     if (rt == -1) {
                         continue;
-                    }
-                    double rtTolerance = 0;
-                    if (rtToleranceUseAbs) {
-                        rtTolerance = rtToleranceValueAbs;
-                    } else {
-                        rtTolerance = rt * rtToleranceValuePercent;
-                    }
-
-
+                    }   
 
                     Gap newGap = new Gap(newRow, dataFile, mz, rt,
-                            intTolerance, mzTolerance, rtTolerance);
+                            intTolerance, mzTolerance, rtToleranceValueAbs);
 
                     gaps.add(newGap);
 
@@ -217,61 +203,31 @@ class PeakFinderTask implements Task {
      * alignment of all the samples.
      */
     public double getRealRT(Vector<RegressionInfo> regressionInfo, RawDataFile rawDataFile, PeakListRow row) {
-
-             // loess regression
+        DescriptiveStatistics statistics = new DescriptiveStatistics();
+        
+        // Simple regression       
         for (RegressionInfo rinfo : regressionInfo) {
+
             if (rinfo.getRawDataFile1() == rawDataFile) {
                 try {
-                    PolynomialSplineFunction regression = rinfo.getRegression(0);
-                    ChromatographicPeak peakRTX = row.getPeak(rinfo.getRawDataFile2());
-                    if (peakRTX != null) {                      
-                        return regression.value(peakRTX.getRT());
+                    double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
+                    double minRT = RTX - 60;
+                    if (minRT < 0) {
+                        minRT = 0;
                     }
-                } catch (MathException ex) {
-                }
-            }
-            if (rinfo.getRawDataFile2() == rawDataFile) {
-                try {
-                    PolynomialSplineFunction regression = rinfo.getRegression(1);
-                    ChromatographicPeak peakRTX = row.getPeak(rinfo.getRawDataFile1());
-                    if (peakRTX != null) {                       
-                        return regression.value(peakRTX.getRT());
-                    }
-                } catch (MathException ex) {
+                    SimpleRegression regression = rinfo.getSimpleRegression(new Range(minRT, RTX + 60), this.rtToleranceValueAbs);
+                    statistics.addValue(regression.predict(RTX));
+
+                // break;
+                } catch (Exception e) {
                 }
             }
         }
-      
 
-        // Simple regression
-        double y = -1;
-      /*  for (RegressionInfo rinfo : regressionInfo) {
-
-            if (rinfo.getRawDataFile2() == rawDataFile) {
-                try {
-                    SimpleRegression regression = rinfo.getSimpleRegression(0);
-                    double RTX = row.getPeak(rinfo.getRawDataFile1()).getRT();
-                    y = regression.predict(RTX);
-                    break;
-                } catch (Exception e) {
-                }
-            }
-            if (rinfo.getRawDataFile1() == rawDataFile) {
-                try {
-                    SimpleRegression regression = rinfo.getSimpleRegression(2);
-                    double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
-                    y = regression.predict(RTX);
-                    break;
-                } catch (Exception e) {
-                }
-            }
-
-
-        }*/
-        if (y < 0 || y == Double.NaN) {
+        try {
+            return ((double) statistics.getSortedValues()[(int) statistics.getN() / 2]);
+        } catch (Exception e) {
             return -1;
-        } else {
-            return y;
         }
     }
 

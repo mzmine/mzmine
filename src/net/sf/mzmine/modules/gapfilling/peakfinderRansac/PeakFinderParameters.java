@@ -50,27 +50,17 @@ public class PeakFinderParameters extends SimpleParameterSet {
     public static final Parameter MZTolerance = new SimpleParameter(
             ParameterType.DOUBLE, "M/Z tolerance",
             "Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
-                    0.0), null, MZmineCore.getMZFormat());
-
-   public static final Parameter RTToleranceType = new SimpleParameter(
-            ParameterType.STRING,
-            "Retention time tolerance type",
-            "Maximum RT difference can be defined either using absolute or relative value",
-            RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
+                    0.0), null, MZmineCore.getMZFormat());   
 
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
             ParameterType.DOUBLE, "Absolute RT tolerance",
             "Maximum allowed absolute RT difference", null, new Double(15.0),
             new Double(0.0), null, MZmineCore.getRTFormat());
 
-    public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.DOUBLE, "Relative RT tolerance",
-            "Maximum allowed relative RT difference", "%", new Double(0.15),
-            new Double(0.0), null, percentFormat);
+   
 
     public PeakFinderParameters() {
-        super(new Parameter[] { suffix, intTolerance, MZTolerance,
-                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent});
+        super(new Parameter[] { suffix, intTolerance, MZTolerance, RTToleranceValueAbs});
     }
 
 }
