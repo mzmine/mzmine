@@ -24,308 +24,312 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.math.stat.regression.SimpleRegression;
-
 import Jama.Matrix;
+
+import java.util.Collections;
 
 public class RANSAC {
 
-	/**
-	 * input:
-	 * data - a set of observed data points	 
-	 * n - the minimum number of data values required to fit the model
-	 * k - the maximum number of iterations allowed in the algorithm
-	 * t - a threshold value for determining when a data point fits a model
-	 * d - the number of close data values required to assert that a model fits well to data
-	 *
-	 * output:
-	 * model which best fit the data 
-	 */
-	private int n;
-	private double d = 1;
-	private int k = 0;
-	private Random rnd;
-	private int AlsoNumber;
-	private double numRatePoints,  t;
-	private boolean isCurve;
+    /**
+     * input:
+     * data - a set of observed data points
+     * n - the minimum number of data values required to fit the model
+     * k - the maximum number of iterations allowed in the algorithm
+     * t - a threshold value for determining when a data point fits a model
+     * d - the number of close data values required to assert that a model fits well to data
+     *
+     * output:
+     * model which best fit the data
+     */
+    private int n;
+    private double d = 1;
+    private int k = 0;
+    private Random rnd;
+    private int AlsoNumber;
+    private double numRatePoints,  t;
+    private boolean nonLinear;
 
-	public RANSAC(RansacAlignerParameters parameters) {
+    public RANSAC(RansacAlignerParameters parameters) {
 
-		this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
+        this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
 
-		this.t = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
+        this.t = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
 
-		this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.Iterations);
+        this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.Iterations);
 
-		this.isCurve = (Boolean) parameters.getParameterValue(RansacAlignerParameters.curve);
+        this.nonLinear = (Boolean) parameters.getParameterValue(RansacAlignerParameters.nonLinear);
 
-	}   
+    }
 
-	/**
-	 * Set all parameters and start ransac.
-	 * @param data vector with the points which represent all possible alignments.
-	 */
-	public void alignment(Vector<AlignStructMol> data) {
-		try {
-			rnd = new Random();
-			// If the model is a curve 3 points are taken to build the model,
-			// if it is a line only 2 points are taken.
-			if (isCurve) {
-				n = 3;
-			} else {
-				n = 2;
-			}
+    /**
+     * Set all parameters and start ransac.
+     * @param data vector with the points which represent all possible alignments.
+     */
+    public void alignment(Vector<AlignStructMol> data) {
+        try {
+            rnd = new Random();
+            // If the model is non linear 4 points are taken to build the model,
+            // if it is linear only 2 points are taken.
+            if (nonLinear) {
+                n = 4;
+            } else {
+                n = 2;
+            }
 
-			// Minimun number of points required to assert that a model fits well to data
-			if (data.size() < 10) {
-				d = 3;
-			} else {
-				d = data.size() * numRatePoints;
-			}
+            // Minimun number of points required to assert that a model fits well to data
+            if (data.size() < 10) {
+                d = 3;
+            } else {
+                d = data.size() * numRatePoints;
+            }
 
-			// Calculate the number of trials if the user has not define them
-			if (k == 0) {
-				k = (int) getK();
-			}
+            // Calculate the number of trials if the user has not define them
+            if (k == 0) {
+                k = (int) getK();
+            }
 
-			ransac(data);
-		} catch (Exception exepcion) {
-		}
-	}
+            ransac(data);
+        } catch (Exception exepcion) {
+        }
+    }
 
-	/**
-	 * Calculate k (number of trials)
-	 * @return number of trials "k" required to select a subset of n good data points.
-	 */
-	public double getK() {
-		double w = numRatePoints;
-		double b = Math.pow(w, n);
-		return Math.log10(1 - 0.99) / Math.log10(1 - b) + (Math.sqrt(1 - b) / b);
-	}
+    /**
+     * Calculate k (number of trials)
+     * @return number of trials "k" required to select a subset of n good data points.
+     */
+    public double getK() {
+        double w = numRatePoints;
+        double b = Math.pow(w, n);
+        return Math.log10(1 - 0.99) / Math.log10(1 - b) + (Math.sqrt(1 - b) / b);
+    }
 
-	/**
-	 * RANSAC algorithm
-	 * @param data vector with the points which represent all possible alignments.
-	 */
-	public void ransac(Vector<AlignStructMol> data) {
-		double besterr = 9.9E99;
+    /**
+     * RANSAC algorithm
+     * @param data vector with the points which represent all possible alignments.
+     */
+    public void ransac(Vector<AlignStructMol> data) {
+        double besterr = 9.9E99;
 
-		for (int iterations = 0; iterations < k; iterations++) {
-			AlsoNumber = n;
-			// Get the initial points
-			boolean initN = getInitN(data);
-			if (!initN) {
-				continue;
-			}
+        for (int iterations = 0; iterations < k; iterations++) {
+            AlsoNumber = n;
+            // Get the initial points
+            boolean initN = getInitN(data);
+            if (!initN) {
+                continue;
+            }
 
-			// Calculate the model
-			if (isCurve) {
-				getAllModelPointsCurve(data);
-			} else {
-				getAllModelPoints(data);
-			}
+            // Calculate the model
+            if (nonLinear) {
+                getAllModelPointsCurve(data);
+            } else {
+                getAllModelPoints(data);
+            }
 
-			// If the model has the minimun number of points
-			if (AlsoNumber >= d) {
-				// Get the error of the model based on the number of points
-				double error = 9.9E99;
-				try {
-					error = newError(data);
-				} catch (Exception ex) {
-					Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
-				}
+            // If the model has the minimun number of points
+            if (AlsoNumber >= d) {
+                // Get the error of the model based on the number of points
+                double error = 9.9E99;
+                try {
+                    error = newError(data);
+                } catch (Exception ex) {
+                    Logger.getLogger(RANSAC.class.getName()).log(Level.SEVERE, null, ex);
+                }
 
-				// If the error is less than the error of the last model
-				if (error < besterr) {
-					besterr = error;
-					for (int i = 0; i < data.size(); i++) {
-						AlignStructMol alignStruct = data.elementAt(i);
-						if (alignStruct.ransacAlsoInLiers || alignStruct.ransacMaybeInLiers) {
-							alignStruct.Aligned = true;
-						} else {
-							alignStruct.Aligned = false;
-						}
+                // If the error is less than the error of the last model
+                if (error < besterr) {
+                    besterr = error;
+                    for (int i = 0; i < data.size(); i++) {
+                        AlignStructMol alignStruct = data.elementAt(i);
+                        if (alignStruct.ransacAlsoInLiers || alignStruct.ransacMaybeInLiers) {
+                            alignStruct.Aligned = true;
+                        } else {
+                            alignStruct.Aligned = false;
+                        }
 
-						alignStruct.ransacAlsoInLiers = false;
-						alignStruct.ransacMaybeInLiers = false;
+                        alignStruct.ransacAlsoInLiers = false;
+                        alignStruct.ransacMaybeInLiers = false;
 
-					}
-				}
-			}			
-			// remove the model
-			for (int i = 0; i < data.size(); i++) {
-				AlignStructMol alignStruct = data.elementAt(i);
-				alignStruct.ransacAlsoInLiers = false;
-				alignStruct.ransacMaybeInLiers = false;
-			}
+                    }
+                }
+            }
+            // remove the model
+            for (int i = 0; i < data.size(); i++) {
+                AlignStructMol alignStruct = data.elementAt(i);
+                alignStruct.ransacAlsoInLiers = false;
+                alignStruct.ransacMaybeInLiers = false;
+            }
 
 
-		}
-	}
+        }
+    }
 
-	/**
-	 * Take the initial points ramdoly. The points are divided by the initial number
-	 * of points. If the fractions contain enough number of points took one point
-	 * from each part.
-	 * @param data vector with the points which represent all possible alignments.
-	 * @return false if there is any problem.
-	 */
-	private boolean getInitN(Vector<AlignStructMol> data) {
+    /**
+     * Take the initial points ramdoly. The points are divided by the initial number
+     * of points. If the fractions contain enough number of points took one point
+     * from each part.
+     * @param data vector with the points which represent all possible alignments.
+     * @return false if there is any problem.
+     */
+    private boolean getInitN(Vector<AlignStructMol> data) {
 
-		int fractionNPoints = (data.size() / n) - 1;
+        int fractionNPoints = (data.size() / n) - 1;
 
-		if (fractionNPoints > 2) {
+        if (fractionNPoints > 2) {
 
-			if (!isCurve) {
-				// Take 2 points
-				int index = rnd.nextInt(fractionNPoints / 2);
-				data.elementAt(index).ransacMaybeInLiers = true;
+            if (!nonLinear) {
+                // Take 2 points
+                int index = rnd.nextInt(fractionNPoints / 2);
+                data.elementAt(index).ransacMaybeInLiers = true;
 
-				index = rnd.nextInt(fractionNPoints);
-				index += fractionNPoints;
-				data.elementAt(index).ransacMaybeInLiers = true;
-			} else {
-				// Take 3 points
-				int index = rnd.nextInt(fractionNPoints / 2);
-				data.elementAt(index).ransacMaybeInLiers = true;
+                index = rnd.nextInt(fractionNPoints);
+                index += fractionNPoints;
+                data.elementAt(index).ransacMaybeInLiers = true;
+            } else {
+                // Take 4 points
+                int index = rnd.nextInt(fractionNPoints / 2);
+                data.elementAt(index).ransacMaybeInLiers = true;
 
-				index = rnd.nextInt(fractionNPoints);
-				index += fractionNPoints;
-				data.elementAt(index).ransacMaybeInLiers = true;
+                index = rnd.nextInt(fractionNPoints);
+                index += fractionNPoints;
+                data.elementAt(index).ransacMaybeInLiers = true;
 
-				index = rnd.nextInt(fractionNPoints);
-				index += fractionNPoints;
-				index += fractionNPoints;
-				data.elementAt(index).ransacMaybeInLiers = true;
-			}
-			return true;
-		} else if (data.size() > 1) {
-			for (int i = 0; i < n; i++) {
-				int index = rnd.nextInt(data.size());
-				if (data.elementAt(index).ransacMaybeInLiers) {
-					i--;
-				} else {
-					data.elementAt(index).ransacMaybeInLiers = true;
-				}
-			}
-			return true;
-		} else {
-			return false;
-		}
-	}
+                index = rnd.nextInt(fractionNPoints);
+                index += (fractionNPoints * 2);
+                data.elementAt(index).ransacMaybeInLiers = true;
 
-	/**
-	 * Build the model creating a line with the 2 points
-	 * @param data vector with the points which represent all possible alignments.	 
-	 */
-	public void getAllModelPoints(Vector<AlignStructMol> data) {
+                index = rnd.nextInt(fractionNPoints);
+                index += (fractionNPoints * 3);
+                data.elementAt(index).ransacMaybeInLiers = true;
+            }
+            return true;
+        } else if (data.size() > 1) {
+            for (int i = 0; i < n; i++) {
+                int index = rnd.nextInt(data.size());
+                if (data.elementAt(index).ransacMaybeInLiers) {
+                    i--;
+                } else {
+                    data.elementAt(index).ransacMaybeInLiers = true;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		// Create the regression line using the two points
-		SimpleRegression regression = new SimpleRegression();
+    /**
+     * Build the model creating a line with the 2 points
+     * @param data vector with the points which represent all possible alignments.
+     */
+    public void getAllModelPoints(Vector<AlignStructMol> data) {
 
-		for (int i = 0; i < data.size(); i++) {
-			AlignStructMol point = data.elementAt(i);
-			if (point.ransacMaybeInLiers) {
-				regression.addData(point.RT, point.RT2);
-			}
-		}
+        // Create the regression line using the two points
+        SimpleRegression regression = new SimpleRegression();
 
-		// Add all the points which fit the model (the difference between the point
-		// and the regression line is less than "t"
-		for (AlignStructMol point : data) {
-			double intercept = regression.getIntercept();
-			double slope = regression.getSlope();
+        for (int i = 0; i < data.size(); i++) {
+            AlignStructMol point = data.elementAt(i);
+            if (point.ransacMaybeInLiers) {
+                regression.addData(point.RT, point.RT2);
+            }
+        }
 
-			double y = point.RT2;
-			double bestY = intercept + (point.RT * slope);
-			if (Math.abs(y - bestY) < t) {
-				point.ransacAlsoInLiers = true;
-				AlsoNumber++;
-			} else {
-				point.ransacAlsoInLiers = false;
-			}
-		}
+        // Add all the points which fit the model (the difference between the point
+        // and the regression line is less than "t"
+        for (AlignStructMol point : data) {
+            double intercept = regression.getIntercept();
+            double slope = regression.getSlope();
 
-	}
+            double y = point.RT2;
+            double bestY = intercept + (point.RT * slope);
+            if (Math.abs(y - bestY) < t) {
+                point.ransacAlsoInLiers = true;
+                AlsoNumber++;
+            } else {
+                point.ransacAlsoInLiers = false;
+            }
+        }
 
-	/**
-	 *
-	 * @param data vector with the points which represent all possible alignments.
-	 */
-	public void getAllModelPointsCurve(Vector<AlignStructMol> data) {
+    }
 
-		// Obtain the variables of the curve equation
-		Vector<double[]> threePoints = new Vector<double[]>();
-		for (int i = 0; i < data.size(); i++) {
-			AlignStructMol point = data.elementAt(i);
-			if (point.ransacMaybeInLiers) {
-				double[] pointCoord = new double[2];
-				pointCoord[0] = point.RT;
-				pointCoord[1] = point.RT2;
-				threePoints.addElement(pointCoord);
-			}
-		}
-		// Add all the points which fit the model (the difference between the point
-		// and the curve is less than "t"
-		try {
-			double[] curve = getCurveEquation(threePoints);
-			for (AlignStructMol point : data) {
-				double y = point.RT2;
-				double bestY = curve[0] * Math.pow(point.RT, 2) + curve[1] * point.RT + curve[2];
-				if (Math.abs(y - bestY) < t) {
-					point.ransacAlsoInLiers = true;
-					AlsoNumber++;
-				} else {
-					point.ransacAlsoInLiers = false;
-				}
-			}
-		} catch (Exception e) {
-		}
+    /**
+     *
+     * @param data vector with the points which represent all possible alignments.
+     */
+    public void getAllModelPointsCurve(Vector<AlignStructMol> data) {
+       
+        Vector<AlignStructMol> points = new Vector<AlignStructMol>();
+        for (int i = 0; i < data.size(); i++) {
+            AlignStructMol point = data.elementAt(i);
+            if (point.ransacMaybeInLiers) {
+                points.add(point);
+            }
+        }
+        Collections.sort(points, new AlignStructMol());
+        Vector<double[]> fourPoints = new Vector<double[]>();
+        for (AlignStructMol p : points) {
+            double[] v = new double[2];
+            v[0] = p.RT;
+            v[1] = p.RT2;
+            fourPoints.addElement(v);
+        }
 
-	}
 
-	/**
-	 *
-	 * @param threePoints Three XY coordinates
-	 * @return the three variables of the curve equation
-	 */
-	private double[] getCurveEquation(Vector<double[]> threePoints) {
-		double[][] m = new double[3][3];
-		double[] y = new double[3];
-		for (int i = 0; i < 3; i++) {
-			double[] point = threePoints.elementAt(i);
-			y[i] = point[1];
-			m[i][0] = Math.pow(point[0], 2);
-			m[i][1] = point[0];
-			m[i][2] = 1;
-		}
+        try {
+            double[] curve = getPolinomialCoefficients(fourPoints);
+            for (AlignStructMol point : data) {
+                double y = point.RT2;
+                double bestY = curve[0] * Math.pow(point.RT, 3) + curve[1] * Math.pow(point.RT, 2) + curve[2] * point.RT + curve[3];
+                
+                if (Math.abs(y - bestY) < t) {
+                    point.ransacAlsoInLiers = true;
+                    AlsoNumber++;
+                } else {
+                    point.ransacAlsoInLiers = false;
+                }
+            }
+        } catch (Exception e) {
+        }
+    }
 
-		Matrix matrix = new Matrix(m);
+    private double[] getPolinomialCoefficients(Vector<double[]> points) {
+        double[][] m = new double[4][4];
+        double[] y = new double[4];
+        for (int i = 0; i < 4; i++) {
+            double[] point = points.elementAt(i);
+            y[i] = point[1];
+            m[i][0] = Math.pow(point[0], 3);
+            m[i][1] = Math.pow(point[0], 2);
+            m[i][2] = point[0];
+            m[i][3] = 1;
+        }
 
-		Matrix iMatrix = matrix.inverse();
-		double[][] im = iMatrix.getArray();
-		double[] values = new double[3];
-		for (int i = 0; i < 3; i++) {
-			values[i] = im[i][0] * y[0] + im[i][1] * y[1] + im[i][2] * y[2];
-		}
+        Matrix matrix = new Matrix(m);
+        Matrix iMatrix = matrix.inverse();
 
-		return values;
-	}
+        double[][] im = iMatrix.getArray();
+        double[] values = new double[4];
+        for (int i = 0; i < 4; i++) {
+            values[i] = im[i][0] * y[0] + im[i][1] * y[1] + im[i][2] * y[2] + im[i][3] * y[3];
+        }
 
-	/**
-	 * calculate the error in the model
-	 * @param data vector with the points which represent all possible alignments.
-	 * @param regression regression of the alignment points
-	 * @return the error in the model
-	 */
-	public double newError(Vector<AlignStructMol> data) throws Exception {
+        return values;
+    }
+   
+    /**
+     * calculate the error in the model
+     * @param data vector with the points which represent all possible alignments.
+     * @param regression regression of the alignment points
+     * @return the error in the model
+     */
+    public double newError(Vector<AlignStructMol> data) throws Exception {
 
-		double numT = 1;
-		for (int i = 0; i < data.size(); i++) {
-			if (data.elementAt(i).ransacAlsoInLiers || data.elementAt(i).ransacMaybeInLiers) {
-				numT++;
-			}
-		}
-		return 1 / numT;
+        double numT = 1;
+        for (int i = 0; i < data.size(); i++) {
+            if (data.elementAt(i).ransacAlsoInLiers || data.elementAt(i).ransacMaybeInLiers) {
+                numT++;
+            }
+        }
+        return 1 / numT;
 
-	}
+    }
 }

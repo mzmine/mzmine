@@ -18,12 +18,13 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.util.Comparator;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
-public class AlignStructMol {
+public class AlignStructMol implements Comparator{
 
     public PeakListRow row1,  row2;
     public DataPoint dp1,  dp2;
@@ -62,6 +63,10 @@ public class AlignStructMol {
         }
     }
 
+    AlignStructMol() {
+        
+    }
+
     public boolean isMols(PeakListRow row1, PeakListRow row2) {
         if (this.row1 == row1 && this.row2 == row2) {
             return true;
@@ -84,6 +89,14 @@ public class AlignStructMol {
         }
         return -1;
     }
+
+    public int compare(Object arg0, Object arg1) {
+            if (((AlignStructMol) arg0).RT < ((AlignStructMol) arg1).RT) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
 }
 
 

@@ -74,7 +74,7 @@ class RansacAlignerTask implements Task {
         rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
 
         rtShiftChange = (Double) parameters.getParameterValue(RansacAlignerParameters.RTShiftChange);
-        
+
     }
 
     /**
@@ -286,29 +286,12 @@ class RansacAlignerTask implements Task {
      * @return
      */
     private Vector<AlignStructMol> ransacPeakLists(PeakList alignedPeakList, PeakList peakList) {
-        Vector<AlignStructMol> allLists = new Vector<AlignStructMol>();
-        for (int i = 0; i < peakList.getRowsMZRange().getMax(); i = i + (int) rtShiftChange) {
-            if (status != TaskStatus.PROCESSING) {
-                return null;
-            }
-            Range RTRange = new Range(i, i + rtShiftChange);
-            Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList, RTRange);
-            while (list.size() < 10) {
-                double min = RTRange.getMin() - rtShiftChange;
-                if (min < 0) {
-                    min = 0;
-                }
-                double max = RTRange.getMax() + rtShiftChange;
-                RTRange = new Range(min, max);
-                list = this.getVectorAlignment(alignedPeakList, peakList, RTRange);
-            }
-            RANSAC ransac = new RANSAC(parameters);
-            ransac.alignment(list);
-            allLists.addAll(list);
-        }
-
-        return allLists;
+        Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList);
+        RANSAC ransac = new RANSAC(parameters);
+        ransac.alignment(list);
+        return list;
     }
+    
 
     public SimpleRegression getSimpleRegression(List<RTs> data, Range rtRange, double step) {
         SimpleRegression regression = new SimpleRegression();
@@ -355,7 +338,7 @@ class RansacAlignerTask implements Task {
             return regression.predict(RT);
         } catch (Exception ex) {
             return -1;
-        }   
+        }
     }
 
     private class RTs implements Comparator {
@@ -372,10 +355,6 @@ class RansacAlignerTask implements Task {
         }
 
         public int compare(Object arg0, Object arg1) {
-
-            // We must never return 0, because the TreeSet in JoinAlignerTask would
-            // treat such elements as equal
-
             if (((RTs) arg0).RT < ((RTs) arg1).RT) {
                 return -1;
             } else {
@@ -391,7 +370,7 @@ class RansacAlignerTask implements Task {
      * @param peakListY
      * @return vector which contains all the possible aligned peaks.
      */
-    private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY, Range RTRange) {
+    private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY) {
 
         Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
         for (PeakListRow row : peakListX.getRows()) {
@@ -407,15 +386,14 @@ class RansacAlignerTask implements Task {
             rtMin = row.getAverageRT() - rtToleranceValue;
             rtMax = row.getAverageRT() + rtToleranceValue;
             Range rtRange = new Range(mzMin, mzMax);
-            if (RTRange.containsRange(rtRange)) {
 
-                // Get all rows of the aligned peaklist within parameter limits
-                PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(
-                        new Range(rtMin, rtMax), rtRange);
 
-                for (PeakListRow candidateRow : candidateRows) {
-                    alignMol.addElement(new AlignStructMol(row, candidateRow));
-                }
+            // Get all rows of the aligned peaklist within parameter limits
+            PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(
+                    new Range(rtMin, rtMax), rtRange);
+
+            for (PeakListRow candidateRow : candidateRows) {
+                alignMol.addElement(new AlignStructMol(row, candidateRow));
             }
         }
 
