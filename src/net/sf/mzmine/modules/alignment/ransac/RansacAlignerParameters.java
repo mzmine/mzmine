@@ -36,18 +36,14 @@ public class RansacAlignerParameters extends SimpleParameterSet {
     public static final Parameter RTToleranceValueAbs = new SimpleParameter(
             ParameterType.DOUBLE, "RT tolerance after correction",
             "Maximum allowed absolute RT difference after the algorithm correction for the retention time", null, new Double(15.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
-    public static final Parameter RTShiftChange = new SimpleParameter(
-            ParameterType.DOUBLE, "RT range where the RT deviation is linear ",
-            "Range of RT where the RT deviation can be consider linear", null, new Double(200.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
+            new Double(0.0), null, MZmineCore.getRTFormat());   
     public static final Parameter RTTolerance = new SimpleParameter(
             ParameterType.DOUBLE, "RT tolerance",
             "Maximum allowed absolute RT difference", null, new Double(15.0),
             new Double(0.0), null, MZmineCore.getRTFormat());
     public static final Parameter Iterations = new SimpleParameter(
             ParameterType.INTEGER, "RANSAC Iterations",
-            "Maximum number of iterations allowed in the algorithm", new Integer(0));
+            "Maximum number of iterations allowed in the algorithm", new Integer(1000));
     public static final Parameter NMinPoints = new SimpleParameter(
             ParameterType.DOUBLE, "Minimun Number of Points",
             "Minimum number of aligned peaks required to fit the model", "%", new Double(0.2), null, null);
@@ -60,6 +56,6 @@ public class RansacAlignerParameters extends SimpleParameterSet {
             "Switch between non linear model or lineal model", new Boolean(true));
 
     public RansacAlignerParameters() {
-        super(new Parameter[]{peakListName, MZTolerance, RTShiftChange, RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints, Margin, nonLinear});
+        super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints, Margin, nonLinear});
     }
 }

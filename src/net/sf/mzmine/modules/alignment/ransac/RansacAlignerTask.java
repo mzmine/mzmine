@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.alignment.ransac;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -38,7 +39,9 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
-import org.apache.commons.math.stat.regression.SimpleRegression;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
 
 class RansacAlignerTask implements Task {
 
@@ -53,7 +56,6 @@ class RansacAlignerTask implements Task {
     private String peakListName;
     private double mzTolerance;
     private double rtTolerance;
-    private double rtShiftChange;
     private RansacAlignerParameters parameters;
     private double rtToleranceValueAbs;
     // ID counter for the new peaklist
@@ -72,9 +74,7 @@ class RansacAlignerTask implements Task {
         rtTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.RTTolerance);
 
         rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
-
-        rtShiftChange = (Double) parameters.getParameterValue(RansacAlignerParameters.RTShiftChange);
-
+  
     }
 
     /**
@@ -288,30 +288,8 @@ class RansacAlignerTask implements Task {
     private Vector<AlignStructMol> ransacPeakLists(PeakList alignedPeakList, PeakList peakList) {
         Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList);
         RANSAC ransac = new RANSAC(parameters);
-        ransac.alignment(list);
+        ransac.alignment(list);       
         return list;
-    }
-    
-
-    public SimpleRegression getSimpleRegression(List<RTs> data, Range rtRange, double step) {
-        SimpleRegression regression = new SimpleRegression();
-        while (regression.getN() < 15) {
-            double min = rtRange.getMin();
-            double max = rtRange.getMax();
-            min -= step;
-            if (min < 0) {
-                min = 0;
-            }
-            max += step;
-            rtRange = new Range(min, max);
-            for (RTs rt : data) {
-                if (rtRange.contains(rt.RT)) {
-                    regression.addData(rt.RT2, rt.RT);
-                }
-
-            }
-        }
-        return regression;
     }
 
     /**
@@ -321,37 +299,44 @@ class RansacAlignerTask implements Task {
      * @return
      */
     private double getRT(PeakListRow row, Vector<AlignStructMol> list) {
-        double RT = row.getAverageRT();
         List<RTs> data = new ArrayList<RTs>();
-        for (AlignStructMol mol : list) {
-            if (mol.Aligned) {
-                data.add(new RTs(mol.RT, mol.RT2));
+        for (AlignStructMol m : list) {
+            if (m.Aligned) {
+                data.add(new RTs(m.RT2, m.RT));
             }
         }
-        double minRT = RT - rtShiftChange;
-        if (minRT < 0) {
-            minRT = 0;
+        Collections.sort(data, new RTs());
+
+        double[] xval = new double[data.size()];
+        double[] yval = new double[data.size()];
+        int i = 0;
+
+        for (RTs rt : data) {
+            xval[i] = rt.RT;
+            yval[i++] = rt.RT2;
         }
-        Range rtRange = new Range(minRT, RT + rtShiftChange);
-        SimpleRegression regression = getSimpleRegression(data, rtRange, this.rtToleranceValueAbs * 10);
+
         try {
-            return regression.predict(RT);
-        } catch (Exception ex) {
+            LoessInterpolator loess = new LoessInterpolator(0.5, 4);
+            PolynomialSplineFunction function = loess.interpolate(xval, yval);
+            return function.value(row.getAverageRT());           
+        } catch (MathException ex) {
             return -1;
-        }
+        }   
     }
 
     private class RTs implements Comparator {
 
         double RT;
         double RT2;
+        int map;
 
         public RTs() {
         }
 
         public RTs(double RT, double RT2) {
-            this.RT = RT;
-            this.RT2 = RT2;
+            this.RT = RT + 0.001 / Math.random();
+            this.RT2 = RT2 + 0.001 / Math.random();
         }
 
         public int compare(Object arg0, Object arg1) {

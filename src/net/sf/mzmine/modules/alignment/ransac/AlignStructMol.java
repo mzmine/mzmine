@@ -18,16 +18,12 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
-import java.util.Comparator;
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
-public class AlignStructMol implements Comparator{
+public class AlignStructMol {
 
-    public PeakListRow row1,  row2;
-    public DataPoint dp1,  dp2;
+    public PeakListRow row1,  row2; 
     public double RT,  RT2;
     public boolean Aligned = false;
     public boolean ransacMaybeInLiers;
@@ -38,14 +34,7 @@ public class AlignStructMol implements Comparator{
         this.row2 = row2;
         RT = row1.getAverageRT();
         RT2 = row2.getAverageRT();
-    }
-
-    public AlignStructMol(DataPoint dp, DataPoint dp2) {
-        this.dp1 = dp;
-        this.dp2 = dp2;
-        RT = dp1.getMZ();
-        RT2 = dp2.getMZ();
-    }
+    }   
 
     public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file, RawDataFile file2) {
         this.row1 = row1;
@@ -61,42 +50,8 @@ public class AlignStructMol implements Comparator{
         } else {
             RT = row1.getAverageRT();
         }
-    }
+    } 
 
-    AlignStructMol() {
-        
-    }
-
-    public boolean isMols(PeakListRow row1, PeakListRow row2) {
-        if (this.row1 == row1 && this.row2 == row2) {
-            return true;
-        }
-        return false;
-    }
-
-    public AlignStructMol(ChromatographicPeak row1, ChromatographicPeak row2) {
-        RT = row1.getRT();
-        RT2 = row2.getRT();
-    }
-
-    public double getCorrectedRT(PeakListRow row) {
-        if (this.Aligned) {
-            if (row == row1) {
-                return RT2;
-            } else if (row == row2) {
-                return RT;
-            }
-        }
-        return -1;
-    }
-
-    public int compare(Object arg0, Object arg1) {
-            if (((AlignStructMol) arg0).RT < ((AlignStructMol) arg1).RT) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
 }
 
 
