@@ -174,7 +174,7 @@ public class RANSAC {
     private boolean getInitN(Vector<AlignStructMol> data) {
         Collections.sort(data, new AlignStructMol());
         double min = data.get(0).RT;
-        double max = (data.get(data.size() - 1).RT - min);
+        double max = (data.get(data.size() - 1).RT);
         
         Range rtRange = new Range(min, max / 2);
         if (data.size() > n) {
@@ -221,7 +221,6 @@ public class RANSAC {
         // Add all the points which fit the model (the difference between the point
         // and the regression line is less than "t"
         for (AlignStructMol point : data) {
-
             double y = point.RT2;
             double bestY = regression.predict(point.RT);
             if (Math.abs(y - bestY) < t) {

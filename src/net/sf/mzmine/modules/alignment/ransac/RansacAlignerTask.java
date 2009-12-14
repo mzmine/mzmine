@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -39,6 +40,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
+import org.apache.commons.math.ArgumentOutsideDomainException;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
@@ -214,15 +216,22 @@ class RansacAlignerTask implements Task {
 
         // RANSAC algorithm
         Vector<AlignStructMol> list = ransacPeakLists(alignedPeakList, peakList);
+        PolynomialSplineFunction function = this.getRT(list);
 
         PeakListRow allRows[] = peakList.getRows();
+
         for (PeakListRow row : allRows) {
             // Calculate limits for a row with which the row can be aligned
             double mzMin = row.getAverageMZ() - mzTolerance;
             double mzMax = row.getAverageMZ() + mzTolerance;
             double rtMin, rtMax;
 
-            double rt = getRT(row, list);
+            double rt;
+            try {
+                rt = function.value(row.getAverageRT());
+            } catch (ArgumentOutsideDomainException ex) {
+                rt = -1;
+            }
             if (rt == Double.NaN || rt == -1) {
                 rt = row.getAverageRT();
             }
@@ -298,7 +307,7 @@ class RansacAlignerTask implements Task {
      * @param list
      * @return
      */
-    private double getRT(PeakListRow row, Vector<AlignStructMol> list) {
+    private PolynomialSplineFunction getRT(Vector<AlignStructMol> list) {
         List<RTs> data = new ArrayList<RTs>();
         for (AlignStructMol m : list) {
             if (m.Aligned) {
@@ -319,10 +328,10 @@ class RansacAlignerTask implements Task {
         try {
             LoessInterpolator loess = new LoessInterpolator(0.5, 4);
             double[] y = loess.smooth(xval, yval);
-            PolynomialSplineFunction function = loess.interpolate(xval, y);
-            return function.value(row.getAverageRT());
+            //PolynomialSplineFunction function = loess.interpolate(xval, y);
+            return loess.interpolate(xval, y);
         } catch (MathException ex) {
-            return -1;
+            return null;
         }
     }
 

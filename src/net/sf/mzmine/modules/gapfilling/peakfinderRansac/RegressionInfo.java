@@ -26,14 +26,13 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 
 public class RegressionInfo {
 
-    private RawDataFile file;
-    private RawDataFile file2;
+    private RawDataFile file; 
     private List<RTs> data;
     double[] values;
 
-    public RegressionInfo(RawDataFile rawDataFile1, RawDataFile rawDataFile2) {
+    public RegressionInfo(RawDataFile rawDataFile1) {
         this.file = rawDataFile1;
-        this.file2 = rawDataFile2;
+       
         this.data = new ArrayList<RTs>();
     }
 
@@ -59,10 +58,7 @@ public class RegressionInfo {
     public RawDataFile getRawDataFile1() {
         return file;
     }
-
-    public RawDataFile getRawDataFile2() {
-        return file2;
-    }
+   
 
     public void addData(double RT, double RT2) {
         this.data.add(new RTs(RT, RT2));

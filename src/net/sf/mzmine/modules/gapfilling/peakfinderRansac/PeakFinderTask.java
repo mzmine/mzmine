@@ -35,7 +35,6 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class PeakFinderTask implements Task {
@@ -45,7 +44,7 @@ class PeakFinderTask implements Task {
     private String errorMessage;
     private PeakList peakList,  processedPeakList;
     private String suffix;
-    private double intTolerance,  mzTolerance;  
+    private double intTolerance,  mzTolerance;
     private double rtToleranceValueAbs;
     private PeakFinderParameters parameters;
     private int processedScans,  totalScans;
@@ -57,8 +56,8 @@ class PeakFinderTask implements Task {
 
         suffix = (String) parameters.getParameterValue(PeakFinderParameters.suffix);
         intTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.intTolerance);
-        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);       
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);        
+        mzTolerance = (Double) parameters.getParameterValue(PeakFinderParameters.MZTolerance);
+        rtToleranceValueAbs = (Double) parameters.getParameterValue(PeakFinderParameters.RTToleranceValueAbs);
     }
 
     public void run() {
@@ -90,28 +89,17 @@ class PeakFinderTask implements Task {
         }
 
 
-        // Get the information to obtain the retention time where the peaks should be
-        Vector<RegressionInfo> regressionInfo = new Vector<RegressionInfo>();
-        RawDataFile[] datafiles = peakList.getRawDataFiles();
-
-        for (int i = 0; i < datafiles.length; i++) {
-            for (int e = 0; e < datafiles.length; e++) {
-                if (i != e) {
-                    RegressionInfo info = new RegressionInfo(datafiles[i], datafiles[e]);
-                    for (PeakListRow row : peakList.getRows()) {
-                        ChromatographicPeak peaki = row.getPeak(datafiles[i]);
-                        ChromatographicPeak peake = row.getPeak(datafiles[e]);
-                        if (peaki != null && peake != null) {                            
-                            info.addData(peaki.getRT(), peake.getRT());
-                        }
-                    }
-                    regressionInfo.add(info);
-                }
-            }
-        }
-
         // Process all raw data files
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+
+            RegressionInfo info = new RegressionInfo(dataFile);
+            for (PeakListRow row : peakList.getRows()) {
+                ChromatographicPeak peaki = row.getPeak(dataFile);
+                double peake = row.getAverageRT();
+                if (peaki != null) {
+                    info.addData(peaki.getRT(), peake);
+                }
+            }
 
             // Canceled?
             if (status == TaskStatus.CANCELED) {
@@ -133,11 +121,11 @@ class PeakFinderTask implements Task {
                     // Create a new gap
 
                     double mz = sourceRow.getAverageMZ();
-                    double rt = this.getRealRT(regressionInfo, dataFile, sourceRow);
+                    double rt = this.getRealRT(info, dataFile, sourceRow);
 
                     if (rt == -1) {
                         continue;
-                    }   
+                    }
 
                     Gap newGap = new Gap(newRow, dataFile, mz, rt,
                             intTolerance, mzTolerance, rtToleranceValueAbs);
@@ -202,30 +190,18 @@ class PeakFinderTask implements Task {
      * Return the retention time where the peak must be based on the ransac
      * alignment of all the samples.
      */
-    public double getRealRT(Vector<RegressionInfo> regressionInfo, RawDataFile rawDataFile, PeakListRow row) {
-        DescriptiveStatistics statistics = new DescriptiveStatistics();
-        
-        // Simple regression       
-        for (RegressionInfo rinfo : regressionInfo) {
-
-            if (rinfo.getRawDataFile1() == rawDataFile) {
-                try {
-                    double RTX = row.getPeak(rinfo.getRawDataFile2()).getRT();
-                    double minRT = RTX - 60;
-                    if (minRT < 0) {
-                        minRT = 0;
-                    }
-                    SimpleRegression regression = rinfo.getSimpleRegression(new Range(minRT, RTX + 60), this.rtToleranceValueAbs*10);
-                    statistics.addValue(regression.predict(RTX));
-
-                // break;
-                } catch (Exception e) {
-                }
-            }
-        }
+    public double getRealRT(RegressionInfo info, RawDataFile rawDataFile, PeakListRow row) {
 
         try {
-            return ((double) statistics.getSortedValues()[(int) statistics.getN() / 2]);
+            double RTX = row.getAverageRT();
+            double minRT = RTX - 60;
+            if (minRT < 0) {
+                minRT = 0;
+            }
+            SimpleRegression regression = info.getSimpleRegression(new Range(minRT, RTX + 60), this.rtToleranceValueAbs * 10);
+            return regression.predict(RTX);
+
+
         } catch (Exception e) {
             return -1;
         }
