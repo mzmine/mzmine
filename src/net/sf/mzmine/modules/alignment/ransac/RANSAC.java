@@ -18,15 +18,17 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.util.Range;
 import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
-import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
+import org.apache.commons.math.optimization.general.LevenbergMarquardtOptimizer;
 
 public class RANSAC {
 
@@ -46,7 +48,7 @@ public class RANSAC {
     private int k = 0;
     private int AlsoNumber;
     private double numRatePoints,  t;
-    private boolean nonLinear;   
+    private boolean nonLinear;
 
     public RANSAC(RansacAlignerParameters parameters) {
 
@@ -65,11 +67,11 @@ public class RANSAC {
      * @param data vector with the points which represent all possible alignments.
      */
     public void alignment(Vector<AlignStructMol> data) {
-        try {           
+        try {
             // If the model is non linear 4 points are taken to build the model,
             // if it is linear only 2 points are taken.
             if (nonLinear) {
-                n = 6;
+                n = 4;
             } else {
                 n = 2;
             }
@@ -87,7 +89,8 @@ public class RANSAC {
             }
 
             ransac(data);
-        } catch (Exception exepcion) {
+        } catch (Exception exception) {
+            exception.printStackTrace();
         }
     }
 
@@ -95,7 +98,7 @@ public class RANSAC {
      * Calculate k (number of trials)
      * @return number of trials "k" required to select a subset of n good data points.
      */
-    public double getK() {
+    private double getK() {
         double w = numRatePoints;
         double b = Math.pow(w, n);
         return Math.log10(1 - 0.99) / Math.log10(1 - b) + (Math.sqrt(1 - b) / b);
@@ -117,7 +120,7 @@ public class RANSAC {
             }
 
             // Calculate the model
-            if (nonLinear) {               
+            if (nonLinear) {
                 fittPolinomialFunction(data);
             } else {
                 getAllModelPoints(data);
@@ -169,17 +172,32 @@ public class RANSAC {
      * @return false if there is any problem.
      */
     private boolean getInitN(Vector<AlignStructMol> data) {
+        Collections.sort(data, new AlignStructMol());
+        double min = data.get(0).RT;
+        double max = (data.get(data.size() - 1).RT - min);
+        
+        Range rtRange = new Range(min, max / 2);
         if (data.size() > n) {
-            for (int i = 0; i < n; i++) {
-                int index = (int) (data.size() * Math.random());
-                if (data.elementAt(index).ransacMaybeInLiers) {
-                    i--;
-                } else {
-                    data.elementAt(index).ransacMaybeInLiers = true;
+            int cont = 0;
+            while (cont < n/2) {
+                int index = (int) (data.size() * Math.random());               
+                if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
+                    data.elementAt(index).ransacMaybeInLiers = true;                   
+                    cont++;
                 }
             }
+            cont = 0;
+            rtRange = new Range(max / 2, max);
+            while (cont < n/2) {
+                int index = (int) (data.size() * Math.random());
+                if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
+                    data.elementAt(index).ransacMaybeInLiers = true;                  
+                    cont++;
+                }
+            }
+
             return true;
-        } else {
+        } else {          
             return false;
         }
     }
@@ -188,7 +206,7 @@ public class RANSAC {
      * Build the model creating a line with the 2 points
      * @param data vector with the points which represent all possible alignments.
      */
-    public void getAllModelPoints(Vector<AlignStructMol> data) {
+    private void getAllModelPoints(Vector<AlignStructMol> data) {
 
         // Create the regression line using the two points
         SimpleRegression regression = new SimpleRegression();
@@ -202,7 +220,7 @@ public class RANSAC {
 
         // Add all the points which fit the model (the difference between the point
         // and the regression line is less than "t"
-        for (AlignStructMol point : data) {           
+        for (AlignStructMol point : data) {
 
             double y = point.RT2;
             double bestY = regression.predict(point.RT);
@@ -219,7 +237,7 @@ public class RANSAC {
     private void fittPolinomialFunction(Vector<AlignStructMol> data) {
         Vector<AlignStructMol> points = new Vector<AlignStructMol>();
 
-        PolynomialFitter fitter = new PolynomialFitter(4, new GaussNewtonOptimizer(true));
+        PolynomialFitter fitter = new PolynomialFitter(2, new LevenbergMarquardtOptimizer());
         for (int i = 0; i < data.size(); i++) {
             AlignStructMol point = data.elementAt(i);
             if (point.ransacMaybeInLiers) {
@@ -243,13 +261,14 @@ public class RANSAC {
         }
     }
 
+
     /**
      * calculate the error in the model
      * @param data vector with the points which represent all possible alignments.
      * @param regression regression of the alignment points
      * @return the error in the model
      */
-    public double newError(Vector<AlignStructMol> data) throws Exception {
+    private double newError(Vector<AlignStructMol> data) throws Exception {
 
         double numT = 1;
         for (int i = 0; i < data.size(); i++) {

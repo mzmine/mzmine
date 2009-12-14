@@ -74,7 +74,7 @@ class RansacAlignerTask implements Task {
         rtTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.RTTolerance);
 
         rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
-  
+
     }
 
     /**
@@ -288,7 +288,7 @@ class RansacAlignerTask implements Task {
     private Vector<AlignStructMol> ransacPeakLists(PeakList alignedPeakList, PeakList peakList) {
         Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList, peakList);
         RANSAC ransac = new RANSAC(parameters);
-        ransac.alignment(list);       
+        ransac.alignment(list);
         return list;
     }
 
@@ -318,11 +318,12 @@ class RansacAlignerTask implements Task {
 
         try {
             LoessInterpolator loess = new LoessInterpolator(0.5, 4);
-            PolynomialSplineFunction function = loess.interpolate(xval, yval);
-            return function.value(row.getAverageRT());           
+            double[] y = loess.smooth(xval, yval);
+            PolynomialSplineFunction function = loess.interpolate(xval, y);
+            return function.value(row.getAverageRT());
         } catch (MathException ex) {
             return -1;
-        }   
+        }
     }
 
     private class RTs implements Comparator {

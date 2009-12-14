@@ -18,12 +18,13 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.util.Comparator;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
-public class AlignStructMol {
+public class AlignStructMol implements Comparator {
 
-    public PeakListRow row1,  row2; 
+    public PeakListRow row1,  row2;
     public double RT,  RT2;
     public boolean Aligned = false;
     public boolean ransacMaybeInLiers;
@@ -34,7 +35,7 @@ public class AlignStructMol {
         this.row2 = row2;
         RT = row1.getAverageRT();
         RT2 = row2.getAverageRT();
-    }   
+    }
 
     public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file, RawDataFile file2) {
         this.row1 = row1;
@@ -50,8 +51,19 @@ public class AlignStructMol {
         } else {
             RT = row1.getAverageRT();
         }
-    } 
+    }
 
+    AlignStructMol() {
+
+    }
+
+    public int compare(Object arg0, Object arg1) {
+        if (((AlignStructMol) arg0).RT < ((AlignStructMol) arg1).RT) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
 }
 
 
