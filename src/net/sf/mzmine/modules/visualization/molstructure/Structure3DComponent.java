@@ -39,12 +39,20 @@ public class Structure3DComponent extends JPanel {
 	/**
 	 * 
 	 */
-	public Structure3DComponent(String structure) {
+	public Structure3DComponent() {
 		adapter = new SmarterJmolAdapter();
 		viewer = JmolViewer.allocateViewer(this, adapter, null, null, null,
 				null, null);
 		viewer.setColorBackground("white");
 		viewer.setShowHydrogens(false);
+	}
+
+	/**
+	 * Loading the structure cannot be performed in the constructor, because
+	 * that would cause Jmol to freeze. Therefore, we need additional method
+	 * loadStructure() which is called after the component is constructed.
+	 */
+	public void loadStructure(String structure) {
 		viewer.loadInline(structure);
 	}
 

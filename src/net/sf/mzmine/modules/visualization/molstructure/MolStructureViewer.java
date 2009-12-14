@@ -144,18 +144,28 @@ public class MolStructureViewer extends JInternalFrame {
 	 */
 	private void load3DStructure(URL url) {
 
-		JComponent newComponent;
 		try {
+			
 			String structure3D = InetUtils.retrieveData(url);
 			if (structure3D.length() < 10)
 				throw (new Exception("Structure string is empty"));
-			newComponent = new Structure3DComponent(structure3D);
+			
+			Structure3DComponent new3DComponent = new Structure3DComponent();
+			splitPane.setRightComponent(new3DComponent);
+			splitPane.setDividerLocation(500);
+			
+			// loadStructure must be called after the component is added,
+			// otherwise Jmol will freeze waiting for repaint (IMHO this is a
+			// Jmol bug introduced in 11.8)
+			new3DComponent.loadStructure(structure3D);
+			
 		} catch (Exception e) {
 			String errorMessage = "Could not load 3D structure\n"
 					+ "Exception: " + ExceptionUtils.exceptionToString(e);
-			newComponent = new MultiLineLabel(errorMessage, 10);
+			MultiLineLabel label = new MultiLineLabel(errorMessage, 10);
+			splitPane.setRightComponent(label);
+			splitPane.setDividerLocation(500);
 		}
-		splitPane.setRightComponent(newComponent);
-		splitPane.setDividerLocation(500);
+		
 	}
 }
