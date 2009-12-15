@@ -78,7 +78,8 @@ class FormattedCellRenderer implements TableCellRenderer {
                 border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
             if (border == null)
                 border = UIManager.getBorder("Table.focusCellHighlightBorder");
-            newPanel.setBorder(border);
+            if (border != null)
+            	newPanel.setBorder(border);
         }
 
         if (value != null) {
