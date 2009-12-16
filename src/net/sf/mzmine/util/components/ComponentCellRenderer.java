@@ -29,149 +29,156 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
+import javax.swing.OverlayLayout;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
-
-import org.jfree.ui.OverlayLayout;
 
 /**
  * Simple table cell renderer that renders only JComponents
  */
 public class ComponentCellRenderer implements TableCellRenderer,
-        ListCellRenderer {
+		ListCellRenderer {
 
-    private boolean createTooltips;
-    private Font font;
+	private boolean createTooltips;
+	private Font font;
 
-    /**
+	/**
      */
-    public ComponentCellRenderer() {
-        this(false, null);
-    }
-    
-    
-    /**
-     * @param font
-     */
-    public ComponentCellRenderer(Font font) {
-        this(false, font);
-    }
-    
-    /**
-     * @param font
-     */
-    public ComponentCellRenderer(boolean createTooltips) {
-        this(createTooltips, null);
-    }
-    
-    /**
-     * @param font
-     */
-    public ComponentCellRenderer(boolean createTooltips, Font font) {
-        this.createTooltips = createTooltips;
-        this.font = font;
-    }
+	public ComponentCellRenderer() {
+		this(false, null);
+	}
 
-    /**
-     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-     *      java.lang.Object, boolean, boolean, int, int)
-     */
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+	/**
+	 * @param font
+	 */
+	public ComponentCellRenderer(Font font) {
+		this(false, font);
+	}
 
-        JPanel newPanel = new JPanel(new OverlayLayout());
-        Color bgColor;
-        
-        if (isSelected)
-            bgColor = table.getSelectionBackground();
-        else
-            bgColor = table.getBackground();
+	/**
+	 * @param font
+	 */
+	public ComponentCellRenderer(boolean createTooltips) {
+		this(createTooltips, null);
+	}
 
-        newPanel.setBackground(bgColor);
+	/**
+	 * @param font
+	 */
+	public ComponentCellRenderer(boolean createTooltips, Font font) {
+		this.createTooltips = createTooltips;
+		this.font = font;
+	}
 
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("Table.focusCellHighlightBorder");
-            newPanel.setBorder(border);
-        }
+	/**
+	 * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+	 *      java.lang.Object, boolean, boolean, int, int)
+	 */
+	public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column) {
 
-        if (value != null) {
+		JPanel newPanel = new JPanel();
+		newPanel.setLayout(new OverlayLayout(newPanel));
 
-            if (value instanceof JComponent) {
+		Color bgColor;
 
-                newPanel.add((JComponent) value);
+		if (isSelected)
+			bgColor = table.getSelectionBackground();
+		else
+			bgColor = table.getBackground();
 
-            } else {
+		newPanel.setBackground(bgColor);
 
-                JLabel newLabel = new JLabel(value.toString());
+		if (hasFocus) {
+			Border border = null;
+			if (isSelected)
+				border = UIManager
+						.getBorder("Table.focusSelectedCellHighlightBorder");
+			if (border == null)
+				border = UIManager.getBorder("Table.focusCellHighlightBorder");
+			if (border != null)
+				newPanel.setBorder(border);
+		}
 
-                if (font != null)
-                    newLabel.setFont(font);
-                else if (table.getFont() != null)
-                    newLabel.setFont(table.getFont());
+		if (value != null) {
 
-                newPanel.add(newLabel);
-            }
-            
-            if (createTooltips) newPanel.setToolTipText(value.toString());
-            
-        }
+			if (value instanceof JComponent) {
 
-        return newPanel;
+				newPanel.add((JComponent) value);
 
-    }
+			} else {
 
-    /**
-     * @see javax.swing.ListCellRenderer#getListCellRendererComponent(javax.swing.JList,
-     *      java.lang.Object, int, boolean, boolean)
-     */
-    public Component getListCellRendererComponent(JList list, Object value,
-            int index, boolean isSelected, boolean hasFocus) {
+				JLabel newLabel = new JLabel(value.toString());
 
-        JPanel newPanel = new JPanel(new OverlayLayout());
-        Color bgColor;
-        
-        if (isSelected)
-            bgColor = list.getSelectionBackground();
-        else
-            bgColor = list.getBackground();
+				if (font != null)
+					newLabel.setFont(font);
+				else if (table.getFont() != null)
+					newLabel.setFont(table.getFont());
 
-        newPanel.setBackground(bgColor);
+				newPanel.add(newLabel);
+			}
 
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("List.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("List.focusCellHighlightBorder");
-            newPanel.setBorder(border);
-        }
+			if (createTooltips)
+				newPanel.setToolTipText(value.toString());
 
-        if (value != null) {
+		}
 
-            if (value instanceof JComponent) {
+		return newPanel;
 
-                newPanel.add((JComponent) value);
+	}
 
-            } else {
+	/**
+	 * @see javax.swing.ListCellRenderer#getListCellRendererComponent(javax.swing.JList,
+	 *      java.lang.Object, int, boolean, boolean)
+	 */
+	public Component getListCellRendererComponent(JList list, Object value,
+			int index, boolean isSelected, boolean hasFocus) {
 
-                JLabel newLabel = new JLabel(value.toString());
+		JPanel newPanel = new JPanel();
+		newPanel.setLayout(new OverlayLayout(newPanel));
 
-                if (font != null)
-                    newLabel.setFont(font);
-                else if (list.getFont() != null)
-                    newLabel.setFont(list.getFont());
+		Color bgColor;
 
-                newPanel.add(newLabel);
-            }
-        }
+		if (isSelected)
+			bgColor = list.getSelectionBackground();
+		else
+			bgColor = list.getBackground();
 
-        return newPanel;
+		newPanel.setBackground(bgColor);
 
-    }
+		if (hasFocus) {
+			Border border = null;
+			if (isSelected)
+				border = UIManager
+						.getBorder("List.focusSelectedCellHighlightBorder");
+			if (border == null)
+				border = UIManager.getBorder("List.focusCellHighlightBorder");
+			if (border != null)
+				newPanel.setBorder(border);
+		}
+
+		if (value != null) {
+
+			if (value instanceof JComponent) {
+
+				newPanel.add((JComponent) value);
+
+			} else {
+
+				JLabel newLabel = new JLabel(value.toString());
+
+				if (font != null)
+					newLabel.setFont(font);
+				else if (list.getFont() != null)
+					newLabel.setFont(list.getFont());
+
+				newPanel.add(newLabel);
+			}
+		}
+
+		return newPanel;
+
+	}
 
 }

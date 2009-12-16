@@ -24,6 +24,7 @@ import java.awt.Component;
 
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.OverlayLayout;
 import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -34,7 +35,6 @@ import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 import net.sf.mzmine.util.components.PeakXICComponent;
 
-import org.jfree.ui.OverlayLayout;
 
 /**
  * 
@@ -59,7 +59,8 @@ class PeakShapeCellRenderer implements TableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
 
-        JPanel newPanel = new JPanel(new OverlayLayout());
+        JPanel newPanel = new JPanel();
+        newPanel.setLayout(new OverlayLayout(newPanel));
 
         Color bgColor;
 

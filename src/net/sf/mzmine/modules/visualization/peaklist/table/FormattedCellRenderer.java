@@ -27,11 +27,11 @@ import java.text.NumberFormat;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.OverlayLayout;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-import org.jfree.ui.OverlayLayout;
 
 /**
  * Simple table cell renderer that renders Numbers using given NumberFormat
@@ -62,7 +62,8 @@ class FormattedCellRenderer implements TableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
 
-        JPanel newPanel = new JPanel(new OverlayLayout());
+        JPanel newPanel = new JPanel();
+        newPanel.setLayout(new OverlayLayout(newPanel));
         Color bgColor;
 
         if (isSelected)
