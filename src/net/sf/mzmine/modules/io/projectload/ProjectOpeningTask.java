@@ -293,7 +293,7 @@ public class ProjectOpeningTask implements Task {
 		logger.info("Loading raw data files");
 
 		Pattern filePattern = Pattern
-				.compile("Raw data file #([\\d]+) (.*)\\.xml");
+				.compile("Raw data file #([\\d]+) (.*)\\.xml$");
 
 		Enumeration zipEntries = zipFile.entries();
 		while (zipEntries.hasMoreElements()) {
@@ -304,15 +304,13 @@ public class ProjectOpeningTask implements Task {
 
 			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
 			String entryName = entry.getName();
-
 			Matcher fileMatcher = filePattern.matcher(entryName);
 
 			if (fileMatcher.matches()) {
-
 				Integer fileID = Integer.parseInt(fileMatcher.group(1));
 				currentLoadedObjectName = fileMatcher.group(2);
 
-				String scansFileName = entryName.replaceFirst(".xml", ".scans");
+				String scansFileName = entryName.replaceFirst("\\.xml$", ".scans");
 				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
 				rawDataFileOpenHandler = new RawDataFileOpenHandler();
 				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
@@ -330,7 +328,7 @@ public class ProjectOpeningTask implements Task {
 
 		logger.info("Loading peak lists");
 
-		Pattern filePattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml");
+		Pattern filePattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
 		Enumeration zipEntries = zipFile.entries();
 		while (zipEntries.hasMoreElements()) {
