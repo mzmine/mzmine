@@ -175,29 +175,29 @@ public class RANSAC {
         Collections.sort(data, new AlignStructMol());
         double min = data.get(0).RT;
         double max = (data.get(data.size() - 1).RT);
-        
+
         Range rtRange = new Range(min, max / 2);
         if (data.size() > n) {
             int cont = 0;
-            while (cont < n/2) {
-                int index = (int) (data.size() * Math.random());               
+            while (cont < n / 2) {
+                int index = (int) (data.size() * Math.random());
                 if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
-                    data.elementAt(index).ransacMaybeInLiers = true;                   
+                    data.elementAt(index).ransacMaybeInLiers = true;
                     cont++;
                 }
             }
             cont = 0;
             rtRange = new Range(max / 2, max);
-            while (cont < n/2) {
+            while (cont < n / 2) {
                 int index = (int) (data.size() * Math.random());
                 if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
-                    data.elementAt(index).ransacMaybeInLiers = true;                  
+                    data.elementAt(index).ransacMaybeInLiers = true;
                     cont++;
                 }
             }
 
             return true;
-        } else {          
+        } else {
             return false;
         }
     }
@@ -259,7 +259,6 @@ public class RANSAC {
         } catch (OptimizationException ex) {
         }
     }
-
 
     /**
      * calculate the error in the model

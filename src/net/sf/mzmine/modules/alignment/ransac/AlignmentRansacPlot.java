@@ -18,8 +18,11 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 import java.util.Vector;
 import net.sf.mzmine.main.MZmineCore;
@@ -29,6 +32,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.block.BlockBorder;
 import org.jfree.chart.labels.XYToolTipGenerator;
+import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -36,114 +40,153 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RectangleInsets;
 
 public class AlignmentRansacPlot extends ChartPanel {
+    
+    // peak labels color
+    private static final Color labelsColor = Color.darkGray;
 
-	private XYSeriesCollection dataset;
-	private JFreeChart chart;
-	private TextTitle chartTitle;
-	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);	
+    // grid color
+    private static final Color gridColor = Color.lightGray;
 
-	// legend
-	private LegendTitle legend;
-	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
-	private XYToolTipGenerator toolTipGenerator;
-	
-	private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    // crosshair (selection) color
+    private static final Color crossHairColor = Color.gray;
 
-	public AlignmentRansacPlot() {
-		super(null, true);
+    // crosshair stroke
+    private static final BasicStroke crossHairStroke = new BasicStroke(1,
+            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{
+                5, 3}, 0);
 
-		dataset = new XYSeriesCollection();
-		chart = ChartFactory.createXYLineChart(
-				"",
-				null,
-				null,
-				dataset,
-				PlotOrientation.VERTICAL,
-				true,
-				true,
-				false);
+    // data points shape
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
+            5);
 
-		chart.setBackgroundPaint(Color.white);
-		setChart(chart);
+    // titles
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    
+    private TextTitle chartTitle;
 
+    // legend
+    private LegendTitle legend;
+    private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+    private XYToolTipGenerator toolTipGenerator;
+    private XYSeriesCollection dataset;
+    private JFreeChart chart;
+    private XYPlot plot;
+    private NumberFormat rtFormat = MZmineCore.getRTFormat();
 
-		// title
-		chartTitle = chart.getTitle();
-		chartTitle.setMargin(5, 0, 0, 0);
-		chartTitle.setFont(titleFont);		
+    public AlignmentRansacPlot() {
+        super(null, true);
 
-		// legend constructed by ChartFactory
-		legend = chart.getLegend();
-		legend.setItemFont(legendFont);
-		legend.setFrame(BlockBorder.NONE);
+        dataset = new XYSeriesCollection();
+        chart = ChartFactory.createXYLineChart(
+                "",
+                null,
+                null,
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false);
 
-	}
-
-	/**
-	 * Remove all series from the chart
-	 */
-	public void removeSeries() {
-		dataset.removeAllSeries();
-	}
-
-	/**
-	 * Add new serie.
-	 * @param v Vector with the alignments
-	 * @param Name Name of the type of lipids in this alignment
-	 */
-	public void addSeries(Vector<AlignStructMol> data, String title) {
-		try {
-			chart.setTitle(title);
-			XYSeries s1 = new XYSeries("Aligned Molecules");
-			XYSeries s2 = new XYSeries("Non aligned Molecules");
-
-			for (AlignStructMol point : data) {
-
-				if (point.Aligned) {
-					s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
-				} else {
-					s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
-				}
-			}
-
-			this.dataset.addSeries(s1);
-			this.dataset.addSeries(s2);
+        chart.setBackgroundPaint(Color.white);
+        setChart(chart);
 
 
-		} catch (Exception e) {
-		}
-	}
+        // title
+        chartTitle = chart.getTitle();
+        chartTitle.setMargin(5, 0, 0, 0);
+        chartTitle.setFont(titleFont);
 
-	
-	public void printAlignmentChart(String axisTitleX, String axisTitleY) {
-		try {
-			toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
+        // legend constructed by ChartFactory
+        legend = chart.getLegend();
+        legend.setItemFont(legendFont);
+        legend.setFrame(BlockBorder.NONE);
 
-			XYPlot plot = chart.getXYPlot();
+        // set the plot properties
+        plot = chart.getXYPlot();
+        plot.setBackgroundPaint(Color.white);
+        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-			NumberAxis xAxis = new NumberAxis(axisTitleX);
-			xAxis.setNumberFormatOverride(rtFormat);
-			xAxis.setAutoRangeIncludesZero(false);
-			plot.setDomainAxis(xAxis);
+        // set grid properties
+        plot.setDomainGridlinePaint(gridColor);
+        plot.setRangeGridlinePaint(gridColor);
 
-			NumberAxis yAxis = new NumberAxis(axisTitleY);
-			yAxis.setNumberFormatOverride(rtFormat);			
-			yAxis.setAutoRangeIncludesZero(false);		
-			plot.setRangeAxis(yAxis);
+        // set crosshair (selection) properties
 
-			XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-			renderer.setBaseLinesVisible(false);
-			renderer.setBaseShapesVisible(true);
-			renderer.setBaseToolTipGenerator(toolTipGenerator);
-			plot.setRenderer(renderer);
+        plot.setDomainCrosshairVisible(true);
+        plot.setRangeCrosshairVisible(true);
+        plot.setDomainCrosshairPaint(crossHairColor);
+        plot.setRangeCrosshairPaint(crossHairColor);
+        plot.setDomainCrosshairStroke(crossHairStroke);
+        plot.setRangeCrosshairStroke(crossHairStroke);
 
-			chart.setBackgroundPaint(Color.white);
-			plot.setOutlinePaint(Color.black);
+        // set default renderer properties
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setBaseLinesVisible(false);
+        renderer.setBaseShapesVisible(true);
+        renderer.setBaseToolTipGenerator(toolTipGenerator);
+        renderer.setSeriesShape(0, dataPointsShape);
+        renderer.setSeriesShape(1, dataPointsShape);
+        renderer.setSeriesPaint(0, Color.RED);
+        renderer.setSeriesPaint(1, Color.GRAY);
+        renderer.setBaseItemLabelPaint(labelsColor);
+        plot.setRenderer(renderer);  
 
-		} catch (Exception e) {
-		}
-	}
-	
+
+    }
+
+    /**
+     * Remove all series from the chart
+     */
+    public void removeSeries() {
+        dataset.removeAllSeries();
+    }
+
+    /**
+     * Add new serie.
+     * @param v Vector with the alignments
+     * @param Name Name of the type of lipids in this alignment
+     */
+    public void addSeries(Vector<AlignStructMol> data, String title) {
+        try {
+            chart.setTitle(title);
+            XYSeries s1 = new XYSeries("Aligned Molecules");
+            XYSeries s2 = new XYSeries("Non aligned Molecules");
+
+            for (AlignStructMol point : data) {
+
+                if (point.Aligned) {
+                    s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+                } else {
+                    s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
+                }
+            }
+
+            this.dataset.addSeries(s1);
+            this.dataset.addSeries(s2);
+
+
+        } catch (Exception e) {
+        }
+    }
+
+    public void printAlignmentChart(String axisTitleX, String axisTitleY) {
+        try {
+            toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
+            NumberAxis xAxis = new NumberAxis(axisTitleX);
+            xAxis.setNumberFormatOverride(rtFormat);
+            xAxis.setAutoRangeIncludesZero(false);
+            plot.setDomainAxis(xAxis);
+
+            NumberAxis yAxis = new NumberAxis(axisTitleY);
+            yAxis.setNumberFormatOverride(rtFormat);
+            yAxis.setAutoRangeIncludesZero(false);
+            plot.setRangeAxis(yAxis);
+
+        } catch (Exception e) {
+        }
+    }
 }

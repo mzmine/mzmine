@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -327,9 +326,8 @@ class RansacAlignerTask implements Task {
 
         try {
             LoessInterpolator loess = new LoessInterpolator(0.5, 4);
-            double[] y = loess.smooth(xval, yval);
-            //PolynomialSplineFunction function = loess.interpolate(xval, y);
-            return loess.interpolate(xval, y);
+            // double[] y = loess.smooth(xval, yval);
+            return loess.interpolate(xval, yval);
         } catch (MathException ex) {
             return null;
         }
@@ -380,12 +378,12 @@ class RansacAlignerTask implements Task {
             double rtToleranceValue = rtTolerance;
             rtMin = row.getAverageRT() - rtToleranceValue;
             rtMax = row.getAverageRT() + rtToleranceValue;
-            Range rtRange = new Range(mzMin, mzMax);
-
+            Range mzRange = new Range(mzMin, mzMax);
+            Range rtRange = new Range(rtMin, rtMax);
 
             // Get all rows of the aligned peaklist within parameter limits
             PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(
-                    new Range(rtMin, rtMax), rtRange);
+                    rtRange, mzRange);
 
             for (PeakListRow candidateRow : candidateRows) {
                 alignMol.addElement(new AlignStructMol(row, candidateRow));
