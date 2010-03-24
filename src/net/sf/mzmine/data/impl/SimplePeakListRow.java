@@ -46,6 +46,10 @@ public class SimplePeakListRow implements PeakListRow {
 	private int myID;
 	private double maxDataPointIntensity = 0;
 
+	// These variables are used for caching the average RT and m/z values, so we
+	// don't need to calculate it again and again
+	private double averageRT, averageMZ;
+
 	public SimplePeakListRow(int myID) {
 		this.myID = myID;
 		peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
@@ -64,6 +68,11 @@ public class SimplePeakListRow implements PeakListRow {
 	 */
 	public ChromatographicPeak[] getPeaks() {
 		return peaks.values().toArray(new ChromatographicPeak[0]);
+	}
+
+	public void removePeak(RawDataFile file) {
+		this.peaks.remove(file);
+		calculateAverageRTandMZ();
 	}
 
 	/*
@@ -87,17 +96,11 @@ public class SimplePeakListRow implements PeakListRow {
 			throw new IllegalArgumentException(
 					"Cannot add null peak to a peak list row");
 
-		/*
-		 * convert the peak to SimpleChromatographicPeak for easy //
-		 * serialization if (!((peak instanceof SimpleChromatographicPeak) ||
-		 * (peak instanceof IsotopePattern))) peak = new
-		 * SimpleChromatographicPeak(peak);
-		 */
-
 		peaks.put(rawData, peak);
 		if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
 			maxDataPointIntensity = peak.getRawDataPointsIntensityRange()
 					.getMax();
+		calculateAverageRTandMZ();
 
 	}
 
@@ -105,26 +108,26 @@ public class SimplePeakListRow implements PeakListRow {
 	 * Returns average normalized M/Z for peaks on this row
 	 */
 	public double getAverageMZ() {
-		double mzSum = 0.0f;
-		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
-		while (peakEnum.hasMoreElements()) {
-			ChromatographicPeak p = peakEnum.nextElement();
-			mzSum += p.getMZ();
-		}
-		return mzSum / peaks.size();
+		return averageMZ;
 	}
 
 	/*
 	 * Returns average normalized RT for peaks on this row
 	 */
 	public double getAverageRT() {
-		double rtSum = 0.0f;
+		return averageRT;
+	}
+
+	private void calculateAverageRTandMZ() {
+		double rtSum = 0, mzSum = 0;
 		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
 			ChromatographicPeak p = peakEnum.nextElement();
 			rtSum += p.getRT();
+			mzSum += p.getMZ();
 		}
-		return rtSum / peaks.size();
+		averageRT = rtSum / peaks.size();
+		averageMZ = mzSum / peaks.size();
 	}
 
 	/*
