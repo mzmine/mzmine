@@ -53,7 +53,7 @@ public class OnlineDBSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter neutralMass = new SimpleParameter(
 			ParameterType.DOUBLE, "Neutral mass",
-			"Value to use in the search query", null, null, new Double(0.0),
+			"Value to use in the search query", null, null, null,
 			null, MZmineCore.getMZFormat());
 
 	public static final Parameter numOfResults = new SimpleParameter(
