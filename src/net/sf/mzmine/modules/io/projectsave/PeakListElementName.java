@@ -42,6 +42,7 @@ public enum PeakListElementName {
 	IDENTITY_NAME ("identity_name"),
 	FORMULA ("formula"),
 	IDENTIFICATION_METHOD ("identification_method"),
+	COMMENT ("comment"),
 	PEAK ("peak"),
 	ISOTOPE_PATTERN("isotope_pattern"),
 	DESCRIPTION("description"),

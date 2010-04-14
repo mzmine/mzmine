@@ -152,6 +152,8 @@ class PeakListOpenHandler extends DefaultHandler {
 			int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID
 					.getElementName()));
 			buildingRow = new SimplePeakListRow(rowID);
+			String comment = attrs.getValue(PeakListElementName.COMMENT.getElementName());
+			buildingRow.setComment(comment);
 		}
 
 		// <PEAK_IDENTITY>

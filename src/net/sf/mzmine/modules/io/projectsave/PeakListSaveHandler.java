@@ -198,6 +198,11 @@ class PeakListSaveHandler {
 			row = peakList.getRow(i);
 			atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
 					"CDATA", String.valueOf(row.getID()));
+			if (row.getComment() != null) {
+				atts.addAttribute("", "", PeakListElementName.COMMENT.getElementName(),
+						"CDATA", row.getComment());
+			}
+			
 			hd.startElement("", "", PeakListElementName.ROW.getElementName(),
 					atts);
 			fillRowElement(row, hd);
