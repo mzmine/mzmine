@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2009 The MZmine 2 Development Team
+ * Copyright 2006-2010 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -152,7 +152,7 @@ public class AdductSearch implements BatchStep, ActionListener {
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString() {
-		return "Adduct search";
+		return MODULE_NAME;
 	}
 
 }
