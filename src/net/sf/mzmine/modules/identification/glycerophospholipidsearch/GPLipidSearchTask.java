@@ -199,10 +199,11 @@ public class GPLipidSearchTask implements Task {
 	 */
 	private void findPossibleGPL(GPLipidIdentity lipid, PeakListRow rows[]) {
 
-		logger.finest("Searching for lipid " + lipid.getDescription());
-
 		final double lipidIonMass = lipid.getMass()
 				+ ionizationType.getAddedMass();
+		
+		logger.finest("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
+
 
 		for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
 
