@@ -20,7 +20,6 @@
 package net.sf.mzmine.data.proteomics;
 
 import java.util.HashMap;
-import java.util.Vector;
 
 import net.sf.mzmine.util.ProteomeUtils;
 
