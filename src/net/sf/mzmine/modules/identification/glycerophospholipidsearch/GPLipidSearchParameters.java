@@ -31,10 +31,15 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 			ParameterType.MULTIPLE_SELECTION, "Type of lipids",
 			"List of possible glycerophospholipis", null, GPLipidType.values());
 
+	public static final Parameter minChainLength = new SimpleParameter(
+			ParameterType.INTEGER, "Minimum fatty acid length",
+			"Minimum length of the fatty acid chain", "carbons",
+			new Integer(12), new Integer(0), null);
+
 	public static final Parameter maxChainLength = new SimpleParameter(
 			ParameterType.INTEGER, "Maximum fatty acid length",
 			"Maximum length of the fatty acid chain", "carbons",
-			new Integer(1), new Integer(0), null);
+			new Integer(36), new Integer(0), null);
 
 	public static final Parameter maxDoubleBonds = new SimpleParameter(
 			ParameterType.INTEGER, "Maximum number of double bonds",
@@ -52,8 +57,8 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 			IonizationType.values());
 
 	public GPLipidSearchParameters() {
-		super(new Parameter[] { lipidTypes, maxChainLength, maxDoubleBonds,
-				mzTolerance, ionizationMethod });
+		super(new Parameter[] { lipidTypes, minChainLength, maxChainLength,
+				maxDoubleBonds, mzTolerance, ionizationMethod });
 	}
 
 }

@@ -43,7 +43,7 @@ public class GPLipidSearchTask implements Task {
 	private PeakList peakList;
 
 	private GPLipidType[] selectedLipids;
-	private int maxChainLength, maxDoubleBonds;
+	private int minChainLength, maxChainLength, maxDoubleBonds;
 	private double mzTolerance;
 	private IonizationType ionizationType;
 
@@ -59,6 +59,8 @@ public class GPLipidSearchTask implements Task {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
+		minChainLength = (Integer) parameters
+				.getParameterValue(GPLipidSearchParameters.minChainLength);
 		maxChainLength = (Integer) parameters
 				.getParameterValue(GPLipidSearchParameters.maxChainLength);
 		maxDoubleBonds = (Integer) parameters
@@ -139,6 +141,14 @@ public class GPLipidSearchTask implements Task {
 							// Task canceled?
 							if (status == TaskStatus.CANCELED)
 								return;
+
+							// If we have non-zero fatty acid, which is shorter
+							// than minimal length, skip this lipid
+							if (((fattyAcid1Length > 0) && (fattyAcid1Length < minChainLength))
+									|| ((fattyAcid2Length > 0) && (fattyAcid2Length < minChainLength))) {
+								finishedSteps++;
+								continue;
+							}
 
 							// If we have more double bonds than carbons, it
 							// doesn't make sense, so let's skip such lipids
