@@ -73,6 +73,12 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			"Score for perfectly matching RT values", "", new Double(10.0),
 			new Double(0.0), null, NumberFormat.getNumberInstance());
 
+	public static final Parameter SameChargeRequired = new SimpleParameter(
+			ParameterType.BOOLEAN,
+			"Require same charge state",
+			"If checked, only rows having same charge state can be aligned",
+			new Boolean(false));
+	
 	public static final Parameter SameIDRequired = new SimpleParameter(
 			ParameterType.BOOLEAN,
 			"Require same ID",
@@ -105,7 +111,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 	public JoinAlignerParameters() {
 		super(new Parameter[] { peakListName, MZTolerance, MZWeight,
 				RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent,
-				RTWeight, SameIDRequired, SameIDWeight, compareIsotopePattern,
+				RTWeight, SameChargeRequired, SameIDRequired, SameIDWeight, compareIsotopePattern,
 				isotopePatternScoreThreshold, isotopeScoreWeight });
 	}
 

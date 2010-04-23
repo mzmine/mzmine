@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2010 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
@@ -28,14 +28,14 @@ import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Utilities for peaks and peak lists
- * 
+ *
  */
 public class PeakUtils {
 
 	/**
 	 * Common utility method to be used as Peak.toString() method in various
 	 * Peak implementations
-	 * 
+	 *
 	 * @param peak
 	 *            Peak to be converted to String
 	 * @return String representation of the peak
@@ -55,9 +55,9 @@ public class PeakUtils {
 	 * Compares identities of two peak list rows. 1) if preferred identities are
 	 * available, they must be same 2) if no identities are available on both
 	 * rows, return true 3) otherwise all identities on both rows must be same
-	 * 
+	 *
 	 * @return True if identities match between rows
-	 * 
+	 *
 	 */
 	public static boolean compareIdentities(PeakListRow row1, PeakListRow row2) {
 
@@ -99,12 +99,41 @@ public class PeakUtils {
 		}
 
 		return sameID;
+	}
+
+    /**
+     * Compare charge state of the best MS/MS precursor masses
+     *
+     * @param row1 PeaklistRow 1
+     * @param row2 PeakListRow 2
+     *
+     * @return true, same charge state
+     */
+    public static boolean compareChargeState(PeakListRow row1, PeakListRow row2) {
+    	if ((row1 == null) || (row2 == null))
+            return false;
+    	int firstNo = row1.getBestPeak().getMostIntenseFragmentScanNumber();
+		int secondNo = row2.getBestPeak().getMostIntenseFragmentScanNumber();
+		int firstCharge = 0;
+		int secondCharge = 0;
+
+		// is there a MS/MS scan number
+		if (firstNo > 0) {
+			firstCharge = row1.getBestPeak().getDataFile().getScan(firstNo).getPrecursorCharge();
+		}
+
+		// is there also a MS/MS scan number
+		if (secondNo > 0) {
+			secondCharge = row2.getBestPeak().getDataFile().getScan(secondNo).getPrecursorCharge();
+		}
+
+    	return (firstCharge == secondCharge);
 
 	}
 
 	/**
 	 * Returns true if peak list row contains a compound identity matching to id
-	 * 
+	 *
 	 */
 	public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
 

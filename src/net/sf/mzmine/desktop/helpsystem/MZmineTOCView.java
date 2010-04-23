@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2010 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -65,11 +65,11 @@ public class MZmineTOCView extends TOCView {
 			DefaultMutableTreeNode node = new DefaultMutableTreeNode();
 
 			TreeSet<TOCItem> sortedItems = new TreeSet<TOCItem>(new TOCItemSorterByName());
-			
+
 			List<String> list = Collections.list(hm.getAllIDs());
 			Collections.sort(list);
 			Iterator<String> e = list.iterator();
-			
+
 			while (e.hasNext()){
 				String target = (String) e.next();
 				if (target.contains(".png"))
@@ -79,9 +79,9 @@ public class MZmineTOCView extends TOCView {
 			}
 
 			Iterator<TOCItem> i = sortedItems.iterator();
-			
+
 			while (i.hasNext()){
-				TOCItem item = i.next(); 
+				TOCItem item = i.next();
 				DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(item);
 				node.add(newChild);
 			}
@@ -96,7 +96,7 @@ public class MZmineTOCView extends TOCView {
 
 	/**
 	 * Create an TOCItem with the given data.
-	 * 
+	 *
 	 * @param tagName
 	 *            The TOC type to create. Valid types are "tocitem". Null or
 	 *            invalid types will throw an IllegalArgumentException
@@ -124,9 +124,9 @@ public class MZmineTOCView extends TOCView {
 				throw new IOException();
 
 			while ((line = in.readLine()) != null){
-				if (line.contains("title")){
-					int beginIndex = line.indexOf("title") + 6;
-					int endIndex = line.indexOf("</title>");
+				if (line.toLowerCase().contains("title")){
+					int beginIndex = line.toLowerCase().indexOf("title") + 6;
+					int endIndex = line.toLowerCase().indexOf("</title>");
 					title = line.substring(beginIndex, endIndex);
 					break;
 				}
@@ -141,7 +141,7 @@ public class MZmineTOCView extends TOCView {
 		mapID = ID.create(target, hs);
 	    } catch (BadIDException bex1) {
 	    }
-	    
+
 	    Map.ID imageMapID = null;
 		String imageID = "topic.png";
 		try {
@@ -163,6 +163,6 @@ public class MZmineTOCView extends TOCView {
 	public TreeItem createItem() {
 		return new TOCItem();
 	}
-	
+
 
 }

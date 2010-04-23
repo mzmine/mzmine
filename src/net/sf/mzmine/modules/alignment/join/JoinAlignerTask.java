@@ -58,7 +58,7 @@ class JoinAlignerTask implements Task {
     private boolean rtToleranceUseAbs;
     private double rtToleranceValueAbs, rtToleranceValuePercent;
     private double rtWeight;
-    private boolean sameIDRequired, compareIsotopePattern;
+    private boolean sameIDRequired, sameChargeRequired, compareIsotopePattern;
     private double sameIDWeight, isotopePatternScoreThreshold,
             isotopeScoreWeight;
     private JoinAlignerParameters parameters;
@@ -86,6 +86,8 @@ class JoinAlignerTask implements Task {
         rtToleranceValuePercent = (Double) parameters.getParameterValue(JoinAlignerParameters.RTToleranceValuePercent);
         rtWeight = (Double) parameters.getParameterValue(JoinAlignerParameters.RTWeight);
 
+        sameChargeRequired = (Boolean) parameters.getParameterValue(JoinAlignerParameters.SameChargeRequired);
+        
         sameIDRequired = (Boolean) parameters.getParameterValue(JoinAlignerParameters.SameIDRequired);
         sameIDWeight = (Double) parameters.getParameterValue(JoinAlignerParameters.SameIDWeight);
 
@@ -214,8 +216,14 @@ class JoinAlignerTask implements Task {
 
                 // Calculate scores and store them
                 for (PeakListRow candidate : candidateRows) {
+                	
+                	if (sameChargeRequired) {
+                		if (!PeakUtils.compareChargeState(row, candidate))
+                			continue;
+                	}
 
                     if (sameIDRequired) {
+
                         if (!PeakUtils.compareIdentities(row, candidate))
                             continue;
                     }
