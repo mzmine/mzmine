@@ -191,7 +191,7 @@ class RansacAlignerTask implements Task {
         // Add task description to peakList
         alignedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Ransac aligner", parameters));
 
-        logger.info("Finished join aligner");
+        logger.info("Finished RANSAC aligner");
         status = TaskStatus.FINISHED;
 
     }
