@@ -18,6 +18,8 @@
  */
 package net.sf.mzmine.modules.alignment.ransac;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
@@ -26,36 +28,45 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
 
-    public static final Parameter peakListName = new SimpleParameter(
-            ParameterType.STRING, "Peak list name", "Peak list name", null,
-            "Aligned peak list", null);
-    public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "m/z tolerance",
-            "Maximum allowed M/Z difference", "m/z", new Double(0.02),
-            new Double(0.0), null, MZmineCore.getMZFormat());
-    public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.DOUBLE, "RT tolerance after correction",
-            "Maximum allowed absolute RT difference after the algorithm correction for the retention time", null, new Double(15.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());   
-    public static final Parameter RTTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "RT tolerance",
-            "Maximum allowed absolute RT difference", null, new Double(15.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
-    public static final Parameter Iterations = new SimpleParameter(
-            ParameterType.INTEGER, "RANSAC Iterations",
-            "Maximum number of iterations allowed in the algorithm", new Integer(1000));
-    public static final Parameter NMinPoints = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimun Number of Points",
-            "Minimum number of aligned peaks required to fit the model", "%", new Double(0.2), null, null);
-    public static final Parameter Margin = new SimpleParameter(
-            ParameterType.DOUBLE, "Threshold value",
-            "Threshold value for determining when a data point fits a model", "seconds",
-            new Double(3.0), null, MZmineCore.getRTFormat());
-    public static final Parameter nonLinear = new SimpleParameter(
-            ParameterType.BOOLEAN, "Non linear model",
-            "Switch between non linear model or lineal model", new Boolean(true));
+	public static final NumberFormat percentFormat = NumberFormat
+			.getPercentInstance();
 
-    public RansacAlignerParameters() {
-        super(new Parameter[]{peakListName, MZTolerance, RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints, Margin, nonLinear});
-    }
+	public static final Parameter peakListName = new SimpleParameter(
+			ParameterType.STRING, "Peak list name", "Peak list name", null,
+			"Aligned peak list", null);
+	public static final Parameter MZTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Maximum allowed M/Z difference", "m/z", new Double(0.02),
+			new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
+			ParameterType.DOUBLE,
+			"RT tolerance after correction",
+			"Maximum allowed absolute RT difference after the algorithm correction for the retention time",
+			null, new Double(15.0), new Double(0.0), null, MZmineCore
+					.getRTFormat());
+	public static final Parameter RTTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "RT tolerance",
+			"Maximum allowed absolute RT difference", null, new Double(15.0),
+			new Double(0.0), null, MZmineCore.getRTFormat());
+	public static final Parameter Iterations = new SimpleParameter(
+			ParameterType.INTEGER, "RANSAC Iterations",
+			"Maximum number of iterations allowed in the algorithm",
+			new Integer(1000));
+	public static final Parameter NMinPoints = new SimpleParameter(
+			ParameterType.DOUBLE, "Minimun Number of Points",
+			"Minimum number of aligned peaks required to fit the model", "%",
+			new Double(0.2), null, null, percentFormat);
+	public static final Parameter Margin = new SimpleParameter(
+			ParameterType.DOUBLE, "Threshold value",
+			"Threshold value for determining when a data point fits a model",
+			"seconds", new Double(3.0), null, MZmineCore.getRTFormat());
+	public static final Parameter nonLinear = new SimpleParameter(
+			ParameterType.BOOLEAN, "Non linear model",
+			"Switch between non linear model or lineal model",
+			new Boolean(true));
+
+	public RansacAlignerParameters() {
+		super(new Parameter[] { peakListName, MZTolerance, RTToleranceValueAbs,
+				RTTolerance, Iterations, NMinPoints, Margin, nonLinear });
+	}
 }
