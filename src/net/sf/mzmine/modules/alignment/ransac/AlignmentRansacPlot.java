@@ -24,8 +24,15 @@ import java.awt.Font;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Vector;
 import net.sf.mzmine.main.MZmineCore;
+import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
+import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -43,7 +50,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 
 public class AlignmentRansacPlot extends ChartPanel {
-    
+
     // peak labels color
     private static final Color labelsColor = Color.darkGray;
 
@@ -64,7 +71,6 @@ public class AlignmentRansacPlot extends ChartPanel {
 
     // titles
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-    
     private TextTitle chartTitle;
 
     // legend
@@ -130,10 +136,15 @@ public class AlignmentRansacPlot extends ChartPanel {
         renderer.setBaseToolTipGenerator(toolTipGenerator);
         renderer.setSeriesShape(0, dataPointsShape);
         renderer.setSeriesShape(1, dataPointsShape);
+        renderer.setSeriesLinesVisible(2, true);
+        renderer.setSeriesShapesVisible(2, false);
         renderer.setSeriesPaint(0, Color.RED);
         renderer.setSeriesPaint(1, Color.GRAY);
+        renderer.setSeriesPaint(2, Color.BLUE);
         renderer.setBaseItemLabelPaint(labelsColor);
-        plot.setRenderer(renderer);  
+
+        plot.setRenderer(
+                renderer);
 
 
     }
@@ -153,8 +164,11 @@ public class AlignmentRansacPlot extends ChartPanel {
     public void addSeries(Vector<AlignStructMol> data, String title) {
         try {
             chart.setTitle(title);
-            XYSeries s1 = new XYSeries("Aligned Molecules");
-            XYSeries s2 = new XYSeries("Non aligned Molecules");
+            XYSeries s1 = new XYSeries("Aligned Peaks");
+            XYSeries s2 = new XYSeries("Non aligned peaks");
+            XYSeries s3 = new XYSeries("Model");
+
+            PolynomialSplineFunction function = getRT(data);
 
             for (AlignStructMol point : data) {
 
@@ -163,13 +177,92 @@ public class AlignmentRansacPlot extends ChartPanel {
                 } else {
                     s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
                 }
+                try {
+                    s3.add(function.value(point.row2.getPeaks()[0].getRT()), point.row2.getPeaks()[0].getRT());
+                } catch (Exception e) {
+                }
             }
 
             this.dataset.addSeries(s1);
             this.dataset.addSeries(s2);
-
+            this.dataset.addSeries(s3);
 
         } catch (Exception e) {
+        }
+    }
+
+    private PolynomialSplineFunction getRT(Vector<AlignStructMol> list) {
+        List<RTs> data = new ArrayList<RTs>();
+        for (AlignStructMol m : list) {
+            if (m.Aligned) {
+                data.add(new RTs(m.RT2, m.RT));
+            }
+        }
+
+
+        data = this.smooth(data);
+        Collections.sort(data, new RTs());
+
+        double[] xval = new double[data.size()];
+        double[] yval = new double[data.size()];
+        int i = 0;
+
+        for (RTs rt : data) {
+            xval[i] = rt.RT;
+            yval[i++] = rt.RT2;
+        }
+
+        try {
+            LoessInterpolator loess = new LoessInterpolator();
+            return loess.interpolate(xval, yval);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private List<RTs> smooth(List<RTs> list) {
+        Collections.sort(list, new RTs());
+        for (int i = 0; i < list.size() - 1; i++) {
+            RTs point1 = list.get(i);
+            RTs point2 = list.get(i + 1);
+            if (point1.RT < point2.RT - 5) {
+                SimpleRegression regression = new SimpleRegression();
+                regression.addData(point1.RT, point1.RT2);
+                regression.addData(point2.RT, point2.RT2);
+                double rt = point1.RT + 1;
+                while (rt < point2.RT) {
+                    RTs newPoint = new RTs(rt, regression.predict(rt));
+                    list.add(newPoint);
+                    rt++;
+                }
+
+            }
+        }
+
+        return list;
+    }
+
+    private class RTs implements Comparator {
+
+        double RT;
+        double RT2;
+        int map;
+
+        public RTs() {
+        }
+
+        public RTs(double RT, double RT2) {
+            this.RT = RT + 0.001 / Math.random();
+            this.RT2 = RT2 + 0.001 / Math.random();
+        }
+
+        public int compare(Object arg0, Object arg1) {
+            if (((RTs) arg0).RT < ((RTs) arg1).RT) {
+                return -1;
+            } else {
+                return 1;
+            }
+
         }
     }
 

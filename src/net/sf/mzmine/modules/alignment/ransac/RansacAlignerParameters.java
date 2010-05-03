@@ -60,13 +60,13 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE, "Threshold value",
 			"Threshold value for determining when a data point fits a model",
 			"seconds", new Double(3.0), null, MZmineCore.getRTFormat());
-	public static final Parameter nonLinear = new SimpleParameter(
-			ParameterType.BOOLEAN, "Non linear model",
-			"Switch between non linear model or lineal model",
-			new Boolean(true));
+	public static final Parameter Linear = new SimpleParameter(
+			ParameterType.BOOLEAN, "Linear model",
+			"Switch between polynomial model or lineal model",
+			new Boolean(false));
 
 	public RansacAlignerParameters() {
 		super(new Parameter[] { peakListName, MZTolerance, RTToleranceValueAbs,
-				RTTolerance, Iterations, NMinPoints, Margin, nonLinear });
+				RTTolerance, Iterations, NMinPoints, Margin, Linear });
 	}
 }

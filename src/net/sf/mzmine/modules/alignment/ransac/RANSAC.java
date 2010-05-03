@@ -48,7 +48,7 @@ public class RANSAC {
     private int k = 0;
     private int AlsoNumber;
     private double numRatePoints,  t;
-    private boolean nonLinear;
+    private boolean Linear;
 
     public RANSAC(RansacAlignerParameters parameters) {
 
@@ -58,7 +58,7 @@ public class RANSAC {
 
         this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.Iterations);
 
-        this.nonLinear = (Boolean) parameters.getParameterValue(RansacAlignerParameters.nonLinear);
+        this.Linear = (Boolean) parameters.getParameterValue(RansacAlignerParameters.Linear);
 
     }
 
@@ -70,7 +70,7 @@ public class RANSAC {
         try {
             // If the model is non linear 4 points are taken to build the model,
             // if it is linear only 2 points are taken.
-            if (nonLinear) {
+            if (!Linear) {
                 n = 4;
             } else {
                 n = 2;
@@ -120,7 +120,7 @@ public class RANSAC {
             }
 
             // Calculate the model
-            if (nonLinear) {
+            if (!Linear) {
                 fittPolinomialFunction(data);
             } else {
                 getAllModelPoints(data);

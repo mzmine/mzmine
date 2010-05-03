@@ -40,9 +40,9 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 import org.apache.commons.math.ArgumentOutsideDomainException;
-import org.apache.commons.math.MathException;
 import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math.stat.regression.SimpleRegression;
 
 class RansacAlignerTask implements Task {
 
@@ -313,6 +313,8 @@ class RansacAlignerTask implements Task {
                 data.add(new RTs(m.RT2, m.RT));
             }
         }
+
+        data = this.smooth(data);
         Collections.sort(data, new RTs());
 
         double[] xval = new double[data.size()];
@@ -325,10 +327,9 @@ class RansacAlignerTask implements Task {
         }
 
         try {
-            LoessInterpolator loess = new LoessInterpolator(0.5, 4);
-            // double[] y = loess.smooth(xval, yval);
+            LoessInterpolator loess = new LoessInterpolator();           
             return loess.interpolate(xval, yval);
-        } catch (MathException ex) {
+        } catch (Exception ex) {
             return null;
         }
     }
@@ -355,6 +356,28 @@ class RansacAlignerTask implements Task {
             }
 
         }
+    }
+
+    private List<RTs> smooth(List<RTs> list) {
+        Collections.sort(list, new RTs());
+        for (int i = 0; i < list.size() - 1; i++) {
+            RTs point1 = list.get(i);
+            RTs point2 = list.get(i + 1);
+            if (point1.RT < point2.RT - 5) {
+                SimpleRegression regression = new SimpleRegression();
+                regression.addData(point1.RT, point1.RT2);
+                regression.addData(point2.RT, point2.RT2);
+                double rt = point1.RT + 1;
+                while (rt < point2.RT) {
+                    RTs newPoint = new RTs(rt, regression.predict(rt));
+                    list.add(newPoint);
+                    rt++;
+                }
+
+            }
+        }
+
+        return list;
     }
 
     /**
