@@ -29,14 +29,18 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 public class RegressionInfo {
 
     private List<RTs> data;
-    double[] values;
-
+    private double[] values;
+    private PolynomialSplineFunction function;
     public RegressionInfo() {
         this.data = new ArrayList<RTs>();
+
     }
 
-    public double predict(double RT) {
-        PolynomialSplineFunction function = getRT();
+    public void setFuction(){
+       function = getRT();
+    }
+
+    public double predict(double RT) {         
         try {
             return function.value(RT);
         } catch (Exception ex) {
@@ -49,7 +53,6 @@ public class RegressionInfo {
     }
 
     private PolynomialSplineFunction getRT() {
-
         data = this.smooth(data);
         Collections.sort(data, new RTs());
 

@@ -107,6 +107,8 @@ class PeakFinderTask implements Task {
                 }
             }
 
+            info.setFuction();
+            
             // Canceled?
             if (status == TaskStatus.CANCELED) {
                 return;
