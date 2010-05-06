@@ -202,15 +202,17 @@ public class SingleRowIdentificationTask implements Task {
 					IsotopePattern rawDataIsotopePattern = peakListRow
 							.getBestIsotopePattern();
 
-					double score = IsotopePatternScoreCalculator
-							.getSimilarityScore(rawDataIsotopePattern,
-									compoundIsotopePattern);
-
-					compound.setIsotopePatternScore(score);
-
 					// If required, check isotope score
-					if (isotopeFilter) {
-						if (score >= isotopeScoreThreshold) {
+					if ((rawDataIsotopePattern != null)
+							&& (compoundIsotopePattern != null)) {
+						
+						double score = IsotopePatternScoreCalculator
+								.getSimilarityScore(rawDataIsotopePattern,
+										compoundIsotopePattern);
+
+						compound.setIsotopePatternScore(score);
+
+						if ((isotopeFilter) && (score < isotopeScoreThreshold)) {
 							finishedItems++;
 							continue;
 						}

@@ -36,6 +36,9 @@ public class IsotopePatternScoreCalculator {
 	public static double getSimilarityScore(IsotopePattern ip1,
 			IsotopePattern ip2) {
 
+		assert ip1 != null;
+		assert ip2 != null;
+		
 		// First, normalize the isotopes to intensity 0..1
 		IsotopePattern nip1 = ip1.normalizeTo(1);
 		IsotopePattern nip2 = ip2.normalizeTo(1);
