@@ -28,7 +28,7 @@ import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
-import org.apache.commons.math.optimization.general.LevenbergMarquardtOptimizer;
+import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 
 public class RANSAC {
 
@@ -236,7 +236,7 @@ public class RANSAC {
     private void fittPolinomialFunction(Vector<AlignStructMol> data) {
         Vector<AlignStructMol> points = new Vector<AlignStructMol>();
 
-        PolynomialFitter fitter = new PolynomialFitter(2, new LevenbergMarquardtOptimizer());
+        PolynomialFitter fitter = new PolynomialFitter(3, new GaussNewtonOptimizer(true));
         for (int i = 0; i < data.size(); i++) {
             AlignStructMol point = data.elementAt(i);
             if (point.ransacMaybeInLiers) {

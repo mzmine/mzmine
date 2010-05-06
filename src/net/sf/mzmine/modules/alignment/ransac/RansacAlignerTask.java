@@ -230,7 +230,7 @@ class RansacAlignerTask implements Task {
 
 		// RANSAC algorithm
 		Vector<AlignStructMol> list = ransacPeakLists(alignedPeakList, peakList);
-		PolynomialSplineFunction function = this.getRT(list);
+		PolynomialSplineFunction function = this.getPolynomialFunction(list, alignedPeakList.getRowsRTRange());
 
 		PeakListRow allRows[] = peakList.getRows();
 
@@ -328,7 +328,7 @@ class RansacAlignerTask implements Task {
 	 * @param list
 	 * @return
 	 */
-	private PolynomialSplineFunction getRT(Vector<AlignStructMol> list) {
+	private PolynomialSplineFunction getPolynomialFunction(Vector<AlignStructMol> list, Range RTrange) {
 		List<RTs> data = new ArrayList<RTs>();
 		for (AlignStructMol m : list) {
 			if (m.Aligned) {
@@ -336,7 +336,7 @@ class RansacAlignerTask implements Task {
 			}
 		}
 
-		data = this.smooth(data);
+		data = this.smooth(data, RTrange);
 		Collections.sort(data, new RTs());
 
 		double[] xval = new double[data.size()];
@@ -401,6 +401,57 @@ class RansacAlignerTask implements Task {
 
 		return list;
 	}
+
+     private List<RTs> smooth(List<RTs> list, Range RTrange) {
+
+        // Add one point at the begining and another at the end of the list to
+        // ampliate the RT limits to cover the RT range completly
+        try {
+            Collections.sort(list, new RTs());
+
+            RTs firstPoint = list.get(0);
+            RTs lastPoint = list.get(list.size() - 1);
+
+            double min = Math.abs(firstPoint.RT - RTrange.getMin());
+
+            double RTx = firstPoint.RT - min;
+            double RTy = firstPoint.RT2 - min;
+
+            RTs newPoint = new RTs(RTx, RTy);
+            list.add(newPoint);
+
+            double max = Math.abs(RTrange.getMin() - lastPoint.RT);
+            RTx = lastPoint.RT + max;
+            RTy = lastPoint.RT2 + max;
+
+            newPoint = new RTs(RTx, RTy);
+            list.add(newPoint);
+        } catch (Exception exception) {
+        }
+
+        // Add points to the model in between of the real points to smooth the regression model
+        Collections.sort(list, new RTs());
+
+        for (int i = 0; i < list.size() - 1; i++) {
+            RTs point1 = list.get(i);
+            RTs point2 = list.get(i + 1);
+            if (point1.RT < point2.RT - 2) {
+                SimpleRegression regression = new SimpleRegression();
+                regression.addData(point1.RT, point1.RT2);
+                regression.addData(point2.RT, point2.RT2);
+                double rt = point1.RT + 1;
+                while (rt < point2.RT) {
+                    RTs newPoint = new RTs(rt, regression.predict(rt));
+                    list.add(newPoint);
+                    rt++;
+                }
+
+            }
+        }
+
+        return list;
+    }
+
 
 	/**
 	 * Create the vector which contains all the possible aligned peaks.
