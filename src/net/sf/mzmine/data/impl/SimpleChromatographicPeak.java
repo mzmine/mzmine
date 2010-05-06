@@ -36,7 +36,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
 	private PeakStatus peakStatus;
 	private RawDataFile dataFile;
-
+	
 	// Scan numbers
 	private int scanNumbers[];
 
@@ -57,6 +57,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	// Isotope pattern. Null by default but can be set later by deisotoping
 	// method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 
 	/**
 	 * Initializes a new peak using given values
@@ -259,6 +260,14 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

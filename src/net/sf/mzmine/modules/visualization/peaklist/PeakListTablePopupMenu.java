@@ -176,8 +176,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			} else {
 				ChromatographicPeak rowBestPeak = clickedPeakListRow
 						.getBestPeak();
-				ChromatographicPeak rowBestIsotopePattern = clickedPeakListRow
-						.getBestIsotopePatternPeak();
+				IsotopePattern rowBestIsotopePattern = clickedPeakListRow
+						.getBestIsotopePattern();
 				showIsotopePatternItem
 						.setEnabled(rowBestIsotopePattern != null);
 				showMSMSItem.setEnabled(rowBestPeak
@@ -391,7 +391,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			if (clickedDataFile != null) {
 				showPeak = clickedPeakListRow.getPeak(clickedDataFile);
 			} else {
-				showPeak = clickedPeakListRow.getBestIsotopePatternPeak();
+				showPeak = clickedPeakListRow.getBestPeak();
 			}
 
 			if ((showPeak == null) || (showPeak.getIsotopePattern() == null))

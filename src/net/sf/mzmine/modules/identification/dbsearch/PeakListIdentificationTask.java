@@ -188,18 +188,14 @@ public class PeakListIdentificationTask implements Task {
 
 		currentRow = row;
 
-		int charge = 1;
+		ChromatographicPeak bestPeak = row.getBestPeak();
 
-		IsotopePattern rowIsotopePattern = null;
-		ChromatographicPeak bestIsotopePatternPeak = row
-				.getBestIsotopePatternPeak();
-		if (bestIsotopePatternPeak != null) {
-			rowIsotopePattern = bestIsotopePatternPeak.getIsotopePattern();
-			if (rowIsotopePattern != null) {
-				if (rowIsotopePattern.getCharge() != 0)
-					charge = rowIsotopePattern.getCharge();
-			}
-		}
+		int charge = bestPeak.getCharge();
+
+		if (charge == 0)
+			charge = 1;
+
+		IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
 
 		double massValue = (row.getAverageMZ() - ionType.getAddedMass())
 				* charge;

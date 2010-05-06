@@ -218,11 +218,11 @@ class IsotopeGrouperTask implements Task {
 			}
 			// Assign peaks in best fitted pattern to same isotope pattern
 			SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
-					bestFitCharge, isotopes, IsotopePatternStatus.DETECTED,
-					aPeak.toString());
+					isotopes, IsotopePatternStatus.DETECTED, aPeak.toString());
 
 			ChromatographicPeak newPeak = new SimpleChromatographicPeak(aPeak);
 			newPeak.setIsotopePattern(newPattern);
+			newPeak.setCharge(bestFitCharge);
 
 			// keep old ID
 

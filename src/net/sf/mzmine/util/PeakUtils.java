@@ -110,24 +110,13 @@ public class PeakUtils {
      * @return true, same charge state
      */
     public static boolean compareChargeState(PeakListRow row1, PeakListRow row2) {
-    	if ((row1 == null) || (row2 == null))
-            return false;
-    	int firstNo = row1.getBestPeak().getMostIntenseFragmentScanNumber();
-		int secondNo = row2.getBestPeak().getMostIntenseFragmentScanNumber();
-		int firstCharge = 0;
-		int secondCharge = 0;
+    	
+    	assert ((row1 != null) && (row2 != null));
+            
+    	int firstCharge = row1.getBestPeak().getCharge();
+		int secondCharge = row2.getBestPeak().getCharge();
 
-		// is there a MS/MS scan number
-		if (firstNo > 0) {
-			firstCharge = row1.getBestPeak().getDataFile().getScan(firstNo).getPrecursorCharge();
-		}
-
-		// is there also a MS/MS scan number
-		if (secondNo > 0) {
-			secondCharge = row2.getBestPeak().getDataFile().getScan(secondNo).getPrecursorCharge();
-		}
-
-    	return (firstCharge == secondCharge);
+    	return (firstCharge == 0) || (secondCharge ==0) || (firstCharge == secondCharge);
 
 	}
 

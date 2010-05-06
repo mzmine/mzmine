@@ -82,7 +82,7 @@ class PeakListOpenHandler extends DefaultHandler {
 
 	private Vector<DataPoint> currentIsotopes;
 	private IsotopePatternStatus currentIsotopePatternStatus;
-	private int currentIsotopePatternCharge;
+	private int currentPeakCharge;
 	private String currentIsotopePatternDescription;
 
 	private Hashtable<Integer, RawDataFile> dataFilesIDMap;
@@ -152,7 +152,8 @@ class PeakListOpenHandler extends DefaultHandler {
 			int rowID = Integer.parseInt(attrs.getValue(PeakListElementName.ID
 					.getElementName()));
 			buildingRow = new SimplePeakListRow(rowID);
-			String comment = attrs.getValue(PeakListElementName.COMMENT.getElementName());
+			String comment = attrs.getValue(PeakListElementName.COMMENT
+					.getElementName());
 			buildingRow.setComment(comment);
 		}
 
@@ -179,6 +180,13 @@ class PeakListOpenHandler extends DefaultHandler {
 					.getElementName()));
 			peakStatus = attrs.getValue(PeakListElementName.STATUS
 					.getElementName());
+			String chargeString = attrs.getValue(PeakListElementName.CHARGE
+					.getElementName());
+			if (chargeString != null)
+				currentPeakCharge = Integer.valueOf(chargeString);
+			else
+				currentPeakCharge = 0;
+
 		}
 
 		// <MZPEAK>
@@ -192,8 +200,6 @@ class PeakListOpenHandler extends DefaultHandler {
 			currentIsotopes.clear();
 			currentIsotopePatternStatus = IsotopePatternStatus.valueOf(attrs
 					.getValue(PeakListElementName.STATUS.getElementName()));
-			currentIsotopePatternCharge = Integer.valueOf(attrs
-					.getValue(PeakListElementName.CHARGE.getElementName()));
 			currentIsotopePatternDescription = attrs
 					.getValue(PeakListElementName.DESCRIPTION.getElementName());
 		}
@@ -352,10 +358,11 @@ class PeakListOpenHandler extends DefaultHandler {
 					status, representativeScan, fragmentScan, peakRTRange,
 					peakMZRange, peakIntensityRange);
 
+			peak.setCharge(currentPeakCharge);
+
 			if (currentIsotopes.size() > 0) {
 				SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
-						currentIsotopePatternCharge, currentIsotopes
-								.toArray(new DataPoint[0]),
+						currentIsotopes.toArray(new DataPoint[0]),
 						currentIsotopePatternStatus,
 						currentIsotopePatternDescription);
 				peak.setIsotopePattern(newPattern);

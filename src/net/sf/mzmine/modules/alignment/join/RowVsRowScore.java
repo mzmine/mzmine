@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.alignment.join;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -59,11 +58,8 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 		double sameIsotopePatternScore = 0;
 		if (compareIsotopePattern){
 			
-			ChromatographicPeak p1 = peakListRow.getBestIsotopePatternPeak();
-			ChromatographicPeak p2 = alignedRow.getBestIsotopePatternPeak();
-			
-			IsotopePattern ip1 = p1.getIsotopePattern();
-			IsotopePattern ip2 = p2.getIsotopePattern();
+			IsotopePattern ip1 = peakListRow.getBestIsotopePattern();
+			IsotopePattern ip2 = alignedRow.getBestIsotopePattern();
 
 			sameIsotopePatternScore = IsotopePatternScoreCalculator.getSimilarityScore(ip1, ip2);
 			

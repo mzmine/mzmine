@@ -26,6 +26,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -49,10 +50,11 @@ class SameRangePeak implements ChromatographicPeak {
 	private TreeMap<Integer, DataPoint> mzPeakMap;
 
 	// Number of most intense fragment scan
-	private int fragmentScanNumber, representativeScan;
+	private int fragmentScan, representativeScan;
 	
 	// Isotope pattern. Null by default but can be set later by deisotoping method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 
 	/**
 	 * Initializes empty peak for adding data points
@@ -226,8 +228,15 @@ class SameRangePeak implements ChromatographicPeak {
 		}
 		this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
 
-		fragmentScanNumber = ScanUtils.findBestFragmentScan(dataFile, rtRange,
+		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange,
 				mzRange);
+		
+		if (fragmentScan > 0) {
+			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+			int precursorCharge = fragmentScanObject.getPrecursorCharge();
+			if ((precursorCharge > 0) && (this.charge == 0))
+				this.charge = precursorCharge;
+		}
 
 	}
 
@@ -240,7 +249,7 @@ class SameRangePeak implements ChromatographicPeak {
 	}
 
 	public int getMostIntenseFragmentScanNumber() {
-		return fragmentScanNumber;
+		return fragmentScan;
 	}
 	
 	public IsotopePattern getIsotopePattern() {
@@ -249,6 +258,14 @@ class SameRangePeak implements ChromatographicPeak {
 
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 	
 }

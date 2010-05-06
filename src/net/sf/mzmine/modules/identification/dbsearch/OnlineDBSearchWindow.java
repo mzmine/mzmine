@@ -187,9 +187,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 			if (predictedPattern == null)
 				return;
 
-			ChromatographicPeak peak = peakListRow.getBestIsotopePatternPeak();
-			if (peak == null)
-				peak = peakListRow.getBestPeak();
+			ChromatographicPeak peak = peakListRow.getBestPeak();
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();

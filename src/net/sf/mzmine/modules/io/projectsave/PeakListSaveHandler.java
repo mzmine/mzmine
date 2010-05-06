@@ -199,10 +199,10 @@ class PeakListSaveHandler {
 			atts.addAttribute("", "", PeakListElementName.ID.getElementName(),
 					"CDATA", String.valueOf(row.getID()));
 			if (row.getComment() != null) {
-				atts.addAttribute("", "", PeakListElementName.COMMENT.getElementName(),
-						"CDATA", row.getComment());
+				atts.addAttribute("", "", PeakListElementName.COMMENT
+						.getElementName(), "CDATA", row.getComment());
 			}
-			
+
 			hd.startElement("", "", PeakListElementName.ROW.getElementName(),
 					atts);
 			fillRowElement(row, hd);
@@ -269,7 +269,8 @@ class PeakListSaveHandler {
 							.valueOf(p.getArea()));
 			atts.addAttribute("", "", PeakListElementName.STATUS
 					.getElementName(), "CDATA", p.getPeakStatus().toString());
-
+			atts.addAttribute("", "", PeakListElementName.CHARGE
+					.getElementName(), "CDATA", String.valueOf(p.getCharge()));
 			hd.startElement("", "", PeakListElementName.PEAK.getElementName(),
 					atts);
 
@@ -361,9 +362,6 @@ class PeakListSaveHandler {
 			atts.addAttribute("", "", PeakListElementName.STATUS
 					.getElementName(), "CDATA", String.valueOf(isotopePattern
 					.getStatus()));
-			atts.addAttribute("", "", PeakListElementName.CHARGE
-					.getElementName(), "CDATA", String.valueOf(isotopePattern
-					.getCharge()));
 			atts
 					.addAttribute("", "", PeakListElementName.DESCRIPTION
 							.getElementName(), "CDATA", isotopePattern

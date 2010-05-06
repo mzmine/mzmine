@@ -56,6 +56,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 	
 	// Isotope pattern. Null by default but can be set later by deisotoping method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 
 	public double getArea() {
 		return area;
@@ -413,6 +414,14 @@ public class EMGPeakModel implements ChromatographicPeak {
 			shapeHeight = 0;
 
 		return shapeHeight;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

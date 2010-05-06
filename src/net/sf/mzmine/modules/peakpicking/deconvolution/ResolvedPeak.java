@@ -26,6 +26,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -59,9 +60,11 @@ public class ResolvedPeak implements ChromatographicPeak {
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
-	
+	private int charge = 0;
+
 	/**
 	 * Initializes this peak using data points from a given chromatogram -
 	 * regionStart marks the index of the first data point (inclusive),
@@ -134,6 +137,13 @@ public class ResolvedPeak implements ChromatographicPeak {
 		// Update fragment scan
 		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
 				rawDataPointsRTRange, rawDataPointsMZRange);
+
+		if (fragmentScan > 0) {
+			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+			int precursorCharge = fragmentScanObject.getPrecursorCharge();
+			if (precursorCharge > 0)
+				this.charge = precursorCharge;
+		}
 
 	}
 
@@ -210,13 +220,21 @@ public class ResolvedPeak implements ChromatographicPeak {
 	public RawDataFile getDataFile() {
 		return dataFile;
 	}
-	
+
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
 
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

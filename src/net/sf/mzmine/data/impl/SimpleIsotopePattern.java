@@ -29,25 +29,19 @@ import net.sf.mzmine.util.ScanUtils;
  */
 public class SimpleIsotopePattern implements IsotopePattern {
 
-	private int charge;
 	private DataPoint dataPoints[], highestIsotope;
 	private IsotopePatternStatus status;
 	private String description;
 
-	public SimpleIsotopePattern(int charge, DataPoint dataPoints[],
+	public SimpleIsotopePattern(DataPoint dataPoints[],
 			IsotopePatternStatus status, String description) {
 
 		assert dataPoints.length > 0;
 
 		highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
-		this.charge = charge;
 		this.dataPoints = dataPoints;
 		this.status = status;
 		this.description = description;
-	}
-
-	public int getCharge() {
-		return charge;
 	}
 
 	public DataPoint[] getDataPoints() {
@@ -77,7 +71,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
 			newDataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
-		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(charge,
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
 				newDataPoints, status, description);
 
 		return newPattern;

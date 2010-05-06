@@ -48,6 +48,7 @@ public class TrianglePeakModel implements ChromatographicPeak {
 
 	// Isotope pattern. Null by default but can be set later by deisotoping method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 	
 	public double getArea() {
 		return area;
@@ -169,6 +170,14 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		}
 
 		return intensity;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

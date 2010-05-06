@@ -25,12 +25,6 @@ package net.sf.mzmine.data;
 public interface IsotopePattern {
 
 	/**
-	 * Returns the charge of peaks in the pattern. Returns 0 if the charge could
-	 * not be determined.
-	 */
-	public int getCharge();
-
-	/**
 	 * Returns the isotope pattern status.
 	 */
 	public IsotopePatternStatus getStatus();

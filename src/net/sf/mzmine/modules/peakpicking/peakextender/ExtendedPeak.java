@@ -8,6 +8,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
@@ -38,6 +39,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 
 	// Isotope pattern. Null by default but can be set later by deisotoping method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 	
 	//Array of scan numbers
 	private int[] scanNumbers;
@@ -200,8 +202,22 @@ public class ExtendedPeak implements ChromatographicPeak {
 		// Update fragment scan
 		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, dataFile
 				.getDataRTRange(1), rawDataPointsMZRange);
+		
+		if (fragmentScan > 0) {
+			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+			int precursorCharge = fragmentScanObject.getPrecursorCharge();
+			if ((precursorCharge > 0) && (this.charge == 0))
+				this.charge = precursorCharge;
+		}
 
+	}
 
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 

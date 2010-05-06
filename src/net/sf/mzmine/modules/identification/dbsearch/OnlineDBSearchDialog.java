@@ -30,7 +30,6 @@ import javax.swing.JFormattedTextField;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -70,12 +69,15 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		if (row != null) {
 			this.rawMassValue = row.getAverageMZ();
 			peakMass.setValue(rawMassValue);
-			ChromatographicPeak peak = row.getBestIsotopePatternPeak();
-			if (peak != null) {
-				IsotopePattern pattern = peak.getIsotopePattern();
-				int rowCharge = pattern.getCharge();
-				chargeField.setValue(rowCharge);
-			}
+			ChromatographicPeak peak = row.getBestPeak();
+			int rowCharge = peak.getCharge();
+	
+			// If the charge is unknown, assume charge 1
+			if (rowCharge == 0)
+				rowCharge = 1;
+			
+			chargeField.setValue(rowCharge);
+
 		}
 
 		setNeutralMassValue();

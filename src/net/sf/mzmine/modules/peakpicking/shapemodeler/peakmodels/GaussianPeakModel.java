@@ -47,8 +47,9 @@ public class GaussianPeakModel implements ChromatographicPeak {
 
 	// Isotope pattern. Null by default but can be set later by deisotoping method.
 	private IsotopePattern isotopePattern;
+	private int charge = 0;
 	
-	private static float CONST = 2.354820045f;
+	private static double CONST = 2.354820045;
 
 	public double getArea() {
 		return area;
@@ -290,6 +291,14 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		double aproximatedFWHM = (xRight - xLeft);
 
 		return aproximatedFWHM;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

@@ -107,5 +107,15 @@ public interface ChromatographicPeak {
 	 * Sets the isotope pattern of this peak
 	 */
 	public void setIsotopePattern(IsotopePattern isotopePattern);
+	
+	/**
+	 * Returns the charge of this ion. If the charge is unknown, returns 0.
+	 */
+	public int getCharge();
+
+	/**
+	 * Sets the charge of this ion
+	 */
+	public void setCharge(int charge);
 
 }

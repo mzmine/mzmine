@@ -26,6 +26,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -245,14 +246,15 @@ public class SimplePeakListRow implements PeakListRow {
 		return peaks.containsKey(file);
 	}
 
-	public ChromatographicPeak getBestIsotopePatternPeak() {
+	public IsotopePattern getBestIsotopePattern() {
 		ChromatographicPeak peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 
 		for (ChromatographicPeak peak : peaks) {
-			if (peak.getIsotopePattern() != null)
-				return peak;
+			IsotopePattern ip = peak.getIsotopePattern();
+			if (ip != null)
+				return ip;
 		}
 
 		return null;

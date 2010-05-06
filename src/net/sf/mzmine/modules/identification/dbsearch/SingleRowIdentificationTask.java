@@ -23,7 +23,6 @@ import java.text.NumberFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
@@ -92,7 +91,7 @@ public class SingleRowIdentificationTask implements Task {
 				.getParameterValue(OnlineDBSearchParameters.isotopeFilter);
 
 		// If there is no isotope pattern, we cannot use the isotope filter
-		if (peakListRow.getBestIsotopePatternPeak() == null)
+		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
 
 		isotopeScoreThreshold = (Double) parameters
@@ -197,29 +196,23 @@ public class SingleRowIdentificationTask implements Task {
 					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
 							.calculateIsotopePattern(adjustedFormula, charge,
 									ionType.getPolarity());
-					
+
 					compound.setIsotopePattern(compoundIsotopePattern);
 
-					ChromatographicPeak bestPeakWithIsotopes = peakListRow
-							.getBestIsotopePatternPeak();
+					IsotopePattern rawDataIsotopePattern = peakListRow
+							.getBestIsotopePattern();
 
-					if (bestPeakWithIsotopes != null) {
+					double score = IsotopePatternScoreCalculator
+							.getSimilarityScore(rawDataIsotopePattern,
+									compoundIsotopePattern);
 
-						IsotopePattern rawDataIsotopePattern = bestPeakWithIsotopes
-								.getIsotopePattern();
+					compound.setIsotopePatternScore(score);
 
-						double score = IsotopePatternScoreCalculator
-								.getSimilarityScore(rawDataIsotopePattern,
-										compoundIsotopePattern);
-						
-						compound.setIsotopePatternScore(score);
-
-						// If required, check isotope score
-						if (isotopeFilter) {
-							if (score >= isotopeScoreThreshold) {
-								finishedItems++;
-								continue;
-							}
+					// If required, check isotope score
+					if (isotopeFilter) {
+						if (score >= isotopeScoreThreshold) {
+							finishedItems++;
+							continue;
 						}
 					}
 				}

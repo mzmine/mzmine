@@ -75,8 +75,9 @@ public class IsotopePatternCalculator implements MZmineModule {
 
 		IMolecularFormula formulaObject = MolecularFormulaManipulator
 				.getMolecularFormula(molecularFormula, builder);
-		
-		// TODO: check if the formula is not too big (>100 of a single atom?). if so, just cancel the prediction
+
+		// TODO: check if the formula is not too big (>100 of a single atom?).
+		// if so, just cancel the prediction
 
 		// Set the minimum abundance of isotope to 0.1%
 		IsotopePatternGenerator generator = new IsotopePatternGenerator(0.001);
@@ -103,8 +104,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 			dataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
-		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(charge,
-				dataPoints, IsotopePatternStatus.PREDICTED, molecularFormula);
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(dataPoints,
+				IsotopePatternStatus.PREDICTED, molecularFormula);
 
 		return newPattern;
 

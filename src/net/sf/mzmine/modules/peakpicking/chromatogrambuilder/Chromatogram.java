@@ -28,6 +28,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
@@ -67,9 +68,11 @@ public class Chromatogram implements ChromatographicPeak {
 	// commitBuildingSegment()
 	private int numOfCommittedSegments = 0;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
-	
+	private int charge = 0;
+
 	/**
 	 * Initializes this Chromatogram
 	 */
@@ -162,7 +165,7 @@ public class Chromatogram implements ChromatographicPeak {
 	public RawDataFile getDataFile() {
 		return dataFile;
 	}
-	
+
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
@@ -231,6 +234,13 @@ public class Chromatogram implements ChromatographicPeak {
 		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, dataFile
 				.getDataRTRange(1), rawDataPointsMZRange);
 
+		if (fragmentScan > 0) {
+			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+			int precursorCharge = fragmentScanObject.getPrecursorCharge();
+			if (precursorCharge > 0)
+				this.charge = precursorCharge;
+		}
+
 		// Discard the fields we don't need anymore
 		buildingSegment = null;
 		lastMzPeak = null;
@@ -260,6 +270,14 @@ public class Chromatogram implements ChromatographicPeak {
 	public void commitBuildingSegment() {
 		buildingSegment.clear();
 		numOfCommittedSegments++;
+	}
+
+	public int getCharge() {
+		return charge;
+	}
+
+	public void setCharge(int charge) {
+		this.charge = charge;
 	}
 
 }

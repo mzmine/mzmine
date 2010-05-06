@@ -58,7 +58,7 @@ public interface PeakListRow {
 	 * Has a peak?
 	 */
 	public boolean hasPeak(ChromatographicPeak peak);
-	
+
 	/**
 	 * Has a peak?
 	 */
@@ -137,10 +137,9 @@ public interface PeakListRow {
 	public ChromatographicPeak getBestPeak();
 
 	/**
-	 * Returns the most intense peak in this row which has an isotope pattern
-	 * attached. If there are no isotope patterns present in the row, returns
-	 * null.
+	 * Returns the most intense isotope pattern in this row. If there are no
+	 * isotope patterns present in the row, returns null.
 	 */
-	public ChromatographicPeak getBestIsotopePatternPeak();
+	public IsotopePattern getBestIsotopePattern();
 
 }
