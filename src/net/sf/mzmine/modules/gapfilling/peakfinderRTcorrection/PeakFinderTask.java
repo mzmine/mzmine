@@ -88,18 +88,22 @@ class PeakFinderTask implements Task {
 
 
         // Process all raw data files
+
         for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
+
             RawDataFile datafile1 = peakList.getRawDataFile(i);
-            RawDataFile datafile2;
+            RawDataFile datafile2 = null;
             RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
+
+            int e = i;
+            while (e == i) {
+                e = (int)(Math.floor(Math.random() * peakList.getNumberOfRawDataFiles()));
+            }
+
             for (PeakListRow row : peakList.getRows()) {
-                if (i == 0) {
-                    datafile1 = peakList.getRawDataFile(i);
-                    datafile2 = peakList.getRawDataFile(i + 1);
-                } else {
-                    datafile1 = peakList.getRawDataFile(i);
-                    datafile2 = peakList.getRawDataFile(i - 1);
-                }
+                datafile1 = peakList.getRawDataFile(i);
+                datafile2 = peakList.getRawDataFile(e);
+
                 ChromatographicPeak peaki = row.getPeak(datafile1);
                 ChromatographicPeak peake = row.getPeak(datafile2);
                 if (peaki != null && peake != null) {
@@ -108,13 +112,15 @@ class PeakFinderTask implements Task {
             }
 
             info.setFuction();
-            
+
             // Canceled?
             if (status == TaskStatus.CANCELED) {
                 return;
             }
 
             Vector<Gap> gaps = new Vector<Gap>();
+
+
 
             // Fill each row of this raw data file column, create new empty gaps
             // if necessary
@@ -129,13 +135,18 @@ class PeakFinderTask implements Task {
                     // Create a new gap
 
                     double mz = sourceRow.getAverageMZ();
-                    double rt = info.predict(sourceRow.getAverageRT());
+                    if (peakList.getRow(row).getPeak(datafile2) != null) {
+                        double rt2 = peakList.getRow(row).getPeak(datafile2).getRT();
 
-                    if (rt != -1) {
-                        Gap newGap = new Gap(newRow, datafile1, mz, rt,
-                                intTolerance, mzTolerance, rtToleranceValueAbs);
+                        double rt = info.predict(rt2);
 
-                        gaps.add(newGap);
+                        if (rt != -1) {
+                            Gap newGap = new Gap(newRow, datafile1, mz, rt,
+                                    intTolerance, mzTolerance, rtToleranceValueAbs);
+
+                            gaps.add(newGap);
+                        }
+                        e = 1;
                     }
 
                 } else {
@@ -176,6 +187,7 @@ class PeakFinderTask implements Task {
             for (Gap gap : gaps) {
                 gap.noMoreOffers();
             }
+
 
         }
 
