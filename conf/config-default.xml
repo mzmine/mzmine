@@ -27,7 +27,7 @@
     <module class="net.sf.mzmine.modules.rawdata.datasetfilters.RawDataFiltering" /> 
     <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder" /> 
-    <module class="net.sf.mzmine.modules.gapfilling.peakfinderRansac.PeakFinder" /> 
+    <module class="net.sf.mzmine.modules.gapfilling.peakfinderRTcorrection.PeakFinder" /> 
     <module class="net.sf.mzmine.modules.gapfilling.samerange.SameRange" /> 
     <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper" /> 
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter" /> 
