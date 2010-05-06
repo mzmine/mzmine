@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import net.sf.mzmine.util.Range;
 import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math.stat.regression.SimpleRegression;
@@ -29,18 +30,20 @@ import org.apache.commons.math.stat.regression.SimpleRegression;
 public class RegressionInfo {
 
     private List<RTs> data;
-    private double[] values;
     private PolynomialSplineFunction function;
-    public RegressionInfo() {
+    private Range RTrange;
+
+    public RegressionInfo(Range RTrange) {
         this.data = new ArrayList<RTs>();
+        this.RTrange = RTrange;
 
     }
 
-    public void setFuction(){
-       function = getRT();
+    public void setFuction() {
+        function = getPolynomialFunction();
     }
 
-    public double predict(double RT) {         
+    public double predict(double RT) {
         try {
             return function.value(RT);
         } catch (Exception ex) {
@@ -52,7 +55,7 @@ public class RegressionInfo {
         this.data.add(new RTs(RT, RT2));
     }
 
-    private PolynomialSplineFunction getRT() {
+    private PolynomialSplineFunction getPolynomialFunction() {
         data = this.smooth(data);
         Collections.sort(data, new RTs());
 
@@ -74,7 +77,35 @@ public class RegressionInfo {
     }
 
     private List<RTs> smooth(List<RTs> list) {
+
+        // Add one point at the begining and another at the end of the list to
+        // ampliate the RT limits to cover the RT range completly
+        try {
+            Collections.sort(list, new RTs());
+
+            RTs firstPoint = list.get(0);
+            RTs lastPoint = list.get(list.size() - 1);
+
+            double min = Math.abs(firstPoint.RT - RTrange.getMin());
+
+            double RTx = firstPoint.RT - min;
+            double RTy = firstPoint.RT2 - min;
+
+            RTs newPoint = new RTs(RTx, RTy);
+            list.add(newPoint);
+
+            double max = Math.abs(RTrange.getMin() - lastPoint.RT);
+            RTx = lastPoint.RT + max;
+            RTy = lastPoint.RT2 + max;
+
+            newPoint = new RTs(RTx, RTy);
+            list.add(newPoint);
+        } catch (Exception exception) {
+        }
+
+        // Add points to the model in between of the real points to smooth the regression model
         Collections.sort(list, new RTs());
+
         for (int i = 0; i < list.size() - 1; i++) {
             RTs point1 = list.get(i);
             RTs point2 = list.get(i + 1);

@@ -91,7 +91,7 @@ class PeakFinderTask implements Task {
         for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
             RawDataFile datafile1 = peakList.getRawDataFile(i);
             RawDataFile datafile2;
-            RegressionInfo info = new RegressionInfo();
+            RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
             for (PeakListRow row : peakList.getRows()) {
                 if (i == 0) {
                     datafile1 = peakList.getRawDataFile(i);
