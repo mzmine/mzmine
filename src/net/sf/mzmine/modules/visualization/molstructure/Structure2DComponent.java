@@ -30,7 +30,7 @@ public class Structure2DComponent extends JChemPaintViewerPanel {
 
 	public Structure2DComponent(String structure) throws CDKException {
 
-		super(new ChemModel(), 0, 0, true, false);
+		super(new ChemModel(), 0, 0, true, false, null);
 
 		// Load the structure
 		StringReader reader = new StringReader(structure);

@@ -75,7 +75,6 @@ public class MZmineClient extends MZmineCore implements Runnable {
 	/**
 	 * @see java.lang.Runnable#run()
 	 */
-	@SuppressWarnings("unchecked")
 	public void run() {
 
 		// load configuration from XML
