@@ -164,8 +164,8 @@ public class AlignmentRansacPlot extends ChartPanel {
     public void addSeries(Vector<AlignStructMol> data, String title) {
         try {
             chart.setTitle(title);
-            XYSeries s1 = new XYSeries("Aligned Peaks");
-            XYSeries s2 = new XYSeries("Non aligned peaks");
+            XYSeries s1 = new XYSeries("Aligned pairs");
+            XYSeries s2 = new XYSeries("Non-aligned pairs");
             XYSeries s3 = new XYSeries("Model");
 
             PolynomialSplineFunction function = getRT(data);
