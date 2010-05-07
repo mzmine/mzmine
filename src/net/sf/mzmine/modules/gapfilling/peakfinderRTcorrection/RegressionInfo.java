@@ -40,7 +40,7 @@ public class RegressionInfo {
 
     }
 
-    public void setFuction() {
+    public void setFunction() {
         function = getPolynomialFunction();
     }
 

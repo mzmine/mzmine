@@ -47,6 +47,7 @@ class PeakFinderTask implements Task {
     private PeakFinderParameters parameters;
     private int processedScans,  totalScans;
     private boolean MASTERLIST = true;
+    private int masterSample = 0;
 
     PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
@@ -92,6 +93,7 @@ class PeakFinderTask implements Task {
 
         // Fill the gaps of the first sample using all the other and take it as master list
         // to fill the gaps of the other samples
+        masterSample = (int) Math.floor(Math.random() * peakList.getNumberOfRawDataFiles());
         fillList(MASTERLIST);
 
         // Process all raw data files
@@ -110,103 +112,116 @@ class PeakFinderTask implements Task {
 
     }
 
-    public void fillList(boolean MasterList) {
-        for (int i = 1; i < peakList.getNumberOfRawDataFiles(); i++) {
-            RawDataFile datafile1;
-            RawDataFile datafile2;
+    public void fillList(boolean masterList) {
+        for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
+            if (i != masterSample) {
 
-            if (MasterList) {
-                datafile1 = peakList.getRawDataFile(0);
-                datafile2 = peakList.getRawDataFile(i);
-            } else {
-                datafile1 = peakList.getRawDataFile(i);
-                datafile2 = peakList.getRawDataFile(0);
-            }
-            RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
+                RawDataFile datafile1;
+                RawDataFile datafile2;
 
-            for (PeakListRow row : peakList.getRows()) {
-                ChromatographicPeak peaki = row.getPeak(datafile1);
-                ChromatographicPeak peake = row.getPeak(datafile2);
-                if (peaki != null && peake != null) {
-                    info.addData(peake.getRT(), peaki.getRT());
-                }
-            }
-
-            info.setFuction();
-
-            // Canceled?
-            if (status == TaskStatus.CANCELED) {
-                return;
-            }
-
-            Vector<Gap> gaps = new Vector<Gap>();
-
-
-
-            // Fill each row of this raw data file column, create new empty gaps
-            // if necessary
-            for (int row = 0; row < peakList.getNumberOfRows(); row++) {
-                PeakListRow sourceRow = peakList.getRow(row);
-                PeakListRow newRow = processedPeakList.getRow(row);
-
-                ChromatographicPeak sourcePeak = sourceRow.getPeak(datafile1);
-
-                if (sourcePeak == null) {
-
-                    // Create a new gap
-
-                    double mz = sourceRow.getAverageMZ();
-                    if (peakList.getRow(row).getPeak(datafile2) != null) {
-                        double rt2 = peakList.getRow(row).getPeak(datafile2).getRT();
-
-                        double rt = info.predict(rt2);
-
-                        if (rt != -1) {
-                            Gap newGap = new Gap(newRow, datafile1, mz, rt,
-                                    intTolerance, mzTolerance, rtToleranceValueAbs);
-
-                            gaps.add(newGap);
-                        }
-                    }
-
+                if (masterList) {
+                    datafile1 = peakList.getRawDataFile(masterSample);
+                    datafile2 = peakList.getRawDataFile(i);
                 } else {
-                    newRow.addPeak(datafile1, sourcePeak);
+                    datafile1 = peakList.getRawDataFile(i);
+                    datafile2 = peakList.getRawDataFile(masterSample);
+                }
+                RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
+
+                for (PeakListRow row : peakList.getRows()) {
+                    ChromatographicPeak peaki = row.getPeak(datafile1);
+                    ChromatographicPeak peake = row.getPeak(datafile2);
+                    if (peaki != null && peake != null) {
+                        info.addData(peake.getRT(), peaki.getRT());
+                    }
                 }
 
-            }
-
-            // Stop processing this file if there are no gaps
-            if (gaps.size() == 0) {
-                processedScans += datafile1.getNumOfScans();
-                continue;
-            }
-
-            // Get all scans of this data file
-            int scanNumbers[] = datafile1.getScanNumbers(1);
-
-            // Process each scan
-            for (int scanNumber : scanNumbers) {
+                info.setFunction();
 
                 // Canceled?
                 if (status == TaskStatus.CANCELED) {
                     return;
                 }
 
-                // Get the scan
-                Scan scan = datafile1.getScan(scanNumber);
+                Vector<Gap> gaps = new Vector<Gap>();
 
-                // Feed this scan to all gaps
-                for (Gap gap : gaps) {
-                    gap.offerNextScan(scan);
+
+
+                // Fill each row of this raw data file column, create new empty gaps
+                // if necessary
+                for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                    PeakListRow sourceRow = peakList.getRow(row);
+                    PeakListRow newRow = processedPeakList.getRow(row);
+
+                    ChromatographicPeak sourcePeak = sourceRow.getPeak(datafile1);
+
+                    if (sourcePeak == null) {
+
+                        // Create a new gap
+
+                        double mz = sourceRow.getAverageMZ();
+                        double rt2 = -1;
+                        if (!masterList) {
+                            if (processedPeakList.getRow(row).getPeak(datafile2) != null) {
+                                rt2 = processedPeakList.getRow(row).getPeak(datafile2).getRT();
+                            }
+                        } else {
+                            if (peakList.getRow(row).getPeak(datafile2) != null) {
+                                rt2 = peakList.getRow(row).getPeak(datafile2).getRT();
+                            }
+                        }
+
+                        if (rt2 > -1) {
+
+                            double rt = info.predict(rt2);
+
+                            if (rt != -1) {
+
+                                Gap newGap = new Gap(newRow, datafile1, mz, rt,
+                                        intTolerance, mzTolerance, rtToleranceValueAbs);
+
+                                gaps.add(newGap);
+                            }
+                        }
+
+                    } else {
+                        newRow.addPeak(datafile1, sourcePeak);
+                    }
+
                 }
-                processedScans++;
-            }
 
-            // Finalize gaps
-            for (Gap gap : gaps) {
-                gap.noMoreOffers();
-            }
+                // Stop processing this file if there are no gaps
+                if (gaps.size() == 0) {
+                    processedScans += datafile1.getNumOfScans();
+                    continue;
+                }
 
+                // Get all scans of this data file
+                int scanNumbers[] = datafile1.getScanNumbers(1);
+
+                // Process each scan
+                for (int scanNumber : scanNumbers) {
+
+                    // Canceled?
+                    if (status == TaskStatus.CANCELED) {
+                        return;
+                    }
+
+                    // Get the scan
+                    Scan scan = datafile1.getScan(scanNumber);
+
+                    // Feed this scan to all gaps
+                    for (Gap gap : gaps) {
+                        gap.offerNextScan(scan);
+                    }
+                    processedScans++;
+                }
+
+                // Finalize gaps
+                for (Gap gap : gaps) {
+                    gap.noMoreOffers();
+                }
+            }
         }
     }
 
