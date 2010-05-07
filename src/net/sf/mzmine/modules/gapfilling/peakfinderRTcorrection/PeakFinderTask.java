@@ -46,6 +46,7 @@ class PeakFinderTask implements Task {
     private double rtToleranceValueAbs;
     private PeakFinderParameters parameters;
     private int processedScans,  totalScans;
+    private boolean MASTERLIST = true;
 
     PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
 
@@ -65,12 +66,15 @@ class PeakFinderTask implements Task {
 
         // Calculate total number of scans in all files
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-            totalScans += dataFile.getNumOfScans(1);
+            totalScans += dataFile.getNumOfScans(1) * 2;
         }
+
 
         // Create new peak list
         processedPeakList = new SimplePeakList(peakList + " " + suffix,
                 peakList.getRawDataFiles());
+
+
 
         // Fill new peak list with empty rows
         for (int row = 0; row < peakList.getNumberOfRows(); row++) {
@@ -86,24 +90,41 @@ class PeakFinderTask implements Task {
             processedPeakList.addRow(newRow);
         }
 
+        // Fill the gaps of the first sample using all the other and take it as master list
+        // to fill the gaps of the other samples
+        fillList(MASTERLIST);
 
         // Process all raw data files
+        fillList(!MASTERLIST);
 
-        for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
+        // Append processed peak list to the project
+        MZmineProject currentProject = MZmineCore.getCurrentProject();
+        currentProject.addPeakList(processedPeakList);
 
-            RawDataFile datafile1 = peakList.getRawDataFile(i);
-            RawDataFile datafile2 = null;
+        // Add task description to peakList
+        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                "Corrected Gap filling ", parameters));
+
+        logger.info("Finished Corrected gap-filling on " + peakList);
+        status = TaskStatus.FINISHED;
+
+    }
+
+    public void fillList(boolean MasterList) {
+        for (int i = 1; i < peakList.getNumberOfRawDataFiles(); i++) {
+            RawDataFile datafile1;
+            RawDataFile datafile2;
+
+            if (MasterList) {
+                datafile1 = peakList.getRawDataFile(0);
+                datafile2 = peakList.getRawDataFile(i);
+            } else {
+                datafile1 = peakList.getRawDataFile(i);
+                datafile2 = peakList.getRawDataFile(0);
+            }
             RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
 
-            int e = i;
-            while (e == i) {
-                e = (int)(Math.floor(Math.random() * peakList.getNumberOfRawDataFiles()));
-            }
-
             for (PeakListRow row : peakList.getRows()) {
-                datafile1 = peakList.getRawDataFile(i);
-                datafile2 = peakList.getRawDataFile(e);
-
                 ChromatographicPeak peaki = row.getPeak(datafile1);
                 ChromatographicPeak peake = row.getPeak(datafile2);
                 if (peaki != null && peake != null) {
@@ -146,7 +167,6 @@ class PeakFinderTask implements Task {
 
                             gaps.add(newGap);
                         }
-                        e = 1;
                     }
 
                 } else {
@@ -179,7 +199,6 @@ class PeakFinderTask implements Task {
                 for (Gap gap : gaps) {
                     gap.offerNextScan(scan);
                 }
-
                 processedScans++;
             }
 
@@ -188,20 +207,7 @@ class PeakFinderTask implements Task {
                 gap.noMoreOffers();
             }
 
-
         }
-
-        // Append processed peak list to the project
-        MZmineProject currentProject = MZmineCore.getCurrentProject();
-        currentProject.addPeakList(processedPeakList);
-
-        // Add task description to peakList
-        processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                "Corrected Gap filling ", parameters));
-
-        logger.info("Finished Corrected gap-filling on " + peakList);
-        status = TaskStatus.FINISHED;
-
     }
 
     public void cancel() {
