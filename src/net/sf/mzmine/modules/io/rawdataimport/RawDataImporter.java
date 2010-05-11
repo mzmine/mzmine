@@ -25,9 +25,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.logging.Logger;
 
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -123,7 +120,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 			String filePath = splitFilenames[i];
 			filePath = filePath.replaceAll("&colon", ":");
 			filePath = filePath.replaceAll("&amp", "&");
-			
+
 			File file = new File(filePath);
 
 			String extension = file.getName().substring(
@@ -162,63 +159,42 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
 		RawDataImporterParameters parameters = (RawDataImporterParameters) parameterSet;
 
-		JFileChooser fileChooser = new JFileChooser();
-
 		String path = (String) parameters
 				.getParameterValue(RawDataImporterParameters.lastDirectory);
+		File lastPath = null;
 		if (path != null)
-			fileChooser.setCurrentDirectory(new File(path));
-		fileChooser.setMultiSelectionEnabled(true);
+			lastPath = new File(path);
 
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"NetCDF files", "cdf", "nc");
-		fileChooser.addChoosableFileFilter(filter);
+		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath);
+		dialog.setVisible(true);
 
-		filter = new FileNameExtensionFilter("mzDATA files", "mzDATA");
-		fileChooser.addChoosableFileFilter(filter);
+		ExitCode exitCode = dialog.getExitCode();
 
-		filter = new FileNameExtensionFilter("mzML files", "mzML");
-		fileChooser.addChoosableFileFilter(filter);
+		if (exitCode == ExitCode.CANCEL)
+			return exitCode;
 
-		filter = new FileNameExtensionFilter("XCalibur RAW files", "RAW");
-		fileChooser.addChoosableFileFilter(filter);
+		String lastDir = dialog.getCurrentDirectory();
+		parameters.setParameterValue(RawDataImporterParameters.lastDirectory,
+				lastDir);
 
-		filter = new FileNameExtensionFilter("MZXML files", "mzxml");
-		fileChooser.addChoosableFileFilter(filter);
-
-		filter = new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-				"mzDATA", "mzML", "mzxml", "RAW");
-		fileChooser.setFileFilter(filter);
-
-		int returnVal = fileChooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainFrame());
-
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-
-			String lastDir = fileChooser.getCurrentDirectory().getPath();
-			parameters.setParameterValue(
-					RawDataImporterParameters.lastDirectory, lastDir);
-
-			File[] selectedFiles = fileChooser.getSelectedFiles();
-			if (selectedFiles.length == 0)
-				return ExitCode.CANCEL;
-
-			StringBuilder fileNames = new StringBuilder();
-			for (int i = 0; i < selectedFiles.length; i++) {
-				String filePath = selectedFiles[i].getPath();
-				filePath = filePath.replaceAll("&", "&amp");
-				filePath = filePath.replaceAll(":", "&colon");
-				if (i > 0)
-					fileNames.append(":");
-				fileNames.append(filePath);
-			}
-
-			parameters.setParameterValue(RawDataImporterParameters.fileNames,
-					fileNames.toString());
-
-			return ExitCode.OK;
-		} else
+		File[] selectedFiles = dialog.getSelectedFiles();
+		if (selectedFiles.length == 0)
 			return ExitCode.CANCEL;
+
+		StringBuilder fileNames = new StringBuilder();
+		for (int i = 0; i < selectedFiles.length; i++) {
+			String filePath = selectedFiles[i].getPath();
+			filePath = filePath.replaceAll("&", "&amp");
+			filePath = filePath.replaceAll(":", "&colon");
+			if (i > 0)
+				fileNames.append(":");
+			fileNames.append(filePath);
+		}
+
+		parameters.setParameterValue(RawDataImporterParameters.fileNames,
+				fileNames.toString());
+
+		return exitCode;
 
 	}
 }
