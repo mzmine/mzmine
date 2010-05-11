@@ -82,8 +82,10 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 
 		JPanel buttonsPanel = new JPanel();
 
-		openButton = GUIUtils.addButton(buttonsPanel, "Open", null, this);
+		openButton = GUIUtils.addButton(buttonsPanel, "Import", null, this);
+		
 		cancelButton = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
+		
 		JButton helpButton = new HelpButton(
 				"net/sf/mzmine/modules/io/rawdataimport/help/RawDataImporter.html");
 		buttonsPanel.add(helpButton);

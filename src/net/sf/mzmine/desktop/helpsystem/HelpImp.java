@@ -54,7 +54,7 @@ public class HelpImp {
             while (e.hasMoreElements()) {
                 JarEntry entry = e.nextElement();
                 String name = entry.getName();
-                if (name.contains("htm")) {
+                if ((name.endsWith("htm")) || (name.endsWith("html"))) {
                     helpMap.setTarget(name);
                 }
             }
