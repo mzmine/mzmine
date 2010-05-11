@@ -33,7 +33,6 @@
     <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter" /> 
     <module class="net.sf.mzmine.modules.peaklist.rowsfilter.RowsFilter" /> 
     <module class="net.sf.mzmine.modules.alignment.join.JoinAligner" /> 
-    <module class="net.sf.mzmine.modules.alignment.fragment.FragmentAligner" /> 
     <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner" /> 
     <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer" /> 
     <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer" /> 
@@ -48,7 +47,8 @@
     <module class="net.sf.mzmine.modules.identification.complexsearch.ComplexSearch" /> 
     <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch" /> 
     <module class="net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.peptidesearch.PeptideSearch" /> 
+    <module class="net.sf.mzmine.modules.identification.peptidesearch.PeptideSearch" />
+    <module class="net.sf.mzmine.modules.identification.glycerophospholipidsearch.GPLipidSearch" />      
   </modules>  
   <preferences>
     <format type="m/z">
