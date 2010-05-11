@@ -133,7 +133,6 @@ public class AlignmentRansacPlot extends ChartPanel {
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setBaseLinesVisible(false);
         renderer.setBaseShapesVisible(true);
-        renderer.setBaseToolTipGenerator(toolTipGenerator);
         renderer.setSeriesShape(0, dataPointsShape);
         renderer.setSeriesShape(1, dataPointsShape);
         renderer.setSeriesLinesVisible(2, true);
@@ -269,6 +268,7 @@ public class AlignmentRansacPlot extends ChartPanel {
     public void printAlignmentChart(String axisTitleX, String axisTitleY) {
         try {
             toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
+            plot.getRenderer().setBaseToolTipGenerator(toolTipGenerator);
             NumberAxis xAxis = new NumberAxis(axisTitleX);
             xAxis.setNumberFormatOverride(rtFormat);
             xAxis.setAutoRangeIncludesZero(false);
