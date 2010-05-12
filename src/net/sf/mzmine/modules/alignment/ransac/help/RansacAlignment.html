@@ -1,250 +1,61 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Join align peak list</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="sandra C">
-	<META NAME="CHANGED" CONTENT="20090709;14093100">
+	<META NAME="CHANGEDBY" CONTENT="sandra ">
+	<META NAME="CHANGED" CONTENT="20100512;13541000">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
+		H2.ctl { font-family: "Lohit Hindi"; font-size: 14pt; font-style: italic }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="es-ES" DIR="LTR">
 <H1><FONT COLOR="#0066cc">RANSAC <SPAN LANG="en-GB">align peak list</SPAN></FONT></H1>
-<H2 LANG="en-GB" STYLE="margin-left: 0.53cm">Method overview</H2>
-<P STYLE="margin-left: 0.9cm"><A HREF="http://en.wikipedia.org/wiki/RANSAC"><SPAN LANG="en-GB">http://en.wikipedia.org/wiki/RANSAC</SPAN></A></P>
-<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.79cm"><B>RANSAC</B>
-is an abbreviation for &quot;RANdom SAmple Consensus&quot;. It is an
-iterative method to estimate parameters of a mathematical model from
-a set of observed data which contains outliers. It is a
-non-deterministic algorithm in the sense that it produces a
-reasonable result only with a certain probability, with this
-probability increasing as more iterations are allowed. The algorithm
-was first published by Fischler and Bolles in 1981.</P>
-<P LANG="en-GB" STYLE="margin-left: 0.82cm">A basic assumption is
-that the data consists of &quot;inliers&quot;, i.e., data whose
-distribution can be explained by some set of model parameters, and
-&quot;outliers&quot; which are data that do not fit the model. In
-addition to this, the data can be subject to noise. The outliers can
-come, e.g., from extreme values of the noise or from erroneous
-measurements or incorrect hypotheses about the interpretation of
-data. RANSAC also assumes that, given a (usually small) set of
-inliers, there exists a procedure which can estimate the parameters
-of a model that optimally explains or fits this data.</P>
-<P LANG="en-GB" STYLE="margin-left: 0.82cm">The input to the RANSAC
-algorithm is a set of observed data values, a parametrized model
-which can explain or be fitted to the observations, and some
-confidence parameters.</P>
-<P LANG="en-GB" STYLE="margin-left: 0.85cm">RANSAC achieves its goal
-by iteratively selecting a random subset of the original data. These
-data are <I>hypothetical inliers</I> and this hypothesis is then
-tested as follows:</P>
-<OL>
-	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">A model is fitted to
-	the hypothetical inliers, i.e. all free parameters of the model are
-	reconstructed from the data set. 
-	</P>
-	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">All other data are
-	then tested against the fitted model and, if a point fits well to
-	the estimated model, also considered as a hypothetical inlier. 
-	</P>
-	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">The estimated model
-	is reasonably good if sufficiently many points have been classified
-	as hypothetical inliers. 
-	</P>
-	<LI><P LANG="en-GB" STYLE="margin-bottom: 0cm">The model is
-	re-estimated from all hypothetical inliers, because it has only been
-	estimated from the initial set of hypothetical inliers. 
-	</P>
-	<LI><P LANG="en-GB">Finally, the model is evaluated by estimating
-	the error of the inliers relative to the model. 
-	</P>
-</OL>
-<P LANG="en-GB" STYLE="margin-left: 0.82cm">This procedure is
-repeated a fixed number of times, each time producing either a model
-which is rejected because too few points are classified as inliers or
-a refined model together with a corresponding error measure. In the
-latter case, we keep the refined model if its error is lower than the
-last saved model.</P>
-<DIV ALIGN=RIGHT>
-	<TABLE WIDTH=1241 BORDER=0 CELLPADDING=0 CELLSPACING=0>
-		<COL WIDTH=620>
-		<COL WIDTH=621>
-		<TR VALIGN=TOP>
-			<TD WIDTH=620>
-				<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><IMG SRC="600px-Line_with_outliers.svg.png" NAME="gr&aacute;ficos3" ALIGN=RIGHT WIDTH=356 HEIGHT=342 BORDER=0><BR CLEAR=RIGHT><BR>
-				</P>
-				<P ALIGN=RIGHT STYLE="margin-bottom: 0cm">A data set with many
-				outliers for which a line has to be fitted. 
-				</P>
-				<P><BR>
-				</P>
-			</TD>
-			<TD WIDTH=621>
-				<P STYLE="margin-bottom: 0cm"><IMG SRC="600px-Fitted_line.svg.png" NAME="gr&aacute;ficos4" ALIGN=LEFT WIDTH=371 HEIGHT=342 BORDER=0><BR CLEAR=LEFT><BR>
-				</P>
-				<P STYLE="margin-bottom: 0cm">Fitted line with RANSAC, outliers
-				have no influence on the result. 
-				</P>
-				<P><BR>
-				</P>
-			</TD>
-		</TR>
-		<TR VALIGN=TOP>
-			<TD WIDTH=620>
-				<P><BR>
-				</P>
-			</TD>
-			<TD WIDTH=621>
-				<P><BR>
-				</P>
-			</TD>
-		</TR>
-	</TABLE>
-</DIV>
-<P LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">In this case
-each point represents the retention time of one peak from one sample
-versus the retention time of a possible aligned peak from another
-sample. All the points represent all possible alignments. We consider
-that the relative distances in terms of retention time between the
-peaks are constant. Even in the case there is a shift in the
-retention time of the peaks of two samples, the points which
-represent the aligned peaks between these two samples, will form a
-line. 
+<H2 LANG="en-GB" CLASS="western" STYLE="margin-left: 0.21in">Method
+overview</H2>
+<P STYLE="margin-left: 0.35in">This method is an extension of the
+Join align method. The alignment of each sample is done against a
+master peak list which is taken from the first sample in the first
+round, and from the average of all aligned peak lists in every round.
+It corrects any linear or non-linear deviation in the retention time
+of the chromatograms by creating a model of this deviation. 
 </P>
-<P ALIGN=LEFT STYLE="margin-left: 0.82cm"><SPAN LANG="en-GB">Ransac
-algorithm is done for each pair combination of samples. That means
-t</SPAN>he time <SPAN LANG="en-US">cost of the algorithm is an almost
-quadratic (N*(N-1)/2) function of the number of samples, and grows
-very quickly for bigger values of N (where N is the number of
-samples). </SPAN>
+<IMG SRC="chromatogram.png" NAME="graphics1" ALIGN=LEFT WIDTH=680 HEIGHT=424 BORDER=0><BR CLEAR=LEFT>
+<P STYLE="margin-left: 0.35in"><BR><BR>
 </P>
-<P LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">It is
-specially appropriate for the alignment of samples with a shift in
-the retention time. 
+<P STYLE="margin-left: 0.35in">This picture shows an example of two
+samples with a non-linear deviation in the retention time. 
 </P>
-<H2 LANG="en-GB" ALIGN=LEFT STYLE="margin-left: 0.82cm">The algorithm</H2>
-<P STYLE="margin-left: 0.93cm"><SPAN LANG="en-US">The generic RANSAC
-algorithm, in pseudocode works as follows:</SPAN></P>
-<PRE LANG="en-US" STYLE="margin-left: 0.93cm"><B>input</B>:
-    <SPAN LANG="en-US">data - a set of observations</SPAN>
-    <SPAN LANG="en-US">model - a model that can be fitted to data </SPAN>
-    <SPAN LANG="en-US">n - the minimum number of data required to fit the model</SPAN>
-    <SPAN LANG="en-US">k - the maximum number of iterations allowed in the algorithm</SPAN>
-    <SPAN LANG="en-US">t - a threshold value for determining when a datum fits a model</SPAN>
-    <SPAN LANG="en-US">d - the number of close data values required to assert that a model fits well to data</SPAN>
-<SPAN LANG="en-US"><B>output</B>:</SPAN>
-    <SPAN LANG="en-US">best_model - model parameters which best fit the data (or nil if no good model is found)</SPAN>
-    <SPAN LANG="en-US">best_consensus_set - data point from which this model has been estimated</SPAN>
-    <SPAN LANG="en-US">best_error - the error of this model relative to the data </SPAN>
-
-<SPAN LANG="en-US">iterations := 0</SPAN>
-<SPAN LANG="en-US">best_model := nil</SPAN>
-<SPAN LANG="en-US">best_consensus_set := nil</SPAN>
-<SPAN LANG="en-US">best_error := infinity</SPAN>
-<SPAN LANG="en-US"><B>while</B> iterations &lt; k </SPAN>
-    <SPAN LANG="en-US">maybe_inliers := n randomly selected values from data</SPAN>
-    <SPAN LANG="en-US">maybe_model := model parameters fitted to maybe_inliers</SPAN>
-    <SPAN LANG="en-US">consensus_set := maybe_inliers</SPAN>
-
-    <SPAN LANG="en-US"><B>for</B> every point in data <B>not in</B> maybe_inliers </SPAN>
-        <SPAN LANG="en-US"><B>if</B> point fits maybe_model with an error smaller than t</SPAN>
-            <SPAN LANG="en-US">add point to consensus_set</SPAN>
-    
-    <SPAN LANG="en-US"><B>if</B> the number of elements in consensus_set is &gt; d </SPAN>
-        <SPAN LANG="en-US"><I>(this implies that we may have found a good model,</I></SPAN>
-        <SPAN LANG="en-US"><I>now test how good it is)</I></SPAN>
-        <SPAN LANG="en-US">better_model := model parameters fitted to all points in consensus_set</SPAN>
-        <SPAN LANG="en-US">this_error := a measure of how well better_model fits these points</SPAN>
-        <SPAN LANG="en-US"><B>if</B> this_error &lt; best_error</SPAN>
-            <SPAN LANG="en-US"><I>(we have found a model which is better than any of the previous ones,</I></SPAN>
-            <SPAN LANG="en-US"><I>keep it until a better one is found)</I></SPAN>
-            <SPAN LANG="en-US">best_model := better_model</SPAN>
-            <SPAN LANG="en-US">best_consensus_set := consensus_set</SPAN>
-            <SPAN LANG="en-US">best_error := this_error</SPAN>
-     
-    <SPAN LANG="en-US">increment iterations</SPAN>
-
-<SPAN LANG="en-US"><B>return</B> best_model, best_consensus_set, best_error</SPAN></PRE><P LANG="en-US" STYLE="margin-left: 0.93cm">
-Possible variants of the RANSAC algorithm includes</P>
-<UL>
-	<LI><P LANG="en-US" STYLE="margin-bottom: 0cm">Break the main loop
-	if a sufficiently good model has been found, that is, one with
-	sufficiently small error. May save some computation time at the
-	expense of an additional parameter. 
-	</P>
-	<LI><P><SPAN LANG="en-US">Compute </SPAN><CODE><SPAN LANG="en-US">this_error</SPAN></CODE><SPAN LANG="en-US">
-	directly from </SPAN><CODE><SPAN LANG="en-US">maybe_model</SPAN></CODE><SPAN LANG="en-US">
-	without re-estimating a model from the consensus set. May save some
-	time at the expense of comparing errors related to models which are
-	estimated from a small number of points and therefore more sensitive
-	to noise. </SPAN>
-	</P>
-</UL>
-<P LANG="en-US" ALIGN=LEFT STYLE="margin-left: 0.93cm"><BR><BR>
+<P STYLE="margin-left: 0.35in">The “deviation” model for the
+retention time is created by taking some corresponding points from
+the peak list of two samples using RANSAC algorithm
+(<A HREF="http://en.wikipedia.org/wiki/RANSAC"><SPAN LANG="en-GB">http://en.wikipedia.org/wiki/RANSAC)</SPAN></A>
+and using a non-linear regression method to fitt the model. 
 </P>
-<H2 LANG="en-US" ALIGN=LEFT STYLE="margin-left: 0.82cm">Ransac
+<IMG SRC="ransac_model.png" NAME="graphics2" ALIGN=LEFT WIDTH=596 HEIGHT=427 BORDER=0><BR CLEAR=LEFT>
+<P STYLE="margin-left: 0.35in"><BR><BR>
+</P>
+<P STYLE="margin-left: 0.35in">This picture shows a prewie of the
+model where the red dots represents the aligned peaks taken using
+RANSAC algorithm, and the blue line represents the fitted model using
+a non-lineal regression. 
+</P>
+<P STYLE="margin-left: 0.35in">Using this model, the algorithm can
+predict the shift in the retention time along all the peak list and
+use the match score function, used also in Join Align algorithm, to
+match the peaks. This score is calculated based on the mass and
+retention time of each peak and ranges of tolerance stipulated in the
+parameters setup dialog. 
+</P>
+<H2 LANG="en-US" CLASS="western" STYLE="margin-left: 0.21in">Alignment
 parameters</H2>
-<P LANG="en-US" STYLE="margin-left: 0.87cm">The values of parameters
-<I>t</I> and <I>d</I> have to be determined from specific
-requirements related to the application and the data set, possibly
-based on experimental evaluation. The parameter <I>k</I> (the number
-of iterations), however, can be determined from a theoretical result.
-Let <I>p</I> be the probability that the RANSAC algorithm in some
-iteration selects only inliers from the input data set when it
-chooses the <I>n</I> points from which the model parameters are
-estimated. When this happens, the resulting model is likely to be
-useful so <I>p</I> gives the probability that the algorithm produces
-a useful result. Let <I>w</I> be the probability of choosing an
-inlier each time a single point is selected, that is,</P>
-<P LANG="en-US" STYLE="margin-left: 0.87cm"><I>w</I> = number of
-inliers in data / number of points in data</P>
-<P LANG="en-US" STYLE="margin-left: 0.87cm">A common case is that <I>w</I>
-is not well known beforehand, but some rough value can be given.
-Assuming that the <I>n</I> points needed for estimating a model are
-selected independently, <I>w</I><SUP><I>n</I></SUP> is the
-probability that all <I>n</I> points are inliers and 1 &minus; <I>w</I><SUP><I>n</I></SUP>
-is the probability that at least one of the <I>n</I> points is an
-outlier, a case which implies that a bad model will be estimated from
-this point set. That probability to the power of <I>k</I> is the
-probability that the algorithm never selects a set of <I>n</I> points
-which all are inliers and this must be the same as 1 &minus; <I>p</I>.
-Consequently,</P>
-<DL>
-	<DD LANG="en-US" STYLE="margin-left: 0.87cm; margin-bottom: 0.5cm">1
-	&minus; <I>p</I> = (1 &minus; <I>w</I><SUP><I>n</I></SUP>)<SUP><I>k</I></SUP>
-		</DD></DL>
-<P LANG="en-US" STYLE="margin-left: 0.87cm">
-which, after taking the logarithm of both sides, leads to</P>
-<DL>
-	<DD LANG="en-US" STYLE="margin-left: 0.87cm; margin-bottom: 0.5cm"><IMG SRC="http://upload.wikimedia.org/math/f/d/c/fdc1b96cc374c945e4d13330d1ace751.png" NAME="gr&aacute;ficos5" ALT="k = \frac{\log(1 - p)}{\log(1 - w^n)}" ALIGN=BOTTOM WIDTH=142 HEIGHT=50 BORDER=0>
-		</DD></DL>
-<P STYLE="margin-left: 0.87cm">
-<SPAN LANG="en-US">It should be noted that this result assumes that
-the </SPAN><SPAN LANG="en-US"><I>n</I></SPAN><SPAN LANG="en-US"> data
-points are selected independently, that is, a point which has been
-selected once is replaced and can be selected again in the same
-iteration. This is often not a reasonable approach and the derived
-value for </SPAN><SPAN LANG="en-US"><I>k</I></SPAN><SPAN LANG="en-US">
-should be taken as an upper limit in the case that the points are
-selected without replacement. For example, in the case of finding a
-line which fits the data set illustrated in the above figure, the
-RANSAC algorithm typically chooses 2 points in each iteration and
-computes </SPAN><CODE><SPAN LANG="en-US">maybe_model</SPAN></CODE><SPAN LANG="en-US">
-as the line between the points and it is then critical that the two
-points are distinct.</SPAN></P>
-<P STYLE="margin-left: 0.87cm"><SPAN LANG="en-US">To gain additional
-confidence, the standard deviation or multiples thereof can be added
-to </SPAN><SPAN LANG="en-US"><I>k</I></SPAN><SPAN LANG="en-US">. The
-standard deviation of </SPAN><SPAN LANG="en-US"><I>k</I></SPAN><SPAN LANG="en-US">
-is defined as</SPAN></P>
-<DL>
-	<DD LANG="en-US" STYLE="margin-left: 0.87cm; margin-bottom: 0.5cm"><IMG SRC="http://upload.wikimedia.org/math/f/0/6/f06fa333b4410318af30ab570bbd807d.png" NAME="gr&aacute;ficos6" ALT="SD(k) = \frac{\sqrt{1 - w^n}}{w^n}" ALIGN=BOTTOM WIDTH=158 HEIGHT=44 BORDER=0>
-		</DD></DL>
-<P LANG="en-US" ALIGN=LEFT STYLE="margin-left: 0.82cm">
-<BR><BR>
-</P>
-<H2 LANG="en-US" STYLE="margin-left: 0.53cm">Alignment parameters</H2>
-<P STYLE="margin-left: 0.58cm"><SPAN LANG="en-US">This aligner
+<P STYLE="margin-left: 0.23in"><SPAN LANG="en-US">This aligner
 requires the next parameters:<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;Peak
 list name&quot;</I></SPAN><SPAN LANG="en-US"><BR>This is the suffix
 to identify the new aligned peak list in Peak list frame of
@@ -252,37 +63,44 @@ desktop.<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;m/z
 tolerance&quot;</I></SPAN><SPAN LANG="en-US"><BR>This value sets the
 range, in terms of m/z, to verify for possible peak rows to be
 aligned. Maximum allowed m/z difference.<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;Retention
-time tolerance type&quot;</I></SPAN><SPAN LANG="en-US"><BR>This value
-sets the range, in terms of retentio</SPAN><SPAN LANG="en-GB">n time,
-to verify for possible peak rows to be aligned. Maximum allowed
-retention time difference.<BR></SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>RANSAC
-Iterations&rdquo;</I></SPAN> <BR><SPAN LANG="en-GB">Maximum number of
+time tolerance after correction&quot;</I></SPAN><SPAN LANG="en-US"><BR>This
+value sets the range, in terms of retentio</SPAN><SPAN LANG="en-GB">n
+time, to verify for possible peak rows to be aligned. Maximum allowed
+retention time difference.</SPAN></P>
+<P STYLE="margin-left: 0.23in"><SPAN LANG="en-US"><I>&quot;Retention
+time tolerance&quot;</I></SPAN><SPAN LANG="en-US"><BR>This value sets
+the range, in terms of retentio</SPAN><SPAN LANG="en-GB">n time, to
+create the model using RANSAC and non-linear regression algorithm.
+Maximum allowed retention time difference.</SPAN></P>
+<P STYLE="margin-left: 0.23in">“<SPAN LANG="en-GB"><I>RANSAC
+Iterations”</I></SPAN> <BR><SPAN LANG="en-GB">Maximum number of
 iterations allowed in the algorithm to find the right model
 consistent in all the pairs of aligned peaks. When its value is 0,
 the number of iterations (k) will be estimate
-automatically.</SPAN><BR><BR><SPAN LANG="en-GB">&ldquo;</SPAN><SPAN LANG="en-GB"><I>Minimum
-Number of Points</I></SPAN><SPAN LANG="en-GB"><I>&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>%
-of points required to consider the model valid (d).<BR></SPAN><BR>&ldquo;<SPAN LANG="en-GB"><I>Threshold
-value&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>Threshold value
-(seconds) for determining when a data point fits a model (t).
-</SPAN><BR><BR>&ldquo;<SPAN LANG="en-GB"><I>Curve model&rdquo;</I></SPAN><SPAN LANG="en-GB"><BR>Sometimes
+automatically.</SPAN><BR><BR>“<SPAN LANG="en-GB"><I>Minimum Number
+of Points</I></SPAN>”<SPAN LANG="en-GB"><BR>% of points required to
+consider the model valid (d).<BR></SPAN><BR>“<SPAN LANG="en-GB"><I>Threshold
+value”</I></SPAN><SPAN LANG="en-GB"><BR>Threshold value (seconds)
+for determining when a data point fits a model (t). </SPAN><BR><BR>“Linear
+<SPAN LANG="en-GB"><I>model”</I></SPAN><SPAN LANG="en-GB"><BR>Sometimes
 the shift in the retention time between the peaks in the samples is
-not constant making that the model shape is not a line but a curve in
-some specific cases. This option should be selected in these cases.</SPAN><BR><BR><BR>
+not constant making that the model shape is non linear in some
+specific cases. This option should be selected only if the model has
+to be linear.</SPAN><BR><BR><BR>
 </P>
-<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.66cm"><FONT SIZE=5><B>Parameter
+<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.26in"><FONT SIZE=5><B>Parameter
 setup dialog</B></FONT></P>
 <TABLE CELLPADDING=2 CELLSPACING=2>
 	<TR>
 		<TD>
-			<P><IMG SRC="parameters.jpg" NAME="gr&aacute;ficos1" ALIGN=LEFT WIDTH=1024 HEIGHT=411 BORDER=0><BR CLEAR=LEFT><BR>
+			<P><IMG SRC="preview.png" NAME="graphics3" ALIGN=LEFT WIDTH=1034 HEIGHT=430 BORDER=0><BR CLEAR=LEFT><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR>
 		<TD>
 			<P LANG="en-GB">New aligned peak list showing peaks from 3
-			different samples.<BR><BR><IMG SRC="../../join/help/join_alignment_preview.jpg" NAME="gr&aacute;ficos2" ALIGN=BOTTOM WIDTH=1023 HEIGHT=311 BORDER=0>
+			different samples.<BR><BR><IMG SRC="../../join/help/join_alignment_preview.jpg" NAME="gráficos2" ALIGN=BOTTOM WIDTH=1023 HEIGHT=311 BORDER=0>
 						</P>
 		</TD>
 	</TR>
