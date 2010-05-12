@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="sandra ">
-	<META NAME="CHANGED" CONTENT="20100512;13541000">
+	<META NAME="CHANGED" CONTENT="20100512;14090000">
 	<STYLE TYPE="text/css">
 	<!--
 		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
@@ -27,8 +27,6 @@ It corrects any linear or non-linear deviation in the retention time
 of the chromatograms by creating a model of this deviation. 
 </P>
 <IMG SRC="chromatogram.png" NAME="graphics1" ALIGN=LEFT WIDTH=680 HEIGHT=424 BORDER=0><BR CLEAR=LEFT>
-<P STYLE="margin-left: 0.35in"><BR><BR>
-</P>
 <P STYLE="margin-left: 0.35in">This picture shows an example of two
 samples with a non-linear deviation in the retention time. 
 </P>
@@ -38,9 +36,9 @@ the peak list of two samples using RANSAC algorithm
 (<A HREF="http://en.wikipedia.org/wiki/RANSAC"><SPAN LANG="en-GB">http://en.wikipedia.org/wiki/RANSAC)</SPAN></A>
 and using a non-linear regression method to fitt the model. 
 </P>
-<IMG SRC="ransac_model.png" NAME="graphics2" ALIGN=LEFT WIDTH=596 HEIGHT=427 BORDER=0><BR CLEAR=LEFT>
 <P STYLE="margin-left: 0.35in"><BR><BR>
 </P>
+<IMG SRC="ransac_model.png" NAME="graphics2" ALIGN=LEFT WIDTH=596 HEIGHT=427 BORDER=0><BR CLEAR=LEFT>
 <P STYLE="margin-left: 0.35in">This picture shows a prewie of the
 model where the red dots represents the aligned peaks taken using
 RANSAC algorithm, and the blue line represents the fitted model using
@@ -52,6 +50,8 @@ use the match score function, used also in Join Align algorithm, to
 match the peaks. This score is calculated based on the mass and
 retention time of each peak and ranges of tolerance stipulated in the
 parameters setup dialog. 
+</P>
+<P STYLE="margin-left: 0.35in"><BR><BR>
 </P>
 <H2 LANG="en-US" CLASS="western" STYLE="margin-left: 0.21in">Alignment
 parameters</H2>
