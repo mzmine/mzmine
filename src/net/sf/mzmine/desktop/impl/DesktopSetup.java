@@ -20,6 +20,7 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Font;
+import java.lang.reflect.Method;
 import java.util.Enumeration;
 
 import javax.swing.ToolTipManager;
@@ -31,7 +32,7 @@ import net.sf.mzmine.util.components.MultiLineToolTipUI;
  * This class has just a single static method which sets Swing properties for
  * MZmine
  */
-public class SwingParameters {
+public class DesktopSetup {
 
 	public static void initSwingParameters() {
 
@@ -74,6 +75,23 @@ public class SwingParameters {
 		UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
 		UIManager.put(MultiLineToolTipUI.class.getName(),
 				MultiLineToolTipUI.class);
+
+		// If we are running on Mac OS X, we can setup some Mac-specific
+		// features. Using reflection we prevent the MacSpecificSetup class to
+		// be loaded on other platforms.
+		if (System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
+			try {
+				Class<?> macSpecificSetupClass = Class
+						.forName("net.sf.mzmine.desktop.impl.MacSpecificSetup");
+				Object macSetup = macSpecificSetupClass.newInstance();
+				Method setupMethod = macSpecificSetupClass.getMethod("init");
+				setupMethod.invoke(macSetup, new Object[0]);
+			} catch (Exception e) {
+				e.printStackTrace();
+				// ignore
+			}
+
+		}
 
 	}
 

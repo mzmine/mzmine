@@ -167,32 +167,32 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
 		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath);
 		dialog.setVisible(true);
-
 		ExitCode exitCode = dialog.getExitCode();
 
-		if (exitCode == ExitCode.CANCEL)
-			return exitCode;
+		if (exitCode == ExitCode.OK) {
 
-		String lastDir = dialog.getCurrentDirectory();
-		parameters.setParameterValue(RawDataImporterParameters.lastDirectory,
-				lastDir);
+			String lastDir = dialog.getCurrentDirectory();
+			parameters.setParameterValue(
+					RawDataImporterParameters.lastDirectory, lastDir);
 
-		File[] selectedFiles = dialog.getSelectedFiles();
-		if (selectedFiles.length == 0)
-			return ExitCode.CANCEL;
+			File[] selectedFiles = dialog.getSelectedFiles();
+			if (selectedFiles.length == 0)
+				return ExitCode.CANCEL;
 
-		StringBuilder fileNames = new StringBuilder();
-		for (int i = 0; i < selectedFiles.length; i++) {
-			String filePath = selectedFiles[i].getPath();
-			filePath = filePath.replaceAll("&", "&amp");
-			filePath = filePath.replaceAll(":", "&colon");
-			if (i > 0)
-				fileNames.append(":");
-			fileNames.append(filePath);
+			StringBuilder fileNames = new StringBuilder();
+			for (int i = 0; i < selectedFiles.length; i++) {
+				String filePath = selectedFiles[i].getPath();
+				filePath = filePath.replaceAll("&", "&amp");
+				filePath = filePath.replaceAll(":", "&colon");
+				if (i > 0)
+					fileNames.append(":");
+				fileNames.append(filePath);
+			}
+
+			parameters.setParameterValue(RawDataImporterParameters.fileNames,
+					fileNames.toString());
+
 		}
-
-		parameters.setParameterValue(RawDataImporterParameters.fileNames,
-				fileNames.toString());
 
 		return exitCode;
 

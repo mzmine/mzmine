@@ -24,9 +24,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -80,29 +77,27 @@ public class ProjectLoader implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameterSet) {
 
 		ProjectLoaderParameters parameters = (ProjectLoaderParameters) parameterSet;
-		String lastDirectory = (String) parameters
+
+		String path = (String) parameters
 				.getParameterValue(ProjectLoaderParameters.lastDirectory);
-		JFileChooser chooser = new JFileChooser();
-		if (lastDirectory != null)
-			chooser.setCurrentDirectory(new File(lastDirectory));
+		File lastPath = null;
+		if (path != null)
+			lastPath = new File(path);
 
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"MZmine 2 projects", "mzmine");
+		ProjectLoaderDialog dialog = new ProjectLoaderDialog(lastPath);
+		dialog.setVisible(true);
+		ExitCode exitCode = dialog.getExitCode();
 
-		chooser.setFileFilter(filter);
-		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainFrame());
+		if (exitCode == ExitCode.OK) {
+			File selectedFile = dialog.getSelectedFile();
+			String lastDir = dialog.getCurrentDirectory();
+			parameters.setParameterValue(ProjectLoaderParameters.projectFile,
+					selectedFile.getPath());
+			parameters.setParameterValue(ProjectLoaderParameters.lastDirectory,
+					lastDir);
+		}
 
-		if (returnVal != JFileChooser.APPROVE_OPTION)
-			return ExitCode.CANCEL;
-
-		File selectedFile = chooser.getSelectedFile();
-		lastDirectory = selectedFile.getParent();
-		parameters.setParameterValue(ProjectLoaderParameters.projectFile,
-				selectedFile.getPath());
-		parameters.setParameterValue(ProjectLoaderParameters.lastDirectory,
-				lastDirectory);
-		return ExitCode.OK;
+		return exitCode;
 
 	}
 

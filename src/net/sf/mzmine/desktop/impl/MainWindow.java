@@ -141,7 +141,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
      */
 	public void initModule() {
 
-		SwingParameters.initSwingParameters();
+		DesktopSetup.initSwingParameters();
 
 		try {
 			BufferedImage MZmineIcon = ImageIO.read(new File(

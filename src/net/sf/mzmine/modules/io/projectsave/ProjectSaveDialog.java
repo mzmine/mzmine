@@ -17,12 +17,13 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.rawdataimport;
+package net.sf.mzmine.modules.io.projectsave;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.lang.reflect.Method;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -36,69 +37,44 @@ import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
- * File open dialog
+ * Project save dialog
  */
-class RawDataImporterDialog extends JDialog implements ActionListener {
+class ProjectSaveDialog extends JDialog implements ActionListener {
 
 	private JFileChooser fileChooser;
 	private JButton commitButton, cancelButton;
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
-	RawDataImporterDialog(File lastPath) {
+	ProjectSaveDialog(File lastPath) {
 
 		super(MZmineCore.getDesktop().getMainFrame());
 
 		JPanel mainPanel = new JPanel(new BorderLayout());
 
-		fileChooser = new JFileChooser() {
-			// This is necessary, otherwise the JFileChooser would do nothing
-			// when user double-clicks the file name. Double-clicking invokes
-			// the approveSelection() method.
-			public void approveSelection() {
-				super.approveSelection();
-				if (getSelectedFile() == null)
-					return;
-				exitCode = ExitCode.OK;
-				dispose();
-			}
-		};
+		fileChooser = new JFileChooser();
 
 		if (lastPath != null)
 			fileChooser.setCurrentDirectory(lastPath);
 
-		fileChooser.setMultiSelectionEnabled(true);
+		fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
 		fileChooser.setControlButtonsAreShown(false);
 
 		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"NetCDF files", "cdf", "nc");
-		fileChooser.addChoosableFileFilter(filter);
+				"MZmine 2 projects", "mzmine");
 
-		filter = new FileNameExtensionFilter("mzDATA files", "mzDATA");
-		fileChooser.addChoosableFileFilter(filter);
-
-		filter = new FileNameExtensionFilter("mzML files", "mzML");
-		fileChooser.addChoosableFileFilter(filter);
-
-		filter = new FileNameExtensionFilter("XCalibur RAW files", "RAW");
-		fileChooser.addChoosableFileFilter(filter);
-
-		filter = new FileNameExtensionFilter("MZXML files", "mzxml");
-		fileChooser.addChoosableFileFilter(filter);
-
-		filter = new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-				"mzDATA", "mzML", "mzxml", "RAW");
 		fileChooser.setFileFilter(filter);
 		mainPanel.add(fileChooser, BorderLayout.CENTER);
 
 		JPanel buttonsPanel = new JPanel();
 
-		commitButton = GUIUtils.addButton(buttonsPanel, "Import", null, this);
+		commitButton = GUIUtils.addButton(buttonsPanel, "Save project", null,
+				this);
 
 		cancelButton = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
 
 		JButton helpButton = new HelpButton(
-				"net/sf/mzmine/modules/io/rawdataimport/help/RawDataImporter.html");
+				"net/sf/mzmine/modules/io/projectsave/help/ProjectSerialization.html");
 		buttonsPanel.add(helpButton);
 
 		mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
@@ -106,7 +82,7 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 		add(mainPanel);
 
 		setModal(true);
-		setTitle("Raw data import");
+		setTitle("Save project");
 		pack();
 
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
@@ -117,8 +93,30 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 		return fileChooser.getCurrentDirectory().getPath();
 	}
 
-	File[] getSelectedFiles() {
-		return fileChooser.getSelectedFiles();
+	File getSelectedFile() {
+
+		/*
+		 * This is a workaround for a bug which causes the filename to be null
+		 * unless Enter is pressed. This happens for all JFileChoosers which
+		 * don't use the default control buttons. See
+		 * http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4528663
+		 */
+		try {
+			Method getFileNameMethod = fileChooser.getUI().getClass()
+					.getDeclaredMethod("getFileName", new Class[] {});
+			String fileName = (String) getFileNameMethod.invoke(fileChooser
+					.getUI(), new Object[] {});
+
+			if ((fileName == null) || (fileName.trim().length() == 0))
+				return null;
+
+			return new File(fileChooser.getCurrentDirectory(), fileName);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+
 	}
 
 	ExitCode getExitCode() {
@@ -130,6 +128,10 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 		Object src = e.getSource();
 
 		if (src == commitButton) {
+
+			// if there is no file selected, ignore this
+			if (getSelectedFile() == null)
+				return;
 			exitCode = ExitCode.OK;
 		}
 
