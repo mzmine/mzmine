@@ -1,111 +1,106 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>RANSAC align peak list</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Linux)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="sandra ">
-	<META NAME="CHANGED" CONTENT="20100512;14090000">
-	<STYLE TYPE="text/css">
-	<!--
-		H2.western { font-family: "Albany", sans-serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "HG Mincho Light J"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Lohit Hindi"; font-size: 14pt; font-style: italic }
-	-->
-	</STYLE>
-</HEAD>
-<BODY LANG="es-ES" DIR="LTR">
-<H1><FONT COLOR="#0066cc">RANSAC <SPAN LANG="en-GB">align peak list</SPAN></FONT></H1>
-<H2 LANG="en-GB" CLASS="western" STYLE="margin-left: 0.21in">Method
-overview</H2>
-<P STYLE="margin-left: 0.35in">This method is an extension of the
-Join align method. The alignment of each sample is done against a
-master peak list which is taken from the first sample in the first
-round, and from the average of all aligned peak lists in every round.
-It corrects any linear or non-linear deviation in the retention time
-of the chromatograms by creating a model of this deviation. 
-</P>
-<IMG SRC="chromatogram.png" NAME="graphics1" ALIGN=LEFT WIDTH=680 HEIGHT=424 BORDER=0><BR CLEAR=LEFT>
-<P STYLE="margin-left: 0.35in">This picture shows an example of two
-samples with a non-linear deviation in the retention time. 
-</P>
-<P STYLE="margin-left: 0.35in">The “deviation” model for the
-retention time is created by taking some corresponding points from
-the peak list of two samples using RANSAC algorithm
-(<A HREF="http://en.wikipedia.org/wiki/RANSAC"><SPAN LANG="en-GB">http://en.wikipedia.org/wiki/RANSAC)</SPAN></A>
-and using a non-linear regression method to fitt the model. 
-</P>
-<P STYLE="margin-left: 0.35in"><BR><BR>
-</P>
-<IMG SRC="ransac_model.png" NAME="graphics2" ALIGN=LEFT WIDTH=596 HEIGHT=427 BORDER=0><BR CLEAR=LEFT>
-<P STYLE="margin-left: 0.35in">This picture shows a prewie of the
-model where the red dots represents the aligned peaks taken using
-RANSAC algorithm, and the blue line represents the fitted model using
-a non-lineal regression. 
-</P>
-<P STYLE="margin-left: 0.35in">Using this model, the algorithm can
-predict the shift in the retention time along all the peak list and
-use the match score function, used also in Join Align algorithm, to
-match the peaks. This score is calculated based on the mass and
-retention time of each peak and ranges of tolerance stipulated in the
-parameters setup dialog. 
-</P>
-<P STYLE="margin-left: 0.35in"><BR><BR>
-</P>
-<H2 LANG="en-US" CLASS="western" STYLE="margin-left: 0.21in">Alignment
-parameters</H2>
-<P STYLE="margin-left: 0.23in"><SPAN LANG="en-US">This aligner
-requires the next parameters:<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;Peak
-list name&quot;</I></SPAN><SPAN LANG="en-US"><BR>This is the suffix
-to identify the new aligned peak list in Peak list frame of
-desktop.<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;m/z
-tolerance&quot;</I></SPAN><SPAN LANG="en-US"><BR>This value sets the
-range, in terms of m/z, to verify for possible peak rows to be
-aligned. Maximum allowed m/z difference.<BR><BR></SPAN><SPAN LANG="en-US"><I>&quot;Retention
-time tolerance after correction&quot;</I></SPAN><SPAN LANG="en-US"><BR>This
-value sets the range, in terms of retentio</SPAN><SPAN LANG="en-GB">n
-time, to verify for possible peak rows to be aligned. Maximum allowed
-retention time difference.</SPAN></P>
-<P STYLE="margin-left: 0.23in"><SPAN LANG="en-US"><I>&quot;Retention
-time tolerance&quot;</I></SPAN><SPAN LANG="en-US"><BR>This value sets
-the range, in terms of retentio</SPAN><SPAN LANG="en-GB">n time, to
-create the model using RANSAC and non-linear regression algorithm.
-Maximum allowed retention time difference.</SPAN></P>
-<P STYLE="margin-left: 0.23in">“<SPAN LANG="en-GB"><I>RANSAC
-Iterations”</I></SPAN> <BR><SPAN LANG="en-GB">Maximum number of
-iterations allowed in the algorithm to find the right model
-consistent in all the pairs of aligned peaks. When its value is 0,
-the number of iterations (k) will be estimate
-automatically.</SPAN><BR><BR>“<SPAN LANG="en-GB"><I>Minimum Number
-of Points</I></SPAN>”<SPAN LANG="en-GB"><BR>% of points required to
-consider the model valid (d).<BR></SPAN><BR>“<SPAN LANG="en-GB"><I>Threshold
-value”</I></SPAN><SPAN LANG="en-GB"><BR>Threshold value (seconds)
-for determining when a data point fits a model (t). </SPAN><BR><BR>“Linear
-<SPAN LANG="en-GB"><I>model”</I></SPAN><SPAN LANG="en-GB"><BR>Sometimes
-the shift in the retention time between the peaks in the samples is
-not constant making that the model shape is non linear in some
-specific cases. This option should be selected only if the model has
-to be linear.</SPAN><BR><BR><BR>
-</P>
-<P LANG="en-GB" ALIGN=JUSTIFY STYLE="margin-left: 0.26in"><FONT SIZE=5><B>Parameter
-setup dialog</B></FONT></P>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD>
-			<P><IMG SRC="preview.png" NAME="graphics3" ALIGN=LEFT WIDTH=1034 HEIGHT=430 BORDER=0><BR CLEAR=LEFT><BR>
-			</P>
-		</TD>
-	</TR>
-	<TR>
-		<TD>
-			<P LANG="en-GB">New aligned peak list showing peaks from 3
-			different samples.<BR><BR><IMG SRC="../../join/help/join_alignment_preview.jpg" NAME="gráficos2" ALIGN=BOTTOM WIDTH=1023 HEIGHT=311 BORDER=0>
-						</P>
-		</TD>
-	</TR>
-</TABLE>
-<P><BR><BR>
-</P>
-</BODY>
-</HTML>
+<html>
+    <head>
+        <title>RANSAC align peak list</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
+    </head>
+
+    <body>
+
+        <h1>RANSAC align peak list</h1>
+
+        <h2>Method overview</h2>
+        <p>
+            This method is an extension of the
+            Join align method. The alignment of each sample is done against a
+            master peak list which is taken from the first sample in the first
+            round, and from the average of all aligned peak lists in every round.
+            It corrects any linear or non-linear deviation in the retention time
+            of the chromatograms by creating a model of this deviation.
+        </p>
+
+        <p>
+            <img src="chromatogram.png" name="chromatograms">
+        </p>
+
+        <p>
+            This picture shows an example of two samples with a non-linear deviation in the retention time.
+        </p>
+
+        <p>
+            The “deviation” model for the retention time is created by taking some corresponding points from the peak list of two samples using RANSAC algorithm
+            (<a HREF="http://en.wikipedia.org/wiki/RANSAC">http://en.wikipedia.org/wiki/RANSAC</a>) and using a non-linear regression method to fitt the model.
+        </p>
+
+        <p>
+            <img src="ransac_model.png" name="ransac model">
+        </p>
+
+        <p>
+            This picture shows a prewie of the
+            model where the red dots represents the aligned peaks taken using
+            RANSAC algorithm, and the blue line represents the fitted model using
+            a non-lineal regression.
+        </p>
+
+        <p>
+            Using this model, the algorithm can
+            predict the shift in the retention time along all the peak list and
+            use the match score function, used also in Join Align algorithm, to
+            match the peaks. This score is calculated based on the mass and
+            retention time of each peak and ranges of tolerance stipulated in the
+            parameters setup dialog.
+        </p>
+
+        <h2>Alignment parameters</h2>
+
+        <p>This aligner requires the next parameters:</p>
+
+        <p><i>&quot;Peak list name&quot;</i> <br>
+            This is the suffix to identify the new aligned peak list in Peak list frame of
+            desktop.</p>
+
+        <p><i>&quot;m/z tolerance&quot;</i>
+            <br>This value sets the range, in terms of m/z, to verify for possible peak rows to be
+            aligned. Maximum allowed m/z difference.</p>
+
+        <p><i>&quot;Retention time tolerance after correction&quot;</i>
+            <br>his value sets the range, in terms of retention time, to verify for possible peak rows to be aligned.
+            Maximum allowed retention time difference.</p>
+
+        <p><i>&quot;Retention time tolerance&quot;</i>
+            <br>This value sets the range, in terms of retention time, to
+            create the model using RANSAC and non-linear regression algorithm.
+            Maximum allowed retention time difference.</p>
+
+        <p><i>&quot;RANSAC Iterations&quot;</i>
+            <br>Maximum number of
+            iterations allowed in the algorithm to find the right model
+            consistent in all the pairs of aligned peaks. When its value is 0,
+            the number of iterations (k) will be estimate
+            automatically.</p>
+
+        <p><i>&quot;Minimum Number of Points&quot;</i>
+            <br>% of points required to consider the model valid (d).</p>
+
+        <p><i>&quot;Threshold value&quot;</i>
+            <br>Threshold value (seconds) for determining when a data point fits a model (t).</p>
+
+        <p><i>&quot;Linear model&quot;</i>
+            <br>Sometimes the shift in the retention time between the peaks in the samples is
+            not constant making that the model shape is non linear in some
+            specific cases. This option should be selected only if the model has
+            to be linear.</p>
+
+        <h2>Parameter setup dialog</h2>
+
+        <p><img src="preview.png" name="graphics3" </p>
+
+        <p>New aligned peak list showing peaks from 3 different samples.
+            <br><br><img src="../../join/help/join_alignment_preview.jpg" name="alignment preview">
+        </p>
+
+    </body>
+</html>
+
+
