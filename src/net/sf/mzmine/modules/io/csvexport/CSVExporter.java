@@ -38,6 +38,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class CSVExporter implements MZmineModule, ActionListener,
         BatchStep {
 
+	final static String helpID = "net/sf/mzmine/modules/io/csvexport/help/CSVExport.html";
+
     private CSVExporterParameters parameters;
     private Desktop desktop;
 
@@ -110,7 +112,7 @@ public class CSVExporter implements MZmineModule, ActionListener,
 
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (CSVExporterParameters) parameters);
+                (CSVExporterParameters) parameters, helpID);
 
         dialog.setVisible(true);
 

@@ -22,6 +22,8 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.Font;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -29,12 +31,14 @@ import javax.swing.UIManager;
 import net.sf.mzmine.util.components.MultiLineToolTipUI;
 
 /**
- * This class has just a single static method which sets Swing properties for
- * MZmine
+ * This class has just a single method which sets desktop (Swing) properties for
+ * MZmine 2
  */
 public class DesktopSetup {
 
-	public static void initSwingParameters() {
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	public void init() {
 
 		// Get tooltip manager instance
 		ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
@@ -79,16 +83,16 @@ public class DesktopSetup {
 		// If we are running on Mac OS X, we can setup some Mac-specific
 		// features. Using reflection we prevent the MacSpecificSetup class to
 		// be loaded on other platforms.
-		if (System.getProperty("os.name").toLowerCase().indexOf("mac") != -1) {
+		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
 			try {
-				Class<?> macSpecificSetupClass = Class
-						.forName("net.sf.mzmine.desktop.impl.MacSpecificSetup");
-				Object macSetup = macSpecificSetupClass.newInstance();
-				Method setupMethod = macSpecificSetupClass.getMethod("init");
+				String className = "net.sf.mzmine.desktop.impl.MacSpecificSetup";
+				Class<?> macSetupClass = Class.forName(className);
+				Object macSetup = macSetupClass.newInstance();
+				Method setupMethod = macSetupClass.getMethod("init");
 				setupMethod.invoke(macSetup, new Object[0]);
 			} catch (Exception e) {
-				e.printStackTrace();
-				// ignore
+				logger.log(Level.WARNING,
+						"Could not initialize Mac-specific features", e);
 			}
 
 		}

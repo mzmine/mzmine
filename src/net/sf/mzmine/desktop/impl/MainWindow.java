@@ -26,6 +26,8 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -53,6 +55,8 @@ import net.sf.mzmine.util.TextUtils;
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		WindowListener, ProjectListener {
+
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private HelpMainMenuItem help;
 
@@ -141,14 +145,15 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
      */
 	public void initModule() {
 
-		DesktopSetup.initSwingParameters();
+		DesktopSetup desktopSetup = new DesktopSetup();
+		desktopSetup.init();
 
 		try {
 			BufferedImage MZmineIcon = ImageIO.read(new File(
 					"icons/MZmineIcon.png"));
 			setIconImage(MZmineIcon);
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "Could not set application icon", e);
 		}
 
 		mainPanel = new MainPanel();

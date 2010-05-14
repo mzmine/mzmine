@@ -59,7 +59,7 @@ public class RansacAligner implements BatchStep, ActionListener {
 	}
 
 	public String toString() {
-		return "Ransac aligner";
+		return "RANSAC aligner";
 	}
 
 	/**

@@ -51,7 +51,7 @@ import org.dom4j.io.XMLWriter;
  */
 public abstract class MZmineCore {
 
-	public static final String MZMINE_VERSION = "2.0";
+	public static final String MZMINE_VERSION = "1.98";
 
 	public static final File CONFIG_FILE = new File("conf/config.xml");
 	public static final File DEFAULT_CONFIG_FILE = new File(

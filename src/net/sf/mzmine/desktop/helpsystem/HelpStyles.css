@@ -1,5 +1,8 @@
 h1 { margin-left: 10px; margin-right: 10px; color: #0066CC; font-size: 18px; }
 h2 { margin-left: 20px; margin-right: 10px; font-size: 14px; }
-p { margin-left: 30px; margin-right: 10px; font-size: 12px; text-align: justify; }
-li { margin-left: 30px; margin-right: 10px; font-size: 12px; }
-
+h3 { margin-left: 20px; margin-right: 10px; font-size: 13px; }
+p { margin-left: 30px; margin-right: 10px; font-size: 11px; text-align: justify; }
+li { margin-left: 30px; margin-right: 10px; margin-bottom: 10px; font-size: 11px; }
+dl { margin-left: 30px; font-size: 11px; }
+dt { font-style: italic; margin-top: 10px; }
+ 

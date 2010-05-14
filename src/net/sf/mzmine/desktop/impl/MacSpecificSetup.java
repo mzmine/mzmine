@@ -37,7 +37,6 @@ class MacSpecificSetup extends ApplicationAdapter {
 	public void init() {
 
 		Application myMacApp = Application.getApplication();
-
 		myMacApp.addApplicationListener(this);
 
 	}
@@ -53,8 +52,11 @@ class MacSpecificSetup extends ApplicationAdapter {
 			return;
 		
 		HelpBroker hb = hs.createHelpBroker();
+		hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
 		
 		hb.setDisplayed(true);
+		
+		e.setHandled(true);
 	}
 
 }
