@@ -81,8 +81,10 @@ public class DesktopSetup {
 				MultiLineToolTipUI.class);
 
 		// If we are running on Mac OS X, we can setup some Mac-specific
-		// features. Using reflection we prevent the MacSpecificSetup class to
-		// be loaded on other platforms.
+		// features. The MacSpecificSetup class is located in
+		// lib/macspecificsetup.jar, including source code. Using reflection we
+		// prevent the MacSpecificSetup class to be loaded on other platforms
+		// than Mac
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
 			try {
 				String className = "net.sf.mzmine.desktop.impl.MacSpecificSetup";
