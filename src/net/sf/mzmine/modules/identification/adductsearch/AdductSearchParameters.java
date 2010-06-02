@@ -57,7 +57,7 @@ public class AdductSearchParameters extends SimpleParameterSet {
 	public static final Parameter maxAdductHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Max adduct peak height",
-			"Maximum height of the recognized adductpeak, relative to the main peak",
+			"Maximum height of the recognized adduct peak, relative to the main peak",
 			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
 	public AdductSearchParameters() {
