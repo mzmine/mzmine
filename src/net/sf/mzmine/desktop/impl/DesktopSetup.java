@@ -83,12 +83,13 @@ public class DesktopSetup {
 		// than Mac
 		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
 			try {
-				String className = "net.sf.mzmine.desktop.impl.MacSpecificSetup";
+				String className = "MacSpecificSetup";
 				Class<?> macSetupClass = Class.forName(className);
 				Object macSetup = macSetupClass.newInstance();
 				Method setupMethod = macSetupClass.getMethod("init");
 				setupMethod.invoke(macSetup, new Object[0]);
-			} catch (Exception e) {
+			} catch (Throwable e) {
+				e.printStackTrace();
 				// Ignore
 			}
 
