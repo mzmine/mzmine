@@ -22,8 +22,6 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.Font;
 import java.lang.reflect.Method;
 import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -35,8 +33,6 @@ import net.sf.mzmine.util.components.MultiLineToolTipUI;
  * MZmine 2
  */
 public class DesktopSetup {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public void init() {
 
@@ -93,8 +89,7 @@ public class DesktopSetup {
 				Method setupMethod = macSetupClass.getMethod("init");
 				setupMethod.invoke(macSetup, new Object[0]);
 			} catch (Exception e) {
-				logger.log(Level.WARNING,
-						"Could not initialize Mac-specific features", e);
+				// Ignore
 			}
 
 		}
