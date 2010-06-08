@@ -30,6 +30,10 @@ In the Mass detection step, individual ions are detected in each mass spectrum. 
 The choice of the optimal algorithm depends on the raw data characteristics (mass resolution, mass precision, peak shape).
 </p>
 
+<p>
+In case the raw data is already centroided, only one algorithm (Centroid mass detector) can be used. Other algorithms work only with continuous type data.
+</p>
+
 <h3>Centroid mass detector</h3>
 
 <p>
@@ -92,7 +96,9 @@ The practical usability of this method on real MS data is limited, but it is use
 <h3>Recursive threshold mass detector</h3>
 
 <p>
-This mass detector works in a recursive way. Initially, it looks at the whole range of data points. 
+This mass detector is suitable for continuous data, which has too much noise for the Exact mass detector to be used, but which shows a consistent width of m/z peaks. 
+The algorithm works in a recursive way.
+Initially, it looks at the whole range of data points. 
 If the m/z width of this range is not within given limits, a minimum data point is found and used to split the range in two parts.
 The same algorithm is then applied recursively on each part. 
 Recursion continues until all m/z ranges which fit into the given width limits are found.
@@ -120,16 +126,14 @@ Final m/z values are determined as local maxima of the identified m/z ranges.
 <h3>Wavelet transform mass detector</h3>
 
 <p>
-This mass detector uses the Mexican Hat wavelet model of the continuous wavelet transform CWT) algorithm. 
+The Wavelet transform mass detector is particularly suitable for low-resolution and noisy data.
+The method uses the Mexican Hat wavelet model of the continuous wavelet transform CWT) algorithm. 
 The search of mass spectrum peaks is executed in three steps. 
-First converts the original intensity of data points into wavelet domain.
-Next look for all local maximums in the calculated wavelet. 
-And finally sets a mass spectrum peak in the same point wherethe wavelet has a local maximum.  
-The mass spectrum peak is formed with the selected data point (mass and intensity) using the wavelet and all surrounding data points. 
-These weightings determine the relative importance of each data point mass on the average. 
-The data points used in the calculation of exact mass are considered part of the mass spectrum peak. 
-
-This mass detector is recommended for raw data with low resolution. 
+First, the data point intesity is converted into wavelet domain.
+Next, all local maxima of the calculated wavelet are found. 
+Finally, m/z peaks (ions) are declared in those points, where the wavelet has a local maximum.  
+The m/z peak is formed with the selected data point (mass and intensity) using the wavelet and all surrounding data points. 
+The final m/z value of the ion is calculated as an average of m/z values of surrounding data points weighted by their intensity.
 </p>
 
 <h4>Mathematical model</h4>
@@ -140,24 +144,28 @@ In mathematics and numerical analysis, the Mexican hat wavelet is the normalized
 The parameter <i>t</i> is the intensity of each data point in the curve, and <i>sigma</i> corresponds to the standard deviation.
 </p>
 
+<p>
 <img src="Wavelet_Mex_Hat.png">
 <img src="Wavelet_calculated_form.jpg">
-
-<p>
-To make easier the process of wavelet calculation the original function 
-is turned into two parts, where <i>Wc</i> is the wavelet coeefient and <i>y</i>
-is the intensity of the wavelet on certain point. In the first formula "t" is the
-<i>"Wavelet window size(%)"</i> parameter.
 </p>
 
-<img src="Wavelet_coefficients_calculation.jpg">
-<img src="Wavelet_intensities_calculation.jpg">
+<p>
+To simplify the process of wavelet calculation, the original function 
+is transformed into two parts, where <i>Wc</i> is the wavelet coefficient and <i>y</i>
+is the intensity of the wavelet at certain point. In the following formula, "t" is the
+<i>Wavelet window size(%)</i> parameter.
+</p>
 
 <p>
-The limits where is evaluated the Mexican Hat wavelet are from -5 until 5 (ESL,ESR)
- and the incremental step used in this range is result of divide the range from ESL 
- until ESR by 60000. The number of coeffients used to calculated the wavelet intensity 
- depends on the <i>"Scale level"</i> parameter.
+<img src="Wavelet_coefficients_calculation.jpg">
+<img src="Wavelet_intensities_calculation.jpg">
+</p>
+
+<p>
+The limits, where the Mexican Hat wavelet is evaluated, are from -5 until 5 (ESL, ESR)
+ and the incremental step used in this range is the result of divide the width of ESL 
+ to ESR range by 60,000. The number of coefficients used to calculated the wavelet intensity 
+ depends on the <i>Scale level</i> parameter.
 </p>
 
 <h4>Method parameters</h4>
@@ -175,9 +183,9 @@ results in a more detailed resulting graph and as a consequence more noisy peaks
  
 <dt>Wavelet window size (%)</dt>
 <dd>This value is the size of the window used to calculated the wavelet signal. 
-When the size of the window is small makes more noisy peaks could be detected.
- On the other hand, when the size of the window is complete is possible to avoid the undesired
- peaks, depending on the raw data to process this parameter is manipulated by the user.<br><br>
+When the size of the window is small, more noisy peaks can be detected.
+ The proper setting of this parameter may help to avoid the undesired noise
+ peaks.<br><br>
  
 Wavelet window size at 10%:<br>
 <img src="Wavelet_window_size10.jpg"><br>
@@ -195,157 +203,108 @@ Wavelet window size at 100%:<br>
 <h2>Filtering</h2>
 
 <p>
-Filtering is optional operation
+Filtering is an optional operation which may reduce the amount of false chromatograms by removing those m/z signals which can be recognized as noise. The filtering is done on the detected m/z peak lists, raw data is not considered in this step.
 </p>
 
-<h3>FTMS Shoulder peaks filter</h3>
+<h3>FTMS shoulder peaks filter</h3>
 
-The raw data obtained from a FTMS Mass Spectrometer usually contains a lot of small shoulder peaks (FTMS shoulder peaks). This data points can be casted aside of the peak detection process. In order to reach this, a peak model (shape) is used to determine which of these data points are shoulder peaks and which not. 
-
-Gauss peak model</h1>
-
-<p style="margin-left: 30px;" align="justify"; >
-One approach used in the peak analysis of spectrums for the purpose of modelling 
-is to use mathematical distributions. In this case an implementation of Gaussian 
-function is used to describe the possible shape of the current data. This peak model
- helps to eliminate data points in the spectrum considered as noise.
+<p>
+Raw data obtained from FTMS (Fourier Transform Mass Spectrometer) instruments often contains false signals around high-intensity m/z peaks, called "shoulder peaks".
+These signals are residues of the Fourier Transform function and their intensity is usually below 5% of the main (true) m/z peak.
+The FTMS shoulder peaks filter attempts to remove these false signals. 
+Detected m/z peaks are processed in the order of decreasing intensity.
+A peak model (shape) is built around each m/z peak using given function and resolution, and those m/z peaks which fall below the model are considered to be shoulder peaks and are removed.
+The method offers three peak models.
 </p>
 
-<h2 style="margin-left: 20px;">Mathematical model</h2>
+<h4>Method parameters</h4>
 
-<p style="margin-left: 30px;" align="justify"; >
+<dl>
+<dt>Mass resolution of the data</dt>
+<dd>Defines the width of the model, which should be equal to the estimated resolution of the peaks in the raw data. Mass resolution is defined according to the following scheme:<br>
+<img src="resolving-power.png"></dd>
+
+<dt>Peak model function</dt>
+<dd>Defines the shape of the model function, as described below.</dd> 
+
+</dl>
+
+<h4>Gaussian peak model</h4>
+
+<p>
 The Gaussian peak model is a characteristic symmetric "bell shape curve" that quickly
- falls off towards plus/minus infinity, described by the next formula.
+ falls off towards plus/minus infinity, described by the following formula.
+ <img src="GaussFormula.png">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="GaussFormula.png">
-	</td>
-</tr>
-</table>
-
-<p style="margin-left: 30px;" align="justify"; >
-The parameter a is the height of the curve's peak, b is the position of the center of the peak,
- and c controls the width of the "bell".The parameter c is related to the full width at half 
- maximum (FWHM) of the peak according to<br>
+<p>
+The parameter "a" is the height of the curve's peak, "b" is the position of the center of the peak,
+ and "c" controls the width of the "bell".
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="FWHM.png">
-	</td>
-</tr>
-</table>
-
-<p style="margin-left: 30px;" align="justify"; >
-The value of <i>"FWHM"</i> is calculated using the mass of the current data point divided by 
-the resolution of the data.<br>
-</p>
-<img src="GaussPeak.jpg" border="2">
-
-Lorentzian peak model</h1>
-
-<p style="margin-left: 30px;" align="justify"; >
-The Lorentzian function (Cauchy-Lorentz distribution), is used for this model due
- its longer lateral sides. This characteristic helps to avoid lateral peaks (shoulder peaks)
-  in the case of FTMS raw data. This peak model helps to eliminate this not desired data points
-  in a more natural way than Gauss peak model and its variants.
+<p>
+<img src="GaussPeak.jpg">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
+<h4>Lorentzian peak model</h4>
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="Cauchy_distribution.png" border="2">
-	</td>
-</tr>
-</table>
-
-<h2 style="margin-left: 20px;">Mathematical model</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
-The Lorentzian peak model is described by the next formula.
+<p>
+The Lorentzian function (Cauchy-Lorentz distribution) is used for this model.<br>
+<img src="Cauchy_distribution.png">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="LorentzianFormula.png">
-	</td>
-</tr>
-</table>
-
-<p style="margin-left: 30px;" align="justify"; >
-Where x0 is the location parameter, specifying the location of the peak of the distribution,
- and "y" is the scale parameter which specifies the half-width at half-maximum (HWHM).<br>
+<p>
+The Lorentzian peak model is described by the following formula:
+<img src="LorentzianFormula.png"><br>
+Where "x0" is the location parameter, specifying the location of the peak of the distribution,
+ and "y" is the scale parameter which specifies the width of the peak.
 </p>
 
-<p style="margin-left: 30px;" align="justify"; >
-The HWHM is calculated using the <a href="GaussPeak.html">FWHM</a> divided by 2.<br>
+<p>
+<img src="LorentzianPeak.jpg">
 </p>
 
-<img src="LorentzianPeak.jpg" border="2">
+<h4>Lorentzian extended peak model</h4>
 
-
-Lorentzian extended peak model</h1>
-
-<p style="margin-left: 30px;" align="justify"; >
-This model uses the same mathematical formula as Lorentzian peak model, but at the base 
-of the peak model the HWHM parameter is modified (below of 5% of intensity). 
-The width of the peak is increased until a similar value obtained from a peak with 
-a resolution of 5% of the actual data point.
+<p>
+This model uses the same mathematical formula as the Lorentzian peak model, but the lower part of the model (below of 5% of intensity)
+is extended. 
+The width of the peak below 5% intensity is calculated from another Lorentzian peak with 5% of the resolution of the main peak.
 </p>
 
-<h2 style="margin-left: 20px;">Mathematical model</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
-The <a href="LorentzianPeak.html">Lorentzian peak model</a> is the base for this model. 
-The only difference is the width (HWHM) used at 5% of intensity or less.
+<p>
+<img src="LorentzianExtended.jpg">
 </p>
-
-<table style="margin-left: 30px; margin-right: auto;">
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="LorentzianExtended.jpg" border="2">
-	</td>
-</tr>
-</table>
-
 
 <h2>Chromatogram construction</h2>
 
 <p>
-After mass detection is finished in one spectrum the second step take each one of the detected 
-masses and try to find the most related chromatogram. If it is not possible to relate a mass data 
-point with any chromatogram, a new chromatogram is initialized with this mass. The factor to 
-establish the relationship between a chromatogram and a mass datapoint depends on the mass (m/z) 
-and intensity.
+When mass detection and filtering is finished, m/z data points from each scan must be connected together to form chromatograms.
 </p>
 
-<h3>Highest datapoint connector</h3>
+<h3>Highest data point</h3>
 
 <p>
-This chromatogram builder connects the received mass spectrum peak across the retention time to one chromatogram based in a match score. This match score is set using as a criteria the next highest data point within a m/z range. This builder determines which mass spectrum peaks are within the m/z range having as a central point the last mass peak added to the current chromatogram.
-
-This detector use a single parameter "noise level". This value sets the minimum intensity level for a centroided data point must have to be consider as part of a possible peak.
-Parameter setup dialog
-
+This method maintains a pool of chromatograms spanning between scans. 
+For each processed spectrum, the ion list generated by the mass detector (and filtered, if selected) is processed in the 
+order of decreasing intensity and each m/z peak is connected to the appropriate chromatogram according to
+the m/z tolerance parameter. 
+When no matching chromatogram is found, a new chromatogram is with the m/z value and added to the pool.
+When a chromatogram is finished (no m/z peak is found to be connected to), its length (time span) and intensity (heihgt) are checked according to user-specified minimal values.
+Those chromatograms which fit the required parameters are added to the final peak list.
 </p>
+
+<dl>
+<dt>Min time span</dt>
+<dd>Minimum time over which the same ion must be connected in order to be recognized as a chromatogram. This parameter should be set by observing the raw data according to the standard length of chromatographic peaks.</dd>
+
+<dt>Min height</dt>
+<dd>Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.</dd> 
+
+<dt>m/z tolerance</dt>
+<dd>Maximum m/z difference of data points in consecutive scans in order to be connected in the same chromatogram.</dd> 
+
+</dl>
 
 </body>
 </html>

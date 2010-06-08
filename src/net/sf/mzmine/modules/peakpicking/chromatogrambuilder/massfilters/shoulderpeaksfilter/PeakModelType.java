@@ -21,13 +21,13 @@ package net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.should
 
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.peakmodels.GaussPeak;
 import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.peakmodels.LorentzianPeak;
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.peakmodels.LorentzianPeakWithShoulder;
+import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.peakmodels.ExtendedLorentzianPeak;
 
 public enum PeakModelType {
 
     GAUSS("Gaussian", GaussPeak.class),
     LORENTZ("Lorentzian", LorentzianPeak.class),
-    LORENTZEXTENDED("Lorentzian extended", LorentzianPeakWithShoulder.class);
+    LORENTZEXTENDED("Lorentzian extended", ExtendedLorentzianPeak.class);
 
     private final String modelName;
     private final Class modelClass;

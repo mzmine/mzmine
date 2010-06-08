@@ -30,26 +30,26 @@ import net.sf.mzmine.util.Range;
  * cover side regions, for example FTMS shoulder peaks.
  * 
  */
-public class LorentzianPeakWithShoulder implements PeakModel {
+public class ExtendedLorentzianPeak implements PeakModel {
 
     /**
      * This constant defines at what percentage of the intensity we set as the
      * border between the main and the broad (shoulder) peak models. Default is
      * 5%.
      */
-    public static final double shoulderIntensityRatio = 0.05f;
+    public static final double shoulderIntensityRatio = 0.05;
 
     /**
      * This constant defines what percentage of the resolution shall we use to
      * build the broad (shoulder) peak model. Default is 5%.
      */
-    public static final double shoulderResolutionRatio = 0.05f;
+    public static final double shoulderResolutionRatio = 0.05;
 
     private LorentzianPeak mainPeak, shoulderPeak;
     private Range mainPeakRange;
     private double shoulderIntensity;
 
-    public LorentzianPeakWithShoulder() {
+    public ExtendedLorentzianPeak() {
         mainPeak = new LorentzianPeak();
         shoulderPeak = new LorentzianPeak();
     }
