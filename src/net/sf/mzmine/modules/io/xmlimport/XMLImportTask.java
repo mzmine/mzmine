@@ -188,7 +188,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 			if (status == TaskStatus.PROCESSING)
 				status = TaskStatus.ERROR;
 			errorMessage = e.toString();
-			// e.printStackTrace();
+			e.printStackTrace();
 			return;
 		}
 
@@ -361,8 +361,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				// String text = getTextOfElement();
 				dateCreated = getTextOfElement();
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read peak list date of creation");
 			}
@@ -375,8 +373,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				text = text.trim();
 				totalRows = Integer.parseInt(text);
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException("Could not read quantity");
 			}
 		}
@@ -413,9 +409,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				}
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
-				e.printStackTrace();
 				throw new SAXException("Could not read list of scan numbers");
 			}
 		}
@@ -431,9 +424,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 					retentionTimes[i] = Double.parseDouble(values[i]);
 				}
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
-				e.printStackTrace();
 				throw new SAXException("Could not read list of retention times");
 			}
 		}
@@ -451,9 +441,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				}
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
-				e.printStackTrace();
 				throw new SAXException("Could not read list of masses");
 			}
 
@@ -472,9 +459,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				}
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
-				e.printStackTrace();
 				throw new SAXException("Could not read list of intensities");
 			}
 
@@ -494,13 +478,8 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		if (qName.equals(PeakListElementName.RTRANGE.getElementName())) {
 			try {
 				String valueText = getTextOfElement();
-				String values[] = valueText.split("-");
-				double min = Double.parseDouble(values[0]);
-				double max = Double.parseDouble(values[1]);
-				rtRange = new Range(min, max);
+				rtRange = new Range(valueText);
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read retention time range form raw data file");
 			}
@@ -510,13 +489,8 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		if (qName.equals(PeakListElementName.MZRANGE.getElementName())) {
 			try {
 				String valueText = getTextOfElement();
-				String values[] = valueText.split("-");
-				double min = Double.parseDouble(values[0]);
-				double max = Double.parseDouble(values[1]);
-				mzRange = new Range(min, max);
+				mzRange = new Range(valueText);
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read m/z range from raw data file");
 			}

@@ -47,7 +47,7 @@ public class RTMZRenderer extends XYLineAndShapeRenderer {
 	public Paint getItemPaint(int series, int item) {
 	
 		double cv = dataset.getZValue(series, item);
-		if (cv==Double.NaN) return new Color(255,0,0); 
+		if (Double.isNaN(cv)) return new Color(255,0,0); 
 		
 		return paintScale.getPaint(cv);
 		

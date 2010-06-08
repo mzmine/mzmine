@@ -246,7 +246,7 @@ class RansacAlignerTask implements Task {
 			} catch (ArgumentOutsideDomainException ex) {
 				rt = -1;
 			}
-			if (rt == Double.NaN || rt == -1) {
+			if ( Double.isNaN(rt) || rt == -1) {
 				rt = row.getAverageRT();
 			}
 
