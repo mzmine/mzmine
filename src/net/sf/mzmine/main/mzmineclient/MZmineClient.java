@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.desktop.helpsystem.HelpImp;
+import net.sf.mzmine.desktop.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -155,7 +155,7 @@ public class MZmineClient extends MZmineCore implements Runnable {
 		TaskControllerImpl taskController = new TaskControllerImpl();
 		projectManager = new ProjectManagerImpl();
 		desktop = new MainWindow();
-		help = new HelpImp();
+		help = new HelpImpl();
 
 		// save static references to MZmineCore
 		MZmineCore.taskController = taskController;

@@ -24,11 +24,11 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class HelpImp {
+public class HelpImpl {
 
     private MZmineHelpSet hs;
 
-    public HelpImp() {
+    public HelpImpl() {
         try {
 
             // Construct help

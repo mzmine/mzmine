@@ -89,7 +89,6 @@ public class DesktopSetup {
 				Method setupMethod = macSetupClass.getMethod("init");
 				setupMethod.invoke(macSetup, new Object[0]);
 			} catch (Throwable e) {
-				e.printStackTrace();
 				// Ignore
 			}
 

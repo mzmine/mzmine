@@ -23,7 +23,7 @@ import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.swing.JButton;
 
-import net.sf.mzmine.desktop.helpsystem.HelpImp;
+import net.sf.mzmine.desktop.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 
@@ -45,7 +45,7 @@ public class HelpButton extends JButton {
 		super("Help");
 		try {
 			
-			HelpImp helpImp = MZmineCore.getHelpImp();
+			HelpImpl helpImp = MZmineCore.getHelpImp();
 			
 			if (helpImp == null){
 				setVisible(false);

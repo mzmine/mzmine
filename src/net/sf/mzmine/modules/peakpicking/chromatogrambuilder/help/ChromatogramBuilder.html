@@ -13,60 +13,74 @@
 
 <p>
 The Chromatogram builder is the main module for peak detection in MZmine 2.
-The peak detection process uses three steps:
+Its purpose is to create a list of masses which form continuous chromatograms in raw data. 
+Later, these chromatograms may be deconvoluted into individual peaks by the Deconvolution module.
+</p>
+
+<p>
+The Chromatogram builder module works in three steps:
 Mass detection, Filtering and Chromatogram construction. 
-The motivation to divide the process in several steps is to allow the users to optimize each step according to the characteristics of their data.
+The motivation to divide the process into several steps is to allow the users to optimize each step according to the characteristics of their data.
 </p>
 
 <h2>Mass detection</h2>
 
-In the Mass detection step,  
-
-<p style="margin-left: 30px;" align="justify"; >
-The first step is identify the representative data point of each peak in spectrum domain.
- This is achieved by different approaches, depending of raw data characteristics (resolution,
- mass, intensity and peak shape).<br><br><i>Mass detectors</i><br><br>
+<p>
+In the Mass detection step, individual ions are detected in each mass spectrum. In other words, each mass spectrum is centroided. Several algorithms are provided for this step.
+The choice of the optimal algorithm depends on the raw data characteristics (mass resolution, mass precision, peak shape).
+</p>
 
 <h3>Centroid mass detector</h3>
 
+<p>
+This mass detector is suitable for already centroided data. It simply assumes that each signal above given noise level is a detected ion. 
+</p>
 
-This mass detector search for each data point in the current spectrum. Due each data used to represent mass spectral peaks, the weighted center of mass and the intensity, every one of this data point is considered as a mass spectrum peak.
+<h4>Method parameters</h4>
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+</dl>
 
-This detector use a single parameter "noise level". This value sets the minimum intensity level for a centroided data point must have to be consider as part of a possible peak.
-
-
+<img src="Centroid_mass_detector_preview.jpg">
 
 <h3>Exact mass detector</h3>
 
+<p>
+This mass detector first searches for all local maxima within the spectrum. These form candidate ions. 
+After that, exact mass is determined for each candidate ion, using the FWHM paradigm (Full Width at Half Maximum).
+First, the method locates the nearest data points to the peak center at half of the maximum intenstiy (P1, P2, P3, P4).
+With these four points it is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is considered as exact mass).
 
-This mass detector search for all local maximum data points in the current spectrum. After that it sort all of them in descending order. The next step is calculate the exact mass for each mass spectrum peak and remove lateral peaks, starting with the biggest intensity data point and so on.
+<img src="Exact_mass_FWHM.jpg">
 
-First the method locates the closest data points to the FWHM (P1, P2, P3, P4). With these four points is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is consider as exact mass).
-
-This detector requires the next three parameters:
-"Noise level"
-This value sets the minimum intensity level that a data point must have to be consider part of a possible peak.
-"Mass resolution"
-This value is defined as m/dm where m designates the mass and dm the peak width. A specific m/z value and the relationship of full width at half maximum (FWHM) is possible to calculate this value. Mass resolution is usually a large number (up to 10,000 for MS) and is used as “performance” parameter in many mass spectrometers.
-
-"Peak Model function"
-The raw data obtained from a FTMS Mass Spectrometer usually contains a lot of small shoulder peaks (FTMS shoulder peaks). This data points can be casted aside of the peak detection process. In order to reach this, a peak model (shape) is used to determine which of these data points are shoulder peaks and which not. 
-
-
+<h4>Method parameters</h4>
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+</dl>
 
 
 <h3>Local maxima mass detector</h3>
 
+This mass detector searches for all local maxima within the spectrum. 
+Each local maximum above the given noise level is considered a detected ion.
 
-This mass detector search for all local maximum data points in the current spectrum and discard those that do not have the minimal height (intensity) defined by noise level parameter. The group of data points where the local maximum data point was found is used to form the mass spectrum peak.
-This detector use a single parameter "noise level". This value sets the minimum intensity level for a each local maximum data point must have to be consider as part of a possible peak.
+<img src="Localmaxima_mass_detector_preview.jpg">
 
-
+<h4>Method parameters</h4>
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+</dl>
 
 <h3>Recursive threshold mass detector</h3>
 
-
-This mass detector search for the local maximum data points in the current spectrum that cover the characteristics stipulated in its parameters. The method looks for local maximum in a group of data points and is executed in recursive way. If this group has the right width (m/z difference between the first and last data point) and height (local maximum intensity) is consider as a mass spectrum peak. The minimum length and intensity are defined by the parameters. 
+<p>
+This mass detector search for the local maximum data points in the current spectrum that cover the characteristics stipulated in its parameters.
+The method looks for local maximum in a group of data points and is executed in recursive way. 
+If this group has the right width (m/z difference between the first and last data point) and height (local maximum intensity) is consider as a mass spectrum peak. 
+The minimum length and intensity are defined by the parameters. 
 Each detected mass spectrum peak is defined by the group of data points where the local maximum was found, and the mass and intensity of the local maximum data point.
 
 This detector requires the next three parameters:
@@ -79,10 +93,11 @@ This value is minimum acceptable m/z difference between the first and last data 
 
 "Max m/z peak width"
 This value is maximum acceptable m/z difference between the first and last data point (width). This parameter is used to determine when stop the recursive search.
-
+</p>
 
 <h3>Wavelet transform mass detector</h3>
-<p style="margin-left: 30px;" align="justify"; >
+
+<p>
 This mass detector uses the Mexican Hat wavelet, that is a continuous wavelet transform
  (CMT). The search of mass spectrum peaks is executed in three steps. First converts the 
  original intensity of data points into wavelet domain. Next look for all local maximums 
@@ -97,78 +112,42 @@ the wavelet and all surrounding data points. These weightings determine the rela
 This mass detector is recommended for raw data with low resolution. 
 </p>
 
-<h2 style="margin-left: 20px;">Mathematical model</h2>
+<h4>Mathematical model</h4>
 
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 In mathematics and numerical analysis, the Mexican hat wavelet is the normalized second derivative
  of a Gaussian function.
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
+<img src="WaveletFormula.png">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="WaveletFormula.png">
-	</td>
-</tr>
-</table>
-
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 The parameter t is the intensity of each data point in the curve,
  and sigma corresponds to the standard deviation.<br>
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-<tr></tr>
-<tr></tr>
-<tr>
-<td>
-	<td>
-	<img src="Wavelet_Mex_Hat.png">
-	</td>
-	<td>
-	<img src="Wavelet_calculated_form.jpg">
-	</td>
-</td>
-</tr>
-</table>
+<img src="Wavelet_Mex_Hat.png">
+<img src="Wavelet_calculated_form.jpg">
 
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 To make easier the process of wavelet calculation the original function 
 is turned into two parts, where <i>Wc</i> is the wavelet coeefient and <i>y</i>
 is the intensity of the wavelet on certain point. In the first formula "t" is the
 <i>"Wavelet window size(%)"</i> parameter.
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
+<img src="Wavelet_coefficients_calculation.jpg">
+<img src="Wavelet_intensities_calculation.jpg">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="Wavelet_coefficients_calculation.jpg">
-	</td>
-</tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="Wavelet_intensities_calculation.jpg">
-	</td>
-</tr>
-</table>
-
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 The limits where is evaluated the Mexican Hat wavelet are from -5 until 5 (ESL,ESR)
  and the incremental step used in this range is result of divide the range from ESL 
  until ESR by 60000. The number of coeffients used to calculated the wavelet intensity 
  depends on the <i>"Scale level"</i> parameter.
 </p>
 
-<h2 style="margin-left: 20px;">Parameters</h2>
 
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 This detector requires the next three parameters:<br><br>
 <i>"Noise level"</i><br>
 This value sets the minimum intensity level that a data point must
@@ -185,45 +164,19 @@ When the size of the window is small makes more noisy peaks could be detected.
  On the other hand, when the size of the window is complete is possible to avoid the undesired
  peaks, depending on the raw data to process this parameter is manipulated by the user.<br><br>
  
- <table style="margin-left: 30px; margin-right: auto;">
-
-<tr></tr>
-<tr></tr>
-<tr>
-<td>
-	<td>Wavelet window size at 10%<br>
+ Wavelet window size at 10%
 	<img src="Wavelet_window_size10.jpg" border="2">
-	</td>
-	<td>Wavelet window size at 100%<br>
-	<img src="Wavelet_window_size100.jpg"  border="2">
-	</td>
-<td>
-</tr>
-</tr>
-</table>
+
+Wavelet window size at 100%
+<img src="Wavelet_window_size100.jpg"  border="2">
+
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>Parameter setup dialog<br><br>
-	<img src="Wavelet_mass_detector_set.jpg">
-	</td>
-</tr>
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	Spectrum plot showing detected peaks<br><br>
-	<img src="Wavelet_mass_detector_preview.jpg">
-	</p>
-	</td>
-</tr>
+<img src="Wavelet_mass_detector_set.jpg">
 
-</table>
-
+Spectrum plot showing detected peaks<br><br>
+<img src="Wavelet_mass_detector_preview.jpg">
 
 
 <h2>Filtering</h2>
@@ -234,19 +187,146 @@ Filtering is optional operation
 
 <h3>FTMS Shoulder peaks filter</h3>
 
+The raw data obtained from a FTMS Mass Spectrometer usually contains a lot of small shoulder peaks (FTMS shoulder peaks). This data points can be casted aside of the peak detection process. In order to reach this, a peak model (shape) is used to determine which of these data points are shoulder peaks and which not. 
+
+Gauss peak model</h1>
+
+<p style="margin-left: 30px;" align="justify"; >
+One approach used in the peak analysis of spectrums for the purpose of modelling 
+is to use mathematical distributions. In this case an implementation of Gaussian 
+function is used to describe the possible shape of the current data. This peak model
+ helps to eliminate data points in the spectrum considered as noise.
+</p>
+
+<h2 style="margin-left: 20px;">Mathematical model</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The Gaussian peak model is a characteristic symmetric "bell shape curve" that quickly
+ falls off towards plus/minus infinity, described by the next formula.
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="GaussFormula.png">
+	</td>
+</tr>
+</table>
+
+<p style="margin-left: 30px;" align="justify"; >
+The parameter a is the height of the curve's peak, b is the position of the center of the peak,
+ and c controls the width of the "bell".The parameter c is related to the full width at half 
+ maximum (FWHM) of the peak according to<br>
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="FWHM.png">
+	</td>
+</tr>
+</table>
+
+<p style="margin-left: 30px;" align="justify"; >
+The value of <i>"FWHM"</i> is calculated using the mass of the current data point divided by 
+the resolution of the data.<br>
+</p>
+<img src="GaussPeak.jpg" border="2">
+
+Lorentzian peak model</h1>
+
+<p style="margin-left: 30px;" align="justify"; >
+The Lorentzian function (Cauchy-Lorentz distribution), is used for this model due
+ its longer lateral sides. This characteristic helps to avoid lateral peaks (shoulder peaks)
+  in the case of FTMS raw data. This peak model helps to eliminate this not desired data points
+  in a more natural way than Gauss peak model and its variants.
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="Cauchy_distribution.png" border="2">
+	</td>
+</tr>
+</table>
+
+<h2 style="margin-left: 20px;">Mathematical model</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The Lorentzian peak model is described by the next formula.
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="LorentzianFormula.png">
+	</td>
+</tr>
+</table>
+
+<p style="margin-left: 30px;" align="justify"; >
+Where x0 is the location parameter, specifying the location of the peak of the distribution,
+ and "y" is the scale parameter which specifies the half-width at half-maximum (HWHM).<br>
+</p>
+
+<p style="margin-left: 30px;" align="justify"; >
+The HWHM is calculated using the <a href="GaussPeak.html">FWHM</a> divided by 2.<br>
+</p>
+
+<img src="LorentzianPeak.jpg" border="2">
+
+
+Lorentzian extended peak model</h1>
+
+<p style="margin-left: 30px;" align="justify"; >
+This model uses the same mathematical formula as Lorentzian peak model, but at the base 
+of the peak model the HWHM parameter is modified (below of 5% of intensity). 
+The width of the peak is increased until a similar value obtained from a peak with 
+a resolution of 5% of the actual data point.
+</p>
+
+<h2 style="margin-left: 20px;">Mathematical model</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The <a href="LorentzianPeak.html">Lorentzian peak model</a> is the base for this model. 
+The only difference is the width (HWHM) used at 5% of intensity or less.
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>
+	<img src="LorentzianExtended.jpg" border="2">
+	</td>
+</tr>
+</table>
 
 
 <h2>Chromatogram construction</h2>
 
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 After mass detection is finished in one spectrum the second step take each one of the detected 
 masses and try to find the most related chromatogram. If it is not possible to relate a mass data 
 point with any chromatogram, a new chromatogram is initialized with this mass. The factor to 
 establish the relationship between a chromatogram and a mass datapoint depends on the mass (m/z) 
-and intensity.<br><br><i>Chromatogram builders</i><br><br>
+and intensity.
+</p>
 
-<li><a href="../xicconstruction/highestdatapoint/help/HighIntensityConnector.html">Highest datapoint connector</a></li>
+<h3>Highest datapoint connector</h3>
 
+<p>
 This chromatogram builder connects the received mass spectrum peak across the retention time to one chromatogram based in a match score. This match score is set using as a criteria the next highest data point within a m/z range. This builder determines which mass spectrum peaks are within the m/z range having as a central point the last mass peak added to the current chromatogram.
 
 This detector use a single parameter "noise level". This value sets the minimum intensity level for a centroided data point must have to be consider as part of a possible peak.
