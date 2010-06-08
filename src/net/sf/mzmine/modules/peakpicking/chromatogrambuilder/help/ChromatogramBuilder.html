@@ -1,0 +1,160 @@
+<html>
+	<head>
+		<title>Chromatogram builder</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Chromatogram builder</h1>
+
+<h2>Description</h2>
+
+
+<p>
+This module exports the contents of the peak list into an XML file. 
+CSV file export is a one-way operation, CSV files cannot be imported back to MZmine.
+This detector uses a three steps method to identify peaks. This steps are 
+1) Mass detection, 2) Chromatogram building and 3) Peak recognition. The porpuse of 
+divide peak detection into three steps is to take advantage of all data 
+characteristics.
+</p>
+
+<h2 style="margin-left: 20px;">Mass detection</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The first step is identify the representative data point of each peak in spectrum domain.
+ This is achieved by different approaches, depending of raw data characteristics (resolution,
+ mass, intensity and peak shape).<br><br><i>Mass detectors</i><br><br>
+
+<li><a href="../massdetection/centroid/help/CentroidMassDetector.html">Centroid</a></li>
+Centroid mass detector
+
+Spectrum analysis
+
+This mass detector search for each data point in the current spectrum. Due each data used to represent mass spectral peaks, the weighted center of mass and the intensity, every one of this data point is considered as a mass spectrum peak.
+
+Parameters
+
+This detector use a single parameter "noise level". This value sets the minimum intensity level for a centroided data point must have to be consider as part of a possible peak.
+
+
+
+<li><a href="../massdetection/exactmass/help/ExactMassDetector.html">Exact mass</a></li>
+
+Exact mass detector
+
+Spectrum analysis
+
+This mass detector search for all local maximum data points in the current spectrum. After that it sort all of them in descending order. The next step is calculate the exact mass for each mass spectrum peak and remove lateral peaks, starting with the biggest intensity data point and so on.
+
+First the method locates the closest data points to the FWHM (P1, P2, P3, P4). With these four points is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is consider as exact mass).
+
+Parameter setup dialog
+
+
+Parameters
+
+This detector requires the next three parameters:
+
+"Noise level"
+This value sets the minimum intensity level that a data point must have to be consider part of a possible peak.
+
+"Mass resolution"
+This value is defined as m/dm where m designates the mass and dm the peak width. A specific m/z value and the relationship of full width at half maximum (FWHM) is possible to calculate this value. Mass resolution is usually a large number (up to 10,000 for MS) and is used as “performance” parameter in many mass spectrometers.
+
+
+"Peak Model function"
+The raw data obtained from a FTMS Mass Spectrometer usually contains a lot of small shoulder peaks (FTMS shoulder peaks). This data points can be casted aside of the peak detection process. In order to reach this, a peak model (shape) is used to determine which of these data points are shoulder peaks and which not. 
+
+
+
+
+<li><a href="../massdetection/localmaxima/help/LocalMaxMassDetector.html">Local maximum</a></li>
+
+Local maximum mass detector
+
+Spectrum analysis
+
+This mass detector search for all local maximum data points in the current spectrum and discard those that do not have the minimal height (intensity) defined by noise level parameter. The group of data points where the local maximum data point was found is used to form the mass spectrum peak.
+
+Parameters
+
+This detector use a single parameter "noise level". This value sets the minimum intensity level for a each local maximum data point must have to be consider as part of a possible peak.
+
+
+
+<li><a href="../massdetection/recursive/help/RecursiveMassDetector.html">Recursive threshold</a></li>
+
+Spectrum analysis
+
+This mass detector search for the local maximum data points in the current spectrum that cover the characteristics stipulated in its parameters. The method looks for local maximum in a group of data points and is executed in recursive way. If this group has the right width (m/z difference between the first and last data point) and height (local maximum intensity) is consider as a mass spectrum peak. The minimum length and intensity are defined by the parameters. 
+
+Each detected mass spectrum peak is defined by the group of data points where the local maximum was found, and the mass and intensity of the local maximum data point.
+
+Parameters
+
+This detector requires the next three parameters:
+
+"Noise level"
+This value sets the minimum intensity level that a data point must have to be consider part of a possible mass spectrum peak.
+
+"Min m/z peak width"
+This value is minimum acceptable m/z difference between the first and last data point (width). This parameter is used to determine when stop the recursive search and to discard too small mass spectrum peaks. 
+
+"Max m/z peak width"
+This value is maximum acceptable m/z difference between the first and last data point (width). This parameter is used to determine when stop the recursive search.
+
+Parameter setup dialog
+
+
+
+
+<li><a href="../massdetection/wavelet/help/WaveletMassDetector.html">Wavelet transform</a></li>
+</p>
+
+<h2 style="margin-left: 20px;">Chromatogram building</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+After mass detection is finished in one spectrum the second step take each one of the detected 
+masses and try to find the most related chromatogram. If it is not possible to relate a mass data 
+point with any chromatogram, a new chromatogram is initialized with this mass. The factor to 
+establish the relationship between a chromatogram and a mass datapoint depends on the mass (m/z) 
+and intensity.<br><br><i>Chromatogram builders</i><br><br>
+
+<li><a href="../xicconstruction/scoreconnector/help/SimpleConnector.html">Simple connector</a></li>
+<li><a href="../xicconstruction/highestdatapoint/help/HighIntensityConnector.html">Highest datapoint connector</a></li>
+</p>
+
+<h2 style="margin-left: 20px;">Peak recognition</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The third step is executed after all chromatograms are finilized, this means all spectrums have been processed 
+by Mass detector and representative mass data points have been collected into chromatograms. The process of peak 
+recognition relies on chromatogram's shape, for this reason is possible to use different approaches. Each one of the
+next methods try to identify some regions of the chromatogram as a peak and despite the rest as a noise or 
+background signal<br><br><i>Peak recognizers</i><br><br>
+
+<li><a href="../peakconstruction/simple/help/SimplePeakDetector.html">No recognition</a></li>
+<li><a href="../peakconstruction/baseline/help/BaselinePeakDetector.html">Baseline</a></li>
+<li><a href="../peakconstruction/chromatographicthreshold/help/ChromatographicThresholdPeakDetector.html">Chromatographic threshold</a></li>
+<li><a href="../peakconstruction/noiseamplitude/help/NoiseAmplitudePeakDetector.html">Noise amplitude</a></li>
+<li><a href="../peakconstruction/standarddeviation/help/StandardDeviationPeakDetector.html">Standard deviation</a></li>
+<li><a href="../peakconstruction/savitzkygolay/help/SavitzkyGolayPeakDetector.html">Savitzky-Golay</a></li>
+<li><a href="../peakconstruction/wavelet/help/WaveletPeakDetector.html">Wavelet transform</a></li>
+</p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td>Parameter setup dialog<br><br>
+	<img src="Threesteps_set.jpg">
+	</td>
+</tr>
+</table>
+
+</body>
+</html>

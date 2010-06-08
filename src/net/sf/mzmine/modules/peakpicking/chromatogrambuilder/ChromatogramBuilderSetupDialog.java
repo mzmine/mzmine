@@ -53,6 +53,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
+	static final String helpID = "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/help/ChromatogramBuilder.html";
+	
 	private ChromatogramBuilderParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
@@ -201,7 +203,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
 		btnHelp = new HelpButton(
-				"net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+				helpID);
 
 		JPanel pnlCombo = new JPanel();
 		pnlCombo.setLayout(new GridBagLayout());
