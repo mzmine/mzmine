@@ -129,7 +129,7 @@ public abstract class MZmineCore {
 	 * 
 	 * @return
 	 */
-	public static HelpImpl getHelpImp() {
+	public static HelpImpl getHelpImpl() {
 		return help;
 	}
 
