@@ -34,7 +34,7 @@ public class HelpMainMenuItem {
 
         try {
 
-            MZmineHelpSet hs = MZmineCore.getHelpImp().getHelpSet();
+            MZmineHelpSet hs = MZmineCore.getHelpImpl().getHelpSet();
 
             if (hs == null)
                 return;

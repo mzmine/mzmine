@@ -45,7 +45,7 @@ public class HelpButton extends JButton {
 		super("Help");
 		try {
 			
-			HelpImpl helpImp = MZmineCore.getHelpImp();
+			HelpImpl helpImp = MZmineCore.getHelpImpl();
 			
 			if (helpImp == null){
 				setVisible(false);
