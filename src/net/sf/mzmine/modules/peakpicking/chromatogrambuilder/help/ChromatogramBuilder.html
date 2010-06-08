@@ -42,88 +42,102 @@ This mass detector is suitable for already centroided data. It simply assumes th
 <dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
 </dl>
 
+<p>
 <img src="Centroid_mass_detector_preview.jpg">
+</p>
 
 <h3>Exact mass detector</h3>
 
 <p>
-This mass detector first searches for all local maxima within the spectrum. These form candidate ions. 
-After that, exact mass is determined for each candidate ion, using the FWHM paradigm (Full Width at Half Maximum).
+This mass detector is suitable for high-resolution MS data, such as provided by FTMS instruments.
+It first searches for all local maxima within the spectrum. These form candidate ions. 
+After that, exact mass is determined for each candidate ion using the FWHM paradigm (Full Width at Half Maximum).
 First, the method locates the nearest data points to the peak center at half of the maximum intenstiy (P1, P2, P3, P4).
 With these four points it is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is considered as exact mass).
+</p>
 
+<p>
 <img src="Exact_mass_FWHM.jpg">
+</p>
 
 <h4>Method parameters</h4>
 <dl>
 <dt>Noise level</dt>
 <dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
 </dl>
+
+<p>
+<img src="ExactMassPreview.png">
+</p>re
 
 
 <h3>Local maxima mass detector</h3>
 
-This mass detector searches for all local maxima within the spectrum. 
-Each local maximum above the given noise level is considered a detected ion.
-
-<img src="Localmaxima_mass_detector_preview.jpg">
+<p>
+This mass detector represents a very simple method, which detects all local maxima within the spectrum, except those signals below the given noise level.
+The practical usability of this method on real MS data is limited, but it is useful to demonstrate and understand the functionality of mass detection using the preview plot.
+</p>
 
 <h4>Method parameters</h4>
+
 <dl>
 <dt>Noise level</dt>
 <dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
 </dl>
 
+<p>
+<img src="Localmaxima_mass_detector_preview.jpg">
+</p>
+
 <h3>Recursive threshold mass detector</h3>
 
 <p>
-This mass detector search for the local maximum data points in the current spectrum that cover the characteristics stipulated in its parameters.
-The method looks for local maximum in a group of data points and is executed in recursive way. 
-If this group has the right width (m/z difference between the first and last data point) and height (local maximum intensity) is consider as a mass spectrum peak. 
-The minimum length and intensity are defined by the parameters. 
-Each detected mass spectrum peak is defined by the group of data points where the local maximum was found, and the mass and intensity of the local maximum data point.
-
-This detector requires the next three parameters:
-
-"Noise level"
-This value sets the minimum intensity level that a data point must have to be consider part of a possible mass spectrum peak.
-
-"Min m/z peak width"
-This value is minimum acceptable m/z difference between the first and last data point (width). This parameter is used to determine when stop the recursive search and to discard too small mass spectrum peaks. 
-
-"Max m/z peak width"
-This value is maximum acceptable m/z difference between the first and last data point (width). This parameter is used to determine when stop the recursive search.
+This mass detector works in a recursive way. Initially, it looks at the whole range of data points. 
+If the m/z width of this range is not within given limits, a minimum data point is found and used to split the range in two parts.
+The same algorithm is then applied recursively on each part. 
+Recursion continues until all m/z ranges which fit into the given width limits are found.
+Final m/z values are determined as local maxima of the identified m/z ranges.
 </p>
+
+<h4>Method parameters</h4>
+
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+
+<dt>Min m/z peak width</dt>
+<dd>Minimum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search and discard peaks which are too small.</dd> 
+
+<dt>Max m/z peak width</dt>
+<dd>Maximum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search.</dd>
+</dl>
+
+<p>
+<img src="Recursive_mass_detector_preview.jpg">
+</p>
+
 
 <h3>Wavelet transform mass detector</h3>
 
 <p>
-This mass detector uses the Mexican Hat wavelet, that is a continuous wavelet transform
- (CMT). The search of mass spectrum peaks is executed in three steps. First converts the 
- original intensity of data points into wavelet domain. Next look for all local maximums 
- in the calculated wavelet. And finally sets a mass spectrum peak in the same point where
- the wavelet has a local maximum.  
-<br><br>
-The mass spectrum peak is formed with the selected data point (mass and intensity) using 
-the wavelet and all surrounding data points. These weightings determine the relative importance
- of each data point mass on the average. The data points used in the calculation of 
- exact mass are considered part of the mass spectrum peak. 
- <br><br>
+This mass detector uses the Mexican Hat wavelet model of the continuous wavelet transform CWT) algorithm. 
+The search of mass spectrum peaks is executed in three steps. 
+First converts the original intensity of data points into wavelet domain.
+Next look for all local maximums in the calculated wavelet. 
+And finally sets a mass spectrum peak in the same point wherethe wavelet has a local maximum.  
+The mass spectrum peak is formed with the selected data point (mass and intensity) using the wavelet and all surrounding data points. 
+These weightings determine the relative importance of each data point mass on the average. 
+The data points used in the calculation of exact mass are considered part of the mass spectrum peak. 
+
 This mass detector is recommended for raw data with low resolution. 
 </p>
 
 <h4>Mathematical model</h4>
 
 <p>
-In mathematics and numerical analysis, the Mexican hat wavelet is the normalized second derivative
- of a Gaussian function.
-</p>
-
-<img src="WaveletFormula.png">
-
-<p>
-The parameter t is the intensity of each data point in the curve,
- and sigma corresponds to the standard deviation.<br>
+In mathematics and numerical analysis, the Mexican hat wavelet is the normalized second derivative of a Gaussian function.<br>
+<img src="WaveletFormula.png"><br>
+The parameter <i>t</i> is the intensity of each data point in the curve, and <i>sigma</i> corresponds to the standard deviation.
 </p>
 
 <img src="Wavelet_Mex_Hat.png">
@@ -146,38 +160,37 @@ The limits where is evaluated the Mexican Hat wavelet are from -5 until 5 (ESL,E
  depends on the <i>"Scale level"</i> parameter.
 </p>
 
+<h4>Method parameters</h4>
 
-<p>
-This detector requires the next three parameters:<br><br>
-<i>"Noise level"</i><br>
-This value sets the minimum intensity level that a data point must
- have to be consider part of a possible peak.<br><br>
-<i>"Scale level"</i><br>
-This value is the scale factor that either dilates or compresses the wavelet signal. 
+<dl>
+<dt>Noise level</dt>
+<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
+
+<dt>Scale level</dt>
+<dd>This value is the scale factor that either dilates or compresses the wavelet signal. 
 When the scale factor is relatively low, the signal is more contracted which in turn 
 results in a more detailed resulting graph and as a consequence more noisy peaks are detected.
  On the other hand, when the scale factor is high, the signal is stretched out which means that
- the resulting graph will be presented in less detail resulting in a smoothed signal.<br><br>
-<i>"Wavelet window size(%)"</i><br>
-This value is the size of the window used to calculated the wavelet signal. 
+ the resulting graph will be presented in less detail resulting in a smoothed signal.</dd>
+ 
+<dt>Wavelet window size (%)</dt>
+<dd>This value is the size of the window used to calculated the wavelet signal. 
 When the size of the window is small makes more noisy peaks could be detected.
  On the other hand, when the size of the window is complete is possible to avoid the undesired
  peaks, depending on the raw data to process this parameter is manipulated by the user.<br><br>
  
- Wavelet window size at 10%
-	<img src="Wavelet_window_size10.jpg" border="2">
+Wavelet window size at 10%:<br>
+<img src="Wavelet_window_size10.jpg"><br>
 
-Wavelet window size at 100%
-<img src="Wavelet_window_size100.jpg"  border="2">
+Wavelet window size at 100%:<br>
+<img src="Wavelet_window_size100.jpg"><br>
+</dd>
 
-</p>
+</dl>
 
-
-<img src="Wavelet_mass_detector_set.jpg">
-
-Spectrum plot showing detected peaks<br><br>
+<p>
 <img src="Wavelet_mass_detector_preview.jpg">
-
+</p>
 
 <h2>Filtering</h2>
 
