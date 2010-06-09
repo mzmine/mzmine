@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.modules.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.util.PeakUtils;
 
 /**

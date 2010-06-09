@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.isotopes.isotopepatternscore;
+package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;

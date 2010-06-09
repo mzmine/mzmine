@@ -39,7 +39,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
