@@ -20,7 +20,6 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImporter" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinder" /> 
-    <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.correctedpeakfinder.PeakFinder" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRange" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouper" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator" /> 
