@@ -40,6 +40,8 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 class RawDataImporterDialog extends JDialog implements ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/RawDataImporter.html";
+	
 	private JFileChooser fileChooser;
 	private JButton commitButton, cancelButton;
 
@@ -97,8 +99,8 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 
 		cancelButton = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
 
-		JButton helpButton = new HelpButton(
-				"net/sf/mzmine/modules/io/rawdataimport/help/RawDataImporter.html");
+		JButton helpButton = new HelpButton(helpID
+				);
 		buttonsPanel.add(helpButton);
 
 		mainPanel.add(buttonsPanel, BorderLayout.SOUTH);

@@ -35,7 +35,7 @@ public class RawDataFilteringParameters implements StorableParameterSet {
 	// Raw Data Filters
 	public static final String rawDataFilterNames[] = {"Test"};
 	public static final String rawDataFilterClasses[] = {
-		"net.sf.mzmine.modules.rawdata.datasetfilters.rtcorrection.RTCorrectionFilter"};
+		"net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection.RTCorrectionFilter"};
 
 	// I have to create the help file for every filter...
 	public static final String rawDataFilterHelpFiles[] = {

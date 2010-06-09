@@ -2,17 +2,47 @@
 
 <configuration> 
   <modules> 
-    <module class="net.sf.mzmine.modules.io.rawdataimport.RawDataImporter"/> 
-    <module class="net.sf.mzmine.modules.io.projectload.ProjectLoader" /> 
-    <module class="net.sf.mzmine.modules.io.projectsave.ProjectSaver" /> 
-    <module class="net.sf.mzmine.modules.io.csvexport.CSVExporter" /> 
-    <module class="net.sf.mzmine.modules.io.xmlexport.XMLExporter" /> 
-    <module class="net.sf.mzmine.modules.io.xmlimport.XMLImporter" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.chromatogrambuilder.ChromatogramBuilder" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.deconvolution.Deconvolution" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.shapemodeler.ShapeModeler" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.msms.MsMsPeakPicker" />
-    <module class="net.sf.mzmine.modules.peakpicking.peakextender.PeakExtender" /> 
+    <module class="net.sf.mzmine.modules.batchmode.BatchMode" /> 
+
+    <module class="net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader" /> 
+    <module class="net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaver" /> 
+
+    <module class="net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImporter"/> 
+    <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.ChromatogramBuilder" /> 
+    <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker"/>  
+    <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPicker" />
+    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFiltering" /> 
+    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFiltering" /> 
+    
+    <module class="net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAligner" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAligner" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExporter" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImporter" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinder" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.correctedpeakfinder.PeakFinder" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRange" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouper" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.Deconvolution" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModeler" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtender" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilter" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilter" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizer" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizer" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizer" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzer" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlot" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.custom.CustomDBSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.complexsearch.ComplexSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.relatedpeaks.RelatedPeaksSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.peptidesearch.PeptideSearch" />
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearch" />      
+
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.twod.TwoDVisualizer" /> 
@@ -21,34 +51,9 @@
     <module class="net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"/>  
     <module class="net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer" /> 
-    <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer" />  
-    <module class="net.sf.mzmine.modules.batchmode.BatchMode" /> 
-    <module class="net.sf.mzmine.modules.rawdata.scanfilters.RawDataFiltering" /> 
-    <module class="net.sf.mzmine.modules.rawdata.datasetfilters.RawDataFiltering" /> 
-    <module class="net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker"/>  
-    <module class="net.sf.mzmine.modules.gapfilling.peakfinder.PeakFinder" /> 
-    <module class="net.sf.mzmine.modules.gapfilling.peakfinderRTcorrection.PeakFinder" /> 
-    <module class="net.sf.mzmine.modules.gapfilling.samerange.SameRange" /> 
-    <module class="net.sf.mzmine.modules.isotopes.deisotoper.IsotopeGrouper" /> 
-    <module class="net.sf.mzmine.modules.peaklist.duplicatefilter.DuplicateFilter" /> 
-    <module class="net.sf.mzmine.modules.peaklist.rowsfilter.RowsFilter" /> 
-    <module class="net.sf.mzmine.modules.alignment.join.JoinAligner" /> 
-    <module class="net.sf.mzmine.modules.alignment.ransac.RansacAligner" /> 
-    <module class="net.sf.mzmine.modules.normalization.rtnormalizer.RTNormalizer" /> 
-    <module class="net.sf.mzmine.modules.normalization.linear.LinearNormalizer" /> 
-    <module class="net.sf.mzmine.modules.normalization.standardcompound.StandardCompoundNormalizer" /> 
-    <module class="net.sf.mzmine.modules.dataanalysis.rtmzplots.RTMZAnalyzer" /> 
-    <module class="net.sf.mzmine.modules.dataanalysis.projectionplots.ProjectionPlot" /> 
+    <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot" /> 
-    <module class="net.sf.mzmine.modules.isotopes.isotopeprediction.IsotopePatternCalculator" /> 
-    <module class="net.sf.mzmine.modules.identification.custom.CustomDBSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.fragmentsearch.FragmentSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.adductsearch.AdductSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.complexsearch.ComplexSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.relatedpeaks.RelatedPeaksSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.dbsearch.OnlineDBSearch" /> 
-    <module class="net.sf.mzmine.modules.identification.peptidesearch.PeptideSearch" />
-    <module class="net.sf.mzmine.modules.identification.glycerophospholipidsearch.GPLipidSearch" />      
+
   </modules>  
   <preferences>
     <format type="m/z">

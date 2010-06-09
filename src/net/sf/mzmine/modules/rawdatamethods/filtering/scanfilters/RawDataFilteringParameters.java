@@ -35,16 +35,17 @@ public class RawDataFilteringParameters implements StorableParameterSet {
 	// Raw Data Filters
 	public static final String rawDataFilterNames[] = {"Savitzky-Golay filter", "Mean filter", "Crop filter", "m/z resample filter"};
 	public static final String rawDataFilterClasses[] = {
-		"net.sf.mzmine.modules.rawdata.scanfilters.savitzkygolay.SGFilter",
-		"net.sf.mzmine.modules.rawdata.scanfilters.mean.MeanFilter",
-		"net.sf.mzmine.modules.rawdata.scanfilters.cropper.CropFilter",
-		"net.sf.mzmine.modules.rawdata.scanfilters.resample.ResampleFilter"};
+		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay.SGFilter",
+		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean.MeanFilter",
+		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper.CropFilter",
+		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample.ResampleFilter"};
 	// I have to create the help file for every filter...
+	
 	public static final String rawDataFilterHelpFiles[] = {
-		"net/sf/mzmine/modules/rawdata/scanfilters/savitzkygolay/help/SGFilter.html",
-		"net/sf/mzmine/modules/rawdata/scanfilters/mean/help/MeanFilter.html",
-		"net/sf/mzmine/modules/rawdata/scanfilters/cropper/help/CropFilter.html",
-		"net/sf/mzmine/modules/rawdata/scanfilters/resample/help/ResampleFilter.html"};
+		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/savitzkygolay/help/SGFilter.html",
+		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/mean/help/MeanFilter.html",
+		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/cropper/help/CropFilter.html",
+		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/resample/help/ResampleFilter.html"};
 
 // All parameters
 	private SimpleParameterSet rawDataFilterParameters[],  myParameters;

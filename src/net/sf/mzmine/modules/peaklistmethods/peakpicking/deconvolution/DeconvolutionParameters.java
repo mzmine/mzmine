@@ -39,15 +39,15 @@ public class DeconvolutionParameters implements StorableParameterSet {
             "Local minimum search" };
 
     public static final String peakResolverClasses[] = {
-            "net.sf.mzmine.modules.peakpicking.deconvolution.baseline.BaselinePeakDetector",
-            "net.sf.mzmine.modules.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector",
-            "net.sf.mzmine.modules.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector",
-            "net.sf.mzmine.modules.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector" };
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector",
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector",
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector",
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector" };
 
     public static final String peakResolverHelpFiles[] = {
-            "net/sf/mzmine/modules/peakpicking/deconvolution/baseline/help/BaselinePeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/deconvolution/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
-            "net/sf/mzmine/modules/peakpicking/deconvolution/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
+            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/baseline/help/BaselinePeakDetector.html",
+            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
+            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
             "TODO" };
 
     // Three step parameters
@@ -61,12 +61,12 @@ public class DeconvolutionParameters implements StorableParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Suffix",
-            "This string is added to filename as suffix", "resolved");
+            "This string is added to filename as suffix", "deconvoluted");
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,
             "Remove original peak list",
-            "If checked, original peak list will be removed and only resolved version remains",
+            "If checked, original peak list will be removed and only deconvoluted version remains",
             new Boolean(false));
 
     public DeconvolutionParameters() {
