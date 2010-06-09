@@ -40,116 +40,124 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class AdductSearch implements BatchStep, ActionListener {
 
-    public static final String MODULE_NAME = "Adduct search";
-    private Desktop desktop;
-    private AdductSearchParameters parameters;
-    private final String helpID = "net/sf/mzmine/modules/identification/adductsearch/help/AdductSearch.html";
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	public static final String MODULE_NAME = "Adduct search";
+	private Desktop desktop;
+	private AdductSearchParameters parameters;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new AdductSearchParameters();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(
-                MZmineMenu.IDENTIFICATION,
-                MODULE_NAME,
-                "Identification of adduct peaks by mass difference and same retention time",
-                KeyEvent.VK_A, false, this, null);
+		parameters = new AdductSearchParameters();
 
-    }
+		desktop
+				.addMenuItem(
+						MZmineMenu.IDENTIFICATION,
+						MODULE_NAME,
+						"Identification of adduct peaks by mass difference and same retention time",
+						KeyEvent.VK_A, false, this, null);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (AdductSearchParameters) parameterValues;
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.batchmode.BatchStep#getBatchStepCategory()
-     */
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.IDENTIFICATION;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (AdductSearchParameters) parameterValues;
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet parameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters, helpID);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	/**
+	 * @see net.sf.mzmine.modules.batchmode.BatchStep#getBatchStepCategory()
+	 */
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.IDENTIFICATION;
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet parameters) {
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(SimpleParameterSet) parameters, helpID);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select a peak lists to process");
-            return;
-        }
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-        for (int i = 0; i < peakLists.length; i++) {
-            if (peakLists[i].getNumberOfRawDataFiles() > 1) {
-                desktop.displayErrorMessage("Adduct search can only be performed on peak lists which have a single column");
-                return;
-            }
-        }
+		if (peakLists.length == 0) {
+			desktop
+					.displayErrorMessage("Please select a peak lists to process");
+			return;
+		}
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK) {
-            return;
-        }
+		for (int i = 0; i < peakLists.length; i++) {
+			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
+				desktop
+						.displayErrorMessage("Adduct search can only be performed on peak lists which have a single column");
+				return;
+			}
+		}
 
-        runModule(null, peakLists, parameters.clone());
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK) {
+			return;
+		}
 
-    }
+		runModule(null, peakLists, parameters.clone());
 
-    /**
-     * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
-        if (peakLists == null) {
-            throw new IllegalArgumentException(
-                    "Cannot run identification without a peak list");
-        }
+	}
 
-        // prepare a new sequence of tasks
-        Task tasks[] = new AdductSearchTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new AdductSearchTask(
-                    (AdductSearchParameters) parameters, peakLists[i]);
-        }
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data
+	 *      .RawDataFile[], net.sf.mzmine.data.PeakList[],
+	 *      net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
+		if (peakLists == null) {
+			throw new IllegalArgumentException(
+					"Cannot run identification without a peak list");
+		}
 
-        MZmineCore.getTaskController().addTasks(tasks);
+		// prepare a new sequence of tasks
+		Task tasks[] = new AdductSearchTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new AdductSearchTask(
+					(AdductSearchParameters) parameters, peakLists[i]);
+		}
 
-        return tasks;
-    }
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    /**
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-        return MODULE_NAME;
-    }
+		return tasks;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return MODULE_NAME;
+	}
 }

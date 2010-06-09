@@ -40,6 +40,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class GPLipidSearch implements BatchStep, ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
+
 	public static final String MODULE_NAME = "Glycerophospholipid search";
 
 	private Desktop desktop;
@@ -87,7 +91,7 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) parameters);
+				(SimpleParameterSet) parameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

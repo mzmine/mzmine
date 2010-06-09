@@ -44,6 +44,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class IsotopeGrouper implements BatchStep, ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
+
 	private IsotopeGrouperParameters parameters;
 
 	private Desktop desktop;
@@ -110,7 +114,7 @@ public class IsotopeGrouper implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet currentParameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters);
+				(SimpleParameterSet) currentParameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

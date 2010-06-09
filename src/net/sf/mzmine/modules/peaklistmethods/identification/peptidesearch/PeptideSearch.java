@@ -38,105 +38,106 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeptideSearch implements BatchStep, ActionListener {
 
-	
-    public static final String MODULE_NAME = "Peptide search";
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
 
-    private Desktop desktop;
+	public static final String MODULE_NAME = "Peptide search (experimental)";
 
-    private PeptideSearchParameters parameters;
+	private Desktop desktop;
+
+	private PeptideSearchParameters parameters;
 
 	public void initModule() {
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new PeptideSearchParameters();
+		parameters = new PeptideSearchParameters();
 
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-                "Identification by protein identification result data file",
-                KeyEvent.VK_P, false, this, null);
+		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
+				"Identification by protein identification result data file",
+				KeyEvent.VK_P, false, this, null);
 	}
-	
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (PeptideSearchParameters) parameterValues;
-    }
-    
-    
-    
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (PeptideSearchParameters) parameterValues;
+	}
 
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select a peak list");
-            return;
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 
-        runModule(null, selectedPeakLists, parameters.clone());
+		if (selectedPeakLists.length < 1) {
+			desktop.displayErrorMessage("Please select a peak list");
+			return;
+		}
 
-    }
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+		runModule(null, selectedPeakLists, parameters.clone());
 
-        if (peakLists == null) {
-            throw new IllegalArgumentException(
-                    "Cannot run identification without a peak list");
-        }
+	}
 
-        // prepare a new sequence of tasks
-        Task tasks[] = new PeptideSearchTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new PeptideSearchTask(peakLists[i],
-                    (PeptideSearchParameters) parameters);
-        }
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        // execute the sequence
-        MZmineCore.getTaskController().addTasks(tasks);
+		if (peakLists == null) {
+			throw new IllegalArgumentException(
+					"Cannot run identification without a peak list");
+		}
 
-        return tasks;
+		// prepare a new sequence of tasks
+		Task tasks[] = new PeptideSearchTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new PeptideSearchTask(peakLists[i],
+					(PeptideSearchParameters) parameters);
+		}
 
-    }
+		// execute the sequence
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet parameters) {
+		return tasks;
 
-    	ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	}
 
-    public String toString() {
-        return MODULE_NAME;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet parameters) {
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.IDENTIFICATION;
-    }
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(SimpleParameterSet) parameters, helpID);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
+	public String toString() {
+		return MODULE_NAME;
+	}
+
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.IDENTIFICATION;
+	}
 
 }

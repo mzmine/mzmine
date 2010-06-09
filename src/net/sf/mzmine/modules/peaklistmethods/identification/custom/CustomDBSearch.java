@@ -41,106 +41,111 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class CustomDBSearch implements BatchStep, ActionListener {
 
-    public static final String MODULE_NAME = "Custom database search";
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
 
-    private Desktop desktop;
+	public static final String MODULE_NAME = "Custom database search";
 
-    private CustomDBSearchParameters parameters;
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	private CustomDBSearchParameters parameters;
 
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new CustomDBSearchParameters();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-                "Identification by searching a custom database in CSV file",
-                KeyEvent.VK_C, false, this, null);
-    }
+		parameters = new CustomDBSearchParameters();
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
+				"Identification by searching a custom database in CSV file",
+				KeyEvent.VK_C, false, this, null);
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (CustomDBSearchParameters) parameterValues;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameterValues) {
+		this.parameters = (CustomDBSearchParameters) parameterValues;
+	}
 
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        if (selectedPeakLists.length < 1) {
-            desktop.displayErrorMessage("Please select a peak list");
-            return;
-        }
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+		if (selectedPeakLists.length < 1) {
+			desktop.displayErrorMessage("Please select a peak list");
+			return;
+		}
 
-        runModule(null, selectedPeakLists, parameters.clone());
+		ExitCode exitCode = setupParameters(parameters);
+		if (exitCode != ExitCode.OK)
+			return;
 
-    }
+		runModule(null, selectedPeakLists, parameters.clone());
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+	}
 
-        if (peakLists == null) {
-            throw new IllegalArgumentException(
-                    "Cannot run identification without a peak list");
-        }
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        // prepare a new sequence of tasks
-        Task tasks[] = new CustomDBSearchTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new CustomDBSearchTask(peakLists[i],
-                    (CustomDBSearchParameters) parameters);
-        }
+		if (peakLists == null) {
+			throw new IllegalArgumentException(
+					"Cannot run identification without a peak list");
+		}
 
-        // execute the sequence
-        MZmineCore.getTaskController().addTasks(tasks);
+		// prepare a new sequence of tasks
+		Task tasks[] = new CustomDBSearchTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new CustomDBSearchTask(peakLists[i],
+					(CustomDBSearchParameters) parameters);
+		}
 
-        return tasks;
+		// execute the sequence
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    }
+		return tasks;
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet parameters) {
-        // CustomDBSearchDialog dialog = new CustomDBSearchDialog(
-        // (CustomDBSearchParameters) parameters);
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+	}
 
-    public String toString() {
-        return MODULE_NAME;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public ExitCode setupParameters(ParameterSet parameters) {
+		// CustomDBSearchDialog dialog = new CustomDBSearchDialog(
+		// (CustomDBSearchParameters) parameters);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(SimpleParameterSet) parameters, helpID);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.IDENTIFICATION;
-    }
+	public String toString() {
+		return MODULE_NAME;
+	}
+
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.IDENTIFICATION;
+	}
 
 }

@@ -37,14 +37,13 @@ import javax.swing.JTextField;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.components.HelpButton;
 
 public class PreferencesDialog extends JDialog implements ActionListener {
 
 	public static final int TEXTFIELD_COLUMNS = 3;
 
 	// Dialog controls
-	private JButton btnOK, btnCancel, btnHelp;
+	private JButton btnOK, btnCancel;
 	private JTextField manualNumberField;
 	private JRadioButton setAutoButton, setManuallyButton;
 	private JTextField proxyAddressField, proxyPortField;
@@ -88,13 +87,13 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 
 		// Proxy options 
 		JLabel proxyLabel = new JLabel("Internet connection settings");
-		proxyBox = new JCheckBox("Proxy connection");
+		proxyBox = new JCheckBox("Connection through proxy");
 		proxyBox.addActionListener(this);
 
 		JPanel proxyAddressPanel = new JPanel(new GridLayout(2, 2));
-		JLabel proxyAddressLabel = new JLabel("Proxy Address:");
+		JLabel proxyAddressLabel = new JLabel("Proxy address:");
 		proxyAddressField = new JTextField();
-		JLabel proxyPortLabel = new JLabel("Proxy Port:");
+		JLabel proxyPortLabel = new JLabel("Proxy port:");
 		proxyPortField = new JTextField();
 		proxyAddressPanel.add(proxyAddressLabel);
 		proxyAddressPanel.add(proxyAddressField);		
@@ -111,8 +110,6 @@ public class PreferencesDialog extends JDialog implements ActionListener {
 		JPanel pnlButtons = new JPanel();
 		btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
 		btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-		btnHelp = new HelpButton("net/sf/mzmine/util/help/Preferences.html");
-		pnlButtons.add(btnHelp);
 
 		// Put everything into a main panel
 		JPanel pnlAll = new JPanel(new BorderLayout());

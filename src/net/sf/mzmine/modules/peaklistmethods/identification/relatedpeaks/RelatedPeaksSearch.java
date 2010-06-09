@@ -40,6 +40,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class RelatedPeaksSearch implements BatchStep, ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
+
 	public static final String MODULE_NAME = "Related peaks search";
 
 	private Desktop desktop;
@@ -89,7 +93,7 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) parameters);
+				(SimpleParameterSet) parameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
@@ -124,8 +128,10 @@ public class RelatedPeaksSearch implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 * @see 
+	 *      net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data
+	 *      .RawDataFile[], net.sf.mzmine.data.PeakList[],
+	 *      net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,

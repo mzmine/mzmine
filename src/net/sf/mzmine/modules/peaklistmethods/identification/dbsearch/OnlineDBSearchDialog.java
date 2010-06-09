@@ -37,6 +37,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		ActionListener, PropertyChangeListener {
 
+	final static String helpID = OnlineDBSearch.class.getPackage().getName()
+			.replace('.', '/')
+			+ "/help/OnlineDBSearch.html";
+
 	private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
 	private double rawMassValue;
 	private JFormattedTextField chargeField;
@@ -50,7 +54,7 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 			PeakListRow row) {
 
 		// Make dialog modal
-		super("Online database search setup dialog ", parameters);
+		super("Online database search setup dialog ", parameters, helpID);
 
 		ionizationMethodCombo = (JComboBox) getComponentForParameter(OnlineDBSearchParameters.ionizationMethod);
 		ionizationMethodCombo.addActionListener(this);
@@ -71,11 +75,11 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 			peakMass.setValue(rawMassValue);
 			ChromatographicPeak peak = row.getBestPeak();
 			int rowCharge = peak.getCharge();
-	
+
 			// If the charge is unknown, assume charge 1
 			if (rowCharge == 0)
 				rowCharge = 1;
-			
+
 			chargeField.setValue(rowCharge);
 
 		}
