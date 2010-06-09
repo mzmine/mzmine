@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.projectload;
+package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -45,7 +45,7 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
-import net.sf.mzmine.modules.io.projectsave.PeakListElementName;
+import net.sf.mzmine.modules.projectmethods.projectsave.PeakListElementName;
 import net.sf.mzmine.util.Range;
 
 import org.xml.sax.Attributes;

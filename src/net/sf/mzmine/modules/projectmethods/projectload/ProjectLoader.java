@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.projectload;
+package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

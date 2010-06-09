@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.io.projectload;
+package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,7 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.io.projectsave.ProjectSavingTask;
+import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.Task;

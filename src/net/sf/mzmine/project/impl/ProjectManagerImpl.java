@@ -25,7 +25,7 @@ import java.util.Vector;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.modules.io.projectload.ProjectLoader;
+import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
