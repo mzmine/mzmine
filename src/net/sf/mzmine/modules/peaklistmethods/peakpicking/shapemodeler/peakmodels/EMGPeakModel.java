@@ -29,7 +29,7 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.modules.peaklistmethods.deconvolution.savitzkygolay.SGDerivative;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
