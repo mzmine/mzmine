@@ -68,9 +68,14 @@ public class PeakFinderParameters extends SimpleParameterSet {
             "Maximum allowed relative RT difference", "%", new Double(0.15),
             new Double(0.0), null, percentFormat);
 
+    public static final Parameter RTCorrection = new SimpleParameter(
+			ParameterType.BOOLEAN, "RT correction",
+			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.",
+			new Boolean(true));
+
     public PeakFinderParameters() {
         super(new Parameter[] { suffix, intTolerance, MZTolerance,
-                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent });
+                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent, RTCorrection });
     }
 
 }

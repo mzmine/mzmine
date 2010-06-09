@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.peaklistmethods.gapfilling.correctedpeakfinder;
+package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
 import java.util.ArrayList;
 import java.util.Collections;
