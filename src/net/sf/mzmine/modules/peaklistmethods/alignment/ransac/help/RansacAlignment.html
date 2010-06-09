@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>RANSAC peak list aligner</title>
+        <title>Alignment - RANSAC peak list aligner</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
     </head>
@@ -52,47 +52,46 @@
             parameters setup dialog.
         </p>
 
-        <h2>Alignment parameters</h2>
+        <h4>Method parameters</h4>
+        <dl>
+            <dt>Peak list name</dt>
+            <dd>This is the suffix to identify the new aligned peak list in Peak list frame of
+                desktop.</dd>
 
-        <p>This aligner requires the next parameters:</p>
+            <dt>m/z tolerance</dt>
+            <dd>This value sets the range, in terms of m/z, to verify for possible peak rows to be
+                aligned. Maximum allowed m/z difference.</dd>
 
-        <p><i>&quot;Peak list name&quot;</i> <br>
-            This is the suffix to identify the new aligned peak list in Peak list frame of
-            desktop.</p>
+            <dt>Retention time tolerance after correction</dt>
+            <dd>his value sets the range, in terms of retention time, to verify for possible peak rows to be aligned.
+                Maximum allowed retention time difference.</dd>
 
-        <p><i>&quot;m/z tolerance&quot;</i>
-            <br>This value sets the range, in terms of m/z, to verify for possible peak rows to be
-            aligned. Maximum allowed m/z difference.</p>
+            <dt>Retention time tolerance</dt>
+            <dd>This value sets the range, in terms of retention time, to
+                create the model using RANSAC and non-linear regression algorithm.
+                Maximum allowed retention time difference.</dd>
 
-        <p><i>&quot;Retention time tolerance after correction&quot;</i>
-            <br>his value sets the range, in terms of retention time, to verify for possible peak rows to be aligned.
-            Maximum allowed retention time difference.</p>
+            <dt>RANSAC Iterations</dt>
+            <dd>Maximum number of
+                iterations allowed in the algorithm to find the right model
+                consistent in all the pairs of aligned peaks. When its value is 0,
+                the number of iterations (k) will be estimate
+                automatically.</dd>
 
-        <p><i>&quot;Retention time tolerance&quot;</i>
-            <br>This value sets the range, in terms of retention time, to
-            create the model using RANSAC and non-linear regression algorithm.
-            Maximum allowed retention time difference.</p>
+            <dt>Minimum Number of Points</dt>
+            <dd>% of points required to consider the model valid (d).</dd>
 
-        <p><i>&quot;RANSAC Iterations&quot;</i>
-            <br>Maximum number of
-            iterations allowed in the algorithm to find the right model
-            consistent in all the pairs of aligned peaks. When its value is 0,
-            the number of iterations (k) will be estimate
-            automatically.</p>
+            <dt>Threshold value</dt>
+            <dd>Threshold value (seconds) for determining when a data point fits a model (t).</dd>
 
-        <p><i>&quot;Minimum Number of Points&quot;</i>
-            <br>% of points required to consider the model valid (d).</p>
+            <dt>Linear model</dt>
+            <dd>Sometimes the shift in the retention time between the peaks in the samples is
+                not constant making that the model shape is non linear in some
+                specific cases. This option should be selected only if the model has
+                to be linear.</dd>
+        </dl>
 
-        <p><i>&quot;Threshold value&quot;</i>
-            <br>Threshold value (seconds) for determining when a data point fits a model (t).</p>
-
-        <p><i>&quot;Linear model&quot;</i>
-            <br>Sometimes the shift in the retention time between the peaks in the samples is
-            not constant making that the model shape is non linear in some
-            specific cases. This option should be selected only if the model has
-            to be linear.</p>
-
-        <h2>Parameter setup dialog</h2>
+        <h4>Parameter setup dialog</h4>
 
         <p><img src="preview.png" name="graphics3" </p>
 
