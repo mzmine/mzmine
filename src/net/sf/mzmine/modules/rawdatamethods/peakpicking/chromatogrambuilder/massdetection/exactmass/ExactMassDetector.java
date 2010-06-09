@@ -238,10 +238,6 @@ public class ExactMassDetector implements MassDetector {
 		return exactMass;
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/exactmass/help/ExactMassDetector.html";
-	}
-
 	public String getName() {
 		return "Exact mass";
 	}

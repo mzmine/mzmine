@@ -46,8 +46,6 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 	private MassDetector massDetector;
 	private MassFilter massFilter;
 
-	
-
 	/**
 	 * @param parameters
 	 * @param massFilterTypeNumber
@@ -56,7 +54,7 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 			MassFilter massFilter) {
 
 		super(massFilter.getName() + "'s parameter setup dialog ", massFilter
-				.getParameters(), massFilter.getHelpFileLocation());
+				.getParameters(), null);
 
 		this.massFilter = massFilter;
 		this.massDetector = massDetector;
@@ -69,7 +67,7 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 	 * @param scanNumber
 	 */
 	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
-		
+
 		ScanDataSet scanDataSet = new ScanDataSet(previewScan);
 
 		MzPeak mzValues[] = massDetector.getMassValues(previewScan);
@@ -80,10 +78,10 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 		removedPeaks.removeAll(Arrays.asList(remainingMzValues));
 		MzPeak removedMzValues[] = removedPeaks.toArray(new MzPeak[0]);
 
-		MzPeaksDataSet removedPeaksDataSet = new MzPeaksDataSet("Removed peaks",
-				removedMzValues);
-		MzPeaksDataSet remainingPeaksDataSet = new MzPeaksDataSet("Remaining peaks",
-				remainingMzValues);
+		MzPeaksDataSet removedPeaksDataSet = new MzPeaksDataSet(
+				"Removed peaks", removedMzValues);
+		MzPeaksDataSet remainingPeaksDataSet = new MzPeaksDataSet(
+				"Remaining peaks", remainingMzValues);
 
 		spectrumPlot.removeAllDataSets();
 		spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor,
@@ -98,7 +96,7 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 		} else {
 			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
 		}
-		
+
 	}
 
 }

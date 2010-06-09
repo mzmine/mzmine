@@ -28,8 +28,6 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPe
 public interface MassFilter {
 
 	public String getName();
-
-	public String getHelpFileLocation();
 	
 	public SimpleParameterSet getParameters();
 

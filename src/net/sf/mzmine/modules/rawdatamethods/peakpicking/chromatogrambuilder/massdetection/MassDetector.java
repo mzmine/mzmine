@@ -30,8 +30,6 @@ public interface MassDetector {
 
 	public String getName();
 
-	public String getHelpFileLocation();
-
 	public SimpleParameterSet getParameters();
 	
 	/**

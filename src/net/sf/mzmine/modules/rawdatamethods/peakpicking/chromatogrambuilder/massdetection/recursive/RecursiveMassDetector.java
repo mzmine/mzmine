@@ -153,10 +153,6 @@ public class RecursiveMassDetector implements MassDetector {
 
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/recursive/help/RecursiveMassDetector.html";
-	}
-
 	public String getName() {
 		return "Recursive threshold";
 	}

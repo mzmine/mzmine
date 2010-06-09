@@ -219,10 +219,6 @@ public class WaveletMassDetector implements MassDetector {
 		return aproxIntensity;
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/wavelet/help/WaveletMassDetector.html";
-	}
-
 	public String getName() {
 		return "Wavelet transform";
 	}

@@ -109,13 +109,6 @@ public class Deconvolution implements BatchStep, ActionListener {
 		this.parameters = (DeconvolutionParameters) parameters;
 	}
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.AlignmentResult[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 		// check peak lists

@@ -44,12 +44,6 @@ public class DeconvolutionParameters implements StorableParameterSet {
             "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector",
             "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector" };
 
-    public static final String peakResolverHelpFiles[] = {
-            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/baseline/help/BaselinePeakDetector.html",
-            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/noiseamplitude/help/NoiseAmplitudePeakDetector.html",
-            "net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/savitzkygolay/help/SavitzkyGolayPeakDetector.html",
-            "TODO" };
-
     // Three step parameters
     private SimpleParameterSet peakResolverParameters[], myParameters;
 

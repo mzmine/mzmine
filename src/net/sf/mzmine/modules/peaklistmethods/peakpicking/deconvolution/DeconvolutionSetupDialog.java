@@ -45,6 +45,8 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 class DeconvolutionSetupDialog extends JDialog implements ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/Deconvolution.html";
+	
     private DeconvolutionParameters parameters;
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -130,8 +132,7 @@ class DeconvolutionSetupDialog extends JDialog implements ActionListener {
         btnOK.addActionListener(this);
         btnCancel = new JButton("Cancel");
         btnCancel.addActionListener(this);
-        btnHelp = new HelpButton(
-                "net/sf/mzmine/modules/peakpicking/peakrecognition/help/ThreeStepsDetector.html");
+        btnHelp = new HelpButton(helpID);
 
         JPanel pnlCombo = new JPanel();
         pnlCombo.setLayout(new GridBagLayout());

@@ -87,10 +87,6 @@ public class ShoulderPeaksFilter implements MassFilter {
 		return finalMZPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getHelpFileLocation() {
-		return "";
-	}
-
 	public String getName() {
 		return "FTML shoulder peaks filter";
 	}

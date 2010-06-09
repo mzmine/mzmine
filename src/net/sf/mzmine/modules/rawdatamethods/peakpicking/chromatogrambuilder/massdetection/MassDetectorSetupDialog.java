@@ -46,8 +46,7 @@ public class MassDetectorSetupDialog extends
 	public MassDetectorSetupDialog(MassDetector massDetector) {
 
 		super(massDetector.getName() + "'s parameter setup dialog ",
-				massDetector.getParameters(), massDetector
-						.getHelpFileLocation());
+				massDetector.getParameters(), null);
 
 		this.massDetector = massDetector;
 

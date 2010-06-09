@@ -28,8 +28,6 @@ public interface MassConnector {
 
 	public String getName();
 
-	public String getHelpFileLocation();
-	
 	public SimpleParameterSet getParameters();
 	
 	/**

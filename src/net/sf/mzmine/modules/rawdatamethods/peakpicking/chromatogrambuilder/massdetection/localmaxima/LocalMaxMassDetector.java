@@ -101,10 +101,6 @@ public class LocalMaxMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/localmaxima/help/LocalMaxMassDetector.html";
-	}
-
 	public String getName() {
 		return "Local maxima";
 	}

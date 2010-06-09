@@ -175,10 +175,6 @@ public class HighestDataPointConnector implements MassConnector {
 		return chromatograms;
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massconnection/highestdatapoint/help/HighestDatapointConnector.html";
-	}
-
 	public String getName() {
 		return "Highest data point";
 	}

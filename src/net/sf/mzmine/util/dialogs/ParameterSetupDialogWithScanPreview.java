@@ -257,7 +257,7 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
 
-		previewCheckBox = new JCheckBox(" Show preview of mass peak detection ");
+		previewCheckBox = new JCheckBox(" Show preview ");
 		previewCheckBox.addActionListener(this);
 		previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
@@ -278,43 +278,44 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 		JPanel pnlFlds = new JPanel();
 		pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
 		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-if (previewDataFile != null) {
-		comboDataFileName = new JComboBox(dataFiles);
-		comboDataFileName.setSelectedItem(previewDataFile);
-		comboDataFileName.addActionListener(this);
+		if (previewDataFile != null) {
+			comboDataFileName = new JComboBox(dataFiles);
+			comboDataFileName.setSelectedItem(previewDataFile);
+			comboDataFileName.addActionListener(this);
 
-//		int scanNumbers[] = previewDataFile.getScanNumbers(1);
-		int scanNumbers[] = previewDataFile.getScanNumbers(1);
-		Integer scanNumbersObj[] = CollectionUtils.toIntegerArray(scanNumbers);
+			int scanNumbers[] = previewDataFile.getScanNumbers(1);
+			Integer scanNumbersObj[] = CollectionUtils
+					.toIntegerArray(scanNumbers);
 
-		comboScanNumber = new JComboBox(scanNumbersObj);
-		comboScanNumber.setSelectedIndex(0);
-		comboScanNumber.addActionListener(this);
+			comboScanNumber = new JComboBox(scanNumbersObj);
+			comboScanNumber.setSelectedIndex(0);
+			comboScanNumber.addActionListener(this);
 
-		pnlFlds.add(comboDataFileName);
-		pnlFlds.add(Box.createVerticalStrut(10));
+			pnlFlds.add(comboDataFileName);
+			pnlFlds.add(Box.createVerticalStrut(10));
 
-		// --> Elements of pnlScanArrows
+			// --> Elements of pnlScanArrows
 
-		JPanel pnlScanArrows = new JPanel();
-		pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows, BoxLayout.X_AXIS));
+			JPanel pnlScanArrows = new JPanel();
+			pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows,
+					BoxLayout.X_AXIS));
 
-		prevScanBtn = GUIUtils.addButton(pnlScanArrows, leftArrow, null,
-				(ActionListener) this, "PREVIOUS_SCAN");
-		prevScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+			prevScanBtn = GUIUtils.addButton(pnlScanArrows, leftArrow, null,
+					(ActionListener) this, "PREVIOUS_SCAN");
+			prevScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
 
-		pnlScanArrows.add(Box.createHorizontalStrut(5));
-		pnlScanArrows.add(comboScanNumber);
-		pnlScanArrows.add(Box.createHorizontalStrut(5));
+			pnlScanArrows.add(Box.createHorizontalStrut(5));
+			pnlScanArrows.add(comboScanNumber);
+			pnlScanArrows.add(Box.createHorizontalStrut(5));
 
-		nextScanBtn = GUIUtils.addButton(pnlScanArrows, rightArrow, null,
-				(ActionListener) this, "NEXT_SCAN");
-		nextScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+			nextScanBtn = GUIUtils.addButton(pnlScanArrows, rightArrow, null,
+					(ActionListener) this, "NEXT_SCAN");
+			nextScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
 
-		// <--
+			// <--
 
-		pnlFlds.add(pnlScanArrows);
-}
+			pnlFlds.add(pnlScanArrows);
+		}
 		// Elements of pnlSpace
 		JPanel pnlSpace = new JPanel();
 		pnlSpace.setLayout(new BoxLayout(pnlSpace, BoxLayout.Y_AXIS));

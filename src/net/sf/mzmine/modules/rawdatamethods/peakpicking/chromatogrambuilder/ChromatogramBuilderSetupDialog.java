@@ -53,8 +53,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/ChromatogramBuilder.html";
-	
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/ChromatogramBuilder.html";
+
 	private ChromatogramBuilderParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
@@ -126,8 +128,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 				return;
 			ParameterSetupDialog dialog = new ParameterSetupDialog(connector
 					.getName()
-					+ "'s parameter setup dialog ", connector.getParameters(),
-					connector.getHelpFileLocation());
+					+ "'s parameter setup dialog ", connector.getParameters());
 
 			dialog.setVisible(true);
 		}
@@ -202,8 +203,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new HelpButton(
-				helpID);
+		btnHelp = new HelpButton(helpID);
 
 		JPanel pnlCombo = new JPanel();
 		pnlCombo.setLayout(new GridBagLayout());

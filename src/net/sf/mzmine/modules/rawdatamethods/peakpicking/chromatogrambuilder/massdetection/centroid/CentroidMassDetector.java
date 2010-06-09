@@ -57,10 +57,6 @@ public class CentroidMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getHelpFileLocation() {
-		return "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/massdetection/centroid/help/CentroidMassDetector.html";
-	}
-
 	public String getName() {
 		return "Centroid";
 	}
