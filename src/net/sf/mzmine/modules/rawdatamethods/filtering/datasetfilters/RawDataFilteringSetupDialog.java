@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import java.awt.BorderLayout;
@@ -46,6 +47,8 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  * 
  */
 class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
+	
+	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/DataSetFilters.html";
 
 	private RawDataFilteringParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
@@ -130,8 +133,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new HelpButton(
-				"net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+		btnHelp = new HelpButton(helpID);
 
 		// Elements of autoRemove checkBox
 		checkBoxAutoRemove = new JCheckBox();

@@ -48,6 +48,8 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/ScanFilters.html";
+	
 	private RawDataFilteringParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
@@ -132,8 +134,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		btnOK.addActionListener(this);
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnHelp = new HelpButton(
-				"net/sf/mzmine/modules/peakpicking/threestep/help/ThreeStepsDetector.html");
+		btnHelp = new HelpButton(helpID);
 
 		// Elements of autoRemove checkBox
 		checkBoxAutoRemove = new JCheckBox();

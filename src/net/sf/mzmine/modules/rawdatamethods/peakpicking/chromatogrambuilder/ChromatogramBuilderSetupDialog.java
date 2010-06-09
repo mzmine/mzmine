@@ -53,7 +53,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
-	static final String helpID = "net/sf/mzmine/modules/peakpicking/chromatogrambuilder/help/ChromatogramBuilder.html";
+	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/ChromatogramBuilder.html";
 	
 	private ChromatogramBuilderParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
