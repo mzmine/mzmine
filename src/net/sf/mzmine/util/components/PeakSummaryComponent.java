@@ -50,7 +50,7 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peakpicking.manual.ManualPeakPicker;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;

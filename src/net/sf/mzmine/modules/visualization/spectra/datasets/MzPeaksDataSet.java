@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import net.sf.mzmine.modules.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
