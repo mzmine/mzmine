@@ -1,0 +1,73 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+  <head>
+      <title>Join align peak list</title>
+  </head>
+<body>
+<h1 style="color: #0066CC; font-size: 35;">Join align peak list</h1>
+
+<h2 style="margin-left: 20px;">Method overview</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+The peak list generated from different raw data files can be aligned into one single peak list.
+ This single peak list helps to make a visual comparison of the probable same peak across different
+ samples (raw data files).<br><br>
+This method aligns detected peaks in different samples through a match score. This score is calculated
+based on the mass and retention time of each peak and ranges of tolerance stipulated in the parameters
+ setup dialog.
+</p>
+
+<h2 style="margin-left: 20px;">Parameters</h2>
+
+<p style="margin-left: 30px;" align="justify"; >
+This aligner requires the next three parameters:<br><br>
+<i>"Peak list name"</i><br>
+This is the suffix to identify the new aligned peak list in Peak list frame of desktop.<br><br>
+<i>"m/z tolerance"</i><br>
+This value sets the range, in terms of m/z, to verify for possible peak rows to be
+aligned. Maximum allowed m/z difference<br><br>
+<i>"Weight for m/z"</i><br>
+This is the assigned weight for m/z difference at the moment of match score calculation between peak rows.
+In case of perfectly matching m/z values the score receives the complete weight.<br><br>
+<i>"Retention time tolerance type"</i><br>
+Maximum RT difference can be defined either using absolute or relative value<br><br>
+<i>"Absolute RT tolerance"</i><br>
+Maximum allowed absolute RT difference<br><br>
+<i>"Relative RT tolerance"</i><br>
+Maximum allowed relative RT difference<br><br>
+<i>"Weight for RT"</i><br>
+This is the assigned weight for RT difference at the moment of match score calculation between peak rows.
+In case of perfectly matching RT values the score receives the complete weight.<br><br>
+<i>"Require same charge state"</i><br>
+If checked, only rows having same charge (taken from best MS/MS spectra) can be aligned<br><br>
+<i>"Require same ID"</i><br>
+If checked, only rows having same compound identities (or no identities) can be aligned.<br><br>
+<i>"Weight for ID"</i><br>
+This is the assigned weight for identical ID at the moment of match score calculation between peak rows.
+<br><br>
+
+ </p>
+
+<table style="margin-left: 30px; margin-right: auto;">
+
+<tr></tr>
+<tr></tr>
+<tr>
+	<td><br>Parameter setup dialog<br><br>
+	<img src="join_alignment_set.jpg">
+	</td>
+</tr>
+<tr></tr>
+<tr></tr>
+<tr>
+	<td><br>
+	New aligned peak list showing peaks from 3 different samples.<br><br>
+	<img src="join_alignment_preview.jpg">
+	</p>
+	</td>
+</tr>
+
+</table>
+
+</body>
+</html>
