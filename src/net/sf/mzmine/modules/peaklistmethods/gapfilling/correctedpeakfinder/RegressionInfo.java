@@ -20,9 +20,10 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.correctedpeakfinder;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import net.sf.mzmine.util.Range;
+
+import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RTs;
+
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
@@ -32,11 +33,9 @@ public class RegressionInfo {
 
     private List<RTs> data;
     private PolynomialFunction function;
-    private Range RTrange;
 
-    public RegressionInfo(Range RTrange) {
+    public RegressionInfo() {
         this.data = new ArrayList<RTs>();
-        this.RTrange = RTrange;
 
     }
 
@@ -70,27 +69,4 @@ public class RegressionInfo {
             }
     }
     
-    private class RTs implements Comparator {
-
-        double RT;
-        double RT2;
-        int map;
-
-        public RTs() {
-        }
-
-        public RTs(double RT, double RT2) {
-            this.RT = RT + 0.001 / Math.random();
-            this.RT2 = RT2 + 0.001 / Math.random();
-        }
-
-        public int compare(Object arg0, Object arg1) {
-            if (((RTs) arg0).RT < ((RTs) arg1).RT) {
-                return -1;
-            } else {
-                return 1;
-            }
-
-        }
-    }
 }

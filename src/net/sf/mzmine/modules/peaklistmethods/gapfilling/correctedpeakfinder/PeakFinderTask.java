@@ -126,7 +126,7 @@ class PeakFinderTask implements Task {
                     datafile1 = peakList.getRawDataFile(i);
                     datafile2 = peakList.getRawDataFile(masterSample);
                 }
-                RegressionInfo info = new RegressionInfo(peakList.getRowsRTRange());
+                RegressionInfo info = new RegressionInfo();
 
                 for (PeakListRow row : peakList.getRows()) {
                     ChromatographicPeak peaki = row.getPeak(datafile1);

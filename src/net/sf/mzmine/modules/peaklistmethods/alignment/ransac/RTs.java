@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.Comparator;
 
-class RTs implements Comparator<RTs> {
+public class RTs implements Comparator<RTs> {
 
-	double RT;
-	double RT2;
+	public double RT;
+	public double RT2;
 	int map;
 
 	public RTs() {

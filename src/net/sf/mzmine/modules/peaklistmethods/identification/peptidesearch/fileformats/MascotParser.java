@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.proteomics.ModificationPeptide;
 import net.sf.mzmine.data.proteomics.Peptide;
@@ -39,8 +38,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.peptidesearch.Peptid
 import net.sf.mzmine.util.MascotParserUtils;
 
 public class MascotParser implements PeptideFileParser {
-
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private BufferedReader bufferReader;
 	private int numOfQueries = -1;
@@ -210,7 +207,6 @@ public class MascotParser implements PeptideFileParser {
 	    double mass;
 	    double massExpected;
 	    double identityScore;
-	    double homologyScore;
 	    double significanceThreshold = pepDataFile.getSignificanceThreshold();
 	    int precursorCharge;
 	    int count = 1;
@@ -237,7 +233,7 @@ public class MascotParser implements PeptideFileParser {
 		identityScore = Double.parseDouble((String) value);
 
 		value = (String) section.get("qplughole"+String.valueOf(queryNumber));
-		homologyScore = Double.parseDouble((String) value);
+		// homologyScore = Double.parseDouble((String) value);
 
 		/*
 		 * Calculates the identity score threshold value.
