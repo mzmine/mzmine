@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.dataanalysis.rtmzplots;
+package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots;
 
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -32,7 +32,7 @@ import net.sf.mzmine.util.MathUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
+public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
@@ -43,7 +43,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 	
 	private String datasetTitle;
 	
-	public CVDataset(PeakList alignedPeakList, RawDataFile[] selectedFiles, SimpleParameterSet parameters) {
+	public LogratioDataset(PeakList alignedPeakList, RawDataFile[] groupOneSelectedFiles, RawDataFile[] groupTwoSelectedFiles, SimpleParameterSet parameters) {
 		int numOfRows = alignedPeakList.getNumberOfRows();
 		
 		boolean useArea = true;
@@ -51,50 +51,65 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 			useArea = false;
 			
 		// Generate title for the dataset
-		datasetTitle = "Correlation of variation analysis";
+		datasetTitle = "Logratio analysis";
 		datasetTitle = datasetTitle.concat(" (");
 		if (useArea) 
-			datasetTitle = datasetTitle.concat("CV of peak areas");
+			datasetTitle = datasetTitle.concat("Logratio of average peak areas");
 		else
-			datasetTitle = datasetTitle.concat("CV of peak heights");
-		datasetTitle = datasetTitle.concat(" in " + selectedFiles.length + " files");
+			datasetTitle = datasetTitle.concat("Logratio of average peak heights");
+		datasetTitle = datasetTitle.concat(" in " + groupOneSelectedFiles.length + " vs. " + groupTwoSelectedFiles.length + " files");
 		datasetTitle = datasetTitle.concat(")");
-		
 		logger.finest("Computing: " + datasetTitle);
 
-		// Loop through rows of aligned peak list
 		Vector<Double> xCoordsV = new Vector<Double>();
 		Vector<Double> yCoordsV = new Vector<Double>();
 		Vector<Double> colorCoordsV = new Vector<Double>();
 		Vector<PeakListRow> peakListRowsV = new Vector<PeakListRow>();
-
+		
 		for (int rowIndex=0; rowIndex<numOfRows; rowIndex++) {
 			
 			PeakListRow row = alignedPeakList.getRow(rowIndex);
 			
 			// Collect available peak intensities for selected files
-			Vector<Double> peakIntensities = new Vector<Double>(); 
-			for (int fileIndex=0; fileIndex<selectedFiles.length; fileIndex++) {
-				ChromatographicPeak p = row.getPeak(selectedFiles[fileIndex]);
+			Vector<Double> groupOnePeakIntensities = new Vector<Double>(); 
+			for (int fileIndex=0; fileIndex<groupOneSelectedFiles.length; fileIndex++) {
+				ChromatographicPeak p = row.getPeak(groupOneSelectedFiles[fileIndex]);
 				if (p!=null) {
 					if (useArea)
-						peakIntensities.add(p.getArea());
+						groupOnePeakIntensities.add(p.getArea());
 					else 
-						peakIntensities.add(p.getHeight());
+						groupOnePeakIntensities.add(p.getHeight());
+				}
+			}
+			Vector<Double> groupTwoPeakIntensities = new Vector<Double>(); 
+			for (int fileIndex=0; fileIndex<groupTwoSelectedFiles.length; fileIndex++) {
+				ChromatographicPeak p = row.getPeak(groupTwoSelectedFiles[fileIndex]);
+				if (p!=null) {
+					if (useArea)
+						groupTwoPeakIntensities.add(p.getArea());
+					else 
+						groupTwoPeakIntensities.add(p.getHeight());
 				}
 			}
 			
-			// If there are at least two measurements available for this peak then calc CV and include this peak in the plot
-			if (peakIntensities.size()>1) {
-				double[] ints = CollectionUtils.toDoubleArray(peakIntensities);
-				Double cv = MathUtils.calcCV(ints);
+			// If there are at least one measurement from each group for this peak then calc logratio and include this peak in the plot
+			if ( (groupOnePeakIntensities.size()>0) && 
+					(groupTwoPeakIntensities.size()>0) ) {
+				
+				double[] groupOneInts = CollectionUtils.toDoubleArray(groupOnePeakIntensities);
+				double groupOneAvg = MathUtils.calcAvg(groupOneInts);
+				double[] groupTwoInts = CollectionUtils.toDoubleArray(groupTwoPeakIntensities);
+				double groupTwoAvg = MathUtils.calcAvg(groupTwoInts);
+				double logratio = Double.NaN;
+				if (groupTwoAvg!=0.0)
+					logratio = (double) (Math.log(groupOneAvg/groupTwoAvg) / Math.log(2.0)); 
 				
 				Double rt = row.getAverageRT();
 				Double mz = row.getAverageMZ();
 				
 				xCoordsV.add(rt);
 				yCoordsV.add(mz);
-				colorCoordsV.add(cv);
+				colorCoordsV.add(logratio);
 				peakListRowsV.add(row);
 				
 			} 
@@ -111,7 +126,7 @@ public class CVDataset extends AbstractXYZDataset implements RTMZDataset {
 	
 	public String toString() {
 		return datasetTitle;
-	}
+	}	
 	
 	@Override
 	public int getSeriesCount() {

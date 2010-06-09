@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.dataanalysis.rtmzplots;
+package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots;
 
 import java.awt.Color;
 import java.awt.event.ActionEvent;

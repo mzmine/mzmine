@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.dataanalysis.projectionplots;
+package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.util.Vector;
 import java.util.logging.Logger;
