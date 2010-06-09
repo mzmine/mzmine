@@ -29,7 +29,7 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.main.MZminePreferences;
-import net.sf.mzmine.modules.io.xmlimport.XMLImporter;
+import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImporter;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 
