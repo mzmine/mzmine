@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.peakextender;
+package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
 import java.util.Arrays;
 import java.util.logging.Logger;

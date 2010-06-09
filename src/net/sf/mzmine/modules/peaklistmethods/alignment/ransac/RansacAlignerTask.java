@@ -20,13 +20,13 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -39,6 +39,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
+
 import org.apache.commons.math.ArgumentOutsideDomainException;
 import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
@@ -354,52 +355,6 @@ class RansacAlignerTask implements Task {
 		} catch (Exception ex) {
 			return null;
 		}
-	}
-
-	private class RTs implements Comparator {
-
-		double RT;
-		double RT2;
-		int map;
-
-		public RTs() {
-		}
-
-		public RTs(double RT, double RT2) {
-			this.RT = RT + 0.001 / Math.random();
-			this.RT2 = RT2 + 0.001 / Math.random();
-		}
-
-		public int compare(Object arg0, Object arg1) {
-			if (((RTs) arg0).RT < ((RTs) arg1).RT) {
-				return -1;
-			} else {
-				return 1;
-			}
-
-		}
-	}
-
-	private List<RTs> smooth(List<RTs> list) {
-		Collections.sort(list, new RTs());
-		for (int i = 0; i < list.size() - 1; i++) {
-			RTs point1 = list.get(i);
-			RTs point2 = list.get(i + 1);
-			if (point1.RT < point2.RT - 5) {
-				SimpleRegression regression = new SimpleRegression();
-				regression.addData(point1.RT, point1.RT2);
-				regression.addData(point2.RT, point2.RT2);
-				double rt = point1.RT + 1;
-				while (rt < point2.RT) {
-					RTs newPoint = new RTs(rt, regression.predict(rt));
-					list.add(newPoint);
-					rt++;
-				}
-
-			}
-		}
-
-		return list;
 	}
 
      private List<RTs> smooth(List<RTs> list, Range RTrange) {

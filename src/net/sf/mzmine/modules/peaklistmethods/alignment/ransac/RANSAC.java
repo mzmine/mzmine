@@ -24,11 +24,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.util.Range;
-import org.apache.commons.math.optimization.OptimizationException;
-import org.apache.commons.math.stat.regression.SimpleRegression;
+
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
+import org.apache.commons.math.stat.regression.SimpleRegression;
 
 public class RANSAC {
 

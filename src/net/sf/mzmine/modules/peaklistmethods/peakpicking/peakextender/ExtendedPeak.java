@@ -1,4 +1,4 @@
-package net.sf.mzmine.modules.peaklistmethods.peakextender;
+package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
 import java.util.Arrays;
 import java.util.Hashtable;

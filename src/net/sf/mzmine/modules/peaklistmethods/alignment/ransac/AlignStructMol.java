@@ -19,10 +19,11 @@
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.Comparator;
+
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 
-public class AlignStructMol implements Comparator {
+public class AlignStructMol implements Comparator<AlignStructMol> {
 
     public PeakListRow row1,  row2;
     public double RT,  RT2;
@@ -57,8 +58,8 @@ public class AlignStructMol implements Comparator {
 
     }
 
-    public int compare(Object arg0, Object arg1) {
-        if (((AlignStructMol) arg0).RT < ((AlignStructMol) arg1).RT) {
+    public int compare(AlignStructMol arg0, AlignStructMol arg1) {
+        if (arg0.RT < arg1.RT) {
             return -1;
         } else {
             return 1;

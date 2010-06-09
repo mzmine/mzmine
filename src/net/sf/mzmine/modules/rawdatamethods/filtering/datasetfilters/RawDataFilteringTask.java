@@ -19,7 +19,6 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import java.lang.reflect.Constructor;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
@@ -34,14 +33,9 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  */
 class RawDataFilteringTask implements Task {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private RawDataFile[] dataFiles,  filteredRawDataFile;
+	private RawDataFile[] dataFiles;
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-
-	// scan counter
-	private int processedScans = 0,  totalScans;
-	private int[] scanNumbers;
 
 	// User parameters
 	private String suffix;

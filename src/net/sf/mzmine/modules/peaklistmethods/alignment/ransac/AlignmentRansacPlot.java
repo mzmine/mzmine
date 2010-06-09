@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BasicStroke;
@@ -26,10 +27,11 @@ import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Vector;
+
 import net.sf.mzmine.main.MZmineCore;
+
 import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math.stat.regression.SimpleRegression;
@@ -239,30 +241,6 @@ public class AlignmentRansacPlot extends ChartPanel {
         }
 
         return list;
-    }
-
-    private class RTs implements Comparator {
-
-        double RT;
-        double RT2;
-        int map;
-
-        public RTs() {
-        }
-
-        public RTs(double RT, double RT2) {
-            this.RT = RT + 0.001 / Math.random();
-            this.RT2 = RT2 + 0.001 / Math.random();
-        }
-
-        public int compare(Object arg0, Object arg1) {
-            if (((RTs) arg0).RT < ((RTs) arg1).RT) {
-                return -1;
-            } else {
-                return 1;
-            }
-
-        }
     }
 
     public void printAlignmentChart(String axisTitleX, String axisTitleY) {

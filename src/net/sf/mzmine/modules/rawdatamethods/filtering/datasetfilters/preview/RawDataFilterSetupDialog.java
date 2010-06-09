@@ -20,16 +20,11 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview;
 
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilteringParameters;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinderRTcorrection;
+package net.sf.mzmine.modules.peaklistmethods.gapfilling.correctedpeakfinder;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
