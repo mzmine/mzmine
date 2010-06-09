@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.chromatmedian;
+package net.sf.mzmine.modules.rawdatamethods.filtering.chromatmedian;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
