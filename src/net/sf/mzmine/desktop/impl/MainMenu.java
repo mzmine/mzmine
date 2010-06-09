@@ -47,7 +47,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
 			helpMenu, rawDataFilteringMenu, peakDetectionMenu, gapFillingMenu,
-			isotopesMenu, peakListFilteringMenu, alignmentMenu,
+			isotopesMenu, peakListPeakPickingMenu, peakListFilteringMenu, alignmentMenu,
 			normalizationMenu, identificationMenu, dataAnalysisMenu,
 			peakListExportMenu;
 
@@ -123,6 +123,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		peakListMenu.setMnemonic(KeyEvent.VK_P);
 		this.add(peakListMenu);
 
+		peakListPeakPickingMenu= new JMenu("Peak detection");
+		peakListPeakPickingMenu.setMnemonic(KeyEvent.VK_P);
+		peakListMenu.add(peakListPeakPickingMenu);
+		
 		gapFillingMenu = new JMenu("Gap filling");
 		gapFillingMenu.setMnemonic(KeyEvent.VK_G);
 		peakListMenu.add(gapFillingMenu);
@@ -204,6 +208,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 			break;
 		case PEAKPICKING:
 			peakDetectionMenu.add(newItem);
+			break;
+		case PEAKLISTPICKING:
+			peakListPeakPickingMenu.add(newItem);
 			break;
 		case GAPFILLING:
 			gapFillingMenu.add(newItem);
