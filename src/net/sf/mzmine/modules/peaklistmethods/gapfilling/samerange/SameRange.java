@@ -32,6 +32,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -40,6 +41,8 @@ public class SameRange implements BatchStep, ActionListener {
     private SameRangeParameters parameters;
 
     private Desktop desktop;
+
+    final String helpID = GUIUtils.generateHelpID(this);
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -87,7 +90,7 @@ public class SameRange implements BatchStep, ActionListener {
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SameRangeParameters) currentParameters);
+                (SameRangeParameters) currentParameters, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

@@ -12,7 +12,8 @@
 <h2>Description</h2>
 
 <p>
-
+This module deletes all rows in a selected peak list that do not meet the requirements defined by the user. These requeriments can be
+the minimum number of peaks inside the row, the minimum number of peaks in a isotope partern or a m/z vs retention time window.
 </p>
 
 <h4>Method parameters</h4>
@@ -21,35 +22,30 @@
 <dd>This is the suffix to identify the new aligned peak list in Peak list frame of desktop.</dd>
 
 <dt>Minimum peaks in a row</dt>
-<dd></dd>
+<dd>Minimum number of peaks in a row required to not remove it.</dd>
 
 <dt>Minimum peaks in an isotope pattern</dt>
-<dd></dd>
+<dd>Minimun number of peaks in an isotope pattern required to not remove the row.</dd>
 
 <dt>Minimum m/z</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>Minimum average m/z value in a row required to not remove it.</dd>
 
 <dt>Maximum m/z</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>Maximum average m/z value in a row required to not remove it.</dd>
 
 <dt>Minimum retention time</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>Minimum average retention time value in a row required to not remove it.</dd>
 
 <dt>Maximum retention time</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>Maximum average retention time value in a row required to not remove it.</dd>
 
 <dt>Only identified?</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>If the checkbox is selected only indentified rows will be filtered.</dd>
 
 <dt>Remove source peak list after fitering</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dd>It the checkbox is selected the source peak list will be remove and the filtered version remains.</dd>
 
 </dl>
-
-<h4>Parameter setup dialog</h4>
-<p>
-    <img src="rowsFilterParameters.png" name="parameters">
-</p>
 
 </body>
 </html>
