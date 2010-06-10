@@ -30,7 +30,8 @@ public enum DataFileColumnType {
     RT("Ret.time", Double.class),
     DURATION("Duration", Double.class),
     HEIGHT("Height", Double.class),
-    AREA("Area", Double.class);
+    AREA("Area", Double.class),
+    CHARGE("Charge", Integer.class);
 
     private final String columnName;
     private final Class columnClass;

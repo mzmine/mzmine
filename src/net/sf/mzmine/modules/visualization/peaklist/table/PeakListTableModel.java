@@ -121,7 +121,9 @@ public class PeakListTableModel extends AbstractTableModel {
                 return new Double(peak.getArea());
             case DURATION:
                 return new Double(peak.getRawDataPointsRTRange().getSize());
-
+            case CHARGE:
+            	if (peak.getCharge() <= 0) return null;
+                return new Integer(peak.getCharge());
             }
 
         }

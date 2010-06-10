@@ -40,14 +40,12 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 class RawDataImporterDialog extends JDialog implements ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/RawDataImporter.html";
-	
 	private JFileChooser fileChooser;
 	private JButton commitButton, cancelButton;
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
-	RawDataImporterDialog(File lastPath) {
+	RawDataImporterDialog(File lastPath, String helpID) {
 
 		super(MZmineCore.getDesktop().getMainFrame());
 

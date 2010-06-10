@@ -40,6 +40,7 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadT
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.XcaliburRawFileReadTask;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -47,6 +48,10 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class RawDataImporter implements MZmineModule, ActionListener, BatchStep {
 
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Raw data import";
+	
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private RawDataImporterParameters parameters;
@@ -62,7 +67,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
 		parameters = new RawDataImporterParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATA, "Import raw data files",
+		desktop.addMenuItem(MZmineMenu.RAWDATA, MODULE_NAME,
 				"This module imports raw data files into the project",
 				KeyEvent.VK_I, true, this, null);
 
@@ -86,7 +91,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Raw data import";
+		return MODULE_NAME;
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -165,7 +170,7 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 		if (path != null)
 			lastPath = new File(path);
 
-		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath);
+		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath, helpID);
 		dialog.setVisible(true);
 		ExitCode exitCode = dialog.getExitCode();
 

@@ -32,8 +32,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 			"Suffix to be added to peak list name", null, "deisotoped", null);
 
 	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "M/Z tolerance",
-			"Maximum distance in M/Z from the expected location of a peak",
+			ParameterType.DOUBLE, "m/z tolerance",
+			"Maximum distance in m/z from the expected location of a peak",
 			"m/z", new Double(0.05), new Double(0.0), null, MZmineCore
 					.getMZFormat());
 
@@ -50,7 +50,7 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 			new Boolean(true));
 
 	public static final Parameter maximumCharge = new SimpleParameter(
-			ParameterType.INTEGER, "Maximum charge", "Maximum charge", "",
+			ParameterType.INTEGER, "Maximum charge", "Maximum charge to consider for detecting the isotope patterns", "",
 			new Integer(1), new Integer(1), null);
 
 	public static final Parameter autoRemove = new SimpleParameter(

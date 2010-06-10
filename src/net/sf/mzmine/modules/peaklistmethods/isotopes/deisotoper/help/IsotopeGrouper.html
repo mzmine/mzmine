@@ -1,24 +1,39 @@
 <html>
 	<head>
-		<title>Isotope grouper</title>
+		<title>Isotopes - Isotopic peaks grouper</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
     </head>
 
 <body>
 
-<h1>Isotope grouper</h1>
+<h1>Isotopic peaks grouper</h1>
 
 <h2>Description</h2>
 
 <p>
-
+This module attepts to find those peaks in a peak list, which form an isotope pattern, and removes
 </p>
 
 <h4>Method parameters</h4>
 <dl>
-<dt>Parameter name</dt>
-<dd>Parameter description Parameter description Parameter description Parameter description</dd>
+<dt>Name suffix</dt>
+<dd>Suffix to be added to peak list name</dd>
+
+<dt>m/z tolerance</dt>
+<dd>Maximum distance in m/z from the expected location of a peak</dd>
+
+<dt>RT tolerance</dt>
+<dd>Maximum distance in RT from the expected location of a peak</dd>
+
+<dt>Monotonic shape</dt>
+<dd>If true, then monotonically decreasing height of isotope pattern is required</dd>
+
+<dt>Maximum charge</dt>
+<dd>Maximum charge to consider for detecting the isotope patterns</dd>
+
+<dt>Remove original peaklist</dt>
+<dd>If checked, original peaklist will be removed and only deisotoped version remains</dd>
 </dl>
 
 </body>

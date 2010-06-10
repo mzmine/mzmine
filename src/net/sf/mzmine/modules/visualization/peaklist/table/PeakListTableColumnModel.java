@@ -165,6 +165,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
                 case AREA:
                     newColumn.setCellRenderer(intensityRenderer);
                     break;
+                default:
+                	newColumn.setCellRenderer(defaultRenderer);
+                    break;
                 }
 
                 allColumns[modelIndex] = newColumn;

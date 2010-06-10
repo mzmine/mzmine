@@ -46,7 +46,9 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class IsotopeGrouper implements BatchStep, ActionListener {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-
+	
+	public static final String MODULE_NAME = "Isotopic peaks grouper";
+	
 	private IsotopeGrouperParameters parameters;
 
 	private Desktop desktop;
@@ -60,7 +62,7 @@ public class IsotopeGrouper implements BatchStep, ActionListener {
 
 		parameters = new IsotopeGrouperParameters();
 
-		desktop.addMenuItem(MZmineMenu.ISOTOPES, "Isotopic peaks grouper",
+		desktop.addMenuItem(MZmineMenu.ISOTOPES, MODULE_NAME,
 				"Grouping of isotopic peaks into one representative peak",
 				KeyEvent.VK_I, false, this, null);
 
@@ -104,7 +106,7 @@ public class IsotopeGrouper implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Isotopic peaks grouper";
+		return MODULE_NAME;
 	}
 
 	/**
