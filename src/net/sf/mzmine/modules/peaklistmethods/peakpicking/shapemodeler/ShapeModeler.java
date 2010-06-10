@@ -31,13 +31,12 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ShapeModeler implements MZmineModule, ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.',
-			'/')
-			+ "/help/" + this.getClass().getName() + ".html";
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	public static final String MODULE_NAME = "Peak shape modeler (experimental)";
 

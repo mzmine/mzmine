@@ -45,8 +45,6 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 class DeconvolutionSetupDialog extends JDialog implements ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/Deconvolution.html";
-	
     private DeconvolutionParameters parameters;
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -57,14 +55,14 @@ class DeconvolutionSetupDialog extends JDialog implements ActionListener {
     private JTextField txtField;
 
     public DeconvolutionSetupDialog(String title,
-            DeconvolutionParameters parameters) {
+            DeconvolutionParameters parameters, String helpID) {
 
         super(MZmineCore.getDesktop().getMainFrame(),
                 "Please select peak resolver", true);
 
         this.parameters = parameters;
 
-        addComponentsToDialog();
+        addComponentsToDialog(helpID);
         setResizable(false);
     }
 
@@ -106,7 +104,7 @@ class DeconvolutionSetupDialog extends JDialog implements ActionListener {
      * This function add all components for this dialog
      * 
      */
-    private void addComponentsToDialog() {
+    private void addComponentsToDialog(String helpID) {
 
         // Elements of suffix
         txtField = new JTextField();

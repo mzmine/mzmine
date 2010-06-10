@@ -33,14 +33,13 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeptideSearch implements BatchStep, ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.',
-			'/')
-			+ "/help/" + this.getClass().getName() + ".html";
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	public static final String MODULE_NAME = "Peptide search (experimental)";
 

@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -44,9 +45,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class IsotopeGrouper implements BatchStep, ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.',
-			'/')
-			+ "/help/" + this.getClass().getName() + ".html";
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	private IsotopeGrouperParameters parameters;
 
