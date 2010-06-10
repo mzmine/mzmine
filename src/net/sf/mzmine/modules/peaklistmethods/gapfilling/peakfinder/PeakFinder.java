@@ -32,6 +32,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -42,7 +43,7 @@ public class PeakFinder implements BatchStep, ActionListener {
 
     private Desktop desktop;
 
-    private final String helpID = "net/sf/mzmine/modules/gapfilling/peakfinder/help/PeakFinder.html";
+    private final String helpID = GUIUtils.generateHelpID(this);
 
 
     /**

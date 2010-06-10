@@ -31,6 +31,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -41,7 +42,7 @@ public class RansacAligner implements BatchStep, ActionListener {
 
 	private RansacAlignerParameters parameters;
 	private Desktop desktop;
-	private final String helpID = "net/sf/mzmine/modules/alignment/ransac/help/RansacAlignment.html";
+	private final String helpID = GUIUtils.generateHelpID(this);
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)

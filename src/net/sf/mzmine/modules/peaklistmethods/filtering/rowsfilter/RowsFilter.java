@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -43,6 +44,7 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class RowsFilter implements BatchStep, ActionListener {
 
+    final String helpID = GUIUtils.generateHelpID(this);
 
     private RowsFilterParameters parameters;
 
@@ -84,7 +86,7 @@ public class RowsFilter implements BatchStep, ActionListener {
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please check parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
+                (SimpleParameterSet) currentParameters, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }
