@@ -32,10 +32,13 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ChromatogramBuilder implements BatchStep, ActionListener {
 
+	final String helpID = GUIUtils.generateHelpID(this);
+	
 	private ChromatogramBuilderParameters parameters;
 
 	private Desktop desktop;
@@ -89,7 +92,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameters) {
 		ChromatogramBuilderSetupDialog dialog = new ChromatogramBuilderSetupDialog(
 				"Please set parameter values for " + toString(),
-				(ChromatogramBuilderParameters) parameters);
+				(ChromatogramBuilderParameters) parameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

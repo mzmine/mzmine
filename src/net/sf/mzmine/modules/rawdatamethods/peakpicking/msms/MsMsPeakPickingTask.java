@@ -53,7 +53,7 @@ public class MsMsPeakPickingTask implements Task {
 		this.dataFile = dataFile;
 		binSize = (Double) parameters
 				.getParameterValue(MsMsPeakPickerParameters.mzRange);
-		newPeakList = new SimplePeakList(dataFile.getName(), dataFile);
+		newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks", dataFile);
 	}
 
 	public RawDataFile getDataFile() {

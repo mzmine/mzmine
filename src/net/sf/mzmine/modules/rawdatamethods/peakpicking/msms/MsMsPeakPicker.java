@@ -33,10 +33,15 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class MsMsPeakPicker implements BatchStep, ActionListener {
+
+	final String helpID = GUIUtils.generateHelpID(this);
+
+	public static final String MODULE_NAME = "MS/MS peaklist builder";
 
 	private Desktop desktop;
 	private MsMsPeakPickerParameters parameters;
@@ -49,7 +54,7 @@ public class MsMsPeakPicker implements BatchStep, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 		parameters = new MsMsPeakPickerParameters();
 
-		desktop.addMenuItem(MZmineMenu.PEAKPICKING, "MS/MS peaklist builder",
+		desktop.addMenuItem(MZmineMenu.PEAKPICKING, MODULE_NAME,
 				"Building peaklist based on MS/MS results", KeyEvent.VK_M,
 				false, this, null);
 
@@ -77,7 +82,7 @@ public class MsMsPeakPicker implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "MS/MS Peaklist builder";
+		return MODULE_NAME;
 	}
 
 	/**
@@ -130,7 +135,7 @@ public class MsMsPeakPicker implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet currentParameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters);
+				(SimpleParameterSet) currentParameters, helpID);
 
 		dialog.setVisible(true);
 

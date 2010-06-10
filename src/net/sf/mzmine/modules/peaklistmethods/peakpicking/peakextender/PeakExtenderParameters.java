@@ -29,12 +29,12 @@ public class PeakExtenderParameters extends SimpleParameterSet {
 
 	public static final Parameter suffix = new SimpleParameter(
 			ParameterType.STRING, "Name suffix",
-			"Suffix to be added to peak list name", null, "extended_peaks", null);
+			"Suffix to be added to peak list name", null, "extended", null);
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"m/z tolerance",
-			"Maximum allowed distance in M/Z between data points in successive spectrums",
+			"Maximum allowed distance in M/Z between data points in successive scans",
 			"m/z", new Double(0.1), new Double(0.0), new Double(1.0),
 			MZmineCore.getMZFormat());
 

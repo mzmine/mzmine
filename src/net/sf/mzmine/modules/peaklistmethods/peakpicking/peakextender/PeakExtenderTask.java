@@ -45,39 +45,38 @@ import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class PeakExtenderTask implements Task {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
 
 	private PeakList peakList, extendedPeakList;
-	
+
 	// peaks counter
 	private int processedPeaks, totalPeaks;
 
-	//Parameters
+	// Parameters
 	private double mzTolerance;
 	private double minimumHeight;
 	private String suffix;
 	private boolean removeOriginal;
-		
-	
+
 	private PeakExtenderParameters parameters;
 
 	public PeakExtenderTask(PeakList peakList, PeakExtenderParameters parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
-		
+
 		suffix = (String) parameters
-		.getParameterValue(PeakExtenderParameters.suffix);
+				.getParameterValue(PeakExtenderParameters.suffix);
 		mzTolerance = (Double) parameters
-		.getParameterValue(PeakExtenderParameters.mzTolerance);
+				.getParameterValue(PeakExtenderParameters.mzTolerance);
 		minimumHeight = (Double) parameters
-		.getParameterValue(PeakExtenderParameters.minimumHeight);
+				.getParameterValue(PeakExtenderParameters.minimumHeight);
 		removeOriginal = (Boolean) parameters
-		.getParameterValue(PeakExtenderParameters.autoRemove);
+				.getParameterValue(PeakExtenderParameters.autoRemove);
 	}
 
 	/**
@@ -92,7 +91,7 @@ public class PeakExtenderTask implements Task {
 	 */
 	public double getFinishedPercentage() {
 		if (totalPeaks == 0)
-			return 0.0f;
+			return 0.0;
 		return (double) processedPeaks / (double) totalPeaks;
 	}
 
@@ -129,8 +128,8 @@ public class PeakExtenderTask implements Task {
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
 		// Create a new deisotoped peakList
-		extendedPeakList = new SimplePeakList(peakList + " " + suffix,
-				peakList.getRawDataFiles());
+		extendedPeakList = new SimplePeakList(peakList + " " + suffix, peakList
+				.getRawDataFiles());
 
 		// Sort peaks by descending height
 		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
@@ -140,7 +139,7 @@ public class PeakExtenderTask implements Task {
 		// Loop through all peaks
 		totalPeaks = sortedPeaks.length;
 		ChromatographicPeak oldPeak;
-		
+
 		for (int ind = 0; ind < totalPeaks; ind++) {
 
 			if (status == TaskStatus.CANCELED)
@@ -148,9 +147,9 @@ public class PeakExtenderTask implements Task {
 
 			oldPeak = sortedPeaks[ind];
 
-			if (oldPeak.getHeight() >= minimumHeight){
-				ChromatographicPeak newPeak =  this.getExtendedPeak(oldPeak);
-				//Get previous pekaListRow
+			if (oldPeak.getHeight() >= minimumHeight) {
+				ChromatographicPeak newPeak = this.getExtendedPeak(oldPeak);
+				// Get previous pekaListRow
 				PeakListRow oldRow = peakList.getPeakRow(oldPeak);
 
 				// keep old ID
@@ -178,7 +177,7 @@ public class PeakExtenderTask implements Task {
 		// Add task description to peakList
 		extendedPeakList
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-						"Peak extended", parameters));
+						"Peak extender", parameters));
 
 		// Remove the original peakList if requested
 		if (removeOriginal)
@@ -189,8 +188,6 @@ public class PeakExtenderTask implements Task {
 
 	}
 
-
-
 	private ChromatographicPeak getExtendedPeak(ChromatographicPeak oldPeak) {
 
 		double maxHeight = oldPeak.getHeight();
@@ -198,29 +195,28 @@ public class PeakExtenderTask implements Task {
 		RawDataFile rawFile = oldPeak.getDataFile();
 		ExtendedPeak newPeak = new ExtendedPeak(rawFile);
 		int totalScanNumber = rawFile.getNumOfScans();
-		Range mzRange = new Range(oldPeak.getMZ() - (mzTolerance / 2.0f), 
-				oldPeak.getMZ()	+ (mzTolerance / 2.0f));
+		Range mzRange = new Range(oldPeak.getMZ() - mzTolerance,
+				oldPeak.getMZ() + mzTolerance);
 		Scan scan;
 		DataPoint dataPoint;
-		
-		
-		//Look for dataPoint related to this peak to the left
+
+		// Look for dataPoint related to this peak to the left
 		int scanNumber = originScanNumber;
 		scanNumber--;
-		while (scanNumber > 0){
+		while (scanNumber > 0) {
 
 			scan = rawFile.getScan(scanNumber);
 
-			if (scan == null){
+			if (scan == null) {
 				scanNumber--;
 				continue;
 			}
 
-			if (scan.getMSLevel() != 1){
+			if (scan.getMSLevel() != 1) {
 				scanNumber--;
 				continue;
 			}
-			
+
 			dataPoint = ScanUtils.findBasePeak(scan, mzRange);
 
 			if (dataPoint == null)
@@ -231,33 +227,34 @@ public class PeakExtenderTask implements Task {
 			newPeak.addMzPeak(scanNumber, new MzPeak(dataPoint));
 			if (dataPoint.getIntensity() > maxHeight)
 				maxHeight = dataPoint.getIntensity();
-			
+
 			scanNumber--;
-			
+
 		}
 
-		//Add original dataPoint
-		newPeak.addMzPeak(originScanNumber, new MzPeak(oldPeak.getDataPoint(originScanNumber)));
-		
-		//Look to the right
+		// Add original dataPoint
+		newPeak.addMzPeak(originScanNumber, new MzPeak(oldPeak
+				.getDataPoint(originScanNumber)));
+
+		// Look to the right
 		scanNumber = originScanNumber;
 		scanNumber++;
-		while (scanNumber <= totalScanNumber){
-			
+		while (scanNumber <= totalScanNumber) {
+
 			scan = rawFile.getScan(scanNumber);
-			
-			if (scan == null){
+
+			if (scan == null) {
 				scanNumber++;
 				continue;
 			}
-			
-			if (scan.getMSLevel() != 1){
+
+			if (scan.getMSLevel() != 1) {
 				scanNumber++;
 				continue;
 			}
-			
+
 			dataPoint = ScanUtils.findBasePeak(scan, mzRange);
-			
+
 			if (dataPoint == null)
 				break;
 			if (dataPoint.getIntensity() < minimumHeight)
@@ -266,24 +263,24 @@ public class PeakExtenderTask implements Task {
 			newPeak.addMzPeak(scanNumber, new MzPeak(dataPoint));
 			if (dataPoint.getIntensity() > maxHeight)
 				maxHeight = dataPoint.getIntensity();
-			
+
 			scanNumber++;
-			
+
 		}
 
 		newPeak.finishExtendedPeak();
-		
+
 		int[] scanNumbers = newPeak.getScanNumbers();
-		logger.info("Extended peak original "+originScanNumber+" from "+scanNumbers[0]+" - "+
-				scanNumbers[scanNumbers.length-1]+" height " + maxHeight);
-		
+		logger.finest("Extended peak original " + originScanNumber + " from "
+				+ scanNumbers[0] + " - " + scanNumbers[scanNumbers.length - 1]
+				+ " height " + maxHeight);
+
 		return newPeak;
-		
+
 	}
 
 	public Object[] getCreatedObjects() {
 		return new Object[] { extendedPeakList };
 	}
-
 
 }

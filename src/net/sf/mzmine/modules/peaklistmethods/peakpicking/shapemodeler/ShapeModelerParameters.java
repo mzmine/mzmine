@@ -28,24 +28,24 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 public class ShapeModelerParameters extends SimpleParameterSet {
 
-    public static final String shapeModelerNames[] = { "Triangle",
-            "Gaussian", "EMG"};
+	public static final String shapeModelerNames[] = { "Triangle", "Gaussian",
+			"EMG" };
 
-    public static final String shapeModelerClasses[] = {
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.TrianglePeakModel",
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.GaussianPeakModel",
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.EMGPeakModel" };
+	public static final String shapeModelerClasses[] = {
+			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.TrianglePeakModel",
+			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.GaussianPeakModel",
+			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.EMGPeakModel" };
 
-    public static final Parameter shapeModelerType = new SimpleParameter(
-            ParameterType.STRING,
-            "Shape model",
-            "This value defines the type of shape model",
-            null, shapeModelerNames);
+	public static final Parameter shapeModelerType = new SimpleParameter(
+			ParameterType.STRING, "Shape model",
+			"This value defines the type of shape model", null,
+			shapeModelerNames);
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Suffix",
-            "This string is added to filename as suffix", (Object) "shaped peaks");
-    
+	public static final Parameter suffix = new SimpleParameter(
+			ParameterType.STRING, "Suffix",
+			"This string is added to filename as suffix",
+			(Object) "shaped peaks");
+
 	public static final Parameter massResolution = new SimpleParameter(
 			ParameterType.INTEGER,
 			"Mass resolution",
@@ -54,15 +54,15 @@ public class ShapeModelerParameters extends SimpleParameterSet {
 			null, new Integer(60000), new Integer(0), null, NumberFormat
 					.getIntegerInstance());
 
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peak list",
-            "If checked, original peak list will be removed and only resolved version remains",
-            new Boolean(false));
-    
-    public ShapeModelerParameters() {
-        super(new Parameter[] { suffix, autoRemove, massResolution,
-        		shapeModelerType });
-    }
+	public static final Parameter autoRemove = new SimpleParameter(
+			ParameterType.BOOLEAN,
+			"Remove original peak list",
+			"If checked, original peak list will be removed and only resolved version remains",
+			new Boolean(false));
+
+	public ShapeModelerParameters() {
+		super(new Parameter[] { suffix, massResolution, shapeModelerType,
+				autoRemove });
+	}
 
 }

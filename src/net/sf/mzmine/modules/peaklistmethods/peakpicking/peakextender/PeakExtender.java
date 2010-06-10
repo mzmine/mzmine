@@ -33,14 +33,19 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeakExtender implements BatchStep, ActionListener {
 	
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Peak extender";
+	
 	private Desktop desktop;
 	private PeakExtenderParameters parameters;
-
+		
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
@@ -49,7 +54,7 @@ public class PeakExtender implements BatchStep, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 		parameters = new PeakExtenderParameters();
 
-		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, "Peak extender",
+		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, MODULE_NAME,
 				"Extends detected peaks over their chromatogram", KeyEvent.VK_P,
 				false, this, null);
 
@@ -77,7 +82,7 @@ public class PeakExtender implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Peak extender";
+		return MODULE_NAME;
 	}
 
 	/**
@@ -130,7 +135,7 @@ public class PeakExtender implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet currentParameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters);
+				(SimpleParameterSet) currentParameters, helpID);
 
 		dialog.setVisible(true);
 

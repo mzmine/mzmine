@@ -53,10 +53,6 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
-	final String helpID = this.getClass().getPackage().getName().replace('.',
-			'/')
-			+ "/help/ChromatogramBuilder.html";
-
 	private ChromatogramBuilderParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
@@ -73,7 +69,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 	private MassConnector massConnectors[];
 
 	public ChromatogramBuilderSetupDialog(String title,
-			ChromatogramBuilderParameters parameters) {
+			ChromatogramBuilderParameters parameters, String helpID) {
 
 		super(MZmineCore.getDesktop().getMainFrame(),
 				"Please select mass detector & connector", true);
@@ -85,7 +81,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 		this.massFilters = parameters.getMassFilters();
 		this.massConnectors = parameters.getMassConnectors();
 
-		addComponentsToDialog();
+		addComponentsToDialog(helpID);
 		this.setResizable(false);
 	}
 
@@ -159,7 +155,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 	 * This function add all components for this dialog
 	 * 
 	 */
-	private void addComponentsToDialog() {
+	private void addComponentsToDialog(String helpID) {
 
 		// Elements of suffix
 		txtField = new JTextField();
