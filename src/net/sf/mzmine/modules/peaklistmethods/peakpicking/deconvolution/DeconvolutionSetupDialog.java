@@ -143,7 +143,7 @@ class DeconvolutionSetupDialog extends JDialog implements ActionListener {
         c.insets = new Insets(5, 5, 5, 5);
         c.gridx = 0;
         c.gridy = 0;
-        pnlCombo.add(new JLabel("Filename suffix"), c);
+        pnlCombo.add(new JLabel("Suffix"), c);
         c.gridwidth = 4;
         c.gridx = 1;
         pnlCombo.add(txtField, c);

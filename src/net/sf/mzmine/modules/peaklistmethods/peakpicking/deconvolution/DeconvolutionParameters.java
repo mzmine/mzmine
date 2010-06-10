@@ -55,7 +55,7 @@ public class DeconvolutionParameters implements StorableParameterSet {
 
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Suffix",
-            "This string is added to filename as suffix", "deconvoluted");
+            "This string is added to peak list name as suffix", "deconvoluted");
 
     public static final Parameter autoRemove = new SimpleParameter(
             ParameterType.BOOLEAN,

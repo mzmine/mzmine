@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Chromatogram deconvolution</title>
+		<title>Peak detection - Deconvolution</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
     </head>
@@ -12,206 +12,130 @@
 <h2>Description</h2>
 
 <p>
-The third step is executed after all chromatograms are finilized, this means all spectrums have been processed 
-by Mass detector and representative mass data points have been collected into chromatograms. The process of peak 
-recognition relies on chromatogram's shape, for this reason is possible to use different approaches. Each one of the
-next methods try to identify some regions of the chromatogram as a peak and despite the rest as a noise or 
-background signal<br><br><i>Peak recognizers</i><br><br>
+Following the detection of chromatograms by the Chromatogram builder, chromatograms have to be deconvoluted into individual peaks.
+The Deconvolution module provides several algorithms for this purpose.
+</p>
 
-Baseline cut-off peak recognition</h1>
+<h4>Method parameters</h4>
+<dl>
+<dt>Suffix</dt>
+<dd>This string is added to the end of the name of each processed peak list</dd>
 
-<h2 style="margin-left: 20px;">Chromatogram analysis</h2>
+<dt>Peak recognition</dt>
+<dd>Selection of algorithm for peak recognition (see below)</dd>
 
-<p style="margin-left: 30px;" align="justify"; >
+<dt>Remove original peak list</dt>
+<dd>If selected, the original chromatogram is automatically removed and only deconvoluted version will remain</dd>
+</dl>
+
+
+<h2>Peak recognition algorithms</h2>
+
+
+<h3>Baseline cut-off</h3>
+
+<p>
 This peak recognizer set a baseline to cut-off any point below of the analyzed chromatogram.
 After that it recognizes as a chormatographic peak any region (group of mass spectrum peaks together)
 that has the minimum characteristics (duration, intensity).
 </p>
 
-<h2 style="margin-left: 20px;">Parameters</h2>
+<h4>Method parameters</h4>
 
-<p style="margin-left: 30px;" align="justify"; >
-This recognizer uses a three parameters:<br><br>
-<i>"Min peak height"</i><br><br>
-This value sets the minimum acceptable height (intensity) for a chromatographic peak. 
-<br><br> 
-<i>"Min peak duration"</i><br><br>
-This value sets the minimum acceptable length (time duration) for a chromatographic peak. 
-<br><br> 
-<i>"Baseline level"</i><br><br>
-This value sets the minimum acceptable height (intensity) for a mass spectrum peak to be 
-considered part of a chromatographic peak.
-<br><br> 
+<dl>
+<dt>Min peak height</dt>
+<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dt>Min peak duration</dt>
+<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dt>Baseline level</dt>
+<dd>This value sets the minimum acceptable height (intensity) for a mass spectrum peak to be 
+considered part of a chromatographic peak</dd>
+</dl>
+
+<p>
+<img src="baseline_recognizer_preview.jpg">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
+<h3>Noise amplitude</h3>
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>Parameter setup dialog<br><br>
-	<img src="baseline_recognizer_set.jpg">
-	</td>
-</tr>
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	Chromatogram plot showing detected peaks<br><br>
-	<img src="baseline_recognizer_preview.jpg">
-	</p>
-	</td>
-</tr>
-
-</table>
-
-<li><a href="../peakconstruction/chromatographicthreshold/help/ChromatographicThresholdPeakDetector.html">Chromatographic threshold</a></li>
-
-Noise amplitude peak recognition</h1>
-
-<h2 style="margin-left: 20px;">Chromatogram analysis</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 This peak recognizer sets the level to use as a baseline using the 
 amplitude of noise (in terms of intensity) of the signal. An algorithm calculates the baseline
 level following the next steps:<br><br>
 1.- Calculate the number of bins or regions in which the current chromatogram can be divided in terms
 of intensity. The amplitude of these bins is according with the noise amplitude of the signal.<br>
 2.- Get the bin with biggest number of points (mass spectrum peaks) that fall inside.<br>
-3.- Set the baseline level equal to intensity of the bin with major number of points.<br><br>
+3.- Set the baseline level equal to intensity of the bin with major number of points.<br>
 This method follows the concept of mode.
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="noiseAnalysis1.jpg" border="2">
-	</td>
-	<td><br>
-	<img src="noiseAnalysis2.jpg" border="2">
-	</p>
-	</td>
-</tr>
-
-</table>
-
-<h2 style="margin-left: 20px;">Parameters</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
-This recognizer uses a three parameters:<br><br>
-<i>"Min peak height"</i><br><br>
-This value sets the minimum acceptable height (intensity) for a chromatographic peak. 
-<br><br> 
-<i>"Min peak duration"</i><br><br>
-This value sets the minimum acceptable length (time duration) for a chromatographic peak. 
-<br><br> 
-<i>"Amplitude of noise"</i><br><br>
-This value is the amplitude of the signal in a flat region(in terms of intensity). 
-<br><br> 
+<p>
+<img src="noiseAnalysis1.jpg" border="2">
+<img src="noiseAnalysis2.jpg" border="2">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>Parameter setup dialog<br><br>
-	<img src="noise_recognizer_set.jpg">
-	</td>
-</tr>
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	Chromatogram plot showing detected peaks<br><br>
-	<img src="noise_recognizer_preview.jpg">
-	</p>
-	</td>
-</tr>
+<h4>Method parameters</h4>
 
-</table>
+<dl>
+<dt>Min peak height</dt>
+<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dt>Min peak duration</dt>
+<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dt>Amplitude of noise</dt>
+<dd>This value is the amplitude of the signal in a flat region(in terms of intensity).</dd> 
+</dl>
+
+<p>
+<img src="noise_recognizer_preview.jpg">
+</p>
 
 
+<h3>Savitzky-Golay</h3>
 
-
-<li><a href="../peakconstruction/standarddeviation/help/StandardDeviationPeakDetector.html">Standard deviation</a></li>
-
-Savitzky Golay peak recognition</h1>
-
-<h2 style="margin-left: 20px;">Chromatogram analysis</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
+<p>
 This peak recognizer uses the Savitzky-Golay polynomial (A. Savitzky and M. J. E. Golay, Anal. Chem.,
  36, 1627 (1964)) to get the second smoothed derivative of the chromatogram intensities. The next 
  figure (left) presents the shape of a Gaussian peak (a), the first derivative (b), and the second 
- derivative (c). The figure at right side shows how is divided the signal into possible chromatographic peaks. <br><br>
+ derivative (c). The figure at right side shows how is divided the signal into possible chromatographic peaks.
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
-
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	<img src="1nd2ndDerivative.jpg" border="2">
-	</td>
-	<td>
-	<img src="1nd2ndDerivative2.jpg" border="2">
-	</td>
-</tr>
-
-</table>
-
-<h2 style="margin-left: 20px;">Parameters</h2>
-
-<p style="margin-left: 30px;" align="justify"; >
-This recognizer uses a two parameters:<br><br>
-<i>"Min peak height"</i><br><br>
-This value sets the minimum acceptable height (intensity) for a chromatographic peak. 
-<br><br> 
-<i>"Min peak duration"</i><br><br>
-This value sets the minimum acceptable length (time duration) for a chromatographic peak. 
-<br><br> 
-
+<p>
+<img src="1nd2ndDerivative.jpg">
+<img src="1nd2ndDerivative2.jpg">
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>Parameter setup dialog<br><br>
-	<img src="savitzky_recognizer_set.jpg">
-	</td>
-</tr>
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>
-	Chromatogram plot showing detected peaks<br><br>
-	<img src="savitzky_recognizer_preview.jpg">
-	</p>
-	</td>
-</tr>
 
-</table>
+<h4>Method parameters</h4>
 
-<li><a href="../peakconstruction/wavelet/help/WaveletPeakDetector.html">Wavelet transform</a></li>
+<dl>
+<dt>Min peak height</dt>
+<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dt>Min peak duration</dt>
+<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+</dl>
+
+<img src="savitzky_recognizer_preview.jpg">
+
+<h3>Local minimum search</h3>
+
+<p>
+This peak recognizer 
 </p>
 
-<table style="margin-left: 30px; margin-right: auto;">
 
-<tr></tr>
-<tr></tr>
-<tr>
-	<td>Parameter setup dialog<br><br>
-	<img src="Threesteps_set.jpg">
-	</td>
-</tr>
-</table>
+<h4>Method parameters</h4>
+
+<dl>
+<dt>Min peak height</dt>
+<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dt>Min peak duration</dt>
+<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+</dl>
+
+<img src="local_minimum_preview.png">
+
 
 </body>
 </html>
