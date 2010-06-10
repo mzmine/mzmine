@@ -47,8 +47,8 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 
 		parameters = new RawDataFilteringParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Raw Data Filtering",
-				"Raw Data Filtering",
+		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Data set filtering",
+				"Filters applied to whole data sets",
 				KeyEvent.VK_R, true, this, null);
 	}
 
