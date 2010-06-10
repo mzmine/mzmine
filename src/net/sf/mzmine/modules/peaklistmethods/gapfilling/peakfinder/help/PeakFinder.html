@@ -23,7 +23,7 @@
         <p>
             This algorithm fills the gaps in the peak list when it is possible according with the parameters
             defined by the user.
-            The most crutial parameters are "m/z tolerance" and "RT tolerance" which define the window where
+            The most crucial parameters are "m/z tolerance" and "RT tolerance" which define the window where
             the algorithm should find the new peak. It is centered in the m/z average and retention time average of
             the source peak list. Once the best candidate is found inside the window, its intensity and its shape in RT direction is also
             checked.
@@ -37,7 +37,7 @@
         <h2>RT correction</h2>
         <p>
             When the RT correction is applied, the algorithm is divided in two main steps. In the first step,
-            one random sample is taken from the multiple peak list an is used as a master list. All the gaps of this master list are filled using all the others samples.
+            one random sample is taken from the multiple peak list and is used as a master list. All the gaps of this master list are filled using all the others samples.
             For each pair of samples the algorithm creates a model of the retention time.
             In the second step the master list is used to fill the gaps of the rest of the samples,
             creating also a retention time model for each pair (as is is showed in the figure below).
