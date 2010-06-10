@@ -35,6 +35,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
@@ -59,6 +60,8 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
     private Desktop desktop;
 
     private SimpleParameterSet parameters;
+
+    final String helpID = GUIUtils.generateHelpID(this);
 
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
@@ -117,12 +120,12 @@ public class RTMZAnalyzer implements MZmineModule, ActionListener {
             if (command.equals("CV_PLOT"))
                 setupDialog = new RTMZSetupDialog(desktop,
                         pl.getRawDataFiles(), parameters,
-                        RTMZSetupDialog.SelectionMode.SingleGroup);
+                        RTMZSetupDialog.SelectionMode.SingleGroup, helpID);
 
             if (command.equals("LOGRATIO_PLOT"))
                 setupDialog = new RTMZSetupDialog(desktop,
                         pl.getRawDataFiles(), parameters,
-                        RTMZSetupDialog.SelectionMode.TwoGroups);
+                        RTMZSetupDialog.SelectionMode.TwoGroups, helpID);
 
             setupDialog.setVisible(true);
 
