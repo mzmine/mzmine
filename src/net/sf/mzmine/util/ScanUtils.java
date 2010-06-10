@@ -372,6 +372,10 @@ public class ScanUtils {
 	public static int findBestFragmentScan(RawDataFile dataFile, Range rtRange,
 			Range mzRange) {
 
+		assert dataFile != null;
+		assert rtRange != null;
+		assert mzRange != null;
+		
 		int bestFragmentScan = -1;
 		double topBasePeak = 0;
 

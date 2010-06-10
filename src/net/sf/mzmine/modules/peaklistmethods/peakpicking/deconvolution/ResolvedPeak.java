@@ -73,6 +73,8 @@ public class ResolvedPeak implements ChromatographicPeak {
 	public ResolvedPeak(ChromatographicPeak chromatogram, int regionStart,
 			int regionEnd) {
 
+		assert regionEnd > regionStart;
+		
 		this.dataFile = chromatogram.getDataFile();
 
 		// Make an array of scan numbers of this peak

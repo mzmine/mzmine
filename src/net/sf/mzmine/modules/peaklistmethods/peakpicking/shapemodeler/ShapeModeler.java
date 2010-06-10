@@ -35,55 +35,67 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ShapeModeler implements MZmineModule, ActionListener {
 
+	final String helpID = this.getClass().getPackage().getName().replace('.',
+			'/')
+			+ "/help/" + this.getClass().getName() + ".html";
+
+	public static final String MODULE_NAME = "Peak shape modeler (experimental)";
+
 	private ShapeModelerParameters parameters;
 
 	private Desktop desktop;
-	
+
 	/**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
-    	
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
+
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new ShapeModelerParameters();
-		
-		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, "Peak shape modeler",
-				"Calculate peak shape accroding to selected peak shape model",
+
+		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, MODULE_NAME,
+				"Estimate peak shape according to selected peak shape model",
 				0, true, this, null);
 
-    }
-    
+	}
+
 	/**
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	public void actionPerformed(ActionEvent e) {
 
 		PeakList[] peakLists = desktop.getSelectedPeakLists();
-		
+
 		if (peakLists.length == 0) {
 			desktop.displayErrorMessage("Please select at least one peak list");
 			return;
 		}
-		
+
 		// Verify previous applied methods
 		boolean resolvedFlag = false;
 		for (int i = 0; i < peakLists.length; i++) {
-			for (PeakListAppliedMethod proc: peakLists[i].getAppliedMethods()){
-				
-				if (proc.getDescription().contains("Peak recognition"))
+			for (PeakListAppliedMethod proc : peakLists[i].getAppliedMethods()) {
+
+				if (proc.getDescription().contains("Peak deconvolution"))
 					resolvedFlag = true;
 
-				if (proc.getDescription().contains("normalization")){
-					desktop.displayErrorMessage("Peak list " + peakLists[i] + 
-					" has been processed using \"" + proc.getDescription() +"\", impossible to make peak shape modeling");
+				if (proc.getDescription().contains("normalization")) {
+					desktop.displayErrorMessage("Peak list " + peakLists[i]
+							+ " has been processed using \""
+							+ proc.getDescription()
+							+ "\", impossible to make peak shape modeling");
 					return;
 				}
 			}
 
 			if (!resolvedFlag)
-				desktop.displayMessage("Warning", "Peak list " + peakLists[i] + 
-						" has not been processed using \"Peak recognition\", result could be uncertain");
+				desktop
+						.displayMessage(
+								"Warning",
+								"Peak list "
+										+ peakLists[i]
+										+ " has not been processed using \"Peak deconvolution\", result could be uncertain");
 			resolvedFlag = false;
 		}
 
@@ -94,25 +106,24 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 		runModule(null, peakLists, parameters.clone());
 
 	}
-	
+
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public ExitCode setupParameters(ParameterSet parameters) {
 		ShapeModelerSetupDialog dialog = new ShapeModelerSetupDialog(
 				"Please set parameter values for " + toString(),
-				(ShapeModelerParameters) parameters);
+				(ShapeModelerParameters) parameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
 
-
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Peak shape modeler";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return MODULE_NAME;
+	}
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -126,8 +137,9 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.AlignmentResult[],
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
@@ -146,7 +158,7 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 			tasks[i] = new ShapeModelerTask(peakLists[i],
 					(ShapeModelerParameters) parameters);
 		}
-		
+
 		MZmineCore.getTaskController().addTasks(tasks);
 
 		return tasks;

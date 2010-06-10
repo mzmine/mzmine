@@ -151,6 +151,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	 */
 	public int[] getScanNumbers(int msLevel, Range rtRange) {
 
+		assert rtRange != null;
+		
 		ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
 		Enumeration<Scan> scansEnum = scans.elements();

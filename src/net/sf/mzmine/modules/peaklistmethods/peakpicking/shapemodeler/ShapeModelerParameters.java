@@ -32,14 +32,14 @@ public class ShapeModelerParameters extends SimpleParameterSet {
             "Gaussian", "EMG"};
 
     public static final String shapeModelerClasses[] = {
-            "net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels.TrianglePeakModel",
-            "net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels.GaussianPeakModel",
-            "net.sf.mzmine.modules.peakpicking.shapemodeler.peakmodels.EMGPeakModel" };
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.TrianglePeakModel",
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.GaussianPeakModel",
+            "net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.EMGPeakModel" };
 
     public static final Parameter shapeModelerType = new SimpleParameter(
             ParameterType.STRING,
             "Shape model",
-            "This value defines the type of shape modeler to use",
+            "This value defines the type of shape model",
             null, shapeModelerNames);
 
     public static final Parameter suffix = new SimpleParameter(
@@ -50,7 +50,7 @@ public class ShapeModelerParameters extends SimpleParameterSet {
 			ParameterType.INTEGER,
 			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-					+ " Peak width is taken as the full width at half maximum intensity, (fwhm).",
+					+ " Peak width is taken as the full width at half maximum intensity (FWHM).",
 			null, new Integer(60000), new Integer(0), null, NumberFormat
 					.getIntegerInstance());
 

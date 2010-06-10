@@ -197,7 +197,7 @@ class DeconvolutionTask implements Task {
 		}
         
         // Add task description to peakList
-        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak recognition by " + 
+        newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak deconvolution by " + 
         		DeconvolutionParameters.peakResolverNames[peakResolverTypeNumber], pbParameters));
 
 

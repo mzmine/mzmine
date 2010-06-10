@@ -60,9 +60,9 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
      * @param parameters
      * @param massDetectorTypeNumber
      */
-	public ShapeModelerSetupDialog(String title, ShapeModelerParameters parameters) {
+	public ShapeModelerSetupDialog(String title, ShapeModelerParameters parameters, String helpID) {
 
-        super(title, parameters);
+        super(title, parameters, helpID);
 
         // Parameters of local mass detector to get preview values
         smParameters = parameters;

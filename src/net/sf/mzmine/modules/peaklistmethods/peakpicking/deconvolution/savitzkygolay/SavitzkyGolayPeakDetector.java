@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.util.MathUtils;
@@ -87,7 +88,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
                 derivativeThresholdLevel);
 
         ChromatographicPeak[] resolvedOriginalPeaks = SGPeaksSearch(
-                chromatogram, chromato2ndDerivative, noiseThreshold);
+                chromatogram, scanNumbers, chromato2ndDerivative, noiseThreshold);
 
         // Apply final filter of detected peaks, according with setup parameters
         if (resolvedOriginalPeaks.length != 0) {
@@ -117,7 +118,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
      * @return ChromatographicPeak[]
      */
     private ChromatographicPeak[] SGPeaksSearch(
-            ChromatographicPeak chromatogram, double[] derivativeOfIntensities,
+            ChromatographicPeak chromatogram, int scanNumbers[], double[] derivativeOfIntensities,
             double noiseThreshold) {
 
         // flag to identify the current and next
@@ -234,6 +235,18 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
             // new resolved peak for this region of the chromatogram
             if ((currentPeakEnd - currentPeakStart > 0) && (!activeFirstPeak)) {
 
+            	// We need to check that the chromatogram actually has any data point in this range
+            	boolean weHaveDataPoint = false;
+            	for (int test = currentPeakStart; test < currentPeakEnd; test++) {
+            		DataPoint dp = chromatogram.getDataPoint(scanNumbers[test]);
+            		if (dp != null) {
+            			weHaveDataPoint = true;
+            			break;
+            		}
+            	}
+            	
+            	if (! weHaveDataPoint) continue;
+            	
                 ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
                         currentPeakStart, currentPeakEnd);
                 resolvedPeaks.add((ChromatographicPeak) newPeak);
