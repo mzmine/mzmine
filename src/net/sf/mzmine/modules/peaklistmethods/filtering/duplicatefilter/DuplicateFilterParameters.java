@@ -39,7 +39,7 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
 
     public static final Parameter rtDifferenceMax = new SimpleParameter(
             ParameterType.DOUBLE,
-            "RT difference maximum",
+            "RT tolerance",
             "Maximum retention time difference between duplicate peaks",
             "seconds", new Double(5.0), new Double(0.0), null,
             MZmineCore.getRTFormat());
