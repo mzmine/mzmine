@@ -35,43 +35,44 @@ The Deconvolution module provides several algorithms for this purpose.
 <h3>Baseline cut-off</h3>
 
 <p>
-This peak recognizer set a baseline to cut-off any point below of the analyzed chromatogram.
-After that it recognizes as a chormatographic peak any region (group of mass spectrum peaks together)
-that has the minimum characteristics (duration, intensity).
+This method is very simple and useful to demonstrate the functionality of chromatogram deconvolution.
+First, the algorithm removes the lowest part of the chromatogram below a baseline level specified by the user.
+Remaining peaks which span above the baseline level are recognized if they fulfill the minimal requirements of height and length.
 </p>
 
 <h4>Method parameters</h4>
 
 <dl>
 <dt>Min peak height</dt>
-<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dd>Minimum acceptable height (intensity) for a chromatographic peak</dd> 
 <dt>Min peak duration</dt>
-<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dd>Minimum acceptable length (time duration) for a chromatographic peak</dd>
 <dt>Baseline level</dt>
-<dd>This value sets the minimum acceptable height (intensity) for a mass spectrum peak to be 
-considered part of a chromatographic peak</dd>
+<dd>Level below which all data points of the chromatogram are removed</dd>
 </dl>
 
 <p>
-<img src="baseline_recognizer_preview.jpg">
+<img src="baseline_cutoff.png">
 </p>
 
 <h3>Noise amplitude</h3>
 
 <p>
-This peak recognizer sets the level to use as a baseline using the 
-amplitude of noise (in terms of intensity) of the signal. An algorithm calculates the baseline
-level following the next steps:<br><br>
-1.- Calculate the number of bins or regions in which the current chromatogram can be divided in terms
-of intensity. The amplitude of these bins is according with the noise amplitude of the signal.<br>
-2.- Get the bin with biggest number of points (mass spectrum peaks) that fall inside.<br>
-3.- Set the baseline level equal to intensity of the bin with major number of points.<br>
-This method follows the concept of mode.
+This method is suitable for chromatograms with significant background noise of varying intensity.
+It works in a similar way as the Baseline cut-off method, but it sets the baseline level individually for each chromatogram, depending on the
+amplitude of signal noise.
 </p>
 
 <p>
-<img src="noiseAnalysis1.jpg" border="2">
-<img src="noiseAnalysis2.jpg" border="2">
+The baseline level is calculated as follows:<br>
+1. The intensity range of the chromatogram is divided into bins of the user-specified size (the "Noise amplitude" parameter)<br>
+2. The bin with the highest number of data points is found. This bin represents the intensity level of the noise signal.<br>
+3. Baseline level is set equal to intensity of the bin with the most data points<br>
+</p>
+
+<p>
+<img src="noiseAnalysis1.jpg">
+<img src="noiseAnalysis2.jpg">
 </p>
 
 
@@ -79,25 +80,27 @@ This method follows the concept of mode.
 
 <dl>
 <dt>Min peak height</dt>
-<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dd>Minimum acceptable height (intensity) for a chromatographic peak</dd> 
 <dt>Min peak duration</dt>
-<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dd>Minimum acceptable length (time duration) for a chromatographic peak</dd>
 <dt>Amplitude of noise</dt>
-<dd>This value is the amplitude of the signal in a flat region(in terms of intensity).</dd> 
+<dd>This value is the intensity amplitude of the signal in the noise region</dd> 
 </dl>
 
 <p>
-<img src="noise_recognizer_preview.jpg">
+<img src="noise_amplitude.png">
 </p>
 
 
 <h3>Savitzky-Golay</h3>
 
 <p>
-This peak recognizer uses the Savitzky-Golay polynomial (A. Savitzky and M. J. E. Golay, Anal. Chem.,
- 36, 1627 (1964)) to get the second smoothed derivative of the chromatogram intensities. The next 
+This method uses the Savitzky-Golay polynomial (A. Savitzky and M. J. E. Golay, Anal. Chem.,
+ 36, 1627 (1964)) to get the second smoothed derivative of the chromatogram intensities. The following 
  figure (left) presents the shape of a Gaussian peak (a), the first derivative (b), and the second 
- derivative (c). The figure at right side shows how is divided the signal into possible chromatographic peaks.
+ derivative (c). 
+ The figure at right side shows how the signal (blue line) may be divided into individual 
+ chromatographic peaks by observing the second derivative.
 </p>
 
 <p>
@@ -106,36 +109,56 @@ This peak recognizer uses the Savitzky-Golay polynomial (A. Savitzky and M. J. E
 </p>
 
 
-
 <h4>Method parameters</h4>
 
 <dl>
 <dt>Min peak height</dt>
-<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dd>Minimum acceptable height (intensity) for a chromatographic peak</dd> 
 <dt>Min peak duration</dt>
-<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dd>Minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dt>Derivative threshold level</dt>
+<dd>Minimum acceptable intensity in the 2<sup>nd</sup> derivative for peak recognition</dd>
+
 </dl>
 
-<img src="savitzky_recognizer_preview.jpg">
+<p>
+<img src="savitzky_golay.png">
+</p>
+
 
 <h3>Local minimum search</h3>
 
 <p>
-This peak recognizer 
+This method is suitable for chromatograms with little noise and nice peak shapes. 
+It searches for local minima in the chromatogram and separates individual peaks at these minimal points.
+Individual peaks are recognized if they fulfill the minimal requirements of height and length.
+The Chromatographic threshold parameter may be used if the chromatogram contains some background noise.
 </p>
 
 
 <h4>Method parameters</h4>
 
 <dl>
-<dt>Min peak height</dt>
-<dd>This value sets the minimum acceptable height (intensity) for a chromatographic peak</dd> 
-<dt>Min peak duration</dt>
-<dd>This value sets the minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dt>Chromatographic threshold</dt>
+<dd>Threshold for removing noise. The algorithm finds such intensity that given percentage of the chromatogram data points is below that intensity, and removes all data points below that level</dd>
+ 
+<dt>Search minimum in RT range</dt>
+<dd>If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks</dd>
+
+<dt>Minimum relative height</dt>
+<dd>Minimum height of a peak relative to the chromatogram top data point</dd>
+
+<dt>Minimum absolute height</dt>
+<dd>Minimum absolute height of a peak to be recognized</dd>
+
+<dt>Min ratio of peak top/edge</dt>
+<dd>Minimum ratio between peak's top intensity and side (lowest) data points. This parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.</dd>
+
 </dl>
 
-<img src="local_minimum_preview.png">
-
+<p>
+<img src="local_minimum_search.png">
+</p>
 
 </body>
 </html>

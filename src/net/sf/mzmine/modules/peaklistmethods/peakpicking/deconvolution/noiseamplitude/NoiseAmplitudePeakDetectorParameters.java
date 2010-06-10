@@ -46,7 +46,7 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE,
 			"Amplitude of noise",
 			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			"absolute", new Double(1000.0), new Double(500.0), null, MZmineCore
+			"absolute", new Double(1000.0), new Double(0), null, MZmineCore
 					.getIntensityFormat());
 
 	public NoiseAmplitudePeakDetectorParameters() {

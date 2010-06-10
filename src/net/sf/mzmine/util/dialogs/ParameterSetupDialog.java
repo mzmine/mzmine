@@ -104,10 +104,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 	/**
 	 * Derived classed may add their components to these panels. Both panels use
-	 * BorderLayout. mainPanel containts componentPanel in the WEST position
-	 * and nothing else. componentsPanel contains parameter components in the
-	 * NORTH position and buttons in the SOUTH position. Other positions are
-	 * free to use by derived (specialized) dialogs.
+	 * BorderLayout. mainPanel containts componentPanel in the WEST position and
+	 * nothing else. componentsPanel contains parameter components in the NORTH
+	 * position and buttons in the SOUTH position. Other positions are free to
+	 * use by derived (specialized) dialogs.
 	 */
 	protected JPanel componentsPanel, mainPanel;
 
@@ -292,7 +292,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			checkBoxesPanel.setBackground(Color.white);
 			checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
 					BoxLayout.Y_AXIS));
-			
 
 			int vertSize = 0,
 			numCheckBoxes = 0;
@@ -387,7 +386,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				&& (p.getType() != ParameterType.ORDERED_LIST)) {
 			JComboBox combo = (JComboBox) parametersAndComponents.get(p);
 			int selectedIndex = combo.getSelectedIndex();
-			if (selectedIndex < 0) selectedIndex = 0;
+			if (selectedIndex < 0)
+				selectedIndex = 0;
 			return possibleValues[selectedIndex];
 		}
 
@@ -568,8 +568,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			throws IllegalArgumentException {
 		for (Parameter p : parameterSet.getParameters()) {
 			Object value = getComponentValue(p);
-			if (value != null)
-				parameterSet.setParameterValue(p, value);
+			if (value != null) {
+				try {
+					parameterSet.setParameterValue(p, value);
+				} catch (IllegalArgumentException e) {
+					// ignore
+				}
+			}
 		}
 
 	}
