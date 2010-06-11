@@ -11,8 +11,8 @@
     <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.ChromatogramBuilder" /> 
     <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker"/>  
     <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPicker" />
-    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFiltering" /> 
-    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFiltering" /> 
+    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilters" /> 
+    <module class="net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFilters" /> 
     
     <module class="net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAligner" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAligner" /> 
