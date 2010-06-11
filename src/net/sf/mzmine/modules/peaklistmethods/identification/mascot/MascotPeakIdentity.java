@@ -18,42 +18,52 @@
  */
 
 
-package net.sf.mzmine.modules.peaklistmethods.identification.peptidesearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
+
+import java.util.Iterator;
 
 import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.proteomics.Peptide;
+import be.proteomics.mascotdatfile.util.mascot.PeptideHit;
+import be.proteomics.mascotdatfile.util.mascot.ProteinHit;
 
-public class PeptideIdentity implements PeakIdentity {
+public class MascotPeakIdentity implements PeakIdentity {
 	
-	private Peptide peptide;
+	private PeptideHit peptide;
+	private String pepName;
 	
 	/**
 	 * This class implements PeakIdentity and wrap the information of the peptide assigned to the chromatographic peak.
 	 * 
 	 * @param peptide
 	 */
-	public PeptideIdentity(Peptide peptide){
+	public MascotPeakIdentity(PeptideHit peptide){
 		this.peptide = peptide;
+		StringBuffer name = new StringBuffer();
+		for (Iterator i = peptide.getProteinHits().iterator(); i.hasNext();){
+			ProteinHit p = (ProteinHit) i.next();
+			name.append(p.getAccession()+" ");
+		}
+		this.pepName = name.toString();
 	}
 
 	public String getDescription() {
-		return peptide.toString();
+		return peptide.getModifiedSequence();
 	}
 
 	public String getIdentificationMethod() {
-		return peptide.getIdentificationMethod();
+		return "Mascot";
 	}
 
 	public String getName() {
-		return peptide.toString();
+		return pepName;
 	}
 	
-	public Peptide getPeptide(){
+	public PeptideHit getPeptide(){
 		return peptide;
 	}
 	
 	public String toString(){
-		return peptide.toString();
+		return this.getName();
 	}
 
 }
