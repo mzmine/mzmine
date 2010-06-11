@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -40,6 +41,8 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class OnlineDBSearch implements BatchStep, ActionListener {
 
+	final static String helpID = GUIUtils.generateHelpID(OnlineDBSearch.class);
+	
 	public static final String MODULE_NAME = "Online database search";
 
 	private Desktop desktop;
@@ -84,7 +87,7 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 	public ExitCode setupParameters(ParameterSet parameters) {
 		OnlineDBSearchDialog dialog = new OnlineDBSearchDialog(
-				(OnlineDBSearchParameters) parameters, null);
+				(OnlineDBSearchParameters) parameters, null, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
@@ -110,7 +113,7 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 		OnlineDBSearchParameters parameters = (OnlineDBSearchParameters) myInstance
 				.getParameterSet();
-		OnlineDBSearchDialog dialog = new OnlineDBSearchDialog(parameters, row);
+		OnlineDBSearchDialog dialog = new OnlineDBSearchDialog(parameters, row, helpID);
 		dialog.setVisible(true);
 
 		ExitCode exitCode = dialog.getExitCode();

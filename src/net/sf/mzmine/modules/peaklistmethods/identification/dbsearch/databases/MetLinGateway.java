@@ -54,7 +54,7 @@ public class MetLinGateway implements DBGateway {
 		Vector<String> results = new Vector<String>();
 
 		// Find IDs in the HTML data
-		Pattern pat = Pattern.compile("\"metabo_info.php\\?molid=([0-9]+)\"");
+		Pattern pat = Pattern.compile("\"metabo_info.php\\?molid=([0-9]+)\">\\1");
 		Matcher matcher = pat.matcher(queryResult);
 		while (matcher.find()) {
 			String MID = matcher.group(1);
@@ -76,42 +76,39 @@ public class MetLinGateway implements DBGateway {
 		URL entryURL = new URL(metLinEntryAddress + ID);
 
 		String metLinEntry = InetUtils.retrieveData(entryURL);
-		String lines[] = metLinEntry.split("\n");
 
 		String compoundName = null;
 		String compoundFormula = null;
 		URL structure2DURL = null;
 		URL structure3DURL = null;
 
-		for (int i = 0; i < lines.length - 2; i++) {
-
-			if (lines[i].contains("<td>Name:</td>")) {
-				Pattern pat = Pattern.compile("(.+)</td>");
-				Matcher matcher = pat.matcher(lines[i + 2]);
-				if (matcher.find()) {
-					compoundName = matcher.group(1);
-				}
-			}
-
-			if (lines[i].contains("<td>Formula:</td>")) {
-				Pattern pat = Pattern.compile("(.+)</td>");
-				Matcher matcher = pat.matcher(lines[i + 2]);
-				if (matcher.find()) {
-					String htmlFormula = matcher.group(1);
-					compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
-				}
-			}
-
-			// Unfortunately, 2D structures provided by METLIN cannot be loaded
-			// into CDK (throws CDKException). They can be loaded into JMol, so
-			// we can show 3D structure.
-			structure3DURL = new URL(metLinStructureAddress1 + ID
-					+ metLinStructureAddress2);
-
+		// Find compound name
+		Pattern patName = Pattern.compile(
+				"Name</td>.*?<td.*?return false\">(.+?)</a></td>",
+				Pattern.DOTALL);
+		Matcher matcherName = patName.matcher(metLinEntry);
+		if (matcherName.find()) {
+			compoundName = matcherName.group(1);
 		}
 
+		// Find compound formula
+		Pattern patFormula = Pattern.compile(
+				"Formula</td>.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
+		Matcher matcherFormula = patFormula.matcher(metLinEntry);
+		if (matcherFormula.find()) {
+			String htmlFormula = matcherFormula.group(1);
+			compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
+		}
+
+		// Unfortunately, 2D structures provided by METLIN cannot be loaded
+		// into CDK (throws CDKException). They can be loaded into JMol, so
+		// we can show 3D structure.
+		structure3DURL = new URL(metLinStructureAddress1 + ID
+				+ metLinStructureAddress2);
+
 		if (compoundName == null) {
-			throw (new IOException("Could not parse compound name"));
+			throw (new IOException(
+					"Could not parse compound name for compound " + ID));
 		}
 
 		DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,

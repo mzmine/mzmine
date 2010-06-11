@@ -42,6 +42,7 @@ import net.sf.mzmine.util.components.MultiLineLabel;
 public class MolStructureViewer extends JInternalFrame {
 
 	private JSplitPane splitPane;
+	private JLabel loading2Dlabel, loading3Dlabel;
 
 	/**
 	 * 
@@ -67,11 +68,11 @@ public class MolStructureViewer extends JInternalFrame {
 		labelName.setFont(new Font("SansSerif", Font.BOLD, 18));
 		mainPanel.add(labelName, BorderLayout.NORTH);
 
-		JLabel loading2Dlabel = new JLabel("Loading 2D structure...",
+		loading2Dlabel = new JLabel("Loading 2D structure...",
 				SwingConstants.CENTER);
 		loading2Dlabel.setOpaque(true);
 		loading2Dlabel.setBackground(Color.white);
-		JLabel loading3Dlabel = new JLabel("Loading 3D structure...",
+		loading3Dlabel = new JLabel("Loading 3D structure...",
 				SwingConstants.CENTER);
 		loading3Dlabel.setOpaque(true);
 		loading3Dlabel.setBackground(Color.white);
@@ -124,8 +125,10 @@ public class MolStructureViewer extends JInternalFrame {
 		JComponent newComponent;
 		try {
 			String structure2D = InetUtils.retrieveData(url);
-			if (structure2D.length() < 10)
-				throw (new Exception("Structure string is empty"));
+			if (structure2D.length() < 10) {
+				loading2Dlabel.setText("2D structure not available");
+				return;
+			}
 			newComponent = new Structure2DComponent(structure2D);
 		} catch (Exception e) {
 			String errorMessage = "Could not load 2D structure\n"
@@ -145,20 +148,27 @@ public class MolStructureViewer extends JInternalFrame {
 	private void load3DStructure(URL url) {
 
 		try {
-			
+
 			String structure3D = InetUtils.retrieveData(url);
-			if (structure3D.length() < 10)
-				throw (new Exception("Structure string is empty"));
-			
+			if (structure3D.length() < 10) {
+				loading3Dlabel.setText("3D structure not available");
+				return;
+			}
+
+			if (!structure3D.matches("^\\d\\n.*")) {
+				loading3Dlabel.setText("3D structure not available");
+				return;
+			}
+
 			Structure3DComponent new3DComponent = new Structure3DComponent();
 			splitPane.setRightComponent(new3DComponent);
 			splitPane.setDividerLocation(500);
-			
+
 			// loadStructure must be called after the component is added,
 			// otherwise Jmol will freeze waiting for repaint (IMHO this is a
 			// Jmol bug introduced in 11.8)
 			new3DComponent.loadStructure(structure3D);
-			
+
 		} catch (Exception e) {
 			String errorMessage = "Could not load 3D structure\n"
 					+ "Exception: " + ExceptionUtils.exceptionToString(e);
@@ -166,6 +176,6 @@ public class MolStructureViewer extends JInternalFrame {
 			splitPane.setRightComponent(label);
 			splitPane.setDividerLocation(500);
 		}
-		
+
 	}
 }

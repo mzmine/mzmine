@@ -69,9 +69,11 @@ public class ResultTableModel extends AbstractTableModel {
 			break;
 		case (3):
 			String compFormula = comp.getCompoundFormula();
-			double compMass = FormulaUtils.calculateExactMass(compFormula);
-			double massDifference = Math.abs(searchedMass - compMass);
-			value = massFormat.format(massDifference);
+			if (compFormula != null) {
+				double compMass = FormulaUtils.calculateExactMass(compFormula);
+				double massDifference = Math.abs(searchedMass - compMass);
+				value = massFormat.format(massDifference);
+			}
 			break;
 		case (4):
 			double score = comp.getIsotopePatternScore();

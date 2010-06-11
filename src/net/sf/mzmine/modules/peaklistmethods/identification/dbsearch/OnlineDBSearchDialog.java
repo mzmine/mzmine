@@ -37,10 +37,6 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		ActionListener, PropertyChangeListener {
 
-	final static String helpID = OnlineDBSearch.class.getPackage().getName()
-			.replace('.', '/')
-			+ "/help/OnlineDBSearch.html";
-
 	private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
 	private double rawMassValue;
 	private JFormattedTextField chargeField;
@@ -51,7 +47,7 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
      * 
      */
 	public OnlineDBSearchDialog(OnlineDBSearchParameters parameters,
-			PeakListRow row) {
+			PeakListRow row, String helpID) {
 
 		// Make dialog modal
 		super("Online database search setup dialog ", parameters, helpID);
