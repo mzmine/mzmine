@@ -38,12 +38,13 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeakFinder implements BatchStep, ActionListener {
 
+    final String helpID = GUIUtils.generateHelpID(this);
 
+    public static final String MODULE_NAME = "Peak finder";
+    
     private PeakFinderParameters parameters;
 
     private Desktop desktop;
-
-    private final String helpID = GUIUtils.generateHelpID(this);
 
 
     /**
@@ -55,14 +56,14 @@ public class PeakFinder implements BatchStep, ActionListener {
 
         parameters = new PeakFinderParameters();
 
-        desktop.addMenuItem(MZmineMenu.GAPFILLING, "Peak finder",
+        desktop.addMenuItem(MZmineMenu.GAPFILLING, MODULE_NAME,
                 "Secondary peak detection, trying to find a missing peak",
                 KeyEvent.VK_G, false, this, null);
 
     }
 
     public String toString() {
-        return "Gap filler";
+        return MODULE_NAME;
     }
 
     /**

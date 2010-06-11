@@ -16,8 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.*;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -39,18 +40,15 @@ import javax.swing.JTextField;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview.RawDataFilterSetupDialog;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 
  */
-class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
-	
-	final String helpID = this.getClass().getPackage().getName().replace('.', '/') + "/help/DataSetFilters.html";
+class ScanFiltersSetupDialog extends JDialog implements ActionListener {
 
-	private RawDataFilteringParameters parameters;
+	private ScanFiltersParameters parameters;
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 	private String title;
 
@@ -60,8 +58,8 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 	private JTextField txtField;
 	private JCheckBox checkBoxAutoRemove;
 
-	public RawDataFilteringSetupDialog(String title,
-			RawDataFilteringParameters parameters) {
+	public ScanFiltersSetupDialog(String title,
+			ScanFiltersParameters parameters, String helpId) {
 
 		super(MZmineCore.getDesktop().getMainFrame(),
 				"Please select raw data filter", true);
@@ -69,7 +67,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		this.parameters = parameters;
 		this.title = title;
 
-		addComponentsToDialog();
+		addComponentsToDialog(helpId);
 		this.setResizable(false);
 	}
 
@@ -82,7 +80,8 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 		Object src = ae.getSource();
 
 		if (src == btnSetFilter) {
-			int ind = comboRawDataFilters.getSelectedIndex();            
+			int ind = comboRawDataFilters.getSelectedIndex();
+
 			RawDataFilterSetupDialog dialog = new RawDataFilterSetupDialog(
 					parameters, ind);
 			dialog.setVisible(true);
@@ -111,7 +110,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 	 * This function add all components for this dialog
 	 * 
 	 */
-	private void addComponentsToDialog() {
+	private void addComponentsToDialog(String helpID) {
 
 		// Elements of suffix
 		txtField = new JTextField();
@@ -121,7 +120,7 @@ class RawDataFilteringSetupDialog extends JDialog implements ActionListener {
 
 		// Elements of Raw Data Filter
 		comboRawDataFilters = new JComboBox(
-				RawDataFilteringParameters.rawDataFilterNames);
+				ScanFiltersParameters.rawDataFilterNames);
 		comboRawDataFilters.setSelectedIndex(parameters.getRawDataFilterTypeNumber());
 		comboRawDataFilters.addActionListener(this);
 		comboRawDataFilters.setMaximumSize(new Dimension(200, 30));

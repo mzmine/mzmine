@@ -32,12 +32,18 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class XMLImporter implements MZmineModule, ActionListener {
 
+	final String helpID = GUIUtils.generateHelpID(XMLExporter.class);
+	
+	public static final String MODULE_NAME = "Import from XML file";
+	
 	private XMLImporterParameters parameters;
 	private Desktop desktop;
 	public static XMLImporter myInstance;
@@ -52,7 +58,7 @@ public class XMLImporter implements MZmineModule, ActionListener {
 
 		parameters = new XMLImporterParameters();
 
-		desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Import from XML file",
+		desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
 				"Load a peak list from a XML file", KeyEvent.VK_I, true, this,
 				null);
 
@@ -98,7 +104,7 @@ public class XMLImporter implements MZmineModule, ActionListener {
 
 	public ExitCode setupParameters(ParameterSet parameters) {
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
+				"Please set parameter values for " + MODULE_NAME,
 				(XMLImporterParameters) parameters);
 
 		dialog.setVisible(true);

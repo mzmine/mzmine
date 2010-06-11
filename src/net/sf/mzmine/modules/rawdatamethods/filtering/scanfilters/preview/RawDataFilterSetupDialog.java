@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilteringParameters;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFiltersParameters;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -52,15 +52,15 @@ public class RawDataFilterSetupDialog extends
 	 * @param parameters
 	 * @param rawDataFilterTypeNumber
 	 */
-	public RawDataFilterSetupDialog(RawDataFilteringParameters parameters,
+	public RawDataFilterSetupDialog(ScanFiltersParameters parameters,
 			int rawDataFilterTypeNumber) {
 
 		super(
-				RawDataFilteringParameters.rawDataFilterNames[rawDataFilterTypeNumber]
+				ScanFiltersParameters.rawDataFilterNames[rawDataFilterTypeNumber]
 						+ "'s parameter setup dialog ",
 				parameters
 						.getRawDataFilteringParameters(rawDataFilterTypeNumber),
-				RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
+				ScanFiltersParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
 
 		this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
 
@@ -77,7 +77,7 @@ public class RawDataFilterSetupDialog extends
 	 */
 	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-		String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
+		String rawDataFilterClassName = ScanFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
 
 		try {
 			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);

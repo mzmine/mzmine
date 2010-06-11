@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilteringParameters;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFiltersParameters;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
@@ -46,13 +46,13 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
      * @param parameters
      * @param rawDataFilterTypeNumber
      */
-    public RawDataFilterSetupDialog(RawDataFilteringParameters parameters,
+    public RawDataFilterSetupDialog(DataSetFiltersParameters parameters,
             int rawDataFilterTypeNumber) {
 
         super(
-                RawDataFilteringParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
+                DataSetFiltersParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
                 parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
-                RawDataFilteringParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
+                DataSetFiltersParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
 
 
         this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
@@ -64,7 +64,7 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
     }
  
     protected void loadPreview(RawDataFile dataFile) {
-        String rawDataFilterClassName = RawDataFilteringParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
+        String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
         try {
             Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
             Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];

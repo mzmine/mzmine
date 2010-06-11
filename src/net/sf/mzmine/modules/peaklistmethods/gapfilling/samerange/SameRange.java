@@ -38,12 +38,14 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class SameRange implements BatchStep, ActionListener {
 
+    final String helpID = GUIUtils.generateHelpID(this);
+
+    public static final String MODULE_NAME = "Same RT and m/z range filler";
+
     private SameRangeParameters parameters;
 
     private Desktop desktop;
-
-    final String helpID = GUIUtils.generateHelpID(this);
-
+    
     /**
      * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
      */
@@ -55,14 +57,14 @@ public class SameRange implements BatchStep, ActionListener {
 
         desktop.addMenuItem(
                 MZmineMenu.GAPFILLING,
-                "Same RT and m/z range filler",
+                MODULE_NAME,
                 "Secondary peak detection, to fill gaps in a peak list using same RT and m/z range",
                 KeyEvent.VK_S, false, this, null);
 
     }
 
     public String toString() {
-        return "Gap filler";
+        return MODULE_NAME;
     }
 
     /**

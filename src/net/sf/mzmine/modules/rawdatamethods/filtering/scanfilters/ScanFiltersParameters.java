@@ -28,7 +28,7 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 import org.dom4j.Element;
 
-public class RawDataFilteringParameters implements StorableParameterSet {
+public class ScanFiltersParameters implements StorableParameterSet {
 
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
@@ -63,7 +63,7 @@ public class RawDataFilteringParameters implements StorableParameterSet {
 			"If checked, original file will be removed and only filtered version remains",
 			new Boolean(true));
 
-	public RawDataFilteringParameters() {
+	public ScanFiltersParameters() {
 
 		rawDataFilterParameters = new SimpleParameterSet[rawDataFilterClasses.length];
 		myParameters =
@@ -205,9 +205,9 @@ public class RawDataFilteringParameters implements StorableParameterSet {
 	 * without modify the behavior of other launched tasks
 	 *
 	 */
-	public RawDataFilteringParameters clone() {
+	public ScanFiltersParameters clone() {
 
-		RawDataFilteringParameters newSet = new RawDataFilteringParameters();
+		ScanFiltersParameters newSet = new ScanFiltersParameters();
 
 		newSet.rawDataFilterParameters = new SimpleParameterSet[rawDataFilterParameters.length];
 		for (int i = 0; i <

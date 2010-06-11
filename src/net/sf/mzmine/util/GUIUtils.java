@@ -530,8 +530,12 @@ public class GUIUtils {
 	}
 
 	public static String generateHelpID(Object obj) {
-		String helpID = obj.getClass().getPackage().getName().replace('.', '/')
-				+ "/help/" + obj.getClass().getSimpleName() + ".html";
+		return generateHelpID(obj.getClass());
+	}
+	
+	public static String generateHelpID(Class<?> cl) {
+		String helpID = cl.getPackage().getName().replace('.', '/')
+				+ "/help/" + cl.getSimpleName() + ".html";
 		return helpID;
 	}
 

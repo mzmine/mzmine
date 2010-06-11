@@ -31,12 +31,15 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class XMLExporter implements MZmineModule, ActionListener {
 
-	final static String helpID = "net/sf/mzmine/modules/io/xmlexport/help/XMLExport.html";
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Export to XML file";
 
     private XMLExporterParameters parameters;
     private Desktop desktop;
@@ -51,7 +54,7 @@ public class XMLExporter implements MZmineModule, ActionListener {
 
         parameters = new XMLExporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to XML file",
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
                 "Save a peak list to XML file", KeyEvent.VK_X, true,
                 this, null);
 	}
@@ -91,7 +94,7 @@ public class XMLExporter implements MZmineModule, ActionListener {
 
 	public ExitCode setupParameters(ParameterSet parameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
+                "Please set parameter values for " + MODULE_NAME,
                 (XMLExporterParameters) parameters, helpID);
 
         dialog.setVisible(true);

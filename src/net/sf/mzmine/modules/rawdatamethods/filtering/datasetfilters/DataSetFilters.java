@@ -31,11 +31,16 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class RawDataFiltering implements BatchStep, ActionListener {
+public class DataSetFilters implements BatchStep, ActionListener {
 
-	private RawDataFilteringParameters parameters;
+    final String helpID = GUIUtils.generateHelpID(this);
+
+    public static final String MODULE_NAME = "Data set filtering";
+    
+	private DataSetFiltersParameters parameters;
 	private Desktop desktop;
 
 	/**
@@ -45,9 +50,9 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 
 		this.desktop = MZmineCore.getDesktop();
 
-		parameters = new RawDataFilteringParameters();
+		parameters = new DataSetFiltersParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, "Data set filtering",
+		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, MODULE_NAME,
 				"Filters applied to whole data sets",
 				KeyEvent.VK_R, true, this, null);
 	}
@@ -76,16 +81,16 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Raw Data Filtering";
+		return MODULE_NAME;
 	}
 
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public ExitCode setupParameters(ParameterSet parameters) {
-		RawDataFilteringSetupDialog dialog = new RawDataFilteringSetupDialog(
+		DataSetFiltersSetupDialog dialog = new DataSetFiltersSetupDialog(
 				"Please set parameter values for " + toString(),
-				(RawDataFilteringParameters) parameters);
+				(DataSetFiltersParameters) parameters, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
@@ -98,7 +103,7 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 	}
 
 	public void setParameters(ParameterSet parameters) {
-		this.parameters = (RawDataFilteringParameters) parameters;
+		this.parameters = (DataSetFiltersParameters) parameters;
 	}
 
 	/**
@@ -116,10 +121,10 @@ public class RawDataFiltering implements BatchStep, ActionListener {
 		}
 
 		// prepare a new group of tasks
-		Task tasks[] = new RawDataFilteringTask[1];
+		Task tasks[] = new DataSetFilteringTask[1];
 
-		tasks[0] = new RawDataFilteringTask(dataFiles,
-				(RawDataFilteringParameters) parameters);
+		tasks[0] = new DataSetFilteringTask(dataFiles,
+				(DataSetFiltersParameters) parameters);
 
 
 		MZmineCore.getTaskController().addTasks(tasks);
