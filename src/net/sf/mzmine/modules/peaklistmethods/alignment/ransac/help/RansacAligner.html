@@ -95,8 +95,52 @@
 
         <p><img src="preview.png" name="graphics3" </p>
 
-        <p>New aligned peak list showing peaks from 3 different samples.
-            <br><br><img src="../../join/help/join_alignment_preview.jpg" name="alignment preview">
+        <h4>Parameter optimization</h4>
+        <p>
+            The three first parameters (m/z tolerance, RT tolerance after the correction and RT tolerance)
+            define 2 bi-dimensional windows with the same “altitude” (m/z tolerance) and different “longitude”
+            (RT tolerances). The first window (m/z tolerance - RT tolerance after the correction) sets the
+            space where the matching peak should be present, and the second windows (m/z tolerance - RT tolerance)
+            sets the total space where RANSAC algorithm will be applied. So, “RT tolerance“ should be as big as
+            the maximum deviation in the retention time along all the chromatogram, and “RT tolerance after the
+            correction” can be more flexible and depends on the complexity of the data. If the data contains
+            few peaks and the separation is good, the window can be bigger than “RT tolerance” window and it
+            will improve the recall without including mistakes. This parameter should not change too much the
+            final results.
+        </p>
+
+        <p>
+            RANSAC is a non-deterministic algorithm, and the probability to find a good result increases
+            increasing the number of iterations. If the user sets “0 iterations” into the parameter “RANSAC
+            iterations” the algorithm will automatically set the optimum number of iterations depending on
+            the number of data points. In the case that there is a big number of data points it is better
+            to limit this parameter even though the result could be non-optimal. The preview module can help
+            us to set this parameter.
+        </p>
+
+        <p>
+            The parameter “Minimum number of points” should be an estimation of the proportion of the data
+            points inside the model. It is important not to get models composed by few data points which do
+            not correspond to the real model. All the models which contain less proportion of data points
+            won't be taken into account by RANSAC algorithm.
+        </p>
+
+        <p>
+            Threshold value represents the width of the model and it depends on the nature of the data.
+            If this parameter is too big it can lead to deviation of the model. The preview module can
+            help us, also in this case, to set the optimal value.
+        </p>
+
+        <p>
+            The last parameter depends on whether the deviation in the retention time can be consider linear
+            or not in our data. If the deviation in the retention time is linear, a simple regression will be used
+            to fit the model.
+        </p>
+        <br>
+        <p>
+            <img src="../../join/help/join_alignment_preview.jpg" name="alignment preview">
+            <br><br>
+            New aligned peak list showing peaks from 3 different samples.
         </p>
 
     </body>

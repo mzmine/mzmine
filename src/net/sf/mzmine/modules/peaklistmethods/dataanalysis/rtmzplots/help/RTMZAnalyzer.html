@@ -11,39 +11,53 @@
 
 <h2>Description</h2>
 
+<h3> Coefficient of variation (CV) </h3>
+
 <p>
+    the coefficient of variation (CV) is a normalized measure of dispersion of a
+    probability distribution. It is defined as the ratio of the standard deviation
+    to the mean. (http://en.wikipedia.org/wiki/Coefficient_of_variation)
 </p>
+
+<p>
+    The advantage of the CV is that it is unitless. This allows CVs to be compared
+    to each other in ways that other measures, like standard deviations or root mean
+    squared residuals, cannot be.
+    The standard deviations of two variables, while both measure dispersion in their
+    respective variables, cannot be compared to each other in a meaningful way to
+    determine which variable has greater dispersion because they may vary greatly
+    in their units and the means about which they occur. The standard deviation and
+    mean of a variable are expressed in the same units, so taking the ratio of these
+    two allows the units to cancel.  This ratio can then be compared to other such
+    ratios in a meaningful way: between two variables (that meet the assumptions
+    outlined below), the variable with the smaller CV is less dispersed than the
+    variable with the larger CV. (http://www.ats.ucla.edu/stat/mult_pkg/faq/general/coefficient_of_variation.htm)
+</p>
+
+
+<h3> Logration analysis </h3>
+<p>
+    This analysis shows a difference of each peak between two groups of samples. It is
+    defined as the ratio of the logarithm of the ratio of each group
+    average to the logarithm of 2.
+</p>
+
 
 <h4>Method parameters</h4>
 <dl>
-<dt>Name sufix</dt>
-<dd>This is the suffix to identify the new aligned peak list in Peak list frame of desktop.</dd>
-
-<dt>Minimum peaks in a row</dt>
-<dd>Minimum number of peaks in a row required to not remove it.</dd>
-
-<dt>Minimum peaks in an isotope pattern</dt>
-<dd>Minimun number of peaks in an isotope pattern required to not remove the row.</dd>
-
-<dt>Minimum m/z</dt>
-<dd>Minimum average m/z value in a row required to not remove it.</dd>
-
-<dt>Maximum m/z</dt>
-<dd>Maximum average m/z value in a row required to not remove it.</dd>
-
-<dt>Minimum retention time</dt>
-<dd>Minimum average retention time value in a row required to not remove it.</dd>
-
-<dt>Maximum retention time</dt>
-<dd>Maximum average retention time value in a row required to not remove it.</dd>
-
-<dt>Only identified?</dt>
-<dd>If the checkbox is selected only indentified rows will be filtered.</dd>
-
-<dt>Remove source peak list after fitering</dt>
-<dd>It the checkbox is selected the source peak list will be remove and the filtered version remains.</dd>
+<dt>Peak measuring approach</dt>
+<dd>It can take two values: height or area. The coefficient of variation an the logration analisys 
+    will be calculated using one of this two values. </dd>
 
 </dl>
 
+<h4>Screenshot of the resulting plot</h4>
+<p>
+    <img src="CV.png" name="cv plot">
+</p>
+<br>
+<p>
+    <img src="logratio.png" name="logratio plot">
+</p>
 </body>
 </html>
