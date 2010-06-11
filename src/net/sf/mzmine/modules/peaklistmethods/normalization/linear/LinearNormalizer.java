@@ -33,6 +33,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -42,6 +43,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class LinearNormalizer implements BatchStep, 
         ActionListener {
 
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Linear normalizer";
+	
     private LinearNormalizerParameters parameters;
 
     private Desktop desktop;
@@ -55,14 +60,14 @@ public class LinearNormalizer implements BatchStep,
 
         parameters = new LinearNormalizerParameters();
 
-        desktop.addMenuItem(MZmineMenu.NORMALIZATION, "Linear normalizer",
+        desktop.addMenuItem(MZmineMenu.NORMALIZATION, MODULE_NAME,
                 "Peak list normalization using linear coefficients",
                 KeyEvent.VK_L, false, this, null);
 
     }
 
     public String toString() {
-        return "Linear normalizer";
+        return MODULE_NAME;
     }
 
     /**
@@ -82,7 +87,7 @@ public class LinearNormalizer implements BatchStep,
     public ExitCode setupParameters(ParameterSet currentParameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters);
+                (SimpleParameterSet) currentParameters, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

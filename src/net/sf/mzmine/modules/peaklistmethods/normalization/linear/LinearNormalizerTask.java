@@ -42,7 +42,7 @@ class LinearNormalizerTask implements Task {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	public static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
+	static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
 	private PeakList originalPeakList, normalizedPeakList;
 
@@ -112,13 +112,14 @@ class LinearNormalizerTask implements Task {
 
 		// Loop through all raw data files, and find the peak with biggest
 		// height
-		double maxOriginalHeight = 0.0f;
+		double maxOriginalHeight = 0.0;
 		for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 			for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
 				ChromatographicPeak p = originalpeakListRow.getPeak(file);
-				if (p != null)
+				if (p != null) {
 					if (maxOriginalHeight <= p.getHeight())
 						maxOriginalHeight = p.getHeight();
+				}
 			}
 		}
 
@@ -131,12 +132,11 @@ class LinearNormalizerTask implements Task {
 			}
 
 			// Determine normalization type and calculate normalization factor
-			// accfileingly
-			double normalizationFactor = 1.0f;
+			double normalizationFactor = 1.0;
 
-			// - normalization by average squared peak intensity
+			// - normalization by average peak intensity
 			if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
-				double intensitySum = 0.0f;
+				double intensitySum = 0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
@@ -154,7 +154,7 @@ class LinearNormalizerTask implements Task {
 
 			// - normalization by average squared peak intensity
 			if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
-				double intensitySum = 0.0f;
+				double intensitySum = 0.0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
@@ -172,7 +172,7 @@ class LinearNormalizerTask implements Task {
 
 			// - normalization by maximum peak intensity
 			if (normalizationType == LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
-				double maximumIntensity = 0.0f;
+				double maximumIntensity = 0.0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
 					if (p != null) {
@@ -197,9 +197,6 @@ class LinearNormalizerTask implements Task {
 					normalizationFactor += scan.getTIC();
 				}
 			}
-
-			// Find peak with maximum height and calculate scaling the brings
-			// height of this peak to
 
 			// Readjust normalization factor so that maximum height will be
 			// equal to maximumOverallPeakHeightAfterNormalization after

@@ -56,8 +56,8 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
             peakMeasurementTypePossibleValues);
 
     public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z vs RT balance",
-            "Used in distance measuring as multiplier of M/Z difference", "",
+            ParameterType.DOUBLE, "m/z vs RT balance",
+            "Used in distance measuring as multiplier of m/z difference", "",
             new Double(10.0), new Double(0.0), null);
 
     public static final Parameter autoRemove = new SimpleParameter(
@@ -69,7 +69,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
     public static final Parameter standardCompounds = new SimpleParameter(
             ParameterType.MULTIPLE_SELECTION,
             "Standard compounds",
-            "List of peaks, where is possible to choose one or more peaks as standard for normalization");
+            "List of peaks for choosing the normalization standards");
 
     public StandardCompoundNormalizerParameters() {
         super(new Parameter[] { suffix, standardUsageType, peakMeasurementType,

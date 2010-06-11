@@ -34,6 +34,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -46,6 +47,10 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class StandardCompoundNormalizer implements MZmineModule, 
         ActionListener {
 
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Standard compound normalizer";
+	
     private StandardCompoundNormalizerParameters parameters;
 
     private Desktop desktop;
@@ -60,14 +65,14 @@ public class StandardCompoundNormalizer implements MZmineModule,
         parameters = new StandardCompoundNormalizerParameters();
 
         desktop.addMenuItem(MZmineMenu.NORMALIZATION,
-                "Standard compound normalizer",
+        		MODULE_NAME,
                 "Peak list normalization using selected internal standards",
                 KeyEvent.VK_S, false, this, null);
 
     }
 
     public String toString() {
-        return "Standard compound normalizer";
+        return MODULE_NAME;
     }
 
     /**
@@ -87,7 +92,7 @@ public class StandardCompoundNormalizer implements MZmineModule,
     public ExitCode setupParameters(ParameterSet parameters) {
         ParameterSetupDialog dialog = new ParameterSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters);
+                (SimpleParameterSet) parameters, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

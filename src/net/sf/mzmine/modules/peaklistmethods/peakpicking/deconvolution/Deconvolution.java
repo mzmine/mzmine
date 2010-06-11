@@ -39,6 +39,8 @@ public class Deconvolution implements BatchStep, ActionListener {
 
 	final String helpID = GUIUtils.generateHelpID(this);
 	
+	public static final String MODULE_NAME = "Chromatogram deconvolution";
+	
 	private DeconvolutionParameters parameters;
 
 	private Desktop desktop;
@@ -51,7 +53,7 @@ public class Deconvolution implements BatchStep, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new DeconvolutionParameters();
-		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, "Peak deconvolution",
+		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, MODULE_NAME,
 				"Resolving individual peaks within each chromatogram",
 				KeyEvent.VK_D, true, this, null);
 	}
@@ -87,7 +89,7 @@ public class Deconvolution implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
 	 */
 	public String toString() {
-		return "Peak deconvolution";
+		return MODULE_NAME;
 	}
 
 	/**

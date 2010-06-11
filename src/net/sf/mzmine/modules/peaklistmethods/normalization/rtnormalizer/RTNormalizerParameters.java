@@ -30,23 +30,13 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class RTNormalizerParameters extends SimpleParameterSet {
 
-    public static final String NormalizationTypeAverageIntensity = "Average intensity";
-    public static final String NormalizationTypeAverageSquaredIntensity = "Average squared intensity";
-    public static final String NormalizationTypeMaximumPeakHeight = "Maximum peak intensity";
-    public static final String NormalizationTypeTotalRawSignal = "Total raw signal";
-
-    public static final Object[] normalizationTypePossibleValues = {
-            NormalizationTypeAverageIntensity,
-            NormalizationTypeAverageSquaredIntensity,
-            NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
-
     public static final Parameter suffix = new SimpleParameter(
             ParameterType.STRING, "Name suffix",
             "Suffix to be added to peak list name", null, "normalized", null);
 
     public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
+            ParameterType.DOUBLE, "m/z tolerance",
+            "Maximum allowed m/z difference", "m/z", new Double(0.2), new Double(
                     0.0), null, MZmineCore.getMZFormat());
 
     public static final Parameter RTTolerance = new SimpleParameter(
