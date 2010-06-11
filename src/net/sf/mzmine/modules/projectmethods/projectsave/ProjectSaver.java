@@ -36,6 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -44,6 +45,10 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  * 
  */
 public class ProjectSaver implements BatchStep, ActionListener {
+
+	final String helpID = GUIUtils.generateHelpID(this);
+
+	public static final String MODULE_NAME = "Save project";
 
 	private ProjectSaverParameters parameters;
 	private JMenuItem projectSave, projectSaveAs;
@@ -56,9 +61,9 @@ public class ProjectSaver implements BatchStep, ActionListener {
 
 		parameters = new ProjectSaverParameters();
 
-		projectSave = desktop.addMenuItem(MZmineMenu.PROJECTIO,
-				"Save project...", "Loads a stored MZmine project",
-				KeyEvent.VK_S, true, this, null);
+		projectSave = desktop.addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
+				"Loads a stored MZmine project", KeyEvent.VK_S, true, this,
+				null);
 
 		projectSaveAs = desktop.addMenuItem(MZmineMenu.PROJECTIO,
 				"Save project as...", "Loads a stored MZmine project",
@@ -81,14 +86,14 @@ public class ProjectSaver implements BatchStep, ActionListener {
 	public ExitCode setupParameters(ParameterSet parameterSet) {
 
 		ProjectSaverParameters parameters = (ProjectSaverParameters) parameterSet;
-		
+
 		String path = (String) parameters
 				.getParameterValue(ProjectSaverParameters.lastDirectory);
 		File lastPath = null;
 		if (path != null)
 			lastPath = new File(path);
 
-		ProjectSaveDialog dialog = new ProjectSaveDialog(lastPath);
+		ProjectSaveDialog dialog = new ProjectSaveDialog(lastPath, helpID);
 		dialog.setVisible(true);
 		ExitCode exitCode = dialog.getExitCode();
 
@@ -166,7 +171,7 @@ public class ProjectSaver implements BatchStep, ActionListener {
 	}
 
 	public String toString() {
-		return "Project save";
+		return MODULE_NAME;
 	}
 
 }

@@ -45,7 +45,7 @@ class ProjectLoaderDialog extends JDialog implements ActionListener {
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
-	ProjectLoaderDialog(File lastPath) {
+	ProjectLoaderDialog(File lastPath, String helpID) {
 
 		super(MZmineCore.getDesktop().getMainFrame());
 

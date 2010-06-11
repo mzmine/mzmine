@@ -32,7 +32,9 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaver;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -41,6 +43,10 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  * 
  */
 public class ProjectLoader implements BatchStep, ActionListener {
+
+	final String helpID = GUIUtils.generateHelpID(ProjectSaver.class);
+
+	public static final String MODULE_NAME = "Open project";
 
 	private static ProjectLoader myInstance;
 
@@ -56,7 +62,7 @@ public class ProjectLoader implements BatchStep, ActionListener {
 
 		parameters = new ProjectLoaderParameters();
 
-		desktop.addMenuItem(MZmineMenu.PROJECTIO, "Open project...",
+		desktop.addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
 				"Loads a stored MZmine project", KeyEvent.VK_O, true, this,
 				null);
 
@@ -84,7 +90,7 @@ public class ProjectLoader implements BatchStep, ActionListener {
 		if (path != null)
 			lastPath = new File(path);
 
-		ProjectLoaderDialog dialog = new ProjectLoaderDialog(lastPath);
+		ProjectLoaderDialog dialog = new ProjectLoaderDialog(lastPath, helpID);
 		dialog.setVisible(true);
 		ExitCode exitCode = dialog.getExitCode();
 
@@ -126,7 +132,7 @@ public class ProjectLoader implements BatchStep, ActionListener {
 	}
 
 	public String toString() {
-		return "Project load";
+		return MODULE_NAME;
 	}
 
 	/**

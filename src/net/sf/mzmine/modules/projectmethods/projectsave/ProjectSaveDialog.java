@@ -46,7 +46,7 @@ class ProjectSaveDialog extends JDialog implements ActionListener {
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
-	ProjectSaveDialog(File lastPath) {
+	ProjectSaveDialog(File lastPath, String helpID) {
 
 		super(MZmineCore.getDesktop().getMainFrame());
 
@@ -73,8 +73,7 @@ class ProjectSaveDialog extends JDialog implements ActionListener {
 
 		cancelButton = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
 
-		JButton helpButton = new HelpButton(
-				"net/sf/mzmine/modules/io/projectsave/help/ProjectSerialization.html");
+		JButton helpButton = new HelpButton(helpID);
 		buttonsPanel.add(helpButton);
 
 		mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
