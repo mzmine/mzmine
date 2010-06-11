@@ -32,13 +32,15 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.batchmode.BatchStep;
+import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class XMLImporter implements MZmineModule, ActionListener {
+public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 
 	final String helpID = GUIUtils.generateHelpID(XMLExporter.class);
 	
@@ -124,5 +126,14 @@ public class XMLImporter implements MZmineModule, ActionListener {
 		}
 
 	}
+	
+
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PROJECT;
+	}
+
+    public String toString() {
+        return MODULE_NAME;
+    }
 
 }

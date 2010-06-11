@@ -32,14 +32,17 @@ import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class CSVExporter implements MZmineModule, ActionListener,
         BatchStep {
 
-	final static String helpID = "net/sf/mzmine/modules/io/csvexport/help/CSVExport.html";
-
+	final String helpID = GUIUtils.generateHelpID(this);
+	
+	public static final String MODULE_NAME = "Export to CSV file";
+	
     private CSVExporterParameters parameters;
     private Desktop desktop;
 
@@ -52,7 +55,7 @@ public class CSVExporter implements MZmineModule, ActionListener,
 
         parameters = new CSVExporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, "Export to CSV file",
+        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
                 "Export peak list data into CSV file", KeyEvent.VK_C, true,
                 this, null);
 
@@ -88,7 +91,7 @@ public class CSVExporter implements MZmineModule, ActionListener,
      * @see net.sf.mzmine.modules.BatchStep#toString()
      */
     public String toString() {
-        return "Peak list exporter";
+        return MODULE_NAME;
     }
 
     public BatchStepCategory getBatchStepCategory() {
