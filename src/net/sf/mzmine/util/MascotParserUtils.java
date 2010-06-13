@@ -29,16 +29,16 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.proteomics.IonSignificance;
-import net.sf.mzmine.data.proteomics.ModificationPeptide;
-import net.sf.mzmine.data.proteomics.Peptide;
-import net.sf.mzmine.data.proteomics.PeptideFragmentation;
-import net.sf.mzmine.data.proteomics.PeptideIdentityDataFile;
-import net.sf.mzmine.data.proteomics.PeptideIonSerie;
-import net.sf.mzmine.data.proteomics.PeptideScan;
-import net.sf.mzmine.data.proteomics.Protein;
-import net.sf.mzmine.data.proteomics.ProteinSection;
-import net.sf.mzmine.data.proteomics.SerieIonType;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.IonSignificance;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideFragmentation;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIdentityDataFile;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIonSerie;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideScan;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Protein;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ProteinSection;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.SerieIonType;
 
 public class MascotParserUtils {
 	

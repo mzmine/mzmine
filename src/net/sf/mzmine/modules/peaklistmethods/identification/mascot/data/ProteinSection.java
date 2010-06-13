@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.proteomics;
+package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 
 public class ProteinSection {
 	

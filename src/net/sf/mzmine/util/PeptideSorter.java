@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.proteomics.Peptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
 
 public class PeptideSorter implements Comparator<Peptide> {
 

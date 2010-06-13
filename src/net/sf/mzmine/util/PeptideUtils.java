@@ -23,13 +23,13 @@ import java.util.HashMap;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.proteomics.FragmentIon;
-import net.sf.mzmine.data.proteomics.FragmentIonType;
-import net.sf.mzmine.data.proteomics.ModificationPeptide;
-import net.sf.mzmine.data.proteomics.Peptide;
-import net.sf.mzmine.data.proteomics.PeptideFragmentation;
-import net.sf.mzmine.data.proteomics.PeptideIdentityDataFile;
-import net.sf.mzmine.data.proteomics.SerieIonType;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIon;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIonType;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideFragmentation;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.PeptideIdentityDataFile;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.SerieIonType;
 
 public class PeptideUtils {
 	

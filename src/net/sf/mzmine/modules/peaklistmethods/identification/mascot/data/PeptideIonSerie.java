@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.data.proteomics;
+package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 
 import java.util.HashMap;
 

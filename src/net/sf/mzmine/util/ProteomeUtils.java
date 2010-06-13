@@ -22,12 +22,12 @@ package net.sf.mzmine.util;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.proteomics.FragmentIon;
-import net.sf.mzmine.data.proteomics.ModificationPeptide;
-import net.sf.mzmine.data.proteomics.Peptide;
-import net.sf.mzmine.data.proteomics.Protein;
-import net.sf.mzmine.data.proteomics.ProteinSection;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.FragmentIon;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Protein;
+import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ProteinSection;
 
 public class ProteomeUtils {
 	
