@@ -36,7 +36,7 @@ public class CustomDBSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter fieldSeparator = new SimpleParameter(
 			ParameterType.STRING, "Field separator",
-			"Character(s) used to separate fields in the exported file",
+			"Character(s) used to separate fields in the database file",
 			(Object) ",");
 
 	public static final Parameter fieldOrder = new SimpleParameter(
@@ -51,14 +51,14 @@ public class CustomDBSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance",
-			"Tolerance mass difference to set an identification to one peak",
+			"Maximum allowed m/z difference to set an identification to a peak",
 			"m/z", new Double(1.0), new Double(0.0), null, MZmineCore
 					.getMZFormat());
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Time tolerance",
-			"Maximum allowed difference of time to set an identification to one peak",
+			"RT tolerance",
+			"Maximum allowed retention time difference to set an identification to a peak",
 			null, new Double(60.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
