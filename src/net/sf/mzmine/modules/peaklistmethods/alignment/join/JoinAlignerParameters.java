@@ -85,11 +85,6 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			"If checked, only rows having same compound identities (or no identities) can be aligned",
 			new Boolean(false));
 
-	public static final Parameter SameIDWeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Weight for ID",
-			"Score for matching compound identities", "", new Double(0.0),
-			new Double(0.0), null, NumberFormat.getNumberInstance());
-
 	public static final Parameter compareIsotopePattern = new SimpleParameter(
 			ParameterType.BOOLEAN,
 			"Compare isotope pattern",
@@ -103,16 +98,11 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			"%", new Double(0.65), new Double(0.15), new Double(1.0),
 			percentFormat);
 
-	public static final Parameter isotopeScoreWeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Weight for isotope pattern score",
-			"Weight for matching isotope pattern score", "", new Double(0.0),
-			new Double(0.0), null, NumberFormat.getNumberInstance());
-
 	public JoinAlignerParameters() {
 		super(new Parameter[] { peakListName, MZTolerance, MZWeight,
 				RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent,
-				RTWeight, SameChargeRequired, SameIDRequired, SameIDWeight, compareIsotopePattern,
-				isotopePatternScoreThreshold, isotopeScoreWeight });
+				RTWeight, SameChargeRequired, SameIDRequired, compareIsotopePattern,
+				isotopePatternScoreThreshold });
 	}
 
 }

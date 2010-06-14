@@ -19,10 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
-import net.sf.mzmine.util.PeakUtils;
 
 /**
  * This class represents a score between peak list row and aligned peak list row
@@ -31,13 +28,9 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 
 	private PeakListRow peakListRow, alignedRow;
 	double score;
-	private String errorMessage;
 
 	RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
-			double mzMaxDiff, double mzWeight, double rtMaxDiff,
-			double rtWeight, double sameIDWeight,
-			boolean compareIsotopePattern, double isotopePatternScoreThresold,
-			double sameIsotopePatternWeight) throws Exception {
+			double mzMaxDiff, double mzWeight, double rtMaxDiff, double rtWeight) {
 
 		this.peakListRow = peakListRow;
 		this.alignedRow = alignedRow;
@@ -49,33 +42,8 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 		double rtDiff = Math.abs(peakListRow.getAverageRT()
 				- alignedRow.getAverageRT());
 
-		// Compare identities
-		double sameIDFlag = 0;
-		if (PeakUtils.compareIdentities(peakListRow, alignedRow))
-			sameIDFlag = 1;
-
-		// Compare isotope pattern 
-		double sameIsotopePatternScore = 0;
-		if (compareIsotopePattern){
-			
-			IsotopePattern ip1 = peakListRow.getBestIsotopePattern();
-			IsotopePattern ip2 = alignedRow.getBestIsotopePattern();
-
-			sameIsotopePatternScore = IsotopePatternScoreCalculator.getSimilarityScore(ip1, ip2);
-			
-			if (sameIsotopePatternScore < isotopePatternScoreThresold){
-				sameIsotopePatternWeight = 0;
-			}
-			
-		}
-		else{
-			sameIsotopePatternWeight = 0;
-		}
-
-		score = ((1 - mzDiff / mzMaxDiff) * mzWeight) + 
-				((1 - rtDiff / rtMaxDiff) * rtWeight) + 
-				(sameIDFlag * sameIDWeight) + 
-				(sameIsotopePatternScore * sameIsotopePatternWeight);
+		score = ((1 - mzDiff / mzMaxDiff) * mzWeight)
+				+ ((1 - rtDiff / rtMaxDiff) * rtWeight);
 
 	}
 
@@ -99,10 +67,6 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
 	 */
 	double getScore() {
 		return score;
-	}
-	
-	String getErrorMessage(){
-		return errorMessage;
 	}
 
 	/**
