@@ -328,6 +328,9 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 				peakSelector.addItem(option.getName());
 			}
 		}
+		if (currentPeakLists.length == 0) {
+				peakSelector.addItem(PeakThresholdMode.NO_PEAKS.getName());
+		}
 		if (index < currentPeakLists.length)
 			peakSelector.setSelectedIndex(index);
 	}
