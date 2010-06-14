@@ -39,8 +39,8 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Time tolerance",
-			"Maximum allowed retention time difference to set a relationship between peaks",
+			"RT tolerance",
+			"Maximum allowed retention retention time difference to set the relationship between peaks",
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
@@ -52,7 +52,7 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 	public static final Parameter maxComplexHeight = new SimpleParameter(
 			ParameterType.DOUBLE,
 			"Max complex peak height",
-			"Maximum height of the recognized complex peak, relative to the main peak",
+			"Maximum height of the recognized complex peak, relative to the highest of component peaks",
 			"%", new Double(0.20), new Double(0.0), null, percentFormat);
 
 	public ComplexSearchParameters() {

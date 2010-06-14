@@ -33,8 +33,8 @@ public class AdductSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Time tolerance",
-			"Maximum allowed difference of time to set a relationship between peaks",
+			"RT tolerance",
+			"Maximum allowed difference of retention time to set a relationship between peaks",
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 

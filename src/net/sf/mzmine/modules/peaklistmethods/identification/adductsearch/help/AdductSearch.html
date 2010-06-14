@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Identification - Adduct Search</title>
+        <title>Identification - Adduct search</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/helpsystem/HelpStyles.css">
     </head>
@@ -10,30 +10,35 @@
         <h1>Adduct Search</h1>
 
         <h2>Description</h2>
-        <p>
-            <b>Adduct ion definition(in mass spectrometry)</b>
-            <br>
-            An ion formed by interaction of two species, usually an ion and a molecule,
+        
+        <h4>Definition of an adduct ion</h4>
+            
+        <br>
+        An ion formed by interaction of two species, usually an ion and a molecule,
 and often within the ion source, to form an ion containing all the constituent
 atoms of one species as well as an additional atom or atoms.
-
         </p>
 
         <p>
-            This algorithm search for the adducts that are defined by the user in a single peak list.
-
+            This method identifies common adducts (selected by the user) in a single peak list. 
+            MZmine has a built-in list of common adducts and their masses. 
+            On top of this list, the user can specify a custom adduct mass.
         </p>
 
         <p>
-            <img src="peakList.png" name="peakList">
-            <br>
-            Peak List showing two identified "Deuterium" adducts.
+    	    The following figure shows a spectrum with a phosphate adduct ion.<br>
+ 	       <img src="phosphateAdduct.png">
+        </p>
+
+        <p>
+    	    The following figure shows a peak list showing two identified "Deuterium" adducts.<br>
+ 	       <img src="peakList.png" name="peakList">
         </p>
        
 		<h4>Method parameters</h4>
 		<dl>
-		<dt>Time tolerance</dt>
-		<dd>Maximum allowed difference of time to set a relationship between peaks</dd>
+		<dt>RT tolerance</dt>
+		<dd>Maximum allowed difference of retention time to set a relationship between peaks</dd>
 		
 		<dt>Adducts</dt>
 		<dd>List of adducts, each one refers a specific distance in m/z axis between related peaks</dd>
@@ -49,7 +54,7 @@ atoms of one species as well as an additional atom or atoms.
 		</dl>
 
         <p>
-            <img src="parameters.png" name="parameters">
+            <img src="parameters.png">
         </p>
        
     </body>
