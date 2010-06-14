@@ -135,12 +135,12 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
 		Object dataFileObjects[] = (Object[]) parameters
 				.getParameterValue(TICVisualizerParameters.dataFiles);
-		
+
 		RawDataFile dataFiles[] = CollectionUtils.changeArrayType(
 				dataFileObjects, RawDataFile.class);
 
 		Hashtable<Parameter, Object> autoValues = null;
-		if (dataFiles.length == 1) {
+		if ((dataFiles.length == 1) && (dataFiles[0].getDataRTRange(1) != null)) {
 			autoValues = new Hashtable<Parameter, Object>();
 			autoValues.put(TICVisualizerParameters.msLevel, 1);
 			autoValues.put(TICVisualizerParameters.retentionTimeRange,
@@ -188,7 +188,18 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 		TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
 				plotType, msLevel, rtRange, mzRange, peaks);
 
-		desktop.addInternalFrame(newWindow);
+		// Add the window to the desktop only if we actually have any raw data
+		// to show
+		boolean weHaveData = false;
+		for (RawDataFile file : dataFiles) {
+			int scanNumbers[] = file.getScanNumbers(msLevel, rtRange);
+			if (scanNumbers.length > 0) {
+				weHaveData = true;
+				break;
+			}
+		}
+		if (weHaveData)
+			desktop.addInternalFrame(newWindow);
 
 	}
 

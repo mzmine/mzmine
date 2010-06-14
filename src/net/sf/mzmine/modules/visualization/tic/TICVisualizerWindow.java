@@ -44,269 +44,271 @@ import org.jfree.chart.axis.NumberTickUnit;
  * Total ion chromatogram visualizer using JFreeChart library
  */
 public class TICVisualizerWindow extends JInternalFrame implements
-        ActionListener {
+		ActionListener {
 
-    private TICToolBar toolBar;
-    private TICPlot ticPlot;
+	private TICToolBar toolBar;
+	private TICPlot ticPlot;
 
-    // Data sets
-    private Hashtable<RawDataFile, TICDataSet> ticDataSets;
+	// Data sets
+	private Hashtable<RawDataFile, TICDataSet> ticDataSets;
 
-    private Object plotType;
-    private int msLevel;
-    private Range rtRange, mzRange;
+	private Object plotType;
+	private int msLevel;
+	private Range rtRange, mzRange;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
-     * Constructor for total ion chromatogram visualizer
-     * 
+	/**
+	 * Constructor for total ion chromatogram visualizer
+	 * 
+	 */
+	public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
+			int msLevel, Range rtRange, Range mzRange,
+			ChromatographicPeak[] peaks) {
+
+		super(null, true, true, true, true);
+
+		this.desktop = MZmineCore.getDesktop();
+		this.plotType = plotType;
+		this.msLevel = msLevel;
+		this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
+		this.rtRange = rtRange;
+		this.mzRange = mzRange;
+
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		setBackground(Color.white);
+
+		ticPlot = new TICPlot(this);
+		add(ticPlot, BorderLayout.CENTER);
+
+		// toolBar = new TICToolBar(this);
+		toolBar = new TICToolBar(ticPlot);
+		add(toolBar, BorderLayout.EAST);
+
+		// add all peaks
+		if (peaks != null) {
+			for (ChromatographicPeak peak : peaks) {
+				PeakDataSet peakDataSet = new PeakDataSet(peak);
+				ticPlot.addPeakDataset(peakDataSet);
+			}
+		}
+
+		// add all data files
+		for (RawDataFile dataFile : dataFiles)
+			addRawDataFile(dataFile);
+
+		pack();
+
+	}
+
+	void updateTitle() {
+
+		NumberFormat rtFormat = MZmineCore.getRTFormat();
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
+		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+
+		StringBuffer mainTitle = new StringBuffer();
+		StringBuffer subTitle = new StringBuffer();
+
+		if (plotType == TICVisualizerParameters.plotTypeBP)
+			mainTitle.append("Base peak plot");
+		else {
+			// If all datafiles have m/z range less than or equal to range of
+			// the plot (mzMin, mzMax), then call this TIC, otherwise XIC
+			Set<RawDataFile> fileSet = ticDataSets.keySet();
+			String ticOrXIC = "TIC";
+			for (RawDataFile df : fileSet) {
+				if (!mzRange.containsRange(df.getDataMZRange(msLevel))) {
+					ticOrXIC = "XIC";
+					break;
+				}
+			}
+			mainTitle.append(ticOrXIC);
+		}
+
+		mainTitle.append(", MS" + msLevel);
+		mainTitle.append(", m/z: " + mzFormat.format(mzRange.getMin()) + " - "
+				+ mzFormat.format(mzRange.getMax()));
+
+		CursorPosition pos = getCursorPosition();
+
+		if (pos != null) {
+			subTitle.append("Selected scan #");
+			subTitle.append(pos.getScanNumber());
+			if (ticDataSets.size() > 1)
+				subTitle.append(" (" + pos.getDataFile() + ")");
+			subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
+			if (plotType == TICVisualizerParameters.plotTypeBP)
+				subTitle.append(", base peak: "
+						+ mzFormat.format(pos.getMzValue()) + " m/z");
+			subTitle.append(", IC: "
+					+ intensityFormat.format(pos.getIntensityValue()));
+		}
+
+		// update window title
+		setTitle(ticDataSets.keySet().toString() + " chromatogram");
+
+		// update plot title
+		ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
+
+	}
+
+	/**
+	 * @return Returns the plotType.
+	 */
+	Object getPlotType() {
+		return plotType;
+	}
+
+	TICDataSet[] getAllDataSets() {
+		return ticDataSets.values().toArray(new TICDataSet[0]);
+	}
+
+	/**
      */
-    public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
-            int msLevel, Range rtRange, Range mzRange,
-            ChromatographicPeak[] peaks) {
+	public void setRTRange(Range rtRange) {
+		ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
+				rtRange.getMax());
+	}
 
-        super(null, true, true, true, true);
+	public void setAxesRange(double xMin, double xMax, double xTickSize,
+			double yMin, double yMax, double yTickSize) {
+		NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
+		NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
+		xAxis.setRange(xMin, xMax);
+		xAxis.setTickUnit(new NumberTickUnit(xTickSize));
+		yAxis.setRange(yMin, yMax);
+		yAxis.setTickUnit(new NumberTickUnit(yTickSize));
+	}
 
-        this.desktop = MZmineCore.getDesktop();
-        this.plotType = plotType;
-        this.msLevel = msLevel;
-        this.ticDataSets = new Hashtable<RawDataFile, TICDataSet>();
-        this.rtRange = rtRange;
-        this.mzRange = mzRange;
+	/**
+	 * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
+	 *      double)
+	 */
+	public void setIntensityRange(double intensityMin, double intensityMax) {
+		ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
+	}
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+	/**
+	 * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
+	 */
+	public RawDataFile[] getRawDataFiles() {
+		return ticDataSets.keySet().toArray(new RawDataFile[0]);
+	}
 
-        ticPlot = new TICPlot(this);
-        add(ticPlot, BorderLayout.CENTER);
+	public void addRawDataFile(RawDataFile newFile) {
 
-        // toolBar = new TICToolBar(this);
-        toolBar = new TICToolBar(ticPlot);
-        add(toolBar, BorderLayout.EAST);
+		int scanNumbers[] = newFile.getScanNumbers(msLevel, rtRange);
+		if (scanNumbers.length == 0) {
+			desktop.displayErrorMessage("No scans found at MS level " + msLevel
+					+ " within given retention time range.");
+			return;
+		}
 
-        // add all peaks
-        if (peaks != null) {
-            for (ChromatographicPeak peak : peaks) {
-                PeakDataSet peakDataSet = new PeakDataSet(peak);
-                ticPlot.addPeakDataset(peakDataSet);
-            }
-        }
+		TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange,
+				this);
+		ticDataSets.put(newFile, ticDataset);
+		ticPlot.addTICDataset(ticDataset);
 
-        // add all data files
-        for (RawDataFile dataFile : dataFiles)
-            addRawDataFile(dataFile);
+		if (ticDataSets.size() == 1) {
+			// when adding first file, set the retention time range
+			setRTRange(rtRange);
+		}
 
-        pack();
+	}
 
-    }
+	public void removeRawDataFile(RawDataFile file) {
+		TICDataSet dataset = ticDataSets.get(file);
+		ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
+				null);
+		ticDataSets.remove(file);
+	}
 
-    void updateTitle() {
+	/**
+	 * @return current cursor position
+	 */
+	public CursorPosition getCursorPosition() {
+		double selectedRT = (double) ticPlot.getXYPlot()
+				.getDomainCrosshairValue();
+		double selectedIT = (double) ticPlot.getXYPlot()
+				.getRangeCrosshairValue();
+		Enumeration<TICDataSet> e = ticDataSets.elements();
+		while (e.hasMoreElements()) {
+			TICDataSet dataSet = e.nextElement();
+			int index = dataSet.getIndex(selectedRT, selectedIT);
+			if (index >= 0) {
+				double mz = 0;
+				if (plotType == TICVisualizerParameters.plotTypeBP)
+					mz = (double) dataSet.getZValue(0, index);
+				CursorPosition pos = new CursorPosition(selectedRT, mz,
+						selectedIT, dataSet.getDataFile(), dataSet
+								.getScanNumber(0, index));
+				return pos;
+			}
+		}
+		return null;
+	}
 
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	/**
+	 * @return current cursor position
+	 */
+	public void setCursorPosition(CursorPosition newPosition) {
+		ticPlot.getXYPlot().setDomainCrosshairValue(
+				newPosition.getRetentionTime(), false);
+		ticPlot.getXYPlot().setRangeCrosshairValue(
+				newPosition.getIntensityValue());
+	}
 
-        StringBuffer mainTitle = new StringBuffer();
-        StringBuffer subTitle = new StringBuffer();
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-        if (plotType == TICVisualizerParameters.plotTypeBP)
-            mainTitle.append("Base peak plot");
-        else {
-            // If all datafiles have m/z range less than or equal to range of
-            // the plot (mzMin, mzMax), then call this TIC, otherwise XIC
-            Set<RawDataFile> fileSet = ticDataSets.keySet();
-            String ticOrXIC = "TIC";
-            for (RawDataFile df : fileSet) {
-                if (!mzRange.containsRange(df.getDataMZRange(msLevel))) {
-                    ticOrXIC = "XIC";
-                    break;
-                }
-            }
-            mainTitle.append(ticOrXIC);
-        }
+		String command = event.getActionCommand();
 
-        mainTitle.append(", MS" + msLevel);
-        mainTitle.append(", m/z: " + mzFormat.format(mzRange.getMin()) + " - "
-                + mzFormat.format(mzRange.getMax()));
+		if (command.equals("SHOW_SPECTRUM")) {
+			CursorPosition pos = getCursorPosition();
+			if (pos != null) {
+				SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(), pos
+						.getScanNumber());
+			}
+		}
 
-        CursorPosition pos = getCursorPosition();
+		if (command.equals("MOVE_CURSOR_LEFT")) {
+			CursorPosition pos = getCursorPosition();
+			if (pos != null) {
+				TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
+				int index = dataSet.getIndex(pos.getRetentionTime(), pos
+						.getIntensityValue());
+				if (index > 0) {
+					index--;
+					pos.setRetentionTime((double) dataSet.getXValue(0, index));
+					pos.setIntensityValue((double) dataSet.getYValue(0, index));
+					setCursorPosition(pos);
 
-        if (pos != null) {
-            subTitle.append("Selected scan #");
-            subTitle.append(pos.getScanNumber());
-            if (ticDataSets.size() > 1)
-                subTitle.append(" (" + pos.getDataFile() + ")");
-            subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-            if (plotType == TICVisualizerParameters.plotTypeBP)
-                subTitle.append(", base peak: "
-                        + mzFormat.format(pos.getMzValue()) + " m/z");
-            subTitle.append(", IC: "
-                    + intensityFormat.format(pos.getIntensityValue()));
-        }
+				}
+			}
+		}
 
-        // update window title
-        setTitle(ticDataSets.keySet().toString() + " chromatogram");
+		if (command.equals("MOVE_CURSOR_RIGHT")) {
+			CursorPosition pos = getCursorPosition();
+			if (pos != null) {
+				TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
+				int index = dataSet.getIndex(pos.getRetentionTime(), pos
+						.getIntensityValue());
+				if (index >= 0) {
+					index++;
+					if (index < dataSet.getItemCount(0)) {
+						pos.setRetentionTime((double) dataSet.getXValue(0,
+								index));
+						pos.setIntensityValue((double) dataSet.getYValue(0,
+								index));
+						setCursorPosition(pos);
+					}
+				}
+			}
+		}
 
-        // update plot title
-        ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
-
-    }
-
-    /**
-     * @return Returns the plotType.
-     */
-    Object getPlotType() {
-        return plotType;
-    }
-
-    TICDataSet[] getAllDataSets() {
-        return ticDataSets.values().toArray(new TICDataSet[0]);
-    }
-
-    /**
-     */
-    public void setRTRange(Range rtRange) {
-        ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
-                rtRange.getMax());
-    }
-
-    public void setAxesRange(double xMin, double xMax, double xTickSize,
-            double yMin, double yMax, double yTickSize) {
-        NumberAxis xAxis = (NumberAxis) ticPlot.getXYPlot().getDomainAxis();
-        NumberAxis yAxis = (NumberAxis) ticPlot.getXYPlot().getRangeAxis();
-        xAxis.setRange(xMin, xMax);
-        xAxis.setTickUnit(new NumberTickUnit(xTickSize));
-        yAxis.setRange(yMin, yMax);
-        yAxis.setTickUnit(new NumberTickUnit(yTickSize));
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#setIntensityRange(double,
-     *      double)
-     */
-    public void setIntensityRange(double intensityMin, double intensityMax) {
-        ticPlot.getXYPlot().getRangeAxis().setRange(intensityMin, intensityMax);
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.RawDataVisualizer#getRawDataFiles()
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return ticDataSets.keySet().toArray(new RawDataFile[0]);
-    }
-
-    public void addRawDataFile(RawDataFile newFile) {
-
-        int scanNumbers[] = newFile.getScanNumbers(msLevel, rtRange);
-        if (scanNumbers.length == 0) {
-            desktop.displayErrorMessage("No scans found at MS level " + msLevel
-                    + " within given retention time range.");
-            return;
-        }
-
-        TICDataSet ticDataset = new TICDataSet(newFile, scanNumbers, mzRange,
-                this);
-        ticDataSets.put(newFile, ticDataset);
-        ticPlot.addTICDataset(ticDataset);
-
-        if (ticDataSets.size() == 1) {
-            // when adding first file, set the retention time range
-            setRTRange(rtRange);
-        }
-
-    }
-
-    public void removeRawDataFile(RawDataFile file) {
-        TICDataSet dataset = ticDataSets.get(file);
-        ticPlot.getXYPlot().setDataset(ticPlot.getXYPlot().indexOf(dataset),
-                null);
-        ticDataSets.remove(file);
-    }
-
-    /**
-     * @return current cursor position
-     */
-    public CursorPosition getCursorPosition() {
-        double selectedRT = (double) ticPlot.getXYPlot().getDomainCrosshairValue();
-        double selectedIT = (double) ticPlot.getXYPlot().getRangeCrosshairValue();
-        Enumeration<TICDataSet> e = ticDataSets.elements();
-        while (e.hasMoreElements()) {
-            TICDataSet dataSet = e.nextElement();
-            int index = dataSet.getIndex(selectedRT, selectedIT);
-            if (index >= 0) {
-                double mz = 0;
-                if (plotType == TICVisualizerParameters.plotTypeBP)
-                    mz = (double) dataSet.getZValue(0, index);
-                CursorPosition pos = new CursorPosition(selectedRT, mz,
-                        selectedIT, dataSet.getDataFile(),
-                        dataSet.getScanNumber(0, index));
-                return pos;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * @return current cursor position
-     */
-    public void setCursorPosition(CursorPosition newPosition) {
-        ticPlot.getXYPlot().setDomainCrosshairValue(
-                newPosition.getRetentionTime(), false);
-        ticPlot.getXYPlot().setRangeCrosshairValue(
-                newPosition.getIntensityValue());
-    }
-
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
-
-        String command = event.getActionCommand();
-
-        if (command.equals("SHOW_SPECTRUM")) {
-            CursorPosition pos = getCursorPosition();
-            if (pos != null) {
-                SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(),
-                        pos.getScanNumber());
-            }
-        }
-
-        if (command.equals("MOVE_CURSOR_LEFT")) {
-            CursorPosition pos = getCursorPosition();
-            if (pos != null) {
-                TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-                int index = dataSet.getIndex(pos.getRetentionTime(),
-                        pos.getIntensityValue());
-                if (index > 0) {
-                    index--;
-                    pos.setRetentionTime((double) dataSet.getXValue(0, index));
-                    pos.setIntensityValue((double) dataSet.getYValue(0, index));
-                    setCursorPosition(pos);
-
-                }
-            }
-        }
-
-        if (command.equals("MOVE_CURSOR_RIGHT")) {
-            CursorPosition pos = getCursorPosition();
-            if (pos != null) {
-                TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-                int index = dataSet.getIndex(pos.getRetentionTime(),
-                        pos.getIntensityValue());
-                if (index >= 0) {
-                    index++;
-                    if (index < dataSet.getItemCount(0)) {
-                        pos.setRetentionTime((double) dataSet.getXValue(0,
-                                index));
-                        pos.setIntensityValue((double) dataSet.getYValue(0,
-                                index));
-                        setCursorPosition(pos);
-                    }
-                }
-            }
-        }
-
-    }
+	}
 
 }

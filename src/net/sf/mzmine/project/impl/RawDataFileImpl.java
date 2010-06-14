@@ -68,7 +68,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		this.dataFileName = dataFileName;
 
-		// Prepare the hashtables for scan numbers and data limits. 
+		// Prepare the hashtables for scan numbers and data limits.
 		scanNumbersCache = new Hashtable<Integer, int[]>();
 		dataMZRange = new Hashtable<Integer, Range>();
 		dataRTRange = new Hashtable<Integer, Range>();
@@ -152,7 +152,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	public int[] getScanNumbers(int msLevel, Range rtRange) {
 
 		assert rtRange != null;
-		
+
 		ArrayList<Integer> eligibleScanNumbers = new ArrayList<Integer>();
 
 		Enumeration<Scan> scansEnum = scans.elements();
@@ -402,7 +402,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		}
 
 		// cache the value
-		dataRTRange.put(msLevel, rtRange);
+		if (rtRange != null)
+			dataRTRange.put(msLevel, rtRange);
 
 		return rtRange;
 
