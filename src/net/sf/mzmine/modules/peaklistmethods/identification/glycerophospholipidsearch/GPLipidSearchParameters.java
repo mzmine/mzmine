@@ -29,7 +29,7 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter lipidTypes = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Type of lipids",
-			"List of possible glycerophospholipis", null, GPLipidType.values());
+			"Selection of glycerophospholipis to consider", null, GPLipidType.values());
 
 	public static final Parameter minChainLength = new SimpleParameter(
 			ParameterType.INTEGER, "Minimum fatty acid length",
@@ -48,7 +48,7 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance",
-			"Tolerance value of the m/z difference", "m/z", new Double(0.1),
+			"Maximum allowed m/z difference", "m/z", new Double(0.1),
 			new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter ionizationMethod = new SimpleParameter(
