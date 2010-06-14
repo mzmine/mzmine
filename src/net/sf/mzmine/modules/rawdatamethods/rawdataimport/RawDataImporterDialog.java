@@ -74,20 +74,23 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 				"NetCDF files", "cdf", "nc");
 		fileChooser.addChoosableFileFilter(filter);
 
-		filter = new FileNameExtensionFilter("mzDATA files", "mzDATA");
+		filter = new FileNameExtensionFilter("mzData files", "mzData");
 		fileChooser.addChoosableFileFilter(filter);
 
 		filter = new FileNameExtensionFilter("mzML files", "mzML");
 		fileChooser.addChoosableFileFilter(filter);
 
-		filter = new FileNameExtensionFilter("XCalibur RAW files", "RAW");
+		filter = new FileNameExtensionFilter("XCalibur RAW files", "raw");
 		fileChooser.addChoosableFileFilter(filter);
 
-		filter = new FileNameExtensionFilter("MZXML files", "mzxml");
+		filter = new FileNameExtensionFilter("mzXML files", "mzXML");
+		fileChooser.addChoosableFileFilter(filter);
+		
+		filter = new FileNameExtensionFilter("All XML files", "xml");
 		fileChooser.addChoosableFileFilter(filter);
 
 		filter = new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-				"mzDATA", "mzML", "mzxml", "RAW");
+				"mzData", "mzML", "mzXML", "xml", "raw");
 		fileChooser.setFileFilter(filter);
 		mainPanel.add(fileChooser, BorderLayout.CENTER);
 

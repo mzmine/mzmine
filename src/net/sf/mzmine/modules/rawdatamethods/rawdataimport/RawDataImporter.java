@@ -23,6 +23,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileReader;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
@@ -49,9 +50,9 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class RawDataImporter implements MZmineModule, ActionListener, BatchStep {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	public static final String MODULE_NAME = "Raw data import";
-	
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private RawDataImporterParameters parameters;
@@ -128,6 +129,12 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 
 			File file = new File(filePath);
 
+			if ((!file.exists()) || (!file.canRead())) {
+				desktop.displayErrorMessage("Cannot read file " + file);
+				logger.warning("Cannot read file " + file);
+				return null;
+			}
+
 			String extension = file.getName().substring(
 					file.getName().lastIndexOf(".") + 1).toLowerCase();
 
@@ -146,6 +153,31 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 			if (extension.endsWith("raw")) {
 				openTasks[i] = new XcaliburRawFileReadTask(file);
 			}
+			if (extension.endsWith("xml")) {
+
+				try {
+					// Check the first 512 bytes of the file, to determine the
+					// file type
+					FileReader reader = new FileReader(file);
+					char buffer[] = new char[512];
+					reader.read(buffer);
+					reader.close();
+					String fileHeader = new String(buffer);
+					if (fileHeader.contains("mzXML")) {
+						openTasks[i] = new MzXMLReadTask(file);
+					}
+					if (fileHeader.contains("mzData")) {
+						openTasks[i] = new MzDataReadTask(file);
+					}
+					if (fileHeader.contains("mzML")) {
+						openTasks[i] = new MzMLReadTask(file);
+					}
+				} catch (Exception e) {
+					// If an exception occurs, we just continue without
+					// determining the file type
+				}
+			}
+
 			if (openTasks[i] == null) {
 				desktop
 						.displayErrorMessage("Cannot determine file type of file "
@@ -170,7 +202,8 @@ public class RawDataImporter implements MZmineModule, ActionListener, BatchStep 
 		if (path != null)
 			lastPath = new File(path);
 
-		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath, helpID);
+		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath,
+				helpID);
 		dialog.setVisible(true);
 		ExitCode exitCode = dialog.getExitCode();
 
