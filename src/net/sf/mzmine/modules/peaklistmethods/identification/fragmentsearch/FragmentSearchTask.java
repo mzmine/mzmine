@@ -196,6 +196,8 @@ public class FragmentSearchTask implements Task {
 
 		// Get MS/MS scan, if exists
 		int fragmentScanNumber = mainPeak.getMostIntenseFragmentScanNumber();
+		if (fragmentScanNumber <= 0)
+			return false;
 		Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
 		if (fragmentScan == null)
 			return false;
