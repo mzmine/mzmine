@@ -20,7 +20,13 @@ atoms of one species as well as an additional atom or atoms.
         </p>
 
         <p>
-            This method identifies common adducts (selected by the user) in a single peak list. 
+            This method identifies common adducts (selected by the user) in a single peak list.
+            The adducts are identified by 2 conditions: 1) the retention time of the original ion and the adduct ion should be same and 
+			2) the mass difference between the original ion and the adduct must be equal to one of the adducts selected by the user.
+		</p>
+
+		<p> 
+ 
             MZmine has a built-in list of common adducts and their masses. 
             On top of this list, the user can specify a custom adduct mass.
         </p>

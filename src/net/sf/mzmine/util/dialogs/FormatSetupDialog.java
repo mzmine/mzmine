@@ -42,6 +42,8 @@ import net.sf.mzmine.util.components.HelpButton;
 public class FormatSetupDialog extends JDialog implements ActionListener {
 
 	public static final int TEXTFIELD_COLUMNS = 12;
+	
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	// NumberFormatter instances
 	private NumberFormatter mzFormat, rtFormat, intensityFormat;
@@ -101,7 +103,7 @@ public class FormatSetupDialog extends JDialog implements ActionListener {
 		JPanel pnlButtons = new JPanel();
 		btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
 		btnCancel = GUIUtils.addButton(pnlButtons, "Cancel", null, this);
-		btnHelp = new HelpButton("net/sf/mzmine/util/help/Formats.html");
+		btnHelp = new HelpButton(helpID);
 		pnlButtons.add(btnHelp);
 
 		// Put everything into a main panel

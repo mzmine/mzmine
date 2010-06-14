@@ -33,14 +33,14 @@ public class FragmentSearchParameters extends SimpleParameterSet {
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE,
-			"Time tolerance",
+			"RT tolerance",
 			"Maximum allowed retention time difference to set a relationship between peaks",
 			null, new Double(10.0), new Double(0.0), null, MZmineCore
 					.getRTFormat());
 
 	public static final Parameter ms2mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance of MS2 data",
-			"Tolerance value of the m/z difference between peaks", "m/z",
+			"Tolerance value of the m/z difference between peaks in MS/MS scans", "m/z",
 			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
 
 	public static final Parameter maxFragmentHeight = new SimpleParameter(
