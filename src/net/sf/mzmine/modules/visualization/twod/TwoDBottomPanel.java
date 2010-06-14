@@ -29,6 +29,7 @@ import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -59,6 +60,7 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 	private JComboBox peakListSelector;
 	private JComboBox peakSelector;
 	private JTextField peakTextField;
+	private JLabel peakTextLabel;
 	private PeakThresholdParameters peakThresholdParameters;
 
 	private TwoDVisualizerWindow masterFrame;
@@ -92,11 +94,14 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 
 		JPanel peakThresholdPanel = new JPanel();
 		peakThresholdPanel.setBackground(Color.white);
-		peakThresholdPanel.setPreferredSize(new Dimension(50, 10));
+		peakThresholdPanel.setLayout(new BoxLayout(peakThresholdPanel, BoxLayout.X_AXIS));
+		
+		peakTextLabel = GUIUtils.addLabel(peakThresholdPanel, "Value: ", SwingConstants.RIGHT);
+		peakTextLabel.setEnabled(false);
+		
 		peakTextField = new JTextField();
-		peakTextField.setPreferredSize(new Dimension(40, 15));
+		peakTextField.setPreferredSize(new Dimension(50, 15));
 		peakTextField.setFont(smallFont);
-		peakTextField.setVisible(false);
 		peakTextField.addActionListener(masterFrame);
 		peakTextField.setActionCommand("PEAKS_VIEW_TEXTFIELD");
 		peakThresholdPanel.add(peakTextField);
@@ -147,7 +152,9 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 							.valueOf((Integer) peakThresholdParameters
 									.getParameterValue(PeakThresholdParameters.topThresholdArea)));
 		}
-		peakTextField.setVisible(b);
+		//peakTextField.setVisible(b);
+		peakTextField.setEnabled(b);
+		peakTextLabel.setEnabled(b);
 
 		int index = peakSelector.getSelectedIndex();
 		peakThresholdParameters.setParameterValue(

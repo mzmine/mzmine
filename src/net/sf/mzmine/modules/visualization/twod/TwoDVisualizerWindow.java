@@ -72,12 +72,13 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
 		updateTitle();
 
-		pack();
 
 		// After we have constructed everything, load the peak lists into the
 		// bottom panel
 		bottomPanel.rebuildPeakListSelector();
 		bottomPanel.buildPeakThresholdSelector();
+		
+		pack();
 	}
 
 	void updateTitle() {
