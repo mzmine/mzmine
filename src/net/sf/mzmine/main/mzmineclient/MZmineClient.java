@@ -31,8 +31,8 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.desktop.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.main.MZminePreferences;

@@ -38,7 +38,7 @@ public class IsotopePatternScoreCalculator {
 
 		assert ip1 != null;
 		assert ip2 != null;
-		
+
 		// First, normalize the isotopes to intensity 0..1
 		IsotopePattern nip1 = ip1.normalizeTo(1);
 		IsotopePattern nip2 = ip2.normalizeTo(1);
@@ -61,12 +61,19 @@ public class IsotopePatternScoreCalculator {
 
 		// Create a CDK object for comparing isotope patterns
 		IsotopePatternSimilarity cdkSimilarityCalculator = new IsotopePatternSimilarity();
-		
+
 		// Set the mass tolerance to 10 ppm
 		cdkSimilarityCalculator.seTolerance(10);
 
-		// Compare the CDK isotope patterns using CDK comparator
-		double score = cdkSimilarityCalculator.compare(cdkIP1, cdkIP2);
+		double score;
+		
+		// Compare the CDK isotope patterns using CDK comparator. Due to the
+		// implementation of the algorithm in CDK, the first argument has to be
+		// the isotope pattern with more isotopes.
+		if (ip1.getNumberOfIsotopes() > ip2.getNumberOfIsotopes())
+			score = cdkSimilarityCalculator.compare(cdkIP1, cdkIP2);
+		else
+			score = cdkSimilarityCalculator.compare(cdkIP2, cdkIP1);
 
 		// Return the final score
 		return score;

@@ -41,7 +41,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.helpsystem.HelpMainMenuItem;
+import net.sf.mzmine.desktop.impl.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.ProjectEvent;

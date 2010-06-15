@@ -31,7 +31,7 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.helpsystem.HelpImpl;
+import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;

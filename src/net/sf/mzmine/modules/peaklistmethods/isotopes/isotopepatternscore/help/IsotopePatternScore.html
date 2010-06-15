@@ -12,11 +12,25 @@
 <h2>Description</h2>
 
 <p>
-Several modules of MZmine offer the option the compare the isotope patterns of peaks and assign a score (percentage) of similarity to them. 
-MZmine is using the CDK (Chemistry Development Kit, <a href="http://cdk.sourceforge.net">http://cdk.sourceforge.net</a>) library for performing this operation.
-The algorithm used by CDK is as follows:
+Several modules in MZmine 2 offer the option the compare the isotope patterns of peaks and assign a score (percentage) of similarity to them. 
+This functionality assumes the precision of the m/z values is high (error &lt; 10 ppm).
+MZmine 2 is using the CDK (Chemistry Development Kit, <a href="http://cdk.sourceforge.net">http://cdk.sourceforge.net</a>) library to perform this operation.
+The algorithm used by CDK is described below.
 </p>
 
+<h3>Comparison algorithm</h3>
+
+<p>
+The similarity of two isotope patterns is determined as follows:
+</p>
+
+<p>
+1) For each isotope in the first pattern, find a matching isotope in the second pattern, within the 10 ppm difference of mass. If no match is found, the isotope is ignored.<br>
+2) A similarity score of the isotope pair is calculated as <i>pairScore = intensity &times; (1 - (massDifference + abundanceDifference))</i>, 
+where <i>intensity</i> is the intensity of the first isotope in the pair, <i>massDifference</i> is the difference of m/z values 
+and <i>abundanceDifference</i> is calculated as <i>abundanceDifference = 1 - (intensityOfIsotope1 / intensityOfIsotope2)</i><br>
+3) Finally, a sum of the scores is calculated and divided by the sum of all <i>intensity</i> values. The resulting score is therefore normalized to 0.0 - 1.0
+</p>
 
 </body>
 </html>

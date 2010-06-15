@@ -23,8 +23,8 @@ import javax.help.CSH;
 import javax.help.HelpBroker;
 import javax.swing.JButton;
 
-import net.sf.mzmine.desktop.helpsystem.HelpImpl;
-import net.sf.mzmine.desktop.helpsystem.MZmineHelpSet;
+import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
+import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 
 /**

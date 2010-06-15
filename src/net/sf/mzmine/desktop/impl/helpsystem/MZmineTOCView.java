@@ -18,7 +18,7 @@
  */
 
 
-package net.sf.mzmine.desktop.helpsystem;
+package net.sf.mzmine.desktop.impl.helpsystem;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.helpsystem;
+package net.sf.mzmine.desktop.impl.helpsystem;
 
 
 import javax.help.HelpSet;
