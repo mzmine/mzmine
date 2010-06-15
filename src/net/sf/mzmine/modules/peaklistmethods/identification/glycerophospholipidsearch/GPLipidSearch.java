@@ -43,7 +43,7 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 
 	final String helpID = GUIUtils.generateHelpID(this);
 
-	public static final String MODULE_NAME = "Glycerophospholipid search";
+	public static final String MODULE_NAME = "Glycerophospholipid prediction";
 
 	private Desktop desktop;
 	private GPLipidSearchParameters parameters;
@@ -65,7 +65,7 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 		parameters = new GPLipidSearchParameters();
 
 		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-				"Identification of glycerophospholipids", KeyEvent.VK_A, false,
+				"Identification of glycerophospholipids by predicting their mass", KeyEvent.VK_A, false,
 				this, null);
 
 	}

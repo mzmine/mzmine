@@ -1,0 +1,49 @@
+<html>
+	<head>
+		<title>About MZmine 2 - Usage and workflow</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Usage and workflow</h1>
+
+<h2>Starting MZmine 2</h2>
+
+<p>
+MZmine 2 can run on any platform which has a Java runtime available (version 1.6 or higher). 
+A startup script is provided for MS Windows (startMZmine_Windows.bat), Mac OS X (startMZmine_MacOSX.command) and Linux (startMZmine_Linux.sh) environments.
+The startup script may be edited to tweak various Java runtime parameters.
+Particularly, the amount of memory allocated for the Java Virtual Machine may be adjusted by editing the HEAP_SIZE parameter in the startup script.
+Standard value is set to 1GB. If your computer has more RAM available and you wish to use it for MZmine 2, please edit the startup script.
+</p>
+
+<h2>Data processing workflow</h2>
+
+<p>
+A typical workflow for processing mass spectrometry data using MZmine 2 consists of the following steps (note that many of these steps are optional and may be skipped):
+</p>
+
+<p>
+<ol>
+<li><a href="/net/sf/mzmine/modules/rawdatamethods/rawdataimport/help/RawDataImporter.html">Raw data import</a></li>
+<li>Detection of chromatograms using the <a href="/net/sf/mzmine/modules/rawdatamethods/peakpicking/chromatogrambuilder/help/ChromatogramBuilder.html">Chromatogram builder</a></li>
+<li><a href="/net/sf/mzmine/modules/peaklistmethods/peakpicking/deconvolution/help/Deconvolution.html">Deconvolution</a> of chromatograms into individual peaks</li>
+<li><a href="/net/sf/mzmine/modules/peaklistmethods/isotopes/deisotoper/help/IsotopeGrouper.html">Deisotoping</a></li>
+<li>Identification of 
+<a href="/net/sf/mzmine/modules/peaklistmethods/identification/fragmentsearch/help/FragmentSearch.html">frgments</a>,
+<a href="/net/sf/mzmine/modules/peaklistmethods/identification/adductsearch/help/AdductSearch.html">adducts</a> and
+<a href="/net/sf/mzmine/modules/peaklistmethods/identification/complexsearch/help/ComplexSearch.html">peak complexes</a>,
+</li>
+<li>Normalization of retention time using the <a href="/net/sf/mzmine/modules/peaklistmethods/normalization/rtnormalizer/help/RTNormalizer.html">Retention time normalizer</a></li>
+<li>Alignment using the <a href="/net/sf/mzmine/modules/peaklistmethods/alignment/join/help/JoinAligner.html">Join aligner</a> or <a href="/net/sf/mzmine/modules/peaklistmethods/alignment/ransac/help/RansacAligner.html">RANSAC aligner</a></li>
+<li>Gap filling using the <a href="/net/sf/mzmine/modules/peaklistmethods/gapfilling/peakfinder/help/PeakFinder.html">Peak finder</a> or <a href="/net/sf/mzmine/modules/peaklistmethods/gapfilling/samerange/help/SameRange.html">Same range gap filler</a></li>
+<li>Normalization using the <a href="/net/sf/mzmine/modules/peaklistmethods/normalization/linear/help/LinearNormalizer.html">Linear normalizer</a> or <a href="/net/sf/mzmine/modules/peaklistmethods/normalization/standardcompound/help/StandardCompoundNormalizer.html">Standard compound normalizer</a></li>
+<li>Identification using a <a href="/net/sf/mzmine/modules/peaklistmethods/identification/custom/help/CustomDBSearch.html">custom database</a> or <a href="/net/sf/mzmine/modules/peaklistmethods/identification/dbsearch/help/OnlineDBSearch.html">online databases</a></li>
+<li>Data analysis, export, visualization etc..</li>
+</ol>
+</p>
+
+</body>
+</html>
