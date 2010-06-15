@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.help.HelpBroker;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
@@ -42,6 +43,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.helpsystem.HelpMainMenuItem;
+import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.project.ProjectEvent;
@@ -55,6 +57,8 @@ import net.sf.mzmine.util.TextUtils;
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		WindowListener, ProjectListener {
+	
+	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html"; 
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -255,6 +259,18 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 	public JInternalFrame getSelectedFrame() {
 		return mainPanel.getSelectedFrame();
+	}
+	
+	public void showAboutDialog() {
+		
+        MZmineHelpSet hs = MZmineCore.getHelpImpl().getHelpSet();
+        if (hs == null)
+                return;
+
+        HelpBroker hb = hs.createHelpBroker();
+        hs.setHomeID(aboutHelpID);
+
+        hb.setDisplayed(true);
 	}
 
 }
