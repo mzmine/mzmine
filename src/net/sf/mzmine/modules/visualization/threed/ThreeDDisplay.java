@@ -48,6 +48,7 @@ import visad.ProjectionControl;
 import visad.Real;
 import visad.RealTupleType;
 import visad.RealType;
+import visad.ReferenceException;
 import visad.SI;
 import visad.ScalarMap;
 import visad.Set;
@@ -395,8 +396,12 @@ class ThreeDDisplay extends DisplayImplJ3D {
             if (peaksShown) {
                 cells.removeReference(peaksReference);
             }
-
-            cells.addReference(peaksReference);
+            try{
+            	cells.addReference(peaksReference);
+            }
+            catch(ReferenceException re){
+            	//do nothing
+            }
 
             if (!peaksShown) {
                 addReferences(pickRenderer, peaksReference, peakColorMap);

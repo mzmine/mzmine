@@ -78,7 +78,8 @@ class ThreeDBottomPanel extends JPanel implements ProjectListener {
         showIdChkBox.setFont(smallFont);
         showIdChkBox.addActionListener(masterFrame);
         showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
-        add(showIdChkBox);
+        //TODO Improve functionality of this button, currently it's behavior is confusing with "Show peaks value" button
+        //add(showIdChkBox);
 
         MZmineCore.getProjectManager().addProjectListener(this);
 
