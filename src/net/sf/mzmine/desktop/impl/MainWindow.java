@@ -42,7 +42,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
-import net.sf.mzmine.desktop.impl.helpsystem.HelpMainMenuItem;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
@@ -61,8 +60,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html"; 
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private HelpMainMenuItem help;
 
 	private MainPanel mainPanel;
 
@@ -165,10 +162,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 		// Construct menu
 		menuBar = new MainMenu();
-		help = new HelpMainMenuItem();
-		help.addMenuItem(menuBar);
 		setJMenuBar(menuBar);
-
+		
 		// Initialize window listener for responding to user events
 		addWindowListener(this);
 
@@ -197,10 +192,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	 */
 	public JFrame getMainFrame() {
 		return this;
-	}
-
-	public HelpMainMenuItem getHelp() {
-		return help;
 	}
 
 	/**

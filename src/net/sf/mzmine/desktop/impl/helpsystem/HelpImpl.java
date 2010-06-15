@@ -67,7 +67,6 @@ public class HelpImpl {
             MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
                     "Table Of Contents", helpMap, file);
 
-            hs.setHomeID("net/sf/mzmine/desktop/helpsystem/AboutText.html");
             hs.setTitle("MZmine 2 - LC/MS Toolbox");
             hs.addTOCView(myTOC);
 

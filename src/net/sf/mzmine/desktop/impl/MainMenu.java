@@ -55,7 +55,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenuItem projectSampleParameters, projectFormats,
 			projectPreferences, projectSaveParameters, projectLoadParameters,
-			projectExit;
+			projectExit, showAbout;
 
 	private int projectIOMenuIndex = 0, projectMenuIndex = 1,
 			rawDataMenuIndex = 0, visualizationMenuIndex = 0;
@@ -184,6 +184,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		this.add(helpMenu);
+		
+		showAbout = addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
+                "About MZmine 2...", KeyEvent.VK_A, false, this,
+                null);
 
 	}
 
@@ -321,6 +325,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		if (src == projectPreferences) {
 			PreferencesDialog preferencesDialog = new PreferencesDialog();
 			preferencesDialog.setVisible(true);
+		}
+		
+		if (src == showAbout) {
+			MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+			mainWindow.showAboutDialog();
 		}
 
 	}

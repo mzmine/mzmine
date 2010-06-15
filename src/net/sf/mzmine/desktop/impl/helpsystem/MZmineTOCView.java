@@ -48,10 +48,10 @@ public class MZmineTOCView extends TOCView {
 	private HelpSet hs;
 	private File file;
 
-	public MZmineTOCView(MZmineHelpSet hs, String name, String label, MZmineHelpMap hm, File file) {
+	public MZmineTOCView(HelpSet hs, String name, String label, MZmineHelpMap hm, File file) {
 		super(hs, name, label, null);
 		this.hm = hm;
-		this.hs = (HelpSet) hs;
+		this.hs = hs;
 		this.file = file;
 	}
 
