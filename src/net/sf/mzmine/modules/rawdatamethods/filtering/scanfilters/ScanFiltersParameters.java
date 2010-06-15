@@ -30,197 +30,190 @@ import org.dom4j.Element;
 
 public class ScanFiltersParameters implements StorableParameterSet {
 
-	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
+    private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
-	// Raw Data Filters
-	public static final String rawDataFilterNames[] = {"Savitzky-Golay filter", "Mean filter", "Crop filter", "m/z resample filter"};
-	public static final String rawDataFilterClasses[] = {
-		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay.SGFilter",
-		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean.MeanFilter",
-		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper.CropFilter",
-		"net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample.ResampleFilter"};
-	// I have to create the help file for every filter...
-	
-	public static final String rawDataFilterHelpFiles[] = {
-		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/savitzkygolay/help/SGFilter.html",
-		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/mean/help/MeanFilter.html",
-		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/cropper/help/CropFilter.html",
-		"net/sf/mzmine/modules/rawdatamethods/filtering/scanfilters/resample/help/ResampleFilter.html"};
+    // Raw Data Filters
+    public static final String rawDataFilterNames[] = {"Savitzky-Golay filter", "Mean filter", "Crop filter", "m/z resample filter"};
+    public static final String rawDataFilterClasses[] = {
+        "net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay.SGFilter",
+        "net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean.MeanFilter",
+        "net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper.CropFilter",
+        "net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample.ResampleFilter"};
 
-// All parameters
-	private SimpleParameterSet rawDataFilterParameters[],  myParameters;
-	private static final Parameter rawDataFilterTypeNumber = new SimpleParameter(
-			ParameterType.INTEGER,
-			"Raw Data Filter type",
-			"This value defines the type of prefilter for the raw data",
-			0);
-	private static final Parameter suffix = new SimpleParameter(
-			ParameterType.STRING, "Suffix",
-			"This string is added to filename as suffix", "filtered");
-	public static final Parameter autoRemove = new SimpleParameter(
-			ParameterType.BOOLEAN,
-			"Remove source file after filtering",
-			"If checked, original file will be removed and only filtered version remains",
-			new Boolean(true));
+    // All parameters
+    private SimpleParameterSet rawDataFilterParameters[], myParameters;
+    private static final Parameter rawDataFilterTypeNumber = new SimpleParameter(
+            ParameterType.INTEGER,
+            "Raw Data Filter type",
+            "This value defines the type of prefilter for the raw data",
+            0);
+    private static final Parameter suffix = new SimpleParameter(
+            ParameterType.STRING, "Suffix",
+            "This string is added to filename as suffix", "filtered");
+    public static final Parameter autoRemove = new SimpleParameter(
+            ParameterType.BOOLEAN,
+            "Remove source file after filtering",
+            "If checked, original file will be removed and only filtered version remains",
+            new Boolean(true));
 
-	public ScanFiltersParameters() {
+    public ScanFiltersParameters() {
 
-		rawDataFilterParameters = new SimpleParameterSet[rawDataFilterClasses.length];
-		myParameters =
-				new SimpleParameterSet(new Parameter[]{
-					rawDataFilterTypeNumber, suffix, autoRemove});
-		for (int i = 0; i < rawDataFilterClasses.length; i++) {
-			String className = rawDataFilterClasses[i] + "Parameters";
-			Class paramClass;
+        rawDataFilterParameters = new SimpleParameterSet[rawDataFilterClasses.length];
+        myParameters =
+                new SimpleParameterSet(new Parameter[]{
+                    rawDataFilterTypeNumber, suffix, autoRemove});
+        for (int i = 0; i < rawDataFilterClasses.length; i++) {
+            String className = rawDataFilterClasses[i] + "Parameters";
+            Class paramClass;
 
-			try {
-				paramClass = Class.forName(className);
-				rawDataFilterParameters[i] = (SimpleParameterSet) paramClass.newInstance();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+            try {
+                paramClass = Class.forName(className);
+                rawDataFilterParameters[i] = (SimpleParameterSet) paramClass.newInstance();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-		}
+        }
 
-	}
+    }
 
-	/**
-	 * 
-	 * @param int index
-	 * @return SimpleParameterSet
-	 */
-	public SimpleParameterSet getRawDataFilteringParameters(
-			int ind) {
-		return rawDataFilterParameters[ind];
-	}
+    /**
+     *
+     * @param int index
+     * @return SimpleParameterSet
+     */
+    public SimpleParameterSet getRawDataFilteringParameters(
+            int ind) {
+        return rawDataFilterParameters[ind];
+    }
 
-	/**
-	 *
-	 * @param String
-	 *            title
-	 */
-	public void setSuffix(String title) {
-		if (title.equals("")) {
-			title = "filtered";
-		}
+    /**
+     *
+     * @param String
+     *            title
+     */
+    public void setSuffix(String title) {
+        if (title.equals("")) {
+            title = "filtered";
+        }
 
-		myParameters.setParameterValue(suffix, title);
-	}
+        myParameters.setParameterValue(suffix, title);
+    }
 
-	/**
-	 *
-	 * @return String
-	 */
-	public String getSuffix() {
-		String Suffix = (String) myParameters.getParameterValue(suffix);
-		if (Suffix == null) {
-			return "filtered";
-		}
+    /**
+     *
+     * @return String
+     */
+    public String getSuffix() {
+        String Suffix = (String) myParameters.getParameterValue(suffix);
+        if (Suffix == null) {
+            return "filtered";
+        }
 
-		if (Suffix.equals("")) {
-			return "filtered";
-		}
+        if (Suffix.equals("")) {
+            return "filtered";
+        }
 
-		return Suffix;
-	}
+        return Suffix;
+    }
 
-	/**
-	 *
-	 * @param boolena value
-	 */
-	public void setAutoRemove(boolean value) {
-		myParameters.setParameterValue(autoRemove, value);
-	}
+    /**
+     *
+     * @param boolena value
+     */
+    public void setAutoRemove(boolean value) {
+        myParameters.setParameterValue(autoRemove, value);
+    }
 
-	/**
-	 *
-	 * @return boolean
-	 */
-	public boolean getAutoRemove() {
-		return (Boolean) myParameters.getParameterValue(autoRemove);
-	}
+    /**
+     *
+     * @return boolean
+     */
+    public boolean getAutoRemove() {
+        return (Boolean) myParameters.getParameterValue(autoRemove);
+    }
 
-	/**
-	 *
-	 * @param int rawDataFilterInd
-	 */
-	public void setTypeNumber(int rawDataFilterInd) {
-		myParameters.setParameterValue(rawDataFilterTypeNumber, rawDataFilterInd);
-	}
+    /**
+     *
+     * @param int rawDataFilterInd
+     */
+    public void setTypeNumber(int rawDataFilterInd) {
+        myParameters.setParameterValue(rawDataFilterTypeNumber, rawDataFilterInd);
+    }
 
-	/**
-	 *
-	 * @return Integer rawDataFilterTypeNumber
-	 */
-	public int getRawDataFilterTypeNumber() {
-		return (Integer) myParameters.getParameterValue(rawDataFilterTypeNumber);
-	}
+    /**
+     *
+     * @return Integer rawDataFilterTypeNumber
+     */
+    public int getRawDataFilterTypeNumber() {
+        return (Integer) myParameters.getParameterValue(rawDataFilterTypeNumber);
+    }
 
-	/**
-	 *
-	 * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
-	 */
-	public void exportValuesToXML(Element element) {
+    /**
+     *
+     * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
+     */
+    public void exportValuesToXML(Element element) {
 
-		for (int i = 0; i <
-				rawDataFilterParameters.length; i++) {
-			Element subElement = element.addElement("rawdatafilter");
-			subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
-					rawDataFilterNames[i]);
-			rawDataFilterParameters[i].exportValuesToXML(subElement);
-		}
+        for (int i = 0; i <
+                rawDataFilterParameters.length; i++) {
+            Element subElement = element.addElement("rawdatafilter");
+            subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
+                    rawDataFilterNames[i]);
+            rawDataFilterParameters[i].exportValuesToXML(subElement);
+        }
 
-		myParameters.exportValuesToXML(element);
-	}
+        myParameters.exportValuesToXML(element);
+    }
 
-	/**
-	 *
-	 * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
-	 */
-	public void importValuesFromXML(Element element) {
+    /**
+     *
+     * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
+     */
+    public void importValuesFromXML(Element element) {
 
-		Iterator paramIter = element.elementIterator("rawdatafilter");
-		while (paramIter.hasNext()) {
-			Element paramElem = (Element) paramIter.next();
-			for (int i = 0; i <
-					rawDataFilterNames.length; i++) {
-				if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
-						rawDataFilterNames[i])) {
-					rawDataFilterParameters[i].importValuesFromXML(paramElem);
-					break;
+        Iterator paramIter = element.elementIterator("rawdatafilter");
+        while (paramIter.hasNext()) {
+            Element paramElem = (Element) paramIter.next();
+            for (int i = 0; i <
+                    rawDataFilterNames.length; i++) {
+                if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
+                        rawDataFilterNames[i])) {
+                    rawDataFilterParameters[i].importValuesFromXML(paramElem);
+                    break;
 
-				}
+                }
 
 
-			}
-		}
+            }
+        }
 
-		myParameters.importValuesFromXML(element);
+        myParameters.importValuesFromXML(element);
 
-	}
+    }
 
-	/**
-	 * This function allows to use these parameters by others threads. So it is
-	 * possible to configure any other task with different parameters value
-	 * without modify the behavior of other launched tasks
-	 *
-	 */
-	public ScanFiltersParameters clone() {
+    /**
+     * This function allows to use these parameters by others threads. So it is
+     * possible to configure any other task with different parameters value
+     * without modify the behavior of other launched tasks
+     *
+     */
+    public ScanFiltersParameters clone() {
 
-		ScanFiltersParameters newSet = new ScanFiltersParameters();
+        ScanFiltersParameters newSet = new ScanFiltersParameters();
 
-		newSet.rawDataFilterParameters = new SimpleParameterSet[rawDataFilterParameters.length];
-		for (int i = 0; i <
-				rawDataFilterParameters.length; i++) {
-			newSet.rawDataFilterParameters[i] = rawDataFilterParameters[i].clone();
-		}
+        newSet.rawDataFilterParameters = new SimpleParameterSet[rawDataFilterParameters.length];
+        for (int i = 0; i <
+                rawDataFilterParameters.length; i++) {
+            newSet.rawDataFilterParameters[i] = rawDataFilterParameters[i].clone();
+        }
 
-		newSet.myParameters = myParameters.clone();
-		return newSet;
+        newSet.myParameters = myParameters.clone();
+        return newSet;
 
-	}
+    }
 
-	public Parameter[] getParameters() {
-		return myParameters.getParameters();
-	}
+    public Parameter[] getParameters() {
+        return myParameters.getParameters();
+    }
 }

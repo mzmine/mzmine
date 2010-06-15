@@ -52,7 +52,7 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
         super(
                 DataSetFiltersParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
                 parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
-                DataSetFiltersParameters.rawDataFilterHelpFiles[rawDataFilterTypeNumber]);
+                null);
 
 
         this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
@@ -62,8 +62,8 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
 
     }
- 
-    protected void loadPreview(RawDataFile dataFile) {
+
+    protected void loadPreview(RawDataFile dataFile) {        
         String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
         try {
             Class rawDataFilterClass = Class.forName(rawDataFilterClassName);

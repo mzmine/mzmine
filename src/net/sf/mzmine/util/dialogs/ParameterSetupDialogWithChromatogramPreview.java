@@ -85,9 +85,9 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
             TICparameters.setMultipleSelection(DialogWithChromatogramParameters.dataFiles,
                     MZmineCore.getCurrentProject().getDataFiles());
             TICparameters.setParameterValue(DialogWithChromatogramParameters.dataFiles,
-                    selectedFiles);
-            addActionListener(parameters);
+                    selectedFiles);            
         }
+        addActionListener(parameters);
 
         addComponents();
 
@@ -283,6 +283,8 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
      */
     protected void updateParameterValue() {
         try {
+            super.updateParameterSetFromComponents();
+
             for (Parameter p : TICparameters.getParameters()) {
                 Object value = getComponentValue(p);
                 if (value != null) {
@@ -307,7 +309,8 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
 
         Boolean originalData = (Boolean) TICparameters.getParameterValue(DialogWithChromatogramParameters.originalRawData);
 
-       
+        
+
         for (int index = 0; index < rawDataList.size(); index++) {
             if (!isCheckBoxSelected(selectedDataFiles, rawDataList.get(index)) || !originalData) {
                 ticPlot.getXYPlot().setDataset(index,
@@ -318,7 +321,6 @@ public class ParameterSetupDialogWithChromatogramPreview extends ParameterSetupD
         for (RawDataFile dataFile : selectedDataFiles) {
             loadPreview(dataFile);
         }
-
     }
 
     private boolean isCheckBoxSelected(RawDataFile selectedDataFiles[], RawDataFile dataFile) {

@@ -33,14 +33,10 @@ public class DataSetFiltersParameters implements StorableParameterSet {
 	private static final String PARAMETER_NAME_ATTRIBUTE = "name";
 
 	// Raw Data Filters
-	public static final String rawDataFilterNames[] = {"Test"};
+	public static final String rawDataFilterNames[] = {"Crop Filter"};
 	public static final String rawDataFilterClasses[] = {
-		"net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection.RTCorrectionFilter"};
-
-	// I have to create the help file for every filter...
-	public static final String rawDataFilterHelpFiles[] = {
-		"net/sf/mzmine/modules/rawdata/scanfilters/savitzkygolay/help/SGFilter.html"};
-
+		"net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper.cropperFilter"};
+	
 	// All parameters
 	private SimpleParameterSet rawDataFilterParameters[],  myParameters;
 	private static final Parameter rawDataFilterTypeNumber = new SimpleParameter(
