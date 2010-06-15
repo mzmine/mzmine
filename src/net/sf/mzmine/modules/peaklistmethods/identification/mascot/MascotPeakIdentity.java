@@ -31,7 +31,7 @@ import be.proteomics.mascotdatfile.util.mascot.ProteinHit;
 public class MascotPeakIdentity implements PeakIdentity {
 	
 	private PeptideHit peptide;
-	private String pepName;
+	private String pepName,pepDescription;
 	
 	/**
 	 * This class implements PeakIdentity and wrap the information of the peptide assigned to the chromatographic peak.
@@ -46,9 +46,7 @@ public class MascotPeakIdentity implements PeakIdentity {
 			name.append(p.getAccession()+" ");
 		}
 		this.pepName = name.toString();
-	}
-
-	public String getDescription() {
+		
 		Modification[] mods = peptide.getModifications();
 		HashMap <Integer,String> varMods = new HashMap<Integer,String>();
 		for (int i=0;i<mods.length;i++){
@@ -75,13 +73,17 @@ public class MascotPeakIdentity implements PeakIdentity {
 		}
 		
 		
-		return pepName + "\nPeptide: " + peptide.getSequence() + 
+		this.pepDescription = pepName + "\nPeptide: " + peptide.getSequence() + 
 		"\nMass (Mr): "+ peptide.getPeptideMr() + 
 		"\nDelta: "+ peptide.getDeltaMass()+ 
 		"\nScore: "+ peptide.getIonsScore() +
 		"\nMisses: "+ peptide.getMissedCleavages() + 
 		"\nModifications: "+ modSeqString+
 		"\nIdentification method: "+ getIdentificationMethod();
+	}
+
+	public String getDescription() {
+		return pepDescription;
 	}
 
 	public String getIdentificationMethod() {

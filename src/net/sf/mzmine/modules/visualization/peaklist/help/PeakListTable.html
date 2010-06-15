@@ -47,7 +47,7 @@ The second group displays the information of each particular peak in the row.
 <dl>
 	<dt>Status</dt>
     	<dd>A circle of different color will appear indicating the status of the peak. The meaning of the color is as follow, RED = no detected, ORANGE= manually detected by the user, YELLOW = detected by the
-    	"Gap Filler" tool and GREEN = detected</dd>
+    	"Gap Filler" tool and GREEN = detected.</dd>
 	<dt>Peak shape</dt>
     	<dd>TThis is graphic representation of the peaks in two axis (X - retention time, Y-intensity), in this case a XIC</dd>
 	<dt>m/z</dt>
@@ -69,12 +69,60 @@ The second group displays the information of each particular peak in the row.
 
 <h4>Functionality</h4>
 <p>
-
+This table offers the possibility to sort the rows by some of the columns by making click on the header of each column.
 </p>
 <p>
-<img src="">
+<img src="Peaklist_table1.png">
 </p>
 
+<p>
+The tool bar at the right side of the table the user can edit the columns to display on the table and to print the displayed information.
+</p>
+<p>
+<img src="Peaklist_table_properties.png">
+</p>
+
+<p>
+Each column has his a tool tip that provides some extra information. The contents of the tool tip box in the column identity depends on the applied method to identified the peak.
+Please refer to the "Identification -" section of this help. This tool tip appears automatically when passing over the mouse.
+</p>
+<p>
+<img src="Peaklist_table_tooltip1.png">
+<img src="Peaklist_table_tooltip2.png">
+<img src="Peaklist_table_tooltip3.png">
+</p>
+
+<h4>Submenu</h4>
+<p>
+A pop-up menu will appear if right click is done. Some of the options in this menu are active depending on the position (column) where the click is done and the number of selected rows.
+</p>
+
+<dl>
+	<dt>Show</dt>
+    	<dd>Under this option appear other submenu from where the user can choose the any visualization plot available for this peak. 
+    	Some of the options depends on the characteristics of the selected row or peak. 
+    	For more information about each kind of visualization refer to the "Visualization -" section of this help.</dd>
+	<dt>Search</dt>
+    	<dd>This option is described in the section "Identification - Online database search" section of this help.</dt>
+	<dt>Manually define peak</dt>
+    	<dd>The user can define manually the range of m/z and retention time of a peak. MZmine will create a new one or modify an existing peak. </dd>
+	<dt>Delete selected rows</dt>
+    	<dd>The selected rows will be removed from the peak list. There is no way to recover the deleted rows.</dd>
+	<dt>Add new row</dt>
+    	<dd>The same functionality as Manually define peak, but applied to all the raw data files in the peak list. 
+    	At the end, the result is a new row with peaks from all the raw data files using the input ranges by the user..</dd>
+
+</dl>
+<p>
+<img src="Peaklist_table_submenu.png">
+</p>
+
+<p>
+For the Identity column, a specific submenu will appear with left click. This submenu has the options to choose or edit the active identity from many associated to the same peak, 
+</p>
+<p>
+<img src="Peaklist_table_submenu_ident.png">
+</p>
 
 </body>
 </html>

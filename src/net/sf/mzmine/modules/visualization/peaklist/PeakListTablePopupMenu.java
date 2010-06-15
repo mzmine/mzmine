@@ -123,9 +123,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	public void show(Component invoker, int x, int y) {
 
 		// First, disable all the Show... items
+		show2DItem.setEnabled(false);
+		show3DItem.setEnabled(false);
 		manuallyDefineItem.setEnabled(false);
 		showMSMSItem.setEnabled(false);
 		showIsotopePatternItem.setEnabled(false);
+		showPeakRowSummaryItem.setEnabled(false);
 
 		// Enable row items if applicable
 		int selectedRows[] = table.getSelectedRows();
@@ -148,6 +151,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 						.convertRowIndexToModel(selectedRows[i]));
 			}
 			showXICItem.setEnabled(selectedRows.length > 0);
+
+			// Enable Show 2D peak plot
+			show2DItem.setEnabled(selectedRows.length == 1);
+
+			// Enable Show 3D peak plot
+			show3DItem.setEnabled(selectedRows.length == 1);
+			
+			//Enable peak list row summary
+			showPeakRowSummaryItem.setEnabled(selectedRows.length == 1);
 
 			// If we clicked on data file columns, check the peak
 			if (clickedColumn >= CommonColumnType.values().length) {
@@ -174,14 +186,15 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				}
 
 			} else {
+				
 				ChromatographicPeak rowBestPeak = clickedPeakListRow
 						.getBestPeak();
 				IsotopePattern rowBestIsotopePattern = clickedPeakListRow
 						.getBestIsotopePattern();
 				showIsotopePatternItem
-						.setEnabled(rowBestIsotopePattern != null);
+						.setEnabled(rowBestIsotopePattern != null && selectedRows.length == 1);
 				showMSMSItem.setEnabled(rowBestPeak
-						.getMostIntenseFragmentScanNumber() > 0);
+						.getMostIntenseFragmentScanNumber() > 0 && selectedRows.length == 1);
 
 			}
 
