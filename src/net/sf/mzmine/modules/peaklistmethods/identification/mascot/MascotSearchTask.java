@@ -198,6 +198,7 @@ public class MascotSearchTask implements Task {
 				if (status == TaskStatus.CANCELED)
 					return;
 				PeakListRow row = pp.getRows()[i];
+				//TODO search for the peak with the best fragmentation not the most intense peak
 				Scan msmsScan = row.getBestPeak().getDataFile().getScan(
 						row.getBestPeak().getMostIntenseFragmentScanNumber());
 				if (msmsScan == null)

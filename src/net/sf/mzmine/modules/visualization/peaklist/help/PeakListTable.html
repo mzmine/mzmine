@@ -11,8 +11,61 @@
 
 <h2>Description</h2>
 <p>
-
+This shows a list of identified peaks, after applying a series of methods to a raw data. This feature is one of the most important of MZmine project, 
+because collect the result of many other modules.
 </p>
+<p>
+The table is divided in many columns, which the user can edit which columns to show in the peak list.
+</p>
+<h3>Columns</h3>
+<p>
+The columns can be divided by two groups "Common" and "Data file". The first group shows a collective information that represents the peak row. 
+The second group displays the information of each particular peak in the row.
+</p>
+<h4>Common</h4>
+<dl>
+	<dt>ID</dt>
+    	<dd>This is the number that identify the row peak. A row peak can contain one or many peaks that share the same mass range and retention 
+    	time range but coming from different raw data.</dd>
+	<dt>m/z</dt>
+    	<dd>This is the representative m/z value for this row peak (average of all peaks's m/z value). The m/z value of each peak depends on the peak identification method. 
+    	Please refer to "Peak detection -" section of this help</dd>
+	<dt>Ret.time</dt>
+    	<dd>This is the representative retention time value for this row peak (average of all peaks's ret. time value). The ret. time value of each peak depends on the used peak identification method.
+		Please refer to "Peak detection -" section of this help</dd>
+	<dt>Identity</dt>
+    	<dd>This is the name, assigned from the peak's identity. This value depends on the method to identify the peak. 
+    	Please refer to "Identification -" section of this help.</dd>
+	<dt>Comment</dt>
+    	<dd>This is an user input value. It can be edited by making double click.</dd>
+	<dt>Peak shape</dt>
+    	<dd>This is graphic representation of the peaks in two axis (X - retention time, Y-intensity) with a different color for each peak in the row. The size of this graphic can be edited.</dd>
+
+</dl>
+<br/>
+<h4>Data file</h4>
+<dl>
+	<dt>Status</dt>
+    	<dd>A circle of different color will appear indicating the status of the peak. The meaning of the color is as follow, RED = no detected, ORANGE= manually detected by the user, YELLOW = detected by the
+    	"Gap Filler" tool and GREEN = detected</dd>
+	<dt>Peak shape</dt>
+    	<dd>TThis is graphic representation of the peaks in two axis (X - retention time, Y-intensity), in this case a XIC</dd>
+	<dt>m/z</dt>
+    	<dd>The m/z value of the peak and depends on the peak identification method. 
+    	Please refer to "Peak detection -" section of this help.</dd>
+	<dt>Ret.time</dt>
+    	<dd>The ret. time value of the peak and depends on the used peak identification method.
+		Please refer to "Peak detection -" section of this help</dd>
+	<dt>Duration</dt>
+    	<dd>The duration of the peak on terms of time.</dd>
+	<dt>Height</dt>
+    	<dd>The intensity of the peak in his highest point.</dd>
+	<dt>Area</dt>
+    	<dd>The calculated area of the peak using the intensity and the duration of the peak.</dd>
+	<dt>Charge</dt>
+    	<dd>The value of the ion charge. This value is obtained from the raw data or by the Isotope grouper module</dd>
+
+</dl>
 
 <h4>Functionality</h4>
 <p>
