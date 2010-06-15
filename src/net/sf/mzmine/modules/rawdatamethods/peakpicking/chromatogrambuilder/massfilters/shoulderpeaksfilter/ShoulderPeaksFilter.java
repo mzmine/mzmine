@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.mas
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
@@ -33,6 +35,8 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class ShoulderPeaksFilter implements MassFilter {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private ShoulderPeaksFilterParameters parameters;
 
 	private PeakModel peakModel;
@@ -43,17 +47,18 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 	public MzPeak[] filterMassValues(MzPeak[] mzPeaks) {
 
-		// If peakModel is null, we create a new instance
-		PeakModelType type = (PeakModelType) parameters
-				.getParameterValue(ShoulderPeaksFilterParameters.peakModel);
-		Class modelClass = type.getModelClass();
+		// Try to create an instance of the peak model
 		try {
+			PeakModelType type = (PeakModelType) parameters
+					.getParameterValue(ShoulderPeaksFilterParameters.peakModel);
+			if (type == null) type = PeakModelType.GAUSS;
+			Class modelClass = type.getModelClass();
 			peakModel = (PeakModel) modelClass.newInstance();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.log(Level.WARNING, "Could not create instance of peak model class", e);
 		}
-
-		// If peakModel is still null, just don't do any filtering
+		
+		// If peakModel is null, just don't do any filtering
 		if (peakModel == null)
 			return mzPeaks;
 
