@@ -32,6 +32,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -42,104 +44,114 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+	private static NeutralLossVisualizer myInstance;
 
-    private NeutralLossParameters parameters;
+	private NeutralLossParameters parameters;
 
-    private Desktop desktop;
+	private Desktop desktop;
+	
+	private final int neededMSLevels[] = { 1, 2 };
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
 
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new NeutralLossParameters();
+		this.desktop = MZmineCore.getDesktop();
+		
+		myInstance = this;
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Neutral loss",
-                "Plots the neutral loss of each fragment (MS/MS) scan",
-                KeyEvent.VK_N, false, this, null);
+		parameters = new NeutralLossParameters();
 
-    }
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Neutral loss",
+				"Plots the neutral loss of each fragment (MS/MS) scan",
+				KeyEvent.VK_N, false, this, null);
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	}
 
-        logger.finest("Opening a new neutral loss visualizer setup dialog");
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-            desktop.displayErrorMessage("Please select at least one data file");
-            return;
-        }
+		logger.finest("Opening a new neutral loss visualizer setup dialog");
 
-        for (RawDataFile dataFile : dataFiles) {
-            int msLevels[] = dataFile.getMSLevels();
-            final int neededMSLevels[] = { 1, 2 };
+		RawDataFile dataFiles[] = desktop.getSelectedDataFiles();
+		if (dataFiles.length != 1) {
+			desktop.displayErrorMessage("Please select one data file");
+			return;
+		}
 
-            if (!CollectionUtils.isSubset(msLevels, neededMSLevels)) {
-                desktop.displayErrorMessage("File " + dataFile
-                        + " does not contain data for MS levels 1 and 2.");
-                continue;
-            }
+		int msLevels[] = dataFiles[0].getMSLevels();
+		
+		if (!CollectionUtils.isSubset(msLevels, neededMSLevels)) {
+			desktop.displayErrorMessage("File " + dataFiles[0]
+					+ " does not contain data for MS levels 1 and 2.");
+			return;
+		}
+		
+		showNewNeutralLossVisualizerWindow(dataFiles[0]);
+	}
+	
+	public static void showNewNeutralLossVisualizerWindow(RawDataFile dataFile) {
+		showNewNeutralLossVisualizerWindow(dataFile, null, null);
+	}
 
-            Hashtable<Parameter, Object> autoValues = null;
-            if (dataFiles.length == 1) {
-                autoValues = new Hashtable<Parameter, Object>();
+	public static void showNewNeutralLossVisualizerWindow(RawDataFile dataFile, Range rtRange, Range mzRange) {
 
-                autoValues.put(NeutralLossParameters.retentionTimeRange,
-                        dataFile.getDataRTRange(2));
-                autoValues.put(NeutralLossParameters.mzRange,
-                        dataFile.getDataMZRange(1));
+		Hashtable<Parameter, Object> autoValues = null;
+		autoValues = new Hashtable<Parameter, Object>();
 
-            }
+		autoValues.put(NeutralLossParameters.retentionTimeRange, dataFile
+				.getDataRTRange(2));
+		autoValues.put(NeutralLossParameters.mzRange, dataFile
+				.getDataMZRange(1));
 
-            ParameterSetupDialog dialog = new ParameterSetupDialog(
-                    "Please set parameter values for " + toString(),
-                    parameters, autoValues);
+		if (rtRange != null)
+			myInstance.parameters.setParameterValue(
+					ThreeDVisualizerParameters.retentionTimeRange, rtRange);
+		if (mzRange != null)
+			myInstance.parameters.setParameterValue(
+					ThreeDVisualizerParameters.mzRange, mzRange);
 
-            dialog.setVisible(true);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for Neutral loss visualizer", myInstance.parameters,
+				autoValues);
 
-            if (dialog.getExitCode() != ExitCode.OK)
-                return;
+		dialog.setVisible(true);
 
-            Range rtRange = (Range) parameters.getParameterValue(NeutralLossParameters.retentionTimeRange);
-            Range mzRange = (Range) parameters.getParameterValue(NeutralLossParameters.mzRange);
-            int fragments = (Integer) parameters.getParameterValue(NeutralLossParameters.numOfFragments);
+		if (dialog.getExitCode() != ExitCode.OK)
+			return;
 
-            Object xAxisType = parameters.getParameterValue(NeutralLossParameters.xAxisType);
+		NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
+				dataFile, myInstance.parameters);
 
-            NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
-                    dataFile, xAxisType, rtRange, mzRange, fragments);
+		MZmineCore.getDesktop().addInternalFrame(newWindow);
 
-            desktop.addInternalFrame(newWindow);
+	}
 
-        }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Neutral loss visualizer";
+	}
 
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Neutral loss visualizer";
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (NeutralLossParameters) parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (NeutralLossParameters) parameters;
+	}
 
 }

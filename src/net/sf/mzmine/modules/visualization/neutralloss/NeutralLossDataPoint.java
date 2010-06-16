@@ -36,6 +36,7 @@ class NeutralLossDataPoint {
     private double neutralLoss;
     private double precursorMass;
     private String label;
+    private static int defaultPrecursorCharge = 2;
 
     /**
      * @param scanNumber
@@ -61,6 +62,11 @@ class NeutralLossDataPoint {
         precursorMass = precursorMZ;
         if (precursorCharge > 0)
             precursorMass *= precursorCharge;
+
+        if ((precursorCharge == 0) && (precursorMass < mzValue))
+            precursorMass *= defaultPrecursorCharge;
+
+        
         neutralLoss = precursorMass - mzValue;
 
         StringBuffer sb = new StringBuffer();

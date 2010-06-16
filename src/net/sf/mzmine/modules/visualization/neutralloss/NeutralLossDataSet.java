@@ -20,8 +20,10 @@
 package net.sf.mzmine.modules.visualization.neutralloss;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -39,9 +41,10 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class NeutralLossDataSet extends AbstractXYDataset implements Task,
-		XYToolTipGenerator {
+class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
+	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
 	private RawDataFile rawDataFile;
 
 	private Range totalMZRange;
@@ -51,7 +54,13 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 
 	private TaskStatus taskStatus = TaskStatus.WAITING;
 
-	private Vector<NeutralLossDataPoint> dataPoints;
+	private HashMap<Integer,Vector<NeutralLossDataPoint>> dataSeries;
+
+	private NeutralLossVisualizerWindow visualizer;
+	
+	private static int RAW_LEVEL = 0;
+	private static int PRECURSOR_LEVEL = 1;
+	private static int NEUTRALLOSS_LEVEL = 2;
 
 	NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType,
 			Range rtRange, Range mzRange, int numOfFragments,
@@ -62,13 +71,18 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 		totalMZRange = mzRange;
 		this.numOfFragments = numOfFragments;
 		this.xAxisType = xAxisType;
+		this.visualizer = visualizer;
 
 		// get MS/MS scans
 		scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
 		
 		totalScans = scanNumbers.length;
 
-		dataPoints = new Vector<NeutralLossDataPoint>(totalScans);
+		dataSeries = new HashMap<Integer,Vector<NeutralLossDataPoint>>();
+		
+		dataSeries.put(RAW_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
+		dataSeries.put(PRECURSOR_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
+		dataSeries.put(NEUTRALLOSS_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
 
 		MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
 
@@ -79,25 +93,30 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	public void run() {
 
 		taskStatus = TaskStatus.PROCESSING;
-		
+		processedScans = 0;
+
 		for (int scanNumber : scanNumbers) {
-			
+
 			// Cancel?
 			if (taskStatus == TaskStatus.CANCELED)
 				return;
-			
+
 			Scan scan = rawDataFile.getScan(scanNumber);
 
 			// check parent m/z
-			if (!totalMZRange.contains(scan.getPrecursorMZ()))
+			if (!totalMZRange.contains(scan.getPrecursorMZ())) {
+				taskStatus = TaskStatus.ERROR;
 				return;
+			}
 
 			// get m/z and intensity values
 			DataPoint scanDataPoints[] = scan.getDataPoints();
 
 			// skip empty scans
-			if (scan.getBasePeak() == null)
-				return;
+			if (scan.getBasePeak() == null) {
+				processedScans++;
+				continue;
+			}
 
 			// topPeaks will contain indexes to mzValues peaks of top intensity
 			int topPeaks[] = new int[numOfFragments];
@@ -106,7 +125,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 			for (int i = 0; i < scanDataPoints.length; i++) {
 
 				fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
-					
+
 					// Cancel?
 					if (taskStatus == TaskStatus.CANCELED)
 						return;
@@ -126,9 +145,9 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 					}
 				}
 
-			processedScans++;
-			
+
 			}
+
 
 			// add the data points
 			for (int i = 0; i < topPeaks.length; i++) {
@@ -145,22 +164,57 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 								.getPrecursorMZ(), scan.getPrecursorCharge(),
 						scan.getRetentionTime());
 
-				dataPoints.add(newPoint);
+				dataSeries.get(0).add(newPoint);
 
 			}
+
+			processedScans++;
+
+		
 		}
 
-		fireDatasetChanged();
-		
 		taskStatus = TaskStatus.FINISHED;
+		fireDatasetChanged();
 
+	}
+
+	public void updateOnRangeDataPoints(String rangeType) {
+		
+		NeutralLossPlot plot = visualizer.getPlot();
+		Range prRange = plot.getHighlightedPrecursorRange();
+		Range nlRange = plot.getHighlightedNeutralLossRange();
+		
+		//Set type of search
+		int level = NEUTRALLOSS_LEVEL;
+        if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+        	level = PRECURSOR_LEVEL;
+        
+        // Clean previous selection
+        dataSeries.get(level).clear();
+		
+		
+		NeutralLossDataPoint point;
+		boolean b = false;
+		for (int i=0; i<dataSeries.get(RAW_LEVEL).size(); i++){
+			point = dataSeries.get(RAW_LEVEL).get(i);
+			//Verify if the point is on range
+	        if (level == PRECURSOR_LEVEL)
+	        	b = prRange.contains(point.getPrecursorMass());
+	        else
+	        	b = nlRange.contains(point.getNeutralLoss());
+	        if (b)
+				dataSeries.get(level).add(point);
+		}
+		
+
+		fireDatasetChanged();
 	}
 
 	/**
 	 * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
 	 */
 	public int getSeriesCount() {
-		return 1;
+		return dataSeries.size();
 	}
 
 	/**
@@ -174,17 +228,23 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	 * @see org.jfree.data.xy.XYDataset#getItemCount(int)
 	 */
 	public int getItemCount(int series) {
-		return dataPoints.size();
+		return dataSeries.get(series).size();
 	}
 
 	/**
 	 * @see org.jfree.data.xy.XYDataset#getX(int, int)
 	 */
 	public Number getX(int series, int item) {
-		if (xAxisType == NeutralLossParameters.xAxisPrecursor)
-			return dataPoints.get(item).getPrecursorMass();
+		NeutralLossDataPoint point = dataSeries.get(series).get(item);
+		if (xAxisType == NeutralLossParameters.xAxisPrecursor){
+			int charge = point.getPrecursorCharge();
+			if (charge == 0)
+				charge = 1;
+			double mz = point.getPrecursorMass();
+			return (mz * charge);
+		}
 		else
-			return dataPoints.get(item).getRetentionTime();
+			return point.getRetentionTime();
 
 	}
 
@@ -192,16 +252,17 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	 * @see org.jfree.data.xy.XYDataset#getY(int, int)
 	 */
 	public Number getY(int series, int item) {
-		return dataPoints.get(item).getNeutralLoss();
+		NeutralLossDataPoint point = dataSeries.get(series).get(item);
+		return point.getNeutralLoss();
 	}
 
 	public NeutralLossDataPoint getDataPoint(int item) {
-		return dataPoints.get(item);
+		return dataSeries.get(RAW_LEVEL).get(item);
 	}
 
 	public NeutralLossDataPoint getDataPoint(double xValue, double yValue) {
 		Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(
-				dataPoints);
+				dataSeries.get(RAW_LEVEL));
 		Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
 		double currentX, currentY;
 		while (it.hasNext()) {
@@ -224,7 +285,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	 *      int, int)
 	 */
 	public String generateToolTip(XYDataset dataset, int series, int item) {
-		return dataPoints.get(item).toString();
+		return dataSeries.get(series).get(item).toString();
 	}
 
 	public void cancel() {

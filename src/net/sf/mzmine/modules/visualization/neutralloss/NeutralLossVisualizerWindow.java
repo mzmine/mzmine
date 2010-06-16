@@ -32,6 +32,9 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.ExitCode;
+
+import org.jfree.chart.axis.ValueAxis;
 
 /**
  * Neutral loss visualizer using JFreeChart library
@@ -48,8 +51,8 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 	private Desktop desktop;
 
-	public NeutralLossVisualizerWindow(RawDataFile dataFile, Object xAxisType,
-			Range rtRange, Range mzRange, int numOfFragments) {
+	public NeutralLossVisualizerWindow(RawDataFile dataFile,
+			NeutralLossParameters parameters) {
 
 		super(dataFile.toString(), true, true, true, true);
 
@@ -60,19 +63,34 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		this.dataFile = dataFile;
 
+		//Retrieve parameter's values
+		Range rtRange = (Range) parameters
+				.getParameterValue(NeutralLossParameters.retentionTimeRange);
+		Range mzRange = (Range) parameters
+				.getParameterValue(NeutralLossParameters.mzRange);
+		int numOfFragments = (Integer) parameters
+				.getParameterValue(NeutralLossParameters.numOfFragments);
+
+		Object xAxisType = parameters
+				.getParameterValue(NeutralLossParameters.xAxisType);
+
+		// Set window components
 		dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
 				numOfFragments, this);
-
-		toolBar = new NeutralLossToolBar(this);
-		add(toolBar, BorderLayout.EAST);
 
 		neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
 		add(neutralLossPlot, BorderLayout.CENTER);
 
+		toolBar = new NeutralLossToolBar(this);
+		add(toolBar, BorderLayout.EAST);
+
+		//Set range for Y axis
+		ValueAxis yAxis = neutralLossPlot.getXYPlot().getDomainAxis();
+		
 		if (xAxisType == NeutralLossParameters.xAxisRT)
-			setDomainRange(rtRange);
+			yAxis.setRange(rtRange.getMin(),rtRange.getMax());
 		else
-			setDomainRange(mzRange);
+			yAxis.setRange(mzRange.getMin(),mzRange.getMax());
 
 		updateTitle();
 
@@ -80,19 +98,6 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 	}
 
-	/**
-     */
-	public void setRangeRange(Range rng) {
-		neutralLossPlot.getXYPlot().getRangeAxis().setRange(rng.getMin(),
-				rng.getMax());
-	}
-
-	/**
-     */
-	public void setDomainRange(Range rng) {
-		neutralLossPlot.getXYPlot().getDomainAxis().setRange(rng.getMin(),
-				rng.getMax());
-	}
 
 	void updateTitle() {
 
@@ -121,9 +126,8 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		String command = event.getActionCommand();
 
-		if (command.equals("HIGHLIGHT")) {
-			JDialog dialog = new NeutralLossSetHighlightDialog(desktop,
-					neutralLossPlot);
+		if (command.equals("HIGHLIGHT_PRECURSOR") || command.equals("HIGHLIGHT_NEUTRALLOSS")) {
+			JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
 			dialog.setVisible(true);
 		}
 

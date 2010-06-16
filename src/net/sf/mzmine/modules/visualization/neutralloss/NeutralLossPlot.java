@@ -23,8 +23,10 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
 import java.text.NumberFormat;
 
 import javax.swing.JMenuItem;
@@ -33,14 +35,16 @@ import javax.swing.KeyStroke;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.event.ChartProgressEvent;
+import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.TextTitle;
 
 /**
@@ -51,7 +55,7 @@ class NeutralLossPlot extends ChartPanel {
     private JFreeChart chart;
 
     private XYPlot plot;
-    private XYItemRenderer renderer;
+    private NeutralLossDataPointRenderer defaultRenderer;
 
     private boolean showSpectrumRequest = false;
 
@@ -67,10 +71,22 @@ class NeutralLossPlot extends ChartPanel {
 
     // title font
     private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
+    
+    // Item's shape, small circle
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-1, -1, 2, 2);
+    private static final Shape dataPointsShape2 = new Ellipse2D.Double(-1, -1, 3, 3);
+
+
+    // Series colors
+	public static final Color pointColor = Color.blue;
+	public static final Color searchPrecursorColor = Color.green;
+	public static final Color searchNeutralLossColor = Color.orange;
+
 
     private TextTitle chartTitle;
 
-    private double highlightedMin, highlightedMax;
+    private Range highlightedPrecursorRange = new Range(Double.NEGATIVE_INFINITY);
+    private Range highlightedNeutralLossRange = new Range(Double.NEGATIVE_INFINITY);
 
     NeutralLossPlot(NeutralLossVisualizerWindow visualizer,
             NeutralLossDataSet dataset, Object xAxisType) {
@@ -106,15 +122,26 @@ class NeutralLossPlot extends ChartPanel {
         yAxis.setLowerMargin(0);
 
         // set the renderer properties
-        renderer = new NeutralLossDataPointRenderer(this);
-
+        //renderer = new NeutralLossDataPointRenderer(this);
+        defaultRenderer = new NeutralLossDataPointRenderer(false,true);
+        defaultRenderer.setTransparency(0.4f);
+        setSeriesColorRenderer(0,pointColor,dataPointsShape);
+        setSeriesColorRenderer(1,searchPrecursorColor,dataPointsShape2);
+        setSeriesColorRenderer(2,searchNeutralLossColor,dataPointsShape2);
+        
+        
         // tooltips
-        renderer.setBaseToolTipGenerator(dataset);
+        defaultRenderer.setBaseToolTipGenerator(dataset);
+        
 
         // set the plot properties
-        plot = new XYPlot(dataset, xAxis, yAxis, renderer);
+        plot = new XYPlot(dataset, xAxis, yAxis, defaultRenderer);
         plot.setBackgroundPaint(Color.white);
+        plot.setRenderer(defaultRenderer);
+		plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
 
+
+        
         // chart properties
         chart = new JFreeChart("", titleFont, plot, false);
         chart.setBackgroundPaint(Color.white);
@@ -148,50 +175,61 @@ class NeutralLossPlot extends ChartPanel {
                 visualizer, "SHOW_SPECTRUM");
 
         // add items to popup menu
-        JMenuItem highlightMenuItem;
-
-        highlightMenuItem = new JMenuItem("Highlight precursor m/z range...");
-        highlightMenuItem.addActionListener(visualizer);
-        highlightMenuItem.setActionCommand("HIGHLIGHT");
-        add(highlightMenuItem);
-
         JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
-        popupMenu.add(highlightMenuItem);
+
+        JMenuItem highLightPrecursorRange = new JMenuItem("Highlight precursor m/z range...");
+        highLightPrecursorRange.addActionListener(visualizer);
+        highLightPrecursorRange.setActionCommand("HIGHLIGHT_PRECURSOR");
+        popupMenu.add(highLightPrecursorRange);
+
+        JMenuItem highLightNeutralLossRange = new JMenuItem("Highlight neutral loss m/z range...");
+        highLightNeutralLossRange.addActionListener(visualizer);
+        highLightNeutralLossRange.setActionCommand("HIGHLIGHT_NEUTRALLOSS");
+        popupMenu.add(highLightNeutralLossRange);
+
 
     }
 
-    void setTitle(String title) {
+    private void setSeriesColorRenderer(int series, Color color,
+			Shape shape) {
+			defaultRenderer.setSeriesPaint(series, color);
+			defaultRenderer.setSeriesFillPaint(series, color);
+			defaultRenderer.setSeriesShape(series, shape);
+	}
+
+	void setTitle(String title) {
         chartTitle.setText(title);
     }
 
     /**
-     * @return Returns the highlightedMin.
+     * @return Returns the highlightedPrecursorRange.
      */
-    double getHighlightedMin() {
-        return highlightedMin;
+    Range getHighlightedPrecursorRange() {
+        return highlightedPrecursorRange;
     }
 
     /**
-     * @param highlightedMin The highlightedMin to set.
+     * @param range The highlightedPrecursorRange to set.
      */
-    void setHighlightedMin(double highlightedMin) {
-        this.highlightedMin = highlightedMin;
+    void setHighlightedPrecursorRange(Range range) {
+        this.highlightedPrecursorRange = range;
     }
 
     /**
-     * @return Returns the highlightedMax.
+     * @return Returns the highlightedNeutralLossRange.
      */
-    double getHighlightedMax() {
-        return highlightedMax;
+    Range getHighlightedNeutralLossRange() {
+        return highlightedNeutralLossRange;
     }
 
     /**
-     * @param highlightedMax The highlightedMax to set.
+     * @param range The highlightedNeutralLossRange to set.
      */
-    void setHighlightedMax(double highlightedMax) {
-        this.highlightedMax = highlightedMax;
+    void setHighlightedNeutralLossRange(Range range) {
+        this.highlightedNeutralLossRange = range;
     }
+
 
     /**
      * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)

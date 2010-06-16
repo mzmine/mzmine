@@ -19,10 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.neutralloss;
 
-import java.awt.Color;
+import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.Rectangle2D;
 
 import org.jfree.chart.axis.ValueAxis;
@@ -37,42 +35,36 @@ import org.jfree.data.xy.XYDataset;
  * Renderer which highlights selected points
  */
 class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
+	
+	private AlphaComposite alphaComp, alphaCompOriginal;
 
-    // small circle
-    private static final Shape dataPointsShape = new Ellipse2D.Double(-1, -1, 2, 2);
+	public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {
+		super(lines, shapes);
+	}
 
-    private NeutralLossPlot nlPlot;
-    
-    NeutralLossDataPointRenderer(NeutralLossPlot nlPlot) {
-        
-        // draw shapes, not lines
-        super(false, true);
-        
-        this.nlPlot = nlPlot;
+	public void setTransparency(float transparency) {
+		if ((transparency > 1.0) || (transparency < 0))
+			transparency = 1.0f;
+		int type = AlphaComposite.SRC_OVER;
+		alphaComp = (AlphaComposite.getInstance(type, transparency));
+		alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
+	}
 
-        setBaseShape(dataPointsShape);
+	public void drawItem(Graphics2D g2, XYItemRendererState state,
+			Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
+			ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
+			int series, int item, CrosshairState crosshairState, int pass) {
 
-    }
+		if (series > 0) {
+			g2.setComposite(alphaComp);
+		} else if (series == 0) {
+			g2.setComposite(alphaComp);
+		}
 
-    public void drawItem(Graphics2D g2, XYItemRendererState state,
-            Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-            ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-            int series, int item, CrosshairState crosshairState, int pass) {
+		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+				dataset, series, item, crosshairState, pass);
 
-        NeutralLossDataSet nlDataset = (NeutralLossDataSet) dataset;
+	}
 
-        NeutralLossDataPoint point = nlDataset.getDataPoint(item);
-
-        // set the color to red for highlighted points
-        if ((point.getPrecursorMZ() < nlPlot.getHighlightedMin())
-                || (point.getPrecursorMZ() > nlPlot.getHighlightedMax()))
-            setBasePaint(Color.blue, false);
-        else
-            setBasePaint(Color.red, false);
-
-        super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-                dataset, series, item, crosshairState, pass);
-
-    }
 
 }

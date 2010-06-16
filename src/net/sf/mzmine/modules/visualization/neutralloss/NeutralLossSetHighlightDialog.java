@@ -35,8 +35,12 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 
+import org.jfree.data.general.DatasetChangeEvent;
+
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.Range;
 
 /**
  * Dialog for selection of highlighted precursor m/z range
@@ -52,17 +56,28 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
     private JButton btnOK, btnCancel;
     private JFormattedTextField fieldMinMZ, fieldMaxMZ;
 
-    private NeutralLossPlot plot;
     private Desktop desktop;
+    
+    private String rangeType;
+    
+    private NeutralLossPlot plot;
 
-    public NeutralLossSetHighlightDialog(Desktop desktop, NeutralLossPlot plot) {
+    public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
         // Make dialog modal
-        super(desktop.getMainFrame(), "Highlight precursor m/z range", true);
+        super(MZmineCore.getDesktop().getMainFrame(), "", true);
         
-        this.desktop = desktop;
+        this.desktop = MZmineCore.getDesktop();
         this.plot = plot;
-
+        this.rangeType = command;
+        
+        String title = "Highlight ";
+        if (command.equals("HIGHLIGHT_PRECURSOR"))
+        	title += "precursor m/z range";
+        else if (command.equals("HIGHLIGHT_NEUTRALLOSS"))
+        	title += "neutral loss m/z range";
+        setTitle(title);
+        
         GridBagConstraints constraints = new GridBagConstraints();
 
         // set default layout constraints
@@ -78,7 +93,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
         NumberFormat format = NumberFormat.getNumberInstance();
 
-        comp = GUIUtils.addLabel(components, "Minimum parent m/z");
+        comp = GUIUtils.addLabel(components, "Minimum m/z");
         constraints.gridx = 0;
         constraints.gridy = 0;
         constraints.gridwidth = 1;
@@ -96,7 +111,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
         constraints.gridx = 2;
         layout.setConstraints(comp, constraints);
 
-        comp = GUIUtils.addLabel(components, "Maximum parent m/z");
+        comp = GUIUtils.addLabel(components, "Maximum m/z");
         constraints.gridx = 0;
         constraints.gridy = 1;
         layout.setConstraints(comp, constraints);
@@ -132,7 +147,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(desktop.getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
         setResizable(false);
 
     }
@@ -157,21 +172,24 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
                 double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
                 double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
 
-                if (mzMax <= mzMin) {
-                    desktop.displayErrorMessage("Invalid bounds");
-                    return;
-                }
-
-                plot.setHighlightedMin(mzMin);
-                plot.setHighlightedMax(mzMax);
-                plot.repaint();
+                Range range = new Range(mzMin, mzMax);
+                if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+                	plot.setHighlightedPrecursorRange(range);
+                else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))
+                	plot.setHighlightedNeutralLossRange(range);
+                logger.info("Updating Neutral loss plot window");
+                
+                NeutralLossDataSet  dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
+                dataSet.updateOnRangeDataPoints(rangeType);
+    			plot.getXYPlot().datasetChanged(
+    					new DatasetChangeEvent(plot, dataSet));
 
                 dispose();
 
-            } catch (Exception e) {
-                logger.log(Level.FINE, "Error while setting highlighted range",
-                        e);
-                desktop.displayErrorMessage("Invalid input");
+            } catch (IllegalArgumentException iae) {
+                desktop.displayErrorMessage(iae.getMessage());
+            } catch (Exception e){
+                logger.log(Level.FINE, "Error while setting highlighted range",e);
             }
         }
 
