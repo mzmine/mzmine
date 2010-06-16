@@ -150,6 +150,8 @@ public abstract class MZmineCore {
 				return;
 			desktop.getMainFrame().dispose();
 		}
+		
+		logger.info("Exiting MZmine");
 
 		System.exit(0);
 
