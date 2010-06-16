@@ -32,79 +32,87 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-
 /**
  * Simple table cell renderer that renders Numbers using given NumberFormat
  */
 class FormattedCellRenderer implements TableCellRenderer {
 
-    private Font font;
-    private NumberFormat format;
+	private Font font;
+	private NumberFormat format;
 
-    /**
+	/**
      */
-    FormattedCellRenderer(NumberFormat format) {
-        this.format = format;
-    }
+	FormattedCellRenderer(NumberFormat format) {
+		this.format = format;
+	}
 
-    /**
-     * @param font
-     */
-    FormattedCellRenderer(NumberFormat format, Font font) {
-        this.format = format;
-        this.font = font;
-    }
+	/**
+	 * @param font
+	 */
+	FormattedCellRenderer(NumberFormat format, Font font) {
+		this.format = format;
+		this.font = font;
+	}
 
-    /**
-     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-     *      java.lang.Object, boolean, boolean, int, int)
-     */
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+	/**
+	 * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+	 *      java.lang.Object, boolean, boolean, int, int)
+	 */
+	public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column) {
 
-        JPanel newPanel = new JPanel();
-        newPanel.setLayout(new OverlayLayout(newPanel));
-        Color bgColor;
+		JPanel newPanel = new JPanel();
+		newPanel.setLayout(new OverlayLayout(newPanel));
+		Color bgColor;
 
-        if (isSelected)
-            bgColor = table.getSelectionBackground();
-        else
-            bgColor = table.getBackground();
+		if (isSelected)
+			bgColor = table.getSelectionBackground();
+		else
+			bgColor = table.getBackground();
 
-        newPanel.setBackground(bgColor);
+		newPanel.setBackground(bgColor);
 
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("Table.focusCellHighlightBorder");
-            if (border != null)
-            	newPanel.setBorder(border);
-        }
+		if (hasFocus) {
+			Border border = null;
+			if (isSelected)
+				border = UIManager
+						.getBorder("Table.focusSelectedCellHighlightBorder");
+			if (border == null)
+				border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
-        if (value != null) {
+			/*
+			 * The "border.getBorderInsets(newPanel) != null" is a workaround
+			 * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+			 * NullPointerException
+			 */
+			if ((border != null) && (border.getBorderInsets(newPanel) != null)) {
+				newPanel.setBorder(border);
+			}
 
-            String text;
+		}
 
-            if (value instanceof Number)
-                text = format.format((Number) value);
-            else
-                text = value.toString();
+		if (value != null) {
 
-            JLabel newLabel = new JLabel(text, JLabel.LEFT);
+			String text;
 
-            if (font != null)
-                newLabel.setFont(font);
-            else if (table.getFont() != null)
-                newLabel.setFont(table.getFont());
+			if (value instanceof Number)
+				text = format.format((Number) value);
+			else
+				text = value.toString();
 
-            newPanel.add(newLabel);
+			JLabel newLabel = new JLabel(text, JLabel.LEFT);
 
-        }
+			if (font != null)
+				newLabel.setFont(font);
+			else if (table.getFont() != null)
+				newLabel.setFont(table.getFont());
 
-        return newPanel;
+			newPanel.add(newLabel);
 
-    }
- 
+		}
+
+		return newPanel;
+
+	}
+
 }
