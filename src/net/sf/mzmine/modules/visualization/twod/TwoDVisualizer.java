@@ -32,6 +32,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -42,6 +43,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class TwoDVisualizer implements MZmineModule, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+	
+    final String helpID = GUIUtils.generateHelpID(this);
 
 	private static TwoDVisualizer myInstance;
 
@@ -133,7 +136,7 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for 2D visualizer",
-				myInstance.parameters, autoValues);
+				myInstance.parameters, autoValues, myInstance.helpID);
 
 		dialog.setVisible(true);
 

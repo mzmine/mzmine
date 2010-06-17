@@ -43,11 +43,12 @@ public class HistogramSetupDialog extends ParameterSetupDialog {
     private JComboBox dataTypeComponent;
     private JFormattedTextField minField, maxField;
     private PeakList peakList;
+    
 
     public HistogramSetupDialog(String title, SimpleParameterSet parameterSet,
-            PeakList peakList) {
+            PeakList peakList, String helpID) {
 
-        super(title, parameterSet);
+        super(title, parameterSet, helpID);
         this.peakList = peakList;
 
         dataTypeComponent = (JComboBox) getComponentForParameter(HistogramParameters.dataType);

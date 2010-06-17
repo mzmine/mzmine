@@ -34,6 +34,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
@@ -44,6 +45,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class TICVisualizer implements MZmineModule, ActionListener {
 
 	private static TICVisualizer myInstance;
+	
+    final String helpID = GUIUtils.generateHelpID(this);
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -152,7 +155,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for " + toString(), parameters,
-				autoValues);
+				autoValues, helpID);
 
 		dialog.setVisible(true);
 

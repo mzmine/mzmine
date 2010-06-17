@@ -32,6 +32,7 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
@@ -41,6 +42,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class SpectraVisualizer implements MZmineModule, ActionListener {
 
 	private static SpectraVisualizer myInstance;
+	
+    final String helpID = GUIUtils.generateHelpID(this);
 
 	private SpectraVisualizerParameters parameters;
 
@@ -90,7 +93,7 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 			SpectraVisualizerParameters parameters) {
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(), parameters);
+				"Please set parameter values for " + toString(), parameters,helpID);
 
 		dialog.setVisible(true);
 

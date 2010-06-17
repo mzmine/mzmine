@@ -31,11 +31,14 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class HistogramVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+	final String helpID = GUIUtils.generateHelpID(this);
     
     private HistogramParameters parameters;
 
@@ -63,7 +66,7 @@ public class HistogramVisualizer implements MZmineModule, ActionListener {
     public ExitCode setupParameters(ParameterSet parameters, PeakList peakList) {
     	HistogramSetupDialog dialog = new HistogramSetupDialog(
                 "Please set parameter values for " + toString(),
-                (SimpleParameterSet) parameters, peakList);
+                (SimpleParameterSet) parameters, peakList, helpID);
         dialog.setVisible(true);
         return dialog.getExitCode();
     }

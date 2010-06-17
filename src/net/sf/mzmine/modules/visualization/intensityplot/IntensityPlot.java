@@ -31,6 +31,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
@@ -40,8 +41,12 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
+    final String helpID = GUIUtils.generateHelpID(this);
+    
     private Desktop desktop;
+    
     private IntensityPlotParameters parameters;
+    
     private static IntensityPlot myInstance;
 
 
@@ -88,7 +93,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
         }
 
         IntensityPlotDialog setupDialog = new IntensityPlotDialog(
-                selectedAlignedPeakLists[0], parameters);
+                selectedAlignedPeakLists[0], parameters, helpID);
         setupDialog.setVisible(true);
 
         if (setupDialog.getExitCode() == ExitCode.OK) {
@@ -127,7 +132,7 @@ public class IntensityPlot implements MZmineModule, ActionListener {
                 myInstance.parameters.getYAxisValueSource(),
                 peakList.getRawDataFiles(), rows);
         IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
-                newParameters);
+                newParameters, myInstance.helpID);
         setupDialog.setVisible(true);
         if (setupDialog.getExitCode() == ExitCode.OK) {
             myInstance.setParameters(newParameters);

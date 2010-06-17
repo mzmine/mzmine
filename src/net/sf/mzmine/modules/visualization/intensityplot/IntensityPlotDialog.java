@@ -52,6 +52,7 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 import net.sf.mzmine.util.components.ExtendedCheckBox;
+import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class IntensityPlotDialog extends JDialog implements ActionListener {
@@ -71,10 +72,10 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 	private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
 
 	private JButton btnSelectAllFiles, btnDeselectAllFiles, btnSelectAllPeaks,
-			btnDeselectAllPeaks, btnOK, btnCancel;
+			btnDeselectAllPeaks, btnOK, btnCancel, btnHelp;
 
 	public IntensityPlotDialog(PeakList peakList,
-			IntensityPlotParameters parameterSet) {
+			IntensityPlotParameters parameterSet, String helpID) {
 
 		// make dialog modal
 		super(MZmineCore.getDesktop().getMainFrame(), "Intensity plot setup",
@@ -240,6 +241,10 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 		JPanel buttonsPanel = new JPanel();
 		btnOK = GUIUtils.addButton(buttonsPanel, "OK", null, this);
 		btnCancel = GUIUtils.addButton(buttonsPanel, "Cancel", null, this);
+		if (helpID != null) {
+			btnHelp = new HelpButton(helpID);
+			buttonsPanel.add(btnHelp);
+		}
 		constraints.gridx = 0;
 		constraints.gridy = 5;
 		constraints.gridwidth = 3;
