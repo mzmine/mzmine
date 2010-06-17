@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.util;
 
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -33,7 +34,7 @@ import net.sf.mzmine.data.PeakListRow;
  * 
  */
 public class SearchDefinition {
-
+	
 	private SearchDefinitionType type;
 	private Pattern nameRegex;
 	private Range range;
@@ -48,6 +49,7 @@ public class SearchDefinition {
 
 		this.type = type;
 		this.nameRegex = Pattern.compile(regex);
+		
 
 	}
 
@@ -90,6 +92,11 @@ public class SearchDefinition {
 			if (identity == null)
 				return false;
 			String name = identity.getName();
+			
+			if (isEmpty(nameRegex.toString()) || isEmpty(name)) {
+				return false;
+			}
+
 			Matcher matcher = nameRegex.matcher(name);
 			return matcher.find();
 
@@ -115,6 +122,16 @@ public class SearchDefinition {
 			break;
 		}
 		return text;
+	}
+
+	/**
+	 * Checks if the the string is not empty
+	 */
+	private static boolean isEmpty(String str) {
+		if (str != null && str.trim().length() > 0) {
+			return false;
+		}
+		return true;
 	}
 
 }
