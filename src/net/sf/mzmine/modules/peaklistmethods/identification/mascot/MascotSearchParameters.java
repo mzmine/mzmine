@@ -26,7 +26,7 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 
-public class MascotSearchTempParameters extends SimpleParameterSet {
+public class MascotSearchParameters extends SimpleParameterSet {
 
 	public static final NumberFormat percentFormat = NumberFormat
 			.getPercentInstance();
@@ -36,7 +36,7 @@ public class MascotSearchTempParameters extends SimpleParameterSet {
 			"Mascot Server address, http://",
 			"URL address where the Mascot Server is installed",null, "127.0.0.1", null);
 
-	public MascotSearchTempParameters() {
+	public MascotSearchParameters() {
 		super(new Parameter[] { urlAddress });
 	}
 

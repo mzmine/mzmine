@@ -49,7 +49,7 @@ public class MascotSearch implements BatchStep, ActionListener {
     
     private Desktop desktop;
 	
-    private MascotSearchTempParameters parameters;
+    private MascotSearchParameters parameters;
 	
     private SimpleParameterSet mascotParameters;
 
@@ -67,7 +67,7 @@ public class MascotSearch implements BatchStep, ActionListener {
 		this.desktop = MZmineCore.getDesktop();
 
 
-		parameters = new MascotSearchTempParameters();
+		parameters = new MascotSearchParameters();
 
 		desktop
 				.addMenuItem(
@@ -82,7 +82,7 @@ public class MascotSearch implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (MascotSearchTempParameters) parameterValues;
+		this.parameters = (MascotSearchParameters) parameterValues;
 	}
 
 	/**

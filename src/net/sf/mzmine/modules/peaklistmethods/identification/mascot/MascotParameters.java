@@ -54,9 +54,9 @@ public class MascotParameters extends SimpleParameterSet {
 	private String serverName = "127.0.0.1";
 
 
-	public MascotParameters(MascotSearchTempParameters parameters) throws MalformedURLException, IOException {
+	public MascotParameters(MascotSearchParameters parameters) throws MalformedURLException, IOException {
 		super(new Parameter[] {});
-		serverName = (String) parameters.getParameterValue(MascotSearchTempParameters.urlAddress);
+		serverName = (String) parameters.getParameterValue(MascotSearchParameters.urlAddress);
 		para = new Vector<SimpleParameter>();
 
 		URL url = new URL(getSearchMaskUrlString());
