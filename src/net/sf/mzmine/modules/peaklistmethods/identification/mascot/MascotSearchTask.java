@@ -66,7 +66,7 @@ public class MascotSearchTask implements Task {
 
 	private PeakList pp;
 
-	private MascotSearchParameters parameters;
+	private MascotParameters parameters;
 	private String submisionString;
 	private File tmpFile;
 	private String details = null;
@@ -79,7 +79,7 @@ public class MascotSearchTask implements Task {
 	 * @param peakList
 	 *            the peak list
 	 */
-	public MascotSearchTask(MascotSearchParameters parameters, PeakList peakList) {
+	public MascotSearchTask(MascotParameters parameters, PeakList peakList) {
 
 		this.pp = peakList;
 		this.parameters = parameters;

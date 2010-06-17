@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
@@ -44,8 +45,13 @@ public class MascotSearch implements BatchStep, ActionListener {
 
 	public static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
 
-	private Desktop desktop;
-	private MascotSearchParameters parameters;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    
+    private Desktop desktop;
+	
+    private MascotSearchTempParameters parameters;
+	
+    private SimpleParameterSet mascotParameters;
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
@@ -60,15 +66,8 @@ public class MascotSearch implements BatchStep, ActionListener {
 	public void initModule() {
 		this.desktop = MZmineCore.getDesktop();
 
-//		try {
-//			parameters = new MascotSearchParameters();
-//		} catch (MalformedURLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+
+		parameters = new MascotSearchTempParameters();
 
 		desktop
 				.addMenuItem(
@@ -83,7 +82,7 @@ public class MascotSearch implements BatchStep, ActionListener {
 	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (MascotSearchParameters) parameterValues;
+		this.parameters = (MascotSearchTempParameters) parameterValues;
 	}
 
 	/**
@@ -101,10 +100,6 @@ public class MascotSearch implements BatchStep, ActionListener {
 				"Please set parameter values for " + toString(),
 				(SimpleParameterSet) parameters);
 		dialog.setVisible(true);
-
-
-
-
 		return dialog.getExitCode();
 	}
 
@@ -121,21 +116,23 @@ public class MascotSearch implements BatchStep, ActionListener {
 			return;
 		}
 		try {
-			parameters = new MascotSearchParameters();
+			ExitCode exitCode = setupParameters(parameters);
+			if (exitCode != ExitCode.OK)
+				return;
+			mascotParameters = new MascotParameters(parameters);
+			
 		} catch (MalformedURLException ee) {
-			// TODO Auto-generated catch block
-			ee.printStackTrace();
+			logger.fine(ee.toString());
 		} catch (IOException ee) {
-			// TODO Auto-generated catch block
-			ee.printStackTrace();
+			logger.fine(ee.toString());
 		}
 
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = setupParameters(mascotParameters);
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(null, peakLists, parameters.clone());
+		runModule(null, peakLists, mascotParameters.clone());
 
 	}
 
@@ -155,7 +152,7 @@ public class MascotSearch implements BatchStep, ActionListener {
 		Task tasks[] = new MascotSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new MascotSearchTask(
-					(MascotSearchParameters) parameters, peakLists[i]);
+					(MascotParameters) parameters, peakLists[i]);
 		}
 
 		// execute the sequence

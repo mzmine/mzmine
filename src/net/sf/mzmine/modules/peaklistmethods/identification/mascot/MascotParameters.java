@@ -43,21 +43,20 @@ import be.proteomics.lims.util.http.forms.inputs.RadioInput;
 import be.proteomics.lims.util.http.forms.inputs.SelectInput;
 import be.proteomics.lims.util.http.forms.inputs.TextFieldInput;
 
-public class MascotSearchParameters extends SimpleParameterSet {
+public class MascotParameters extends SimpleParameterSet {
 
 	private SimpleParameterSet parameterSet = null;
 	Vector<SimpleParameter> para = null;
 	HTTPForm iForm = null;
 
 	Map<SimpleParameter, String[]> multi = null;
-	// TextFieldInput fileName = null;
+
+	private String serverName = "127.0.0.1";
 
 
-	private String serverName = "10.1.50.4";
-
-
-	public MascotSearchParameters() throws MalformedURLException, IOException {
+	public MascotParameters(MascotSearchTempParameters parameters) throws MalformedURLException, IOException {
 		super(new Parameter[] {});
+		serverName = (String) parameters.getParameterValue(MascotSearchTempParameters.urlAddress);
 		para = new Vector<SimpleParameter>();
 
 		URL url = new URL(getSearchMaskUrlString());
