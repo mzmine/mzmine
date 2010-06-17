@@ -70,8 +70,16 @@ class PeakStatusCellRenderer implements TableCellRenderer {
 						.getBorder("Table.focusSelectedCellHighlightBorder");
 			if (border == null)
 				border = UIManager.getBorder("Table.focusCellHighlightBorder");
-			if (border != null)
+	        
+			/*
+			 * The "border.getBorderInsets(newPanel) != null" is a workaround
+			 * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+			 * NullPointerException
+			 */
+			if ((border != null) && (border.getBorderInsets(newPanel) != null)) {
 				newPanel.setBorder(border);
+			}
+			
 		}
 
 		if (value != null) {

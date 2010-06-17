@@ -65,7 +65,15 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
                 border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
             if (border == null)
                 border = UIManager.getBorder("Table.focusCellHighlightBorder");
-            newLabel.setBorder(border);
+			
+            /*
+			 * The "border.getBorderInsets(newPanel) != null" is a workaround
+			 * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+			 * NullPointerException
+			 */
+			if ((border != null) && (border.getBorderInsets(newLabel) != null)) {
+				newLabel.setBorder(border);
+			}
         }
 
         if (value instanceof PeakIdentity) {
