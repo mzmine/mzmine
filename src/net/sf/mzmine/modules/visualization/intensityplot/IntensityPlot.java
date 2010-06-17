@@ -21,14 +21,12 @@ package net.sf.mzmine.modules.visualization.intensityplot;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
 import net.sf.mzmine.util.GUIUtils;
@@ -61,10 +59,6 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
         myInstance = this;
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
-                "Peak intensity plot",
-                "Plots the peak height or area vs selected parameter",
-                KeyEvent.VK_D, false, this, null);
 
     }
     

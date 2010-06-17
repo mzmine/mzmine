@@ -194,12 +194,12 @@ public class IntensityPlotDialog extends JDialog implements ActionListener {
 				BoxLayout.Y_AXIS));
 		peakCheckBoxes = new Vector<ExtendedCheckBox<PeakListRow>>();
 		minimumHorizSize = 0;
-		PeakListRow rows[] = alignedPeakList.getRows();
+		PeakListRow rows[] = selectedRows.toArray(new PeakListRow[0]);
 		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
 				SortingDirection.Ascending));
 		for (int i = 0; i < rows.length; i++) {
 			ExtendedCheckBox<PeakListRow> ecb = new ExtendedCheckBox<PeakListRow>(
-					rows[i], selectedRows.contains(rows[i]));
+					rows[i], true);
 			peakCheckBoxes.add(ecb);
 			minimumHorizSize = Math.max(minimumHorizSize, ecb
 					.getPreferredWidth());
