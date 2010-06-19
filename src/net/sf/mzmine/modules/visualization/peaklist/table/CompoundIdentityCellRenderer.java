@@ -80,7 +80,7 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
 
             PeakIdentity identity = (PeakIdentity) value;
 
-            newLabel.setText(identity.getName());
+            newLabel.setText(identity.toString());
 
             String toolTipText = identity.getDescription();
 

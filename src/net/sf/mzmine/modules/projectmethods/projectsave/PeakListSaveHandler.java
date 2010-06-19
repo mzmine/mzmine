@@ -27,6 +27,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import javax.xml.transform.OutputKeys;
@@ -44,7 +46,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakList;
 
 import org.xml.sax.SAXException;
@@ -290,38 +291,24 @@ class PeakListSaveHandler {
 			TransformerHandler hd) throws SAXException {
 
 		AttributesImpl atts = new AttributesImpl();
-		// <NAME>
-		String name = (identity.getName() != null) ? identity.getName() : "";
-		hd.startElement("", "", PeakListElementName.IDENTITY_NAME
-				.getElementName(), atts);
-		hd.characters(name.toCharArray(), 0, name.length());
-		hd.endElement("", "", PeakListElementName.IDENTITY_NAME
-				.getElementName());
 
-		// <FORMULA>
-		String formula = null;
-		if (identity instanceof SimplePeakIdentity) {
-			SimplePeakIdentity id = (SimplePeakIdentity) identity;
-			formula = id.getCompoundFormula();
-		}
-		if (formula != null) {
-			atts.clear();
-			hd.startElement("", "", PeakListElementName.FORMULA
-					.getElementName(), atts);
-			hd.characters(formula.toCharArray(), 0, formula.length());
-			hd.endElement("", "", PeakListElementName.FORMULA.getElementName());
-		}
+		Map<String, String> idProperties = identity.getAllProperties();
 
-		// <IDENTIFICATION>
-		if (identity.getIdentificationMethod() != null) {
+		for (Entry<String, String> property : idProperties.entrySet()) {
+			String propertyValue = property.getValue();
 			atts.clear();
-			hd.startElement("", "", PeakListElementName.IDENTIFICATION_METHOD
+			atts.addAttribute("", "",
+					PeakListElementName.NAME.getElementName(), "CDATA",
+					property.getKey());
+
+			hd.startElement("", "", PeakListElementName.IDPROPERTY
 					.getElementName(), atts);
-			String idMethod = identity.getIdentificationMethod();
-			hd.characters(idMethod.toCharArray(), 0, idMethod.length());
-			hd.endElement("", "", PeakListElementName.IDENTIFICATION_METHOD
+			hd.characters(propertyValue.toCharArray(), 0, propertyValue
+					.length());
+			hd.endElement("", "", PeakListElementName.IDPROPERTY
 					.getElementName());
 		}
+		
 	}
 
 	/**

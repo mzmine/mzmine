@@ -19,48 +19,29 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ComplexIdentity implements PeakIdentity {
+public class ComplexIdentity extends SimplePeakIdentity {
 
 	private PeakListRow complexRow, peak1, peak2;
-	private String complexName;
 
 	/**
 	 */
 	public ComplexIdentity(PeakListRow complexRow, PeakListRow peak1,
 			PeakListRow peak2) {
+		super("Complex of "
+				+ MZmineCore.getMZFormat().format(peak1.getAverageMZ())
+				+ " and "
+				+ MZmineCore.getMZFormat().format(peak2.getAverageMZ())
+				+ " m/z");
 
 		this.complexRow = complexRow;
 		this.peak1 = peak1;
 		this.peak2 = peak2;
 
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
-
-		// We have to save the copy of the name here. If we ask
-		// mainPeakListRow.getName() every time we are asked for a name, we may
-		// create an infinite loop if two rows depend on each other
-		this.complexName = "Complex of "
-				+ mzFormat.format(peak1.getAverageMZ()) + " and "
-				+ mzFormat.format(peak2.getAverageMZ()) + " m/z";
-	}
-
-	/**
-	 * @return Returns the identificationMethod
-	 */
-	public String getIdentificationMethod() {
-		return "Complex search";
-	}
-
-	/**
-	 * @return Returns the Name
-	 */
-	public String getName() {
-		return complexName;
+		setPropertyValue(PROPERTY_METHOD, "Complex search");
 	}
 
 	public PeakListRow getComplexPeak() {
@@ -69,17 +50,6 @@ public class ComplexIdentity implements PeakIdentity {
 
 	public PeakListRow[] getComplexedPeaks() {
 		return new PeakListRow[] { peak1, peak2 };
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return getName();
-	}
-
-	public String getDescription() {
-		return getName();
 	}
 
 }

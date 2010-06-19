@@ -19,31 +19,52 @@
 
 package net.sf.mzmine.data;
 
+import java.util.Map;
+
 /**
  * This interface represents an identification result.
  */
 public interface PeakIdentity {
 
 	/**
-	 * Returns description of identification method, e.g. which database was
-	 * searched.
-	 * 
-	 * @return Identification method
+	 * These variables define standard properties. The PROPERTY_NAME must be
+	 * present in all instances of PeakIdentity. It defines the value which is
+	 * returned by the toString() method.
 	 */
-	public String getIdentificationMethod();
+	public static final String PROPERTY_NAME = "Name";
+	public static final String PROPERTY_FORMULA = "Molecular formula";
+	public static final String PROPERTY_METHOD = "Identification method";
+	public static final String PROPERTY_ID = "ID";
+	public static final String PROPERTY_URL = "URL";
 
 	/**
-	 * Returns name of the identified peak
+	 * Returns the value of the PROPERTY_NAME property. This value must always
+	 * be set. Same value is returned by the toString() method.
 	 * 
-	 * @return Peak name
+	 * @return Name
 	 */
 	public String getName();
-	
+
 	/**
-	 * Returns full, multi-line description of this identity
+	 * Returns full, multi-line description of this identity, one property per
+	 * line (key: value)
 	 * 
 	 * @return Description
 	 */
 	public String getDescription();
+
+	/**
+	 * Returns all the properties in the form of a map key --> value
+	 * 
+	 * @return Description
+	 */
+	public String getPropertyValue(String property);
+
+	/**
+	 * Returns all the properties in the form of a map key --> value
+	 * 
+	 * @return Description
+	 */
+	public Map<String, String> getAllProperties();
 
 }

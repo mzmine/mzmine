@@ -17,89 +17,77 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
-import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import be.proteomics.mascotdatfile.util.interfaces.Modification;
 import be.proteomics.mascotdatfile.util.mascot.PeptideHit;
 import be.proteomics.mascotdatfile.util.mascot.ProteinHit;
 
-public class MascotPeakIdentity implements PeakIdentity {
-	
+public class MascotPeakIdentity extends SimplePeakIdentity {
+
+	public static final String PROPERTY_PEPTIDE = "Peptide sequence";
+	public static final String PROPERTY_MASS = "Mass (Mr)";
+	public static final String PROPERTY_DELTA = "Delta";
+	public static final String PROPERTY_SCORE = "Score";
+	public static final String PROPERTY_MISSES = "Misses";
+	public static final String PROPERTY_MODIFICATIONS = "Modifications";
+
 	private PeptideHit peptide;
-	private String pepName,pepDescription;
-	
+
 	/**
-	 * This class implements PeakIdentity and wrap the information of the peptide assigned to the chromatographic peak.
+	 * This class implements PeakIdentity and wrap the information of the
+	 * peptide assigned to the chromatographic peak.
 	 * 
 	 * @param peptide
 	 */
-	public MascotPeakIdentity(PeptideHit peptide){
+	public MascotPeakIdentity(PeptideHit peptide) {
+
 		this.peptide = peptide;
+
 		StringBuffer name = new StringBuffer();
-		for (Iterator i = peptide.getProteinHits().iterator(); i.hasNext();){
-			ProteinHit p = (ProteinHit) i.next();
-			name.append(p.getAccession()+" ");
+		Iterator<ProteinHit> it = peptide.getProteinHits().iterator();
+		while (it.hasNext()) {
+			ProteinHit p = it.next();
+			if (name.length() > 0)
+				name.append(" ");
+			name.append(p.getAccession());
 		}
-		this.pepName = name.toString();
-		
+
+		setPropertyValue(PROPERTY_NAME, name.toString());
+
 		Modification[] mods = peptide.getModifications();
-		HashMap <Integer,String> varMods = new HashMap<Integer,String>();
-		for (int i=0;i<mods.length;i++){
-			try{
-				String modString = mods[i].getType()+" ("+mods[i].getLocation()+")";
-				varMods.put(mods[i].getModificationID(), modString);
-			}
-			catch (Exception e){
-			//do nothing
-			}
+		HashMap<Integer, String> varMods = new HashMap<Integer, String>();
+		for (int i = 0; i < mods.length; i++) {
+			String modString = mods[i].getType() + " (" + mods[i].getLocation()
+					+ ")";
+			varMods.put(mods[i].getModificationID(), modString);
 		}
-		
+
 		int[] modSequences = peptide.getVariableModificationsArray();
 		String modSeqString = "";
-		for (int i=0;i<modSequences.length;i++){
-			try{
-				if (varMods.containsKey(modSequences[i])){
-					modSeqString += varMods.get(modSequences[i]) + " ["+i+"], ";
-				}
-			}
-			catch (Exception e){
-			//do nothing
+		for (int i = 0; i < modSequences.length; i++) {
+			if (varMods.containsKey(modSequences[i])) {
+				modSeqString += varMods.get(modSequences[i]) + " [" + i + "], ";
 			}
 		}
-		
-		
-		this.pepDescription = pepName + "\nPeptide: " + peptide.getSequence() + 
-		"\nMass (Mr): "+ peptide.getPeptideMr() + 
-		"\nDelta: "+ peptide.getDeltaMass()+ 
-		"\nScore: "+ peptide.getIonsScore() +
-		"\nMisses: "+ peptide.getMissedCleavages() + 
-		"\nModifications: "+ modSeqString+
-		"\nIdentification method: "+ getIdentificationMethod();
+
+		setPropertyValue(PROPERTY_METHOD, "MASCOT search");
+		setPropertyValue(PROPERTY_PEPTIDE, peptide.getSequence());
+		setPropertyValue(PROPERTY_MASS, String.valueOf(peptide.getPeptideMr()));
+		setPropertyValue(PROPERTY_DELTA, String.valueOf(peptide.getDeltaMass()));
+		setPropertyValue(PROPERTY_SCORE, String.valueOf(peptide.getIonsScore()));
+		setPropertyValue(PROPERTY_MISSES, String.valueOf(peptide
+				.getMissedCleavages()));
+		setPropertyValue(PROPERTY_MODIFICATIONS, modSeqString);
+
 	}
 
-	public String getDescription() {
-		return pepDescription;
-	}
-
-	public String getIdentificationMethod() {
-		return "Mascot";
-	}
-
-	public String getName() {
-		return pepName;
-	}
-	
-	public PeptideHit getPeptide(){
+	public PeptideHit getPeptide() {
 		return peptide;
-	}
-	
-	public String toString(){
-		return this.getName();
 	}
 
 }

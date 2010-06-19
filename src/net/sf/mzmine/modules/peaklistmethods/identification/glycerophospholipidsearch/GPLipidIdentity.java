@@ -20,13 +20,13 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
 import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.util.FormulaUtils;
 
-public class GPLipidIdentity implements PeakIdentity {
+public class GPLipidIdentity extends SimplePeakIdentity {
 
-	private String name, formula;
 	private double mass;
-
+	
 	/**
 	 * @param originalPeakListRow
 	 * @param relatedPeakListRow
@@ -36,9 +36,9 @@ public class GPLipidIdentity implements PeakIdentity {
 			int fattyAcid1DoubleBonds, int fattyAcid2Length,
 			int fattyAcid2DoubleBonds) {
 
-		this.name = lipidType.getAbbr() + "(" + fattyAcid1Length + ":"
+		super (lipidType.getAbbr() + "(" + fattyAcid1Length + ":"
 				+ fattyAcid1DoubleBonds + "/" + fattyAcid2Length + ":"
-				+ fattyAcid2DoubleBonds + ")";
+				+ fattyAcid2DoubleBonds + ")");
 
 		String fattyAcid1Formula = "H", fattyAcid2Formula = "H";
 
@@ -56,43 +56,18 @@ public class GPLipidIdentity implements PeakIdentity {
 					+ numberOfHydrogens + "O";
 		}
 
-		this.formula = lipidType.getFormula() + fattyAcid1Formula
+		String formula = lipidType.getFormula() + fattyAcid1Formula
 				+ fattyAcid2Formula;
 
 		this.mass = FormulaUtils.calculateExactMass(formula);
 
+		setPropertyValue(PROPERTY_FORMULA, formula);
+		setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
+		
 	}
-
-	public String getFormula() {
-		return formula;
-	}
-
-	public double getMass() {
+	
+	double getMass() {
 		return mass;
 	}
 
-	/**
-	 * @return Returns the identificationMethod
-	 */
-	public String getIdentificationMethod() {
-		return "Glycerophospholipid search";
-	}
-
-	/**
-	 * @return Returns the Name
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return getName();
-	}
-
-	public String getDescription() {
-		return getName() + " [" + formula + "]";
-	}
 }

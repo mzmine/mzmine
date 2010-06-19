@@ -114,12 +114,16 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 
 		if (editIdentity != null) {
 			this.editIdentity = editIdentity;
-			compoundName.setText(editIdentity.getName());
-			if (editIdentity instanceof SimplePeakIdentity) {
-				SimplePeakIdentity sid = (SimplePeakIdentity) editIdentity;
-				compoundFormula.setText(sid.getCompoundFormula());
-				compoundID.setText(sid.getID());
-			}
+			String name = editIdentity.getName();
+			compoundName.setText(name);
+			String formula = editIdentity
+					.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+			if (formula != null)
+				compoundFormula.setText(formula);
+			String id = editIdentity.getPropertyValue(PeakIdentity.PROPERTY_ID);
+			if (id != null)
+				compoundID.setText(id);
+
 		}
 
 		// Buttons
@@ -168,9 +172,8 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 				return;
 			}
 
-			SimplePeakIdentity compound;
-			compound = new SimplePeakIdentity(id, name, null, formula, null,
-					"User defined");
+			SimplePeakIdentity compound = new SimplePeakIdentity(name, formula,
+					"User defined", id, null);
 
 			if (editIdentity != null)
 				peakListRow.removePeakIdentity(editIdentity);

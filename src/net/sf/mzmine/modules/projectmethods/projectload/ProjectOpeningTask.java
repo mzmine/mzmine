@@ -234,23 +234,36 @@ public class ProjectOpeningTask implements Task {
 				versionInputStream));
 
 		String mzmineVersion = MZmineCore.getMZmineVersion();
+		double mzmineVersionNumber = Double.parseDouble(mzmineVersion);
+
 		String projectVersion = reader.readLine();
 		reader.close();
-
 		// Strip any extra characters from project version and convert it to
 		// double
 		Pattern p = Pattern.compile("(\\d+\\.\\d+)");
 		Matcher m = p.matcher(projectVersion);
 		m.find();
 		projectVersion = m.group(1);
-
 		double projectVersionNumber = Double.parseDouble(projectVersion);
 
-		// Check if project was saved with compatible version
-		if (projectVersionNumber < 1.96) {
-			throw new IOException("This project was saved with MZmine version "
-					+ projectVersion + " and cannot be opened in MZmine "
-					+ mzmineVersion);
+		// Check if project was saved with an older version
+		if (projectVersionNumber < mzmineVersionNumber) {
+			String warning = "Warning: this project was saved with an older version of MZmine ("
+					+ projectVersion
+					+ "). Opening this project in MZmine "
+					+ mzmineVersion
+					+ " may result in errors or loss of information.";
+			MZmineCore.getDesktop().displayMessage(warning);
+		}
+
+		// Check if project was saved with a newer version
+		if (projectVersionNumber > mzmineVersionNumber) {
+			String warning = "Warning: this project was saved with a newer version of MZmine ("
+					+ projectVersion
+					+ "). Opening this project in MZmine "
+					+ mzmineVersion
+					+ " may result in errors or loss of information.";
+			MZmineCore.getDesktop().displayMessage(warning);
 		}
 
 	}
@@ -310,7 +323,8 @@ public class ProjectOpeningTask implements Task {
 				Integer fileID = Integer.parseInt(fileMatcher.group(1));
 				currentLoadedObjectName = fileMatcher.group(2);
 
-				String scansFileName = entryName.replaceFirst("\\.xml$", ".scans");
+				String scansFileName = entryName.replaceFirst("\\.xml$",
+						".scans");
 				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
 				rawDataFileOpenHandler = new RawDataFileOpenHandler();
 				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
@@ -328,7 +342,8 @@ public class ProjectOpeningTask implements Task {
 
 		logger.info("Loading peak lists");
 
-		Pattern filePattern = Pattern.compile("Peak list #([\\d]+) (.*)\\.xml$");
+		Pattern filePattern = Pattern
+				.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
 		Enumeration zipEntries = zipFile.entries();
 		while (zipEntries.hasMoreElements()) {

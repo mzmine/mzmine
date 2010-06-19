@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
@@ -177,20 +178,22 @@ public class SingleRowIdentificationTask implements Task {
 				}
 
 				DBCompound compound = gateway.getCompound(compoundIDs[i]);
+				String formula = compound
+						.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 
-				if (compound.getCompoundFormula() != null) {
+				if (formula != null) {
 
 					// First modify the formula according to polarity - for
 					// negative, remove one hydrogen; for positive, add one
 					// hydrogen
 					String adjustedFormula = FormulaUtils.ionizeFormula(
-							compound.getCompoundFormula(), ionType
-									.getPolarity(), charge);
+							formula, ionType.getPolarity(), charge);
 
 					logger
 							.finest("Calculating isotope pattern for compound formula "
-									+ compound.getCompoundFormula()
-									+ " adjusted to " + adjustedFormula);
+									+ formula
+									+ " adjusted to "
+									+ adjustedFormula);
 
 					// Generate IsotopePattern for this compound
 					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
@@ -205,7 +208,7 @@ public class SingleRowIdentificationTask implements Task {
 					// If required, check isotope score
 					if ((rawDataIsotopePattern != null)
 							&& (compoundIsotopePattern != null)) {
-						
+
 						double score = IsotopePatternScoreCalculator
 								.getSimilarityScore(rawDataIsotopePattern,
 										compoundIsotopePattern);

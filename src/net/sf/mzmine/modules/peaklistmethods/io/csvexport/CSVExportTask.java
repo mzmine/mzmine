@@ -26,7 +26,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
@@ -192,12 +191,9 @@ class CSVExportTask implements Task {
 						}
 						break;
 					case ROW_FORMULA:
-						String formula = "";
-						if (peakListRow.getPreferredPeakIdentity() instanceof SimplePeakIdentity) {
-							SimplePeakIdentity id = (SimplePeakIdentity) peakListRow
-									.getPreferredPeakIdentity();
-							formula = id.getCompoundFormula();
-						}
+						PeakIdentity peakId = peakListRow.getPreferredPeakIdentity();
+						String formula = peakId.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+						if (formula == null) formula = "";
 						line.append(formula + fieldSeparator);
 
 						break;

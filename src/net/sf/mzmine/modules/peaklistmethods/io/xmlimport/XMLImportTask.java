@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
+import java.util.Hashtable;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -84,8 +85,8 @@ public class XMLImportTask extends DefaultHandler implements Task {
 	private double mass, rt, height, area;
 	private int[] scanNumbers;
 	private double[] retentionTimes, masses, intensities;
-	private String peakStatus, peakListName, name, formula,
-			identificationMethod, identityID;
+	private String peakStatus, peakListName, name, identityPropertyName;
+	private Hashtable<String, String> identityProperties;
 	private boolean preferred;
 	private String dateCreated;
 	private Range rtRange, mzRange;
@@ -277,18 +278,15 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-			try {
-				identityID = attrs.getValue(PeakListElementName.ID
-						.getElementName());
-				preferred = Boolean.parseBoolean(attrs
-						.getValue(PeakListElementName.PREFERRED
-								.getElementName()));
-			} catch (Exception e) {
-				status = TaskStatus.ERROR;
-				errorMessage = "This file does not have MZmine peak list file format";
-				throw new SAXException(
-						"Could not read identity attributes information");
-			}
+			identityProperties = new Hashtable<String, String>();
+			preferred = Boolean.parseBoolean(attrs
+					.getValue(PeakListElementName.PREFERRED.getElementName()));
+		}
+
+		// <IDENTITY_PROPERTY>
+		if (qName.equals(PeakListElementName.IDPROPERTY.getElementName())) {
+			identityPropertyName = attrs.getValue(PeakListElementName.NAME
+					.getElementName());
 		}
 
 		// <PEAK>
@@ -464,16 +462,6 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 		}
 
-		// <FORMULA>
-		if (qName.equals(PeakListElementName.FORMULA.getElementName())) {
-			formula = getTextOfElement();
-		}
-
-		// <IDENTIFICATION>
-		if (qName.equals(PeakListElementName.IDENTIFICATION.getElementName())) {
-			identificationMethod = getTextOfElement();
-		}
-
 		// <RTRANGE>
 		if (qName.equals(PeakListElementName.RTRANGE.getElementName())) {
 			try {
@@ -534,10 +522,15 @@ public class XMLImportTask extends DefaultHandler implements Task {
 					peak);
 		}
 
+		// <IDENTITY_PROPERTY>
+		if (qName.equals(PeakListElementName.IDPROPERTY.getElementName())) {
+			identityProperties.put(identityPropertyName, getTextOfElement());
+		}
+
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-			SimplePeakIdentity identity = new SimplePeakIdentity(identityID,
-					name, new String[0], formula, null, identificationMethod);
+			SimplePeakIdentity identity = new SimplePeakIdentity(
+					identityProperties);
 			buildingRow.addPeakIdentity(identity, preferred);
 		}
 
@@ -557,8 +550,8 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 				for (int i = 0; i < quantity; i++) {
 					SimpleScan newScan = new SimpleScan(buildingRawDataFile,
-							scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0, null,
-							new DataPoint[0], false);
+							scanNumbers[i], 1, retentionTimes[i], -1, 0f, 0,
+							null, new DataPoint[0], false);
 					buildingRawDataFile.addScan(newScan);
 				}
 				scanFlag = false;

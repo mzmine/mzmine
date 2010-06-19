@@ -126,7 +126,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 		JLabel name, info;
 		if (identity != null) {
-			name = new JLabel(identity.getName(), SwingUtilities.LEFT);
+			name = new JLabel(identity.toString(), SwingUtilities.LEFT);
 			StringBuffer buf = new StringBuffer();
 			Format mzFormat = MZmineCore.getMZFormat();
 			Format timeFormat = MZmineCore.getRTFormat();

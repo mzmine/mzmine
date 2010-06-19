@@ -19,153 +19,111 @@
 
 package net.sf.mzmine.data.impl;
 
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import net.sf.mzmine.data.PeakIdentity;
 
 /**
- * Simple CompoundIdentity implementation;
+ * Simple PeakIdentity implementation;
  */
 public class SimplePeakIdentity implements PeakIdentity {
 
-    private String compoundID, compoundName, alternateNames[], compoundFormula;
-    private String databaseEntryURL, identificationMethod;
+	private Hashtable<String, String> properties;
 
-    /**
-     * @param compoundID
-     * @param compoundName
-     * @param alternateNames
-     * @param compoundFormula
-     * @param databaseEntryURL
-     * @param identificationMethod
-     * @param scopeNote
-     */
-    public SimplePeakIdentity(String compoundID, String compoundName,
-            String[] alternateNames, String compoundFormula,
-            String databaseEntryURL, String identificationMethod) {
-        this.compoundID = compoundID;
-        this.compoundName = compoundName;
-        this.alternateNames = alternateNames;
-        this.compoundFormula = compoundFormula;
-        
-        if (compoundName == null){
-            this.compoundName = compoundFormula;
-        }
-        else if (compoundName.equals("")){
-            this.compoundName = compoundFormula;
-        }
-        
-        this.databaseEntryURL = databaseEntryURL;
-        this.identificationMethod = identificationMethod;
-    }
-
-    /**
-     * @return Returns the alternateNames.
-     */
-    public String[] getAlternateNames() {
-        return alternateNames;
-    }
-
-    /**
-     * @param alternateNames The alternateNames to set.
-     */
-    public void setAlternateNames(String[] alternateNames) {
-        this.alternateNames = alternateNames;
-    }
-
-    /**
-     * @return Returns the compoundFormula.
-     */
-    public String getCompoundFormula() {
-        return compoundFormula;
-    }
-
-    /**
-     * @param compoundFormula The compoundFormula to set.
-     */
-    public void setCompoundFormula(String compoundFormula) {
-        this.compoundFormula = compoundFormula;
-    }
-
-    /**
-     * @return Returns the compoundID.
-     */
-    public String getID() {
-        return compoundID;
-    }
-
-    /**
-     * @param compoundID The compoundID to set.
-     */
-    public void setCompoundID(String compoundID) {
-        this.compoundID = compoundID;
-    }
-
-    /**
-     * @return Returns the compoundName.
-     */
-    public String getName() {
-        return compoundName;
-    }
-
-    /**
-     * @param compoundName The compoundName to set.
-     */
-    public void setCompoundName(String compoundName) {
-        this.compoundName = compoundName;
-    }
-
-    /**
-     * @return Returns the databaseEntryURL.
-     */
-    public String getDatabaseEntryURL() {
-        return databaseEntryURL;
-    }
-
-    /**
-     * @param databaseEntryURL The databaseEntryURL to set.
-     */
-    public void setDatabaseEntryURL(String databaseEntryURL) {
-        this.databaseEntryURL = databaseEntryURL;
-    }
-
-    /**
-     * @return Returns the identificationMethod.
-     */
-    public String getIdentificationMethod() {
-        return identificationMethod;
-    }
-
-    /**
-     * @param identificationMethod The identificationMethod to set.
-     */
-    public void setIdentificationMethod(String identificationMethod) {
-        this.identificationMethod = identificationMethod;
-    }
- 
-    /**
-     * @see java.lang.Object#toString()
-     */
-    public String toString() {
-        return compoundName;
-    }
-
-    /**
-     * @see java.lang.Comparable#compareTo(java.lang.Object)
-     */
-    public int compareTo(Object value) {
-        
-        if (value == null)
-			return 1;
-        
-        PeakIdentity identityValue = (PeakIdentity) value;
-        String valueName = identityValue.getName();
-        if (valueName == null) return 1;
-        return valueName.compareTo(compoundName);
-    }
-
-	public String getDescription() {
-		return compoundName + "\nFormula: " + compoundFormula
-				+ "\nIdentification method: " + identificationMethod;
+	/**
+	 * This constructor is protected so only derived classes can use it. Other
+	 * modules using this class should always set the name by default.
+	 */
+	protected SimplePeakIdentity() {
+		this("Unknown name");
 	}
 
+	public SimplePeakIdentity(String name) {
+
+		// Check name
+		if (name == null) {
+			throw new IllegalArgumentException(
+					"Identity properties must contain name");
+		}
+
+		this.properties = new Hashtable<String, String>();
+
+		properties.put(PROPERTY_NAME, name);
+
+	}
+
+	public SimplePeakIdentity(String name, String formula, String method,
+			String id, String url) {
+
+		// Check name
+		if (name == null) {
+			throw new IllegalArgumentException(
+					"Identity properties must contain name");
+		}
+
+		this.properties = new Hashtable<String, String>();
+
+		properties.put(PROPERTY_NAME, name);
+		properties.put(PROPERTY_FORMULA, formula);
+		properties.put(PROPERTY_METHOD, method);
+		properties.put(PROPERTY_ID, id);
+		properties.put(PROPERTY_URL, url);
+
+	}
+
+	public SimplePeakIdentity(Hashtable<String, String> properties) {
+
+		// Check for name
+		if (properties.get(PROPERTY_NAME) == null) {
+			throw new IllegalArgumentException(
+					"Identity properties must contain name");
+		}
+
+		this.properties = properties;
+	}
+
+	public String getName() {
+		return properties.get(PROPERTY_NAME);
+	}
+
+	public String toString() {
+		return getName();
+	}
+
+	public String getDescription() {
+		StringBuilder description = new StringBuilder();
+		for (Entry<String, String> entry : properties.entrySet()) {
+			if (description.length() > 0)
+				description.append('\n');
+			description.append(entry.getKey());
+			description.append(": ");
+			description.append(entry.getValue());
+
+		}
+		return description.toString();
+	}
+
+	public Map<String, String> getAllProperties() {
+		Hashtable<String, String> propertiesCopy = new Hashtable<String, String>(
+				properties);
+		return propertiesCopy;
+	}
+
+	public String getPropertyValue(String property) {
+		return properties.get(property);
+	}
+
+	public void setPropertyValue(String property, String value) {
+
+		// Check name
+		if ((property.equals(PROPERTY_NAME)) && (value == null)) {
+			throw new IllegalArgumentException(
+					"Identity properties must contain name");
+		}
+
+		properties.put(property, value);
+	}
 
 }

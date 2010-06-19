@@ -19,18 +19,15 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 
-public class AdductIdentity implements PeakIdentity {
+public class AdductIdentity extends SimplePeakIdentity {
 
 	private PeakListRow originalPeakListRow;
 	private PeakListRow adductPeakListRow;
 	private AdductType adduct;
-	private String adductName;
 
 	/**
 	 * @param originalPeakListRow
@@ -40,32 +37,17 @@ public class AdductIdentity implements PeakIdentity {
 	public AdductIdentity(PeakListRow originalPeakListRow,
 			PeakListRow adductPeakListRow, AdductType adduct) {
 		
+		super(adduct.getName() + " adduct of "
+		+ MZmineCore.getMZFormat().format(originalPeakListRow.getAverageMZ()) + " m/z");
+		
 		this.originalPeakListRow = originalPeakListRow;
 		this.adductPeakListRow = adductPeakListRow;
 		this.adduct = adduct;
-		
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
 
-		// We have to save the copy of the name here. If we ask
-		// originalPeakListRow.getName() every time we are asked for a name, we
-		// may create an infinite loop if two rows depend on each other
-		this.adductName = adduct.getName() + " adduct of "
-				+ mzFormat.format(originalPeakListRow.getAverageMZ()) + " m/z";
+		setPropertyValue(PROPERTY_METHOD, "Adduct search");
+
 	}
 
-	/**
-	 * @return Returns the identificationMethod
-	 */
-	public String getIdentificationMethod() {
-		return "Adduct search";
-	}
-
-	/**
-	 * @return Returns the Name
-	 */
-	public String getName() {
-		return adductName;
-	}
 
 	/**
 	 * @return Returns the originalPeakListRow
@@ -95,14 +77,4 @@ public class AdductIdentity implements PeakIdentity {
 		return adduct.getMassDifference();
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return getName();
-	}
-
-	public String getDescription() {
-		return getName();
-	}
 }

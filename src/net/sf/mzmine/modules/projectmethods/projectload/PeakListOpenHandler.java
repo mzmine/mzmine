@@ -70,8 +70,8 @@ class PeakListOpenHandler extends DefaultHandler {
 	private int[] scanNumbers;
 	private double height;
 	private double[] masses, intensities;
-	private String peakStatus, peakListName, name, identityName, formula,
-			identificationMethod, identityID;
+	private String peakStatus, peakListName, name, identityPropertyName;
+	private Hashtable<String, String> identityProperties;
 	private boolean preferred;
 	private String dateCreated;
 
@@ -159,10 +159,15 @@ class PeakListOpenHandler extends DefaultHandler {
 
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-			identityID = attrs
-					.getValue(PeakListElementName.ID.getElementName());
+			identityProperties = new Hashtable<String, String>();
 			preferred = Boolean.parseBoolean(attrs
 					.getValue(PeakListElementName.PREFERRED.getElementName()));
+		}
+
+		// <IDENTITY_PROPERTY>
+		if (qName.equals(PeakListElementName.IDPROPERTY.getElementName())) {
+			identityPropertyName = attrs.getValue(PeakListElementName.NAME
+					.getElementName());
 		}
 
 		// <PEAK>
@@ -304,22 +309,6 @@ class PeakListOpenHandler extends DefaultHandler {
 			}
 		}
 
-		// <FORMULA>
-		if (qName.equals(PeakListElementName.FORMULA.getElementName())) {
-			formula = getTextOfElement();
-		}
-
-		// <IDENTITY_NAME>
-		if (qName.equals(PeakListElementName.IDENTITY_NAME.getElementName())) {
-			identityName = getTextOfElement();
-		}
-
-		// <IDENTIFICATION>
-		if (qName.equals(PeakListElementName.IDENTIFICATION_METHOD
-				.getElementName())) {
-			identificationMethod = getTextOfElement();
-		}
-
 		// <PEAK>
 		if (qName.equals(PeakListElementName.PEAK.getElementName())) {
 
@@ -373,18 +362,20 @@ class PeakListOpenHandler extends DefaultHandler {
 
 		}
 
+		// <IDENTITY_PROPERTY>
+		if (qName.equals(PeakListElementName.IDPROPERTY.getElementName())) {
+			identityProperties.put(identityPropertyName, getTextOfElement());
+		}
+
 		// <PEAK_IDENTITY>
 		if (qName.equals(PeakListElementName.PEAK_IDENTITY.getElementName())) {
-
-			SimplePeakIdentity identity = new SimplePeakIdentity(identityID,
-					identityName, new String[0], formula, null,
-					identificationMethod);
+			SimplePeakIdentity identity = new SimplePeakIdentity(
+					identityProperties);
 			buildingRow.addPeakIdentity(identity, preferred);
 		}
 
 		// <ROW>
 		if (qName.equals(PeakListElementName.ROW.getElementName())) {
-
 			buildingPeakList.addRow(buildingRow);
 			buildingRow = null;
 			parsedRows++;

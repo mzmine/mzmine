@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.FormulaUtils;
 
@@ -59,16 +60,17 @@ public class ResultTableModel extends AbstractTableModel {
 		DBCompound comp = compounds.get(row);
 		switch (col) {
 		case (0):
-			value = comp.getID();
+			
+			value = comp.getPropertyValue(PeakIdentity.PROPERTY_ID);
 			break;
 		case (1):
 			value = comp.getName();
 			break;
 		case (2):
-			value = comp.getCompoundFormula();
+			value = comp.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 			break;
 		case (3):
-			String compFormula = comp.getCompoundFormula();
+			String compFormula = comp.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 			if (compFormula != null) {
 				double compMass = FormulaUtils.calculateExactMass(compFormula);
 				double massDifference = Math.abs(searchedMass - compMass);

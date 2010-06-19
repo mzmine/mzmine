@@ -19,60 +19,31 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 
-public class FragmentIdentity implements PeakIdentity {
+public class FragmentIdentity extends SimplePeakIdentity {
 
 	private PeakListRow mainPeakListRow;
-	private String fragmentName;
 
 	/**
 	 */
 	public FragmentIdentity(PeakListRow mainPeakListRow,
 			PeakListRow fragmentPeakListRow) {
 
+		super("Fragment of "
+				+ MZmineCore.getMZFormat().format(
+						mainPeakListRow.getAverageMZ()) + " m/z");
+
 		this.mainPeakListRow = mainPeakListRow;
 
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
+		setPropertyValue(PROPERTY_METHOD, "Fragment search");
 
-		// We have to save the copy of the name here. If we ask
-		// mainPeakListRow.getName() every time we are asked for a name, we may
-		// create an infinite loop if two rows depend on each other
-		this.fragmentName = "Fragment of "
-				+ mzFormat.format(mainPeakListRow.getAverageMZ()) + " m/z";
-	}
-
-	/**
-	 * @return Returns the identificationMethod
-	 */
-	public String getIdentificationMethod() {
-		return "Fragment search";
-	}
-
-	/**
-	 * @return Returns the Name
-	 */
-	public String getName() {
-		return fragmentName;
 	}
 
 	public PeakListRow getMainPeak() {
 		return mainPeakListRow;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return getName();
-	}
-
-	public String getDescription() {
-		return getName();
 	}
 
 }

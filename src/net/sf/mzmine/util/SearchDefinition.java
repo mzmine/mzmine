@@ -91,7 +91,7 @@ public class SearchDefinition {
 			PeakIdentity identity = row.getPreferredPeakIdentity();
 			if (identity == null)
 				return false;
-			String name = identity.getName();
+			String name = identity.toString();
 			
 			if (isEmpty(nameRegex.toString()) || isEmpty(name)) {
 				return false;

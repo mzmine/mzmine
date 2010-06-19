@@ -39,6 +39,7 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -163,7 +164,8 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 			DBCompound compound = listElementModel.getCompoundAt(index);
 			URL url2D = compound.get2DStructureURL();
 			URL url3D = compound.get3DStructureURL();
-			String name = compound.getName() + " (" + compound.getID() + ")";
+			String name = compound.getName() + " ("
+					+ compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
 			MolStructureViewer viewer = new MolStructureViewer(name, url2D,
 					url3D);
 			Desktop desktop = MZmineCore.getDesktop();
@@ -191,8 +193,8 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null, peak
-					.getIsotopePattern(), predictedPattern);
+			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null,
+					peak.getIsotopePattern(), predictedPattern);
 
 		}
 
@@ -211,10 +213,15 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 
 			java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
 
-			URL compoundURL = listElementModel.getCompoundAt(index)
-					.getDatabaseEntryURL();
+			DBCompound compound = listElementModel.getCompoundAt(index);
+			String urlString = compound
+					.getPropertyValue(PeakIdentity.PROPERTY_URL);
+			
+			if ((urlString == null) || (urlString.length() == 0))
+				return;
 
 			try {
+				URL compoundURL = new URL(urlString);
 				desktop.browse(compoundURL.toURI());
 			} catch (Exception ex) {
 				logger.severe("Error trying to launch default browser: "

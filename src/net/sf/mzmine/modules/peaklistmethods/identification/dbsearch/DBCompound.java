@@ -22,17 +22,13 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 import java.net.URL;
 
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 
-public class DBCompound implements PeakIdentity {
+public class DBCompound extends SimplePeakIdentity {
 
-	private OnlineDatabase searchedDB;
-	private String compoundID, compoundName, compoundFormula;
-	private URL databaseEntryURL, structure2DURL, structure3DURL;
+	private URL structure2DURL, structure3DURL;
 	private double isotopePatternScore;
 	private IsotopePattern isotopePattern;
-
-	
 
 	/**
 	 * @param compoundID
@@ -47,42 +43,16 @@ public class DBCompound implements PeakIdentity {
 			String compoundName, String compoundFormula, URL databaseEntryURL,
 			URL structure2DURL, URL structure3DURL) {
 
-		this.searchedDB = searchedDB;
-		this.compoundID = compoundID;
-		this.compoundName = compoundName;
-		this.compoundFormula = compoundFormula;
-		this.databaseEntryURL = databaseEntryURL;
+		super(compoundName);
+
 		this.structure2DURL = structure2DURL;
 		this.structure3DURL = structure3DURL;
 
-	}
+		setPropertyValue(PROPERTY_METHOD, searchedDB.toString() + " search");
+		setPropertyValue(PROPERTY_FORMULA, compoundFormula);
+		setPropertyValue(PROPERTY_URL, databaseEntryURL.toString());
+		setPropertyValue(PROPERTY_ID, compoundID);
 
-	/**
-	 * @return Returns the compoundFormula.
-	 */
-	public String getCompoundFormula() {
-		return compoundFormula;
-	}
-
-	/**
-	 * @return Returns the compoundID.
-	 */
-	public String getID() {
-		return compoundID;
-	}
-
-	/**
-	 * @return Returns the compound name
-	 */
-	public String getName() {
-		return compoundName;
-	}
-
-	/**
-	 * @return Returns the databaseEntryURL
-	 */
-	public URL getDatabaseEntryURL() {
-		return databaseEntryURL;
 	}
 
 	/**
@@ -97,13 +67,6 @@ public class DBCompound implements PeakIdentity {
 	 */
 	public URL get3DStructureURL() {
 		return structure3DURL;
-	}
-
-	/**
-	 * @return Returns the identificationMethod.
-	 */
-	public String getIdentificationMethod() {
-		return searchedDB.toString() + " search";
 	}
 
 	/**
@@ -124,19 +87,6 @@ public class DBCompound implements PeakIdentity {
 		return isotopePatternScore;
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return compoundName;
-	}
-
-	public String getDescription() {
-		return compoundName + "\nFormula: " + compoundFormula + "\nID: "
-				+ compoundID + "\nIdentification method: "
-				+ getIdentificationMethod();
-	}
-	
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
