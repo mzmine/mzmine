@@ -1,38 +1,32 @@
 <html>
     <head>
-        <title>Gap filling - Same m/z and RT Range filler</title>
+        <title>Gap filling - Same m/z and RT range filler</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
     </head>
 
     <body>
 
-        <h1>Same m/z and RT Range filler</h1>
+        <h1>Same m/z and RT range gap filler</h1>
 
-        <h2>Method overview</h2>
+        <h2>Description</h2>
+               
         <p>
-            After the alignment, the resulting peak list could contain missing
-            peaks as a product of a deficient peak detection or a mistake in the alignment of
-            different peak lists.
-
-            The fact that one peak is missing after the alignment doesn't implies that the
-            peak doesn't exits. In most cases it is present but has remained undetected by the
-            previous algorithms.
-        </p>
-       
-        <p>
+        	This method fills in gaps in each peak list row by using the same m/z and retention time range as other peaks in the row. 
             The m/z and retention time ranges where the new peaks will be sought are obtained using the ranges of
             the rest of the peaks in the same row. The minimum value of these ranges is the minimum value in the range
             of all the peaks in the row and the same happens with the maximum value.
+        	The new peak is constructed using the highest data point of each scan within the determined m/z and retention time ranges.
+        </p>
+        
+        <p>
         </p>
 
         <h4>Method parameters</h4>
 
         <dl>
             <dt>Name suffix</dt>
-            <dd>   This is the suffix to identify the new peak list in Peak list frame of
-                desktop.</dd>            
-
+            <dd>Suffix to be added to the peak list name.</dd>            
         </dl>
 
        

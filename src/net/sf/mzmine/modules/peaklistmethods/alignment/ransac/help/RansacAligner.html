@@ -9,10 +9,10 @@
 
 
         <h1>RANSAC peak list aligner</h1>
-        <h2>Method overview</h2>
+        <h2>Description</h2>
         <p>
             This method is an extension of the
-            Join align method. The alignment of each sample is done against a
+            Join aligner method. The alignment of each sample is done against a
             master peak list which is taken from the first sample in the first
             round, and from the average of all aligned peak lists in every round.
             It corrects any linear or non-linear deviation in the retention time
@@ -20,15 +20,12 @@
         </p>
 
         <p>
+            This picture shows an example of two samples with a non-linear deviation in the retention time:<br>
             <img src="chromatogram.png" name="chromatograms">
         </p>
 
         <p>
-            This picture shows an example of two samples with a non-linear deviation in the retention time.
-        </p>
-
-        <p>
-            The "deviation" model for the retention time is created by taking some corresponding points from the peak list of two samples using RANSAC algorithm
+            The "deviation" model for the retention time is created by taking some corresponding points from the peak list of two samples using the RANSAC algorithm
             (<a HREF="http://en.wikipedia.org/wiki/RANSAC">http://en.wikipedia.org/wiki/RANSAC</a>) and using a non-linear regression method to fit the model.
         </p>
 
@@ -63,7 +60,7 @@
                 aligned. Maximum allowed m/z difference.</dd>
 
             <dt>Retention time tolerance after correction</dt>
-            <dd>his value sets the range, in terms of retention time, to verify for possible peak rows to be aligned.
+            <dd>This value sets the range, in terms of retention time, to verify for possible peak rows to be aligned.
                 Maximum allowed retention time difference.</dd>
 
             <dt>Retention time tolerance</dt>
@@ -98,28 +95,28 @@
         <h4>Parameter optimization</h4>
         <p>
             The three first parameters (m/z tolerance, RT tolerance after the correction and RT tolerance)
-            define 2 bi-dimensional windows with the same “altitude” (m/z tolerance) and different “longitude”
+            define 2 bi-dimensional windows with the same "altitude" (m/z tolerance) and different "longitude"
             (RT tolerances). The first window (m/z tolerance - RT tolerance after the correction) sets the
             space where the matching peak should be present, and the second windows (m/z tolerance - RT tolerance)
-            sets the total space where RANSAC algorithm will be applied. So, “RT tolerance“ should be as big as
-            the maximum deviation in the retention time along all the chromatogram, and “RT tolerance after the
-            correction” can be more flexible and depends on the complexity of the data. If the data contains
-            few peaks and the separation is good, the window can be bigger than “RT tolerance” window and it
+            sets the total space where RANSAC algorithm will be applied. So, "RT tolerance" should be as big as
+            the maximum deviation in the retention time along all the chromatogram, and "RT tolerance after the
+            correction" can be more flexible and depends on the complexity of the data. If the data contains
+            few peaks and the separation is good, the window can be bigger than "RT tolerance" window and it
             will improve the recall without including mistakes. This parameter should not change too much the
             final results.
         </p>
 
         <p>
             RANSAC is a non-deterministic algorithm, and the probability to find a good result increases
-            increasing the number of iterations. If the user sets “0 iterations” into the parameter “RANSAC
-            iterations” the algorithm will automatically set the optimum number of iterations depending on
+            increasing the number of iterations. If the user sets "0 iterations" into the parameter "RANSAC
+            iterations" the algorithm will automatically set the optimum number of iterations depending on
             the number of data points. In the case that there is a big number of data points it is better
             to limit this parameter even though the result could be non-optimal. The preview module can help
             us to set this parameter.
         </p>
 
         <p>
-            The parameter “Minimum number of points” should be an estimation of the proportion of the data
+            The parameter "Minimum number of points" should be an estimation of the proportion of the data
             points inside the model. It is important not to get models composed by few data points which do
             not correspond to the real model. All the models which contain less proportion of data points
             won't be taken into account by RANSAC algorithm.
@@ -133,14 +130,8 @@
 
         <p>
             The last parameter depends on whether the deviation in the retention time can be consider linear
-            or not in our data. If the deviation in the retention time is linear, a simple regression will be used
+            or not in our data. If the deviation in the retention time is linear, a simple linear regression will be used
             to fit the model.
-        </p>
-        <br>
-        <p>
-            <img src="../../join/help/join_alignment_preview.jpg" name="alignment preview">
-            <br><br>
-            New aligned peak list showing peaks from 3 different samples.
         </p>
 
     </body>

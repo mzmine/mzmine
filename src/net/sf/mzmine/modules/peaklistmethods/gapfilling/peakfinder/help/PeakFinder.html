@@ -1,22 +1,24 @@
 <html>
     <head>
-        <title>Gap filling - Peak Finder</title>
+        <title>Gap filling - Peak finder</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
     </head>
 
     <body>
 
-        <h1>Peak Finder</h1>
+        <h1>Peak finder</h1>
 
-        <h2>Method overview</h2>
+        <h2>Description</h2>
         <p>
-            After the alignment, the resulting peak list could contain missing
+            Following alignment, the resulting peak list may contain missing
             peaks as a product of a deficient peak detection or a mistake in the alignment of
             different peak lists.
-
-            The fact that one peak is missing after the alignment doesn't implies that the
-            peak doesn't exits. In most cases it is present but has remained undetected by the
+		</p>
+		
+		<p>
+            The fact that one peak is missing after the alignment does not imply that the
+            peak does not exits. In most cases it is present but was undetected by the
             previous algorithms.
         </p>
 
@@ -27,16 +29,17 @@
             the algorithm should find the new peak. It is centered in the m/z average and retention time average of
             the source peak list. Once the best candidate is found inside the window, its intensity and its shape in RT direction is also
             checked.
-
+		</p>
+		
+		<p>
             It can also add a previous correction of the retention time in the case it is needed. It will
             change the position of the defined window depending on the prediction of a RT model created
             using all the already aligned peaks in each pair.
-
         </p>
 
         <h4>RT correction</h4>
         <p>
-            When the RT correction is applied, the algorithm is divided in two main steps. In the first step,
+            When RT correction is applied, the algorithm is divided in two main steps. In the first step,
             one random sample is taken from the multiple peak list and is used as a master list. All the gaps of this master list are filled using all the others samples.
             For each pair of samples the algorithm creates a model of the retention time.
             In the second step the master list is used to fill the gaps of the rest of the samples,
@@ -54,8 +57,7 @@
 
         <dl>
             <dt>Name suffix</dt>
-            <dd>   This is the suffix to identify the new peak list in Peak list frame of
-                desktop.</dd>
+            <dd>Suffix to be added to the peak list name.</dd>
 
             <dt>Intensity tolerance</dt>
             <dd>This value sets the maximum allowed deviation from expected shape of a peak
@@ -83,9 +85,10 @@
 
         </dl>
         
-        <br>
-        <p>New peak list showing the filled peaks with a yellow mark.
-            <br><br><img src="gapfillingResult.png" name="gap filling result">
+        
+        <p>
+        New peak list showing the filled peaks with a yellow mark.<br>
+        <img src="gapfillingResult.png" name="gap filling result">
         </p>
 
     </body>

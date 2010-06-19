@@ -8,20 +8,15 @@
     <body>
         <h1>Join aligner</h1>
 
-        <h2>Method overview</h2>
+        <h2>Description</h2>
 
         <p>
-            The peak list generated from different raw data files can be aligned into one single peak list.
-            This single peak list helps to make a visual comparison of the probable same peak across different
-            samples (raw data files).<br><br>
-
-
             This method aligns detected peaks in different samples through a match score. This score is calculated
             based on the mass and retention time of each peak and ranges of tolerance stipulated in the parameters
             setup dialog.
         </p>
 
-        <h4> Algorithm </h4>
+        <h4>Algorithm</h4>
         <p>
             The peak alignment algorithm uses: 
         </p>
@@ -43,7 +38,8 @@
             3. a score function to compute the similarity of peaks between L and the new
             sample Sj inside the alignment window. The score function computes the similarity based on
             the similarities in m/z, retention time, and optionally on identification, and isotope patterns
-            between the peaks to be matched.
+            between the peaks to be matched. The score is calculated as follows:<br>  
+            <i>score = ((1 - MZdifference / MZtolerance) &times; MZweight) + ((1 - RTdifference / RTtolerance) &times; RTweight)</i>
         </p>
 
         <p>
@@ -58,9 +54,9 @@
 
         <dl>
             <dt>Peak list name</dt>
-            <dd>This is the suffix to identify the new aligned peak list in Peak list frame of desktop.</dd>
+            <dd>Name of the new aligned peak list</dd>
             <dt>m/z tolerance</dt>
-            <dd>This value sets the range, in terms of m/z, to verify for possible peak rows to be
+            <dd>This value sets the range, in terms of m/z, for possible peaks to be
                 aligned. Maximum allowed m/z difference</dd>
             <dt>Weight for m/z</dt>
             <dd>This is the assigned weight for m/z difference at the moment of match score calculation between peak rows.
@@ -80,18 +76,16 @@
             <dd>If checked, only rows having same compound identities (or no identities) can be aligned.</dd>
             <dt>Compare isotope pattern</dt>
             <dd>If both peaks represent an isotope pattern, add isotope pattern score to match score.</dd>
-            <dt>Isotope pattern score thresold level</dt>
+            <dt>Isotope pattern score threshold level</dt>
             <dd>If the score between isotope pattern is lower, discard this match.</dd>
             </dd>
 
         </dl>
-        
-        <br>
-
-        <p>New aligned peak list showing peaks from 3 different samples.</p>
-        <p><img src="join_alignment_preview.jpg"></p>
-
-
+       
+        <p>
+         New aligned peak list showing peaks from 3 different samples.<br>
+         <img src="join_alignment_preview.jpg">
+        </p>
 
     </body>
 </html>
