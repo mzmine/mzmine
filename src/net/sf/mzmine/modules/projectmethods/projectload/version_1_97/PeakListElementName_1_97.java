@@ -17,9 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.projectmethods.projectsave;
+package net.sf.mzmine.modules.projectmethods.projectload.version_1_97;
 
-enum PeakListElementName {
+public enum PeakListElementName_1_97 {
 	
 	PEAKLIST ("peaklist"),
 	PEAKLIST_DATE ("created"),
@@ -39,8 +39,9 @@ enum PeakListElementName {
 	ROW ("row"),
 	PEAK_IDENTITY ("identity"),
 	PREFERRED ("preferred"),
-	IDPROPERTY("identity_property"),
-	NAME("name"),
+	IDENTITY_NAME ("identity_name"),
+	FORMULA ("formula"),
+	IDENTIFICATION_METHOD ("identification_method"),
 	COMMENT ("comment"),
 	PEAK ("peak"),
 	ISOTOPE_PATTERN("isotope_pattern"),
@@ -56,7 +57,7 @@ enum PeakListElementName {
 	
 	private String elementName;
 	
-	private PeakListElementName(String itemName){
+	private PeakListElementName_1_97(String itemName){
 		this.elementName = itemName;
 	}
 	

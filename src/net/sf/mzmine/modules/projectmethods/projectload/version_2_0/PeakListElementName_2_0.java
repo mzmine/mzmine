@@ -17,9 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.projectmethods.projectsave;
+package net.sf.mzmine.modules.projectmethods.projectload.version_2_0;
 
-enum PeakListElementName {
+public enum PeakListElementName_2_0 {
 	
 	PEAKLIST ("peaklist"),
 	PEAKLIST_DATE ("created"),
@@ -56,7 +56,7 @@ enum PeakListElementName {
 	
 	private String elementName;
 	
-	private PeakListElementName(String itemName){
+	private PeakListElementName_2_0(String itemName){
 		this.elementName = itemName;
 	}
 	

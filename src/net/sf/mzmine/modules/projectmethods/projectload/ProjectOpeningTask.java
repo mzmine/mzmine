@@ -38,6 +38,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.PeakListOpenHandler_1_97;
+import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.RawDataFileOpenHandler_1_97;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpenHandler_2_0;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -61,6 +65,9 @@ public class ProjectOpeningTask implements Task {
 
 	private File openFile;
 	private MZmineProjectImpl newProject;
+
+	private Class<? extends RawDataFileOpenHandler> rawDataFileOpenHandlerClass;
+	private Class<? extends PeakListOpenHandler> peakListOpenHandlerClass;
 
 	private RawDataFileOpenHandler rawDataFileOpenHandler;
 	private PeakListOpenHandler peakListOpenHandler;
@@ -246,14 +253,33 @@ public class ProjectOpeningTask implements Task {
 		projectVersion = m.group(1);
 		double projectVersionNumber = Double.parseDouble(projectVersion);
 
-		// Check if project was saved with an older version
-		if (projectVersionNumber < mzmineVersionNumber) {
-			String warning = "Warning: this project was saved with an older version of MZmine ("
-					+ projectVersion
-					+ "). Opening this project in MZmine "
+		// Check if project was saved with an old version
+		if (projectVersionNumber < 1.96) {
+			throw new IOException(
+					"This project was saved with an old version (MZmine "
+							+ projectVersion
+							+ ") and it cannot be opened in MZmine "
+							+ mzmineVersion);
+		}
+
+		// Check if the project version is 1.96
+		if (projectVersionNumber == 1.96) {
+			String warning = "Warning: this project was saved with MZmine "
+					+ projectVersion + ". Opening this project in MZmine "
 					+ mzmineVersion
 					+ " may result in errors or loss of information.";
 			MZmineCore.getDesktop().displayMessage(warning);
+			// We can still use 1.97 opening handlers for 1.96 project
+			rawDataFileOpenHandlerClass = RawDataFileOpenHandler_1_97.class;
+			peakListOpenHandlerClass = PeakListOpenHandler_1_97.class;
+			return;
+		}
+
+		// Check if the project version is at least 1.97
+		if ((projectVersionNumber >= 1.97) && (projectVersionNumber < 2.0)) {
+			rawDataFileOpenHandlerClass = RawDataFileOpenHandler_1_97.class;
+			peakListOpenHandlerClass = PeakListOpenHandler_1_97.class;
+			return;
 		}
 
 		// Check if project was saved with a newer version
@@ -265,6 +291,10 @@ public class ProjectOpeningTask implements Task {
 					+ " may result in errors or loss of information.";
 			MZmineCore.getDesktop().displayMessage(warning);
 		}
+
+		// Default opening handler
+		rawDataFileOpenHandlerClass = RawDataFileOpenHandler_2_0.class;
+		peakListOpenHandlerClass = PeakListOpenHandler_2_0.class;
 
 	}
 
@@ -301,7 +331,8 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	private void loadRawDataFiles(ZipFile zipFile) throws IOException,
-			ParserConfigurationException, SAXException {
+			ParserConfigurationException, SAXException, InstantiationException,
+			IllegalAccessException {
 
 		logger.info("Loading raw data files");
 
@@ -326,7 +357,8 @@ public class ProjectOpeningTask implements Task {
 				String scansFileName = entryName.replaceFirst("\\.xml$",
 						".scans");
 				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
-				rawDataFileOpenHandler = new RawDataFileOpenHandler();
+				rawDataFileOpenHandler = rawDataFileOpenHandlerClass
+						.newInstance();
 				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
 						zipFile, scansEntry, entry);
 				newProject.addFile(newFile);
@@ -338,7 +370,8 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	private void loadPeakLists(ZipFile zipFile) throws IOException,
-			ParserConfigurationException, SAXException {
+			ParserConfigurationException, SAXException, InstantiationException,
+			IllegalAccessException {
 
 		logger.info("Loading peak lists");
 
@@ -361,9 +394,11 @@ public class ProjectOpeningTask implements Task {
 
 				currentLoadedObjectName = fileMatcher.group(2);
 
-				peakListOpenHandler = new PeakListOpenHandler();
+				peakListOpenHandler = peakListOpenHandlerClass.newInstance();
+
 				PeakList newPeakList = peakListOpenHandler.readPeakList(
 						zipFile, entry, dataFilesIDMap);
+
 				newProject.addPeakList(newPeakList);
 			}
 

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.projectmethods.projectsave;
 
-public enum RawDataElementName {
+enum RawDataElementName {
 
 	RAWDATA ("rawdata"),	
 	NAME ("name"),
