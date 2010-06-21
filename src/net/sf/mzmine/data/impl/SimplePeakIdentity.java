@@ -66,10 +66,15 @@ public class SimplePeakIdentity implements PeakIdentity {
 		this.properties = new Hashtable<String, String>();
 
 		properties.put(PROPERTY_NAME, name);
-		properties.put(PROPERTY_FORMULA, formula);
-		properties.put(PROPERTY_METHOD, method);
-		properties.put(PROPERTY_ID, id);
-		properties.put(PROPERTY_URL, url);
+
+		if (formula != null)
+			properties.put(PROPERTY_FORMULA, formula);
+		if (method != null)
+			properties.put(PROPERTY_METHOD, method);
+		if (id != null)
+			properties.put(PROPERTY_ID, id);
+		if (url != null)
+			properties.put(PROPERTY_URL, url);
 
 	}
 
