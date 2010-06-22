@@ -269,6 +269,8 @@ public class PeakExtenderTask implements Task {
 		}
 
 		newPeak.finishExtendedPeak();
+		
+		newPeak.setMostIntenseFragmentScanNumber(oldPeak.getMostIntenseFragmentScanNumber());
 
 		int[] scanNumbers = newPeak.getScanNumbers();
 		logger.finest("Extended peak original " + originScanNumber + " from "

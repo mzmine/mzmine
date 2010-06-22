@@ -51,6 +51,7 @@ public class MascotSearchTask implements Task {
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage = "?";
+	private static int MIN_MSMS_LEVEL = 2;
 
 	private int finishedRows, totalRows;
 
@@ -87,9 +88,9 @@ public class MascotSearchTask implements Task {
 	 *            the scan
 	 */
 	private void writeMgf(PrintWriter writer, RawDataFile rawFile, Scan scan, Integer query) {
-		if (scan.getMSLevel() != 2) {
+		if (scan.getMSLevel() < MIN_MSMS_LEVEL) {
 			logger.warning("Scan " + scan.getScanNumber()
-					+ " is not a MS/MS scan.");
+					+ " is not a MS/MS scan."+scan.getMSLevel());
 			return;
 		}
 		writer.println();
@@ -229,9 +230,8 @@ public class MascotSearchTask implements Task {
 			String line = null;
 			StringBuffer buffer = new StringBuffer("");
 			String mascotXmlResponse = null;
-			String lDate = null;
-			String lDatfileFilename = null;
-
+			int startIndex, stopIndex;
+			
 			while ((line = responseReader.readLine()) != null) {
 				if (status == TaskStatus.CANCELED)
 					return;
@@ -258,7 +258,7 @@ public class MascotSearchTask implements Task {
 					// ignore that
 				}
 
-				int startIndex, stopIndex;
+
 				String detect = "<A HREF=\"";
 				int offset = detect.length();
 				if ((startIndex = line.indexOf(detect)) >= 0) {
@@ -267,13 +267,6 @@ public class MascotSearchTask implements Task {
 					buffer.append(line);
 					stopIndex = line.indexOf("\">");
 					mascotXmlResponse = line.substring(startIndex + offset, stopIndex);
-					detect = "data/";
-					startIndex = mascotXmlResponse.indexOf(detect);
-					offset = detect.length();
-					String [] temp = mascotXmlResponse.substring(startIndex + offset).split("/");
-					lDate = temp[0];
-					lDatfileFilename = temp[1];
-
 				}
 			}
 			serverResponseStream.close();
@@ -287,6 +280,25 @@ public class MascotSearchTask implements Task {
 				return;
 			}
 
+			String lDate = null;
+			String lDatfileFilename = null;
+			String detect = "../cgi/master_results.pl?file=../data/";
+			int offset = detect.length();
+			if ((startIndex = mascotXmlResponse.indexOf(detect)) >= 0) {
+				detect = "data/";
+				startIndex = mascotXmlResponse.indexOf(detect);
+				offset = detect.length();
+				String [] temp = mascotXmlResponse.substring(startIndex + offset).split("/");
+				lDate = temp[0];
+				lDatfileFilename = temp[1];
+			
+			} else{
+				logger.info(buffer.toString());
+				status = TaskStatus.ERROR;
+				return;
+			}
+
+				
 			MascotDatfile mdf = null;
 			String resultString = parameters.getMascotInstallUrlString()
 									+"x-cgi/ms-status.exe?Autorefresh=false&Show=RESULTFILE&DateDir=" + lDate + "&ResJob=" + lDatfileFilename;

@@ -46,13 +46,18 @@ public class MsMsPeakPickingTask implements Task {
 
 	private RawDataFile dataFile;
 	private double binSize;
+	private double binTime;
+	private int msLevel;
 	
 	private SimplePeakList newPeakList;
-
+	
 	public MsMsPeakPickingTask(RawDataFile dataFile, MsMsPeakPickerParameters parameters) {
 		this.dataFile = dataFile;
 		binSize = (Double) parameters
-				.getParameterValue(MsMsPeakPickerParameters.mzRange);
+				.getParameterValue(MsMsPeakPickerParameters.mzWindow);
+		binTime = (Double) parameters
+		.getParameterValue(MsMsPeakPickerParameters.rtWindow);
+		msLevel = (Integer) parameters.getParameterValue(MsMsPeakPickerParameters.msLevel);
 		newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks", dataFile);
 	}
 
@@ -86,8 +91,8 @@ public class MsMsPeakPickingTask implements Task {
 		
 		status = TaskStatus.PROCESSING;
 
-		logger.info("Start MS/MS peak builder on " + dataFile);
-		int[] scanNumbers = dataFile.getScanNumbers(2);
+		
+		int[] scanNumbers = dataFile.getScanNumbers(msLevel);
 		totalScans = scanNumbers.length;
 		for (int scanNumber : scanNumbers) {
 			if (status == TaskStatus.CANCELED)
@@ -102,24 +107,45 @@ public class MsMsPeakPickingTask implements Task {
 			}
 
 			// Get the MS Scan
-			Scan parentScan = dataFile.getScan(scan.getParentScanNumber());
-			DataPoint p = ScanUtils.findBasePeak(parentScan, new Range(scan
-					.getPrecursorMZ()
-					- (binSize / 2.0f), scan.getPrecursorMZ()
-					+ (binSize / 2.0f)));
-			// no datapoint found
-			if (p == null) {
+			Scan bestScan = null;
+			Range rtWindow = new Range(scan.getRetentionTime() - (binTime / 2.0f), scan.getRetentionTime() + (binTime / 2.0f));
+			Range mzWindow = new Range(scan.getPrecursorMZ() - (binSize / 2.0f), scan.getPrecursorMZ() + (binSize / 2.0f));
+			DataPoint point;
+			DataPoint maxPoint = null;
+			int[] regionScanNumbers = dataFile.getScanNumbers(1, rtWindow);
+			for (int regionScanNumber : regionScanNumbers){
+				Scan regionScan = dataFile.getScan(regionScanNumber);
+				point = ScanUtils.findBasePeak(regionScan, mzWindow);
+				// no datapoint found
+				if (point == null) {
+					continue;
+				}
+				if (maxPoint == null){
+					maxPoint =  point;
+				}
+				int result = Double.compare(maxPoint.getIntensity(), point.getIntensity() );
+				if (result <= 0){
+					maxPoint =  point;
+					bestScan = regionScan;
+				}
+				
+			}
+			
+			// if no representative dataPoint 
+			if (bestScan == null) {
 				continue;
 			}
+			
+			
 			SimpleChromatographicPeak c = new SimpleChromatographicPeak(
-					dataFile, scan.getPrecursorMZ(), parentScan
-							.getRetentionTime(), p.getIntensity(), p
-							.getIntensity(), new int[] { parentScan
-							.getScanNumber() }, new DataPoint[] { p },
-					PeakStatus.DETECTED, parentScan.getScanNumber(), scan
-							.getScanNumber(), new Range(parentScan
-							.getRetentionTime(), scan.getRetentionTime()),
-					new Range(scan.getPrecursorMZ()), new Range(p
+					dataFile, scan.getPrecursorMZ(), bestScan
+							.getRetentionTime(), maxPoint.getIntensity(), maxPoint
+							.getIntensity(), new int[] { bestScan
+							.getScanNumber() }, new DataPoint[] { maxPoint },
+					PeakStatus.DETECTED, bestScan.getScanNumber(), scan
+							.getScanNumber(), new Range(bestScan
+							.getRetentionTime()),
+					new Range(scan.getPrecursorMZ()), new Range(maxPoint
 							.getIntensity()));
 
 			PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());

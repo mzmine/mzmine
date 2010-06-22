@@ -100,6 +100,16 @@ public class ExtendedPeak implements ChromatographicPeak {
 	public int getMostIntenseFragmentScanNumber() {
 		return fragmentScan;
 	}
+	
+	
+	/**
+	 * Overwrite the scan number of fragment scan
+	 * 
+	 * @param scanNumber
+	 */
+	public void setMostIntenseFragmentScanNumber(int scanNumber) {
+		this.fragmentScan = scanNumber;
+	}
 
 	public PeakStatus getPeakStatus() {
 		return PeakStatus.DETECTED;

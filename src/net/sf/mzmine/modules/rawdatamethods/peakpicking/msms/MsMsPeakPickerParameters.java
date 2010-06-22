@@ -24,15 +24,25 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.Range;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
 
-	public static final Parameter mzRange = new SimpleParameter(
+	public static final Parameter mzWindow = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z window", "m/z window for peak search",
 			"m/z", new Double(1.0), null, null, MZmineCore.getMZFormat());
 
+	public static final Parameter rtWindow = new SimpleParameter(
+			ParameterType.DOUBLE, "Time window",
+			"Time window", null, new Double(1.0),
+			new Double(0), null, MZmineCore.getRTFormat());
+	
+	public static final Parameter msLevel = new SimpleParameter(
+			ParameterType.INTEGER, "MS level", "MS level of scans to use for search",
+			"", new Integer(2), null, null, null);
+	
 	public MsMsPeakPickerParameters() {
-		super(new Parameter[] { mzRange });
+		super(new Parameter[] { mzWindow, rtWindow, msLevel });
 	}
 
 }
