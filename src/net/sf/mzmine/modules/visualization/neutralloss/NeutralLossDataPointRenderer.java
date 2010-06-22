@@ -58,7 +58,7 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 		if (series > 0) {
 			g2.setComposite(alphaComp);
 		} else if (series == 0) {
-			g2.setComposite(alphaComp);
+			g2.setComposite(alphaCompOriginal);
 		}
 
 		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,

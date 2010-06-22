@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -43,8 +42,6 @@ import org.jfree.data.xy.XYDataset;
  */
 class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
 	private RawDataFile rawDataFile;
 
 	private Range totalMZRange;

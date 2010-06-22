@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.util;
 
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;

@@ -32,8 +32,6 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.MZmineModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
@@ -115,10 +113,10 @@ public class NeutralLossVisualizer implements MZmineModule, ActionListener {
 
 		if (rtRange != null)
 			myInstance.parameters.setParameterValue(
-					ThreeDVisualizerParameters.retentionTimeRange, rtRange);
+					NeutralLossParameters.retentionTimeRange, rtRange);
 		if (mzRange != null)
 			myInstance.parameters.setParameterValue(
-					ThreeDVisualizerParameters.mzRange, mzRange);
+					NeutralLossParameters.mzRange, mzRange);
 
 		ParameterSetupDialog dialog = new ParameterSetupDialog(
 				"Please set parameter values for Neutral loss visualizer", myInstance.parameters,

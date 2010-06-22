@@ -28,11 +28,8 @@ import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 import org.jfree.chart.axis.ValueAxis;
 
@@ -49,14 +46,10 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 	private RawDataFile dataFile;
 
-	private Desktop desktop;
-
 	public NeutralLossVisualizerWindow(RawDataFile dataFile,
 			NeutralLossParameters parameters) {
 
 		super(dataFile.toString(), true, true, true, true);
-
-		this.desktop = MZmineCore.getDesktop();
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);

@@ -1,17 +1,17 @@
 /*
  * Copyright 2006-2010 The MZmine 2 Development Team
- * 
+ *
  * This file is part of MZmine 2.
- * 
+ *
  * MZmine 2 is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
  * Foundation; either version 2 of the License, or (at your option) any later
  * version.
- * 
+ *
  * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
@@ -41,7 +41,7 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 	/**
 	 * This class implements PeakIdentity and wrap the information of the
 	 * peptide assigned to the chromatographic peak.
-	 * 
+	 *
 	 * @param peptide
 	 */
 	public MascotPeakIdentity(PeptideHit peptide) {
@@ -62,9 +62,11 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 		Modification[] mods = peptide.getModifications();
 		HashMap<Integer, String> varMods = new HashMap<Integer, String>();
 		for (int i = 0; i < mods.length; i++) {
-			String modString = mods[i].getType() + " (" + mods[i].getLocation()
+			if (mods[i] != null) {
+				String modString = mods[i].getType() + " (" + mods[i].getLocation()
 					+ ")";
-			varMods.put(mods[i].getModificationID(), modString);
+				varMods.put(mods[i].getModificationID(), modString);
+			}
 		}
 
 		int[] modSequences = peptide.getVariableModificationsArray();

@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
-import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.util.FormulaUtils;
 

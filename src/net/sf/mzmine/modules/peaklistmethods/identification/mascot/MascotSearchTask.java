@@ -29,10 +29,6 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
@@ -40,16 +36,10 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
-
 import be.proteomics.mascotdatfile.util.mascot.MascotDatfile;
 import be.proteomics.mascotdatfile.util.mascot.PeptideHit;
 import be.proteomics.mascotdatfile.util.mascot.Query;
@@ -60,7 +50,7 @@ public class MascotSearchTask implements Task {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
+	private String errorMessage = "?";
 
 	private int finishedRows, totalRows;
 
@@ -245,6 +235,10 @@ public class MascotSearchTask implements Task {
 			while ((line = responseReader.readLine()) != null) {
 				if (status == TaskStatus.CANCELED)
 					return;
+				// check for Mascot error messages;
+				if (line.matches(".*M\\d\\d\\d\\d\\d]<BR>")) {
+					errorMessage = line.replaceAll("<BR>", "");
+				}
 				int outputHelper = 0;
 				try {
 					if ((outputHelper = line.indexOf("%")) > 0) {
@@ -279,7 +273,7 @@ public class MascotSearchTask implements Task {
 					String [] temp = mascotXmlResponse.substring(startIndex + offset).split("/");
 					lDate = temp[0];
 					lDatfileFilename = temp[1];
-					
+
 				}
 			}
 			serverResponseStream.close();
@@ -292,7 +286,7 @@ public class MascotSearchTask implements Task {
 				status = TaskStatus.ERROR;
 				return;
 			}
-			
+
 			MascotDatfile mdf = null;
 			String resultString = parameters.getMascotInstallUrlString()
 									+"x-cgi/ms-status.exe?Autorefresh=false&Show=RESULTFILE&DateDir=" + lDate + "&ResJob=" + lDatfileFilename;
@@ -304,14 +298,14 @@ public class MascotSearchTask implements Task {
                 mdf = new MascotDatfile(br);
 
             } catch(MalformedURLException e) {
-                e.printStackTrace();  
+                e.printStackTrace();
             } catch(IOException ioe) {
                 ioe.printStackTrace();
             }
-            
+
             QueryToPeptideMap queryPeptideMap = mdf.getQueryToPeptideMap();
             int numberOfQueries = mdf.getNumberOfQueries();
-            
+
             for (int i = 1; i <= numberOfQueries; i++) {
             	PeptideHit pepHit = queryPeptideMap.getPeptideHitOfOneQuery(i);
             	if (pepHit != null){
@@ -321,9 +315,9 @@ public class MascotSearchTask implements Task {
             		int rowId = Integer.parseInt(tokens[1]);
             		MascotPeakIdentity mpid = new MascotPeakIdentity(pepHit);
             		pp.getRows()[rowId].addPeakIdentity(mpid, true);
-            	}            	
+            	}
             }
-			
+
 
 
 
