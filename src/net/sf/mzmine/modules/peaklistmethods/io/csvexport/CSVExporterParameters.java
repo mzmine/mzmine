@@ -26,23 +26,36 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 
 public class CSVExporterParameters extends SimpleParameterSet {
 
-    public static final Parameter filename = new SimpleParameter(
-            ParameterType.FILE_NAME,
-            "Filename",
-            "Name of exported peak list file name. If the file exists, it will be overwritten.");
+	public static final Parameter filename = new SimpleParameter(
+			ParameterType.FILE_NAME,
+			"Filename",
+			"Name of exported peak list file name. If the file exists, it will be overwritten.");
 
-    public static final Parameter fieldSeparator = new SimpleParameter(
-            ParameterType.STRING, "Field separator",
-            "Character(s) used to separate fields in the exported file",
-            (Object) ",");
+	public static final Parameter fieldSeparator = new SimpleParameter(
+			ParameterType.STRING, "Field separator",
+			"Character(s) used to separate fields in the exported file",
+			(Object) ",");
 
-    public static final Parameter exportItemMultipleSelection = new SimpleParameter(
-            ParameterType.MULTIPLE_SELECTION, "Export elements",
-            "Multiple selection of row's elements to export", null, ExportRowElement.values());
+	public static final Parameter exportCommonItemMultipleSelection = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION, "Export common elements",
+			"Multiple selection of row's elements to export", null,
+			ExportRowCommonElement.values());
 
+	public static final Parameter exportIdentityItemMultipleSelection = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION, "Export identity elements",
+			"Multiple selection of row's elements to export", null,
+			new Object[1]);
 
-    public CSVExporterParameters() {
-        super(new Parameter[] { filename, fieldSeparator, exportItemMultipleSelection });
-    }
+	public static final Parameter exportDataFileItemMultipleSelection = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION, "Export data file elements",
+			"Multiple selection of row's elements to export", null,
+			ExportRowDataFileElement.values());
+
+	public CSVExporterParameters() {
+		super(new Parameter[] { filename, fieldSeparator,
+				exportCommonItemMultipleSelection,
+				exportIdentityItemMultipleSelection,
+				exportDataFileItemMultipleSelection });
+	}
 
 }

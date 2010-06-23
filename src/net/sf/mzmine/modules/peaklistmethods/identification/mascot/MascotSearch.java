@@ -121,12 +121,12 @@ public class MascotSearch implements BatchStep, ActionListener {
 				return;
 			mascotParameters = new MascotParameters(parameters);
 			
-		} catch (MalformedURLException ee) {
+		} catch (Exception ee) {
+			desktop
+			.displayErrorMessage("Please verify your Mascot server address is valid");
 			logger.fine(ee.toString());
-		} catch (IOException ee) {
-			logger.fine(ee.toString());
+			return;
 		}
-
 
 		ExitCode exitCode = setupParameters(mascotParameters);
 		if (exitCode != ExitCode.OK)

@@ -37,6 +37,10 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 	public static final String PROPERTY_MODIFICATIONS = "Modifications";
 
 	private PeptideHit peptide;
+	
+	public MascotPeakIdentity() {
+		super();
+	}
 
 	/**
 	 * This class implements PeakIdentity and wrap the information of the
@@ -79,6 +83,7 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 
 		setPropertyValue(PROPERTY_METHOD, "MASCOT search");
 		setPropertyValue(PROPERTY_PEPTIDE, peptide.getSequence());
+		setPropertyValue(PROPERTY_FORMULA, peptide.getSequence());
 		setPropertyValue(PROPERTY_MASS, String.valueOf(peptide.getPeptideMr()));
 		setPropertyValue(PROPERTY_DELTA, String.valueOf(peptide.getDeltaMass()));
 		setPropertyValue(PROPERTY_SCORE, String.valueOf(peptide.getIonsScore()));

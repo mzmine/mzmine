@@ -21,9 +21,15 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
@@ -36,89 +42,134 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
-public class CSVExporter implements MZmineModule, ActionListener,
-        BatchStep {
+public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	public static final String MODULE_NAME = "Export to CSV file";
 	
-    private CSVExporterParameters parameters;
-    private Desktop desktop;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	private CSVExporterParameters parameters;
+	private Desktop desktop;
 
-        this.desktop = MZmineCore.getDesktop();
+	/**
+	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 */
+	public void initModule() {
 
-        parameters = new CSVExporterParameters();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
-                "Export peak list data into CSV file", KeyEvent.VK_C, true,
-                this, null);
+		parameters = new CSVExporterParameters();
 
-    }
+		desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
+				"Export peak list data into CSV file", KeyEvent.VK_C, true,
+				this, null);
 
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	}
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (CSVExporterParameters) parameters;
-    }
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    public void actionPerformed(ActionEvent event) {
+	public void setParameters(ParameterSet parameters) {
+		this.parameters = (CSVExporterParameters) parameters;
+	}
 
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
-        if (selectedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single peak list for export");
-            return;
-        }
+	public void actionPerformed(ActionEvent event) {
 
-        ExitCode setupExitCode = setupParameters(parameters);
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+		if (selectedPeakLists.length != 1) {
+			desktop
+					.displayErrorMessage("Please select a single peak list for export");
+			return;
+		}
 
-        if (setupExitCode != ExitCode.OK) {
-            return;
-        }
+		// Generate dinamically from the peak list the exportable elements of
+		// peak identity
+		String[] identityElements = generateExportIdentityElements(selectedPeakLists[0]);
+		CSVExporterParameters newParameters = (CSVExporterParameters) parameters
+				.clone();
+		newParameters.setMultipleSelection(
+				CSVExporterParameters.exportIdentityItemMultipleSelection,
+				identityElements);
 
-        runModule(null, selectedPeakLists, parameters);
+		ExitCode setupExitCode = setupParameters(newParameters);
 
-    }
+		if (setupExitCode != ExitCode.OK) {
+			return;
+		}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return MODULE_NAME;
-    }
+		runModule(null, selectedPeakLists, newParameters);
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PROJECT;
-    }
+	}
 
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+	private String[] generateExportIdentityElements(
+			PeakList peakList) {
 
-        CSVExportTask task = new CSVExportTask(peakLists[0],
-                (CSVExporterParameters) parameters);
 
-        // start this group
+		logger.info("Look through the peak list for peak identity properties");
+		Vector<String> elements = new Vector<String>();
+		
+		Map<String, String> properties;
+		
+		for (PeakListRow peakListRow : peakList.getRows()) {
+
+			PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
+			if (peakIdentity != null) {
+
+				properties = peakIdentity.getAllProperties();
+				Iterator subItr = properties.keySet().iterator();
+
+				while(subItr.hasNext()){
+					
+					String propertyName = (String) subItr.next();
+					if (!elements.contains(propertyName)){
+						logger.info("Detect "+propertyName+" property in the peak list");
+						elements.add(propertyName);
+					}
+				
+				}
+				
+			}
+
+		}
+		
+		return elements.toArray(new String[0]);
+	}
+
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return MODULE_NAME;
+	}
+
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PROJECT;
+	}
+
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
+
+		CSVExportTask task = new CSVExportTask(peakLists[0],
+				(CSVExporterParameters) parameters);
+
+		// start this group
 		MZmineCore.getTaskController().addTask(task);
 
-        return new Task[] { task };
+		return new Task[] { task };
 
-    }
+	}
 
-    public ExitCode setupParameters(ParameterSet parameters) {
+	public ExitCode setupParameters(ParameterSet parameters) {
 
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (CSVExporterParameters) parameters, helpID);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(
+				"Please set parameter values for " + toString(),
+				(CSVExporterParameters) parameters, helpID);
 
-        dialog.setVisible(true);
+		dialog.setVisible(true);
 
-        return dialog.getExitCode();
-    }
+		return dialog.getExitCode();
+	}
 }

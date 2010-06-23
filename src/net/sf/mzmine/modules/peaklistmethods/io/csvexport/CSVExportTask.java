@@ -19,7 +19,6 @@
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import java.io.FileWriter;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -39,7 +38,9 @@ class CSVExportTask implements Task {
 
 	// parameter values
 	private String fileName, fieldSeparator;
-	private ExportRowElement[] elements;
+	private ExportRowCommonElement[] commonElements;
+	private String[] identityElements;
+	private ExportRowDataFileElement[] dataFileElements;
 
 	CSVExportTask(PeakList peakList, CSVExporterParameters parameters) {
 
@@ -50,10 +51,20 @@ class CSVExportTask implements Task {
 		fieldSeparator = (String) parameters
 				.getParameterValue(CSVExporterParameters.fieldSeparator);
 
-		Object elementsObjects[] = (Object[]) parameters
-				.getParameterValue(CSVExporterParameters.exportItemMultipleSelection);
-		elements = CollectionUtils.changeArrayType(elementsObjects,
-				ExportRowElement.class);
+		Object commonElementsObjects[] = (Object[]) parameters
+				.getParameterValue(CSVExporterParameters.exportCommonItemMultipleSelection);
+		commonElements = CollectionUtils.changeArrayType(commonElementsObjects,
+				ExportRowCommonElement.class);
+
+		Object identityElementsObjects[] = (Object[]) parameters
+				.getParameterValue(CSVExporterParameters.exportIdentityItemMultipleSelection);
+		identityElements = CollectionUtils.changeArrayType(
+				identityElementsObjects, String.class);
+
+		Object dataFileElementsObjects[] = (Object[]) parameters
+				.getParameterValue(CSVExporterParameters.exportDataFileItemMultipleSelection);
+		dataFileElements = CollectionUtils.changeArrayType(
+				dataFileElementsObjects, ExportRowDataFileElement.class);
 
 	}
 
@@ -101,23 +112,29 @@ class CSVExportTask implements Task {
 		StringBuffer line = new StringBuffer();
 
 		// Write column headers
-		int length = elements.length;
+		// Common elements
+		int length = commonElements.length;
 		String name;
 		for (int i = 0; i < length; i++) {
-			if (elements[i].isCommon()) {
-				name = elements[i].getName();
-				name = name.replace("Export ", "");
-				line.append(name + fieldSeparator);
-			}
+			name = commonElements[i].getName();
+			name = name.replace("Export ", "");
+			line.append(name + fieldSeparator);
 		}
 
+		// Peak identity elements
+		length = identityElements.length;
+		for (int i = 0; i < length; i++) {
+			name = identityElements[i];
+			line.append(name + fieldSeparator);
+		}
+
+		// Data file elements
+		length = dataFileElements.length;
 		for (int df = 0; df < peakList.getNumberOfRawDataFiles(); df++) {
 			for (int i = 0; i < length; i++) {
-				if (!elements[i].isCommon()) {
-					name = elements[i].getName();
-					name = name.replace("Export", rawDataFiles[df].getName());
-					line.append(name + fieldSeparator);
-				}
+				name = dataFileElements[i].getName();
+				name = name.replace("Export", rawDataFiles[df].getName());
+				line.append(name + fieldSeparator);
 			}
 		}
 
@@ -142,101 +159,82 @@ class CSVExportTask implements Task {
 			// Reset the buffer
 			line.setLength(0);
 
-			// Write row data
-			length = elements.length;
+			// Common elements
+			length = commonElements.length;
 			for (int i = 0; i < length; i++) {
-				if (elements[i].isCommon()) {
-					switch (elements[i]) {
-					case ROW_ID:
-						line.append(peakListRow.getID() + fieldSeparator);
-						break;
-					case ROW_MZ:
-						line
-								.append(peakListRow.getAverageMZ()
-										+ fieldSeparator);
-						break;
-					case ROW_RT:
-						line.append((peakListRow.getAverageRT() / 60)
-								+ fieldSeparator);
-						break;
-					case ROW_COMMENT:
-						if (peakListRow.getComment() == null) {
-							line.append(fieldSeparator);
-						} else {
-							line.append(peakListRow.getComment()
-									+ fieldSeparator);
-						}
-						break;
-					case ROW_NAME:
-						if (peakListRow.getPreferredPeakIdentity() == null) {
-							line.append(fieldSeparator);
-						} else {
-
-							line.append("\""
-									+ peakListRow.getPreferredPeakIdentity()
-											.getName() + "\"" + fieldSeparator);
-						}
-						break;
-					case ROW_ALL_NAME:
-						if (peakListRow.getPreferredPeakIdentity() == null) {
-							line.append(fieldSeparator);
-						} else {
-							name = "";
-							PeakIdentity[] compoundIdentities = peakListRow
-									.getPeakIdentities();
-							for (PeakIdentity compoundIdentity : compoundIdentities) {
-								name += compoundIdentity.getName() + " // ";
-							}
-							line.append("\"" + name + "\"" + fieldSeparator);
-						}
-						break;
-					case ROW_FORMULA:
-						PeakIdentity peakId = peakListRow.getPreferredPeakIdentity();
-						String formula = peakId.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
-						if (formula == null) formula = "";
-						line.append(formula + fieldSeparator);
-
-						break;
-					case ROW_PEAK_NUMBER:
-						int numDetected = 0;
-						for (ChromatographicPeak p : peakListRow.getPeaks()) {
-							if (p.getPeakStatus() == PeakStatus.DETECTED) {
-								numDetected++;
-							}
-						}
-						line.append(numDetected + fieldSeparator);
-						break;
+				switch (commonElements[i]) {
+				case ROW_ID:
+					line.append(peakListRow.getID() + fieldSeparator);
+					break;
+				case ROW_MZ:
+					line.append(peakListRow.getAverageMZ() + fieldSeparator);
+					break;
+				case ROW_RT:
+					line.append((peakListRow.getAverageRT() / 60)
+							+ fieldSeparator);
+					break;
+				case ROW_COMMENT:
+					if (peakListRow.getComment() == null) {
+						line.append(fieldSeparator);
+					} else {
+						line.append(peakListRow.getComment() + fieldSeparator);
 					}
+					break;
+				case ROW_PEAK_NUMBER:
+					int numDetected = 0;
+					for (ChromatographicPeak p : peakListRow.getPeaks()) {
+						if (p.getPeakStatus() == PeakStatus.DETECTED) {
+							numDetected++;
+						}
+					}
+					line.append(numDetected + fieldSeparator);
+					break;
 				}
 			}
 
+			// Identity elements
+			length = identityElements.length;
+			PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
+			if (peakIdentity != null) {
+				for (int i = 0; i < length; i++) {
+					String propertyValue = peakIdentity
+							.getPropertyValue(identityElements[i]);
+					if (propertyValue == null) {
+						propertyValue = "";
+					}
+					line.append(propertyValue + fieldSeparator);
+				}
+			} else {
+				for (int i = 0; i < length; i++) {
+					line.append(fieldSeparator);
+				}				
+			}
+
+			// Data file elements
+			length = dataFileElements.length;
 			for (RawDataFile dataFile : rawDataFiles) {
 				for (int i = 0; i < length; i++) {
-					if (!elements[i].isCommon()) {
-						ChromatographicPeak peak = peakListRow
-								.getPeak(dataFile);
-						if (peak != null) {
-							switch (elements[i]) {
-							case PEAK_STATUS:
-								line.append(peak.getPeakStatus()
-										+ fieldSeparator);
-								break;
-							case PEAK_MZ:
-								line.append(peak.getMZ() + fieldSeparator);
-								break;
-							case PEAK_RT:
-								line.append(peak.getRT() + fieldSeparator);
-								break;
-							case PEAK_HEIGHT:
-								line.append(peak.getHeight() + fieldSeparator);
-								break;
-							case PEAK_AREA:
-								line.append(peak.getArea() + fieldSeparator);
-								break;
-							}
-						} else {
-							line.append("N/A" + fieldSeparator);
+					ChromatographicPeak peak = peakListRow.getPeak(dataFile);
+					if (peak != null) {
+						switch (dataFileElements[i]) {
+						case PEAK_STATUS:
+							line.append(peak.getPeakStatus() + fieldSeparator);
+							break;
+						case PEAK_MZ:
+							line.append(peak.getMZ() + fieldSeparator);
+							break;
+						case PEAK_RT:
+							line.append(peak.getRT() + fieldSeparator);
+							break;
+						case PEAK_HEIGHT:
+							line.append(peak.getHeight() + fieldSeparator);
+							break;
+						case PEAK_AREA:
+							line.append(peak.getArea() + fieldSeparator);
+							break;
 						}
+					} else {
+						line.append("N/A" + fieldSeparator);
 					}
 				}
 			}

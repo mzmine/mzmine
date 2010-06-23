@@ -294,7 +294,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 					BoxLayout.Y_AXIS));
 
 			int vertSize = 0,
-			numCheckBoxes = 0;
+			numCheckBoxes = 0,
+			horSize = 0,
+			widthSize = 0;
 			ExtendedCheckBox<Object> ecb = null;
 			Object multipleValues[] = parameterSet.getMultipleSelection(p);
 			if (multipleValues == null)
@@ -311,6 +313,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				if (numCheckBoxes < 7)
 					vertSize += (int) ecb.getPreferredSize().getHeight() + 2;
 
+				widthSize = (int) ecb.getPreferredSize().getWidth() + 20;
+				if (horSize < widthSize)
+					horSize = widthSize;
+
 				numCheckBoxes++;
 			}
 
@@ -320,7 +326,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			JScrollPane peakPanelScroll = new JScrollPane(checkBoxesPanel,
 					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-			peakPanelScroll.setPreferredSize(new Dimension(0, vertSize));
+			peakPanelScroll.setPreferredSize(new Dimension(horSize, vertSize));
 			comp = peakPanelScroll;
 			break;
 
