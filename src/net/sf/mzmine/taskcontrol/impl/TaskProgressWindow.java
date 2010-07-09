@@ -114,7 +114,7 @@ public class TaskProgressWindow extends JInternalFrame implements
 
 		int selectedRow = taskTable.getSelectedRow();
 
-		if (selectedRow >= currentQueue.length)
+		if ((selectedRow >= currentQueue.length) || (selectedRow < 0))
 			return;
 
 		Task selectedTask = currentQueue[selectedRow].getActualTask();

@@ -103,8 +103,13 @@ class ProjectSaveDialog extends JDialog implements ActionListener {
 		try {
 			Method getFileNameMethod = fileChooser.getUI().getClass()
 					.getDeclaredMethod("getFileName", new Class[] {});
-			String fileName = (String) getFileNameMethod.invoke(fileChooser
-					.getUI(), new Object[] {});
+
+			// We need to ensure accesibility, otherwise we get exception when
+			// using GTKFileChooserUI
+			getFileNameMethod.setAccessible(true);
+
+			String fileName = (String) getFileNameMethod.invoke(
+					fileChooser.getUI(), new Object[] {});
 
 			if ((fileName == null) || (fileName.trim().length() == 0))
 				return null;
