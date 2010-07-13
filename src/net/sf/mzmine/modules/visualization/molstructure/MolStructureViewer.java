@@ -134,7 +134,6 @@ public class MolStructureViewer extends JInternalFrame {
 			String errorMessage = "Could not load 2D structure\n"
 					+ "Exception: " + ExceptionUtils.exceptionToString(e);
 			newComponent = new MultiLineLabel(errorMessage);
-			e.printStackTrace();
 		}
 		splitPane.setLeftComponent(newComponent);
 		splitPane.setDividerLocation(500);
