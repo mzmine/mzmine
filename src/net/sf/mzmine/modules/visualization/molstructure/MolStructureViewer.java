@@ -150,12 +150,15 @@ public class MolStructureViewer extends JInternalFrame {
 		try {
 
 			String structure3D = InetUtils.retrieveData(url);
+			
+			// If the returned structure is empty or too short, just return
 			if (structure3D.length() < 10) {
 				loading3Dlabel.setText("3D structure not available");
 				return;
 			}
 
-			if (!structure3D.matches("^\\d\\n.*")) {
+			// Check for html tag, to recognize PubChem error message
+			if (structure3D.contains("<html>")) {
 				loading3Dlabel.setText("3D structure not available");
 				return;
 			}
