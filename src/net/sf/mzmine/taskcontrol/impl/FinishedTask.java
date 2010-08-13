@@ -45,7 +45,11 @@ public class FinishedTask extends AbstractTask {
 	}
 
 	public void run() {
-		throw new IllegalStateException();
+		// ignore any attempt to run this task, because it is finished	
+	}
+	
+	public void cancel() {
+		// ignore any attempt to cancel this task, because it is finished
 	}
 
 	public double getFinishedPercentage() {

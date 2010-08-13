@@ -35,6 +35,8 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -167,8 +169,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	/**
      */
 	public void setRTRange(Range rtRange) {
-		ticPlot.getXYPlot().getDomainAxis().setRange(rtRange.getMin(),
-				rtRange.getMax());
+		ticPlot.getXYPlot().getDomainAxis()
+				.setRange(rtRange.getMin(), rtRange.getMax());
 	}
 
 	public void setAxesRange(double xMin, double xMax, double xTickSize,
@@ -241,8 +243,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 				if (plotType == TICVisualizerParameters.plotTypeBP)
 					mz = (double) dataSet.getZValue(0, index);
 				CursorPosition pos = new CursorPosition(selectedRT, mz,
-						selectedIT, dataSet.getDataFile(), dataSet
-								.getScanNumber(0, index));
+						selectedIT, dataSet.getDataFile(),
+						dataSet.getScanNumber(0, index));
 				return pos;
 			}
 		}
@@ -269,8 +271,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 		if (command.equals("SHOW_SPECTRUM")) {
 			CursorPosition pos = getCursorPosition();
 			if (pos != null) {
-				SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(), pos
-						.getScanNumber());
+				SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(),
+						pos.getScanNumber());
 			}
 		}
 
@@ -278,8 +280,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 			CursorPosition pos = getCursorPosition();
 			if (pos != null) {
 				TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-				int index = dataSet.getIndex(pos.getRetentionTime(), pos
-						.getIntensityValue());
+				int index = dataSet.getIndex(pos.getRetentionTime(),
+						pos.getIntensityValue());
 				if (index > 0) {
 					index--;
 					pos.setRetentionTime((double) dataSet.getXValue(0, index));
@@ -294,8 +296,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
 			CursorPosition pos = getCursorPosition();
 			if (pos != null) {
 				TICDataSet dataSet = ticDataSets.get(pos.getDataFile());
-				int index = dataSet.getIndex(pos.getRetentionTime(), pos
-						.getIntensityValue());
+				int index = dataSet.getIndex(pos.getRetentionTime(),
+						pos.getIntensityValue());
 				if (index >= 0) {
 					index++;
 					if (index < dataSet.getItemCount(0)) {
@@ -308,6 +310,23 @@ public class TICVisualizerWindow extends JInternalFrame implements
 				}
 			}
 		}
+
+	}
+
+	public void dispose() {
+
+		// If the window is closed, we want to cancel all running tasks of the data
+		// sets
+		Task tasks[] = this.ticDataSets.values().toArray(new Task[0]);
+
+		for (Task task : tasks) {
+			TaskStatus status = task.getStatus();
+			if ((status == TaskStatus.WAITING)
+					|| (status == TaskStatus.PROCESSING))
+				task.cancel();
+
+		}
+		super.dispose();
 
 	}
 

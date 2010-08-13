@@ -49,8 +49,8 @@ public class TaskProgressWindow extends JInternalFrame implements
 
 	private JPopupMenu popupMenu;
 	private JMenu priorityMenu;
-	private JMenuItem cancelTaskMenuItem, highPriorityMenuItem,
-			normalPriorityMenuItem;
+	private JMenuItem cancelTaskMenuItem, cancelAllMenuItem,
+			highPriorityMenuItem, normalPriorityMenuItem;
 
 	/**
 	 * Constructor
@@ -87,6 +87,8 @@ public class TaskProgressWindow extends JInternalFrame implements
 
 		cancelTaskMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel task",
 				this);
+		cancelAllMenuItem = GUIUtils.addMenuItem(popupMenu,
+				"Cancel all tasks", this);
 
 		// Addd popup menu to the task table
 		taskTable.setComponentPopupMenu(popupMenu);
@@ -126,6 +128,17 @@ public class TaskProgressWindow extends JInternalFrame implements
 			if ((status == TaskStatus.WAITING)
 					|| (status == TaskStatus.PROCESSING)) {
 				selectedTask.cancel();
+			}
+		}
+
+		if (src == cancelAllMenuItem) {
+			for (WrappedTask wrappedTask : currentQueue) {
+				Task task = wrappedTask.getActualTask();
+				TaskStatus status = task.getStatus();
+				if ((status == TaskStatus.WAITING)
+						|| (status == TaskStatus.PROCESSING)) {
+					task.cancel();
+				}
 			}
 		}
 

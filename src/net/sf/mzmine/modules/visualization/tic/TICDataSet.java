@@ -48,7 +48,6 @@ import org.jfree.data.xy.AbstractXYZDataset;
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
 
-	// private Logger logger = Logger.getLogger(this.getClass().getName());
 	// redraw the chart every 100 ms while updating
 	private static final int REDRAW_INTERVAL = 100;
 	private static Date lastRedrawTime = new Date();
@@ -63,7 +62,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	private double basePeakValues[], intensityValues[], rtValues[];
 	private Range mzRange;
 	private double intensityMin, intensityMax;
-	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
+	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 
 	public TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange,
 			ActionListener visualizer) {
@@ -72,7 +71,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 		this.mzRange = mzRange;
 		this.dataFile = dataFile;
 		this.scanNumbers = scanNumbers;
-		
+
 		totalScans = scanNumbers.length;
 
 		basePeakValues = new double[scanNumbers.length];
@@ -112,7 +111,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
      */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		for (int index = 0; index < scanNumbers.length; index++) {
 
@@ -190,7 +189,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 		visualizer.actionPerformed(new ActionEvent(this,
 				ActionEvent.ACTION_PERFORMED, "TICDataSet_upgraded"));
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -286,7 +285,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	}
 
 	public void cancel() {
-		setStatus( TaskStatus.CANCELED );
+		setStatus(TaskStatus.CANCELED);
 	}
 
 	public String getErrorMessage() {
@@ -315,10 +314,11 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	/**
 	 * Adds a TaskListener to this Task
 	 * 
-	 * @param t The TaskListener to add
+	 * @param t
+	 *            The TaskListener to add
 	 */
-	public void addTaskListener( TaskListener t ) {
-		this.taskListeners.add( t );
+	public void addTaskListener(TaskListener t) {
+		this.taskListeners.add(t);
 	}
 
 	/**
@@ -326,30 +326,31 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	 * 
 	 * @return An array containing the TaskListeners
 	 */
-	public TaskListener[] getTaskListeners( ) {
-		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	public TaskListener[] getTaskListeners() {
+		return this.taskListeners.toArray(new TaskListener[this.taskListeners
+				.size()]);
 	}
 
-	private void fireTaskEvent( ) {
-		TaskEvent event = new TaskEvent( this );
-		for( TaskListener t : this.taskListeners ) {
-			t.statusChanged( event );
+	private void fireTaskEvent() {
+		TaskEvent event = new TaskEvent(this);
+		for (TaskListener t : this.taskListeners) {
+			t.statusChanged(event);
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
 	 */
-	public void setStatus( TaskStatus newStatus ) {
+	public void setStatus(TaskStatus newStatus) {
 		this.status = newStatus;
-		this.fireTaskEvent( );
+		this.fireTaskEvent();
 	}
 
-	public boolean isCanceled( ) {
+	public boolean isCanceled() {
 		return status == TaskStatus.CANCELED;
 	}
 
-	public boolean isFinished( ) {
+	public boolean isFinished() {
 		return status == TaskStatus.FINISHED;
 	}
 }
