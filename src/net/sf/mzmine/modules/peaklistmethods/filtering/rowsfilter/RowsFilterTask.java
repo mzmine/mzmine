@@ -30,17 +30,14 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-class RowsFilterTask implements Task {
+class RowsFilterTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList peakList, filteredPeakList;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// Processed rows counter
 	private int processedRows, totalRows;
@@ -78,22 +75,10 @@ class RowsFilterTask implements Task {
 
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalRows == 0)
 			return 0.0f;
 		return (double) processedRows / (double) totalRows;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -102,7 +87,7 @@ class RowsFilterTask implements Task {
 
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running peak list rows filter");
 
 		totalRows = peakList.getNumberOfRows();
@@ -115,7 +100,7 @@ class RowsFilterTask implements Task {
 		// Copy rows with enough peaks to new alignment result
 		for (PeakListRow row : peakList.getRows()) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			boolean rowIsGood = true;
@@ -167,7 +152,7 @@ class RowsFilterTask implements Task {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished peak list rows filter");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

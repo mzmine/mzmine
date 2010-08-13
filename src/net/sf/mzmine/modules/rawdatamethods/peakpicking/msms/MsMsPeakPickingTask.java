@@ -31,16 +31,13 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
-public class MsMsPeakPickingTask implements Task {
+public class MsMsPeakPickingTask extends AbstractTask {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private int processedScans, totalScans;
 
@@ -65,22 +62,10 @@ public class MsMsPeakPickingTask implements Task {
 		return dataFile;
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalScans == 0)
 			return 0f;
 		return (double) processedScans / totalScans;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -89,13 +74,13 @@ public class MsMsPeakPickingTask implements Task {
 
 	public void run() {
 		
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		
 		int[] scanNumbers = dataFile.getScanNumbers(msLevel);
 		totalScans = scanNumbers.length;
 		for (int scanNumber : scanNumbers) {
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			// Get next MS/MS scan
@@ -160,7 +145,7 @@ public class MsMsPeakPickingTask implements Task {
 		logger.info("Finished MS/MS peak builder on " + dataFile + ", "
 				+ processedScans + " scans processed");
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 	}
 
 	public Object[] getCreatedObjects() {

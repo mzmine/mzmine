@@ -85,12 +85,15 @@ class RawDataImporterDialog extends JDialog implements ActionListener {
 
 		filter = new FileNameExtensionFilter("mzXML files", "mzXML");
 		fileChooser.addChoosableFileFilter(filter);
-		
+
+		filter = new FileNameExtensionFilter("Agilent CSV files", "csv");
+		fileChooser.addChoosableFileFilter(filter);
+
 		filter = new FileNameExtensionFilter("All XML files", "xml");
 		fileChooser.addChoosableFileFilter(filter);
 
 		filter = new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-				"mzData", "mzML", "mzXML", "xml", "raw");
+				"mzData", "mzML", "mzXML", "xml", "raw", "csv");
 		fileChooser.setFileFilter(filter);
 		mainPanel.add(fileChooser, BorderLayout.CENTER);
 

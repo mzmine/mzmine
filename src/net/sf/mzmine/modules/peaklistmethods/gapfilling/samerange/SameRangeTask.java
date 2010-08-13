@@ -34,17 +34,14 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
-class SameRangeTask implements Task {
+class SameRangeTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private PeakList peakList, processedPeakList;
 
@@ -68,7 +65,7 @@ class SameRangeTask implements Task {
 
 		logger.info("Started gap-filling " + peakList);
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		// Get total number of rows
 		totalRows = peakList.getNumberOfRows();
@@ -83,7 +80,7 @@ class SameRangeTask implements Task {
 		for (int row = 0; row < totalRows; row++) {
 
 			// Canceled?
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			PeakListRow sourceRow = peakList.getRow(row);
@@ -103,7 +100,7 @@ class SameRangeTask implements Task {
 			for (RawDataFile column : columns) {
 
 				// Canceled?
-				if (status == TaskStatus.CANCELED)
+				if ( isCanceled( ))
 					return;
 
 				// Get current peak
@@ -134,7 +131,7 @@ class SameRangeTask implements Task {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling using RT and m/z range", parameters));
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 		logger.info("Finished gap-filling " + peakList);
 
@@ -167,7 +164,7 @@ class SameRangeTask implements Task {
 
 		for (int scanNumber : scanNumbers) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return null;
 
 			// Get next scan
@@ -198,23 +195,11 @@ class SameRangeTask implements Task {
 		return null;
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalRows == 0)
 			return 0;
 		return (double) processedRows / (double) totalRows;
 
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {

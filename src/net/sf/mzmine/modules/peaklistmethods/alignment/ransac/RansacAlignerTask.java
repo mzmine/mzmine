@@ -35,7 +35,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
@@ -45,12 +45,10 @@ import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
 import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 
-class RansacAlignerTask implements Task {
+class RansacAlignerTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private PeakList peakLists[], alignedPeakList;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// Processed rows counter
 	private int processedRows, totalRows;
@@ -108,30 +106,9 @@ class RansacAlignerTask implements Task {
 		return (double) processedRows / (double) totalRows;
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running Ransac aligner");
 
 		// Remember how many rows we need to process. Each row will be processed
@@ -149,7 +126,7 @@ class RansacAlignerTask implements Task {
 
 				// Each data file can only have one column in aligned peak list
 				if (allDataFiles.contains(dataFile)) {
-					status = TaskStatus.ERROR;
+					setStatus( TaskStatus.ERROR );
 					errorMessage = "Cannot run alignment, because file "
 							+ dataFile + " is present in multiple peak lists";
 					return;
@@ -207,7 +184,7 @@ class RansacAlignerTask implements Task {
 						"Ransac aligner", parameters));
 
 		logger.info("Finished RANSAC aligner");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 
@@ -276,7 +253,7 @@ class RansacAlignerTask implements Task {
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					status = TaskStatus.ERROR;
+					setStatus( TaskStatus.ERROR );
 					return null;
 				}
 			}
@@ -421,7 +398,7 @@ class RansacAlignerTask implements Task {
 		Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 		for (PeakListRow row : peakListX.getRows()) {
 
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				return null;
 			}
 			// Calculate limits for a row with which the row can be aligned

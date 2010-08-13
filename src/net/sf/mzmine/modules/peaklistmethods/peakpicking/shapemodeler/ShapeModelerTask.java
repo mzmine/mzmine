@@ -33,17 +33,14 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-class ShapeModelerTask implements Task {
+class ShapeModelerTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList originalPeakList;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// scan counter
 	private int processedRows = 0, totalRows;
@@ -94,30 +91,9 @@ class ShapeModelerTask implements Task {
 			return (double) processedRows / totalRows;
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		// Create shape model
 		String[] shapeModelTypes = ShapeModelerParameters.shapeModelerNames;
@@ -129,7 +105,7 @@ class ShapeModelerTask implements Task {
 
 		if (index < 0) {
 			errorMessage = "Error trying to get class name of shape model ";
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			return;
 		}
 
@@ -143,7 +119,7 @@ class ShapeModelerTask implements Task {
 		} catch (Exception e) {
 			errorMessage = "Error trying to get constructor of shape model "
 					+ shapeModelClassName;
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			return;
 		}
 
@@ -161,7 +137,7 @@ class ShapeModelerTask implements Task {
 
 		for (PeakListRow row : originalPeakList.getRows()) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			newRow = new SimplePeakListRow(newPeakID);
@@ -228,7 +204,7 @@ class ShapeModelerTask implements Task {
 		logger.finest("Finished peak shape modeler " + processedRows
 				+ " rows processed");
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

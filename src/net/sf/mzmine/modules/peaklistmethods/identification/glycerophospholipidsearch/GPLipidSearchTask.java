@@ -28,16 +28,13 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 
-public class GPLipidSearchTask implements Task {
+public class GPLipidSearchTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private long finishedSteps, totalSteps;
 	private PeakList peakList;
@@ -79,33 +76,12 @@ public class GPLipidSearchTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
 		if (totalSteps == 0)
 			return 0;
 		return ((double) finishedSteps) / totalSteps;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	/**
@@ -120,7 +96,7 @@ public class GPLipidSearchTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		logger.info("Starting glycerophospholipid search in " + peakList);
 
@@ -139,7 +115,7 @@ public class GPLipidSearchTask implements Task {
 						for (int fattyAcid2DoubleBonds = 0; fattyAcid2DoubleBonds <= maxDoubleBonds; fattyAcid2DoubleBonds++) {
 
 							// Task canceled?
-							if (status == TaskStatus.CANCELED)
+							if ( isCanceled( ))
 								return;
 
 							// If we have non-zero fatty acid, which is shorter
@@ -185,7 +161,7 @@ public class GPLipidSearchTask implements Task {
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 		logger.info("Finished glycerophospholipid search in " + peakList);
 
@@ -207,7 +183,7 @@ public class GPLipidSearchTask implements Task {
 
 		for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			if (Math.abs(lipidIonMass - rows[rowIndex].getAverageMZ()) <= mzTolerance) {

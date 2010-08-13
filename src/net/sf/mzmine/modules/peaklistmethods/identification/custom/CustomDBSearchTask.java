@@ -31,7 +31,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import com.Ostermiller.util.CSVParser;
@@ -39,14 +39,12 @@ import com.Ostermiller.util.CSVParser;
 /**
  * 
  */
-class CustomDBSearchTask implements Task {
+class CustomDBSearchTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList peakList;
 
-	private TaskStatus status = TaskStatus.WAITING;;
-	private String errorMessage;
 	private String[][] databaseValues;
 	private int finishedLines = 0;
 
@@ -81,33 +79,12 @@ class CustomDBSearchTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
 		if (databaseValues == null)
 			return 0;
 		return ((double) finishedLines) / databaseValues.length;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	/**
@@ -123,7 +100,7 @@ class CustomDBSearchTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		File dbFile = new File(dataBaseFile);
 
@@ -145,7 +122,7 @@ class CustomDBSearchTask implements Task {
 
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Could not read file " + dbFile, e);
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = e.toString();
 			return;
 		}
@@ -160,7 +137,7 @@ class CustomDBSearchTask implements Task {
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

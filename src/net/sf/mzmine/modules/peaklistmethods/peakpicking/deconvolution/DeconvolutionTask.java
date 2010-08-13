@@ -33,20 +33,17 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * @see
  */
-class DeconvolutionTask implements Task {
+class DeconvolutionTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakList originalPeakList;
-
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
 
     // scan counter
     private int processedRows = 0, totalRows;
@@ -98,32 +95,11 @@ class DeconvolutionTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
-
-    /**
      * @see Runnable#run()
      */
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
 
         logger.info("Started peak recognition on " + originalPeakList);
 
@@ -136,7 +112,7 @@ class DeconvolutionTask implements Task {
         } catch (Exception e) {
             errorMessage = "Error trying to make an instance of peak builder "
                     + peakResolverClassName;
-            status = TaskStatus.ERROR;
+            setStatus( TaskStatus.ERROR );
             return;
         }
 
@@ -156,7 +132,7 @@ class DeconvolutionTask implements Task {
 
         for (ChromatographicPeak chromatogram : originalPeakList.getPeaks(dataFile)) {
 
-            if (status == TaskStatus.CANCELED)
+            if ( isCanceled( ))
                 return;
 
             // Load the intensities into array
@@ -201,7 +177,7 @@ class DeconvolutionTask implements Task {
         		DeconvolutionParameters.peakResolverNames[peakResolverTypeNumber], pbParameters));
 
 
-        status = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
         logger.info("Finished peak recognition on " + originalPeakList);
 

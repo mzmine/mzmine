@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.Range;
@@ -37,7 +37,7 @@ import visad.Set;
 /**
  * Sampling task which loads the raw data and feeds them to ThreeDDisplay
  */
-class ThreeDSamplingTask implements Task {
+class ThreeDSamplingTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -49,8 +49,6 @@ class ThreeDSamplingTask implements Task {
     private int rtResolution, mzResolution;
 
     private int retrievedScans = 0;
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
 
     // The 3D display
     private ThreeDDisplay display;
@@ -98,32 +96,11 @@ class ThreeDSamplingTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
-
-    /**
      * @see java.lang.Runnable#run()
      */
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
 
         logger.info("Started sampling 3D plot of " + dataFile);
         
@@ -179,7 +156,7 @@ class ThreeDSamplingTask implements Task {
             // load scans
             for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
 
-                if (status == TaskStatus.CANCELED)
+                if ( isCanceled( ))
                     return;
 
                 Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
@@ -235,7 +212,7 @@ class ThreeDSamplingTask implements Task {
             bottomPanel.rebuildPeakListSelector();
 
         } catch (Throwable e) {
-            status = TaskStatus.ERROR;
+            setStatus( TaskStatus.ERROR );
             errorMessage = "Error while sampling 3D data, "
                     + ExceptionUtils.exceptionToString(e);
             return;
@@ -243,7 +220,7 @@ class ThreeDSamplingTask implements Task {
 
         logger.info("Finished sampling 3D plot of " + dataFile);
         
-        status = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
     }
 

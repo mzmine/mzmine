@@ -29,18 +29,16 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.RawDataFilter;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * @see
  */
-class ScanFilteringTask implements Task {
+class ScanFilteringTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFile dataFile,  filteredRawDataFile;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// scan counter
 	private int processedScans = 0,  totalScans;
@@ -90,29 +88,8 @@ class ScanFilteringTask implements Task {
 		}
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public RawDataFile getDataFile() {
 		return dataFile;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
 	}
 
 	/**
@@ -120,7 +97,7 @@ class ScanFilteringTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		logger.info("Started filtering scans on " + dataFile);
 
@@ -135,7 +112,7 @@ class ScanFilteringTask implements Task {
 			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(parameters);
 		} catch (Exception e) {
 			errorMessage = "Error trying to make an instance of raw data filter " + rawDataFilterClassName;
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			return;
 		}
 		try {
@@ -147,7 +124,7 @@ class ScanFilteringTask implements Task {
 
 			for (int i = 0; i < totalScans; i++) {
 
-				if (status == TaskStatus.CANCELED) {
+				if ( isCanceled( )) {
 					return;
 				}
 
@@ -177,11 +154,11 @@ class ScanFilteringTask implements Task {
 			} catch (Exception exception) {
 			}
 
-			status = TaskStatus.FINISHED;
+			setStatus( TaskStatus.FINISHED );
 			logger.info("Finished scan filter on " + dataFile);
 
 		} catch (IOException e) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = e.toString();
 			return;
 		}

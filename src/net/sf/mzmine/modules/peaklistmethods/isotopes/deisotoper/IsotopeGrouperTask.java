@@ -38,7 +38,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.PeakUtils;
@@ -48,7 +48,7 @@ import net.sf.mzmine.util.SortingProperty;
 /**
  * 
  */
-class IsotopeGrouperTask implements Task {
+class IsotopeGrouperTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -63,9 +63,6 @@ class IsotopeGrouperTask implements Task {
 	private static final double isotopeDistance = 1.0033;
 
 	private PeakList peakList, deisotopedPeakList;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// peaks counter
 	private int processedPeaks, totalPeaks;
@@ -119,32 +116,11 @@ class IsotopeGrouperTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
 	 * @see Runnable#run()
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running isotopic peak grouper on " + peakList);
 
 		// We assume source peakList contains one datafile
@@ -169,7 +145,7 @@ class IsotopeGrouperTask implements Task {
 
 		for (int ind = 0; ind < totalPeaks; ind++) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			ChromatographicPeak aPeak = sortedPeaks[ind];
@@ -262,7 +238,7 @@ class IsotopeGrouperTask implements Task {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished isotopic peak grouper on " + peakList);
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

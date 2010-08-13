@@ -32,19 +32,17 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.FormulaUtils;
 
-public class SingleRowIdentificationTask implements Task {
+public class SingleRowIdentificationTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 	private int finishedItems = 0, numItems;
 
 	private OnlineDatabase db;
@@ -103,33 +101,12 @@ public class SingleRowIdentificationTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
 		if (numItems == 0)
 			return 0;
 		return ((double) finishedItems) / numItems;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	/**
@@ -145,7 +122,7 @@ public class SingleRowIdentificationTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		try {
 
@@ -173,7 +150,7 @@ public class SingleRowIdentificationTask implements Task {
 			// Process each one of the result ID's.
 			for (int i = 0; i < numItems; i++) {
 
-				if (status != TaskStatus.PROCESSING) {
+				if (getStatus( ) != TaskStatus.PROCESSING) {
 					return;
 				}
 
@@ -237,13 +214,13 @@ public class SingleRowIdentificationTask implements Task {
 
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Could not connect to " + db, e);
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Could not connect to " + db + ": "
 					+ ExceptionUtils.exceptionToString(e);
 			return;
 		}
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

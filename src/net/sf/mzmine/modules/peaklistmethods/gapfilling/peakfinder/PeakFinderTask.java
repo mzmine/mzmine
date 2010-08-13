@@ -32,14 +32,12 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-class PeakFinderTask implements Task {
+class PeakFinderTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
     private PeakList peakList, processedPeakList;
     private String suffix;
     private double intTolerance, mzTolerance;
@@ -68,7 +66,7 @@ class PeakFinderTask implements Task {
 
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
         logger.info("Running gap filler on " + peakList);
 
         // Calculate total number of scans in all files
@@ -113,7 +111,7 @@ class PeakFinderTask implements Task {
             for (RawDataFile dataFile : peakList.getRawDataFiles()) {
 
                 // Canceled?
-                if (status == TaskStatus.CANCELED) {
+                if ( isCanceled( )) {
                     return;
                 }
 
@@ -164,7 +162,7 @@ class PeakFinderTask implements Task {
                 for (int scanNumber : scanNumbers) {
 
                     // Canceled?
-                    if (status == TaskStatus.CANCELED) {
+                    if ( isCanceled( )) {
                         return;
                     }
 
@@ -196,7 +194,7 @@ class PeakFinderTask implements Task {
                 "Gap filling ", parameters));
 
         logger.info("Finished gap-filling on " + peakList);
-        status = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
     }
 
@@ -227,7 +225,7 @@ class PeakFinderTask implements Task {
                 info.setFunction();
 
                 // Canceled?
-                if (status == TaskStatus.CANCELED) {
+                if ( isCanceled( )) {
                     return;
                 }
 
@@ -299,7 +297,7 @@ class PeakFinderTask implements Task {
                 for (int scanNumber : scanNumbers) {
 
                     // Canceled?
-                    if (status == TaskStatus.CANCELED) {
+                    if ( isCanceled( )) {
                         return;
                     }
 
@@ -321,24 +319,12 @@ class PeakFinderTask implements Task {
         }
     }
 
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
     public double getFinishedPercentage() {
         if (totalScans == 0) {
             return 0;
         }
         return (double) processedScans / (double) totalScans;
 
-    }
-
-    public TaskStatus getStatus() {
-        return status;
     }
 
     public String getTaskDescription() {

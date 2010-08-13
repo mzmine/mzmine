@@ -42,7 +42,7 @@ import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import org.dom4j.Document;
@@ -53,12 +53,10 @@ import org.dom4j.io.XMLWriter;
 
 import com.Ostermiller.util.Base64;
 
-public class XMLExportTask implements Task {
+public class XMLExportTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private PeakList peakList;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 	private int processedRows, totalRows;
 	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
 	public static DateFormat dateFormat = new SimpleDateFormat(
@@ -87,20 +85,6 @@ public class XMLExportTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
@@ -108,13 +92,6 @@ public class XMLExportTask implements Task {
 			return 0.0f;
 		}
 		return (double) processedRows / (double) totalRows;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	/**
@@ -131,7 +108,7 @@ public class XMLExportTask implements Task {
 
 		try {
 
-			status = TaskStatus.PROCESSING;
+			setStatus( TaskStatus.PROCESSING );
 			logger.info("Started saving peak list " + peakList.getName());
 
 			Element newElement;
@@ -191,7 +168,7 @@ public class XMLExportTask implements Task {
 			PeakListRow row;
 			for (int i = 0; i < numOfRows; i++) {
 
-				if (status == TaskStatus.CANCELED) {
+				if ( isCanceled( )) {
 					return;
 				}
 
@@ -222,8 +199,8 @@ public class XMLExportTask implements Task {
 
 		} catch (Exception e) {
 			/* we may already have set the status to CANCELED */
-			if (status == TaskStatus.PROCESSING) {
-				status = TaskStatus.ERROR;
+			if (getStatus( ) == TaskStatus.PROCESSING) {
+				setStatus( TaskStatus.ERROR );
 			}
 			errorMessage = e.toString();
 			e.printStackTrace();
@@ -232,7 +209,7 @@ public class XMLExportTask implements Task {
 
 		logger.info("Finished saving " + peakList.getName() + ", saved "
 				+ processedRows + " rows");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 	}
 
 	/**

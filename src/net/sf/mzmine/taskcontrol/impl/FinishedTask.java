@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.taskcontrol.impl;
 
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * This class serves as a replacement for Task within the task controller queue,
@@ -28,32 +28,16 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  * memory occupied by the actual Task while keeping the task description in the
  * Tasks in progress window, until all tasks are finished.
  */
-public class FinishedTask implements Task {
+public class FinishedTask extends AbstractTask {
 
-	private String description, errorMessage;
-	private TaskStatus status;
+	private String description;
 	private double finishedPercentage;
 
 	public FinishedTask(Task task) {
+		setStatus(task.getStatus());
 		description = task.getTaskDescription();
 		errorMessage = task.getErrorMessage();
-		status = task.getStatus();
 		finishedPercentage = task.getFinishedPercentage();
-	}
-
-	public void cancel() {
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	public double getFinishedPercentage() {
-		return finishedPercentage;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -64,8 +48,8 @@ public class FinishedTask implements Task {
 		throw new IllegalStateException();
 	}
 
-	public Object[] getCreatedObjects() {
-		return null;
+	public double getFinishedPercentage() {
+		return finishedPercentage;
 	}
 
 }

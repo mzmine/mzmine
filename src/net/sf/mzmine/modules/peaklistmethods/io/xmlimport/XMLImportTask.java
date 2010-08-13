@@ -30,6 +30,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
+import java.util.LinkedList;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -51,6 +52,8 @@ import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.xml.util.Base64;
@@ -91,6 +94,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 	private String dateCreated;
 	private Range rtRange, mzRange;
 	private Vector<String> appliedProcess;
+	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
 
 	/**
 	 * 
@@ -108,7 +112,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 	 */
 	public void cancel() {
 		logger.info("Cancelling loading of MZmine peak list " + fileName);
-		status = TaskStatus.CANCELED;
+		setStatus( TaskStatus.CANCELED );
 	}
 
 	/**
@@ -147,7 +151,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Started parsing file " + fileName);
 
 		// Use the default (non-validating) parser
@@ -187,14 +191,14 @@ public class XMLImportTask extends DefaultHandler implements Task {
 		} catch (Throwable e) {
 			/* we may already have set the status to CANCELED */
 			if (status == TaskStatus.PROCESSING)
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 			errorMessage = e.toString();
 			e.printStackTrace();
 			return;
 		}
 
 		if (parsedRows == 0) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "No peaks found";
 			return;
 		}
@@ -205,7 +209,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 
 		logger.info("Finished parsing " + fileName + ", parsed " + parsedRows
 				+ " rows");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 
@@ -233,7 +237,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 						.getValue(PeakListElementName.ID.getElementName()));
 				peakListFlag = false;
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read scan attributes information");
@@ -250,7 +254,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				scanFlag = true;
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read scan attributes information");
@@ -269,7 +273,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 						.getValue(PeakListElementName.ID.getElementName()));
 				buildingRow = new SimplePeakListRow(rowID);
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read row attributes information");
@@ -306,7 +310,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				peakStatus = attrs.getValue(PeakListElementName.STATUS
 						.getElementName());
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read peak attributes information");
@@ -324,7 +328,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				mzPeakFlag = true;
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "This file does not have MZmine peak list file format";
 				throw new SAXException(
 						"Could not read mzPeak attributes information");
@@ -557,7 +561,7 @@ public class XMLImportTask extends DefaultHandler implements Task {
 				scanFlag = false;
 
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "Error trying to create temporary RawDataFile";
 				throw new SAXException(
 						"Could not create scans for temporary raw data file");
@@ -617,5 +621,45 @@ public class XMLImportTask extends DefaultHandler implements Task {
 	public Object[] getCreatedObjects() {
 		return new Object[] { buildingPeakList };
 	}
+	
+	/**
+	 * Adds a TaskListener to this Task
+	 * 
+	 * @param t The TaskListener to add
+	 */
+	public void addTaskListener( TaskListener t ) {
+		this.taskListeners.add( t );
+	}
 
+	/**
+	 * Returns all of the TaskListeners which are listening to this task.
+	 * 
+	 * @return An array containing the TaskListeners
+	 */
+	public TaskListener[] getTaskListeners( ) {
+		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	}
+
+	private void fireTaskEvent( ) {
+		TaskEvent event = new TaskEvent( this );
+		for( TaskListener t : this.taskListeners ) {
+			t.statusChanged( event );
+		}
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
+	 */
+	public void setStatus( TaskStatus newStatus ) {
+		this.status = newStatus;
+		this.fireTaskEvent( );
+	}
+
+	public boolean isCanceled( ) {
+		return status == TaskStatus.CANCELED;
+	}
+
+	public boolean isFinished( ) {
+		return status == TaskStatus.FINISHED;
+	}
 }

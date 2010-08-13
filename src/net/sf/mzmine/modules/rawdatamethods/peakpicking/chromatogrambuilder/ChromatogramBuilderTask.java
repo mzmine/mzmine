@@ -31,19 +31,16 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.mass
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.MassFilter;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  *
  */
-class ChromatogramBuilderTask implements Task {
+class ChromatogramBuilderTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFile dataFile;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// scan counter
 	private int processedScans = 0, totalScans;
@@ -98,29 +95,8 @@ class ChromatogramBuilderTask implements Task {
 			return (double) processedScans / totalScans;
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public RawDataFile getDataFile() {
 		return dataFile;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
 	}
 
 	/**
@@ -128,7 +104,7 @@ class ChromatogramBuilderTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		logger.info("Started chromatogram builder on " + dataFile);
 
@@ -143,7 +119,7 @@ class ChromatogramBuilderTask implements Task {
 
 		for (int i = 0; i < totalScans; i++) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			Scan scan = dataFile.getScan(scanNumbers[i]);
@@ -171,7 +147,7 @@ class ChromatogramBuilderTask implements Task {
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(newPeakList);
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 		logger.info("Finished chromatogram builder on " + dataFile);
 

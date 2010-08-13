@@ -25,15 +25,13 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 
-class CSVExportTask implements Task {
+class CSVExportTask extends AbstractTask {
 
 	private PeakList peakList;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 	private int processedRows, totalRows;
 
 	// parameter values
@@ -68,23 +66,11 @@ class CSVExportTask implements Task {
 
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalRows == 0) {
 			return 0.0f;
 		}
 		return (double) processedRows / (double) totalRows;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -98,7 +84,7 @@ class CSVExportTask implements Task {
 		try {
 			writer = new FileWriter(fileName);
 		} catch (Exception e) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Could not open file " + fileName + " for writing.";
 			return;
 		}
@@ -143,7 +129,7 @@ class CSVExportTask implements Task {
 		try {
 			writer.write(line.toString());
 		} catch (Exception e) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Could not write to file " + fileName;
 			return;
 		}
@@ -152,7 +138,7 @@ class CSVExportTask implements Task {
 		for (PeakListRow peakListRow : peakList.getRows()) {
 
 			// Cancel?
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				return;
 			}
 
@@ -244,7 +230,7 @@ class CSVExportTask implements Task {
 			try {
 				writer.write(line.toString());
 			} catch (Exception e) {
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				errorMessage = "Could not write to file " + fileName;
 				return;
 			}
@@ -257,12 +243,12 @@ class CSVExportTask implements Task {
 		try {
 			writer.close();
 		} catch (Exception e) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Could not close file " + fileName;
 			return;
 		}
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

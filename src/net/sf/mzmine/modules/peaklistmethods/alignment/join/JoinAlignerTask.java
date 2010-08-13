@@ -35,7 +35,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
@@ -43,14 +43,11 @@ import net.sf.mzmine.util.Range;
 /**
  * 
  */
-class JoinAlignerTask implements Task {
+class JoinAlignerTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList peakLists[], alignedPeakList;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// Processed rows counter
 	private int processedRows, totalRows;
@@ -125,38 +122,17 @@ class JoinAlignerTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
 	 * @see Runnable#run()
 	 */
 	public void run() {
 
 		if ((mzWeight == 0) && (rtWeight == 0)) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Cannot run alignment, all the weight parameters are zero";
 			return;
 		}
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running join aligner");
 
 		// Remember how many rows we need to process. Each row will be processed
@@ -173,7 +149,7 @@ class JoinAlignerTask implements Task {
 
 				// Each data file can only have one column in aligned peak list
 				if (allDataFiles.contains(dataFile)) {
-					status = TaskStatus.ERROR;
+					setStatus( TaskStatus.ERROR );
 					errorMessage = "Cannot run alignment, because file "
 							+ dataFile + " is present in multiple peak lists";
 					return;
@@ -198,7 +174,7 @@ class JoinAlignerTask implements Task {
 			// Calculate scores for all possible alignments of this row
 			for (PeakListRow row : allRows) {
 
-				if (status == TaskStatus.CANCELED)
+				if ( isCanceled( ))
 					return;
 
 				// Calculate limits for a row with which the row can be aligned
@@ -318,7 +294,7 @@ class JoinAlignerTask implements Task {
 						"Join aligner", parameters));
 
 		logger.info("Finished join aligner");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

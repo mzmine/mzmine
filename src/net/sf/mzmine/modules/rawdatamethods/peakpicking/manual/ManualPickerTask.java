@@ -27,17 +27,14 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
-class ManualPickerTask implements Task {
+class ManualPickerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
 
     private int processedScans, totalScans;
 
@@ -56,22 +53,10 @@ class ManualPickerTask implements Task {
 
     }
 
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
     public double getFinishedPercentage() {
         if (totalScans == 0)
             return 0;
         return (double) processedScans / totalScans;
-    }
-
-    public TaskStatus getStatus() {
-        return status;
     }
 
     public String getTaskDescription() {
@@ -80,7 +65,7 @@ class ManualPickerTask implements Task {
 
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
 
         logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: "
                 + mzRange);
@@ -101,7 +86,7 @@ class ManualPickerTask implements Task {
 
             for (int scanNumber : scanNumbers) {
 
-                if (status == TaskStatus.CANCELED)
+                if ( isCanceled( ))
                     return;
 
                 // Get next scan
@@ -135,7 +120,7 @@ class ManualPickerTask implements Task {
         logger.finest("Finished manual peak picker" + processedScans
                 + " scans processed");
 
-        status = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
     }
 

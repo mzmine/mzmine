@@ -45,7 +45,7 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileO
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
@@ -56,12 +56,9 @@ import org.xml.sax.SAXException;
 import de.schlichtherle.util.zip.ZipEntry;
 import de.schlichtherle.util.zip.ZipFile;
 
-public class ProjectOpeningTask implements Task {
+public class ProjectOpeningTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private File openFile;
 	private MZmineProjectImpl newProject;
@@ -114,20 +111,6 @@ public class ProjectOpeningTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
@@ -135,7 +118,7 @@ public class ProjectOpeningTask implements Task {
 		try {
 
 			logger.info("Started opening project " + openFile);
-			status = TaskStatus.PROCESSING;
+			setStatus( TaskStatus.PROCESSING );
 
 			// Create a new project
 			newProject = new MZmineProjectImpl();
@@ -148,7 +131,7 @@ public class ProjectOpeningTask implements Task {
 			currentStage++;
 			loadVersion(zipFile);
 			loadConfiguration(zipFile);
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				zipFile.close();
 				return;
 			}
@@ -156,7 +139,7 @@ public class ProjectOpeningTask implements Task {
 			// Stage 2 - load raw data files
 			currentStage++;
 			loadRawDataFiles(zipFile);
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				zipFile.close();
 				return;
 			}
@@ -170,7 +153,7 @@ public class ProjectOpeningTask implements Task {
 			zipFile.close();
 
 			// Final check for cancel
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			// Close all open frames related to previous project
@@ -188,16 +171,16 @@ public class ProjectOpeningTask implements Task {
 
 			logger.info("Finished opening project " + openFile);
 
-			status = TaskStatus.FINISHED;
+			setStatus( TaskStatus.FINISHED );
 
 		} catch (Throwable e) {
 
 			// If project opening was canceled, parser was stopped by a
 			// SAXException which can be safely ignored
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "Failed opening project: "
 					+ ExceptionUtils.exceptionToString(e);
 		}
@@ -210,7 +193,7 @@ public class ProjectOpeningTask implements Task {
 
 		logger.info("Canceling opening of project " + openFile);
 
-		status = TaskStatus.CANCELED;
+		setStatus( TaskStatus.CANCELED );
 
 		if (rawDataFileOpenHandler != null)
 			rawDataFileOpenHandler.cancel();
@@ -343,7 +326,7 @@ public class ProjectOpeningTask implements Task {
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
@@ -382,7 +365,7 @@ public class ProjectOpeningTask implements Task {
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			ZipEntry entry = (ZipEntry) zipEntries.nextElement();

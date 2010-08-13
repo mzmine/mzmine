@@ -33,19 +33,16 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerParameters;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.PeakUtils;
 
-public class StandardCompoundNormalizerTask implements Task {
+public class StandardCompoundNormalizerTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private PeakList originalPeakList, normalizedPeakList;
-
-    private TaskStatus taskStatus = TaskStatus.WAITING;
-    private String errorMessage;
 
     private int processedRows, totalRows;
 
@@ -70,22 +67,10 @@ public class StandardCompoundNormalizerTask implements Task {
         
     }
 
-    public void cancel() {
-        taskStatus = TaskStatus.CANCELED;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
     public double getFinishedPercentage() {
         if (totalRows == 0)
             return 0;
         return (double) processedRows / (double) totalRows;
-    }
-
-    public TaskStatus getStatus() {
-        return taskStatus;
     }
 
     public String getTaskDescription() {
@@ -94,7 +79,7 @@ public class StandardCompoundNormalizerTask implements Task {
 
     public void run() {
 
-        taskStatus = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
 
         logger.finest("Starting standard compound normalization of "
                 + originalPeakList
@@ -116,7 +101,7 @@ public class StandardCompoundNormalizerTask implements Task {
         rowIteration: for (PeakListRow row : originalPeakList.getRows()) {
 
             // Cancel ?
-            if (taskStatus == TaskStatus.CANCELED) {
+            if ( isCanceled( )) {
                 return;
             }
 
@@ -273,7 +258,7 @@ public class StandardCompoundNormalizerTask implements Task {
             currentProject.removePeakList(originalPeakList);
 
         logger.info("Finished standard compound normalizer");
-        taskStatus = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
     }
 

@@ -38,19 +38,17 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import be.proteomics.mascotdatfile.util.mascot.MascotDatfile;
 import be.proteomics.mascotdatfile.util.mascot.PeptideHit;
 import be.proteomics.mascotdatfile.util.mascot.Query;
 import be.proteomics.mascotdatfile.util.mascot.QueryToPeptideMap;
 
-public class MascotSearchTask implements Task {
+public class MascotSearchTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage = "?";
 	private static int MIN_MSMS_LEVEL = 2;
 
 	private int finishedRows, totalRows;
@@ -128,33 +126,12 @@ public class MascotSearchTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
 		if (totalRows == 0)
 			return 0;
 		return ((double) finishedRows) / totalRows;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	/**
@@ -177,7 +154,7 @@ public class MascotSearchTask implements Task {
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		totalRows = 100;
 
 		try {
@@ -186,7 +163,7 @@ public class MascotSearchTask implements Task {
 			PrintWriter mgfWriter = new PrintWriter(tmpFile);
 			for (int i = 0; i < pp.getRows().length; i++) {
 				// Check if we are not canceled
-				if (status == TaskStatus.CANCELED)
+				if ( isCanceled( ))
 					return;
 				PeakListRow row = pp.getRows()[i];
 				//TODO search for the peak with the best fragmentation not the most intense peak
@@ -233,7 +210,7 @@ public class MascotSearchTask implements Task {
 			int startIndex, stopIndex;
 			
 			while ((line = responseReader.readLine()) != null) {
-				if (status == TaskStatus.CANCELED)
+				if ( isCanceled( ))
 					return;
 				// check for Mascot error messages;
 				if (line.matches(".*M\\d\\d\\d\\d\\d]<BR>")) {
@@ -276,7 +253,7 @@ public class MascotSearchTask implements Task {
 
 			if (mascotXmlResponse == null) {
 				logger.info(buffer.toString());
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				return;
 			}
 
@@ -294,7 +271,7 @@ public class MascotSearchTask implements Task {
 			
 			} else{
 				logger.info(buffer.toString());
-				status = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				return;
 			}
 
@@ -336,10 +313,10 @@ public class MascotSearchTask implements Task {
 		} catch (Exception e) {
 			logger.info(e.getMessage());
 			e.printStackTrace();
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			return;
 		}
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 		logger.info("Finished peaks search");
 	}
 

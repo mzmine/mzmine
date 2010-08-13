@@ -25,17 +25,15 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview.RawDataFilter;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * @see
  */
-class DataSetFilteringTask implements Task {
+class DataSetFilteringTask extends AbstractTask {
 
 	private RawDataFile[] dataFiles;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// User parameters
 	private String suffix;
@@ -82,32 +80,11 @@ class DataSetFilteringTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
 	 * @see Runnable#run()
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		//logger.info("Started filtering scans on " + dataFile);
 
@@ -120,7 +97,7 @@ class DataSetFilteringTask implements Task {
 			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(parameters);
 		} catch (Exception e) {
 			errorMessage = "Error trying to make an instance of raw data filter " + rawDataFilterClassName;
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			return;
 		}
 		try {
@@ -139,11 +116,11 @@ class DataSetFilteringTask implements Task {
 				}
 			}
 
-			status = TaskStatus.FINISHED;
+			setStatus( TaskStatus.FINISHED );
 		//logger.info("Finished scan filter on " + dataFile);
 
 		} catch (Exception e) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = e.toString();
 			return;
 		}

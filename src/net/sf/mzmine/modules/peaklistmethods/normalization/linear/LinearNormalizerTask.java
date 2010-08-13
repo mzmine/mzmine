@@ -34,20 +34,17 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 
-class LinearNormalizerTask implements Task {
+class LinearNormalizerTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	static final double maximumOverallPeakHeightAfterNormalization = 100000.0;
 
 	private PeakList originalPeakList, normalizedPeakList;
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private int processedDataFiles, totalDataFiles;
 
@@ -74,21 +71,8 @@ class LinearNormalizerTask implements Task {
 
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		return (double) processedDataFiles / (double) totalDataFiles;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -98,7 +82,7 @@ class LinearNormalizerTask implements Task {
 
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running linear normalizer");
 
 		// This hashtable maps rows from original alignment result to rows of
@@ -127,7 +111,7 @@ class LinearNormalizerTask implements Task {
 		for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 
 			// Cancel?
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				return;
 			}
 
@@ -210,7 +194,7 @@ class LinearNormalizerTask implements Task {
 			for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
 
 				// Cancel?
-				if (status == TaskStatus.CANCELED) {
+				if ( isCanceled( )) {
 					return;
 				}
 
@@ -277,7 +261,7 @@ class LinearNormalizerTask implements Task {
 			currentProject.removePeakList(originalPeakList);
 
 		logger.info("Finished linear normalizer");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

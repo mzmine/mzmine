@@ -26,18 +26,16 @@ import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Batch mode task
  */
-public class BatchTask implements Task {
+public class BatchTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private TaskStatus taskStatus = TaskStatus.WAITING;
-
-	private String errorMessage;
 	private int totalSteps, processedSteps;
 
 	private BatchQueue queue;
@@ -54,7 +52,7 @@ public class BatchTask implements Task {
 
 	public void run() {
 
-		taskStatus = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Starting a batch of " + totalSteps + " steps");
 
 		for (int i = 0; i < totalSteps; i++) {
@@ -63,15 +61,15 @@ public class BatchTask implements Task {
 			processedSteps++;
 
 			// If we are canceled or ran into error, stop here
-			if ((taskStatus == TaskStatus.CANCELED)
-					|| (taskStatus == TaskStatus.ERROR)) {
+			if ( isCanceled( )
+					|| ( getStatus( ) == TaskStatus.ERROR )) {
 				return;
 			}
 
 		}
 
 		logger.info("Finished a batch of " + totalSteps + " steps");
-		taskStatus = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 
@@ -94,7 +92,7 @@ public class BatchTask implements Task {
 		while (!allTasksFinished) {
 
 			// If we canceled the batch, cancel all running tasks
-			if (taskStatus == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				for (Task stepTask : currentStepTasks)
 					stepTask.cancel();
 				return;
@@ -113,7 +111,7 @@ public class BatchTask implements Task {
 
 				// If there was an error, we have to stop the whole batch
 				if (stepStatus == TaskStatus.ERROR) {
-					taskStatus = TaskStatus.ERROR;
+					setStatus( TaskStatus.ERROR );
 					errorMessage = stepTask.getErrorMessage();
 					return;
 				}
@@ -121,7 +119,7 @@ public class BatchTask implements Task {
 				// If user canceled any of the tasks, we have to cancel the
 				// whole batch
 				if (stepStatus == TaskStatus.CANCELED) {
-					taskStatus = TaskStatus.CANCELED;
+					setStatus( TaskStatus.CANCELED );
 					for (Task t : currentStepTasks)
 						t.cancel();
 					return;
@@ -168,22 +166,10 @@ public class BatchTask implements Task {
 
 	}
 
-	public void cancel() {
-		taskStatus = TaskStatus.CANCELED;
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalSteps == 0)
 			return 0;
 		return (double) processedSteps / totalSteps;
-	}
-
-	public TaskStatus getStatus() {
-		return taskStatus;
 	}
 
 	public String getTaskDescription() {

@@ -31,8 +31,7 @@ import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
@@ -45,14 +44,11 @@ import ucar.nc2.Variable;
 /**
  * 
  */
-public class NetCDFReadTask implements Task {
+public class NetCDFReadTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private File originalFile;
 	private NetcdfFile inputFile;
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private int parsedScans;
 	private int totalScans = 0, numberOfGoodScans, scanNum = 0;
@@ -60,6 +56,7 @@ public class NetCDFReadTask implements Task {
 	private Hashtable<Integer, Integer[]> scansIndex;
 	private Hashtable<Integer, Double> scansRetentionTimes;
 
+	private File file;
 	private RawDataFileWriter newMZmineFile;
 	private RawDataFile finalRawDataFile;
 
@@ -69,15 +66,9 @@ public class NetCDFReadTask implements Task {
 	/**
      * 
      */
-	public NetCDFReadTask(File fileToOpen) {
-		originalFile = fileToOpen;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Opening file " + originalFile;
+	public NetCDFReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+		this.file = fileToOpen;
+		this.newMZmineFile = newMZmineFile;
 	}
 
 	/**
@@ -88,31 +79,15 @@ public class NetCDFReadTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
 
 		// Update task status
-		status = TaskStatus.PROCESSING;
-		logger.info("Started parsing file " + originalFile);
+		setStatus(TaskStatus.PROCESSING);
+		logger.info("Started parsing file " + file);
 
 		try {
-			// Create new RawDataFile instance
-			newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
 
 			// Open file
 			this.startReading();
@@ -122,7 +97,7 @@ public class NetCDFReadTask implements Task {
 			while ((buildingScan = this.readNextScan()) != null) {
 
 				// Check if cancel is requested
-				if (status == TaskStatus.CANCELED) {
+				if (isCanceled()) {
 					return;
 				}
 				// buildingFile.addScan(scan);
@@ -134,33 +109,39 @@ public class NetCDFReadTask implements Task {
 			// Close file
 			this.finishReading();
 			finalRawDataFile = newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
 			// e.printStackTrace();
-			logger.log(Level.SEVERE, "Could not open file "
-					+ originalFile.getPath(), e);
+			logger.log(Level.SEVERE, "Could not open file " + file.getPath(), e);
 			errorMessage = ExceptionUtils.exceptionToString(e);
-			status = TaskStatus.ERROR;
+			setStatus(TaskStatus.ERROR);
 			return;
 		}
 
-		logger.info("Finished parsing " + originalFile + ", parsed "
-				+ parsedScans + " scans");
+		logger.info("Finished parsing " + file + ", parsed " + parsedScans
+				+ " scans");
 
 		// Update task status
-		status = TaskStatus.FINISHED;
+		setStatus(TaskStatus.FINISHED);
 
+	}
+
+	public String getTaskDescription() {
+		return "Opening file" + file;
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
 	}
 
 	public void startReading() throws IOException {
 
 		// Open NetCDF-file
 		try {
-			inputFile = new NetcdfFile(originalFile.getPath());
+			inputFile = new NetcdfFile(file.getPath());
 		} catch (Exception e) {
 			logger.severe(e.toString());
-			throw (new IOException("Couldn't open input file" + originalFile));
+			throw (new IOException("Couldn't open input file" + file));
 		}
 
 		// Find mass_values and intensity_values variables
@@ -182,10 +163,9 @@ public class NetCDFReadTask implements Task {
 		Variable scanIndexVariable = inputFile.findVariable("scan_index");
 		if (scanIndexVariable == null) {
 			logger.severe("Could not find variable scan_index from file "
-					+ originalFile);
+					+ file);
 			throw (new IOException(
-					"Could not find variable scan_index from file "
-							+ originalFile));
+					"Could not find variable scan_index from file " + file));
 		}
 		totalScans = scanIndexVariable.getShape()[0];
 
@@ -200,8 +180,7 @@ public class NetCDFReadTask implements Task {
 		} catch (Exception e) {
 			logger.severe(e.toString());
 			throw (new IOException(
-					"Could not read from variable scan_index from file "
-							+ originalFile));
+					"Could not read from variable scan_index from file " + file));
 		}
 
 		IndexIterator scanIndexIterator = scanIndexArray.getIndexIterator();
@@ -225,12 +204,11 @@ public class NetCDFReadTask implements Task {
 		Variable scanTimeVariable = inputFile
 				.findVariable("scan_acquisition_time");
 		if (scanTimeVariable == null) {
-			logger
-					.severe("Could not find variable scan_acquisition_time from file "
-							+ originalFile);
+			logger.severe("Could not find variable scan_acquisition_time from file "
+					+ file);
 			throw (new IOException(
 					"Could not find variable scan_acquisition_time from file "
-							+ originalFile));
+							+ file));
 		}
 		Array scanTimeArray = null;
 		try {
@@ -239,7 +217,7 @@ public class NetCDFReadTask implements Task {
 			logger.severe(e.toString());
 			throw (new IOException(
 					"Could not read from variable scan_acquisition_time from file "
-							+ originalFile));
+							+ file));
 		}
 
 		IndexIterator scanTimeIterator = scanTimeArray.getIndexIterator();
@@ -334,8 +312,7 @@ public class NetCDFReadTask implements Task {
 						} else {
 							retentionTimes[i] = 0;
 						}
-						logger
-								.severe("ERROR: Could not fix incorrect QStar scan times.");
+						logger.severe("ERROR: Could not fix incorrect QStar scan times.");
 					}
 				}
 			}
@@ -413,8 +390,8 @@ public class NetCDFReadTask implements Task {
 		if (scanLength[0] == 0) {
 			scanNum++;
 			return new SimpleScan(null, scanNum, 1,
-					retentionTime.doubleValue(), -1, 0, 0,null, new DataPoint[0],
-					false);
+					retentionTime.doubleValue(), -1, 0, 0, null,
+					new DataPoint[0], false);
 		}
 
 		// Read mass and intensity values
@@ -426,11 +403,10 @@ public class NetCDFReadTask implements Task {
 			intensityValueArray = intensityValueVariable.read(
 					scanStartPosition, scanLength);
 		} catch (Exception e) {
-			logger
-					.log(
-							Level.SEVERE,
-							"Could not read from variables mass_values and/or intensity_values.",
-							e);
+			logger.log(
+					Level.SEVERE,
+					"Could not read from variables mass_values and/or intensity_values.",
+					e);
 			throw (new IOException(
 					"Could not read from variables mass_values and/or intensity_values."));
 		}
@@ -464,23 +440,11 @@ public class NetCDFReadTask implements Task {
 				completeDataPoints, centroided);
 
 		SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
-				retentionTime.doubleValue(), -1, 0, 0, null, optimizedDataPoints,
-				centroided);
+				retentionTime.doubleValue(), -1, 0, 0, null,
+				optimizedDataPoints, centroided);
 
 		return buildingScan;
 
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		logger.info("Cancelling opening of NETCDF file " + originalFile);
-		status = TaskStatus.CANCELED;
-	}
-
-	public Object[] getCreatedObjects() {
-		return new Object[] { finalRawDataFile };
 	}
 
 }

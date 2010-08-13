@@ -23,7 +23,7 @@ package net.sf.mzmine.taskcontrol;
  * 
  *
  */
-public interface Task {
+public interface Task extends Runnable {
 
 	public String getTaskDescription();
 
@@ -32,8 +32,6 @@ public interface Task {
 	public TaskStatus getStatus();
 
 	public String getErrorMessage();
-
-	public void run();
 
 	/**
 	 * Cancel a running task by user request.
@@ -47,5 +45,9 @@ public interface Task {
 	 * null.
 	 */
 	public Object[] getCreatedObjects();
+
+	public void addTaskListener( TaskListener t );
+
+	public TaskListener[] getTaskListeners( );
 
 }

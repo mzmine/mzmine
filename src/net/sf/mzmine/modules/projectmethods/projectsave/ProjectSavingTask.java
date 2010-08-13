@@ -32,7 +32,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
@@ -47,15 +47,12 @@ import de.schlichtherle.util.zip.ZipOutputStream;
  * order to get Zip64 support to overcome the 4GB size limitation.
  * 
  */
-public class ProjectSavingTask implements Task {
+public class ProjectSavingTask extends AbstractTask {
 
 	public static final String VERSION_FILENAME = "MZMINE_VERSION";
 	public static final String CONFIG_FILENAME = "configuration.xml";
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private File saveFile;
 	private MZmineProjectImpl savedProject;
@@ -105,27 +102,13 @@ public class ProjectSavingTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
 	 */
 	public void cancel() {
 
 		logger.info("Canceling saving of project to " + saveFile);
 
-		status = TaskStatus.CANCELED;
+		setStatus( TaskStatus.CANCELED );
 
 		if (rawDataFileSaveHandler != null)
 			rawDataFileSaveHandler.cancel();
@@ -143,7 +126,7 @@ public class ProjectSavingTask implements Task {
 		try {
 
 			logger.info("Saving project to " + saveFile);
-			status = TaskStatus.PROCESSING;
+			setStatus( TaskStatus.PROCESSING );
 
 			// Get current project
 			savedProject = (MZmineProjectImpl) MZmineCore.getCurrentProject();
@@ -163,7 +146,7 @@ public class ProjectSavingTask implements Task {
 			currentStage++;
 			saveVersion(zipStream);
 			saveConfiguration(zipStream);
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -172,7 +155,7 @@ public class ProjectSavingTask implements Task {
 			// Stage 2 - save RawDataFile objects
 			currentStage++;
 			saveRawDataFiles(zipStream);
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -181,7 +164,7 @@ public class ProjectSavingTask implements Task {
 			// Stage 3 - save PeakList objects
 			currentStage++;
 			savePeakLists(zipStream);
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -193,7 +176,7 @@ public class ProjectSavingTask implements Task {
 			zipStream.close();
 
 			// Final check for cancel
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				tempFile.delete();
 				return;
 			}
@@ -214,11 +197,11 @@ public class ProjectSavingTask implements Task {
 
 			logger.info("Finished saving the project to " + saveFile);
 
-			status = TaskStatus.FINISHED;
+			setStatus( TaskStatus.FINISHED );
 
 		} catch (Throwable e) {
 
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 
 			if (currentSavedObjectName == null) {
 				errorMessage = "Failed saving the project: "
@@ -288,7 +271,7 @@ public class ProjectSavingTask implements Task {
 
 		for (int i = 0; i < rawDataFiles.length; i++) {
 			
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 			
 			currentSavedObjectName = rawDataFiles[i].getName();
@@ -312,7 +295,7 @@ public class ProjectSavingTask implements Task {
 
 		for (int i = 0; i < peakLists.length; i++) {
 			
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 			
 			currentSavedObjectName = peakLists[i].getName();

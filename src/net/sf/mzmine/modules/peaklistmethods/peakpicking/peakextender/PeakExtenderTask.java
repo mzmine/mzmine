@@ -35,7 +35,7 @@ import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.PeakUtils;
@@ -44,12 +44,9 @@ import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class PeakExtenderTask implements Task {
+public class PeakExtenderTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	private PeakList peakList, extendedPeakList;
 
@@ -96,32 +93,11 @@ public class PeakExtenderTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-	}
-
-	/**
 	 * @see Runnable#run()
 	 */
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running peak extender on " + peakList);
 
 		// We assume source peakList contains one datafile
@@ -142,7 +118,7 @@ public class PeakExtenderTask implements Task {
 
 		for (int ind = 0; ind < totalPeaks; ind++) {
 
-			if (status == TaskStatus.CANCELED)
+			if ( isCanceled( ))
 				return;
 
 			oldPeak = sortedPeaks[ind];
@@ -184,7 +160,7 @@ public class PeakExtenderTask implements Task {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished peak extender on " + peakList);
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 

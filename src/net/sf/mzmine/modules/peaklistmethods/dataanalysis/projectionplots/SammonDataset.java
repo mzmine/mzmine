@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.util.Vector;
 import java.util.logging.Logger;
+import java.util.LinkedList;
 
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -33,13 +34,15 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskEvent;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class SammonDataset extends AbstractXYDataset implements
-		ProjectionPlotDataset {
+public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDataset {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
 	
 	private double[] component1Coords;
 	private double[] component2Coords;
@@ -180,7 +183,7 @@ public class SammonDataset extends AbstractXYDataset implements
 
 	public void run() {
 		
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 
 		logger.info("Computing projection plot");
 		
@@ -231,14 +234,14 @@ public class SammonDataset extends AbstractXYDataset implements
 				parameters);
 		desktop.addInternalFrame(newFrame);
 
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 		logger.info("Finished computing projection plot.");
 		
 	}
 		
 	public void cancel() {
         if (projectionStatus != null) projectionStatus.cancel();
-		status = TaskStatus.CANCELED;
+		setStatus( TaskStatus.CANCELED );
 	}
 
 	public String getErrorMessage() {
@@ -265,4 +268,44 @@ public class SammonDataset extends AbstractXYDataset implements
 		return null;
 	}	
 	
+	/**
+	 * Adds a TaskListener to this Task
+	 * 
+	 * @param t The TaskListener to add
+	 */
+	public void addTaskListener( TaskListener t ) {
+		this.taskListeners.add( t );
+	}
+
+	/**
+	 * Returns all of the TaskListeners which are listening to this task.
+	 * 
+	 * @return An array containing the TaskListeners
+	 */
+	public TaskListener[] getTaskListeners( ) {
+		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	}
+
+	private void fireTaskEvent( ) {
+		TaskEvent event = new TaskEvent( this );
+		for( TaskListener t : this.taskListeners ) {
+			t.statusChanged( event );
+		}
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
+	 */
+	public void setStatus( TaskStatus newStatus ) {
+		this.status = newStatus;
+		this.fireTaskEvent( );
+	}
+
+	public boolean isCanceled( ) {
+		return status == TaskStatus.CANCELED;
+	}
+
+	public boolean isFinished( ) {
+		return status == TaskStatus.FINISHED;
+	}
 }

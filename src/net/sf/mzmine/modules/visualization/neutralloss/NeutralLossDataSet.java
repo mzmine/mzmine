@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.LinkedList;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -31,6 +32,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -43,13 +46,14 @@ import org.jfree.data.xy.XYDataset;
 class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
 
 	private RawDataFile rawDataFile;
+	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
 
 	private Range totalMZRange;
 	private int numOfFragments;
 	private Object xAxisType;
 	private int scanNumbers[], totalScans, processedScans;
 
-	private TaskStatus taskStatus = TaskStatus.WAITING;
+	private TaskStatus status = TaskStatus.WAITING;
 
 	private HashMap<Integer,Vector<NeutralLossDataPoint>> dataSeries;
 
@@ -89,20 +93,20 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
      */
 	public void run() {
 
-		taskStatus = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		processedScans = 0;
 
 		for (int scanNumber : scanNumbers) {
 
 			// Cancel?
-			if (taskStatus == TaskStatus.CANCELED)
+			if ( status == TaskStatus.CANCELED)
 				return;
 
 			Scan scan = rawDataFile.getScan(scanNumber);
 
 			// check parent m/z
 			if (!totalMZRange.contains(scan.getPrecursorMZ())) {
-				taskStatus = TaskStatus.ERROR;
+				setStatus( TaskStatus.ERROR );
 				return;
 			}
 
@@ -124,7 +128,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 				fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
 
 					// Cancel?
-					if (taskStatus == TaskStatus.CANCELED)
+					if (status == TaskStatus.CANCELED)
 						return;
 
 					if ((topPeaks[j] < 0)
@@ -170,7 +174,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 		
 		}
 
-		taskStatus = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 		fireDatasetChanged();
 
 	}
@@ -286,7 +290,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	}
 
 	public void cancel() {
-		taskStatus = TaskStatus.CANCELED;
+		setStatus( TaskStatus.CANCELED );
 	}
 
 	public String getErrorMessage() {
@@ -301,7 +305,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	}
 
 	public TaskStatus getStatus() {
-		return taskStatus;
+		return status;
 	}
 
 	public String getTaskDescription() {
@@ -312,4 +316,44 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 		return null;
 	}
 
+	/**
+	 * Adds a TaskListener to this Task
+	 * 
+	 * @param t The TaskListener to add
+	 */
+	public void addTaskListener( TaskListener t ) {
+		this.taskListeners.add( t );
+	}
+
+	/**
+	 * Returns all of the TaskListeners which are listening to this task.
+	 * 
+	 * @return An array containing the TaskListeners
+	 */
+	public TaskListener[] getTaskListeners( ) {
+		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	}
+
+	private void fireTaskEvent( ) {
+		TaskEvent event = new TaskEvent( this );
+		for( TaskListener t : this.taskListeners ) {
+			t.statusChanged( event );
+		}
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
+	 */
+	public void setStatus( TaskStatus newStatus ) {
+		this.status = newStatus;
+		this.fireTaskEvent( );
+	}
+
+	public boolean isCanceled( ) {
+		return status == TaskStatus.CANCELED;
+	}
+
+	public boolean isFinished( ) {
+		return status == TaskStatus.FINISHED;
+	}
 }

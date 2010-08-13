@@ -33,8 +33,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
@@ -49,15 +48,11 @@ import com.mindprod.ledatastream.LEDataInputStream;
  * running in separate process from the JVM, therefore it can bind to Xcalibur
  * DLL (also 32-bit) even when JVM is running in 64-bit mode.
  */
-public class XcaliburRawFileReadTask implements Task {
+public class XcaliburRawFileReadTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
-
-	private File originalFile;
-
+	private File file;
 	private RawDataFileWriter newMZmineFile;
 	private RawDataFile finalRawDataFile;
 
@@ -83,16 +78,11 @@ public class XcaliburRawFileReadTask implements Task {
 	private int scanNumber = 0, msLevel = 0, precursorCharge = 0;
 	private double retentionTime = 0, precursorMZ = 0;
 
-	public XcaliburRawFileReadTask(File fileToOpen) {
-		originalFile = fileToOpen;
+	public XcaliburRawFileReadTask(File fileToOpen,
+			RawDataFileWriter newMZmineFile) {
 		parentStack = new LinkedList<SimpleScan>();
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Opening file " + originalFile;
+		this.file = fileToOpen;
+		this.newMZmineFile = newMZmineFile;
 	}
 
 	/**
@@ -103,20 +93,6 @@ public class XcaliburRawFileReadTask implements Task {
 	}
 
 	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-	 */
-	public TaskStatus getStatus() {
-		return status;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
@@ -124,18 +100,18 @@ public class XcaliburRawFileReadTask implements Task {
 		// Check that we are running on Windows
 		String osName = System.getProperty("os.name").toUpperCase();
 		if (!osName.toUpperCase().contains("WINDOWS")) {
-			status = TaskStatus.ERROR;
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Thermo RAW file import only works on Windows";
 			return;
 		}
 
-		status = TaskStatus.PROCESSING;
-		logger.info("Started parsing file " + originalFile);
+		setStatus(TaskStatus.PROCESSING);
+		logger.info("Started parsing file " + file);
 
 		String rawDumpPath = System.getProperty("user.dir") + File.separator
 				+ "lib" + File.separator + "RAWdump.exe";
 
-		String cmdLine[] = { rawDumpPath, originalFile.getPath() };
+		String cmdLine[] = { rawDumpPath, file.getPath() };
 		Process dumper = null;
 
 		try {
@@ -147,16 +123,13 @@ public class XcaliburRawFileReadTask implements Task {
 			InputStream dumpStream = dumper.getInputStream();
 			BufferedInputStream bufStream = new BufferedInputStream(dumpStream);
 
-			// Create new raw data file
-			newMZmineFile = MZmineCore.createNewFile(originalFile.getName());
-
 			// Read the dump data
 			readRAWDump(bufStream);
 
 			// Finish
 			bufStream.close();
 
-			if (status == TaskStatus.CANCELED) {
+			if (isCanceled()) {
 				dumper.destroy();
 				return;
 			}
@@ -167,33 +140,32 @@ public class XcaliburRawFileReadTask implements Task {
 
 			// Close file
 			finalRawDataFile = newMZmineFile.finishWriting();
-			MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 		} catch (Throwable e) {
 
 			if (dumper != null)
 				dumper.destroy();
 
-			if (status == TaskStatus.PROCESSING) {
-				status = TaskStatus.ERROR;
+			if (getStatus() == TaskStatus.PROCESSING) {
+				setStatus(TaskStatus.ERROR);
 				errorMessage = ExceptionUtils.exceptionToString(e);
 			}
 
 			return;
 		}
 
-		logger.info("Finished parsing " + originalFile + ", parsed "
-				+ parsedScans + " scans");
-		status = TaskStatus.FINISHED;
+		logger.info("Finished parsing " + file + ", parsed " + parsedScans
+				+ " scans");
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		logger.info("Cancelling opening of RAW file " + originalFile);
-		status = TaskStatus.CANCELED;
+	public String getTaskDescription() {
+		return "Opening file" + file;
+	}
+
+	public Object[] getCreatedObjects() {
+		return new Object[] { finalRawDataFile };
 	}
 
 	/**
@@ -205,7 +177,7 @@ public class XcaliburRawFileReadTask implements Task {
 		String line;
 		while ((line = TextUtils.readLineFromStream(dumpStream)) != null) {
 
-			if (status == TaskStatus.CANCELED) {
+			if (isCanceled()) {
 				return;
 			}
 
@@ -341,10 +313,6 @@ public class XcaliburRawFileReadTask implements Task {
 			newMZmineFile.addScan(currentScan);
 		}
 
-	}
-
-	public Object[] getCreatedObjects() {
-		return new Object[] { finalRawDataFile };
 	}
 
 }

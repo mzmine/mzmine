@@ -34,18 +34,15 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
-class RTNormalizerTask implements Task {
+class RTNormalizerTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList originalPeakLists[], normalizedPeakLists[];
-
-	private TaskStatus status = TaskStatus.WAITING;
-	private String errorMessage;
 
 	// Processed rows counter
 	private int processedRows, totalRows;
@@ -74,23 +71,10 @@ class RTNormalizerTask implements Task {
 
 	}
 
-	public void cancel() {
-		status = TaskStatus.CANCELED;
-
-	}
-
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
 	public double getFinishedPercentage() {
 		if (totalRows == 0)
 			return 0f;
 		return (double) processedRows / (double) totalRows;
-	}
-
-	public TaskStatus getStatus() {
-		return status;
 	}
 
 	public String getTaskDescription() {
@@ -100,7 +84,7 @@ class RTNormalizerTask implements Task {
 
 	public void run() {
 
-		status = TaskStatus.PROCESSING;
+		setStatus( TaskStatus.PROCESSING );
 		logger.info("Running retention time normalizer");
 
 		// First we need to find standards by iterating through first peak list
@@ -127,7 +111,7 @@ class RTNormalizerTask implements Task {
 				.getRows()) {
 
 			// Cancel?
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				return;
 			}
 
@@ -179,7 +163,7 @@ class RTNormalizerTask implements Task {
 
 		// Check if we have any standards
 		if (goodStandards.size() == 0) {
-			status = TaskStatus.ERROR;
+			setStatus( TaskStatus.ERROR );
 			errorMessage = "No good standard peak was found";
 			return;
 		}
@@ -209,7 +193,7 @@ class RTNormalizerTask implements Task {
 		}
 
 		// Cancel?
-		if (status == TaskStatus.CANCELED) {
+		if ( isCanceled( )) {
 			return;
 		}
 
@@ -238,7 +222,7 @@ class RTNormalizerTask implements Task {
 		}
 
 		logger.info("Finished retention time normalizer");
-		status = TaskStatus.FINISHED;
+		setStatus( TaskStatus.FINISHED );
 
 	}
 
@@ -265,7 +249,7 @@ class RTNormalizerTask implements Task {
 		for (PeakListRow originalRow : originalRows) {
 
 			// Cancel?
-			if (status == TaskStatus.CANCELED) {
+			if ( isCanceled( )) {
 				return;
 			}
 

@@ -30,7 +30,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
@@ -39,14 +39,11 @@ import net.sf.mzmine.util.SortingProperty;
 /**
  * 
  */
-class DuplicateFilterTask implements Task {
+class DuplicateFilterTask extends AbstractTask {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private PeakList peakList, filteredPeakList;
-
-    private TaskStatus status = TaskStatus.WAITING;
-    private String errorMessage;
 
     // peaks counter
     private int processedRows, totalRows;
@@ -92,36 +89,11 @@ class DuplicateFilterTask implements Task {
     }
 
     /**
-     * @see net.sf.mzmine.taskcontrol.Task#getStatus()
-     */
-    public TaskStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-     */
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public PeakList getPeakList() {
-        return peakList;
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#cancel()
-     */
-    public void cancel() {
-        status = TaskStatus.CANCELED;
-    }
-
-    /**
      * @see Runnable#run()
      */
     public void run() {
 
-        status = TaskStatus.PROCESSING;
+        setStatus( TaskStatus.PROCESSING );
         logger.info("Running duplicate peaka filter on " + peakList);
 
         filteredPeakList = new SimplePeakList(peakList + " "
@@ -145,7 +117,7 @@ class DuplicateFilterTask implements Task {
         	// Search for duplicate rows with smaller peak area
 			for (int secondRowIndex = (firstRowIndex + 1); secondRowIndex < peakListRows.length; secondRowIndex++) {
 
-        		if (status == TaskStatus.CANCELED) return;
+        		if ( isCanceled( )) return;
         		
         		if (peakListRows[secondRowIndex] == null)
 					continue;
@@ -234,7 +206,7 @@ class DuplicateFilterTask implements Task {
             currentProject.removePeakList(peakList);
 
         logger.info("Finished duplicate peak filter on " + peakList);
-        status = TaskStatus.FINISHED;
+        setStatus( TaskStatus.FINISHED );
 
     }
 
