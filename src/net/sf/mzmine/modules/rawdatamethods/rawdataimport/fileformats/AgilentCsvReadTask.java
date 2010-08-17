@@ -82,7 +82,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 
 			scanner.useDelimiter(",");
 			
-			for (parsedScans = 0; parsedScans < totalScans;totalScans++) {
+			for (parsedScans = 0; parsedScans < totalScans; parsedScans++) {
 				
 				if (isCanceled()) {
 					return;
@@ -101,7 +101,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 					dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(),
 							scanner.nextDouble());
 				}
-				newMZmineFile.addScan(new SimpleScan(null, totalScans + 1, msLevel,
+				newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel,
 						retentionTime, -1, 0.0, charge, null, dataPoints,
 						ScanUtils.isCentroided(dataPoints)));
 
