@@ -21,7 +21,7 @@ package net.sf.mzmine.main.mzmineviewer;
 
 public enum MZviewerModuleName {
 	
-    PEAKLISTLOADER ("net.sf.mzmine.modules.io.xmlimport.XMLImporter"),
+    PEAKLISTLOADER ("net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImporter"),
     SCATTERPLOTVISUALIZER ("net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer"),
     HISTOGRAMVISUALIZER ("net.sf.mzmine.modules.visualization.histogram.HistogramVisualizer"),
     INFOVISUALIZER ("net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer"),
