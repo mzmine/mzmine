@@ -88,7 +88,6 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 			peakMass.setEnabled(false);
 		}
 
-		setResizable(false);
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
 	}
@@ -121,6 +120,9 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 	 */
 	private void setNeutralMassValue() {
 
+		// When the dialog is being constructed, chargeField may still be null when we get here 
+		if (chargeField == null) return;
+		
 		int charge = Integer.parseInt(chargeField.getText());
 		if (charge < 1) {
 			charge = 1;

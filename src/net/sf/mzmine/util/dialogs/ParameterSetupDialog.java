@@ -37,7 +37,6 @@ import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EtchedBorder;
@@ -187,8 +186,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 
 			parametersAndComponents.put(p, comp);
 
-			// Scroll panes will be expandable, other components not
-			int verticalWeight = comp instanceof JScrollPane ? 1 : 0;
+			// Multiple selection will be expandable, other components not
+			int verticalWeight = comp instanceof MultipleSelectionComponent ? 1 : 0;
 			mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight);
 
 			String unitStr = p.getUnits();

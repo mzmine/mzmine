@@ -23,7 +23,6 @@ import net.sf.mzmine.main.MZmineCore;
 
 public enum AdductType {
 
-	ALLRELATED("All related peaks", 0.0),
 	Na("[M+Na-H]", 21.9825),
 	K("[M+K-H]", 37.9559),
 	Mg("[M+Mg-2H]", 21.9694),
@@ -32,7 +31,7 @@ public enum AdductType {
 	Sulfate("[M+H2SO4]", 97.9674),
 	Carbonate("[M+H2CO3]", 62.0004),
 	Glycerol("[(Deuterium)]glycerol", 5.0),
-	CUSTOM("Custom", 0.0);
+	CUSTOM("Custom adduct", 0.0);
 
 	private final String name;
 	private final double massDifference;
@@ -51,6 +50,8 @@ public enum AdductType {
 	}
 
 	public String toString() {
+		if (this == CUSTOM) return this.name;
+		else
 		return this.name + " "
 				+ MZmineCore.getMZFormat().format(this.massDifference) + " m/z";
 	}

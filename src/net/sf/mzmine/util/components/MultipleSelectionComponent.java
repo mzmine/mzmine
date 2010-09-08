@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.util.components;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -33,15 +34,15 @@ import javax.swing.ScrollPaneConstants;
 /**
  * Component with multiple checkboxes in a list
  */
-public class MultipleSelectionComponent extends JScrollPane {
+public class MultipleSelectionComponent extends JPanel {
 
 	private ExtendedCheckBox<Object> checkBoxes[];
 
 	@SuppressWarnings("unchecked")
 	public MultipleSelectionComponent(Object multipleValues[]) {
-		super(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
+		super(new BorderLayout());
+		
 		assert multipleValues != null;
 
 		JPanel checkBoxesPanel = new JPanel();
@@ -73,7 +74,11 @@ public class MultipleSelectionComponent extends JScrollPane {
 		if (numCheckBoxes < 3)
 			vertSize += 30;
 
-		add(checkBoxesPanel);
+		JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		
+		add(scrollPane, BorderLayout.CENTER);
 
 		setPreferredSize(new Dimension(horSize, vertSize));
 	}
@@ -87,7 +92,7 @@ public class MultipleSelectionComponent extends JScrollPane {
 		for (ExtendedCheckBox ecb : checkBoxes)
 			ecb.removeActionListener(listener);
 	}
-	
+
 	public Object[] getSelectedValues() {
 		ArrayList<Object> selectedObjects = new ArrayList<Object>();
 		for (ExtendedCheckBox<Object> ecb : checkBoxes) {
@@ -97,7 +102,7 @@ public class MultipleSelectionComponent extends JScrollPane {
 		}
 		return selectedObjects.toArray();
 	}
-	
+
 	public void setSelectedValues(Object[] values) {
 		for (ExtendedCheckBox<Object> ecb : checkBoxes) {
 			boolean isSelected = false;
@@ -108,6 +113,5 @@ public class MultipleSelectionComponent extends JScrollPane {
 			ecb.setSelected(isSelected);
 		}
 	}
-
 
 }
