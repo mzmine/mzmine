@@ -19,28 +19,20 @@
 
 package net.sf.mzmine.util.dialogs;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.Hashtable;
-import java.util.Vector;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -48,7 +40,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.Parameter;
@@ -58,8 +49,11 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.DragOrderedJList;
-import net.sf.mzmine.util.components.ExtendedCheckBox;
+import net.sf.mzmine.util.components.FileNameComponent;
+import net.sf.mzmine.util.components.GridBagPanel;
 import net.sf.mzmine.util.components.HelpButton;
+import net.sf.mzmine.util.components.MultipleSelectionComponent;
+import net.sf.mzmine.util.components.RangeComponent;
 
 /**
  * This class represents the parameter setup dialog to set the values of
@@ -71,22 +65,19 @@ import net.sf.mzmine.util.components.HelpButton;
  * 
  * INTEGER, DOUBLE - JFormattedTextField
  * 
- * RANGE - JPanel containing a JFormattedTextField (min), JLabel and
- * JFormattedTextField (max)
+ * RANGE - RangeComponent
  * 
  * BOOLEAN - JCheckBox
  * 
- * MULTIPLE_SELECTION - JScrollPane with JViewPort containing a JPanel
- * containing multiple ExtendedCheckBoxes
+ * MULTIPLE_SELECTION - MultipleSelectionComponent
  * 
- * FILE_NAME - JPanel containing JTextField, space and a JButton
+ * FILE_NAME - FileNameComponent
  * 
  * ORDERED_LIST - DragOrderedJList
  * 
  */
-public class ParameterSetupDialog extends JDialog implements ActionListener {
-
-	static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+public class ParameterSetupDialog extends JDialog implements ActionListener,
+		PropertyChangeListener {
 
 	public static final int TEXTFIELD_COLUMNS = 10;
 
@@ -103,13 +94,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	private JButton btnOK, btnCancel, btnAuto, btnHelp;
 
 	/**
-	 * Derived classed may add their components to these panels. Both panels use
-	 * BorderLayout. mainPanel containts componentPanel in the WEST position and
-	 * nothing else. componentsPanel contains parameter components in the NORTH
-	 * position and buttons in the SOUTH position. Other positions are free to
-	 * use by derived (specialized) dialogs.
+	 * This single panel contains a grid of all the components of this dialog
+	 * (see GridBagPanel). First three columns of the grid are title (JLabel),
+	 * parameter component (JFormattedTextField or other) and units (JLabel),
+	 * one row for each parameter. Row number 100 contains all the buttons of
+	 * the dialog. Derived classes may add their own components such as previews
+	 * to the unused cells of the grid.
 	 */
-	protected JPanel componentsPanel, mainPanel;
+	protected GridBagPanel mainPanel;
 
 	/**
 	 * Constructor
@@ -151,9 +143,24 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		addDialogComponents();
 
+		updateMinimumSize();
 		pack();
+
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
+	}
+
+	/**
+	 * This method must be called each time when a component is added to
+	 * mainPanel. It will ensure the minimal size of the dialog is set to the
+	 * minimum size of the mainPanel plus a little extra, so user cannot resize
+	 * the dialog window smaller.
+	 */
+	protected void updateMinimumSize() {
+		Dimension panelSize = mainPanel.getMinimumSize();
+		Dimension minimumSize = new Dimension(panelSize.width + 50,
+				panelSize.height + 50);
+		setMinimumSize(minimumSize);
 	}
 
 	/**
@@ -161,15 +168,17 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 */
 	private void addDialogComponents() {
 
-		JComponent components[] = new JComponent[parameterSet.getParameters().length * 3];
-		int componentCounter = 0;
+		// Main panel which holds all the components in a grid
+		mainPanel = new GridBagPanel();
+
+		int rowCounter = 0;
 
 		// Create labels and components for each parameter
 		for (Parameter p : parameterSet.getParameters()) {
 
 			// create labels
 			JLabel label = new JLabel(p.getName());
-			components[componentCounter++] = label;
+			mainPanel.add(label, 0, rowCounter);
 
 			JComponent comp = createComponentForParameter(p);
 
@@ -178,17 +187,27 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 			parametersAndComponents.put(p, comp);
 
-			components[componentCounter++] = comp;
+			// Scroll panes will be expandable, other components not
+			int verticalWeight = comp instanceof JScrollPane ? 1 : 0;
+			mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight);
 
-			String unitStr = "";
-			if (p.getUnits() != null)
-				unitStr = p.getUnits();
+			String unitStr = p.getUnits();
+			if (unitStr != null) {
+				JLabel unitLabel = new JLabel(unitStr);
+				mainPanel.add(unitLabel, 2, rowCounter);
+			}
 
-			components[componentCounter++] = new JLabel(unitStr);
+			rowCounter++;
 
 		}
 
-		// Buttons
+		// Add a single empty cell to the 99th row. This cell is expandable
+		// (weightY is 1), therefore the other components will be
+		// aligned to the top, which is what we want
+		JPanel emptySpace = new JPanel();
+		mainPanel.add(emptySpace, 0, 99, 3, 1, 0, 1);
+
+		// Create a separate panel for the buttons
 		JPanel pnlButtons = new JPanel();
 
 		btnOK = GUIUtils.addButton(pnlButtons, "OK", null, this);
@@ -204,32 +223,30 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			pnlButtons.add(btnHelp);
 		}
 
-		// Panel collecting all labels, fields and units
-		JPanel labelsAndFields = GUIUtils.makeTablePanel(parameterSet
-				.getParameters().length, 3, 1, components);
+		/*
+		 * Last row in the table will be occupied by the buttons. We set the row
+		 * number to 100 and width to 3, spanning the 3 component columns
+		 * defined above.
+		 */
+		mainPanel.add(pnlButtons, 0, 100, 3, 1);
+
+		// Add some space around the widgets
+		GUIUtils.addMargin(mainPanel, 10);
+
+		// Add the main panel as the only component of this dialog
+		add(mainPanel);
+
+		pack();
 
 		// Load the values into the components
 		updateComponentsFromParameterSet();
-
-		// Panel where components are in the NORTH part and derived classes can
-		// add their own components around
-		componentsPanel = new JPanel(new BorderLayout());
-		componentsPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10,
-				10));
-		componentsPanel.add(labelsAndFields, BorderLayout.NORTH);
-		componentsPanel.add(pnlButtons, BorderLayout.SOUTH);
-
-		mainPanel = new JPanel(new BorderLayout());
-		mainPanel.add(componentsPanel, BorderLayout.WEST);
-
-		add(mainPanel);
 
 	}
 
 	/**
 	 * Creates a dialog component to control given parameter.
 	 */
-	protected JComponent createComponentForParameter(Parameter p) {
+	private JComponent createComponentForParameter(Parameter p) {
 
 		Object[] possibleValues = p.getPossibleValues();
 		if ((possibleValues != null)
@@ -241,7 +258,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				if (value == parameterSet.getParameterValue(p))
 					combo.setSelectedItem(value);
 			}
-
+			combo.addActionListener(this);
 			combo.setToolTipText(p.getDescription());
 			return combo;
 
@@ -263,104 +280,35 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 
 		case INTEGER:
 		case DOUBLE:
-
 			JFormattedTextField fmtField = new JFormattedTextField(format);
 			fmtField.setColumns(TEXTFIELD_COLUMNS);
 			comp = fmtField;
 			break;
 
 		case RANGE:
-
-			JFormattedTextField minTxtField = new JFormattedTextField(format);
-			JFormattedTextField maxTxtField = new JFormattedTextField(format);
-			minTxtField.setColumns(TEXTFIELD_COLUMNS);
-			maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-			JPanel panel = new JPanel();
-			panel.add(minTxtField);
-			GUIUtils.addLabel(panel, " - ");
-			panel.add(maxTxtField);
-			comp = panel;
+			comp = new RangeComponent(format);
 			break;
 
 		case BOOLEAN:
 			JCheckBox checkBox = new JCheckBox();
+			checkBox.addActionListener(this);
 			comp = checkBox;
 			break;
 
 		case MULTIPLE_SELECTION:
-			JPanel checkBoxesPanel = new JPanel();
-			checkBoxesPanel.setBackground(Color.white);
-			checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
-					BoxLayout.Y_AXIS));
-
-			int vertSize = 0,
-			numCheckBoxes = 0,
-			horSize = 0,
-			widthSize = 0;
-			ExtendedCheckBox<Object> ecb = null;
 			Object multipleValues[] = parameterSet.getMultipleSelection(p);
 			if (multipleValues == null)
 				multipleValues = p.getPossibleValues();
 			if (multipleValues == null)
 				multipleValues = new Object[0];
-
-			for (Object genericObject : multipleValues) {
-
-				ecb = new ExtendedCheckBox<Object>(genericObject, false);
-				ecb.setAlignmentX(Component.LEFT_ALIGNMENT);
-				checkBoxesPanel.add(ecb);
-
-				if (numCheckBoxes < 7)
-					vertSize += (int) ecb.getPreferredSize().getHeight() + 2;
-
-				widthSize = (int) ecb.getPreferredSize().getWidth() + 20;
-				if (horSize < widthSize)
-					horSize = widthSize;
-
-				numCheckBoxes++;
-			}
-
-			if (numCheckBoxes < 3)
-				vertSize += 30;
-
-			JScrollPane peakPanelScroll = new JScrollPane(checkBoxesPanel,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-			peakPanelScroll.setPreferredSize(new Dimension(horSize, vertSize));
-			comp = peakPanelScroll;
+			MultipleSelectionComponent msc = new MultipleSelectionComponent(
+					multipleValues);
+			msc.addActionListener(this);
+			comp = msc;
 			break;
 
 		case FILE_NAME:
-			final JTextField txtFilename = new JTextField();
-			txtFilename.setColumns(TEXTFIELD_COLUMNS);
-			txtFilename.setFont(smallFont);
-			JButton btnFileBrowser = new JButton("...");
-			final Parameter fileParameter = p;
-			btnFileBrowser.addActionListener(new ActionListener() {
-
-				public void actionPerformed(ActionEvent e) {
-					JFileChooser fileChooser = new JFileChooser();
-					File currentFile = new File(txtFilename.getText());
-					File currentDir = currentFile.getParentFile();
-					if (currentDir != null && currentDir.exists())
-						fileChooser.setCurrentDirectory(currentDir);
-					fileChooser.setMultiSelectionEnabled(false);
-					int returnVal = fileChooser.showDialog(MZmineCore
-							.getDesktop().getMainFrame(), "Select");
-					if (returnVal == JFileChooser.APPROVE_OPTION) {
-						setComponentValue(fileParameter, fileChooser
-								.getSelectedFile().getAbsolutePath());
-					}
-
-				}
-			});
-			JPanel panelFilename = new JPanel();
-			panelFilename.setLayout(new BoxLayout(panelFilename,
-					BoxLayout.X_AXIS));
-			panelFilename.add(txtFilename);
-			panelFilename.add(Box.createRigidArea(new Dimension(10, 1)));
-			panelFilename.add(btnFileBrowser);
-			comp = panelFilename;
+			comp = new FileNameComponent();
 			break;
 
 		case ORDERED_LIST:
@@ -376,6 +324,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 
 		}
+
+		// This only applies to text boxes, but we can add it to all components
+		comp.addPropertyChangeListener("value", this);
+
+		// By calling this we make sure the components will never be resized
+		// smaller than their optimal size
+		comp.setMinimumSize(comp.getPreferredSize());
 
 		return comp;
 
@@ -408,7 +363,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			return intNumberValue.intValue();
 
 		case DOUBLE:
-
 			JFormattedTextField doubleField = (JFormattedTextField) parametersAndComponents
 					.get(p);
 			Number doubleNumberValue = (Number) doubleField.getValue();
@@ -417,15 +371,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			return doubleNumberValue.doubleValue();
 
 		case RANGE:
-			JPanel panel = (JPanel) parametersAndComponents.get(p);
-			JFormattedTextField minField = (JFormattedTextField) panel
-					.getComponent(0);
-			JFormattedTextField maxField = (JFormattedTextField) panel
-					.getComponent(2);
-			double minValue = ((Number) minField.getValue()).doubleValue();
-			double maxValue = ((Number) maxField.getValue()).doubleValue();
-			Range rangeValue = new Range(minValue, maxValue);
-			return rangeValue;
+			RangeComponent rangeComp = (RangeComponent) parametersAndComponents
+					.get(p);
+			return rangeComp.getRangeValue();
 
 		case STRING:
 			JTextField stringField = (JTextField) parametersAndComponents
@@ -437,37 +385,20 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			return checkBox.isSelected();
 
 		case MULTIPLE_SELECTION:
-			JScrollPane scrollPanel = (JScrollPane) parametersAndComponents
+			MultipleSelectionComponent msc = (MultipleSelectionComponent) parametersAndComponents
 					.get(p);
-			if (scrollPanel == null)
-				return null;
-
-			JPanel checkBoxPanel = (JPanel) scrollPanel.getViewport()
-					.getComponent(0);
-
-			Vector<Object> selectedGenericObject = new Vector<Object>();
-			Component checkBoxes[] = checkBoxPanel.getComponents();
-
-			for (Component comp : checkBoxes) {
-				ExtendedCheckBox<?> box = (ExtendedCheckBox<?>) comp;
-				if (box.isSelected()) {
-					Object genericObject = box.getObject();
-					selectedGenericObject.add(genericObject);
-				}
-			}
-			return selectedGenericObject.toArray();
+			return msc.getSelectedValues();
 
 		case FILE_NAME:
-			JPanel fileNamePanel = (JPanel) parametersAndComponents.get(p);
-			JTextField txtFilename = (JTextField) fileNamePanel.getComponent(0);
-			return txtFilename.getText();
+			FileNameComponent fileNameField = (FileNameComponent) parametersAndComponents
+					.get(p);
+			return fileNameField.getFilePath();
 
 		case ORDERED_LIST:
 			JList list = (JList) parametersAndComponents.get(p);
 			DefaultListModel fieldOrderModel = (DefaultListModel) list
 					.getModel();
 			return fieldOrderModel.toArray();
-
 		}
 
 		return null;
@@ -505,14 +436,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 
 		case RANGE:
-			Range valueRange = (Range) value;
-			JPanel panel = (JPanel) component;
-			JFormattedTextField minField = (JFormattedTextField) panel
-					.getComponent(0);
-			minField.setValue(valueRange.getMin());
-			JFormattedTextField maxField = (JFormattedTextField) panel
-					.getComponent(2);
-			maxField.setValue(valueRange.getMax());
+			RangeComponent rangeComp = (RangeComponent) component;
+			rangeComp.setRangeValue((Range) value);
 			break;
 
 		case BOOLEAN:
@@ -522,26 +447,14 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			break;
 
 		case FILE_NAME:
-			JPanel fileNamePanel = (JPanel) component;
-			JTextField txtFilename = (JTextField) fileNamePanel.getComponent(0);
-			txtFilename.setText(value.toString());
+			FileNameComponent fileNameField = (FileNameComponent) component;
+			fileNameField.setFilePath(value.toString());
 			break;
 
 		case MULTIPLE_SELECTION:
-			Object multipleValues[] = (Object[]) value;
-			JScrollPane scrollPanel = (JScrollPane) component;
-			JPanel multiplePanel = (JPanel) scrollPanel.getViewport()
-					.getComponent(0);
-			Component checkBoxes[] = multiplePanel.getComponents();
-			for (Component comp : checkBoxes) {
-				ExtendedCheckBox<?> box = (ExtendedCheckBox<?>) comp;
-				boolean isSelected = false;
-				for (Object v : multipleValues) {
-					if (v == box.getObject())
-						isSelected = true;
-				}
-				box.setSelected(isSelected);
-			}
+			MultipleSelectionComponent msc = (MultipleSelectionComponent) parametersAndComponents
+					.get(p);
+			msc.setSelectedValues((Object[]) value);
 			break;
 
 		case ORDERED_LIST:
@@ -570,7 +483,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 * This function collects all the information from the form components and
 	 * set the ParameterSet values accordingly.
 	 */
-	public void updateParameterSetFromComponents()
+	protected void updateParameterSetFromComponents()
 			throws IllegalArgumentException {
 		for (Parameter p : parameterSet.getParameters()) {
 			Object value = getComponentValue(p);
@@ -578,7 +491,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 				try {
 					parameterSet.setParameterValue(p, value);
 				} catch (IllegalArgumentException e) {
-					// ignore
+					// ignore invalid value
 				}
 			}
 		}
@@ -623,6 +536,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 			}
 		}
 
+		if ((src instanceof JCheckBox) || (src instanceof JComboBox)) {
+			parametersChanged();
+		}
+
 	}
 
 	/**
@@ -630,6 +547,19 @@ public class ParameterSetupDialog extends JDialog implements ActionListener {
 	 */
 	public ExitCode getExitCode() {
 		return exitCode;
+	}
+
+	public void propertyChange(PropertyChangeEvent event) {
+		parametersChanged();
+	}
+
+	/**
+	 * This method does nothing, but it is called whenever user changes the
+	 * parameters. It can be overridden in extending classes to update some
+	 * preview components, for example.
+	 */
+	protected void parametersChanged() {
+
 	}
 
 }

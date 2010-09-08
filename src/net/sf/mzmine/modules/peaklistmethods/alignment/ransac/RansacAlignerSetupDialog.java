@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BorderLayout;
@@ -80,15 +81,19 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
         if (src == preview) {
             if (preview.isSelected()) {
-                mainPanel.add(pnlPlotXY);
+				// Set the height of the preview to 200 cells, so it will span
+				// the whole vertical length of the dialog (buttons are at row no
+				// 100). Also, we set the weight to 10, so the preview component
+				// will consume most of the extra available space.
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
                 peakListsPanel.setVisible(true);
+                updateMinimumSize();
                 pack();
-                this.setResizable(true);
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
             } else {
-                mainPanel.remove(pnlPlotXY);
+            	mainPanel.remove(pnlPlotXY);
                 peakListsPanel.setVisible(false);
-                this.setResizable(false);
+                updateMinimumSize();
                 pack();
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
             }
@@ -195,8 +200,10 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
         chart = new AlignmentRansacPlot();
         pnlPlotXY.add(chart, BorderLayout.CENTER);
 
-        componentsPanel.add(pnlVisible, BorderLayout.CENTER);
+		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
+				3, 1, 0, 0);
 
+		updateMinimumSize();
         pack();
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 

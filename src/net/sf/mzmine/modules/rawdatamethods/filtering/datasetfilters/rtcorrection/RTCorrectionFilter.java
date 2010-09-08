@@ -16,13 +16,13 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview.RawDataFilter;
 
 public class RTCorrectionFilter implements RawDataFilter {
@@ -32,13 +32,11 @@ public class RTCorrectionFilter implements RawDataFilter {
         this.parameters = parameters;
 	}
 
-	public RawDataFile getNewDataFiles(RawDataFile dataFile) {
+	public RawDataFile getNewDataFiles(RawDataFile dataFile, RawDataFileWriter rawDataFileWriter) {
 
 		try {
 			int[] scanNumbers = dataFile.getScanNumbers(1);
 			int totalScans = scanNumbers.length;
-
-			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + "-Filtered");
 
 			for (int i = 0; i < totalScans; i++) {
 				Scan scan = dataFile.getScan(scanNumbers[i]);               
@@ -56,7 +54,7 @@ public class RTCorrectionFilter implements RawDataFilter {
 		}
 	}
 
-	public double getProgres() {
+	public double getProgress() {
 		return 0.5f;
 	}
 }

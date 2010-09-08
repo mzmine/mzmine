@@ -458,12 +458,16 @@ public class TICPlot extends ChartPanel {
 
 	}
 
-	public void startDatasetCounter() {
+	public void removeAllTICDataSets() {
+		int dataSetCount = plot.getDatasetCount();
+		for (int index = 0; index < dataSetCount; index++) {
+			plot.setDataset(index, null);
+		}
 		numOfPeaks = 0;
 		numOfDataSets = 0;
 	}
 
-	void setTitle(String titleText, String subTitleText) {
+	public void setTitle(String titleText, String subTitleText) {
 		chartTitle.setText(titleText);
 		chartSubTitle.setText(subTitleText);
 	}

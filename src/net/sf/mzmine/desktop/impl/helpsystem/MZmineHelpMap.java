@@ -155,11 +155,12 @@ public class MZmineHelpMap implements Map {
 			String key = (String) e.nextElement();
 			try {
 				tmp = (String) lookup.get(key);
-				tmpURL = new URL(tmp);
 
 				// Sometimes tmp will be null because not all keys are ids
-				if (tmpURL == null)
+				if (tmp == null)
 					continue;
+
+				tmpURL = new URL(tmp);
 				String tmpString = tmpURL.toExternalForm();
 				if (urlString.compareTo(tmpString) == 0) {
 					return ID.create(key, helpset);

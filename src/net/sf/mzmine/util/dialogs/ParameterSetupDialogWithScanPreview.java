@@ -20,11 +20,8 @@
 package net.sf.mzmine.util.dialogs;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
@@ -32,46 +29,38 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
-import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
- * This class extends ParameterSetupDialog class, including a spectraPlot. This
+ * This class extends ParameterSetupDialog class, including a SpectraPlot. This
  * is used to preview how the selected mass detector and his parameters works
  * over the raw data file.
  */
-public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
-		implements ActionListener, PropertyChangeListener {
+public abstract class ParameterSetupDialogWithScanPreview extends
+		ParameterSetupDialog {
 
 	private RawDataFile[] dataFiles;
 	private RawDataFile previewDataFile;
 
 	// Dialog components
-	private JPanel pnlFileNameScanNumber;
+	private JPanel pnlPreviewFields;
 	private JComboBox comboDataFileName, comboScanNumber;
 	private JCheckBox previewCheckBox;
-	private JButton nextScanBtn, prevScanBtn;
 
 	// XYPlot
 	private SpectraPlot spectrumPlot;
@@ -97,23 +86,18 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 			else
 				previewDataFile = dataFiles[0];
 
-			// Set a listener in all parameters's fields to add functionality to
-			// this dialog
-			for (Parameter p : parameters.getParameters()) {
-
-				JComponent field = getComponentForParameter(p);
-				field.addPropertyChangeListener("value", this);
-				if (field instanceof JCheckBox)
-					((JCheckBox) field).addActionListener(this);
-				if (field instanceof JComboBox)
-					((JComboBox) field).addActionListener(this);
-			}
-
 		}
 
-		addComponents();
+		addExtraComponents();
 
 	}
+
+	/**
+	 * This method must be overloaded by derived class to load all the preview
+	 * data sets into the spectrumPlot
+	 */
+	protected abstract void loadPreview(SpectraPlot spectrumPlot,
+			Scan previewScan);
 
 	private void reloadPreview() {
 		Integer scanNumber = (Integer) comboScanNumber.getSelectedItem();
@@ -123,28 +107,6 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 		updateParameterSetFromComponents();
 		loadPreview(spectrumPlot, currentScan);
 		updateTitle(currentScan);
-	}
-
-	/**
-	 * This method may be overloaded by derived class to load all the preview
-	 * data sets into the spectrumPlot
-	 */
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
-
-		ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
-
-		spectrumPlot.removeAllDataSets();
-		spectrumPlot.addDataSet(spectraDataSet,
-				SpectraVisualizerWindow.scanColor, false);
-
-		// Set plot mode only if it hasn't been set before
-		// if the scan is centroided, switch to centroid mode
-		if (previewScan.isCentroided()) {
-			spectrumPlot.setPlotMode(PlotMode.CENTROID);
-		} else {
-			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-		}
-
 	}
 
 	private void updateTitle(Scan currentScan) {
@@ -181,14 +143,6 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 		Object src = event.getSource();
 		String command = event.getActionCommand();
 
-		if ((src == comboScanNumber)
-				|| ((src instanceof JCheckBox) && (src != previewCheckBox))
-				|| ((src instanceof JComboBox) && (src != comboDataFileName))) {
-			if (previewCheckBox.isSelected()) {
-				reloadPreview();
-			}
-		}
-
 		if (src == comboDataFileName) {
 			int ind = comboDataFileName.getSelectedIndex();
 			if (ind >= 0) {
@@ -205,16 +159,20 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 
 		if (src == previewCheckBox) {
 			if (previewCheckBox.isSelected()) {
-				mainPanel.add(spectrumPlot, BorderLayout.CENTER);
-				pnlFileNameScanNumber.setVisible(true);
+				// Set the height of the preview to 200 cells, so it will span
+				// the whole verical length of the dialog (buttons are at row no
+				// 100). Also, we set the weight to 10, so the preview component
+				// will consume most of the extra available space.
+				mainPanel.add(spectrumPlot, 3, 0, 1, 200, 10, 10);
+				pnlPreviewFields.setVisible(true);
+				updateMinimumSize();
 				pack();
 				reloadPreview();
-				this.setResizable(true);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
 				mainPanel.remove(spectrumPlot);
-				pnlFileNameScanNumber.setVisible(false);
-				this.setResizable(false);
+				pnlPreviewFields.setVisible(false);
+				updateMinimumSize();
 				pack();
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			}
@@ -234,11 +192,9 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 
 	}
 
-	/**
-	 * @see java.beans.PropertyChangeListener#propertyChange(java.beans.PropertyChangeEvent)
-	 */
-	public void propertyChange(PropertyChangeEvent e) {
-		if (previewCheckBox.isSelected()) {
+	protected void parametersChanged() {
+		// Update preview as parameters have changed
+		if ((previewCheckBox != null) && (previewCheckBox.isSelected())) {
 			reloadPreview();
 		}
 	}
@@ -248,22 +204,16 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 	 * original ParameterSetupDialog.
 	 * 
 	 */
-	private void addComponents() {
+	private void addExtraComponents() {
 
-		// Button's parameters
-		String leftArrow = new String(new char[] { '\u2190' });
-		String rightArrow = new String(new char[] { '\u2192' });
-
-		// Elements of pnlpreview
-		JPanel pnlpreview = new JPanel(new BorderLayout());
-
-		previewCheckBox = new JCheckBox(" Show preview ");
+		previewCheckBox = new JCheckBox("Show preview");
 		previewCheckBox.addActionListener(this);
 		previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
-		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-		pnlpreview.add(previewCheckBox, BorderLayout.CENTER);
+		mainPanel.add(new JSeparator(), 0, parametersAndComponents.size() + 1,
+				3, 1);
+		mainPanel.add(previewCheckBox, 0, parametersAndComponents.size() + 2,
+				3, 1);
 
 		// Elements of pnlLab
 		JPanel pnlLab = new JPanel();
@@ -299,56 +249,39 @@ public class ParameterSetupDialogWithScanPreview extends ParameterSetupDialog
 			JPanel pnlScanArrows = new JPanel();
 			pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows,
 					BoxLayout.X_AXIS));
-
-			prevScanBtn = GUIUtils.addButton(pnlScanArrows, leftArrow, null,
-					(ActionListener) this, "PREVIOUS_SCAN");
-			prevScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
+			String leftArrow = new String(new char[] { '\u2190' });
+			GUIUtils.addButton(pnlScanArrows, leftArrow, null, this,
+					"PREVIOUS_SCAN");
 
 			pnlScanArrows.add(Box.createHorizontalStrut(5));
 			pnlScanArrows.add(comboScanNumber);
 			pnlScanArrows.add(Box.createHorizontalStrut(5));
 
-			nextScanBtn = GUIUtils.addButton(pnlScanArrows, rightArrow, null,
-					(ActionListener) this, "NEXT_SCAN");
-			nextScanBtn.setFont(new Font("SansSerif", Font.BOLD, 14));
-
-			// <--
+			String rightArrow = new String(new char[] { '\u2192' });
+			GUIUtils.addButton(pnlScanArrows, rightArrow, null, this,
+					"NEXT_SCAN");
 
 			pnlFlds.add(pnlScanArrows);
 		}
-		// Elements of pnlSpace
-		JPanel pnlSpace = new JPanel();
-		pnlSpace.setLayout(new BoxLayout(pnlSpace, BoxLayout.Y_AXIS));
-		pnlSpace.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		pnlSpace.add(Box.createHorizontalStrut(50));
 
 		// Put all together
-		pnlFileNameScanNumber = new JPanel(new BorderLayout());
+		pnlPreviewFields = new JPanel(new BorderLayout());
 
-		pnlFileNameScanNumber.add(pnlpreview, BorderLayout.NORTH);
-		pnlFileNameScanNumber.add(pnlLab, BorderLayout.WEST);
-		pnlFileNameScanNumber.add(pnlFlds, BorderLayout.CENTER);
-		pnlFileNameScanNumber.add(pnlSpace, BorderLayout.EAST);
-		pnlFileNameScanNumber.setVisible(false);
-
-		JPanel pnlVisible = new JPanel(new BorderLayout());
-
-		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
-
-		JPanel tmp = new JPanel();
-		tmp.add(pnlFileNameScanNumber);
-		pnlVisible.add(tmp, BorderLayout.CENTER);
+		pnlPreviewFields.add(pnlLab, BorderLayout.WEST);
+		pnlPreviewFields.add(pnlFlds, BorderLayout.CENTER);
+		pnlPreviewFields.setVisible(false);
 
 		spectrumPlot = new SpectraPlot(this);
+		spectrumPlot.setBorder(BorderFactory
+				.createEtchedBorder(EtchedBorder.RAISED));
+		spectrumPlot.setMinimumSize(new Dimension(400, 300));
 
-		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-		Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-		spectrumPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
+		mainPanel.add(pnlPreviewFields, 0,
+				parametersAndComponents.size() + 3, 3, 1, 0, 0);
 
-		componentsPanel.add(pnlVisible, BorderLayout.CENTER);
-
+		updateMinimumSize();
 		pack();
+
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 	}
 

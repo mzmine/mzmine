@@ -177,7 +177,7 @@ public class TICVisualizer implements MZmineModule, ActionListener {
 				.getParameterValue(TICVisualizerParameters.dataFiles);
 		dataFiles = CollectionUtils.changeArrayType(dataFileObjects,
 				RawDataFile.class);
-		Object plotType = parameters
+		String plotType = (String) parameters
 				.getParameterValue(TICVisualizerParameters.plotType);
 
 		if (dataFiles.length == 0) {

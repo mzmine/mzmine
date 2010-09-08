@@ -37,7 +37,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 /**
  *
  */
-class ChromatogramBuilderTask extends AbstractTask {
+public class ChromatogramBuilderTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFile dataFile;
@@ -65,7 +65,7 @@ class ChromatogramBuilderTask extends AbstractTask {
 	 * @param dataFile
 	 * @param parameters
 	 */
-	ChromatogramBuilderTask(RawDataFile dataFile,
+	public ChromatogramBuilderTask(RawDataFile dataFile,
 			ChromatogramBuilderParameters parameters) {
 
 		this.dataFile = dataFile;

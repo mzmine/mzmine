@@ -34,6 +34,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -98,9 +99,13 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 					.getSelectedItem();
 			if (detector == null)
 				return;
-			MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
+			final MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
 					detector);
-			dialog.setVisible(true);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					dialog.setVisible(true);
+				}
+			});
 		}
 
 		if (src == btnSetFilter) {
@@ -122,9 +127,9 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 					.getSelectedItem();
 			if (connector == null)
 				return;
-			ParameterSetupDialog dialog = new ParameterSetupDialog(connector
-					.getName()
-					+ "'s parameter setup dialog ", connector.getParameters());
+			ParameterSetupDialog dialog = new ParameterSetupDialog(
+					connector.getName() + "'s parameter setup dialog ",
+					connector.getParameters());
 
 			dialog.setVisible(true);
 		}
@@ -238,8 +243,7 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 
 		c.gridx = 0;
 		c.gridy = 3;
-		pnlCombo
-				.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
+		pnlCombo.add(new JLabel("<HTML>Chromatogram<BR>construction</HTML>"), c);
 		c.gridwidth = 3;
 		c.gridx = 1;
 		pnlCombo.add(comboMassConnectors, c);
@@ -304,21 +308,18 @@ class ChromatogramBuilderSetupDialog extends JDialog implements ActionListener {
 			}
 
 			if (notMsLevelOne) {
-				desktop
-						.displayMessage("One or more selected files does not contain spectrum of MS level 1."
-								+ " The actual mass detector only works over spectrum of this level.");
+				desktop.displayMessage("One or more selected files does not contain spectrum of MS level 1."
+						+ " The actual mass detector only works over spectrum of this level.");
 			}
 
 			if ((centroid) && (!massDetectorName.startsWith("Centroid"))) {
-				desktop
-						.displayMessage("One or more selected files contains centroided data points."
-								+ " The actual mass detector could give an unexpected result");
+				desktop.displayMessage("One or more selected files contains centroided data points."
+						+ " The actual mass detector could give an unexpected result");
 			}
 
 			if ((!centroid) && (massDetectorName.startsWith("Centroid"))) {
-				desktop
-						.displayMessage("Neither one of the selected files contains centroided data points."
-								+ " The actual mass detector could give an unexpected result");
+				desktop.displayMessage("Neither one of the selected files contains centroided data points."
+						+ " The actual mass detector could give an unexpected result");
 			}
 		}
 	}

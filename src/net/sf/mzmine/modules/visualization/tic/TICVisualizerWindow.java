@@ -54,7 +54,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	// Data sets
 	private Hashtable<RawDataFile, TICDataSet> ticDataSets;
 
-	private Object plotType;
+	private String plotType;
 	private int msLevel;
 	private Range rtRange, mzRange;
 
@@ -64,7 +64,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	 * Constructor for total ion chromatogram visualizer
 	 * 
 	 */
-	public TICVisualizerWindow(RawDataFile dataFiles[], Object plotType,
+	public TICVisualizerWindow(RawDataFile dataFiles[], String plotType,
 			int msLevel, Range rtRange, Range mzRange,
 			ChromatographicPeak[] peaks) {
 
@@ -158,7 +158,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	/**
 	 * @return Returns the plotType.
 	 */
-	Object getPlotType() {
+	String getPlotType() {
 		return plotType;
 	}
 

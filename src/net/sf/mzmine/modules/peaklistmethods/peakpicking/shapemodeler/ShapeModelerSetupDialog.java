@@ -108,8 +108,13 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 
         if (src == preview) {
             if (preview.isSelected()) {
-                mainPanel.add(pnlPlotXY, BorderLayout.EAST);
+				// Set the height of the preview to 200 cells, so it will span
+				// the whole vertical length of the dialog (buttons are at row no
+				// 100). Also, we set the weight to 10, so the preview component
+				// will consume most of the extra available space.
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
                 pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
+                updateMinimumSize();
                 pack();
                 PeakList selected[] = MZmineCore.getDesktop().getSelectedPeakLists();
                 if (selected.length > 0)
@@ -117,13 +122,12 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
                 else
                     comboPeakList.setSelectedIndex(0);
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-                this.setResizable(true);
             } else {
                 mainPanel.remove(pnlPlotXY);
                 pnlVisible.remove(pnlLabelsFields);
+                updateMinimumSize();
                 pack();
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-                this.setResizable(false);
             }
             return;
         }
@@ -136,7 +140,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
     }
 
     public void propertyChange(PropertyChangeEvent e) {
-        if (preview.isSelected()) {
+        if ((preview != null) && (preview.isSelected())) {
             loadPreviewPeak();
         }
     }
@@ -149,11 +153,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
         logger.finest("Loading new preview peak " + previewRow);
         ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
 
-        int dataSetCount = ticPlot.getXYPlot().getDatasetCount();
-        for (int index = 0; index < dataSetCount; index++) {
-            ticPlot.getXYPlot().setDataset(index, null);
-        }
-        ticPlot.startDatasetCounter();
+        ticPlot.removeAllTICDataSets();
 
         // Load the intensities into array
         RawDataFile dataFile = previewPeak.getDataFile();
@@ -271,8 +271,10 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
         toolBar.getComponentAtIndex(0).setVisible(false);
         pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-        componentsPanel.add(pnlVisible, BorderLayout.CENTER);
+		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
+				3, 1, 0, 0);
 
+		updateMinimumSize();
         pack();
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 

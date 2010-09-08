@@ -20,21 +20,20 @@
 package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Vector;
 import java.util.LinkedList;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
@@ -52,7 +51,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	private static final int REDRAW_INTERVAL = 100;
 	private static Date lastRedrawTime = new Date();
 
-	private ActionListener visualizer;
+	private TICVisualizerWindow visualizer;
 	private RawDataFile dataFile;
 
 	private int scanNumbers[], totalScans, processedScans;
@@ -65,7 +64,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 
 	public TICDataSet(RawDataFile dataFile, int scanNumbers[], Range mzRange,
-			ActionListener visualizer) {
+			TICVisualizerWindow visualizer) {
 
 		this.visualizer = visualizer;
 		this.mzRange = mzRange;
@@ -135,9 +134,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
 			String plotType;
 
-			if (visualizer instanceof TICVisualizerWindow)
-				plotType = (String) ((TICVisualizerWindow) visualizer)
-						.getPlotType();
+			if (visualizer != null)
+				plotType = visualizer.getPlotType();
 			else
 				plotType = TICVisualizerParameters.plotTypeBP;
 
@@ -186,8 +184,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 		// always redraw when we add last value
 		fireDatasetChanged();
 
-		visualizer.actionPerformed(new ActionEvent(this,
-				ActionEvent.ACTION_PERFORMED, "TICDataSet_upgraded"));
+		if (visualizer != null) {
+			visualizer.actionPerformed(new ActionEvent(this,
+					ActionEvent.ACTION_PERFORMED, "TICDataSet_upgraded"));
+		}
 
 		setStatus(TaskStatus.FINISHED);
 

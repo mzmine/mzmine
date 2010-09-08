@@ -24,7 +24,6 @@ import net.sf.mzmine.data.ParameterType;
 import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
 

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 /**
  * 
  */
@@ -29,8 +30,8 @@ public interface RawDataFilter {
      * 
      * @return return the modified scan after being process by the filter
      */
-    public RawDataFile getNewDataFiles(RawDataFile dataFile);
+    public RawDataFile getNewDataFiles(RawDataFile dataFile, RawDataFileWriter newFile);
 
-	public double getProgres();
+	public double getProgress();
     
 }

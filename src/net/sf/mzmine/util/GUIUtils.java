@@ -479,6 +479,16 @@ public class GUIUtils {
 		return compoundBorder;
 	}
 
+	public static String generateHelpID(Object obj) {
+		return generateHelpID(obj.getClass());
+	}
+
+	public static String generateHelpID(Class<?> cl) {
+		String helpID = cl.getPackage().getName().replace('.', '/') + "/help/"
+				+ cl.getSimpleName() + ".html";
+		return helpID;
+	}
+	
 	/**
 	 * This method creates a JPanel which layouts given components in a table of
 	 * given rows/columns. Last column is considered main, so its components
@@ -529,14 +539,5 @@ public class GUIUtils {
 		return panel;
 	}
 
-	public static String generateHelpID(Object obj) {
-		return generateHelpID(obj.getClass());
-	}
-	
-	public static String generateHelpID(Class<?> cl) {
-		String helpID = cl.getPackage().getName().replace('.', '/')
-				+ "/help/" + cl.getSimpleName() + ".html";
-		return helpID;
-	}
 
 }

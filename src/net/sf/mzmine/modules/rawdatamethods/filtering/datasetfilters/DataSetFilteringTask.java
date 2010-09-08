@@ -22,6 +22,7 @@ import java.lang.reflect.Constructor;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview.RawDataFilter;
@@ -73,7 +74,7 @@ class DataSetFilteringTask extends AbstractTask {
 	 */
 	public double getFinishedPercentage() {
 		if (rawDataFilter != null) {
-			return rawDataFilter.getProgres();
+			return rawDataFilter.getProgress();
 		} else {
 			return 0;
 		}
@@ -102,10 +103,9 @@ class DataSetFilteringTask extends AbstractTask {
 		}
 		try {
 			for (RawDataFile dataFile : dataFiles) {
-				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile);
+				RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
+				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile, rawDataFileWriter);
 				if (newDataFiles != null) {
-                    String name = newDataFiles.getName().replace("-Filtered", "");
-					newDataFiles.setName(name + suffix);
 					MZmineCore.getCurrentProject().addFile(newDataFiles);
 
 					// Remove the original file if requested

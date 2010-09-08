@@ -16,17 +16,21 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFiltersParameters;
+import net.sf.mzmine.modules.visualization.tic.TICDataSet;
+import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.DialogWithChromatogramParameters;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
 
 /**
@@ -38,7 +42,7 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
     protected SimpleParameterSet mdParameters;
-    // Raw Data Filter;
+        
     private RawDataFilter rawDataFilter;
     private int rawDataFilterTypeNumber;
 
@@ -63,8 +67,19 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 
     }
 
-    protected void loadPreview(RawDataFile dataFile) {        
-        String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
+	protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
+			Range rtRange, Range mzRange) {        
+
+		// First, remove all current data sets
+		ticPlot.removeAllTICDataSets();
+		
+		// Add the original raw data file
+        int scanNumbers[] = dataFile.getScanNumbers(1, rtRange);
+       	TICDataSet ticDataset = new TICDataSet(dataFile, scanNumbers, mzRange, null);
+       	ticPlot.addTICDataset(ticDataset);
+
+		// Create an instance of the raw data filter
+		String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
         try {
             Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
             Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
@@ -76,37 +91,22 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
             return;
         }
 
-        RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile);
-
-
-        Range rtRange = (Range) TICparameters.getParameterValue(DialogWithChromatogramParameters.retentionTimeRange);
-        Range mzRange = (Range) TICparameters.getParameterValue(DialogWithChromatogramParameters.mzRange);
-
-        Boolean setLegend = (Boolean) TICparameters.getParameterValue(DialogWithChromatogramParameters.plotLegend);
-
-        if (!setLegend) {
-            legend.setVisible(false);
-        } else {
-            legend.setVisible(true);
-        }
-
-        int level = (Integer) TICparameters.getParameterValue(DialogWithChromatogramParameters.msLevel);
-        if (newDataFile != null) {
-            this.addRawDataFile(newDataFile, level, mzRange, rtRange);
-        }
-
-        Boolean orginalRawDataView = (Boolean) TICparameters.getParameterValue(DialogWithChromatogramParameters.originalRawData);
-
-        if (orginalRawDataView) {
-            this.addRawDataFile(dataFile, level, mzRange, rtRange);
-        } else {
-            /* for (int index = 0; index < rawDataList.size(); index++) {
-            ticPlot.getXYPlot().setDataset(index,
-            null);
-
-            }*/
-        }
-
+		try {
+	        // Create a new filtered raw data file
+			RawDataFileWriter 	rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + " filtered");
+	        RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile, rawDataFileWriter);
+	        
+	        // If successful, add the new data file 
+	        if (newDataFile != null) {
+	            int newScanNumbers[] = newDataFile.getScanNumbers(1, rtRange);
+	           	TICDataSet newDataset = new TICDataSet(newDataFile, newScanNumbers, mzRange, null);
+	           	ticPlot.addTICDataset(newDataset);
+	        }
+	        
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
 
     }
 }

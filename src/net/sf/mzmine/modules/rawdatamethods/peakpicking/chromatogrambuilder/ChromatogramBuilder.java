@@ -93,7 +93,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 		ChromatogramBuilderSetupDialog dialog = new ChromatogramBuilderSetupDialog(
 				"Please set parameter values for " + toString(),
 				(ChromatogramBuilderParameters) parameters, helpID);
-		dialog.setVisible(true);
+			dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
 

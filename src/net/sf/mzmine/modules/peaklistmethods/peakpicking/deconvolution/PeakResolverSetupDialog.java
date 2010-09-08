@@ -25,7 +25,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
@@ -53,10 +52,9 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
- * This class extends ParameterSetupDialog class, including a TIC plot.
+ * This class extends ParameterSetupDialog class, adding
  */
-public class PeakResolverSetupDialog extends ParameterSetupDialog implements
-		ActionListener, PropertyChangeListener {
+public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -132,8 +130,13 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 
 		if (src == preview) {
 			if (preview.isSelected()) {
-				mainPanel.add(pnlPlotXY, BorderLayout.EAST);
+				// Set the height of the preview to 200 cells, so it will span
+				// the whole vertical length of the dialog (buttons are at row no
+				// 100). Also, we set the weight to 10, so the preview component
+				// will consume most of the extra available space.
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
 				pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
+				updateMinimumSize();
 				pack();
 				PeakList selected[] = MZmineCore.getDesktop()
 						.getSelectedPeakLists();
@@ -142,13 +145,12 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 				else
 					comboPeakList.setSelectedIndex(0);
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-				this.setResizable(true);
 			} else {
 				mainPanel.remove(pnlPlotXY);
 				pnlVisible.remove(pnlLabelsFields);
+				updateMinimumSize();
 				pack();
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-				this.setResizable(false);
 			}
 			return;
 		}
@@ -161,7 +163,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 	}
 
 	public void propertyChange(PropertyChangeEvent e) {
-		if (preview.isSelected()) {
+		if ((preview != null) && (preview.isSelected())) {
 			loadPreviewPeak();
 		}
 	}
@@ -174,11 +176,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 		logger.finest("Loading new preview peak " + previewRow);
 		ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
 
-		int dataSetCount = ticPlot.getXYPlot().getDatasetCount();
-		for (int index = 0; index < dataSetCount; index++) {
-			ticPlot.getXYPlot().setDataset(index, null);
-		}
-		ticPlot.startDatasetCounter();
+		ticPlot.removeAllTICDataSets();
 
 		// Create Peak Builder
 		PeakResolver peakResolver;
@@ -253,7 +251,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
 
-		preview = new JCheckBox(" Show preview of peak building ");
+		preview = new JCheckBox(" Show preview ");
 		preview.addActionListener(this);
 		preview.setHorizontalAlignment(SwingConstants.CENTER);
 		preview.setEnabled(peakLists.length > 0);
@@ -300,8 +298,10 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog implements
 		toolBar.getComponentAtIndex(0).setVisible(false);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		componentsPanel.add(pnlVisible, BorderLayout.CENTER);
+		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
+				3, 1, 0, 0);
 
+		updateMinimumSize();
 		pack();
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
