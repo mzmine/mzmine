@@ -6,6 +6,7 @@
 
     <module class="net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader" /> 
     <module class="net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaver" /> 
+    <module class="net.sf.mzmine.modules.projectmethods.projectclose.ProjectCloser" /> 
 
     <module class="net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImporter"/> 
     <module class="net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.ChromatogramBuilder" /> 

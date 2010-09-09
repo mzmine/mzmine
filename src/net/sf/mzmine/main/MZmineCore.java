@@ -51,7 +51,7 @@ import org.dom4j.io.XMLWriter;
  */
 public abstract class MZmineCore {
 
-	public static final String MZMINE_VERSION = "2.0";
+	public static final String MZMINE_VERSION = "2.1";
 
 	public static final File CONFIG_FILE = new File("conf/config.xml");
 	public static final File DEFAULT_CONFIG_FILE = new File(
@@ -140,17 +140,16 @@ public abstract class MZmineCore {
 	public static void exitMZmine() {
 
 		// If we have GUI, ask if use really wants to quit
-		if (desktop != null) {
-			int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
-					.getMainFrame().getContentPane(),
-					"Are you sure you want to exit?", "Exiting...",
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
+				.getMainFrame().getContentPane(),
+				"Are you sure you want to exit?", "Exiting...",
+				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
-			if (selectedValue != JOptionPane.YES_OPTION)
-				return;
-			desktop.getMainFrame().dispose();
-		}
-		
+		if (selectedValue != JOptionPane.YES_OPTION)
+			return;
+
+		desktop.getMainFrame().dispose();
+
 		logger.info("Exiting MZmine");
 
 		System.exit(0);

@@ -62,11 +62,11 @@ public class ProjectSaver implements BatchStep, ActionListener {
 		parameters = new ProjectSaverParameters();
 
 		projectSave = desktop.addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
-				"Loads a stored MZmine project", KeyEvent.VK_S, true, this,
+				"Saves the MZmine project", KeyEvent.VK_S, true, this,
 				null);
 
 		projectSaveAs = desktop.addMenuItem(MZmineMenu.PROJECTIO,
-				"Save project as...", "Loads a stored MZmine project",
+				"Save project as...", "Saves the MZmine project under a different name",
 				KeyEvent.VK_A, true, this, null);
 
 	}

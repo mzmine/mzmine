@@ -28,9 +28,9 @@ import javax.swing.SwingUtilities;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
+import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.project.ProjectManager;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 /**
  * Project manager implementation
@@ -74,8 +74,11 @@ public class ProjectManagerImpl implements ProjectManager {
 		// This is a hack to keep correct value of last opened directory (this
 		// value was overwritten when configuration file was loaded from the new
 		// project)
-		String lastPath = project.getProjectFile().getParentFile().getPath();
-		ProjectLoader.setLastProjectOpenPath(lastPath);
+		if (project.getProjectFile() != null) {
+			String lastPath = project.getProjectFile().getParentFile()
+					.getPath();
+			ProjectLoader.setLastProjectOpenPath(lastPath);
+		}
 	}
 
 	public static ProjectManagerImpl getInstance() {

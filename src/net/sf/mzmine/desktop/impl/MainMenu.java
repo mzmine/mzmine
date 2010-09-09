@@ -30,8 +30,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
-import org.dom4j.DocumentException;
-
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
@@ -40,6 +38,8 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.FormatSetupDialog;
 import net.sf.mzmine.util.dialogs.PreferencesDialog;
 
+import org.dom4j.DocumentException;
+
 /**
  * This class represents the main menu of MZmine desktop
  */
@@ -47,9 +47,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
 			helpMenu, rawDataFilteringMenu, peakDetectionMenu, gapFillingMenu,
-			isotopesMenu, peakListPeakPickingMenu, peakListFilteringMenu, alignmentMenu,
-			normalizationMenu, identificationMenu, dataAnalysisMenu,
-			peakListExportMenu;
+			isotopesMenu, peakListPeakPickingMenu, peakListFilteringMenu,
+			alignmentMenu, normalizationMenu, identificationMenu,
+			dataAnalysisMenu, peakListExportMenu;
 
 	private WindowsMenu windowsMenu;
 
@@ -69,6 +69,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		projectMenu = new JMenu("Project");
 		projectMenu.setMnemonic(KeyEvent.VK_P);
 		add(projectMenu);
+
+		// project IO items go here (e.g. project load, save)
 
 		projectMenu.addSeparator();
 
@@ -123,10 +125,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		peakListMenu.setMnemonic(KeyEvent.VK_P);
 		this.add(peakListMenu);
 
-		peakListPeakPickingMenu= new JMenu("Peak detection");
+		peakListPeakPickingMenu = new JMenu("Peak detection");
 		peakListPeakPickingMenu.setMnemonic(KeyEvent.VK_P);
 		peakListMenu.add(peakListPeakPickingMenu);
-		
+
 		gapFillingMenu = new JMenu("Gap filling");
 		gapFillingMenu.setMnemonic(KeyEvent.VK_G);
 		peakListMenu.add(gapFillingMenu);
@@ -184,10 +186,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		helpMenu = new JMenu("Help");
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		this.add(helpMenu);
-		
+
 		showAbout = addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
-                "About MZmine 2...", KeyEvent.VK_A, false, this,
-                null);
+				"About MZmine 2...", KeyEvent.VK_A, false, this, null);
 
 	}
 
@@ -326,7 +327,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 			PreferencesDialog preferencesDialog = new PreferencesDialog();
 			preferencesDialog.setVisible(true);
 		}
-		
+
 		if (src == showAbout) {
 			MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 			mainWindow.showAboutDialog();
