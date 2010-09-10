@@ -62,7 +62,7 @@
 		
 		<copy todir="${dist}/conf">
 			<fileset file="${conf}/*.properties" />
-			<fileset file="${conf}/*.xml" />
+			<fileset file="${conf}/config-default.xml" />
 		</copy>
 		
 		<copy todir="${dist}/icons">
