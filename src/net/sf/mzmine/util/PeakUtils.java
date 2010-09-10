@@ -22,20 +22,21 @@ package net.sf.mzmine.util;
 import java.text.Format;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
  * Utilities for peaks and peak lists
- *
+ * 
  */
 public class PeakUtils {
 
 	/**
 	 * Common utility method to be used as Peak.toString() method in various
 	 * Peak implementations
-	 *
+	 * 
 	 * @param peak
 	 *            Peak to be converted to String
 	 * @return String representation of the peak
@@ -55,9 +56,9 @@ public class PeakUtils {
 	 * Compares identities of two peak list rows. 1) if preferred identities are
 	 * available, they must be same 2) if no identities are available on both
 	 * rows, return true 3) otherwise all identities on both rows must be same
-	 *
+	 * 
 	 * @return True if identities match between rows
-	 *
+	 * 
 	 */
 	public static boolean compareIdentities(PeakListRow row1, PeakListRow row2) {
 
@@ -101,28 +102,31 @@ public class PeakUtils {
 		return sameID;
 	}
 
-    /**
-     * Compare charge state of the best MS/MS precursor masses
-     *
-     * @param row1 PeaklistRow 1
-     * @param row2 PeakListRow 2
-     *
-     * @return true, same charge state
-     */
-    public static boolean compareChargeState(PeakListRow row1, PeakListRow row2) {
-    	
-    	assert ((row1 != null) && (row2 != null));
-            
-    	int firstCharge = row1.getBestPeak().getCharge();
+	/**
+	 * Compare charge state of the best MS/MS precursor masses
+	 * 
+	 * @param row1
+	 *            PeaklistRow 1
+	 * @param row2
+	 *            PeakListRow 2
+	 * 
+	 * @return true, same charge state
+	 */
+	public static boolean compareChargeState(PeakListRow row1, PeakListRow row2) {
+
+		assert ((row1 != null) && (row2 != null));
+
+		int firstCharge = row1.getBestPeak().getCharge();
 		int secondCharge = row2.getBestPeak().getCharge();
 
-    	return (firstCharge == 0) || (secondCharge ==0) || (firstCharge == secondCharge);
+		return (firstCharge == 0) || (secondCharge == 0)
+				|| (firstCharge == secondCharge);
 
 	}
 
 	/**
 	 * Returns true if peak list row contains a compound identity matching to id
-	 *
+	 * 
 	 */
 	public static boolean containsIdentity(PeakListRow row, PeakIdentity id) {
 
@@ -162,4 +166,22 @@ public class PeakUtils {
 		target.setPreferredPeakIdentity(source.getPreferredPeakIdentity());
 
 	}
+
+	/**
+	 * Copies properties such as isotope pattern and charge from the source peak
+	 * to the target peak
+	 */
+	public static void copyPeakProperties(ChromatographicPeak source,
+			ChromatographicPeak target) {
+
+		// Copy isotope pattern
+		IsotopePattern originalPattern = source.getIsotopePattern();
+		target.setIsotopePattern(originalPattern);
+
+		// Copy charge
+		int charge = source.getCharge();
+		target.setCharge(charge);
+
+	}
+
 }

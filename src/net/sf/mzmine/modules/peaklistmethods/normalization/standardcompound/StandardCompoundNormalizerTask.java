@@ -221,8 +221,12 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
                 // Normalize peak
                 ChromatographicPeak originalPeak = row.getPeak(file);
                 if (originalPeak != null) {
+                	
                     SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
                             originalPeak);
+                    
+                    PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
+                    
                     double normalizedHeight = originalPeak.getHeight()
                             / normalizationFactor;
                     double normalizedArea = originalPeak.getArea()

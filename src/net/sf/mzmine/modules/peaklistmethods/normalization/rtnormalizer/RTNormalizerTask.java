@@ -36,6 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
 class RTNormalizerTask extends AbstractTask {
@@ -339,12 +340,13 @@ class RTNormalizerTask extends AbstractTask {
 
 		// Set normalized retention time to all peaks in this row
 		for (RawDataFile file : originalRow.getRawDataFiles()) {
-			ChromatographicPeak dataFilePeak = originalRow.getPeak(file);
-			if (dataFilePeak != null) {
-				SimpleChromatographicPeak newPeak = new SimpleChromatographicPeak(
-						dataFilePeak);
-				newPeak.setRT(normalizedRT);
-				normalizedRow.addPeak(file, newPeak);
+			ChromatographicPeak originalPeak = originalRow.getPeak(file);
+			if (originalPeak != null) {
+				SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
+						originalPeak);
+				PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
+				normalizedPeak.setRT(normalizedRT);
+				normalizedRow.addPeak(file, normalizedPeak);
 			}
 		}
 

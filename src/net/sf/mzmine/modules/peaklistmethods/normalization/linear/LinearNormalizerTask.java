@@ -201,8 +201,11 @@ class LinearNormalizerTask extends AbstractTask {
 				ChromatographicPeak originalPeak = originalpeakListRow
 						.getPeak(file);
 				if (originalPeak != null) {
+					
 					SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
 							originalPeak);
+					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
+					
 					double normalizedHeight = originalPeak.getHeight()
 							/ normalizationFactor;
 					double normalizedArea = originalPeak.getArea()
