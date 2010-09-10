@@ -70,7 +70,7 @@ class IsotopeGrouperTask extends AbstractTask {
 	// parameter values
 	private String suffix;
 	private double mzTolerance, rtTolerance;
-	private boolean monotonicShape, removeOriginal;
+	private boolean monotonicShape, removeOriginal, chooseMostIntense;
 	private int maximumCharge;
 	private IsotopeGrouperParameters parameters;
 
@@ -94,6 +94,8 @@ class IsotopeGrouperTask extends AbstractTask {
 				.getParameterValue(IsotopeGrouperParameters.monotonicShape);
 		maximumCharge = (Integer) parameters
 				.getParameterValue(IsotopeGrouperParameters.maximumCharge);
+		chooseMostIntense = (parameters
+				.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
 		removeOriginal = (Boolean) parameters
 				.getParameterValue(IsotopeGrouperParameters.autoRemove);
 
@@ -120,7 +122,7 @@ class IsotopeGrouperTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Running isotopic peak grouper on " + peakList);
 
 		// We assume source peakList contains one datafile
@@ -145,7 +147,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
 		for (int ind = 0; ind < totalPeaks; ind++) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			ChromatographicPeak aPeak = sortedPeaks[ind];
@@ -186,29 +188,43 @@ class IsotopeGrouperTask extends AbstractTask {
 				continue;
 			}
 
+			// Convert the peak pattern to array
+			ChromatographicPeak originalPeaks[] = bestFitPeaks
+					.toArray(new ChromatographicPeak[0]);
+
+			// Create a new SimpleIsotopePattern
 			DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
 			for (int i = 0; i < isotopes.length; i++) {
-				ChromatographicPeak p = bestFitPeaks.get(i);
+				ChromatographicPeak p = originalPeaks[i];
 				isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
 
 			}
-			// Assign peaks in best fitted pattern to same isotope pattern
 			SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
 					isotopes, IsotopePatternStatus.DETECTED, aPeak.toString());
 
-			ChromatographicPeak newPeak = new SimpleChromatographicPeak(aPeak);
+			// Depending on user's choice, we leave either the most intenst, or
+			// the lowest m/z peak
+			if (chooseMostIntense) {
+				Arrays.sort(originalPeaks, new PeakSorter(
+						SortingProperty.Height, SortingDirection.Descending));
+			} else {
+				Arrays.sort(originalPeaks, new PeakSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
+			}
+
+			ChromatographicPeak newPeak = new SimpleChromatographicPeak(
+					originalPeaks[0]);
 			newPeak.setIsotopePattern(newPattern);
 			newPeak.setCharge(bestFitCharge);
 
-			// keep old ID
-
+			// Keep old ID
 			int oldID = oldRow.getID();
 			SimplePeakListRow newRow = new SimplePeakListRow(oldID);
 			PeakUtils.copyPeakListRowProperties(oldRow, newRow);
 			newRow.addPeak(dataFile, newPeak);
 			deisotopedPeakList.addRow(newRow);
 
-			// remove all peaks already assigned to isotope pattern
+			// Remove all peaks already assigned to isotope pattern
 			for (int i = 0; i < sortedPeaks.length; i++) {
 				if (bestFitPeaks.contains(sortedPeaks[i]))
 					sortedPeaks[i] = null;
@@ -238,7 +254,7 @@ class IsotopeGrouperTask extends AbstractTask {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished isotopic peak grouper on " + peakList);
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 

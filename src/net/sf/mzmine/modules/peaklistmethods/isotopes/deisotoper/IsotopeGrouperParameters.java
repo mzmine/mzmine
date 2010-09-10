@@ -27,6 +27,12 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class IsotopeGrouperParameters extends SimpleParameterSet {
 
+	public static final String ChooseTopIntensity = "Most intense";
+	public static final String ChooseLowestMZ = "Lowest m/z";
+
+	public static final String[] representativeIsotopeValues = {
+			ChooseTopIntensity, ChooseLowestMZ };
+
 	public static final Parameter suffix = new SimpleParameter(
 			ParameterType.STRING, "Name suffix",
 			"Suffix to be added to peak list name", null, "deisotoped", null);
@@ -34,14 +40,14 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 	public static final Parameter mzTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "m/z tolerance",
 			"Maximum distance in m/z from the expected location of a peak",
-			"m/z", new Double(0.05), new Double(0.0), null, MZmineCore
-					.getMZFormat());
+			"m/z", new Double(0.05), new Double(0.0), null,
+			MZmineCore.getMZFormat());
 
 	public static final Parameter rtTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "RT tolerance",
 			"Maximum distance in RT from the expected location of a peak",
-			null, new Double(5.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+			null, new Double(5.0), new Double(0.0), null,
+			MZmineCore.getRTFormat());
 
 	public static final Parameter monotonicShape = new SimpleParameter(
 			ParameterType.BOOLEAN,
@@ -50,8 +56,18 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 			new Boolean(true));
 
 	public static final Parameter maximumCharge = new SimpleParameter(
-			ParameterType.INTEGER, "Maximum charge", "Maximum charge to consider for detecting the isotope patterns", "",
-			new Integer(1), new Integer(1), null);
+			ParameterType.INTEGER, "Maximum charge",
+			"Maximum charge to consider for detecting the isotope patterns",
+			"", new Integer(1), new Integer(1), null);
+
+	public static final Parameter representativeIsotope = new SimpleParameter(
+			ParameterType.STRING,
+			"Representative isotope",
+			"Which peak should represent the whole isotope pattern. For small molecular weight"
+					+ " compounds with monotonically decreasing isotope pattern, the most"
+					+ " intense isotope should be representative. For high molecular weight"
+					+ " peptides, the lowest m/z isotope may be the representative.",
+			ChooseTopIntensity, representativeIsotopeValues);
 
 	public static final Parameter autoRemove = new SimpleParameter(
 			ParameterType.BOOLEAN,
@@ -61,7 +77,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
 	public IsotopeGrouperParameters() {
 		super(new Parameter[] { suffix, mzTolerance, rtTolerance,
-				monotonicShape, maximumCharge, autoRemove });
+				monotonicShape, maximumCharge, representativeIsotope,
+				autoRemove });
 	}
 
 }
