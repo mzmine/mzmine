@@ -18,8 +18,6 @@
  */
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.*;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
