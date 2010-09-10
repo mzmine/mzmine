@@ -21,7 +21,6 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Vector;
 
 import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.ParameterType;
@@ -319,20 +318,7 @@ public class SimpleParameterSet implements StorableParameterSet {
 				value = valueText;
 				break;
 			case MULTIPLE_SELECTION:
-				String stringMultipleValues[] = valueText.split(",");
-				Object possibleMultipleValues[] = param.getPossibleValues();
-				if (possibleMultipleValues == null)
-					continue;
-				Vector<Object> multipleValues = new Vector<Object>();
-
-				for (int i = 0; i < stringMultipleValues.length; i++) {
-					for (int j = 0; j < possibleMultipleValues.length; j++)
-						if (stringMultipleValues[i].equals(String
-								.valueOf(possibleMultipleValues[j])))
-							multipleValues.add(possibleMultipleValues[j]);
-				}
-				value = multipleValues.toArray();
-
+				value = valueText.split(",");
 				break;
 			case FILE_NAME:
 				value = valueText;

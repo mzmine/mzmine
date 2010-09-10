@@ -297,7 +297,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 		case MULTIPLE_SELECTION:
 			Object multipleValues[] = parameterSet.getMultipleSelection(p);
 			if (multipleValues == null)
-				multipleValues = p.getPossibleValues();
+				multipleValues = (Object[]) p.getPossibleValues();
 			if (multipleValues == null)
 				multipleValues = new Object[0];
 			MultipleSelectionComponent msc = new MultipleSelectionComponent(

@@ -68,7 +68,7 @@ class CSVExportTask extends AbstractTask {
 
 	public double getFinishedPercentage() {
 		if (totalRows == 0) {
-			return 0.0f;
+			return 0;
 		}
 		return (double) processedRows / (double) totalRows;
 	}

@@ -230,7 +230,7 @@ public abstract class MZmineCore {
 			writer.write(configuration);
 			writer.close();
 
-			logger.finest("Saved configuration to file " + file);
+			logger.info("Saved configuration to file " + file);
 
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Could not save configuration file "
@@ -277,7 +277,7 @@ public abstract class MZmineCore {
 
 		}
 
-		logger.finest("Loaded configuration from file " + file);
+		logger.info("Loaded configuration from file " + file);
 
 	}
 

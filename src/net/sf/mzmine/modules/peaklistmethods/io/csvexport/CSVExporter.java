@@ -16,15 +16,16 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Vector;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakIdentity;
@@ -47,8 +48,6 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 	final String helpID = GUIUtils.generateHelpID(this);
 
 	public static final String MODULE_NAME = "Export to CSV file";
-	
-	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private CSVExporterParameters parameters;
 	private Desktop desktop;
@@ -80,62 +79,57 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 
 		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 		if (selectedPeakLists.length != 1) {
-			desktop
-					.displayErrorMessage("Please select a single peak list for export");
+			desktop.displayErrorMessage("Please select a single peak list for export");
 			return;
 		}
 
-		// Generate dinamically from the peak list the exportable elements of
+		// Generate dynamically from the peak list the exportable elements of
 		// peak identity
 		String[] identityElements = generateExportIdentityElements(selectedPeakLists[0]);
-		CSVExporterParameters newParameters = (CSVExporterParameters) parameters
-				.clone();
-		newParameters.setMultipleSelection(
+		parameters.setMultipleSelection(
 				CSVExporterParameters.exportIdentityItemMultipleSelection,
 				identityElements);
 
-		ExitCode setupExitCode = setupParameters(newParameters);
+		ExitCode setupExitCode = setupParameters(parameters);
 
 		if (setupExitCode != ExitCode.OK) {
 			return;
 		}
 
-		runModule(null, selectedPeakLists, newParameters);
+		runModule(null, selectedPeakLists, parameters.clone());
 
 	}
 
-	private String[] generateExportIdentityElements(
-			PeakList peakList) {
+	private String[] generateExportIdentityElements(PeakList peakList) {
 
+		HashSet<String> elements = new HashSet<String>();
 
-		logger.info("Look through the peak list for peak identity properties");
-		Vector<String> elements = new Vector<String>();
-		
-		Map<String, String> properties;
-		
 		for (PeakListRow peakListRow : peakList.getRows()) {
 
 			PeakIdentity peakIdentity = peakListRow.getPreferredPeakIdentity();
 			if (peakIdentity != null) {
 
-				properties = peakIdentity.getAllProperties();
+				Map<String, String> properties = peakIdentity
+						.getAllProperties();
 				Iterator subItr = properties.keySet().iterator();
 
-				while(subItr.hasNext()){
-					
+				while (subItr.hasNext()) {
+
 					String propertyName = (String) subItr.next();
-					if (!elements.contains(propertyName)){
-						logger.info("Detect "+propertyName+" property in the peak list");
+					if (!elements.contains(propertyName)) {
 						elements.add(propertyName);
 					}
-				
+
 				}
-				
+
 			}
 
 		}
-		
-		return elements.toArray(new String[0]);
+
+		String identityElements[] = elements.toArray(new String[0]);
+		Arrays.sort(identityElements);
+
+		return identityElements;
 	}
 
 	/**

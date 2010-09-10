@@ -29,7 +29,7 @@ public class CSVExporterParameters extends SimpleParameterSet {
 	public static final Parameter filename = new SimpleParameter(
 			ParameterType.FILE_NAME,
 			"Filename",
-			"Name of exported peak list file name. If the file exists, it will be overwritten.");
+			"Name of exported peak list file name. If the file already exists, it will be overwritten.");
 
 	public static final Parameter fieldSeparator = new SimpleParameter(
 			ParameterType.STRING, "Field separator",
@@ -38,17 +38,16 @@ public class CSVExporterParameters extends SimpleParameterSet {
 
 	public static final Parameter exportCommonItemMultipleSelection = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Export common elements",
-			"Multiple selection of row's elements to export", null,
+			"Selection of row's elements to export", null,
 			ExportRowCommonElement.values());
 
 	public static final Parameter exportIdentityItemMultipleSelection = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Export identity elements",
-			"Multiple selection of row's elements to export", null,
-			new Object[1]);
+			"Selection of identities to export");
 
 	public static final Parameter exportDataFileItemMultipleSelection = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Export data file elements",
-			"Multiple selection of row's elements to export", null,
+			"Selection of peak's elements to export", null,
 			ExportRowDataFileElement.values());
 
 	public CSVExporterParameters() {

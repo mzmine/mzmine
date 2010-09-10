@@ -42,7 +42,7 @@ public class MultipleSelectionComponent extends JPanel {
 	public MultipleSelectionComponent(Object multipleValues[]) {
 
 		super(new BorderLayout());
-		
+
 		assert multipleValues != null;
 
 		JPanel checkBoxesPanel = new JPanel();
@@ -77,7 +77,7 @@ public class MultipleSelectionComponent extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
+
 		add(scrollPane, BorderLayout.CENTER);
 
 		setPreferredSize(new Dimension(horSize, vertSize));
@@ -100,18 +100,25 @@ public class MultipleSelectionComponent extends JPanel {
 				selectedObjects.add(ecb.getObject());
 			}
 		}
-		return selectedObjects.toArray();
+		return selectedObjects.toArray(new Object[0]);
 	}
 
 	public void setSelectedValues(Object[] values) {
+	
 		for (ExtendedCheckBox<Object> ecb : checkBoxes) {
 			boolean isSelected = false;
 			for (Object v : values) {
-				if (v == ecb.getObject())
+
+				// We compare the identity of the objects, as well as their
+				// string representations, because when a project is saved, only
+				// string representation can be saved to the configuration file
+				if ((v == ecb.getObject())
+						|| (v.toString().equals(ecb.getObject().toString())))
 					isSelected = true;
 			}
 			ecb.setSelected(isSelected);
 		}
+		
 	}
 
 }
