@@ -110,14 +110,6 @@ public class AdductSearch implements BatchStep, ActionListener {
 			return;
 		}
 
-		for (int i = 0; i < peakLists.length; i++) {
-			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
-				desktop
-						.displayErrorMessage("Adduct search can only be performed on peak lists which have a single column");
-				return;
-			}
-		}
-
 		ExitCode exitCode = setupParameters(parameters);
 		if (exitCode != ExitCode.OK) {
 			return;
