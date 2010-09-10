@@ -23,7 +23,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -35,7 +35,7 @@ public class ResampleFilter implements RawDataFilter {
 		binSize = (Double) parameters.getParameterValue(ResampleFilterParameters.binSize);
 	}
 
-	public Scan getNewScan(Scan scan) {
+	public Scan filterScan(Scan scan) {
 
 		Range mzRange = scan.getMZRange();
 		int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange.getMin()) / binSize);

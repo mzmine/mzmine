@@ -28,7 +28,6 @@ import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.RawDataFilter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -132,7 +131,7 @@ class ScanFilteringTask extends AbstractTask {
 				if ((scan.getMSLevel() != 1) && (scan.getParentScanNumber() <= 0)) {
 					return;
 				}
-				Scan newScan = rawDataFilter.getNewScan(scan);
+				Scan newScan = rawDataFilter.filterScan(scan);
 				if (newScan != null) {
 					rawDataFileWriter.addScan(newScan);
 				}

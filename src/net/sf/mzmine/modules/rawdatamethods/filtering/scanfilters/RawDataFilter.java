@@ -17,18 +17,15 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview;
+package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import net.sf.mzmine.data.Scan;
-/**
- * 
- */
+
 public interface RawDataFilter {
 
-    /**
-     * 
-     * @return return the modified scan after being process by the filter
-     */
-    public Scan getNewScan(Scan scan);
-    
+	/**
+	 * Returns a modified scan after being processed by the filter
+	 */
+	public Scan filterScan(Scan scan);
+
 }

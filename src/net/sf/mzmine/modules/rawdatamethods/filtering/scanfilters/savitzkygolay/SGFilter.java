@@ -23,7 +23,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
 
 public class SGFilter implements RawDataFilter {
 
@@ -36,7 +36,7 @@ public class SGFilter implements RawDataFilter {
 
 	}
 
-	public Scan getNewScan(Scan scan) {
+	public Scan filterScan(Scan scan) {
 		initializeAHValues();
 		int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
 		int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();

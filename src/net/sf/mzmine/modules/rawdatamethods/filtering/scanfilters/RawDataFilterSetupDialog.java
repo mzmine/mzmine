@@ -16,71 +16,62 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview;
-
-import java.io.IOException;
+import java.awt.Color;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.RawDataFileWriter;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFiltersParameters;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilter;
-import net.sf.mzmine.modules.visualization.tic.TICDataSet;
-import net.sf.mzmine.modules.visualization.tic.TICPlot;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithChromatogramPreview;
+import net.sf.mzmine.modules.visualization.spectra.PlotMode;
+import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
  * is used to preview how the selected raw data filter and his parameters works
  * over the raw data file.
  */
-public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogramPreview {
+public class RawDataFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
-    protected SimpleParameterSet mdParameters;
-        
+    // Raw Data Filter;
     private RawDataFilter rawDataFilter;
+    private SimpleParameterSet mdParameters;
     private int rawDataFilterTypeNumber;
 
     /**
      * @param parameters
      * @param rawDataFilterTypeNumber
      */
-    public RawDataFilterSetupDialog(DataSetFiltersParameters parameters,
+    public RawDataFilterSetupDialog(ScanFiltersParameters parameters,
             int rawDataFilterTypeNumber) {
 
         super(
-                DataSetFiltersParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
+                ScanFiltersParameters.rawDataFilterNames[rawDataFilterTypeNumber] + "'s parameter setup dialog ",
                 parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber),
                 null);
-
 
         this.rawDataFilterTypeNumber = rawDataFilterTypeNumber;
 
         // Parameters of local raw data filter to get preview values
         mdParameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
 
-
     }
 
-	protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
-			Range rtRange, Range mzRange) {        
+    /**
+     * This function set all the information into the plot chart
+     *
+     * @param scanNumber
+     */
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-		// First, remove all current data sets
-		ticPlot.removeAllTICDataSets();
-		
-		// Add the original raw data file
-        int scanNumbers[] = dataFile.getScanNumbers(1, rtRange);
-       	TICDataSet ticDataset = new TICDataSet(dataFile, scanNumbers, mzRange, null);
-       	ticPlot.addTICDataset(ticDataset);
+        String rawDataFilterClassName = ScanFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
 
-		// Create an instance of the raw data filter
-		String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
         try {
             Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
             Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
@@ -92,22 +83,23 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
             return;
         }
 
-		try {
-	        // Create a new filtered raw data file
-			RawDataFileWriter 	rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + " filtered");
-	        RawDataFile newDataFile = rawDataFilter.filterDatafile(dataFile, rawDataFileWriter);
-	        
-	        // If successful, add the new data file 
-	        if (newDataFile != null) {
-	            int newScanNumbers[] = newDataFile.getScanNumbers(1, rtRange);
-	           	TICDataSet newDataset = new TICDataSet(newDataFile, newScanNumbers, mzRange, null);
-	           	ticPlot.addTICDataset(newDataset);
-	        }
-	        
-		} catch (IOException e) {
-			e.printStackTrace();
-			return;
-		}
+        Scan newScan = rawDataFilter.filterScan(previewScan);
+
+        ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
+        ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan", previewScan);
+
+        spectrumPlot.removeAllDataSets();
+
+        spectrumPlot.addDataSet(spectraOriginalDataSet,
+                SpectraVisualizerWindow.scanColor, true);
+        spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
+
+        // if the scan is centroided, switch to centroid mode
+        if (previewScan.isCentroided()) {
+            spectrumPlot.setPlotMode(PlotMode.CENTROID);
+        } else {
+            spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+        }
 
     }
 }

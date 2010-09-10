@@ -24,7 +24,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.preview.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
 
 public class MeanFilter implements RawDataFilter {
 
@@ -34,7 +34,7 @@ public class MeanFilter implements RawDataFilter {
 		oneSidedWindowLength = ((Double) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).doubleValue();
 	}
 
-	public Scan getNewScan(Scan scan) {
+	public Scan filterScan(Scan scan) {
 		return processOneScan(scan, oneSidedWindowLength);
 	}
 
