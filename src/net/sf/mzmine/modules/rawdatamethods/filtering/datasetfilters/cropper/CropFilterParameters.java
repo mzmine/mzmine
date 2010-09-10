@@ -25,14 +25,14 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
-public class cropperFilterParameters extends SimpleParameterSet {
+public class CropFilterParameters extends SimpleParameterSet {
 
     public static final Parameter retentionTimeRange = new SimpleParameter(
             ParameterType.RANGE, "Retention time",
             "retention time boundary of the cropped region", null, new Range(0,
             600), new Double(0), null, MZmineCore.getRTFormat());
 
-    public cropperFilterParameters() {
+    public CropFilterParameters() {
         super(new Parameter[]{retentionTimeRange});
     }
 }

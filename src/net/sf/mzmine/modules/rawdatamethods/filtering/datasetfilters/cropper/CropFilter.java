@@ -17,44 +17,49 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection;
+package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
+
+import java.io.IOException;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilter;
+import net.sf.mzmine.util.Range;
 
-public class RTCorrectionFilter implements RawDataFilter {
+public class CropFilter implements RawDataFilter {
 
-    RTCorrectionFilterParameters parameters;
-	public RTCorrectionFilter(RTCorrectionFilterParameters parameters) {
-        this.parameters = parameters;
+	private Range RTRange;
+	private int processedScans, totalScans;
+
+	public CropFilter(CropFilterParameters parameters) {
+		this.RTRange = (Range) parameters
+				.getParameterValue(CropFilterParameters.retentionTimeRange);
 	}
 
-	public RawDataFile filterDatafile(RawDataFile dataFile, RawDataFileWriter rawDataFileWriter) {
+	public RawDataFile filterDatafile(RawDataFile dataFile,
+			RawDataFileWriter rawDataFileWriter) throws IOException {
 
-		try {
-			int[] scanNumbers = dataFile.getScanNumbers(1);
-			int totalScans = scanNumbers.length;
+		int[] scanNumbers = dataFile.getScanNumbers(1);
+		totalScans = scanNumbers.length;
 
-			for (int i = 0; i < totalScans; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);               
-				if (scan != null) {               
-					rawDataFileWriter.addScan(new SimpleScan(scan));
-				}
+		for (processedScans = 0; processedScans < totalScans; processedScans++) {
+			Scan scan = dataFile.getScan(scanNumbers[processedScans]);
+
+			if (RTRange.contains(scan.getRetentionTime())) {
+				Scan scanCopy = new SimpleScan(scan);
+				rawDataFileWriter.addScan(scanCopy);
 			}
-
-			return rawDataFileWriter.finishWriting();
-
-
-		} catch (Exception e) {
-            e.printStackTrace();
-			return null;
 		}
+
+		return rawDataFileWriter.finishWriting();
+
 	}
 
 	public double getProgress() {
-		return 0.5f;
+		if (totalScans == 0)
+			return 0;
+		return (double) processedScans / totalScans;
 	}
 }

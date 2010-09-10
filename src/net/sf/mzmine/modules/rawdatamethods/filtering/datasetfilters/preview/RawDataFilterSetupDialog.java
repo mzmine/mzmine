@@ -28,6 +28,7 @@ import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFiltersParameters;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilter;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.util.Range;
@@ -94,7 +95,7 @@ public class RawDataFilterSetupDialog extends ParameterSetupDialogWithChromatogr
 		try {
 	        // Create a new filtered raw data file
 			RawDataFileWriter 	rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + " filtered");
-	        RawDataFile newDataFile = rawDataFilter.getNewDataFiles(dataFile, rawDataFileWriter);
+	        RawDataFile newDataFile = rawDataFilter.filterDatafile(dataFile, rawDataFileWriter);
 	        
 	        // If successful, add the new data file 
 	        if (newDataFile != null) {

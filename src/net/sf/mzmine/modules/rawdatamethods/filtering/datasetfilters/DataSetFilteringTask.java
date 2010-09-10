@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import java.lang.reflect.Constructor;
@@ -25,7 +26,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview.RawDataFilter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -56,7 +56,8 @@ class DataSetFilteringTask extends AbstractTask {
 		this.dataFiles = dataFiles;
 
 		rawDataFilterTypeNumber = parameters.getRawDataFilterTypeNumber();
-		this.parameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
+		this.parameters = parameters
+				.getRawDataFilteringParameters(rawDataFilterTypeNumber);
 
 		suffix = parameters.getSuffix();
 
@@ -85,26 +86,28 @@ class DataSetFilteringTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
-
-		//logger.info("Started filtering scans on " + dataFile);
-
+		setStatus(TaskStatus.PROCESSING);
 
 		// Create raw data filter according with the user's selection
 		String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
 		try {
 			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
-			Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
-			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(parameters);
+			Constructor rawDataFilterConstruct = rawDataFilterClass
+					.getConstructors()[0];
+			rawDataFilter = (RawDataFilter) rawDataFilterConstruct
+					.newInstance(parameters);
 		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of raw data filter " + rawDataFilterClassName;
-			setStatus( TaskStatus.ERROR );
+			errorMessage = "Error trying to make an instance of raw data filter "
+					+ rawDataFilterClassName;
+			setStatus(TaskStatus.ERROR);
 			return;
 		}
 		try {
 			for (RawDataFile dataFile : dataFiles) {
-				RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(dataFile.getName() + " " + suffix);
-				RawDataFile newDataFiles = rawDataFilter.getNewDataFiles(dataFile, rawDataFileWriter);
+				RawDataFileWriter rawDataFileWriter = MZmineCore
+						.createNewFile(dataFile.getName() + " " + suffix);
+				RawDataFile newDataFiles = rawDataFilter.filterDatafile(
+						dataFile, rawDataFileWriter);
 				if (newDataFiles != null) {
 					MZmineCore.getCurrentProject().addFile(newDataFiles);
 
@@ -116,11 +119,10 @@ class DataSetFilteringTask extends AbstractTask {
 				}
 			}
 
-			setStatus( TaskStatus.FINISHED );
-		//logger.info("Finished scan filter on " + dataFile);
+			setStatus(TaskStatus.FINISHED);
 
 		} catch (Exception e) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = e.toString();
 			return;
 		}
@@ -128,6 +130,6 @@ class DataSetFilteringTask extends AbstractTask {
 	}
 
 	public Object[] getCreatedObjects() {
-		return new Object[]{newPeakList};
+		return new Object[] { newPeakList };
 	}
 }

@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import java.util.Iterator;
@@ -35,7 +36,7 @@ public class DataSetFiltersParameters implements StorableParameterSet {
 	// Raw Data Filters
 	public static final String rawDataFilterNames[] = {"Crop Filter"};
 	public static final String rawDataFilterClasses[] = {
-		"net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper.cropperFilter"};
+		"net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper.CropFilter"};
 	
 	// All parameters
 	private SimpleParameterSet rawDataFilterParameters[],  myParameters;

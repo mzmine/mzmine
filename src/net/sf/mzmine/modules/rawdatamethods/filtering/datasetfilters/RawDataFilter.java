@@ -17,21 +17,21 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.preview;
+package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
+
+import java.io.IOException;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
-/**
- * 
- */
+
 public interface RawDataFilter {
 
-    /**
-     * 
-     * @return return the modified scan after being process by the filter
-     */
-    public RawDataFile getNewDataFiles(RawDataFile dataFile, RawDataFileWriter newFile);
+	/**
+	 * Returns a modified data file after being processed by the filter
+	 */
+	public RawDataFile filterDatafile(RawDataFile dataFile,
+			RawDataFileWriter newFile) throws IOException;
 
 	public double getProgress();
-    
+
 }
