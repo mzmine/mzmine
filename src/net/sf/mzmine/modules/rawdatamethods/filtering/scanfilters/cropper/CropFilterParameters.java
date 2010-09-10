@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 
 import net.sf.mzmine.data.Parameter;
@@ -31,15 +32,8 @@ public class CropFilterParameters extends SimpleParameterSet {
 			ParameterType.RANGE, "m/z range",
 			"m/z boundary of the cropped region", "m/z", new Range(0, 1000),
 			new Double(0), null, MZmineCore.getMZFormat());
-	
-	public static final Parameter retentionTimeRange = new SimpleParameter(
-			ParameterType.RANGE, "Retention time",
-			"retention time boundary of the cropped region", null, new Range(0,
-			600), new Double(0), null, MZmineCore.getRTFormat());
 
 	public CropFilterParameters() {
-		super(
-				new Parameter[]{mzRange, retentionTimeRange
-				});
+		super(new Parameter[] { mzRange });
 	}
 }

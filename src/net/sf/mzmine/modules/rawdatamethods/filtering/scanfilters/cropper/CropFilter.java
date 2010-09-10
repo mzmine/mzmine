@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 
 import net.sf.mzmine.data.DataPoint;
@@ -26,35 +27,32 @@ import net.sf.mzmine.util.Range;
 
 public class CropFilter implements RawDataFilter {
 
-	private Range mzRange,  rtRange;
+	private Range mzRange;
 
 	public CropFilter(CropFilterParameters parameters) {
-		mzRange = (Range) parameters.getParameterValue(CropFilterParameters.mzRange);
-		rtRange = (Range) parameters.getParameterValue(CropFilterParameters.retentionTimeRange);
+		mzRange = (Range) parameters
+				.getParameterValue(CropFilterParameters.mzRange);
 	}
 
 	public Scan filterScan(Scan scan) {
 
-		if (rtRange.contains(scan.getRetentionTime())) {
-			
-			// Check if whole m/z range is within cropping region or
-			// scan is a fragmentation scan. In such case we copy the
-			// scan unmodified.
-			if ((scan.getMSLevel() > 1) || (mzRange.containsRange(scan.getMZRange()))) {
-				return scan;
-			}
-
-			// Pickup datapoints inside the m/z range
-
-			DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
-
-			// Create updated scan
-			SimpleScan newScan = new SimpleScan(scan);
-			newScan.setDataPoints(croppedDataPoints);
-
-			return newScan;
-
+		// Check if whole m/z range is within cropping region or
+		// scan is a fragmentation scan. In such case we copy the
+		// scan unmodified.
+		if ((scan.getMSLevel() > 1)
+				|| (mzRange.containsRange(scan.getMZRange()))) {
+			return scan;
 		}
-		return null;
+
+		// Pickup datapoints inside the m/z range
+
+		DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
+
+		// Create updated scan
+		SimpleScan newScan = new SimpleScan(scan);
+		newScan.setDataPoints(croppedDataPoints);
+
+		return newScan;
+
 	}
 }
