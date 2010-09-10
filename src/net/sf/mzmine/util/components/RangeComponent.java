@@ -23,15 +23,14 @@ import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 
 import javax.swing.JFormattedTextField;
-import javax.swing.JPanel;
+import javax.swing.JLabel;
 
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 
 /**
  * Component with two textboxes to specify a range
  */
-public class RangeComponent extends JPanel {
+public class RangeComponent extends GridBagPanel {
 
 	public static final int TEXTFIELD_COLUMNS = 8;
 
@@ -42,9 +41,9 @@ public class RangeComponent extends JPanel {
 		maxTxtField = new JFormattedTextField(format);
 		minTxtField.setColumns(TEXTFIELD_COLUMNS);
 		maxTxtField.setColumns(TEXTFIELD_COLUMNS);
-		add(minTxtField);
-		GUIUtils.addLabel(this, " - ");
-		add(maxTxtField);
+		add(minTxtField, 0, 0, 1, 1, 1, 0);
+		add(new JLabel(" - "), 1, 0, 1, 1, 0, 0);
+		add(maxTxtField, 2, 0, 1, 1, 1, 0);
 	}
 
 	/**
