@@ -19,8 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import java.awt.event.ActionListener;
-import java.text.NumberFormat;
+import java.util.ArrayList;
 
 import net.sf.mzmine.main.MZmineCore;
 
@@ -42,117 +41,96 @@ import org.jfree.data.xy.XYDataset;
  */
 class TICItemLabelGenerator implements XYItemLabelGenerator {
 
-    /*
-     * Number of screen pixels to reserve for each label, so that the labels do
-     * not overlap
-     */
-    public static final int POINTS_RESERVE_X = 100;
-    public static final int POINTS_RESERVE_Y = 100;
+	/*
+	 * Number of screen pixels to reserve for each label, so that the labels do
+	 * not overlap
+	 */
+	public static final int POINTS_RESERVE_X = 100;
+	public static final int POINTS_RESERVE_Y = 100;
 
-    /*
-     * Only data points which have intensity >= (dataset minimum value *
-     * THRESHOLD_FOR_ANNOTATION) will be annotated
-     */
-    public static final double THRESHOLD_FOR_ANNOTATION = 2f;
+	/*
+	 * Only data points which have intensity >= (dataset minimum value *
+	 * THRESHOLD_FOR_ANNOTATION) will be annotated
+	 */
+	public static final double THRESHOLD_FOR_ANNOTATION = 2;
 
-    /*
-     * Some saved values
-     */
-    private TICPlot plot;
-    //private TICVisualizerWindow ticWindow;
-    private ActionListener ticWindow;
-    private Object plotType;
-    private NumberFormat mzFormat = MZmineCore.getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	private TICPlot plot;
 
-    /**
-     * Constructor
-     */
-    TICItemLabelGenerator(TICPlot plot, ActionListener ticWindow) {
-    	if (ticWindow instanceof TICVisualizerWindow)
-    		plotType = ((TICVisualizerWindow) ticWindow).getPlotType();
-    	else
-    		plotType = TICVisualizerParameters.plotTypeBP;
-        this.plot = plot;
-        this.ticWindow = ticWindow;
-    }
+	/**
+	 * Constructor
+	 */
+	TICItemLabelGenerator(TICPlot plot) {
+		this.plot = plot;
+	}
 
-    /**
-     * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
-     *      int, int)
-     */
-    public String generateLabel(XYDataset dataSet, int series, int item) {
+	/**
+	 * @see org.jfree.chart.labels.XYItemLabelGenerator#generateLabel(org.jfree.data.xy.XYDataset,
+	 *      int, int)
+	 */
+	public String generateLabel(XYDataset dataSet, int series, int item) {
 
-        // dataSet is actually TICDataSet
-        TICDataSet ticDataSet = (TICDataSet) dataSet;
+		// dataSet should be actually TICDataSet
+		if (!(dataSet instanceof TICDataSet)) return null;
+		TICDataSet ticDataSet = (TICDataSet) dataSet;
 
-        // X and Y values of current data point
-        double originalX = ticDataSet.getX(0, item).doubleValue();
-        double originalY = ticDataSet.getY(0, item).doubleValue();
+		// X and Y values of current data point
+		double originalX = ticDataSet.getX(0, item).doubleValue();
+		double originalY = ticDataSet.getY(0, item).doubleValue();
 
-        // Check if the intensity of this data point is above threshold
-        if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
-            return null;
+		// Check if the intensity of this data point is above threshold
+		if (originalY < ticDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION)
+			return null;
 
-        // Check if this data point is local maximum
-        if (!ticDataSet.isLocalMaximum(item))
-            return null;
+		// Check if this data point is local maximum
+		if (!ticDataSet.isLocalMaximum(item))
+			return null;
 
-        // Calculate data size of 1 screen pixel
-        double xLength = (double) plot.getXYPlot().getDomainAxis().getRange().getLength();
-        double pixelX = xLength / plot.getWidth();
-        double yLength = (double) plot.getXYPlot().getRangeAxis().getRange().getLength();
-        double pixelY = yLength / plot.getHeight();
+		// Calculate data size of 1 screen pixel
+		double xLength = (double) plot.getXYPlot().getDomainAxis().getRange()
+				.getLength();
+		double pixelX = xLength / plot.getWidth();
+		double yLength = (double) plot.getXYPlot().getRangeAxis().getRange()
+				.getLength();
+		double pixelY = yLength / plot.getHeight();
 
-        TICDataSet[] allDataSets={};
-        
-        // Get all data sets of current plot
-    	if (ticWindow instanceof TICVisualizerWindow){
-    		allDataSets = ((TICVisualizerWindow) ticWindow).getAllDataSets();
-    	}
-    	// TODO: there should not be a reference to PeakResolverSetupDialog
-    	/*
-    	if (ticWindow instanceof PeakResolverSetupDialog){
-    		allDataSets = ((PeakResolverSetupDialog) ticWindow).getDataSet();
-    	}*/
+		ArrayList<TICDataSet> allDataSets = new ArrayList<TICDataSet>();
 
-    	
-        // Check each data set for conflicting data points
-        for (TICDataSet checkedDataSet : allDataSets) {
+		// Get all data sets of current plot
+		for (int i = 0; i < plot.getXYPlot().getDatasetCount(); i++) {
+			XYDataset dataset = plot.getXYPlot().getDataset(i);
+			if (dataset instanceof TICDataSet)
+				allDataSets.add((TICDataSet) dataset);
+		}
 
-            // Search for local maxima
-            double searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
-            double searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
-            double searchMinY = originalY;
-            double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
+		// Check each data set for conflicting data points
+		for (TICDataSet checkedDataSet : allDataSets) {
 
-            // We don't want to search below the threshold level of the data set
-            if (searchMinY < (checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION))
-                searchMinY = checkedDataSet.getMinIntensity()
-                        * THRESHOLD_FOR_ANNOTATION;
+			// Search for local maxima
+			double searchMinX = originalX - (POINTS_RESERVE_X / 2) * pixelX;
+			double searchMaxX = originalX + (POINTS_RESERVE_X / 2) * pixelX;
+			double searchMinY = originalY;
+			double searchMaxY = originalY + POINTS_RESERVE_Y * pixelY;
 
-            // Do search
-            int foundLocalMaxima[] = checkedDataSet.findLocalMaxima(searchMinX,
-                    searchMaxX, searchMinY, searchMaxY);
+			// We don't want to search below the threshold level of the data set
+			if (searchMinY < (checkedDataSet.getMinIntensity() * THRESHOLD_FOR_ANNOTATION))
+				searchMinY = checkedDataSet.getMinIntensity()
+						* THRESHOLD_FOR_ANNOTATION;
 
-            // If we found other maximum then this data point, bail out
-            if (foundLocalMaxima.length > (dataSet == checkedDataSet ? 1 : 0))
-                return null;
+			// Do search
+			int foundLocalMaxima[] = checkedDataSet.findLocalMaxima(searchMinX,
+					searchMaxX, searchMinY, searchMaxY);
 
-        }
+			// If we found other maximum then this data point, bail out
+			if (foundLocalMaxima.length > (dataSet == checkedDataSet ? 1 : 0))
+				return null;
 
-        // Prepare the label
-        String label = null;
+		}
 
-        // Base peak plot shows m/z, TIC shows total intensity
-        if (plotType == TICVisualizerParameters.plotTypeBP) {
-            double mz = ticDataSet.getZ(0, item).doubleValue();
-            label = mzFormat.format(mz);
-        } else {
-            label = intensityFormat.format(originalY);
-        }
+		// Prepare the label
+		double mz = ticDataSet.getZ(0, item).doubleValue();
+		String label = MZmineCore.getMZFormat().format(mz);
 
-        return label;
+		return label;
 
-    }
+	}
 }

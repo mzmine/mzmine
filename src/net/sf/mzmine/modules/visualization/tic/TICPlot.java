@@ -215,12 +215,9 @@ public class TICPlot extends ChartPanel {
 		defaultRenderer.setBaseItemLabelPaint(labelsColor);
 
 		// set label generator
-		if (visualizer instanceof TICVisualizerWindow) {
-		XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this,
-				visualizer);
+		XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
 		defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
 		defaultRenderer.setBaseItemLabelsVisible(true);
-		}
 
 		// set toolTipGenerator
 		XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
