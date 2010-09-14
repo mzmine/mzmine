@@ -24,6 +24,8 @@ import java.text.NumberFormat;
 
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.util.Range;
 
@@ -59,15 +61,24 @@ public class RangeComponent extends GridBagPanel {
 		minTxtField.setValue(value.getMin());
 		maxTxtField.setValue(value.getMax());
 	}
-	
-	public void addPropertyChangeListener(String property, PropertyChangeListener listener) {
+
+	public void addPropertyChangeListener(String property,
+			PropertyChangeListener listener) {
 		minTxtField.addPropertyChangeListener(property, listener);
 		maxTxtField.addPropertyChangeListener(property, listener);
 	}
 
-	public void removePropertyChangeListener(String property, PropertyChangeListener listener) {
+	public void removePropertyChangeListener(String property,
+			PropertyChangeListener listener) {
 		minTxtField.removePropertyChangeListener(property, listener);
 		maxTxtField.removePropertyChangeListener(property, listener);
 	}
-	
+
+	public void setNumberFormat(NumberFormat format) {
+		DefaultFormatterFactory fac = new DefaultFormatterFactory(
+				new NumberFormatter(format));
+		minTxtField.setFormatterFactory(fac);
+		maxTxtField.setFormatterFactory(fac);
+	}
+
 }

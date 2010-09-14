@@ -131,6 +131,7 @@ public class HistogramChart extends ChartPanel{
 		
 		ClusteredXYBarRenderer renderer = new ClusteredXYBarRenderer();
 		renderer.setMargin(marginSize);
+		renderer.setShadowVisible(false);
 		plot.setRenderer(renderer);
 
 

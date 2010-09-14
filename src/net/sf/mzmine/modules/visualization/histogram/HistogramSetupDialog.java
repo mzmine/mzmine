@@ -23,10 +23,6 @@ import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
-import javax.swing.JPanel;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.NumberFormatter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
@@ -35,136 +31,129 @@ import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.components.ExtendedCheckBox;
+import net.sf.mzmine.util.components.RangeComponent;
 import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class HistogramSetupDialog extends ParameterSetupDialog {
 
-    private JComboBox dataTypeComponent;
-    private JFormattedTextField minField, maxField;
-    private PeakList peakList;
-    
+	private JComboBox dataTypeComponent;
+	private RangeComponent dataRangeComponent;
+	private PeakList peakList;
 
-    public HistogramSetupDialog(String title, SimpleParameterSet parameterSet,
-            PeakList peakList, String helpID) {
+	public HistogramSetupDialog(String title, SimpleParameterSet parameterSet,
+			PeakList peakList, String helpID) {
 
-        super(title, parameterSet, helpID);
-        this.peakList = peakList;
+		super(title, parameterSet, helpID);
+		this.peakList = peakList;
 
-        dataTypeComponent = (JComboBox) getComponentForParameter(HistogramParameters.dataType);
-        dataTypeComponent.addActionListener(this);
+		dataTypeComponent = (JComboBox) getComponentForParameter(HistogramParameters.dataType);
+		dataTypeComponent.addActionListener(this);
 
-        JPanel dataRangeComponent = (JPanel) getComponentForParameter(HistogramParameters.rangeData);
+		dataRangeComponent = (RangeComponent) getComponentForParameter(HistogramParameters.rangeData);
 
-        minField = (JFormattedTextField) dataRangeComponent.getComponent(0);
-        maxField = (JFormattedTextField) dataRangeComponent.getComponent(2);
+		updateNumberFormats();
 
-        updateNumberFormats();
+	}
 
-    }
-
-    /**
+	/**
      * 
      */
-    @Override
-    public void actionPerformed(ActionEvent event) {
+	@Override
+	public void actionPerformed(ActionEvent event) {
 
-        super.actionPerformed(event);
+		super.actionPerformed(event);
 
-        Object source = event.getSource();
+		// When dialog is created, dataRangeComponent may be still null when we
+		// get here
+		if (dataRangeComponent == null)
+			return;
 
-        if ((source instanceof JComboBox)
-                || (source instanceof ExtendedCheckBox)) {
+		Object source = event.getSource();
 
-            updateNumberFormats();
-            updateRangeValue();
-        }
+		if (source == dataTypeComponent) {
 
-    }
+			updateNumberFormats();
+			updateRangeValue();
+		}
 
-    private void updateNumberFormats() {
+	}
 
-        HistogramDataType dataType = (HistogramDataType) dataTypeComponent.getSelectedItem();
-        NumberFormat formatter = getAxisNumberFormat(dataType);
-        DefaultFormatterFactory fac = new DefaultFormatterFactory(
-                new NumberFormatter(formatter));
+	private void updateNumberFormats() {
+		HistogramDataType dataType = (HistogramDataType) dataTypeComponent
+				.getSelectedItem();
+		NumberFormat format = getAxisNumberFormat(dataType);
+		dataRangeComponent.setNumberFormat(format);
+	}
 
-        minField.setFormatterFactory(fac);
-        maxField.setFormatterFactory(fac);
-    }
+	private void updateRangeValue() {
 
-    private void updateRangeValue() {
+		RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 
-        RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
+		HistogramDataType dataType = (HistogramDataType) dataTypeComponent
+				.getSelectedItem();
 
-        HistogramDataType dataType = (HistogramDataType) dataTypeComponent.getSelectedItem();
+		Range valueRange = calculateRange(dataType, rawDataFiles);
+		if (valueRange != null)
+			dataRangeComponent.setRangeValue(valueRange);
 
-        try {
-            Range valueRange = calculateRange(dataType, rawDataFiles);
-            minField.setValue(valueRange.getMin());
-            maxField.setValue(valueRange.getMax());
-        } catch (Exception e) {
-            // ignore
-        }
+	}
 
-    }
+	private Range calculateRange(HistogramDataType dataType,
+			RawDataFile rawDataFiles[]) {
 
-    private Range calculateRange(HistogramDataType dataType,
-            RawDataFile rawDataFiles[]) {
+		Range range = null;
 
-        Range range = null;
+		for (RawDataFile dataFile : rawDataFiles) {
+			for (ChromatographicPeak peak : peakList.getPeaks(dataFile)) {
 
-        for (RawDataFile dataFile : rawDataFiles) {
-            for (ChromatographicPeak peak : peakList.getPeaks(dataFile)) {
+				double value = 0;
 
-                double value = 0;
+				switch (dataType) {
+				case AREA:
+					value = peak.getArea();
+					break;
+				case HEIGHT:
+					value = peak.getHeight();
+					break;
+				case MASS:
+					value = peak.getMZ();
+					break;
+				case RT:
+					value = peak.getRT();
+					break;
+				}
 
-                switch (dataType) {
-                case AREA:
-                    value = peak.getArea();
-                    break;
-                case HEIGHT:
-                    value = peak.getHeight();
-                    break;
-                case MASS:
-                    value = peak.getMZ();
-                    break;
-                case RT:
-                    value = peak.getRT();
-                    break;
-                }
+				if (Double.isNaN(value))
+					continue;
 
-                if (Double.isNaN(value))
-                    continue;
+				if (range == null)
+					range = new Range(value);
+				else
+					range.extendRange(value);
+			}
 
-                if (range == null)
-                    range = new Range(value);
-                else
-                    range.extendRange(value);
-            }
+		}
+		return range;
+	}
 
-        }
-        return range;
-    }
+	private NumberFormat getAxisNumberFormat(HistogramDataType dataType) {
 
-    private NumberFormat getAxisNumberFormat(HistogramDataType dataType) {
-
-        NumberFormat formatter = null;
-        switch (dataType) {
-        case AREA:
-            formatter = MZmineCore.getIntensityFormat();
-            break;
-        case MASS:
-            formatter = MZmineCore.getMZFormat();
-            break;
-        case HEIGHT:
-            formatter = MZmineCore.getIntensityFormat();
-            break;
-        case RT:
-            formatter = MZmineCore.getRTFormat();
-            break;
-        }
-        return formatter;
-    }
+		NumberFormat formatter = null;
+		switch (dataType) {
+		case AREA:
+			formatter = MZmineCore.getIntensityFormat();
+			break;
+		case MASS:
+			formatter = MZmineCore.getMZFormat();
+			break;
+		case HEIGHT:
+			formatter = MZmineCore.getIntensityFormat();
+			break;
+		case RT:
+			formatter = MZmineCore.getRTFormat();
+			break;
+		}
+		return formatter;
+	}
 
 }

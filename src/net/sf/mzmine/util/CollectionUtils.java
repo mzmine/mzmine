@@ -20,6 +20,7 @@
 package net.sf.mzmine.util;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -65,13 +66,16 @@ public class CollectionUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
-		T newArray[] = (T[]) Array.newInstance(newClass, array.length);
-
+		ArrayList<T> newArray = new ArrayList<T>();
+		
 		for (int i = 0; i < array.length; i++) {
-			newArray[i] = newClass.cast(array[i]);
+			// Only add those objects that can be cast to the new class
+			if (newClass.isInstance(array[i])) {
+				newArray.add(newClass.cast(array[i]));
+			}
 		}
 
-		return newArray;
+		return newArray.toArray((T[]) Array.newInstance(newClass, 0));
 	}
 
 	/**
@@ -128,7 +132,7 @@ public class CollectionUtils {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Concatenate two arrays
 	 * 
@@ -136,14 +140,12 @@ public class CollectionUtils {
 	 *            array of objects
 	 * @param second
 	 *            array of objects
-	 * @return both
-	 *  		  array of objects
-	 */	
+	 * @return both array of objects
+	 */
 	public static <T> T[] concat(T[] first, T[] second) {
-		  T[] result = Arrays.copyOf(first, first.length + second.length);
-		  System.arraycopy(second, 0, result, first.length, second.length);
-		  return result;
-		}
-
+		T[] result = Arrays.copyOf(first, first.length + second.length);
+		System.arraycopy(second, 0, result, first.length, second.length);
+		return result;
+	}
 
 }

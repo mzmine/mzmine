@@ -36,6 +36,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -196,9 +197,11 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		peaksInfoList.setDefaultRenderer(Object.class,
 				new PeakSummaryTableCellRenderer());
+		
 
 		int countLines = 0, colorIndex = 0;
 		Color peakColor;
+		
 		for (ChromatographicPeak peak : peaks) {
             // set color for current XIC
 			if (peak != null) {
@@ -208,15 +211,16 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			}
             colorIndex = (colorIndex + 1) % CombinedXICComponent.plotColors.length;
 		}
-
+		
 		JPanel listPanel = new JPanel(new BorderLayout());
-		listPanel.add(peaksInfoList, BorderLayout.CENTER);
+		listPanel.add(new JScrollPane(peaksInfoList), BorderLayout.CENTER);
 		listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
 		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
-		Dimension preffDimension = calculatedTableDimension(peaksInfoList);
-		listPanel.setPreferredSize(preffDimension);
+		Dimension d = calculatedTableDimension(peaksInfoList);
+		listPanel.setPreferredSize(d);
 
+		
 		tablePanel.add(Box.createVerticalStrut(5));
 		tablePanel.add(listPanel, BorderLayout.CENTER);
 		tablePanel.setBackground(bg);
@@ -314,6 +318,10 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				if (c == 0) {
 					totalHeight += comp.getPreferredSize().height;
 				}
+				
+				// Consider max 10 rows
+				if (r == 8) break;
+				
 			}
 			totalWidth += maxWidth;
 			column = peaksInfoList.getColumnModel().getColumn(c);
@@ -321,6 +329,9 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			maxWidth = 0;
 		}
 
+		// add 30 px for a scrollbar
+		totalWidth += 30;
+		
 		comp = headerRenderer.getTableCellRendererComponent(peaksInfoList,
 				model.getColumnName(0), false, false, 0, 0);
 		totalHeight += comp.getPreferredSize().height;
