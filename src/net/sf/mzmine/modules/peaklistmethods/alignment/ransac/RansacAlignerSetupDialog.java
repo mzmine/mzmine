@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BorderLayout;
@@ -53,10 +52,10 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
         ActionListener {
 
     // Dialog components
-    private JPanel pnlPlotXY,  peakListsPanel;
+    private JPanel pnlPlotXY, peakListsPanel;
     private JCheckBox preview;
     private AlignmentRansacPlot chart;
-    private JComboBox peakListsComboX,  peakListsComboY;
+    private JComboBox peakListsComboX, peakListsComboY;
     private JButton alignmentPreviewButton;
     private RansacAlignerParameters parameters;
 
@@ -81,17 +80,17 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
         if (src == preview) {
             if (preview.isSelected()) {
-				// Set the height of the preview to 200 cells, so it will span
-				// the whole vertical length of the dialog (buttons are at row no
-				// 100). Also, we set the weight to 10, so the preview component
-				// will consume most of the extra available space.
-				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
+                // Set the height of the preview to 200 cells, so it will span
+                // the whole vertical length of the dialog (buttons are at row no
+                // 100). Also, we set the weight to 10, so the preview component
+                // will consume most of the extra available space.
+                mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
                 peakListsPanel.setVisible(true);
                 updateMinimumSize();
                 pack();
                 setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
             } else {
-            	mainPanel.remove(pnlPlotXY);
+                mainPanel.remove(pnlPlotXY);
                 peakListsPanel.setVisible(false);
                 updateMinimumSize();
                 pack();
@@ -131,7 +130,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
             // Plot the result
             this.chart.removeSeries();
-            this.chart.addSeries(list, peakListX.getName() + " vs " + peakListY.getName());
+            this.chart.addSeries(list, peakListX.getName() + " vs " + peakListY.getName(), (Boolean) this.parameters.getParameterValue(RansacAlignerParameters.Linear));
             this.chart.printAlignmentChart(peakListX.getName() + " RT", peakListY.getName() + " RT");
 
         }
@@ -200,10 +199,10 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
         chart = new AlignmentRansacPlot();
         pnlPlotXY.add(chart, BorderLayout.CENTER);
 
-		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
-				3, 1, 0, 0);
+        mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
+                3, 1, 0, 0);
 
-		updateMinimumSize();
+        updateMinimumSize();
         pack();
         setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 

@@ -40,98 +40,98 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  */
 public class RansacAligner implements BatchStep, ActionListener {
 
-	private RansacAlignerParameters parameters;
-	private Desktop desktop;
-	private final String helpID = GUIUtils.generateHelpID(this);
+    private RansacAlignerParameters parameters;
+    private Desktop desktop;
+    private final String helpID = GUIUtils.generateHelpID(this);
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule() {
 
-		this.desktop = MZmineCore.getDesktop();
+        this.desktop = MZmineCore.getDesktop();
 
-		parameters = new RansacAlignerParameters();
+        parameters = new RansacAlignerParameters();
 
-		desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
-				"Alignment based on RANSAC algorithm",
-				KeyEvent.VK_R, false, this, null);
+        desktop.addMenuItem(MZmineMenu.ALIGNMENT, toString(),
+                "Alignment based on RANSAC algorithm",
+                KeyEvent.VK_R, false, this, null);
 
-	}
+    }
 
-	public String toString() {
-		return "RANSAC aligner";
-	}
+    public String toString() {
+        return "RANSAC aligner";
+    }
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    /**
+     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+     */
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (RansacAlignerParameters) parameters;
-	}
+    public void setParameters(ParameterSet parameters) {
+        this.parameters = (RansacAlignerParameters) parameters;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet currentParameters) {
-		ParameterSetupDialog dialog = new RansacAlignerSetupDialog(
-				"Please set parameter values for " + toString(),
-				(RansacAlignerParameters) currentParameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public ExitCode setupParameters(ParameterSet currentParameters) {
+        ParameterSetupDialog dialog = new RansacAlignerSetupDialog(
+                "Please set parameter values for " + toString(),
+                (RansacAlignerParameters) currentParameters, helpID);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent e) {
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent e) {
 
-		PeakList[] peakLists = desktop.getSelectedPeakLists();
+        PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-		if (peakLists.length == 0) {
-			desktop.displayErrorMessage("Please select peak lists for alignment");
-			return;
-		}		
+        if (peakLists.length == 0) {
+            desktop.displayErrorMessage("Please select peak lists for alignment");
+            return;
+        }
 
-		// Setup parameters
-		ExitCode exitCode = setupParameters(parameters);
-		if (exitCode != ExitCode.OK) {
-			return;
-		}
+        // Setup parameters
+        ExitCode exitCode = setupParameters(parameters);
+        if (exitCode != ExitCode.OK) {
+            return;
+        }
 
-		runModule(null, peakLists, parameters.clone());
+        runModule(null, peakLists, parameters.clone());
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameters) {
+    /**
+     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
+     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+     *      net.sf.mzmine.taskcontrol.Task[]Listener)
+     */
+    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+            ParameterSet parameters) {
 
-		// check peak lists
-		if ((peakLists == null) || (peakLists.length == 0)) {
-			desktop.displayErrorMessage("Please select peak lists for alignment");
-			return null;
-		}
+        // check peak lists
+        if ((peakLists == null) || (peakLists.length == 0)) {
+            desktop.displayErrorMessage("Please select peak lists for alignment");
+            return null;
+        }
 
-		// prepare a new group with just one task
-		Task task = new RansacAlignerTask(peakLists,
-				(RansacAlignerParameters) parameters);
+        // prepare a new group with just one task
+        Task task = new RansacAlignerTask(peakLists,
+                (RansacAlignerParameters) parameters);
 
-		MZmineCore.getTaskController().addTask(task);
+        MZmineCore.getTaskController().addTask(task);
 
-		return new Task[]{task};
+        return new Task[]{task};
 
-	}
+    }
 
-	public BatchStepCategory getBatchStepCategory() {
-		return BatchStepCategory.ALIGNMENT;
-	}
+    public BatchStepCategory getBatchStepCategory() {
+        return BatchStepCategory.ALIGNMENT;
+    }
 }

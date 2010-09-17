@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BasicStroke;
@@ -32,8 +31,10 @@ import java.util.Vector;
 
 import net.sf.mzmine.main.MZmineCore;
 
-import org.apache.commons.math.analysis.interpolation.LoessInterpolator;
-import org.apache.commons.math.analysis.polynomials.PolynomialSplineFunction;
+import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
+import org.apache.commons.math.optimization.OptimizationException;
+import org.apache.commons.math.optimization.fitting.PolynomialFitter;
+import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -55,26 +56,20 @@ public class AlignmentRansacPlot extends ChartPanel {
 
     // peak labels color
     private static final Color labelsColor = Color.darkGray;
-
     // grid color
     private static final Color gridColor = Color.lightGray;
-
     // crosshair (selection) color
     private static final Color crossHairColor = Color.gray;
-
     // crosshair stroke
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
             BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{
                 5, 3}, 0);
-
     // data points shape
     private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
             5);
-
     // titles
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
     private TextTitle chartTitle;
-
     // legend
     private LegendTitle legend;
     private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -162,14 +157,14 @@ public class AlignmentRansacPlot extends ChartPanel {
      * @param v Vector with the alignments
      * @param Name Name of the type of lipids in this alignment
      */
-    public void addSeries(Vector<AlignStructMol> data, String title) {
+    public void addSeries(Vector<AlignStructMol> data, String title, boolean linear) {
         try {
             chart.setTitle(title);
             XYSeries s1 = new XYSeries("Aligned pairs");
             XYSeries s2 = new XYSeries("Non-aligned pairs");
             XYSeries s3 = new XYSeries("Model");
 
-            PolynomialSplineFunction function = getRT(data);
+            PolynomialFunction function = getPolynomialFunction(data, linear);
 
             for (AlignStructMol point : data) {
 
@@ -192,14 +187,13 @@ public class AlignmentRansacPlot extends ChartPanel {
         }
     }
 
-    private PolynomialSplineFunction getRT(Vector<AlignStructMol> list) {
+    private PolynomialFunction getPolynomialFunction(Vector<AlignStructMol> list, boolean linear) {
         List<RTs> data = new ArrayList<RTs>();
         for (AlignStructMol m : list) {
             if (m.Aligned) {
                 data.add(new RTs(m.RT2, m.RT));
             }
         }
-
 
         data = this.smooth(data);
         Collections.sort(data, new RTs());
@@ -213,20 +207,31 @@ public class AlignmentRansacPlot extends ChartPanel {
             yval[i++] = rt.RT2;
         }
 
+        int degree = 2;
+        if (linear) {
+            degree = 1;
+        }
+
+        PolynomialFitter fitter = new PolynomialFitter(degree, new GaussNewtonOptimizer(true));
+        for (RTs rt : data) {
+            fitter.addObservedPoint(1, rt.RT, rt.RT2);
+        }
         try {
-            LoessInterpolator loess = new LoessInterpolator();
-            return loess.interpolate(xval, yval);
-        } catch (Exception ex) {
+            return fitter.fit();
+
+        } catch (OptimizationException ex) {
             return null;
         }
     }
 
     private List<RTs> smooth(List<RTs> list) {
+        // Add points to the model in between of the real points to smooth the regression model
         Collections.sort(list, new RTs());
+
         for (int i = 0; i < list.size() - 1; i++) {
             RTs point1 = list.get(i);
             RTs point2 = list.get(i + 1);
-            if (point1.RT < point2.RT - 5) {
+            if (point1.RT < point2.RT - 2) {
                 SimpleRegression regression = new SimpleRegression();
                 regression.addData(point1.RT, point1.RT2);
                 regression.addData(point2.RT, point2.RT2);

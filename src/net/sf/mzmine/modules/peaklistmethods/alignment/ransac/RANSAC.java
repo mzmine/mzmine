@@ -22,14 +22,11 @@ import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import net.sf.mzmine.util.Range;
-
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
-import org.apache.commons.math.stat.regression.SimpleRegression;
 
 public class RANSAC {
 
@@ -48,7 +45,7 @@ public class RANSAC {
     private double d = 1;
     private int k = 0;
     private int AlsoNumber;
-    private double numRatePoints,  t;
+    private double numRatePoints, t;
     private boolean Linear;
 
     public RANSAC(RansacAlignerParameters parameters) {
@@ -121,11 +118,7 @@ public class RANSAC {
             }
 
             // Calculate the model
-            if (!Linear) {
-                fittPolinomialFunction(data);
-            } else {
-                getAllModelPoints(data);
-            }
+            fittPolinomialFunction(data, Linear);
 
             // If the model has the minimun number of points
             if (AlsoNumber >= d) {
@@ -173,71 +166,71 @@ public class RANSAC {
      * @return false if there is any problem.
      */
     private boolean getInitN(Vector<AlignStructMol> data) {
-        Collections.sort(data, new AlignStructMol());
-        double min = data.get(0).RT;
-        double max = (data.get(data.size() - 1).RT);
-
-        Range rtRange = new Range(min, max / 2);
         if (data.size() > n) {
-            int cont = 0;
-            while (cont < n / 2) {
+            Collections.sort(data, new AlignStructMol());
+            double min = data.firstElement().RT;
+            double max = data.lastElement().RT;
+
+            Range rtRange = new Range(min, ((max - min) / 2) + min);
+
+
+            int cont = 0, bucle = 0;
+            while (cont < n / 2 && bucle < 1000) {
                 int index = (int) (data.size() * Math.random());
                 if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
                     data.elementAt(index).ransacMaybeInLiers = true;
                     cont++;
+
                 }
+
+                bucle++;
             }
-            cont = 0;
-            rtRange = new Range(max / 2, max);
-            while (cont < n / 2) {
-                int index = (int) (data.size() * Math.random());
-                if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
-                    data.elementAt(index).ransacMaybeInLiers = true;
-                    cont++;
-                }
+            if (bucle >= 1000) {
+                getN(data, (n / 2) - cont);
             }
 
+            bucle = 0;
+            rtRange = new Range(((max - min) / 2) + min, max);
+
+            while (cont < n && bucle < 1000) {
+
+                int index = (int) (data.size() * Math.random());
+                if (!data.elementAt(index).ransacMaybeInLiers && rtRange.contains(data.elementAt(index).RT)) {
+                    data.elementAt(index).ransacMaybeInLiers = true;
+                    cont++;
+                }
+                bucle++;
+            }
+            if (bucle >= 1000) {
+                getN(data, n - cont);
+            }
             return true;
         } else {
             return false;
         }
     }
 
-    /**
-     * Build the model creating a line with the 2 points
-     * @param data vector with the points which represent all possible alignments.
-     */
-    private void getAllModelPoints(Vector<AlignStructMol> data) {
-
-        // Create the regression line using the two points
-        SimpleRegression regression = new SimpleRegression();
-
-        for (int i = 0; i < data.size(); i++) {
-            AlignStructMol point = data.elementAt(i);
-            if (point.ransacMaybeInLiers) {
-                regression.addData(point.RT, point.RT2);
+    private void getN(Vector<AlignStructMol> data, int newN) {
+        if(newN < 1) return;
+        int cont = 0;
+        while (cont < newN) {
+            int index = (int) (data.size() * Math.random());
+            if (!data.elementAt(index).ransacMaybeInLiers) {
+                data.elementAt(index).ransacMaybeInLiers = true;
+                cont++;
             }
         }
-
-        // Add all the points which fit the model (the difference between the point
-        // and the regression line is less than "t"
-        for (AlignStructMol point : data) {
-            double y = point.RT2;
-            double bestY = regression.predict(point.RT);
-            if (Math.abs(y - bestY) < t) {
-                point.ransacAlsoInLiers = true;
-                AlsoNumber++;
-            } else {
-                point.ransacAlsoInLiers = false;
-            }
-        }
-
     }
 
-    private void fittPolinomialFunction(Vector<AlignStructMol> data) {
+    private void fittPolinomialFunction(Vector<AlignStructMol> data, boolean linear) {
         Vector<AlignStructMol> points = new Vector<AlignStructMol>();
 
-        PolynomialFitter fitter = new PolynomialFitter(3, new GaussNewtonOptimizer(true));
+        int degree = 3;
+        if (linear) {
+            degree = 1;
+        }
+
+        PolynomialFitter fitter = new PolynomialFitter(degree, new GaussNewtonOptimizer(true));
         for (int i = 0; i < data.size(); i++) {
             AlignStructMol point = data.elementAt(i);
             if (point.ransacMaybeInLiers) {
