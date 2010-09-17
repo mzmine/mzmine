@@ -71,10 +71,7 @@ class PeakFinderTask extends AbstractTask {
 
         // Calculate total number of scans in all files
         for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-            totalScans += dataFile.getNumOfScans(1);
-            if (rtCorrection) {
-                totalScans *= 2;
-            }
+            totalScans += dataFile.getNumOfScans(1);            
         }
 
         // Create new peak list
@@ -97,6 +94,7 @@ class PeakFinderTask extends AbstractTask {
 
 
         if (rtCorrection) {
+            totalScans *=2;
             // Fill the gaps of a random sample using all the other samples and take it as master list
             // to fill the gaps of the other samples
             masterSample = (int) Math.floor(Math.random() * peakList.getNumberOfRawDataFiles());
