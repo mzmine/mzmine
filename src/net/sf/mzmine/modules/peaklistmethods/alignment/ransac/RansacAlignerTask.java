@@ -206,9 +206,11 @@ class RansacAlignerTask extends AbstractTask {
             double rtMin, rtMax;
 
             double rt;
-
-            rt = function.value(row.getAverageRT());
-
+            try {
+                rt = function.value(row.getAverageRT());
+            } catch (NullPointerException e) {
+                rt = row.getAverageRT();
+            }
             if (Double.isNaN(rt) || rt == -1) {
                 rt = row.getAverageRT();
             }
