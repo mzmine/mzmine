@@ -57,7 +57,7 @@ public class ProjectCloser implements MZmineModule, ActionListener {
 		int selectedValue = JOptionPane
 				.showInternalConfirmDialog(
 						MZmineCore.getDesktop().getMainFrame().getContentPane(),
-						"Are you sure you want to close the current project and start with an empty one?",
+						"Are you sure you want to close the current project?",
 						"Close project", JOptionPane.YES_NO_OPTION,
 						JOptionPane.WARNING_MESSAGE);
 
