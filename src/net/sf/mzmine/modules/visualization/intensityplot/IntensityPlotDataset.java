@@ -289,7 +289,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public int indexOf(Comparable value) {
-        throw (new UnsupportedOperationException("Unsupported"));
+        return getRowIndex(value);
     }
 
 }
