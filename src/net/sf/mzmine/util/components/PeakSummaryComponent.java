@@ -329,8 +329,9 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			maxWidth = 0;
 		}
 
-		// add 30 px for a scrollbar
+		// add 30x10 px for a scrollbar
 		totalWidth += 30;
+		totalHeight += 10;
 		
 		comp = headerRenderer.getTableCellRendererComponent(peaksInfoList,
 				model.getColumnName(0), false, false, 0, 0);
