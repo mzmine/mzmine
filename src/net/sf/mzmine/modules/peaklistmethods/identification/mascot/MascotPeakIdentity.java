@@ -48,6 +48,7 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 	 *
 	 * @param peptide
 	 */
+	@SuppressWarnings("unchecked")
 	public MascotPeakIdentity(PeptideHit peptide) {
 
 		this.peptide = peptide;

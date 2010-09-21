@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
 import java.io.File;
@@ -54,6 +55,7 @@ public class MascotParameters extends SimpleParameterSet {
 	private String serverName = "127.0.0.1";
 
 
+	@SuppressWarnings("unchecked")
 	public MascotParameters(MascotSearchParameters parameters) throws MalformedURLException, IOException {
 		super(new Parameter[] {});
 		serverName = (String) parameters.getParameterValue(MascotSearchParameters.urlAddress);
