@@ -111,11 +111,11 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 
 				Map<String, String> properties = peakIdentity
 						.getAllProperties();
-				Iterator subItr = properties.keySet().iterator();
+				Iterator<String> subItr = properties.keySet().iterator();
 
 				while (subItr.hasNext()) {
 
-					String propertyName = (String) subItr.next();
+					String propertyName = subItr.next();
 					if (!elements.contains(propertyName)) {
 						elements.add(propertyName);
 					}

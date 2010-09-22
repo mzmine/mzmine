@@ -84,7 +84,7 @@ class CSVExportTask extends AbstractTask {
 		try {
 			writer = new FileWriter(fileName);
 		} catch (Exception e) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Could not open file " + fileName + " for writing.";
 			return;
 		}
@@ -129,7 +129,7 @@ class CSVExportTask extends AbstractTask {
 		try {
 			writer.write(line.toString());
 		} catch (Exception e) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Could not write to file " + fileName;
 			return;
 		}
@@ -138,7 +138,7 @@ class CSVExportTask extends AbstractTask {
 		for (PeakListRow peakListRow : peakList.getRows()) {
 
 			// Cancel?
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				return;
 			}
 
@@ -160,11 +160,17 @@ class CSVExportTask extends AbstractTask {
 							+ fieldSeparator);
 					break;
 				case ROW_COMMENT:
-					if (peakListRow.getComment() == null) {
+					String comment = peakListRow.getComment();
+					if (comment == null) {
 						line.append(fieldSeparator);
-					} else {
-						line.append(peakListRow.getComment() + fieldSeparator);
+						break;
 					}
+					// If the text contains fieldSeparator, we will add
+					// parenthesis
+					if (comment.contains(fieldSeparator)) {
+						comment = "\"" + comment.replaceAll("\"", "'") + "\"";
+					}
+					line.append(comment + fieldSeparator);
 					break;
 				case ROW_PEAK_NUMBER:
 					int numDetected = 0;
@@ -188,12 +194,20 @@ class CSVExportTask extends AbstractTask {
 					if (propertyValue == null) {
 						propertyValue = "";
 					}
+
+					// If the text contains fieldSeparator, we will add
+					// parenthesis
+					if (propertyValue.contains(fieldSeparator)) {
+						propertyValue = "\""
+								+ propertyValue.replaceAll("\"", "'") + "\"";
+					}
+
 					line.append(propertyValue + fieldSeparator);
 				}
 			} else {
 				for (int i = 0; i < length; i++) {
 					line.append(fieldSeparator);
-				}				
+				}
 			}
 
 			// Data file elements
@@ -230,7 +244,7 @@ class CSVExportTask extends AbstractTask {
 			try {
 				writer.write(line.toString());
 			} catch (Exception e) {
-				setStatus( TaskStatus.ERROR );
+				setStatus(TaskStatus.ERROR);
 				errorMessage = "Could not write to file " + fileName;
 				return;
 			}
@@ -243,12 +257,12 @@ class CSVExportTask extends AbstractTask {
 		try {
 			writer.close();
 		} catch (Exception e) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Could not close file " + fileName;
 			return;
 		}
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
