@@ -32,6 +32,7 @@ import net.sf.mzmine.util.InetUtils;
 
 public class MetLinGateway implements DBGateway {
 
+	public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
 	public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
 	public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
 	public static final String metLinStructureAddress2 = ".mol";
@@ -41,9 +42,8 @@ public class MetLinGateway implements DBGateway {
 	public String[] findCompounds(double mass, double massTolerance,
 			int numOfResults) throws IOException {
 
-		String queryAddress = "http://metlin.scripps.edu/metabo_list.php?mass_min="
-				+ (mass - massTolerance)
-				+ "&mass_max="
+		String queryAddress = metLinSearchAddress + "mass_min="
+				+ (mass - massTolerance) + "&mass_max="
 				+ (mass + massTolerance);
 
 		URL queryURL = new URL(queryAddress);
@@ -54,7 +54,8 @@ public class MetLinGateway implements DBGateway {
 		Vector<String> results = new Vector<String>();
 
 		// Find IDs in the HTML data
-		Pattern pat = Pattern.compile("\"metabo_info.php\\?molid=([0-9]+)\">\\1");
+		Pattern pat = Pattern
+				.compile("\"metabo_info.php\\?molid=([0-9]+)\">\\1");
 		Matcher matcher = pat.matcher(queryResult);
 		while (matcher.find()) {
 			String MID = matcher.group(1);
