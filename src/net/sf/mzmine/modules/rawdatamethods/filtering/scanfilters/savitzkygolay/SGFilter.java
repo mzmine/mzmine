@@ -32,7 +32,8 @@ public class SGFilter implements RawDataFilter {
 	private Hashtable<Integer, int[]> Avalues;
 
 	public SGFilter(SGFilterParameters parameters) {
-		numberOfDataPoints = (Integer) parameters.getParameterValue(SGFilterParameters.datapoints);
+		numberOfDataPoints = (Integer) parameters
+				.getParameterValue(SGFilterParameters.datapoints);
 
 	}
 
@@ -40,12 +41,10 @@ public class SGFilter implements RawDataFilter {
 		initializeAHValues();
 		int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
 		int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
-		return processOneScan(scan, numberOfDataPoints,
-				h, aVals);
+		return processOneScan(scan, numberOfDataPoints, h, aVals);
 	}
 
-	private Scan processOneScan(Scan sc,
-			int numOfDataPoints, int h, int[] aVals) {
+	private Scan processOneScan(Scan sc, int numOfDataPoints, int h, int[] aVals) {
 
 		// only process MS level 1 scans
 		if (sc.getMSLevel() != 1) {
@@ -67,10 +66,19 @@ public class SGFilter implements RawDataFilter {
 
 		for (int spectrumInd = marginSize; spectrumInd < (oldDataPoints.length - marginSize); spectrumInd++) {
 
+			// zero intensity data points must be left unchanged
+			if (oldDataPoints[spectrumInd].getIntensity() == 0) {
+				newDataPoints[spectrumInd - marginSize] = oldDataPoints[spectrumInd];
+				continue;
+			}
+
 			sumOfInts = aVals[0] * oldDataPoints[spectrumInd].getIntensity();
 
 			for (int windowInd = 1; windowInd <= marginSize; windowInd++) {
-				sumOfInts += aVals[windowInd] * (oldDataPoints[spectrumInd + windowInd].getIntensity() + oldDataPoints[spectrumInd - windowInd].getIntensity());
+				sumOfInts += aVals[windowInd]
+						* (oldDataPoints[spectrumInd + windowInd]
+								.getIntensity() + oldDataPoints[spectrumInd
+								- windowInd].getIntensity());
 			}
 
 			sumOfInts = sumOfInts / h;
@@ -97,30 +105,30 @@ public class SGFilter implements RawDataFilter {
 		Avalues = new Hashtable<Integer, int[]>();
 		Hvalues = new Hashtable<Integer, Integer>();
 
-		int[] a5Ints = {17, 12, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int[] a5Ints = { 17, 12, -3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		Avalues.put(5, a5Ints);
-		int[] a7Ints = {7, 6, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		int[] a7Ints = { 7, 6, 3, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 		Avalues.put(7, a7Ints);
-		int[] a9Ints = {59, 54, 39, 14, -21, 0, 0, 0, 0, 0, 0, 0, 0};
+		int[] a9Ints = { 59, 54, 39, 14, -21, 0, 0, 0, 0, 0, 0, 0, 0 };
 		Avalues.put(9, a9Ints);
-		int[] a11Ints = {89, 84, 69, 44, 9, -36, 0, 0, 0, 0, 0, 0, 0};
+		int[] a11Ints = { 89, 84, 69, 44, 9, -36, 0, 0, 0, 0, 0, 0, 0 };
 		Avalues.put(11, a11Ints);
-		int[] a13Ints = {25, 24, 21, 16, 9, 0, -11, 0, 0, 0, 0, 0, 0};
+		int[] a13Ints = { 25, 24, 21, 16, 9, 0, -11, 0, 0, 0, 0, 0, 0 };
 		Avalues.put(13, a13Ints);
-		int[] a15Ints = {167, 162, 147, 122, 87, 42, -13, -78, 0, 0, 0, 0, 0};
+		int[] a15Ints = { 167, 162, 147, 122, 87, 42, -13, -78, 0, 0, 0, 0, 0 };
 		Avalues.put(15, a15Ints);
-		int[] a17Ints = {43, 42, 39, 34, 27, 18, 7, -6, -21, 0, 0, 0, 0};
+		int[] a17Ints = { 43, 42, 39, 34, 27, 18, 7, -6, -21, 0, 0, 0, 0 };
 		Avalues.put(17, a17Ints);
-		int[] a19Ints = {269, 264, 249, 224, 189, 144, 89, 24, -51, -136, 0,
-			0, 0};
+		int[] a19Ints = { 269, 264, 249, 224, 189, 144, 89, 24, -51, -136, 0,
+				0, 0 };
 		Avalues.put(19, a19Ints);
-		int[] a21Ints = {329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171,
-			0, 0};
+		int[] a21Ints = { 329, 324, 309, 284, 249, 204, 149, 84, 9, -76, -171,
+				0, 0 };
 		Avalues.put(21, a21Ints);
-		int[] a23Ints = {79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42, 0};
+		int[] a23Ints = { 79, 78, 75, 70, 63, 54, 43, 30, 15, -2, -21, -42, 0 };
 		Avalues.put(23, a23Ints);
-		int[] a25Ints = {467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33,
-			-138, -253};
+		int[] a25Ints = { 467, 462, 447, 422, 387, 343, 287, 222, 147, 62, -33,
+				-138, -253 };
 		Avalues.put(25, a25Ints);
 
 		Hvalues.put(5, 35);
