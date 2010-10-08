@@ -67,12 +67,6 @@ public class SimpleScan implements Scan {
 			int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
 			boolean centroided) {
 
-		// check assumptions about proper scan data
-		if ((msLevel != 1) && (parentScan <= 0)) {
-			throw new IllegalArgumentException(
-					"Missing parent scan information for scan #" + scanNumber);
-		}
-
 		// save scan data
 		this.dataFile = dataFile;
 		this.scanNumber = scanNumber;

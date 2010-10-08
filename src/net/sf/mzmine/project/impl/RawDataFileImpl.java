@@ -42,7 +42,6 @@ import net.sf.mzmine.util.Range;
 
 /**
  * RawDataFile implementation
- * 
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
@@ -75,6 +74,14 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
 		dataMaxTIC = new Hashtable<Integer, Double>();
 		scans = new Hashtable<Integer, Scan>();
+
+		scanFile = File.createTempFile("mzmine", ".scans");
+
+		// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
+		// bug #4171239. We will try to remove the temporary files in a
+		// shutdown hook registered in MZmineClient class
+		scanFile.deleteOnExit();
+		scanDataFile = new RandomAccessFile(scanFile, "rw");
 
 	}
 
@@ -287,25 +294,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
 	public synchronized void addScan(Scan newScan) throws IOException {
 
-		// If the scan is already prepared as StorableScan, just save a
-		// reference
-		if (newScan instanceof StorableScan) {
-			scans.put(newScan.getScanNumber(), newScan);
-			return;
-		}
-
 		DataPoint dataPoints[] = newScan.getDataPoints();
-
-		// If we have no defined scan data file, create a new temporary file
-		if (scanDataFile == null) {
-			scanFile = File.createTempFile("mzmine", ".scans");
-
-			// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
-			// bug #4171239. We will try to remove the temporary files in a
-			// shutdown hook registered in MZmineClient class
-			scanFile.deleteOnExit();
-			scanDataFile = new RandomAccessFile(scanFile, "rw");
-		}
 
 		// Each float takes 4 bytes, so we get the current float offset by
 		// dividing the size of the file by 4
@@ -335,8 +324,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		logger.finest("Writing of scans to file " + scanFile + " finished");
 
-		// Close the temporary file and reopen it for read-only using memory
-		// mapping
+		// Close the temporary file and reopen it for read-only
 		scanDataFile.close();
 		openScanFile(scanFile);
 
