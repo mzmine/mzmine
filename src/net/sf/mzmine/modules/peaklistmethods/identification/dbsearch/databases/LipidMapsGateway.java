@@ -63,7 +63,7 @@ public class LipidMapsGateway implements DBGateway {
 	}
 
 	/**
-	 * This method retrieves the details about METLIN compound
+	 * This method retrieves the details about the compound
 	 * 
 	 */
 	public DBCompound getCompound(String ID) throws IOException {
@@ -92,7 +92,7 @@ public class LipidMapsGateway implements DBGateway {
 		URL structure3DURL = null;
 		URL databaseURL = new URL(lipidMapsDetailsAddress + ID);
 
-		DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
+		DBCompound newCompound = new DBCompound(OnlineDatabase.LIPIDMAPS, ID,
 				compoundName, compoundFormula, databaseURL, structure2DURL,
 				structure3DURL);
 
