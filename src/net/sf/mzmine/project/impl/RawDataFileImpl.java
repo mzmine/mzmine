@@ -294,6 +294,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
      */
 	public synchronized void addScan(Scan newScan) throws IOException {
 
+		// When we are loading the project, scan data file is already prepare
+		// and we just need store the references to StorableScans
+		if (newScan instanceof StorableScan) {
+			scans.put(newScan.getScanNumber(), newScan);
+			return;
+		}
+
 		DataPoint dataPoints[] = newScan.getDataPoints();
 
 		// Each float takes 4 bytes, so we get the current float offset by
