@@ -61,7 +61,7 @@
     </format>
     <format type="Retention time">
       <type>TIME</type>
-      <pattern>m:ss</pattern>
+      <pattern>H:mm:ss</pattern>
     </format>
     <format type="Intensity">
       <type>NUMBER</type>
