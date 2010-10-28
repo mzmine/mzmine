@@ -48,7 +48,7 @@ public class Range {
 	public Range(double min, double max) {
 		if (min > max) {
 			throw (new IllegalArgumentException(
-					"Range minimum must be <= maximum"));
+					"Range minimum (" + min + ") must be <= maximum (" + max + ")"));
 		}
 		this.min = min;
 		this.max = max;

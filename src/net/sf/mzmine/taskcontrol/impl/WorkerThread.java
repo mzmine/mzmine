@@ -86,12 +86,12 @@ class WorkerThread extends Thread {
 					+ " while processing task "
 					+ actualTask.getTaskDescription(), e);
 
+			e.printStackTrace();
+
 			MZmineCore.getDesktop().displayErrorMessage(
 					"Unhandled exception in task "
 							+ actualTask.getTaskDescription() + ": "
 							+ ExceptionUtils.exceptionToString(e));
-
-			e.printStackTrace();
 
 		}
 
