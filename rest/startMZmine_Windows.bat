@@ -6,12 +6,6 @@ rem Please adjust according to the amount of memory of your computer.
 rem Maximum value on a 32-bit Windows system is about 1300. 
 set HEAP_SIZE=1024
 
-rem If you have a 64-bit CPU, 64-bit OS and 64-bit JVM installed, you 
-rem can run MZmine 2 in 64-bit mode and increase the HEAP_SIZE above 
-rem the limitations of 32-bit platform. In that case, please set the 
-rem value of USE_64_BIT parameter to "-d64" (without quotes).
-set USE_64_BIT=
-
 rem The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 rem files (parsed raw data) will be placed. Default is %TEMP%, which 
 rem represents the system temporary directory.
@@ -24,7 +18,7 @@ set JAVA_COMMAND=java
 
 rem It is not necessary to modify the following section
 set LOGGING_CONFIG_FILE=conf/logging.properties
-set JAVA_PARAMETERS=%USE_64_BIT% -XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
+set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
 set CLASS_PATH=MZmine2.jar
 set MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
 
