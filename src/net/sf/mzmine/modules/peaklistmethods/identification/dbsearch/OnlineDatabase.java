@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.HMDBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.KEGGGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
 
@@ -31,7 +32,8 @@ public enum OnlineDatabase {
 	PubChem("PubChem Compound Database", PubChemGateway.class),
 	HMDB("Human Metabolome Database", HMDBGateway.class),
 	METLIN("METLIN Database", MetLinGateway.class),
-	LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class);
+	LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
+	MASSBANK("MassBank Database", MassBankGateway.class);
 
 	private final String dbName;
 	private final Class<? extends DBGateway> gatewayClass;
