@@ -21,28 +21,33 @@ package net.sf.mzmine.data;
 
 public enum IonizationType {
 	
-	NO_IONIZATION("No ionization", "", 0),
-	POSITIVE_HYDROGEN("+H", "H", 1.00794),
-	NEGATIVE_HYDROGEN("-H", "H", -1.00794),
-	POSITIVE_POTASSIUM("+K", "K", 39.0983),
-	POSITIVE_SODIUM("+Na", "Na", 22.98976928);
+	NO_IONIZATION("No ionization", "", 0, Polarity.Neutral),
+	POSITIVE_HYDROGEN("[H]+", "H", 1.00728, Polarity.Positive),
+	NEGATIVE_HYDROGEN("-[H]+", "H", -1.00728, Polarity.Negative),
+	POTASSIUM("[K]+", "K", 38.96316, Polarity.Positive),
+	SODIUM("[Na]+", "Na", 22.98922, Polarity.Positive),
+	CARBONATE("[CO3]-", "CO3", 59.98529, Polarity.Negative),
+	AMMONIUM("[NH4]+", "NH4", 18.03383, Polarity.Positive);
 
-	private final String name, element;
-	private double addedMass, mass;
+	private final String fullName, adductFormula;
+	private final Polarity polarity;
+	private final double addedMass;
 
-	IonizationType(String name, String element, double addedMass) {
-		this.name = name;
-		this.element = element;
+	IonizationType(String name, String element, double addedMass,
+			Polarity polarity) {
+		
+		if (polarity == Polarity.Neutral)
+			this.fullName = name;
+		else
+			this.fullName = polarity + ": " + name;
+		
+		this.adductFormula = element;
 		this.addedMass = addedMass;
-		this.mass = Math.abs(mass);
+		this.polarity = polarity;
 	}
 
-	public String typename() {
-		return name;
-	}
-
-	public String getElement() {
-		return element;
+	public String getAdduct() {
+		return adductFormula;
 	}
 
 	public double getAddedMass() {
@@ -50,15 +55,11 @@ public enum IonizationType {
 	}
 
 	public Polarity getPolarity() {
-		return addedMass > 0 ? Polarity.Positive : Polarity.Negative;
-	}
-
-	public double getMass() {
-		return mass;
+		return polarity;
 	}
 
 	public String toString() {
-		return name;
+		return fullName;
 	}
 
 }
