@@ -22,25 +22,21 @@ package net.sf.mzmine.data;
 public enum IonizationType {
 	
 	NO_IONIZATION("No ionization", "", 0, Polarity.Neutral),
-	POSITIVE_HYDROGEN("[H]+", "H", 1.00728, Polarity.Positive),
-	NEGATIVE_HYDROGEN("-[H]+", "H", -1.00728, Polarity.Negative),
-	POTASSIUM("[K]+", "K", 38.96316, Polarity.Positive),
-	SODIUM("[Na]+", "Na", 22.98922, Polarity.Positive),
-	CARBONATE("[CO3]-", "CO3", 59.98529, Polarity.Negative),
-	AMMONIUM("[NH4]+", "NH4", 18.03383, Polarity.Positive);
+	POSITIVE_HYDROGEN("+H⁺", "H", 1.00728, Polarity.Positive),
+	NEGATIVE_HYDROGEN("-H⁺", "H", -1.00728, Polarity.Negative),
+	POTASSIUM("+K⁺", "K", 38.96316, Polarity.Positive),
+	SODIUM("+Na⁺", "Na", 22.98922, Polarity.Positive),
+	CARBONATE("+CO₃⁻", "CO3", 59.98529, Polarity.Negative),
+	AMMONIUM("+NH₄⁺", "NH4", 18.03383, Polarity.Positive);
 
-	private final String fullName, adductFormula;
+	private final String name, adductFormula;
 	private final Polarity polarity;
 	private final double addedMass;
 
 	IonizationType(String name, String element, double addedMass,
 			Polarity polarity) {
-		
-		if (polarity == Polarity.Neutral)
-			this.fullName = name;
-		else
-			this.fullName = polarity + ": " + name;
-		
+
+		this.name = name;
 		this.adductFormula = element;
 		this.addedMass = addedMass;
 		this.polarity = polarity;
@@ -59,7 +55,7 @@ public enum IonizationType {
 	}
 
 	public String toString() {
-		return fullName;
+		return name;
 	}
 
 }
