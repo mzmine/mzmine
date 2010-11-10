@@ -23,20 +23,27 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
+import net.sf.mzmine.util.GUIUtils;
+
 /**
  * Component with multiple checkboxes in a list
  */
-public class MultipleSelectionComponent extends JPanel {
+public class MultipleSelectionComponent extends JPanel implements ActionListener {
 
 	private ExtendedCheckBox<Object> checkBoxes[];
+	
+	private JButton selectAllButton, selectNoneButton;
 
 	@SuppressWarnings("unchecked")
 	public MultipleSelectionComponent(Object multipleValues[]) {
@@ -64,7 +71,7 @@ public class MultipleSelectionComponent extends JPanel {
 			if (numCheckBoxes < 7)
 				vertSize += (int) checkBoxes[i].getPreferredSize().getHeight() + 2;
 
-			widthSize = (int) checkBoxes[i].getPreferredSize().getWidth() + 20;
+			widthSize = (int) checkBoxes[i].getPreferredSize().getWidth();
 			if (horSize < widthSize)
 				horSize = widthSize;
 
@@ -77,10 +84,19 @@ public class MultipleSelectionComponent extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
+		
+		scrollPane.setPreferredSize(new Dimension(horSize, vertSize));
+		
 		add(scrollPane, BorderLayout.CENTER);
+		
+		JPanel buttonsPanel = new JPanel();
+		BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
+		buttonsPanel.setLayout(buttonsLayout);
+		selectAllButton = GUIUtils.addButton(buttonsPanel, "All", null, this);
+		buttonsPanel.add(Box.createVerticalStrut(3));
+		selectNoneButton = GUIUtils.addButton(buttonsPanel, "Clear", null, this);
+		add(buttonsPanel, BorderLayout.EAST);
 
-		setPreferredSize(new Dimension(horSize, vertSize));
 	}
 
 	public void addActionListener(ActionListener listener) {
@@ -111,12 +127,28 @@ public class MultipleSelectionComponent extends JPanel {
 
 				// We compare the identity of the objects, as well as their
 				// string representations, because when a project is saved, only
-				// string representation can be saved to the configuration file
+				// string representation is saved to the configuration file
 				if ((v == ecb.getObject())
 						|| (v.toString().equals(ecb.getObject().toString())))
 					isSelected = true;
 			}
 			ecb.setSelected(isSelected);
+		}
+		
+	}
+
+	public void actionPerformed(ActionEvent event) {
+		
+		Object src = event.getSource();
+		
+		if (src == selectAllButton) {
+			for (ExtendedCheckBox ecb : checkBoxes)
+				ecb.setSelected(true);
+		}
+		
+		if (src == selectNoneButton) {
+			for (ExtendedCheckBox ecb : checkBoxes)
+				ecb.setSelected(false);
 		}
 		
 	}

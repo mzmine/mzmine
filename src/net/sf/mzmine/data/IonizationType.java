@@ -26,8 +26,9 @@ public enum IonizationType {
 	NEGATIVE_HYDROGEN("-H⁺", "H", -1.00728, Polarity.Negative),
 	POTASSIUM("+K⁺", "K", 38.96316, Polarity.Positive),
 	SODIUM("+Na⁺", "Na", 22.98922, Polarity.Positive),
+	AMMONIUM("+NH₄⁺", "NH4", 18.03383, Polarity.Positive),
 	CARBONATE("+CO₃⁻", "CO3", 59.98529, Polarity.Negative),
-	AMMONIUM("+NH₄⁺", "NH4", 18.03383, Polarity.Positive);
+	PHOSPHATE("+H₂PO₄⁻", "H2PO4", 96.96962, Polarity.Negative);
 
 	private final String name, adductFormula;
 	private final Polarity polarity;
