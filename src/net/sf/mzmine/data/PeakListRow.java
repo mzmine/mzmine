@@ -73,6 +73,16 @@ public interface PeakListRow {
 	 * Returns average RT for peaks on this row
 	 */
 	public double getAverageRT();
+	
+	/**
+	 * Returns average height for peaks on this row
+	 */
+	public double getAverageHeight();
+	
+	/**
+	 * Returns average area for peaks on this row
+	 */
+	public double getAverageArea();
 
 	/**
 	 * Returns comment for this row

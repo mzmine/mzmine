@@ -47,9 +47,11 @@ public class SimplePeakListRow implements PeakListRow {
 	private int myID;
 	private double maxDataPointIntensity = 0;
 
-	// These variables are used for caching the average RT and m/z values, so we
-	// don't need to calculate it again and again
-	private double averageRT, averageMZ;
+	/**
+	 * These variables are used for caching the average values, so we don't need
+	 * to calculate them again and again
+	 */
+	private double averageRT, averageMZ, averageHeight, averageArea;
 
 	public SimplePeakListRow(int myID) {
 		this.myID = myID;
@@ -64,7 +66,7 @@ public class SimplePeakListRow implements PeakListRow {
 		return myID;
 	}
 
-	/*
+	/**
 	 * Return peaks assigned to this row
 	 */
 	public ChromatographicPeak[] getPeaks() {
@@ -73,17 +75,17 @@ public class SimplePeakListRow implements PeakListRow {
 
 	public void removePeak(RawDataFile file) {
 		this.peaks.remove(file);
-		calculateAverageRTandMZ();
+		calculateAverageValues();
 	}
 
-	/*
-	 * Return opened raw data files with a peak on this row
+	/**
+	 * Returns opened raw data files with a peak on this row
 	 */
 	public RawDataFile[] getRawDataFiles() {
 		return peaks.keySet().toArray(new RawDataFile[0]);
 	}
 
-	/*
+	/**
 	 * Returns peak for given raw data file
 	 */
 	public ChromatographicPeak getPeak(RawDataFile rawData) {
@@ -101,37 +103,43 @@ public class SimplePeakListRow implements PeakListRow {
 		if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
 			maxDataPointIntensity = peak.getRawDataPointsIntensityRange()
 					.getMax();
-		calculateAverageRTandMZ();
+		calculateAverageValues();
 
 	}
 
-	/*
-	 * Returns average normalized M/Z for peaks on this row
-	 */
 	public double getAverageMZ() {
 		return averageMZ;
 	}
 
-	/*
-	 * Returns average normalized RT for peaks on this row
-	 */
 	public double getAverageRT() {
 		return averageRT;
 	}
 
-	private void calculateAverageRTandMZ() {
-		double rtSum = 0, mzSum = 0;
+	public double getAverageHeight() {
+		return averageHeight;
+	}
+
+	public double getAverageArea() {
+		return averageArea;
+	}
+
+	private synchronized void calculateAverageValues() {
+		double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
 		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
 			ChromatographicPeak p = peakEnum.nextElement();
 			rtSum += p.getRT();
 			mzSum += p.getMZ();
+			heightSum += p.getHeight();
+			areaSum += p.getArea();
 		}
 		averageRT = rtSum / peaks.size();
 		averageMZ = mzSum / peaks.size();
+		averageHeight = heightSum / peaks.size();
+		averageArea = areaSum / peaks.size();
 	}
 
-	/*
+	/**
 	 * Returns number of peaks assigned to this row
 	 */
 	public int getNumberOfPeaks() {
@@ -246,6 +254,9 @@ public class SimplePeakListRow implements PeakListRow {
 		return peaks.containsKey(file);
 	}
 
+	/**
+	 * Returns the highest isotope pattern of a peak in this row
+	 */
 	public IsotopePattern getBestIsotopePattern() {
 		ChromatographicPeak peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
@@ -260,6 +271,9 @@ public class SimplePeakListRow implements PeakListRow {
 		return null;
 	}
 
+	/**
+	 * Returns the highest peak in this row
+	 */
 	public ChromatographicPeak getBestPeak() {
 		ChromatographicPeak peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,

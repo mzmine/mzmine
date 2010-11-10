@@ -16,16 +16,15 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
@@ -44,7 +43,6 @@ public class ComplexSearchTask extends AbstractTask {
 
 	private int finishedRows, totalRows;
 	private PeakList peakList;
-	private RawDataFile dataFile;
 
 	private double rtTolerance, mzTolerance, maxComplexHeight;
 	private IonizationType ionType;
@@ -59,7 +57,6 @@ public class ComplexSearchTask extends AbstractTask {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
-		this.dataFile = peakList.getRawDataFile(0);
 
 		ionType = (IonizationType) parameters
 				.getParameterValue(ComplexSearchParameters.ionizationMethod);
@@ -93,7 +90,7 @@ public class ComplexSearchTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Starting complex search in " + peakList);
 
@@ -118,7 +115,7 @@ public class ComplexSearchTask extends AbstractTask {
 				for (int k = j; k < testRows.length; k++) {
 
 					// Task canceled?
-					if ( isCanceled( ))
+					if (isCanceled())
 						return;
 
 					// To avoid finding a complex of the peak itself and another
@@ -141,13 +138,13 @@ public class ComplexSearchTask extends AbstractTask {
 		((SimplePeakList) peakList)
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of complexes", parameters));
-		
-        // Notify the project manager that peaklist contents have changed
+
+		// Notify the project manager that peaklist contents have changed
 		ProjectEvent newEvent = new ProjectEvent(
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished complexes search in " + peakList);
 
@@ -160,27 +157,27 @@ public class ComplexSearchTask extends AbstractTask {
 	private boolean checkComplex(PeakListRow complexRow, PeakListRow row1,
 			PeakListRow row2) {
 
-		ChromatographicPeak complexPeak = complexRow.getPeak(dataFile);
-		ChromatographicPeak peak1 = row1.getPeak(dataFile);
-		ChromatographicPeak peak2 = row2.getPeak(dataFile);
-
 		// Check retention time condition
-		double rtDifference1 = Math.abs(complexPeak.getRT() - peak1.getRT());
-		double rtDifference2 = Math.abs(complexPeak.getRT() - peak2.getRT());
+		double rtDifference1 = Math.abs(complexRow.getAverageRT()
+				- row1.getAverageRT());
+		double rtDifference2 = Math.abs(complexRow.getAverageRT()
+				- row2.getAverageRT());
 		if ((rtDifference1 > rtTolerance) || (rtDifference2 > rtTolerance))
 			return false;
 
 		// Check mass condition
-		double expectedMass = peak1.getMZ() + peak2.getMZ()
+		double expectedMass = row1.getAverageMZ() + row2.getAverageMZ()
 				- (2 * ionType.getAddedMass());
-		double detectedMass = complexPeak.getMZ() - ionType.getAddedMass();
+		double detectedMass = complexRow.getAverageMZ()
+				- ionType.getAddedMass();
 		double mzDifference = Math.abs(detectedMass - expectedMass);
 		if (mzDifference > mzTolerance)
 			return false;
 
 		// Check height condition
-		if ((complexPeak.getHeight() > peak1.getHeight() * maxComplexHeight)
-				|| (complexPeak.getHeight() > peak2.getHeight()
+		if ((complexRow.getAverageHeight() > row1.getAverageHeight()
+				* maxComplexHeight)
+				|| (complexRow.getAverageHeight() > row2.getAverageHeight()
 						* maxComplexHeight))
 			return false;
 
