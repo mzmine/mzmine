@@ -21,10 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
@@ -43,7 +41,6 @@ public class AdductSearchTask extends AbstractTask {
 
 	private int finishedRows, totalRows;
 	private PeakList peakList;
-	private RawDataFile dataFile;
 
 	private double rtTolerance, mzTolerance, maxAdductHeight,
 			customMassDifference;
@@ -59,7 +56,6 @@ public class AdductSearchTask extends AbstractTask {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
-		this.dataFile = peakList.getRawDataFile(0);
 
 		rtTolerance = (Double) parameters
 				.getParameterValue(AdductSearchParameters.rtTolerance);
@@ -100,7 +96,7 @@ public class AdductSearchTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Starting adducts search in " + peakList);
 
@@ -114,19 +110,15 @@ public class AdductSearchTask extends AbstractTask {
 		// Compare each two rows against each other
 		for (int i = 0; i < totalRows; i++) {
 
-			ChromatographicPeak peak1 = rows[i].getPeak(dataFile);
-
 			for (int j = i + 1; j < rows.length; j++) {
 
 				// Task canceled?
-				if ( isCanceled( ))
+				if (isCanceled())
 					return;
-
-				ChromatographicPeak peak2 = rows[j].getPeak(dataFile);
 
 				// Treat the smaller m/z peak as main peak and check if the
 				// bigger one may be an adduct
-				if (peak1.getMZ() > peak2.getMZ()) {
+				if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
 					checkAllAdducts(rows[j], rows[i]);
 				} else {
 					checkAllAdducts(rows[i], rows[j]);
@@ -148,7 +140,7 @@ public class AdductSearchTask extends AbstractTask {
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished adducts search in " + peakList);
 
@@ -163,9 +155,7 @@ public class AdductSearchTask extends AbstractTask {
 	private void checkAllAdducts(PeakListRow mainRow, PeakListRow possibleAdduct) {
 
 		for (AdductType adduct : selectedAdducts) {
-
-			if (checkAdduct(mainRow.getPeak(dataFile), possibleAdduct
-					.getPeak(dataFile), adduct)) {
+			if (checkAdduct(mainRow, possibleAdduct, adduct)) {
 				addAdductInfo(mainRow, possibleAdduct, adduct);
 			}
 		}
@@ -179,8 +169,8 @@ public class AdductSearchTask extends AbstractTask {
 	 * @param adduct
 	 * @return
 	 */
-	private boolean checkAdduct(ChromatographicPeak mainPeak,
-			ChromatographicPeak possibleAdduct, AdductType adduct) {
+	private boolean checkAdduct(PeakListRow mainPeak,
+			PeakListRow possibleAdduct, AdductType adduct) {
 
 		// Calculate expected mass difference of this adduct
 		double expectedMzDifference;
@@ -190,19 +180,20 @@ public class AdductSearchTask extends AbstractTask {
 			expectedMzDifference = adduct.getMassDifference();
 
 		// Check mass difference condition
-		double mzDifference = Math.abs(mainPeak.getMZ() + expectedMzDifference
-				- possibleAdduct.getMZ());
+		double mzDifference = Math.abs(mainPeak.getAverageMZ()
+				+ expectedMzDifference - possibleAdduct.getAverageMZ());
 		if (mzDifference > mzTolerance)
 			return false;
 
 		// Check retention time condition
-		double rtDifference = Math.abs(mainPeak.getRT()
-				- possibleAdduct.getRT());
+		double rtDifference = Math.abs(mainPeak.getAverageRT()
+				- possibleAdduct.getAverageRT());
 		if (rtDifference > rtTolerance)
 			return false;
 
 		// Check height condition
-		if (possibleAdduct.getHeight() > mainPeak.getHeight() * maxAdductHeight)
+		if (possibleAdduct.getAverageHeight() > mainPeak.getAverageHeight()
+				* maxAdductHeight)
 			return false;
 
 		return true;
@@ -220,10 +211,6 @@ public class AdductSearchTask extends AbstractTask {
 		AdductIdentity newIdentity = new AdductIdentity(mainRow, adductRow,
 				adduct);
 		adductRow.addPeakIdentity(newIdentity, false);
-	}
-
-	public Object[] getCreatedObjects() {
-		return null;
 	}
 
 }

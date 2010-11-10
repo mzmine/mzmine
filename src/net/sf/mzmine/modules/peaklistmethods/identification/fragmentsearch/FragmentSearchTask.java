@@ -16,12 +16,12 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -45,10 +45,10 @@ public class FragmentSearchTask extends AbstractTask {
 
 	private int finishedRows, totalRows;
 	private PeakList peakList;
-	private RawDataFile dataFile;
 
 	private double rtTolerance, ms2mzTolerance, maxFragmentHeight,
 			minMS2peakHeight;
+	
 	private FragmentSearchParameters parameters;
 
 	/**
@@ -60,7 +60,6 @@ public class FragmentSearchTask extends AbstractTask {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
-		this.dataFile = peakList.getRawDataFile(0);
 
 		rtTolerance = (Double) parameters
 				.getParameterValue(FragmentSearchParameters.rtTolerance);
@@ -94,7 +93,7 @@ public class FragmentSearchTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Starting fragments search in " + peakList);
 
@@ -108,23 +107,19 @@ public class FragmentSearchTask extends AbstractTask {
 		// Compare each two rows against each other
 		for (int i = 0; i < totalRows; i++) {
 
-			ChromatographicPeak peak1 = rows[i].getPeak(dataFile);
-
 			for (int j = i + 1; j < rows.length; j++) {
 
 				// Task canceled?
-				if ( isCanceled( ))
+				if (isCanceled())
 					return;
-
-				ChromatographicPeak peak2 = rows[j].getPeak(dataFile);
 
 				// Treat the higher m/z peak as main peak and check if the
 				// smaller one may be a fragment
-				if (peak1.getMZ() > peak2.getMZ()) {
-					if (checkFragment(peak1, peak2))
+				if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
+					if (checkFragment(rows[i], rows[j]))
 						addFragmentInfo(rows[i], rows[j]);
 				} else {
-					if (checkFragment(peak2, peak1))
+					if (checkFragment(rows[j], rows[i]))
 						addFragmentInfo(rows[j], rows[i]);
 				}
 
@@ -138,13 +133,13 @@ public class FragmentSearchTask extends AbstractTask {
 		((SimplePeakList) peakList)
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of fragments", parameters));
-		
-        // Notify the project manager that peaklist contents have changed
+
+		// Notify the project manager that peaklist contents have changed
 		ProjectEvent newEvent = new ProjectEvent(
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished fragments search in " + peakList);
 
@@ -156,31 +151,35 @@ public class FragmentSearchTask extends AbstractTask {
 	 * @param mainPeak
 	 * @param possibleFragment
 	 */
-	private boolean checkFragment(ChromatographicPeak mainPeak,
-			ChromatographicPeak possibleFragment) {
+	private boolean checkFragment(PeakListRow mainPeak,
+			PeakListRow possibleFragment) {
 
 		// Check retention time condition
-		double rtDifference = Math.abs(mainPeak.getRT()
-				- possibleFragment.getRT());
+		double rtDifference = Math.abs(mainPeak.getAverageRT()
+				- possibleFragment.getAverageRT());
 		if (rtDifference > rtTolerance)
 			return false;
 
 		// Check height condition
-		if (possibleFragment.getHeight() > mainPeak.getHeight()
+		if (possibleFragment.getAverageHeight() > mainPeak.getAverageHeight()
 				* maxFragmentHeight)
 			return false;
 
 		// Get MS/MS scan, if exists
-		int fragmentScanNumber = mainPeak.getMostIntenseFragmentScanNumber();
+		int fragmentScanNumber = mainPeak.getBestPeak()
+				.getMostIntenseFragmentScanNumber();
 		if (fragmentScanNumber <= 0)
 			return false;
+
+		RawDataFile dataFile = mainPeak.getBestPeak().getDataFile();
 		Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
 		if (fragmentScan == null)
 			return false;
 
 		// Get MS/MS data points in the tolerance range
-		Range ms2mzRange = new Range(possibleFragment.getMZ() - ms2mzTolerance,
-				possibleFragment.getMZ() + ms2mzTolerance);
+		Range ms2mzRange = new Range(possibleFragment.getAverageMZ()
+				- ms2mzTolerance, possibleFragment.getAverageMZ()
+				+ ms2mzTolerance);
 		DataPoint fragmentDataPoints[] = fragmentScan
 				.getDataPointsByMass(ms2mzRange);
 
