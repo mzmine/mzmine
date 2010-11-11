@@ -72,6 +72,7 @@ public class TaskProgressWindow extends JInternalFrame implements
 		taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		taskTable.setDefaultRenderer(JComponent.class,
 				new ComponentCellRenderer());
+		taskTable.getTableHeader().setReorderingAllowed(false);
 
 		JScrollPane jJobScroll = new JScrollPane(taskTable);
 		add(jJobScroll, BorderLayout.CENTER);
