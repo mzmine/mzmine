@@ -83,7 +83,6 @@ public class MassBankGateway implements DBGateway {
 		URL structure3DURL = null;
 		URL databaseURL = entryURL;
 
-		System.out.println(massBankEntry);
 		// Find compound name
 		Pattern patName = Pattern.compile("RECORD_TITLE: (.*)");
 		Matcher matcherName = patName.matcher(massBankEntry);
