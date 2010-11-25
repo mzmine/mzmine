@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     }
     
     // Make an instance from XRawfile class defined in XRawfile2.dll.
-    MSFileReaderLib::IXRawfile3Ptr rawFile(NULL);
+    MSFileReaderLib::IXRawfilePtr rawFile(NULL);
     hr = rawFile.CreateInstance("MSFileReader.XRawfile.1");
     if (FAILED(hr)) {
         fprintf(stdout, "ERROR: Unable to initialize RAW file object, have you installed MSFileReader?\n");
