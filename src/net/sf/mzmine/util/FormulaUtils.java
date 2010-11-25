@@ -29,6 +29,8 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
+	public static final double electronMass = 0.0005485799;
+
 	/**
 	 * Calculates exact monoisotopic mass of a given formula
 	 */
@@ -39,8 +41,18 @@ public class FormulaUtils {
 		IMolecularFormula formulaObject = MolecularFormulaManipulator
 				.getMolecularFormula(formula, builder);
 
-		double mass = MolecularFormulaManipulator
-				.getMajorIsotopeMass(formulaObject);
+		return calculateExactMass(formulaObject);
+
+	}
+
+	/**
+	 * Calculates exact monoisotopic mass of a given formula
+	 */
+	public static double calculateExactMass(IMolecularFormula formula) {
+
+		// getTotalExactMass returns the mass according to charge (addition or
+		// removal or electron mass)
+		double mass = MolecularFormulaManipulator.getTotalExactMass(formula);
 
 		return mass;
 

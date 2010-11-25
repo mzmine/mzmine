@@ -82,6 +82,18 @@ public class ScanUtils {
 		return basePeak;
 	}
 
+	public static double calculateTIC(DataPoint dataPoints[], Range mzRange) {
+
+		double tic = 0;
+
+		for (DataPoint dp : dataPoints) {
+			if (mzRange.contains(dp.getMZ()))
+				tic += dp.getIntensity();
+		}
+
+		return tic;
+	}
+
 	/**
 	 * Selects data points within given m/z range
 	 * 
@@ -256,8 +268,7 @@ public class ScanUtils {
 					double rightNeighbourValue = afterY;
 					int rightNeighbourBinIndex = (binValues.length - 1)
 							+ (int) java.lang.Math.ceil((afterX - binRange
-									.getMax())
-									/ binWidth);
+									.getMax()) / binWidth);
 					for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
 						if (binValues[anotherBinIndex] != null) {
 							rightNeighbourValue = binValues[anotherBinIndex];
@@ -375,7 +386,7 @@ public class ScanUtils {
 		assert dataFile != null;
 		assert rtRange != null;
 		assert mzRange != null;
-		
+
 		int bestFragmentScan = -1;
 		double topBasePeak = 0;
 
