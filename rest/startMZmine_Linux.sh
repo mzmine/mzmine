@@ -32,6 +32,8 @@ MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient
 SCRIPTDIR=`dirname "$0"`
 cd "$SCRIPTDIR"
 
+# Show java version, in case a problem occurs
+echo "-version" | xargs $JAVA_COMMAND
+
 # This command starts the Java Virtual Machine
 echo "$JAVA_PARAMETERS" -classpath $CLASS_PATH $MAIN_CLASS | xargs $JAVA_COMMAND
-

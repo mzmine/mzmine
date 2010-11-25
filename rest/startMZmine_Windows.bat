@@ -22,5 +22,13 @@ set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Dj
 set CLASS_PATH=MZmine2.jar
 set MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
 
+rem Show java version, in case a problem occurs
+%JAVA_COMMAND% -version
+
 rem This command starts the Java Virtual Machine
 %JAVA_COMMAND% %JAVA_PARAMETERS% -classpath %CLASS_PATH% %MAIN_CLASS%  
+
+rem If there was an error, give the user chance to see it
+IF ERRORLEVEL 1 pause
+
+
