@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2009 The MZmine 2 Development Team
+ * Copyright 2006-2010 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,7 +18,8 @@
  *
  * ------------------------------------------------------------------------------
  *
- * This program binds to the Xrawfile2.dll library of Xcalibur and dumps the
+ * This program binds to the Xrawfile2.dll provided by the MSFileReader library 
+ * (http://sjsupport.thermofinnigan.com/public/detail.asp?id=624) and dumps the 
  * contents of a given RAW file as text data. The code is partly based on ReAdW 
  * program (GPL). To compile this source, you can use Microsoft Visual C++ 
  * command line compiler:
@@ -37,7 +38,7 @@
 
 #pragma comment(lib, "comsuppw.lib")
 
-#import "C:\Xcalibur\System\Programs\XRawfile2.dll" named_guids
+#import "MSFileReader.XRawfile2.dll" 
 
 typedef struct _datapeak
 {
@@ -52,7 +53,7 @@ int main(int argc, char* argv[]) {
     _setmode(fileno(stdout), _O_BINARY);
     
     if (argc != 2) {
-        fprintf(stdout, "ERROR: This program accepts exactly 1 argument\n");
+        fprintf(stdout, "ERROR: This program accepts exactly 1 argument: a RAW file path\n");
         return 1;
     }
 
@@ -63,10 +64,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Make an instance from XRawfile class defined in XRawFile2.dll.
-    XRAWFILE2Lib::IXRawfile3Ptr rawFile = NULL;
-    hr = rawFile.CreateInstance("XRawfile.XRawfile.1");
+    MSFileReaderLib::IXRawfile3Ptr rawFile(NULL);
+    hr = rawFile.CreateInstance("MSFileReader.XRawfile.1");
     if (FAILED(hr)) {
-        fprintf(stdout, "ERROR: Unable to initialize Xcalibur 2.0 interface, try running the command regsvr32 'C:\\<path_to_Xcalibur_dll>\\XRawfile2.dll'\n");
+        fprintf(stdout, "ERROR: Unable to initialize XRawFile2.dll interface.'\n");
         return 1;
     }
 
@@ -75,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     hr = rawFile->Open(filename);
     if (FAILED(hr)) {
-        fprintf(stdout, "ERROR: Unable to open XCalibur RAW file %s\n", filename);
+        fprintf(stdout, "ERROR: Unable to open RAW file %s\n", filename);
         return 1;
     }
 
