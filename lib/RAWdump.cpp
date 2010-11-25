@@ -38,7 +38,11 @@
 
 #pragma comment(lib, "comsuppw.lib")
 
-#import "MSFileReader.XRawfile2.dll" 
+/*
+ * Apart from 'Xrawfile2.dll', two more files are required: 'fileio.dll' and 
+ * 'fregistry.dll'. All these files are part of the MSFileReader library.
+ */
+#import "XRawfile2.dll" 
 
 typedef struct _datapeak
 {
@@ -51,23 +55,40 @@ int main(int argc, char* argv[]) {
     // Disable output buffering and set output to binary mode
     setvbuf(stdout, 0, _IONBF, 0);
     _setmode(fileno(stdout), _O_BINARY);
-    
+
+	// Check the filename argument    
     if (argc != 2) {
         fprintf(stdout, "ERROR: This program accepts exactly 1 argument: a RAW file path\n");
         return 1;
     }
 
+	// Initialize COM interface
     HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);    
     if (FAILED(hr)) {
         fprintf(stdout, "ERROR: Unable to initialize COM\n");
         return 1;
     }
-
+    
+    // Load the XRawfile2.dll library
+    HMODULE mod = LoadLibrary("XRawfile2.dll");
+    if (mod == NULL) {
+        fprintf(stdout, "ERROR: Unable to load XRawFile2.dll libary\n");
+        return 1;
+    }
+    
+    // Register the library by calling the 'DllRegisterServer' function
+    FARPROC proc = GetProcAddress(mod, "DllRegisterServer");
+    hr = (HRESULT) (*proc)();
+	if (FAILED(hr)) {
+        fprintf(stdout, "ERROR: Unable to register XRawFile2.dll library\n");
+        return 1;
+    }
+    
     // Make an instance from XRawfile class defined in XRawFile2.dll.
     MSFileReaderLib::IXRawfile3Ptr rawFile(NULL);
     hr = rawFile.CreateInstance("MSFileReader.XRawfile.1");
     if (FAILED(hr)) {
-        fprintf(stdout, "ERROR: Unable to initialize XRawFile2.dll interface.'\n");
+        fprintf(stdout, "ERROR: Unable to initialize XRawFile2.dll class\n");
         return 1;
     }
 
@@ -118,7 +139,9 @@ int main(int argc, char* argv[]) {
         fprintf(stdout, "SCAN NUMBER: %ld\n", curScanNum);
         fprintf(stdout, "SCAN FILTER: %s\n", thermoFilterLine);
     
+        // Cleanup memory
         SysFreeString(bstrFilter);
+        delete[] thermoFilterLine;
 
         long numDataPoints = -1; // points in both the m/z and intensity arrays
         double retentionTimeInMinutes = -1;
@@ -176,9 +199,6 @@ int main(int argc, char* argv[]) {
                 fprintf(stdout, "PRECURSOR: %f %d\n", precursorMz, precursorCharge);
         
         }
-
-        // Cleanup memory
-        delete[] thermoFilterLine;
 
         VARIANT varMassList;
         // initiallize variant to VT_EMPTY
