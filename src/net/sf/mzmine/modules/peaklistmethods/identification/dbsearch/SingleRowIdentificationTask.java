@@ -129,7 +129,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			Desktop desktop = MZmineCore.getDesktop();
 			NumberFormat massFormater = MZmineCore.getMZFormat();
 
-			OnlineDBSearchWindow window = new OnlineDBSearchWindow(peakList,
+			ResultWindow window = new ResultWindow(peakList,
 					peakListRow, searchedMass, this);
 			window.setTitle("Searching for "
 					+ massFormater.format(searchedMass) + " amu");

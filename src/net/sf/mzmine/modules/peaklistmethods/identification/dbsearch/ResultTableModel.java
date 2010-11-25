@@ -44,7 +44,7 @@ public class ResultTableModel extends AbstractTableModel {
 	}
 
 	public String getColumnName(int col) {
-		return columnNames[col].toString();
+		return columnNames[col];
 	}
 
 	public int getRowCount() {
@@ -96,7 +96,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	public void addElement(DBCompound compound) {
 		compounds.add(compound);
-		fireTableRowsInserted(0, compounds.size() - 1);
+		fireTableRowsInserted(compounds.size() - 1, compounds.size() - 1);
 	}
 
 	public void setValueAt(Object value, int row, int col) {

@@ -38,6 +38,7 @@ public class OnlineDBSearchDialog extends ParameterSetupDialog implements
 		ActionListener, PropertyChangeListener {
 
 	private static final Color BACKGROUND_COLOR = new Color(173, 216, 230);
+	
 	private double rawMassValue;
 	private JFormattedTextField chargeField;
 	private JFormattedTextField neutralMassField;

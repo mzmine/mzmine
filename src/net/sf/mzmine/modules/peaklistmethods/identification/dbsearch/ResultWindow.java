@@ -36,6 +36,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
@@ -52,8 +54,7 @@ import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-public class OnlineDBSearchWindow extends JInternalFrame implements
-		ActionListener {
+public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -65,7 +66,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 	private String description;
 	private Task searchTask;
 
-	public OnlineDBSearchWindow(PeakList peakList, PeakListRow peakListRow,
+	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
 			double searchedMass, Task searchTask) {
 
 		super(null, true, true, true, true);
@@ -87,6 +88,11 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 		IDList = new JTable();
 		IDList.setModel(listElementModel);
 		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		IDList.getTableHeader().setReorderingAllowed(false);
+		
+		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(listElementModel);
+		IDList.setRowSorter(sorter);
+
 
 		JScrollPane listScroller = new JScrollPane(IDList);
 		listScroller.setPreferredSize(new Dimension(350, 100));
@@ -139,6 +145,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 				return;
 
 			}
+			index = IDList.convertRowIndexToModel(index);
 
 			peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
 					false);
@@ -160,6 +167,7 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 						"Select one result to display molecule structure");
 				return;
 			}
+			index = IDList.convertRowIndexToModel(index);
 
 			DBCompound compound = listElementModel.getCompoundAt(index);
 			URL url2D = compound.get2DStructureURL();
@@ -182,6 +190,8 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 						"Select one result to display the isotope pattern");
 				return;
 			}
+
+			index = IDList.convertRowIndexToModel(index);
 
 			final IsotopePattern predictedPattern = listElementModel
 					.getCompoundAt(index).getIsotopePattern();
@@ -207,16 +217,16 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 				return;
 
 			}
+			index = IDList.convertRowIndexToModel(index);
 
-			logger
-					.finest("Launching default browser to display compound details");
+			logger.finest("Launching default browser to display compound details");
 
 			java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
 
 			DBCompound compound = listElementModel.getCompoundAt(index);
 			String urlString = compound
 					.getPropertyValue(PeakIdentity.PROPERTY_URL);
-			
+
 			if ((urlString == null) || (urlString.length() == 0))
 				return;
 
@@ -232,11 +242,15 @@ public class OnlineDBSearchWindow extends JInternalFrame implements
 
 	}
 
-	public void addNewListItem(DBCompound compound) {
-		int index = IDList.getSelectedRow();
-		listElementModel.addElement(compound);
-		if (index > -1)
-			IDList.setRowSelectionInterval(index, index);
+	public void addNewListItem(final DBCompound compound) {
+
+		// Update the model in swing thread to avoid exceptions
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				listElementModel.addElement(compound);
+			}
+		});
+
 	}
 
 	public String toString() {
