@@ -18,7 +18,7 @@
  *
  * ------------------------------------------------------------------------------
  *
- * This program binds to the Xrawfile2.dll provided by the MSFileReader library 
+ * This program binds to the XRawfile2.dll provided by the MSFileReader library 
  * (http://sjsupport.thermofinnigan.com/public/detail.asp?id=624) and dumps the 
  * contents of a given RAW file as text data. The code is partly based on ReAdW 
  * program (GPL). To compile this source, you can use Microsoft Visual C++ 
@@ -36,13 +36,8 @@
 #include <io.h>
 #include <fcntl.h>
 
-#pragma comment(lib, "comsuppw.lib")
-
-/*
- * Apart from 'Xrawfile2.dll', two more files are required: 'fileio.dll' and 
- * 'fregistry.dll'. All these files are part of the MSFileReader library.
- */
-#import "XRawfile2.dll" 
+// MSFileReader must be installed for this program to compile
+#import "C:\Program Files\Thermo\MSFileReader\Xrawfile2.dll" 
 
 typedef struct _datapeak
 {
@@ -69,26 +64,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    // Load the XRawfile2.dll library
-    HMODULE mod = LoadLibrary("XRawfile2.dll");
-    if (mod == NULL) {
-        fprintf(stdout, "ERROR: Unable to load XRawFile2.dll libary\n");
-        return 1;
-    }
-    
-    // Register the library by calling the 'DllRegisterServer' function
-    FARPROC proc = GetProcAddress(mod, "DllRegisterServer");
-    hr = (HRESULT) (*proc)();
-	if (FAILED(hr)) {
-        fprintf(stdout, "ERROR: Unable to register XRawFile2.dll library\n");
-        return 1;
-    }
-    
-    // Make an instance from XRawfile class defined in XRawFile2.dll.
+    // Make an instance from XRawfile class defined in XRawfile2.dll.
     MSFileReaderLib::IXRawfile3Ptr rawFile(NULL);
     hr = rawFile.CreateInstance("MSFileReader.XRawfile.1");
     if (FAILED(hr)) {
-        fprintf(stdout, "ERROR: Unable to initialize XRawFile2.dll class\n");
+        fprintf(stdout, "ERROR: Unable to initialize RAW file object, have you installed MSFileReader?\n");
         return 1;
     }
 
