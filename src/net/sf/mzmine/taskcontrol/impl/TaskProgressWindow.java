@@ -88,8 +88,8 @@ public class TaskProgressWindow extends JInternalFrame implements
 
 		cancelTaskMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel task",
 				this);
-		cancelAllMenuItem = GUIUtils.addMenuItem(popupMenu,
-				"Cancel all tasks", this);
+		cancelAllMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel all tasks",
+				this);
 
 		// Addd popup menu to the task table
 		taskTable.setComponentPopupMenu(popupMenu);
@@ -115,16 +115,18 @@ public class TaskProgressWindow extends JInternalFrame implements
 		WrappedTask currentQueue[] = taskController.getTaskQueue()
 				.getQueueSnapshot();
 
+		Task selectedTask = null;
+
 		int selectedRow = taskTable.getSelectedRow();
 
-		if ((selectedRow >= currentQueue.length) || (selectedRow < 0))
-			return;
-
-		Task selectedTask = currentQueue[selectedRow].getActualTask();
+		if ((selectedRow < currentQueue.length) && (selectedRow >= 0))
+			selectedTask = currentQueue[selectedRow].getActualTask();
 
 		Object src = event.getSource();
 
 		if (src == cancelTaskMenuItem) {
+			if (selectedTask == null)
+				return;
 			TaskStatus status = selectedTask.getStatus();
 			if ((status == TaskStatus.WAITING)
 					|| (status == TaskStatus.PROCESSING)) {
@@ -144,10 +146,14 @@ public class TaskProgressWindow extends JInternalFrame implements
 		}
 
 		if (src == highPriorityMenuItem) {
+			if (selectedTask == null)
+				return;
 			taskController.setTaskPriority(selectedTask, TaskPriority.HIGH);
 		}
 
 		if (src == normalPriorityMenuItem) {
+			if (selectedTask == null)
+				return;
 			taskController.setTaskPriority(selectedTask, TaskPriority.NORMAL);
 		}
 
