@@ -65,12 +65,12 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 
 	// Non-stored parameter values
 
-	private PeakList sourcePeakList;
+	protected PeakList sourcePeakList;
 
-	private Parameter selectedParameter; // Parameter used when coloring by
+	protected Parameter selectedParameter; // Parameter used when coloring by
 	// parameter value
-	private RawDataFile[] selectedDataFiles;
-	private PeakListRow[] selectedRows;
+	protected RawDataFile[] selectedDataFiles;
+	protected PeakListRow[] selectedRows;
 
 	public ProjectionPlotParameters(PeakList sourcePeakList) {
 		this();
@@ -153,5 +153,9 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 	public ProjectionPlotParameters() {
 	    super(new Parameter[] { coloringType, peakMeasurementType, xAxisComponent,
 	    		yAxisComponent });
+	}
+
+        public ProjectionPlotParameters(Parameter[] newParameters) {
+	    super(newParameters);
 	}
 }
