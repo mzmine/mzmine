@@ -140,6 +140,9 @@ public class SimpleScan implements Scan {
 	public void setDataPoints(DataPoint[] dataPoints) {
 
 		this.dataPoints = dataPoints;
+		mzRange = new Range(0, 0);
+		basePeak = null;
+		totalIonCurrent = 0;
 
 		// find m/z range and base peak
 		if (dataPoints.length > 0) {
@@ -153,16 +156,10 @@ public class SimpleScan implements Scan {
 					basePeak = dp;
 
 				mzRange.extendRange(dp.getMZ());
-
 				totalIonCurrent += dp.getIntensity();
 
 			}
 
-		} else {
-			// Empty scan, so no m/z range or base peak
-			mzRange = new Range(0, 0);
-			basePeak = null;
-			totalIonCurrent = 0;
 		}
 
 	}
