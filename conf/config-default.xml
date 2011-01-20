@@ -34,6 +34,7 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizer" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzer" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlot" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.Clustering" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.custom.CustomDBSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearch" /> 
