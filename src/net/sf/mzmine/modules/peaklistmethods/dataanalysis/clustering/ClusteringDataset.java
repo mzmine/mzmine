@@ -178,8 +178,16 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 }
                         }
                 }
+                
+                // Running cluster algorithms
                 List<Integer> clusteringResult = getClusterer(clusteringAlgorithm, createWekaDataset(rawData));
 
+                // Report window
+                Desktop desktop = MZmineCore.getDesktop();
+                ClusteringReportWindow reportWindow = new ClusteringReportWindow(selectedRawDataFiles, (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
+                desktop.addInternalFrame(reportWindow);
+
+                // Visualization
                 for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
                         groupsForSelectedRawDataFiles[ind] = clusteringResult.get(ind);
                 }
@@ -194,8 +202,8 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         numComponents = yAxisDimension;
                 }
 
-                // Scale data and do PCA
                 if (visualizationType.contains(ClusteringParameters.visualizationPCA)) {
+                        // Scale data and do PCA
                         Preprocess.scaleToUnityVariance(rawData);
                         PCA pcaProj = new PCA(rawData, numComponents);
                         projectionStatus = pcaProj.getProjectionStatus();
@@ -206,21 +214,15 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 return;
                         }
 
-
                         component1Coords = result[xAxisDimension - 1];
                         component2Coords = result[yAxisDimension - 1];
                 } else if (visualizationType.contains(ClusteringParameters.visualizationSammon)) {
                         // Scale data and do Sammon's mapping
                         Preprocess.scaleToUnityVariance(rawData);
                         Sammons sammonsProj = new Sammons(rawData);
-
                         projectionStatus = sammonsProj.getProjectionStatus();
 
                         sammonsProj.iterate(100);
-
-                        if (status == TaskStatus.CANCELED) {
-                                return;
-                        }
 
                         double[][] result = sammonsProj.getState();
 
@@ -231,7 +233,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         component1Coords = result[xAxisDimension - 1];
                         component2Coords = result[yAxisDimension - 1];
                 }
-                Desktop desktop = MZmineCore.getDesktop();
+
                 ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
                         parameters);
                 desktop.addInternalFrame(newFrame);
@@ -241,6 +243,11 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
         }
 
+        /**
+         * Create the weka data set
+         * @param rawData Data extracted from selected Raw data files and rows.
+         * @return Weka library data set
+         */
         private Instances createWekaDataset(double[][] rawData) {
                 FastVector attributes = new FastVector();
                 int cont = 1;
@@ -254,8 +261,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         Attribute var = new Attribute(rowName);
                         attributes.addElement(var);
                 }
-
-                //Creates the dataset
+               
                 Instances data = new Instances("Dataset", attributes, 0);
 
                 for (int i = 0; i < rawData.length; i++) {
@@ -269,6 +275,12 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 return data;
         }
 
+        /**
+         * Construct the clustering algorithm using Weka library
+         * @param algorithm Type of clustering algorithm
+         * @param wekaData Weka data set
+         * @return List of the cluster number of each selected Raw data file.
+         */
         private List<Integer> getClusterer(ClusteringAlgorithmsEnum algorithm, Instances wekaData) {
                 List<Integer> clusters = new ArrayList<Integer>();
                 String[] options = new String[2];
@@ -320,8 +332,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         ex.printStackTrace();
                 }
                 return clusters;
-
-
         }
 
         public void cancel() {
