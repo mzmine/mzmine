@@ -95,6 +95,10 @@ public class StorableScan implements Scan {
 		this.fragmentScans = fragmentScans;
 		this.centroided = centroided;
 
+		mzRange = new Range(0, 0);
+		basePeak = null;
+		totalIonCurrent = 0;
+		
 		DataPoint dataPoints[] = getDataPoints();
 
 		// find m/z range and base peak
@@ -114,11 +118,6 @@ public class StorableScan implements Scan {
 
 			}
 
-		} else {
-			// Empty scan, so no m/z range or base peak
-			mzRange = new Range(0, 0);
-			basePeak = null;
-			totalIonCurrent = 0;
 		}
 
 	}
