@@ -152,7 +152,7 @@ public class NumberFormatter extends NumberFormat implements Cloneable {
 			switch (embeddedFormatterType) {
 			case TIME:
 				SimpleDateFormat sdf = (SimpleDateFormat) embeddedFormatter;
-				return ((sdf.parse(str, pos).getTime()) / 1000l);
+				return ((sdf.parse(str, pos).getTime()) / 1000.0);
 			case NUMBER:
 				DecimalFormat df = (DecimalFormat) embeddedFormatter;
 				return df.parse(str, pos);
