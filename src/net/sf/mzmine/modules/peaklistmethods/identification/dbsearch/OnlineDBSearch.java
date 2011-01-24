@@ -73,6 +73,10 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 		myInstance = this;
 
 	}
+	
+	public static OnlineDBSearch getInstance() {
+		return myInstance;
+	}
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)

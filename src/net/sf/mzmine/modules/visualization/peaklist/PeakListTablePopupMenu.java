@@ -71,8 +71,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	private JMenu showMenu, searchMenu;
 	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
 			showSpectrumItem, showXICItem, showMSMSItem,
-			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem, formulaItem,
-			manuallyDefineItem, showPeakRowSummaryItem;
+			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem,
+			formulaItem, manuallyDefineItem, showPeakRowSummaryItem;
 
 	private RawDataFile clickedDataFile;
 	private PeakListRow clickedPeakListRow;
@@ -105,12 +105,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		searchMenu = new JMenu("Search...");
 		this.add(searchMenu);
 
-		dbSearchItem = GUIUtils.addMenuItem(searchMenu,
-				"Search online database", this);
+		if (OnlineDBSearch.getInstance() != null) {
+			dbSearchItem = GUIUtils.addMenuItem(searchMenu,
+					"Search online database", this);
+		}
 
-		formulaItem = GUIUtils.addMenuItem(searchMenu,
-				"Predict molecular formula", this);
-		
+		if (FormulaPrediction.getInstance() != null) {
+			formulaItem = GUIUtils.addMenuItem(searchMenu,
+					"Predict molecular formula", this);
+		}
+
 		plotRowsItem = GUIUtils.addMenuItem(this,
 				"Plot using Intensity Plot module", this);
 
@@ -161,8 +165,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 			// Enable Show 3D peak plot
 			show3DItem.setEnabled(selectedRows.length == 1);
-			
-			//Enable peak list row summary
+
+			// Enable peak list row summary
 			showPeakRowSummaryItem.setEnabled(selectedRows.length == 1);
 
 			// If we clicked on data file columns, check the peak
@@ -190,15 +194,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				}
 
 			} else {
-				
+
 				ChromatographicPeak rowBestPeak = clickedPeakListRow
 						.getBestPeak();
 				IsotopePattern rowBestIsotopePattern = clickedPeakListRow
 						.getBestIsotopePattern();
-				showIsotopePatternItem
-						.setEnabled(rowBestIsotopePattern != null && selectedRows.length == 1);
+				showIsotopePatternItem.setEnabled(rowBestIsotopePattern != null
+						&& selectedRows.length == 1);
 				showMSMSItem.setEnabled(rowBestPeak
-						.getMostIntenseFragmentScanNumber() > 0 && selectedRows.length == 1);
+						.getMostIntenseFragmentScanNumber() > 0
+						&& selectedRows.length == 1);
 
 			}
 
@@ -415,8 +420,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				return;
 
 			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
-					showPeak.getRepresentativeScanNumber(), showPeak
-							.getIsotopePattern());
+					showPeak.getRepresentativeScanNumber(),
+					showPeak.getIsotopePattern());
 
 		}
 
@@ -424,7 +429,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			FormulaPrediction.showSingleRowIdentificationDialog(peakList,
 					clickedPeakListRow);
 		}
-		
+
 		if (src == dbSearchItem) {
 			OnlineDBSearch.showSingleRowIdentificationDialog(peakList,
 					clickedPeakListRow);

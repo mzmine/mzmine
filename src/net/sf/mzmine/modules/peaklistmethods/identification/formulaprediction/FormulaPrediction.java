@@ -73,6 +73,10 @@ public class FormulaPrediction implements BatchStep, ActionListener {
 		myInstance = this;
 
 	}
+	
+	public static FormulaPrediction getInstance() {
+		return myInstance;
+	}
 
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
@@ -110,7 +114,7 @@ public class FormulaPrediction implements BatchStep, ActionListener {
 
 	public static void showSingleRowIdentificationDialog(PeakList peakList,
 			PeakListRow row) {
-
+		
 		FormulaPredictionParameters parameters = (FormulaPredictionParameters) myInstance
 				.getParameterSet();
 		FormulaPredictionDialog dialog = new FormulaPredictionDialog(parameters, row, helpID);
