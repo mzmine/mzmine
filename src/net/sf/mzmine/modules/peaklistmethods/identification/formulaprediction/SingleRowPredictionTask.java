@@ -31,16 +31,10 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
-import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.Range;
-
-import org.openscience.cdk.formula.MolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SingleRowPredictionTask extends AbstractTask {
 
@@ -92,7 +86,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeFilter);
 		heuristicRules = CollectionUtils.changeArrayType((Object[]) parameters
-				.getParameterValue(FormulaPredictionParameters.heuristicRules), 
+				.getParameterValue(FormulaPredictionParameters.heuristicRules),
 				HeuristicRule.class);
 
 		detectedPattern = peakListRow.getBestIsotopePattern();
@@ -248,30 +242,30 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 	private void testFormula(int currentCounts[]) {
 
-		
-		CandidateFormula candidate = new CandidateFormula(elementRules, currentCounts, detectedPattern, ionType, charge); 
-		
+		CandidateFormula candidate = new CandidateFormula(elementRules,
+				currentCounts, detectedPattern, ionType, charge);
+
 		// Heuristic rules check
 		for (HeuristicRule rule : heuristicRules) {
 			switch (rule) {
 			case LEWIS:
-				if (! candidate.conformsLEWIS())
+				if (!candidate.conformsLEWIS())
 					return;
 				break;
 			case SENIOR:
-				if (! candidate.conformsSENIOR())
+				if (!candidate.conformsSENIOR())
 					return;
 				break;
 			case HC:
-				if (! candidate.conformsHC())
+				if (!candidate.conformsHC())
 					return;
 				break;
 			case NOPS:
-				if (! candidate.conformsNOPS())
+				if (!candidate.conformsNOPS())
 					return;
 				break;
 			case HNOPS:
-				if (! candidate.conformsHNOPS())
+				if (!candidate.conformsHNOPS())
 					return;
 				break;
 			}

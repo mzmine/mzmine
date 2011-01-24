@@ -22,12 +22,16 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -49,21 +53,21 @@ import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.GUIUtils;
 
-public class ResultWindow extends JInternalFrame implements ActionListener {
+public class ResultWindow extends JInternalFrame implements ActionListener,
+		ClipboardOwner {
 
 	private ResultTableModel listElementModel;
-	private JButton btnAdd, btnIsotopeViewer;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private String description;
 	private Task searchTask;
 
-
 	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
-			double searchedMass, int charge, 
-			IsotopePattern detectedPattern, Task searchTask) {
+			double searchedMass, int charge, IsotopePattern detectedPattern,
+			Task searchTask) {
 
 		super(null, true, true, true, true);
 
@@ -85,7 +89,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		IDList.setModel(listElementModel);
 		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		IDList.getTableHeader().setReorderingAllowed(false);
-		
+
 		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
 				listElementModel);
 		IDList.setRowSorter(sorter);
@@ -100,16 +104,12 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
 		JPanel pnlButtons = new JPanel();
-		btnAdd = new JButton("Add identity");
-		btnAdd.addActionListener(this);
-		btnAdd.setActionCommand("ADD");
-		btnIsotopeViewer = new JButton("View isotope pattern");
-		btnIsotopeViewer.addActionListener(this);
-		btnIsotopeViewer.setActionCommand("ISOTOPE_VIEWER");
-
 		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		pnlButtons.add(btnAdd);
-		pnlButtons.add(btnIsotopeViewer);
+
+		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+		GUIUtils.addButton(pnlButtons, "Copy to clipboard", null, this, "COPY");
+		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
+				"ISOTOPE_VIEWER");
 
 		setLayout(new BorderLayout());
 		setSize(500, 200);
@@ -130,7 +130,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			if (index < 0) {
 				MZmineCore.getDesktop().displayMessage(
-						"Select one result to add as compound identity");
+						"Please select one result to add as compound identity");
 				return;
 
 			}
@@ -147,6 +147,26 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			dispose();
 		}
 
+		if (command.equals("COPY")) {
+			int index = IDList.getSelectedRow();
+			index = IDList.convertRowIndexToModel(index);
+
+			if (index < 0) {
+				MZmineCore.getDesktop().displayMessage(
+						"Please select one result");
+				return;
+			}
+
+			CandidateFormula formula = listElementModel.getFormula(index);
+
+			String formulaString = formula.getFormulaAsString();
+			StringSelection stringSelection = new StringSelection(formulaString);
+			Clipboard clipboard = Toolkit.getDefaultToolkit()
+					.getSystemClipboard();
+			clipboard.setContents(stringSelection, this);
+
+		}
+
 		if (command.equals("ISOTOPE_VIEWER")) {
 
 			int index = IDList.getSelectedRow();
@@ -158,8 +178,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 				return;
 			}
 
-			IsotopePattern predictedPattern = listElementModel
-					.getIsotopePattern(index);
+			CandidateFormula formula = listElementModel.getFormula(index);
+			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
 			if (predictedPattern == null)
 				return;
@@ -199,6 +219,10 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		super.dispose();
 
+	}
+
+	public void lostOwnership(Clipboard clipboard, Transferable contents) {
+		// ignore
 	}
 
 }

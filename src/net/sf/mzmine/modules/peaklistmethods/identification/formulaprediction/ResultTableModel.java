@@ -24,15 +24,12 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
 
 	public static final String checkMark = new String(new char[] { '\u2713' });
 	public static final String crossMark = new String(new char[] { '\u2717' });
-
-	// TODO: show formula in HTML form, add copy to clipboard button
 
 	private static final String[] columnNames = { "Formula", "Mass difference",
 			"Isotope pattern score", "Heuristic rules" };
@@ -83,9 +80,8 @@ public class ResultTableModel extends AbstractTableModel {
 		return null;
 	}
 
-	public IsotopePattern getIsotopePattern(int row) {
-		CandidateFormula formula = formulas.get(row);
-		return formula.getPredictedIsotopes();
+	public CandidateFormula getFormula(int row) {
+		return formulas.get(row);
 	}
 
 	public boolean isCellEditable(int row, int col) {
@@ -95,9 +91,6 @@ public class ResultTableModel extends AbstractTableModel {
 	public void addElement(CandidateFormula formula) {
 		formulas.add(formula);
 		fireTableRowsInserted(formulas.size() - 1, formulas.size() - 1);
-	}
-
-	public void setValueAt(Object value, int row, int col) {
 	}
 
 }
