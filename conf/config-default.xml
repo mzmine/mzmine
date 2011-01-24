@@ -36,6 +36,7 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlot" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.Clustering" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.custom.CustomDBSearch" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPrediction" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.complexsearch.ComplexSearch" /> 
