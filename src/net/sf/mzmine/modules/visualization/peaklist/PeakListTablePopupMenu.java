@@ -39,6 +39,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearch;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPrediction;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
@@ -70,7 +71,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	private JMenu showMenu, searchMenu;
 	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
 			showSpectrumItem, showXICItem, showMSMSItem,
-			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem,
+			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem, formulaItem,
 			manuallyDefineItem, showPeakRowSummaryItem;
 
 	private RawDataFile clickedDataFile;
@@ -107,6 +108,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		dbSearchItem = GUIUtils.addMenuItem(searchMenu,
 				"Search online database", this);
 
+		formulaItem = GUIUtils.addMenuItem(searchMenu,
+				"Predict molecular formula", this);
+		
 		plotRowsItem = GUIUtils.addMenuItem(this,
 				"Plot using Intensity Plot module", this);
 
@@ -416,6 +420,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 		}
 
+		if (src == formulaItem) {
+			FormulaPrediction.showSingleRowIdentificationDialog(peakList,
+					clickedPeakListRow);
+		}
+		
 		if (src == dbSearchItem) {
 			OnlineDBSearch.showSingleRowIdentificationDialog(peakList,
 					clickedPeakListRow);
