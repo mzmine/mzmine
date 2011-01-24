@@ -1,3 +1,22 @@
+/*
+ * Copyright 2006-2011 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import java.util.HashMap;
@@ -9,50 +28,50 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class LewisFormulaChecker {
+public class HeuristicRuleChecker {
 
-	public static final Map<String, Integer> valences = new HashMap<String, Integer>();
 	/**
 	 * This defines the typical valence states, in fact e.g. sulphur may have valence 2, 4 or 6 
 	 */
+	public static final Map<String, Integer> groundValences = new HashMap<String, Integer>();
 	static {
-		valences.put("H", 1);
-		valences.put("B", 3);
-		valences.put("C", 4);
-		valences.put("N", 3);
-		valences.put("O", 2);
-		valences.put("F", 1);
-		valences.put("Na", 1);
-		valences.put("Mg", 2);
-		valences.put("Al", 3);
-		valences.put("Si", 4);
-		valences.put("P", 3);
-		valences.put("S", 2);
-		valences.put("Cl", 1);
-		valences.put("Br", 1);
-		valences.put("Ca", 2);
-		valences.put("I", 1);
+		groundValences.put("H", 1);
+		groundValences.put("B", 3);
+		groundValences.put("C", 4);
+		groundValences.put("N", 3);
+		groundValences.put("O", 2);
+		groundValences.put("F", 1);
+		groundValences.put("Na", 1);
+		groundValences.put("Mg", 2);
+		groundValences.put("Al", 3);
+		groundValences.put("Si", 4);
+		groundValences.put("P", 3);
+		groundValences.put("S", 2);
+		groundValences.put("Cl", 1);
+		groundValences.put("Br", 1);
+		groundValences.put("Ca", 2);
+		groundValences.put("I", 1);
 	}
 	
-	public static final Map<String, Integer> maxValences = new HashMap<String, Integer>();
 	/**
-	 * This defines the typical valence states, in fact e.g. sulphur may have valence 2, 4 or 6 
+	 * This defines the maximum valence states 
 	 */
+	public static final Map<String, Integer> maxValences = new HashMap<String, Integer>();
 	static {
 		maxValences.put("H", 1);
 		maxValences.put("B", 3);
 		maxValences.put("C", 4);
 		maxValences.put("N", 5);
 		maxValences.put("O", 2);
-		maxValences.put("F", 1);
+		maxValences.put("F", 7);
 		maxValences.put("Na", 1);
 		maxValences.put("Mg", 2);
 		maxValences.put("Al", 3);
 		maxValences.put("Si", 4);
 		maxValences.put("P", 5);
 		maxValences.put("S", 6);
-		maxValences.put("Cl", 1);
-		maxValences.put("Br", 1);
+		maxValences.put("Cl", 7);
+		maxValences.put("Br", 7);
 		maxValences.put("Ca", 2);
 		maxValences.put("I", 1);
 	}
@@ -67,7 +86,7 @@ public class LewisFormulaChecker {
 
 		for (IIsotope isotope : formula.isotopes()) {
 
-			Integer valence = valences.get(isotope.getSymbol());
+			Integer valence = groundValences.get(isotope.getSymbol());
 			if (valence == null)
 				continue;
 			sum += (valence - 2) * formula.getIsotopeCount(isotope);
@@ -138,7 +157,7 @@ public class LewisFormulaChecker {
         
 		for (IIsotope isotope : formula.isotopes()) {
 			
-			Integer valence =  valences.get(isotope.getSymbol());
+			Integer valence =  groundValences.get(isotope.getSymbol());
 			if (valence == null)
 				continue;
 			sum += (valence) * formula.getIsotopeCount(isotope);
@@ -161,7 +180,7 @@ public class LewisFormulaChecker {
 		double sume = calculateE(formula);
 		double atoms = getAtoms(formula);
 		
-		return sume >= (2 * (atoms  -1));
+		return sume >= (2 * (atoms  - 1));
 	}
 	
 	public static int getAtoms(IMolecularFormula formula) {
@@ -174,7 +193,7 @@ public class LewisFormulaChecker {
 		return sum;
 	}
 	
-	public static boolean getHC(IMolecularFormula formula) {
+	public static boolean checkHC(IMolecularFormula formula) {
 
 		double carb = 0;
 		double hyd = 0;
@@ -189,7 +208,7 @@ public class LewisFormulaChecker {
 		return (rat > 0) && (rat < 6);
 	}
 	
-	public static boolean getNOPS(IMolecularFormula formula) {
+	public static boolean checkNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eH=0, eN=0, eO=0, eP=0, eS =0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -211,7 +230,7 @@ public class LewisFormulaChecker {
 		return (rNC <= 4) && (rOC <= 3) && (rPC <=2) && (rSC <= 3);
 	}
 
-	public static boolean getHNOPS(IMolecularFormula formula) {
+	public static boolean checkHNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eH=0, eN=0, eO=0, eP=0, eS =0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -233,21 +252,12 @@ public class LewisFormulaChecker {
 
 		return (rHC >= 0.2) && (rHC <= 3) && (rNC <= 2) && (rOC <= 1.2) && (rPC <=0.32) && (rSC <= 0.65);
 	}
-
-	public static boolean checkExists(String formula) {
-		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-		IMolecularFormula f = MolecularFormulaManipulator.getMolecularFormula(
-				formula, builder);
-		
-		return checkLewisOctetRule(f) && checkSeniorRule(f) && getHC(f) && getNOPS(f) && getHNOPS(f);
-		
-	}
 	
 	public static void main(String args[]) {
 
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 		IMolecularFormula f = MolecularFormulaManipulator.getMolecularFormula(
-				"C6H12NO2", builder);
+				"H100", builder);
 		String fs = MolecularFormulaManipulator.getString(f);
 
 		int atoms = getAtoms(f);
@@ -256,9 +266,9 @@ public class LewisFormulaChecker {
 		double ls = calculateLewisSum(f);
 		boolean lewis = checkLewisOctetRule(f);
 		boolean senior = checkSeniorRule(f);
-		boolean hc = getHC(f);
-		boolean nops = getNOPS(f);
-		boolean hnops = getHNOPS(f);
+		boolean hc = checkHC(f);
+		boolean nops = checkNOPS(f);
+		boolean hnops = checkHNOPS(f);
 		
 		System.out.println(fs + " --> RDBE:" + rdb + " sumE:" + sume + " lewis_sum:" + ls + " LEWIS:" + lewis + " atoms:" + atoms  + " senior:" + senior);
 		System.out.println(fs + " --> HC:" + hc+ " NOPS:" + nops + " HNOPS:" + hnops);

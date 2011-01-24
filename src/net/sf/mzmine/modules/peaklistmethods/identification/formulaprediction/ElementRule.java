@@ -36,20 +36,7 @@ public class ElementRule implements Comparable<ElementRule> {
 	private int minCount, maxCount;
 
 	public ElementRule(String elementSymbol, int min, int max) {
-		
-		this.elementSymbol = elementSymbol;
-		this.minCount = min;
-		this.maxCount = max;
-
-		try {
-			IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-			IsotopeFactory ifac = IsotopeFactory.getInstance(builder);
-			elementObject = ifac.getMajorIsotope(elementSymbol);
-			elementMass = elementObject.getExactMass();
-		} catch (IOException e) {
-			// This can never happen
-			e.printStackTrace();
-		}
+		initRule(elementSymbol, min, max);
 	}
 
 	public ElementRule(String stringRepresentation) {
@@ -69,8 +56,19 @@ public class ElementRule implements Comparable<ElementRule> {
 			minCount = 0;
 		if (maxCount < 0)
 			maxCount = 0;
+		
+		initRule(elementSymbol, minCount, maxCount);
+		
+	}
+	
+	private void initRule(String elementSymbol, int min, int max) {
+		
+		this.elementSymbol = elementSymbol;
+		this.minCount = min;
+		this.maxCount = max;
 
 		try {
+			// Use CDK to obtain element's mass
 			IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 			IsotopeFactory ifac = IsotopeFactory.getInstance(builder);
 			elementObject = ifac.getMajorIsotope(elementSymbol);

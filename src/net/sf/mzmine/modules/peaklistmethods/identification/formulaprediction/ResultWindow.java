@@ -85,7 +85,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		IDList.setModel(listElementModel);
 		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		IDList.getTableHeader().setReorderingAllowed(false);
-
+		
 		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
 				listElementModel);
 		IDList.setRowSorter(sorter);
@@ -175,12 +175,12 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	}
 
-	public void addNewListItem(final String formula, final IsotopePattern predictedIsotopePattern, final double score) {
+	public void addNewListItem(final CandidateFormula candidate) {
 
 		// Update the model in swing thread to avoid exceptions
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				listElementModel.addElement(formula, predictedIsotopePattern, score);
+				listElementModel.addElement(candidate);
 			}
 		});
 	}

@@ -26,22 +26,20 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.FormulaUtils;
 
 public class ResultTableModel extends AbstractTableModel {
 
-	
-	// TODO: show formula in HTML form, add copy to clipboard button 
-	
+	public static final String checkMark = new String(new char[] { '\u2713' });
+	public static final String crossMark = new String(new char[] { '\u2717' });
+
+	// TODO: show formula in HTML form, add copy to clipboard button
+
 	private static final String[] columnNames = { "Formula", "Mass difference",
-			"Isotope pattern score" };
+			"Isotope pattern score", "Heuristic rules" };
 
 	private double searchedMass;
 
-	
-	private Vector<String> formulas = new Vector<String>();
-	private Vector<IsotopePattern> isotopePatterns = new Vector<IsotopePattern>();
-	private Vector<Double> scores = new Vector<Double>();
+	private Vector<CandidateFormula> formulas = new Vector<CandidateFormula>();
 
 	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 	final NumberFormat massFormat = MZmineCore.getMZFormat();
@@ -63,37 +61,39 @@ public class ResultTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int row, int col) {
+		CandidateFormula formula = formulas.get(row);
 		switch (col) {
-		case (0):
-			return formulas.get(row);
-		case (1):
-			String formula = formulas.get(row);
-			double mass = FormulaUtils.calculateExactMass(formula);
-			double massDifference = Math.abs(searchedMass - mass);
+		case 0:
+			return "<HTML>" + formula.getFormulaAsHTML() + "</HTML>";
+		case 1:
+			double formulaMass = formula.getExactMass();
+			double massDifference = Math.abs(searchedMass - formulaMass);
 			return massFormat.format(massDifference);
-		case (2):
-			double score = scores.get(row);
+		case 2:
+			double score = formula.getIsotopeScore();
 			return percentFormat.format(score);
+		case 3:
+			String marks = (formula.conformsLEWIS() ? checkMark : crossMark)
+					+ "  " + (formula.conformsSENIOR() ? checkMark : crossMark)
+					+ "  " + (formula.conformsHC() ? checkMark : crossMark)
+					+ "  " + (formula.conformsNOPS() ? checkMark : crossMark)
+					+ "  " + (formula.conformsHNOPS() ? checkMark : crossMark);
+			return marks;
 		}
 		return null;
 	}
 
 	public IsotopePattern getIsotopePattern(int row) {
-		return isotopePatterns.get(row);
+		CandidateFormula formula = formulas.get(row);
+		return formula.getPredictedIsotopes();
 	}
 
 	public boolean isCellEditable(int row, int col) {
 		return false;
 	}
 
-	public void addElement(String formula,
-			IsotopePattern predictedIsotopePattern, double score) {
-
+	public void addElement(CandidateFormula formula) {
 		formulas.add(formula);
-		scores.add(score);
-
-		isotopePatterns.add(predictedIsotopePattern);
-
 		fireTableRowsInserted(formulas.size() - 1, formulas.size() - 1);
 	}
 

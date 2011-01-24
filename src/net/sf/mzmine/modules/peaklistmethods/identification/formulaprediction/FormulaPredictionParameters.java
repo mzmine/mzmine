@@ -69,18 +69,23 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 
 	public static final Parameter isotopeFilter = new SimpleParameter(
 			ParameterType.BOOLEAN, "Isotope pattern filter",
-			"Search only for compounds with a isotope pattern similar", null,
+			"Search only for formulas with a isotope pattern similar", null,
 			false, null, null, null);
 
 	public static final Parameter isotopeScoreTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "Isotope pattern score threshold",
 			"Threshold level for isotope pattern score", "%", new Double(0.65),
 			new Double(0.0), new Double(1.0), percentFormat);
+	
+	public static final Parameter heuristicRules = new SimpleParameter(
+			ParameterType.MULTIPLE_SELECTION, "Heuristic rules",
+			"Search only for formulas which correspond to the set rules", null, HeuristicRule.values());
+	
 
 	public FormulaPredictionParameters() {
 		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
 				numOfResults, massTolerance, elements, isotopeFilter,
-				isotopeScoreTolerance });
+				isotopeScoreTolerance, heuristicRules});
 	}
 
 }
