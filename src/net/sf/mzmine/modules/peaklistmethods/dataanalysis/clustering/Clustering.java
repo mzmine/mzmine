@@ -47,7 +47,7 @@ public class Clustering implements MZmineModule, ActionListener {
                 this.desktop = MZmineCore.getDesktop();
 
                 desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-                        "Clustering",
+                        "Clustering (under development)",
                         "Clustering algorithms", KeyEvent.VK_P, false, this,
                         null);
 
