@@ -21,11 +21,11 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 public enum HeuristicRule {
 
-	LEWIS("LEWIS rule"), 
+	LEWIS("LEWIS octet rule"), 
 	SENIOR("SENIOR rule"),
-	HC("H/C ratio check"),
-	NOPS("N, O, P, S/C ratios"),
-	HNOPS("H, N, O, P, S/C probability ratios");
+	HC("H/C ratio"),
+	NOPS("N/C, O/C, P/C, S/C ratios"),
+	HNOPS("HNOPS ratios");
 
 	private final String name;
 

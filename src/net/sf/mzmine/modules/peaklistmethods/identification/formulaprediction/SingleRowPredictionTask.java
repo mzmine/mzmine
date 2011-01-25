@@ -25,8 +25,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
@@ -54,8 +52,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 	private String elements;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
-	private IonizationType ionType;
-	private IsotopePattern detectedPattern;
+	private FormulaPredictionParameters parameters;
 	private boolean isotopeFilter;
 	private HeuristicRule[] heuristicRules;
 	private double isotopeScoreThreshold;
@@ -72,6 +69,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
+		this.parameters = parameters;
 
 		searchedMass = (Double) parameters
 				.getParameterValue(FormulaPredictionParameters.neutralMass);
@@ -89,16 +87,12 @@ public class SingleRowPredictionTask extends AbstractTask {
 				.getParameterValue(FormulaPredictionParameters.heuristicRules),
 				HeuristicRule.class);
 
-		detectedPattern = peakListRow.getBestIsotopePattern();
-
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
 
 		isotopeScoreThreshold = (Double) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeScoreTolerance);
-		ionType = (IonizationType) parameters
-				.getParameterValue(FormulaPredictionParameters.ionizationMethod);
 
 	}
 
@@ -127,7 +121,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		NumberFormat massFormater = MZmineCore.getMZFormat();
 
 		window = new ResultWindow(peakList, peakListRow, searchedMass, charge,
-				detectedPattern, this);
+				this);
 		window.setTitle("Searching for " + massFormater.format(searchedMass)
 				+ " amu");
 		desktop.addInternalFrame(window);
@@ -243,37 +237,17 @@ public class SingleRowPredictionTask extends AbstractTask {
 	private void testFormula(int currentCounts[]) {
 
 		CandidateFormula candidate = new CandidateFormula(elementRules,
-				currentCounts, detectedPattern, ionType, charge);
+				currentCounts, peakListRow, parameters);
 
 		// Heuristic rules check
 		for (HeuristicRule rule : heuristicRules) {
-			switch (rule) {
-			case LEWIS:
-				if (!candidate.conformsLEWIS())
-					return;
-				break;
-			case SENIOR:
-				if (!candidate.conformsSENIOR())
-					return;
-				break;
-			case HC:
-				if (!candidate.conformsHC())
-					return;
-				break;
-			case NOPS:
-				if (!candidate.conformsNOPS())
-					return;
-				break;
-			case HNOPS:
-				if (!candidate.conformsHNOPS())
-					return;
-				break;
-			}
+			if (!candidate.conformsRule(rule))
+				return;
 		}
 
 		// ISOTOPE FILTER CHECK
 
-		if ((isotopeFilter) && (detectedPattern != null)) {
+		if (isotopeFilter) {
 			double score = candidate.getIsotopeScore();
 			if (score < isotopeScoreThreshold)
 				return;

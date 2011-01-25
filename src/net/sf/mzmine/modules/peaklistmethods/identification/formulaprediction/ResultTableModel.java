@@ -32,7 +32,7 @@ public class ResultTableModel extends AbstractTableModel {
 	public static final String crossMark = new String(new char[] { '\u2717' });
 
 	private static final String[] columnNames = { "Formula", "Mass difference",
-			"Isotope pattern score", "Heuristic rules" };
+			"Isotope pattern score", "Heuristic rules", "MS/MS score" };
 
 	private double searchedMass;
 
@@ -67,15 +67,23 @@ public class ResultTableModel extends AbstractTableModel {
 			double massDifference = Math.abs(searchedMass - formulaMass);
 			return massFormat.format(massDifference);
 		case 2:
-			double score = formula.getIsotopeScore();
-			return percentFormat.format(score);
+			Double isotopeScore = formula.getIsotopeScore();
+			if (isotopeScore == null) return null;
+			return percentFormat.format(isotopeScore);
 		case 3:
-			String marks = (formula.conformsLEWIS() ? checkMark : crossMark)
-					+ "  " + (formula.conformsSENIOR() ? checkMark : crossMark)
-					+ "  " + (formula.conformsHC() ? checkMark : crossMark)
-					+ "  " + (formula.conformsNOPS() ? checkMark : crossMark)
-					+ "  " + (formula.conformsHNOPS() ? checkMark : crossMark);
-			return marks;
+			StringBuilder marks = new StringBuilder();
+			for (HeuristicRule rule : HeuristicRule.values()) {
+				if (formula.conformsRule(rule))
+					marks.append(checkMark);
+				else
+					marks.append(crossMark);
+				marks.append("  ");
+			}
+			return marks.toString();
+		case 4:
+			Double msmsScore = formula.getMSMSScore();
+			if (msmsScore == null) return null;
+			return percentFormat.format(msmsScore);
 		}
 		return null;
 	}

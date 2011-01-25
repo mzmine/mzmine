@@ -24,9 +24,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -55,8 +53,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
 
-public class ResultWindow extends JInternalFrame implements ActionListener,
-		ClipboardOwner {
+public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	private ResultTableModel listElementModel;
 	private PeakList peakList;
@@ -66,8 +63,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 	private Task searchTask;
 
 	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
-			double searchedMass, int charge, IsotopePattern detectedPattern,
-			Task searchTask) {
+			double searchedMass, int charge, Task searchTask) {
 
 		super(null, true, true, true, true);
 
@@ -109,7 +105,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
 		GUIUtils.addButton(pnlButtons, "Copy to clipboard", null, this, "COPY");
 		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
-				"ISOTOPE_VIEWER");
+				"SHOW_ISOTOPES");
+		GUIUtils.addButton(pnlButtons, "Show MS/MS", null, this, "SHOW_MSMS");
 
 		setLayout(new BorderLayout());
 		setSize(500, 200);
@@ -126,7 +123,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 
 		if (command.equals("ADD")) {
 			int index = IDList.getSelectedRow();
-			index = IDList.convertRowIndexToModel(index);
 
 			if (index < 0) {
 				MZmineCore.getDesktop().displayMessage(
@@ -134,6 +130,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 				return;
 
 			}
+			index = IDList.convertRowIndexToModel(index);
 
 			String formula = (String) listElementModel.getValueAt(index, 0);
 			SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula);
@@ -149,13 +146,13 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 
 		if (command.equals("COPY")) {
 			int index = IDList.getSelectedRow();
-			index = IDList.convertRowIndexToModel(index);
 
 			if (index < 0) {
 				MZmineCore.getDesktop().displayMessage(
 						"Please select one result");
 				return;
 			}
+			index = IDList.convertRowIndexToModel(index);
 
 			CandidateFormula formula = listElementModel.getFormula(index);
 
@@ -163,11 +160,11 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 			StringSelection stringSelection = new StringSelection(formulaString);
 			Clipboard clipboard = Toolkit.getDefaultToolkit()
 					.getSystemClipboard();
-			clipboard.setContents(stringSelection, this);
+			clipboard.setContents(stringSelection, null);
 
 		}
 
-		if (command.equals("ISOTOPE_VIEWER")) {
+		if (command.equals("SHOW_ISOTOPES")) {
 
 			int index = IDList.getSelectedRow();
 			index = IDList.convertRowIndexToModel(index);
@@ -190,6 +187,26 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 			int scanNumber = peak.getRepresentativeScanNumber();
 			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null,
 					peak.getIsotopePattern(), predictedPattern);
+
+		}
+		
+		if (command.equals("SHOW_MSMS")) {
+
+			int index = IDList.getSelectedRow();
+
+			if (index < 0) {
+				MZmineCore.getDesktop().displayMessage(
+						"Select one result to display the isotope pattern");
+				return;
+			}
+			index = IDList.convertRowIndexToModel(index);
+
+			ChromatographicPeak bestPeak = peakListRow.getBestPeak();
+
+			RawDataFile dataFile = bestPeak.getDataFile();
+			int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+			
+			SpectraVisualizer.showNewSpectrumWindow(dataFile, msmsScanNumber);
 
 		}
 
@@ -219,10 +236,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener,
 
 		super.dispose();
 
-	}
-
-	public void lostOwnership(Clipboard clipboard, Transferable contents) {
-		// ignore
 	}
 
 }

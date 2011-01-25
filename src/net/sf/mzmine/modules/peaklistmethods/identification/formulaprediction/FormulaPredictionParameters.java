@@ -76,16 +76,36 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE, "Isotope pattern score threshold",
 			"Threshold level for isotope pattern score", "%", new Double(0.65),
 			new Double(0.0), new Double(1.0), percentFormat);
-	
+
 	public static final Parameter heuristicRules = new SimpleParameter(
 			ParameterType.MULTIPLE_SELECTION, "Heuristic rules",
-			"Search only for formulas which correspond to the set rules", null, HeuristicRule.values());
-	
+			"Search only for formulas which correspond to the set rules", null,
+			HeuristicRule.values());
 
+	public static final Parameter msmsFilter = new SimpleParameter(
+			ParameterType.BOOLEAN, "MS/MS filter", "Check MS/MS data", null,
+			false, null, null, null);
+
+	public static final Parameter msmsTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "MS/MS mass tolerance",
+			"Tolerance of the mass value to search (+/- range)", "amu",
+			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
+
+	public static final Parameter msmsNoiseLevel = new SimpleParameter(
+			ParameterType.DOUBLE, "MS/MS noise level",
+			"Intensity level below which all data points are ignored", null,
+			new Double(1), new Double(0), null, MZmineCore.getIntensityFormat());
+
+	public static final Parameter msmsScoreTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "MS/MS score threshold",
+			"Threshold level for MS/MS score", "%", new Double(0.65),
+			new Double(0.0), new Double(1.0), percentFormat);
+	
 	public FormulaPredictionParameters() {
 		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
 				numOfResults, massTolerance, elements, isotopeFilter,
-				isotopeScoreTolerance, heuristicRules});
+				isotopeScoreTolerance, heuristicRules, msmsFilter,
+				msmsTolerance, msmsNoiseLevel, msmsScoreTolerance });
 	}
 
 }

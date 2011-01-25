@@ -138,30 +138,27 @@ public class HeuristicRuleChecker {
 
 	public static boolean checkHC(IMolecularFormula formula) {
 
-		double carb = 0;
-		double hyd = 0;
-		for (IIsotope isotope : formula.isotopes()) {
-			if (isotope.getSymbol().equals("C"))
-				carb += formula.getIsotopeCount(isotope);
-			if (isotope.getSymbol().equals("H"))
-				hyd += formula.getIsotopeCount(isotope);
-		}
-
-		if (carb == 0)
-			return false;
-
-		double rat = hyd / carb;
-		return (rat > 0) && (rat < 6);
-	}
-
-	public static boolean checkNOPS(IMolecularFormula formula) {
-
-		double eC = 0, eH = 0, eN = 0, eO = 0, eP = 0, eS = 0;
+		double eC = 0, eH = 0;
 		for (IIsotope isotope : formula.isotopes()) {
 			if (isotope.getSymbol().equals("C"))
 				eC += formula.getIsotopeCount(isotope);
 			if (isotope.getSymbol().equals("H"))
 				eH += formula.getIsotopeCount(isotope);
+		}
+
+		if (eC == 0)
+			return false;
+
+		double rHC = eH / eC;
+		return (rHC > 0) && (rHC < 6);
+	}
+
+	public static boolean checkNOPS(IMolecularFormula formula) {
+
+		double eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
+		for (IIsotope isotope : formula.isotopes()) {
+			if (isotope.getSymbol().equals("C"))
+				eC += formula.getIsotopeCount(isotope);
 			if (isotope.getSymbol().equals("N"))
 				eN += formula.getIsotopeCount(isotope);
 			if (isotope.getSymbol().equals("O"))
@@ -210,8 +207,7 @@ public class HeuristicRuleChecker {
 		double rOC = eO / eC;
 		double rSC = eS / eC;
 
-		return (rHC >= 0.2) && (rHC <= 3) && (rNC <= 2) && (rOC <= 1.2)
-				&& (rPC <= 0.32) && (rSC <= 0.65);
+		return (rHC >= 0.2) && (rHC <= 3.1) && (rNC <= 1.3) && (rOC <= 1.2) && (rPC <= 0.3) && (rSC <= 0.8);
 	}
 
 }
