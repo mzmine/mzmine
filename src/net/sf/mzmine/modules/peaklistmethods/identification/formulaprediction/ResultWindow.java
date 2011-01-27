@@ -61,16 +61,18 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	private JTable IDList;
 	private String description;
 	private Task searchTask;
+	private String title;
 
-	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
+	public ResultWindow(String title, PeakList peakList, PeakListRow peakListRow,
 			double searchedMass, int charge, Task searchTask) {
 
-		super(null, true, true, true, true);
-
+		super(title, true, true, true, true);
+		
+		this.title = title;
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 		this.searchTask = searchTask;
-
+		
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
 
@@ -154,7 +156,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			}
 			index = IDList.convertRowIndexToModel(index);
 
-			CandidateFormula formula = listElementModel.getFormula(index);
+			ResultTableFormula formula = listElementModel.getFormula(index);
 
 			String formulaString = formula.getFormulaAsString();
 			StringSelection stringSelection = new StringSelection(formulaString);
@@ -175,7 +177,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 				return;
 			}
 
-			CandidateFormula formula = listElementModel.getFormula(index);
+			ResultTableFormula formula = listElementModel.getFormula(index);
 			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
 			if (predictedPattern == null)
@@ -212,12 +214,13 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	}
 
-	public void addNewListItem(final CandidateFormula candidate) {
+	public void addNewListItem(final ResultTableFormula formula) {
 
 		// Update the model in swing thread to avoid exceptions
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				listElementModel.addElement(candidate);
+				listElementModel.addElement(formula);
+				setTitle(title + ", " + listElementModel.getRowCount() + " formulas found");
 			}
 		});
 	}

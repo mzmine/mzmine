@@ -25,6 +25,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
@@ -40,22 +41,22 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
-	private long testedCombinations, totalNumberOfCombinations = 1;
-
-	private int foundFormulas = 0;
 	private ResultWindow window;
 	private ElementRule elementRules[];
+	private HeuristicRule heuristicRules[];
+
+	private FormulaPredictionEngine predictionEngine;
 
 	private double searchedMass, massTolerance;
 	private int charge;
+	private IonizationType ionType;
 	private int numOfResults;
 	private String elements;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
-	private FormulaPredictionParameters parameters;
-	private boolean isotopeFilter;
-	private HeuristicRule[] heuristicRules;
-	private double isotopeScoreThreshold;
+	private boolean isotopeFilter, msmsFilter;
+	private double isotopeScoreThreshold, msmsScoreThreshold, msmsTolerance,
+			msmsNoiseLevel;
 
 	/**
 	 * 
@@ -69,7 +70,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
-		this.parameters = parameters;
 
 		searchedMass = (Double) parameters
 				.getParameterValue(FormulaPredictionParameters.neutralMass);
@@ -81,60 +81,25 @@ public class SingleRowPredictionTask extends AbstractTask {
 				.getParameterValue(FormulaPredictionParameters.elements);
 		charge = (Integer) parameters
 				.getParameterValue(FormulaPredictionParameters.charge);
+		ionType = (IonizationType) parameters
+				.getParameterValue(FormulaPredictionParameters.ionizationMethod);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeFilter);
 		heuristicRules = CollectionUtils.changeArrayType((Object[]) parameters
 				.getParameterValue(FormulaPredictionParameters.heuristicRules),
 				HeuristicRule.class);
 
-		// If there is no isotope pattern, we cannot use the isotope filter
+		// If there is no detected isotope pattern, we cannot use the isotope
+		// filter
 		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
 
 		isotopeScoreThreshold = (Double) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeScoreTolerance);
 
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		return ((double) testedCombinations) / totalNumberOfCombinations;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Formula prediction for " + massFormater.format(searchedMass);
-	}
-
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-
-		setStatus(TaskStatus.PROCESSING);
-
-		Desktop desktop = MZmineCore.getDesktop();
-		NumberFormat massFormater = MZmineCore.getMZFormat();
-
-		window = new ResultWindow(peakList, peakListRow, searchedMass, charge,
-				this);
-		window.setTitle("Searching for " + massFormater.format(searchedMass)
-				+ " amu");
-		desktop.addInternalFrame(window);
-
-		// setup rules
-
-		Range targetRange = new Range(searchedMass - massTolerance,
-				searchedMass + massTolerance);
-
 		// Sorted by mass in descending order
-		TreeSet<ElementRule> rulesSet = new TreeSet<ElementRule>();
-
-		totalNumberOfCombinations = 1;
+		TreeSet<ElementRule> rulesSet = new TreeSet<ElementRule>(
+				new ElementRuleSorterByMass());
 
 		String elementsArray[] = elements.split(",");
 		for (String elementEntry : elementsArray) {
@@ -154,8 +119,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 					rule.setMaxCount(maxCountAccordingToMass);
 				}
 
-				totalNumberOfCombinations *= rule.getNumberOfCombinations();
-
 				rulesSet.add(rule);
 
 			} catch (IllegalArgumentException e) {
@@ -167,122 +130,68 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		elementRules = rulesSet.toArray(new ElementRule[0]);
 
-		int currentCounts[] = new int[elementRules.length];
+		msmsTolerance = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsTolerance);
+		msmsNoiseLevel = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsNoiseLevel);
 
-		// Set minimal counts
-		for (int i = 0; i < elementRules.length; i++) {
-			currentCounts[i] = elementRules[i].getMinCount();
-		}
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		if (predictionEngine == null)
+			return 0d;
+		return predictionEngine.getFinishedPercentage();
+	}
+
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Formula prediction for " + massFormater.format(searchedMass);
+	}
+
+	public void cancel() {
+		super.cancel();
+		if (predictionEngine != null)
+			predictionEngine.cancel();
+	}
+
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
+
+		setStatus(TaskStatus.PROCESSING);
+
+		Desktop desktop = MZmineCore.getDesktop();
+		NumberFormat massFormater = MZmineCore.getMZFormat();
+
+		window = new ResultWindow("Searching for "
+				+ massFormater.format(searchedMass) + " amu", peakList,
+				peakListRow, searchedMass, charge, this);
+		desktop.addInternalFrame(window);
+
+		Range targetRange = new Range(searchedMass - massTolerance,
+				searchedMass + massTolerance);
 
 		logger.info("Starting search for formulas for " + searchedMass
-				+ ", elements " + Arrays.toString(elementRules) + ", total "
-				+ totalNumberOfCombinations + " combinations");
+				+ ", elements " + Arrays.toString(elementRules));
 
-		mainCycle: while (testedCombinations < totalNumberOfCombinations) {
+		predictionEngine = new FormulaPredictionEngine(targetRange,
+				elementRules, heuristicRules, isotopeFilter,
+				isotopeScoreThreshold, charge, ionType, msmsFilter,
+				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel,
+				numOfResults, peakListRow, window);
 
-			if (getStatus() == TaskStatus.CANCELED)
-				return;
+		int foundFormulas = predictionEngine.run();
 
-			double mass = calculateMass(currentCounts);
-
-			if (targetRange.contains(mass)) {
-
-				// Mass is ok, so test other constraints, too
-				testFormula(currentCounts);
-
-				// Stopping condition
-				if (foundFormulas == numOfResults)
-					break mainCycle;
-
-			} else {
-
-				// Heuristics: if we are over the mass, it is meaningless to add
-				// more atoms, so let's jump directly to the maximum count
-				if (mass > targetRange.getMax()) {
-					for (int i = 0; i < currentCounts.length; i++) {
-						if (currentCounts[i] > elementRules[i].getMinCount()) {
-
-							long skippedCombinations = (elementRules[i]
-									.getMaxCount() - currentCounts[i]) + 1;
-							for (int j = 0; j < i; j++) {
-								skippedCombinations *= elementRules[j]
-										.getNumberOfCombinations();
-							}
-							testedCombinations += skippedCombinations;
-							currentCounts[i] = elementRules[i].getMaxCount();
-							increaseCounter(currentCounts, i);
-							continue mainCycle;
-						}
-					}
-
-				}
-
-			}
-
-			testedCombinations++;
-
-			// Increase the count of the most heavy element
-			increaseCounter(currentCounts, 0);
-
-		}
-
-		logger.info("Finished formula search for " + searchedMass + ", tested "
-				+ testedCombinations + "/" + totalNumberOfCombinations
-				+ " combinations");
+		logger.info("Finished formula search for " + searchedMass + ", found "
+				+ foundFormulas + " formulas");
 
 		setStatus(TaskStatus.FINISHED);
 
 	}
-
-	private void testFormula(int currentCounts[]) {
-
-		CandidateFormula candidate = new CandidateFormula(elementRules,
-				currentCounts, peakListRow, parameters);
-
-		// Heuristic rules check
-		for (HeuristicRule rule : heuristicRules) {
-			if (!candidate.conformsRule(rule))
-				return;
-		}
-
-		// ISOTOPE FILTER CHECK
-
-		if (isotopeFilter) {
-			double score = candidate.getIsotopeScore();
-			if (score < isotopeScoreThreshold)
-				return;
-
-		}
-
-		window.addNewListItem(candidate);
-		foundFormulas++;
-		window.setTitle("Searching for " + massFormater.format(searchedMass)
-				+ " amu, " + foundFormulas + " formulas found");
-	}
-
-	private void increaseCounter(int currentCounts[], int position) {
-
-		currentCounts[position]++;
-
-		// check the validity of the counts
-		for (int i = position; i < currentCounts.length - 1; i++) {
-			if (currentCounts[i] > elementRules[i].getMaxCount()) {
-				currentCounts[i] = elementRules[i].getMinCount();
-				currentCounts[i + 1]++;
-				break;
-			}
-		}
-
-	}
-
-	private double calculateMass(int currentCounts[]) {
-
-		double resultMass = 0;
-		for (int i = 0; i < elementRules.length; i++) {
-			resultMass += elementRules[i].getMass() * currentCounts[i];
-		}
-		return resultMass;
-
-	}
-
 }

@@ -28,7 +28,7 @@ import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 
-public class ElementRule implements Comparable<ElementRule> {
+public class ElementRule {
 
 	private String elementSymbol;
 	private IIsotope elementObject;
@@ -56,13 +56,13 @@ public class ElementRule implements Comparable<ElementRule> {
 			minCount = 0;
 		if (maxCount < 0)
 			maxCount = 0;
-		
+
 		initRule(elementSymbol, minCount, maxCount);
-		
+
 	}
-	
+
 	private void initRule(String elementSymbol, int min, int max) {
-		
+
 		this.elementSymbol = elementSymbol;
 		this.minCount = min;
 		this.maxCount = max;
@@ -109,15 +109,6 @@ public class ElementRule implements Comparable<ElementRule> {
 
 	public double getMass() {
 		return elementMass;
-	}
-
-	/**
-	 * Comparator to sort the rules in descending order by mass
-	 */
-	public int compareTo(ElementRule otherRule) {
-		Double myMass = elementMass;
-		Double otherMass = otherRule.elementMass;
-		return otherMass.compareTo(myMass);
 	}
 
 	public boolean equals(Object o) {

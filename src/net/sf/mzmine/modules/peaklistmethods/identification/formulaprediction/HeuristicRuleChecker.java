@@ -31,7 +31,7 @@ public class HeuristicRuleChecker {
 	 * This table defines the typical valence states, in fact e.g. sulphur may
 	 * have valence 2, 4 or 6
 	 */
-	public static final Map<String, Integer> groundValences = new HashMap<String, Integer>();
+	private static final Map<String, Integer> groundValences = new HashMap<String, Integer>();
 	static {
 		groundValences.put("H", 1);
 		groundValences.put("B", 3);
@@ -54,7 +54,7 @@ public class HeuristicRuleChecker {
 	/**
 	 * This table defines the maximum valence states
 	 */
-	public static final Map<String, Integer> maxValences = new HashMap<String, Integer>();
+	private static final Map<String, Integer> maxValences = new HashMap<String, Integer>();
 	static {
 		maxValences.putAll(groundValences);
 		maxValences.put("N", 5);
@@ -65,25 +65,25 @@ public class HeuristicRuleChecker {
 		maxValences.put("Br", 7);
 	}
 
-	/**
-	 * Note: RDBE values may get as low as -4 (CH3F10NS2)
-	 * 
-	 */
-	public static double calculateRDBE(IMolecularFormula formula) {
-
-		double sum = 2;
-
-		for (IIsotope isotope : formula.isotopes()) {
-
-			Integer valence = groundValences.get(isotope.getSymbol());
-			if (valence == null)
-				continue;
-			sum += (valence - 2) * formula.getIsotopeCount(isotope);
+	public static boolean checkRule(IMolecularFormula formula, HeuristicRule rule) {
+		switch (rule) {
+		case LEWIS:
+			return checkLewisOctetRule(formula);
+		case SENIOR:
+			return checkSeniorRule(formula);
+		case HC:
+			return checkHC(formula);
+		case NOPS:
+			return checkNOPS(formula);
+		case HNOPS:
+			return checkHNOPS(formula);
+		default:
+			throw new IllegalArgumentException("Unknown rule: " + rule);
 		}
-		return (sum / 2);
+
 	}
 
-	public static int calculateE(IMolecularFormula formula) {
+	private static int calculateE(IMolecularFormula formula) {
 
 		int sum = 0;
 
@@ -97,7 +97,7 @@ public class HeuristicRuleChecker {
 		return sum;
 	}
 
-	public static int calculateLewisSum(IMolecularFormula formula) {
+	private static int calculateLewisSum(IMolecularFormula formula) {
 
 		int sum = 0;
 
@@ -111,14 +111,14 @@ public class HeuristicRuleChecker {
 		return sum;
 	}
 
-	public static boolean checkLewisOctetRule(IMolecularFormula formula) {
+	private static boolean checkLewisOctetRule(IMolecularFormula formula) {
 		int sume = calculateE(formula);
 		int ls = calculateLewisSum(formula);
 		return (sume > 7) && (ls % 2 == 0);
 
 	}
 
-	public static int getAtoms(IMolecularFormula formula) {
+	private static int getAtoms(IMolecularFormula formula) {
 
 		int sum = 0;
 
@@ -128,7 +128,7 @@ public class HeuristicRuleChecker {
 		return sum;
 	}
 
-	public static boolean checkSeniorRule(IMolecularFormula formula) {
+	private static boolean checkSeniorRule(IMolecularFormula formula) {
 
 		double sume = calculateE(formula);
 		double atoms = getAtoms(formula);
@@ -136,7 +136,7 @@ public class HeuristicRuleChecker {
 		return sume >= (2 * (atoms - 1));
 	}
 
-	public static boolean checkHC(IMolecularFormula formula) {
+	private static boolean checkHC(IMolecularFormula formula) {
 
 		double eC = 0, eH = 0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -153,7 +153,7 @@ public class HeuristicRuleChecker {
 		return (rHC > 0) && (rHC < 6);
 	}
 
-	public static boolean checkNOPS(IMolecularFormula formula) {
+	private static boolean checkNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -180,7 +180,7 @@ public class HeuristicRuleChecker {
 		return (rNC <= 4) && (rOC <= 3) && (rPC <= 2) && (rSC <= 3);
 	}
 
-	public static boolean checkHNOPS(IMolecularFormula formula) {
+	private static boolean checkHNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eH = 0, eN = 0, eO = 0, eP = 0, eS = 0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -207,7 +207,8 @@ public class HeuristicRuleChecker {
 		double rOC = eO / eC;
 		double rSC = eS / eC;
 
-		return (rHC >= 0.2) && (rHC <= 3.1) && (rNC <= 1.3) && (rOC <= 1.2) && (rPC <= 0.3) && (rSC <= 0.8);
+		return (rHC >= 0.2) && (rHC <= 3.1) && (rNC <= 1.3) && (rOC <= 1.2)
+				&& (rPC <= 0.3) && (rSC <= 0.8);
 	}
 
 }

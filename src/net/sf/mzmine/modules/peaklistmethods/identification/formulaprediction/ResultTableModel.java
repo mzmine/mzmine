@@ -26,6 +26,8 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.main.MZmineCore;
 
+// TODO: return values as double and change renderer to display %
+
 public class ResultTableModel extends AbstractTableModel {
 
 	public static final String checkMark = new String(new char[] { '\u2713' });
@@ -36,7 +38,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	private double searchedMass;
 
-	private Vector<CandidateFormula> formulas = new Vector<CandidateFormula>();
+	private Vector<ResultTableFormula> formulas = new Vector<ResultTableFormula>();
 
 	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 	final NumberFormat massFormat = MZmineCore.getMZFormat();
@@ -58,7 +60,7 @@ public class ResultTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int row, int col) {
-		CandidateFormula formula = formulas.get(row);
+		ResultTableFormula formula = formulas.get(row);
 		switch (col) {
 		case 0:
 			return "<HTML>" + formula.getFormulaAsHTML() + "</HTML>";
@@ -88,7 +90,7 @@ public class ResultTableModel extends AbstractTableModel {
 		return null;
 	}
 
-	public CandidateFormula getFormula(int row) {
+	public ResultTableFormula getFormula(int row) {
 		return formulas.get(row);
 	}
 
@@ -96,7 +98,7 @@ public class ResultTableModel extends AbstractTableModel {
 		return false;
 	}
 
-	public void addElement(CandidateFormula formula) {
+	public void addElement(ResultTableFormula formula) {
 		formulas.add(formula);
 		fireTableRowsInserted(formulas.size() - 1, formulas.size() - 1);
 	}
