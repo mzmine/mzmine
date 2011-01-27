@@ -282,16 +282,13 @@ public class FormulaPredictionEngine {
 
 		}
 
+		// Create a new table entry
 		final ResultTableFormula resultEntry = new ResultTableFormula(
 				cdkFormula, conformingRulesArray, predictedIsotopePattern,
 				isotopeScore, msmsScore);
 
-		// Update the model in swing thread to avoid exceptions
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				window.addNewListItem(resultEntry);
-			}
-		});
+		// Add the new entry to the result table
+		window.addNewListItem(resultEntry);
 
 		foundFormulas++;
 

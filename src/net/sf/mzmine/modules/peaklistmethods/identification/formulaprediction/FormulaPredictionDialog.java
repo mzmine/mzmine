@@ -94,7 +94,7 @@ public class FormulaPredictionDialog extends ParameterSetupDialog implements
 		}
 		
 		// Find which row is the "Elements" parameter
-		List parametersList = Arrays.asList(parameters.getParameters());
+		List<?> parametersList = Arrays.asList(parameters.getParameters());
 		int elementsParameterIndex = parametersList.indexOf(FormulaPredictionParameters.elements);
 		JComponent originalComponent = parametersAndComponents.get(FormulaPredictionParameters.elements);
 
