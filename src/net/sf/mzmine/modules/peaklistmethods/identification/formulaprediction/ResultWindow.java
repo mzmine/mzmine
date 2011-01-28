@@ -134,8 +134,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			}
 			index = IDList.convertRowIndexToModel(index);
 
-			String formula = (String) listElementModel.getValueAt(index, 0);
-			SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula);
+			ResultFormula formula = listElementModel.getFormula(index);
+			SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
 			peakListRow.addPeakIdentity(newIdentity, false);
 
 			// Notify the tree that peak list has changed
@@ -156,7 +156,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			}
 			index = IDList.convertRowIndexToModel(index);
 
-			ResultTableFormula formula = listElementModel.getFormula(index);
+			ResultFormula formula = listElementModel.getFormula(index);
 
 			String formulaString = formula.getFormulaAsString();
 			StringSelection stringSelection = new StringSelection(formulaString);
@@ -177,9 +177,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 				return;
 			}
 
-			ResultTableFormula formula = listElementModel.getFormula(index);
+			ResultFormula formula = listElementModel.getFormula(index);
 			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
-
+			
 			if (predictedPattern == null)
 				return;
 
@@ -214,7 +214,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	}
 
-	public void addNewListItem(final ResultTableFormula formula) {
+	public void addNewListItem(final ResultFormula formula) {
 
 		// Update the model in swing thread to avoid exceptions
 		SwingUtilities.invokeLater(new Runnable() {

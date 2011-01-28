@@ -35,7 +35,8 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 
-public class SingleRowPredictionTask extends AbstractTask {
+public class SingleRowPredictionTask extends AbstractTask implements
+		FormulaAcceptor {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,8 +51,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 	private double searchedMass, massTolerance;
 	private int charge;
 	private IonizationType ionType;
-	private int numOfResults;
-	private String elements;
+	private int maxFormulas;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private boolean isotopeFilter, msmsFilter;
@@ -75,31 +75,35 @@ public class SingleRowPredictionTask extends AbstractTask {
 				.getParameterValue(FormulaPredictionParameters.neutralMass);
 		massTolerance = (Double) parameters
 				.getParameterValue(FormulaPredictionParameters.massTolerance);
-		numOfResults = (Integer) parameters
+		maxFormulas = (Integer) parameters
 				.getParameterValue(FormulaPredictionParameters.numOfResults);
-		elements = (String) parameters
-				.getParameterValue(FormulaPredictionParameters.elements);
 		charge = (Integer) parameters
 				.getParameterValue(FormulaPredictionParameters.charge);
 		ionType = (IonizationType) parameters
 				.getParameterValue(FormulaPredictionParameters.ionizationMethod);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeFilter);
+		msmsFilter = (Boolean) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsFilter);
+		isotopeScoreThreshold = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.isotopeScoreTolerance);
+		msmsScoreThreshold = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsScoreTolerance);
+		msmsTolerance = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsTolerance);
+		msmsNoiseLevel = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.msmsNoiseLevel);
+
 		heuristicRules = CollectionUtils.changeArrayType((Object[]) parameters
 				.getParameterValue(FormulaPredictionParameters.heuristicRules),
 				HeuristicRule.class);
 
-		// If there is no detected isotope pattern, we cannot use the isotope
-		// filter
-		if (peakListRow.getBestIsotopePattern() == null)
-			isotopeFilter = false;
-
-		isotopeScoreThreshold = (Double) parameters
-				.getParameterValue(FormulaPredictionParameters.isotopeScoreTolerance);
-
 		// Sorted by mass in descending order
 		TreeSet<ElementRule> rulesSet = new TreeSet<ElementRule>(
 				new ElementRuleSorterByMass());
+
+		String elements = (String) parameters
+				.getParameterValue(FormulaPredictionParameters.elements);
 
 		String elementsArray[] = elements.split(",");
 		for (String elementEntry : elementsArray) {
@@ -122,18 +126,13 @@ public class SingleRowPredictionTask extends AbstractTask {
 				rulesSet.add(rule);
 
 			} catch (IllegalArgumentException e) {
-				logger.log(Level.WARNING, "Invald format", e);
+				logger.log(Level.WARNING, "Invald element rule format", e);
 				continue;
 			}
 
 		}
 
 		elementRules = rulesSet.toArray(new ElementRule[0]);
-
-		msmsTolerance = (Double) parameters
-				.getParameterValue(FormulaPredictionParameters.msmsTolerance);
-		msmsNoiseLevel = (Double) parameters
-				.getParameterValue(FormulaPredictionParameters.msmsNoiseLevel);
 
 	}
 
@@ -142,7 +141,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 	 */
 	public double getFinishedPercentage() {
 		if (predictionEngine == null)
-			return 0d;
+			return 0;
 		return predictionEngine.getFinishedPercentage();
 	}
 
@@ -183,8 +182,8 @@ public class SingleRowPredictionTask extends AbstractTask {
 		predictionEngine = new FormulaPredictionEngine(targetRange,
 				elementRules, heuristicRules, isotopeFilter,
 				isotopeScoreThreshold, charge, ionType, msmsFilter,
-				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel,
-				numOfResults, peakListRow, window);
+				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel, maxFormulas,
+				peakListRow, this);
 
 		int foundFormulas = predictionEngine.run();
 
@@ -193,5 +192,9 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		setStatus(TaskStatus.FINISHED);
 
+	}
+
+	public void addFormula(ResultFormula formula) {
+		window.addNewListItem(formula);
 	}
 }

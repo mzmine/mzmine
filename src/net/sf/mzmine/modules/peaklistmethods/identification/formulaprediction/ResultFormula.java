@@ -25,14 +25,14 @@ import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
-public class ResultTableFormula {
+public class ResultFormula {
 
 	private final IMolecularFormula cdkFormula;
 	private HeuristicRule conformingRules[];
 	private Double isotopeScore, msmsScore;
 	private IsotopePattern predictedIsotopePattern;
 
-	ResultTableFormula(MolecularFormula cdkFormula,
+	ResultFormula(MolecularFormula cdkFormula,
 			HeuristicRule conformingRules[],
 			IsotopePattern predictedIsotopePattern, Double isotopeScore,
 			Double msmsScore) {

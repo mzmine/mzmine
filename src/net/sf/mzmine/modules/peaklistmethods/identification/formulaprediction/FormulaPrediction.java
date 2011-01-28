@@ -43,7 +43,7 @@ public class FormulaPrediction implements BatchStep, ActionListener {
 
 	final static String helpID = GUIUtils.generateHelpID(FormulaPrediction.class);
 	
-	public static final String MODULE_NAME = "Formula prediction (under development)";
+	public static final String MODULE_NAME = "Formula prediction";
 
 	private Desktop desktop;
 

@@ -38,7 +38,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	private double searchedMass;
 
-	private Vector<ResultTableFormula> formulas = new Vector<ResultTableFormula>();
+	private Vector<ResultFormula> formulas = new Vector<ResultFormula>();
 
 	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
 	final NumberFormat massFormat = MZmineCore.getMZFormat();
@@ -60,7 +60,7 @@ public class ResultTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int row, int col) {
-		ResultTableFormula formula = formulas.get(row);
+		ResultFormula formula = formulas.get(row);
 		switch (col) {
 		case 0:
 			return "<HTML>" + formula.getFormulaAsHTML() + "</HTML>";
@@ -90,7 +90,7 @@ public class ResultTableModel extends AbstractTableModel {
 		return null;
 	}
 
-	public ResultTableFormula getFormula(int row) {
+	public ResultFormula getFormula(int row) {
 		return formulas.get(row);
 	}
 
@@ -98,7 +98,7 @@ public class ResultTableModel extends AbstractTableModel {
 		return false;
 	}
 
-	public void addElement(ResultTableFormula formula) {
+	public void addElement(ResultFormula formula) {
 		formulas.add(formula);
 		fireTableRowsInserted(formulas.size() - 1, formulas.size() - 1);
 	}

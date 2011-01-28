@@ -23,8 +23,6 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.swing.SwingUtilities;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IonizationType;
@@ -49,7 +47,7 @@ public class FormulaPredictionEngine {
 	private long testedCombinations, totalNumberOfCombinations = 1;
 
 	private Range massRange;
-	private ResultWindow window;
+	private FormulaAcceptor acceptor;
 	private ElementRule elementRules[];
 
 	private int foundFormulas = 0;
@@ -74,7 +72,7 @@ public class FormulaPredictionEngine {
 			double minIsotopeScore, int charge, IonizationType ionType,
 			boolean checkMSMS, double minMSMSScore, double msmsTolerance,
 			double msmsNoiseLevel, int maxFormulas, PeakListRow peakListRow,
-			ResultWindow window) {
+			FormulaAcceptor acceptor) {
 
 		this.checkConstraints = true;
 		this.massRange = massRange;
@@ -89,7 +87,7 @@ public class FormulaPredictionEngine {
 		this.msmsNoiseLevel = msmsNoiseLevel;
 		this.minMSMSScore = minMSMSScore;
 		this.maxFormulas = maxFormulas;
-		this.window = window;
+		this.acceptor = acceptor;
 		this.peakListRow = peakListRow;
 	}
 
@@ -127,12 +125,11 @@ public class FormulaPredictionEngine {
 
 			if (massRange.contains(mass)) {
 
-				// Mass is ok, so test other constraints, too
+				// Mass is ok, so test other constraints, if required
 				if (checkConstraints)
 					checkConstraints(currentCounts);
 				else
 					foundFormulas++;
-				;
 
 				// Stopping condition
 				if (foundFormulas == maxFormulas)
@@ -201,26 +198,25 @@ public class FormulaPredictionEngine {
 		}
 
 		// Calculate isotope similarity score
-		String originalFormula = MolecularFormulaManipulator
-				.getString(cdkFormula);
-		String adjustedFormula = FormulaUtils.ionizeFormula(originalFormula,
-				ionType.getPolarity(), charge);
-		IsotopePattern predictedIsotopePattern = IsotopePatternCalculator
-				.calculateIsotopePattern(adjustedFormula, charge,
-						ionType.getPolarity());
-
-		Double isotopeScore = null;
 		IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
-		if (detectedPattern != null) {
+		IsotopePattern predictedIsotopePattern = null;
+		Double isotopeScore = null;
+		if ((checkIsotopes) && (detectedPattern != null)) {
+
+			String originalFormula = MolecularFormulaManipulator
+					.getString(cdkFormula);
+			String adjustedFormula = FormulaUtils.ionizeFormula(
+					originalFormula, ionType.getPolarity(), charge);
+			predictedIsotopePattern = IsotopePatternCalculator
+					.calculateIsotopePattern(adjustedFormula, charge,
+							ionType.getPolarity());
+
 			isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(
 					detectedPattern, predictedIsotopePattern);
-		}
 
-		// Check the isotope condition
-		if ((checkIsotopes) && (isotopeScore != null)) {
+			// Check the isotope condition
 			if (isotopeScore < minIsotopeScore)
 				return;
-
 		}
 
 		// MS/MS evaluation is slowest, so let's do it last
@@ -228,7 +224,7 @@ public class FormulaPredictionEngine {
 		ChromatographicPeak bestPeak = peakListRow.getBestPeak();
 		RawDataFile dataFile = bestPeak.getDataFile();
 		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-		if (msmsScanNumber > 0) {
+		if ((checkMSMS) && (msmsScanNumber > 0)) {
 
 			Scan msmsScan = dataFile.getScan(msmsScanNumber);
 			DataPoint msmsPeaks[] = msmsScan.getDataPoints();
@@ -273,22 +269,23 @@ public class FormulaPredictionEngine {
 			}
 			if (totalMSMSpeaks > 0)
 				msmsScore = (double) interpretedMSMSpeaks / totalMSMSpeaks;
+
+			// Check the MS/MS condition
+			if (msmsScore != null) {
+				if (msmsScore < minMSMSScore)
+					return;
+			}
+
 		}
 
-		// Check the MS/MS condition
-		if ((checkMSMS) && (msmsScore != null)) {
-			if (msmsScore < minMSMSScore)
-				return;
+		// Create a new formula entry
+		final ResultFormula resultEntry = new ResultFormula(cdkFormula,
+				conformingRulesArray, predictedIsotopePattern, isotopeScore,
+				msmsScore);
 
-		}
-
-		// Create a new table entry
-		final ResultTableFormula resultEntry = new ResultTableFormula(
-				cdkFormula, conformingRulesArray, predictedIsotopePattern,
-				isotopeScore, msmsScore);
-
-		// Add the new entry to the result table
-		window.addNewListItem(resultEntry);
+		// Add the new formula entry
+		if (acceptor != null)
+			acceptor.addFormula(resultEntry);
 
 		foundFormulas++;
 
