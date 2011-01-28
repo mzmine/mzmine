@@ -250,9 +250,11 @@ public class SimpleParameterSet implements StorableParameterSet {
 					String valueAsString = "";
 					for (int i = 0; i < values.length; i++) {
 						if (i == values.length - 1) {
-							valueAsString += String.valueOf(values[i]);
+							valueAsString += String.valueOf(values[i])
+									.replaceAll(",", "&comma;");
 						} else {
-							valueAsString += String.valueOf(values[i]) + ",";
+							valueAsString += String.valueOf(values[i])
+									.replaceAll(",", "&comma;") + ",";
 						}
 					}
 					newElement.addText(valueAsString);
@@ -318,7 +320,11 @@ public class SimpleParameterSet implements StorableParameterSet {
 				value = valueText;
 				break;
 			case MULTIPLE_SELECTION:
-				value = valueText.split(",");
+				String array[] = valueText.split(",");
+				for (int i = 0; i < array.length; i++) {
+					array[i] = array[i].replaceAll("&comma;", ",");
+				}
+				value = array;
 				break;
 			case FILE_NAME:
 				value = valueText;
