@@ -40,7 +40,7 @@ public class SingleRowPredictionTask extends AbstractTask implements
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
+	public static final NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 	private ResultWindow window;
 	private ElementRule elementRules[];
@@ -149,7 +149,7 @@ public class SingleRowPredictionTask extends AbstractTask implements
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Formula prediction for " + massFormater.format(searchedMass);
+		return "Formula prediction for " + mzFormat.format(searchedMass);
 	}
 
 	public void cancel() {
@@ -176,19 +176,19 @@ public class SingleRowPredictionTask extends AbstractTask implements
 		Range targetRange = new Range(searchedMass - massTolerance,
 				searchedMass + massTolerance);
 
-		logger.info("Starting search for formulas for " + searchedMass
-				+ ", elements " + Arrays.toString(elementRules));
-
 		predictionEngine = new FormulaPredictionEngine(targetRange,
 				elementRules, heuristicRules, isotopeFilter,
 				isotopeScoreThreshold, charge, ionType, msmsFilter,
 				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel, maxFormulas,
 				peakListRow, this);
 
+		logger.finest("Starting search for formulas for " + targetRange
+				+ " m/z, elements " + Arrays.toString(elementRules));
+
 		int foundFormulas = predictionEngine.run();
 
-		logger.info("Finished formula search for " + searchedMass + ", found "
-				+ foundFormulas + " formulas");
+		logger.finest("Finished formula search for " + targetRange
+				+ " m/z, found " + foundFormulas + " formulas");
 
 		setStatus(TaskStatus.FINISHED);
 

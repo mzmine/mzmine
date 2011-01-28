@@ -63,23 +63,24 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	private Task searchTask;
 	private String title;
 
-	public ResultWindow(String title, PeakList peakList, PeakListRow peakListRow,
-			double searchedMass, int charge, Task searchTask) {
+	public ResultWindow(String title, PeakList peakList,
+			PeakListRow peakListRow, double searchedMass, int charge,
+			Task searchTask) {
 
 		super(title, true, true, true, true);
-		
+
 		this.title = title;
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 		this.searchTask = searchTask;
-		
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
 
 		JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
 		pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		pnlLabelsAndList.add(new JLabel("List of possible identities"),
+		pnlLabelsAndList.add(new JLabel("List of possible formulas"),
 				BorderLayout.NORTH);
 
 		listElementModel = new ResultTableModel(searchedMass);
@@ -135,7 +136,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			index = IDList.convertRowIndexToModel(index);
 
 			ResultFormula formula = listElementModel.getFormula(index);
-			SimplePeakIdentity newIdentity = new SimplePeakIdentity(formula.getFormulaAsString());
+			SimplePeakIdentity newIdentity = new SimplePeakIdentity(
+					formula.getFormulaAsString());
 			peakListRow.addPeakIdentity(newIdentity, false);
 
 			// Notify the tree that peak list has changed
@@ -179,7 +181,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			ResultFormula formula = listElementModel.getFormula(index);
 			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
-			
+
 			if (predictedPattern == null)
 				return;
 
@@ -191,7 +193,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 					peak.getIsotopePattern(), predictedPattern);
 
 		}
-		
+
 		if (command.equals("SHOW_MSMS")) {
 
 			int index = IDList.getSelectedRow();
@@ -207,10 +209,10 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			RawDataFile dataFile = bestPeak.getDataFile();
 			int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-			
+
 			if (msmsScanNumber < 1)
 				return;
-			
+
 			SpectraVisualizer.showNewSpectrumWindow(dataFile, msmsScanNumber);
 
 		}
@@ -223,7 +225,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				listElementModel.addElement(formula);
-				setTitle(title + ", " + listElementModel.getRowCount() + " formulas found");
+				setTitle(title + ", " + listElementModel.getRowCount()
+						+ " formulas found");
 			}
 		});
 	}

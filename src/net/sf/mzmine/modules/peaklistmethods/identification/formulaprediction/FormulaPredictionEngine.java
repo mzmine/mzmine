@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -30,7 +29,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.util.FormulaUtils;
@@ -41,8 +39,6 @@ import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionEngine {
-
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	private long testedCombinations, totalNumberOfCombinations = 1;
 

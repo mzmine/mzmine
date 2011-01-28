@@ -44,7 +44,8 @@ public class PeakListPredictionTask extends AbstractTask implements
 		FormulaAcceptor {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
+
+	public static final NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 	private int finishedItems = 0, numItems;
 
@@ -144,11 +145,16 @@ public class PeakListPredictionTask extends AbstractTask implements
 		if (currentRow == null) {
 			return "Prediction of formulas in " + peakList;
 		} else {
-			NumberFormat mzFormat = MZmineCore.getMZFormat();
 			return "Prediction of formulas in " + peakList + " ("
 					+ mzFormat.format(currentRow.getAverageMZ()) + " m/z)";
 
 		}
+	}
+
+	public void cancel() {
+		super.cancel();
+		if (predictionEngine != null)
+			predictionEngine.cancel();
 	}
 
 	/**
@@ -216,19 +222,19 @@ public class PeakListPredictionTask extends AbstractTask implements
 		Range targetRange = new Range(massValue - massTolerance, massValue
 				+ massTolerance);
 
-		logger.info("Starting search for formulas for " + massValue
-				+ ", elements " + Arrays.toString(elementRules));
-
 		predictionEngine = new FormulaPredictionEngine(targetRange,
 				adjustedRules, heuristicRules, isotopeFilter,
 				isotopeScoreThreshold, charge, ionType, msmsFilter,
 				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel, maxFormulas,
 				currentRow, this);
 
+		logger.finest("Starting search for formulas for " + targetRange
+				+ " m/z, elements " + Arrays.toString(elementRules));
+
 		int foundFormulas = predictionEngine.run();
 
-		logger.info("Finished formula search for " + massValue + ", found "
-				+ foundFormulas + " formulas");
+		logger.finest("Finished formula search for " + targetRange
+				+ " m/z, found " + foundFormulas + " formulas");
 
 	}
 
