@@ -208,6 +208,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			RawDataFile dataFile = bestPeak.getDataFile();
 			int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 			
+			if (msmsScanNumber < 1)
+				return;
+			
 			SpectraVisualizer.showNewSpectrumWindow(dataFile, msmsScanNumber);
 
 		}
