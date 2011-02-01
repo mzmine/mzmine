@@ -55,10 +55,10 @@ public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 		
 		case FileName:
 		default:
-			return dataset.getRawDataFile(item).toString();
+			return dataset.getRawDataFile(item);
 
 		case FileNameAndParameterValue:
-			String ret = dataset.getRawDataFile(item).toString() + "\n";
+			String ret = dataset.getRawDataFile(item) + "\n";
 
 			ret += parameters.getSelectedParameter().getName() + ": ";
 			

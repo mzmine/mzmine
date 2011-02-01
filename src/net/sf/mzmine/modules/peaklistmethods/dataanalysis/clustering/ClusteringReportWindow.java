@@ -21,18 +21,17 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 import javax.swing.JInternalFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import net.sf.mzmine.data.RawDataFile;
 
 public class ClusteringReportWindow extends JInternalFrame {
 
         private JTable table;
 
-        public ClusteringReportWindow(RawDataFile[] selectedRawDataFiles, Integer[] clusteringData, String title) {
+        public ClusteringReportWindow(String[] samplesOrVariables, Integer[] clusteringData, String title) {
                 super(title, true, true, true, true);
-                String[] columnNames = {"Raw data file", "Cluster number"};
-                Object[][] data = new Object[selectedRawDataFiles.length][2];
-                for (int i = 0; i < selectedRawDataFiles.length; i++) {
-                        data[i][0] = selectedRawDataFiles[i].getName();
+                String[] columnNames = {"Variables", "Cluster number"};
+                Object[][] data = new Object[samplesOrVariables.length][2];
+                for (int i = 0; i < samplesOrVariables.length; i++) {
+                        data[i][0] = samplesOrVariables[i];
                         data[i][1] = clusteringData[i];
                 }
 

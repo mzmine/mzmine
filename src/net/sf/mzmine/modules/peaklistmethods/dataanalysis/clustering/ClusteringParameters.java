@@ -30,9 +30,21 @@ public class ClusteringParameters extends ProjectionPlotParameters {
         public static String visualizationPCA = "PCA";
         public static String visualizationSammon = "Sammon's projection";
         private static String[] visualizationType = {visualizationPCA, visualizationSammon};
+        private static String[] clusteringData = {"Samples", "Variables"};
+        private static String[] hierarchicalLinkType = {"Single", "Complete", "Average", "Mean", "Centroid", "Ward", "Adjusted complete", "Neighbor Joining"};
+        private static String[] hierarchicaldistances = {"Euclidian", "Chebyshev", "Manhattan", "Minkowski"};
         public static final Parameter clusteringAlgorithm = new SimpleParameter(
                 ParameterType.STRING, "Select the algorithm",
                 "Select the algorithm you want to use for clustering", null, val);
+        public static final Parameter typeOfData = new SimpleParameter(
+                ParameterType.STRING, "Type of data",
+                "Specify the type of data used for the clustering: samples or variables", null, clusteringData);
+        public static final Parameter linkType = new SimpleParameter(
+                ParameterType.STRING, "Type of link",
+                "", null, hierarchicalLinkType);
+        public static final Parameter distances = new SimpleParameter(
+                ParameterType.STRING, "Distances",
+                "", null, hierarchicaldistances);
         public static final Parameter numberOfGroups = new SimpleParameter(
                 ParameterType.INTEGER, "Number of clusters to generate",
                 "Specify the number of clusters to generate.",
@@ -50,6 +62,6 @@ public class ClusteringParameters extends ProjectionPlotParameters {
         }
 
         public ClusteringParameters() {
-                super(new Parameter[]{peakMeasurementType, clusteringAlgorithm, numberOfGroups, visualization});
+                super(new Parameter[]{peakMeasurementType, clusteringAlgorithm, typeOfData, linkType, distances, numberOfGroups, visualization});
         }
 }

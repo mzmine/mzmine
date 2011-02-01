@@ -18,6 +18,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
+import figs.treeVisualization.TreeViewJ;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -42,9 +43,9 @@ import net.sf.mzmine.taskcontrol.TaskEvent;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import weka.clusterers.Clusterer;
-import weka.clusterers.Cobweb;
 import weka.clusterers.EM;
 import weka.clusterers.FarthestFirst;
+import weka.clusterers.HierarchicalClusterer;
 import weka.clusterers.SimpleKMeans;
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -62,9 +63,9 @@ public class ClusteringDataset extends AbstractXYDataset implements
         private ClusteringParameters parameters;
         private RawDataFile[] selectedRawDataFiles;
         private PeakListRow[] selectedRows;
-        private int[] groupsForSelectedRawDataFiles;
+        private int[] groupsForSelectedRawDataFiles, groupsForSelectedVariables;
         private Object[] parameterValuesForGroups;
-        int numberOfGroups, finalNumberOfGroups;
+        private int numberOfGroups, finalNumberOfGroups;
         private String datasetTitle;
         private int xAxisDimension = 1;
         private int yAxisDimension = 2;
@@ -73,6 +74,8 @@ public class ClusteringDataset extends AbstractXYDataset implements
         private ProjectionStatus projectionStatus;
         private ClusteringAlgorithmsEnum clusteringAlgorithm;
         private String visualizationType;
+        private String typeOfData, linkType, distances;
+        private float progress = 0.0f;
 
         public ClusteringDataset(ClusteringParameters parameters) {
 
@@ -83,12 +86,15 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 numberOfGroups = (Integer) parameters.getParameterValue(ClusteringParameters.numberOfGroups);
                 clusteringAlgorithm = (ClusteringAlgorithmsEnum) parameters.getParameterValue(ClusteringParameters.clusteringAlgorithm);
                 visualizationType = (String) parameters.getParameterValue(ClusteringParameters.visualization);
+                typeOfData = (String) parameters.getParameterValue(ClusteringParameters.typeOfData);
+                linkType = (String) parameters.getParameterValue(ClusteringParameters.linkType);
+                distances = (String) parameters.getParameterValue(ClusteringParameters.distances);
 
                 datasetTitle = "Clustering";
 
                 // Determine groups for selected raw data files
                 groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
-
+                groupsForSelectedVariables = new int[selectedRows.length];
         }
 
         @Override
@@ -126,12 +132,25 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 return component2Coords[item];
         }
 
-        public RawDataFile getRawDataFile(int item) {
-                return selectedRawDataFiles[item];
+        public String getRawDataFile(int item) {
+                if (typeOfData.equals("Variables")) {
+                        String name = "ID: " + this.selectedRows[item].getID();
+                        name += " M/Z: " + this.selectedRows[item].getAverageMZ() + " RT:" + this.selectedRows[item].getAverageRT();
+                        if (selectedRows[item].getPeakIdentities() != null && selectedRows[item].getPeakIdentities().length > 0) {
+                                name += " CompoundName: " + selectedRows[item].getPeakIdentities()[0].getName();
+                        }
+                        return name;
+                } else {
+                        return selectedRawDataFiles[item].getName();
+                }
         }
 
         public int getGroupNumber(int item) {
-                return groupsForSelectedRawDataFiles[item];
+                if (typeOfData.equals("Variables")) {
+                        return groupsForSelectedVariables[item];
+                } else {
+                        return groupsForSelectedRawDataFiles[item];
+                }
         }
 
         public Object getGroupParameterValue(int groupNumber) {
@@ -154,6 +173,131 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
                 logger.info("Clustering");
 
+                double[][] rawData;
+
+                // Creating weka dataset using samples or metabolites (variables)
+                Instances dataset;
+                if (typeOfData.equals("Variables")) {
+                        rawData = createMatrix(false);
+                        dataset = createVariableWekaDataset(rawData);
+                } else {
+                        rawData = createMatrix(true);
+                        dataset = createSampleWekaDataset(rawData);
+                }
+                progress = 0.05f;
+
+                // Running cluster algorithms
+                String cluster = "";
+                if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                        cluster = this.getHierarchicalClustering(dataset);
+                        if (cluster != null) {
+                                Desktop desktop = MZmineCore.getDesktop();
+                                TreeViewJ visualizer = new TreeViewJ(640,480);
+                                cluster += ";";
+                                cluster = cluster.replaceAll("Newick:", "");
+                                visualizer.openMenuAction(cluster);
+                                desktop.addInternalFrame(visualizer);
+                        }
+                        progress = 0.12f;
+                } else {
+
+                        List<Integer> clusteringResult = getClusterer(clusteringAlgorithm, dataset);
+
+                        // Report window
+                        Desktop desktop = MZmineCore.getDesktop();
+                        if (typeOfData.equals("Samples")) {
+                                String[] sampleNames = new String[selectedRawDataFiles.length];
+                                for (int i = 0; i < selectedRawDataFiles.length; i++) {
+                                        sampleNames[i] = selectedRawDataFiles[i].getName();
+                                }
+
+                                ClusteringReportWindow reportWindow = new ClusteringReportWindow(sampleNames, (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
+                                desktop.addInternalFrame(reportWindow);
+                        } else {
+                                String[] variableNames = new String[selectedRows.length];
+                                for (int i = 0; i < selectedRows.length; i++) {
+                                        variableNames[i] = selectedRows[i].getID() + " - " + selectedRows[i].getAverageMZ() + " - " + selectedRows[i].getAverageRT();
+                                        if (selectedRows[i].getPeakIdentities() != null && selectedRows[i].getPeakIdentities().length > 0) {
+                                                variableNames[i] += " - " + selectedRows[i].getPeakIdentities()[0].getName();
+                                        }
+                                }
+
+                                ClusteringReportWindow reportWindow = new ClusteringReportWindow(variableNames, (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
+                                desktop.addInternalFrame(reportWindow);
+
+                        }
+
+                        progress = 0.12f;
+
+                        // Visualization
+                        if (typeOfData.equals("Variables")) {
+                                for (int ind = 0; ind < selectedRows.length; ind++) {
+                                        groupsForSelectedVariables[ind] = clusteringResult.get(ind);
+                                }
+
+                        } else {
+                                for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
+                                        groupsForSelectedRawDataFiles[ind] = clusteringResult.get(ind);
+                                }
+                        }
+
+                        parameterValuesForGroups = new Object[finalNumberOfGroups];
+                        for (int i = 0; i < finalNumberOfGroups; i++) {
+                                parameterValuesForGroups[i] = "Group " + i;
+                        }
+
+                        int numComponents = xAxisDimension;
+                        if (yAxisDimension > numComponents) {
+                                numComponents = yAxisDimension;
+                        }
+
+                        if (visualizationType.contains(ClusteringParameters.visualizationPCA)) {
+                                // Scale data and do PCA
+                                Preprocess.scaleToUnityVariance(rawData);
+                                PCA pcaProj = new PCA(rawData, numComponents);
+                                projectionStatus = pcaProj.getProjectionStatus();
+
+                                double[][] result = pcaProj.getState();
+
+                                if (status == TaskStatus.CANCELED) {
+                                        return;
+                                }
+
+                                component1Coords = result[xAxisDimension - 1];
+                                component2Coords = result[yAxisDimension - 1];
+                        } else if (visualizationType.contains(ClusteringParameters.visualizationSammon)) {
+                                // Scale data and do Sammon's mapping
+                                Preprocess.scaleToUnityVariance(rawData);
+                                Sammons sammonsProj = new Sammons(rawData);
+                                projectionStatus = sammonsProj.getProjectionStatus();
+
+                                sammonsProj.iterate(100);
+
+                                double[][] result = sammonsProj.getState();
+
+                                if (status == TaskStatus.CANCELED) {
+                                        return;
+                                }
+
+                                component1Coords = result[xAxisDimension - 1];
+                                component2Coords = result[yAxisDimension - 1];
+                        }
+
+                        ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
+                                parameters);
+                        desktop.addInternalFrame(newFrame);
+                }
+
+                status = TaskStatus.FINISHED;
+                logger.info("Finished computing Clustering visualization.");
+        }
+
+        /**
+         * Creates a matrix of heights of areas
+         * @param isForSamples
+         * @return
+         */
+        private double[][] createMatrix(boolean isForSamples) {
                 // Generate matrix of raw data (input to CDA)
                 boolean useArea = true;
                 if (parameters.getParameterValue(ClusteringParameters.peakMeasurementType) == ClusteringParameters.PeakMeasurementTypeArea) {
@@ -162,112 +306,71 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 if (parameters.getParameterValue(ClusteringParameters.peakMeasurementType) == ClusteringParameters.PeakMeasurementTypeHeight) {
                         useArea = false;
                 }
-
-                double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-                for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
-                        PeakListRow peakListRow = selectedRows[rowIndex];
-                        for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
-                                RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-                                ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
-                                if (p != null) {
-                                        if (useArea) {
-                                                rawData[fileIndex][rowIndex] = p.getArea();
-                                        } else {
-                                                rawData[fileIndex][rowIndex] = p.getHeight();
+                double[][] rawData;
+                if (isForSamples) {
+                        rawData = new double[selectedRawDataFiles.length][selectedRows.length];
+                        for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+                                PeakListRow peakListRow = selectedRows[rowIndex];
+                                for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
+                                        RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+                                        ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
+                                        if (p != null) {
+                                                if (useArea) {
+                                                        rawData[fileIndex][rowIndex] = p.getArea();
+                                                } else {
+                                                        rawData[fileIndex][rowIndex] = p.getHeight();
+                                                }
+                                        }
+                                }
+                        }
+                } else {
+                        rawData = new double[selectedRows.length][selectedRawDataFiles.length];
+                        for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
+                                PeakListRow peakListRow = selectedRows[rowIndex];
+                                for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
+                                        RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
+                                        ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
+                                        if (p != null) {
+                                                if (useArea) {
+                                                        rawData[rowIndex][fileIndex] = p.getArea();
+                                                } else {
+                                                        rawData[rowIndex][fileIndex] = p.getHeight();
+                                                }
                                         }
                                 }
                         }
                 }
-                
-                // Running cluster algorithms
-                List<Integer> clusteringResult = getClusterer(clusteringAlgorithm, createWekaDataset(rawData));
 
-                // Report window
-                Desktop desktop = MZmineCore.getDesktop();
-                ClusteringReportWindow reportWindow = new ClusteringReportWindow(selectedRawDataFiles, (Integer[]) clusteringResult.toArray(new Integer[0]), "Clustering Report");
-                desktop.addInternalFrame(reportWindow);
-
-                // Visualization
-                for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
-                        groupsForSelectedRawDataFiles[ind] = clusteringResult.get(ind);
-                }
-
-                parameterValuesForGroups = new Object[finalNumberOfGroups];
-                for (int i = 0; i < finalNumberOfGroups; i++) {
-                        parameterValuesForGroups[i] = "Group " + i;
-                }
-
-                int numComponents = xAxisDimension;
-                if (yAxisDimension > numComponents) {
-                        numComponents = yAxisDimension;
-                }
-
-                if (visualizationType.contains(ClusteringParameters.visualizationPCA)) {
-                        // Scale data and do PCA
-                        Preprocess.scaleToUnityVariance(rawData);
-                        PCA pcaProj = new PCA(rawData, numComponents);
-                        projectionStatus = pcaProj.getProjectionStatus();
-
-                        double[][] result = pcaProj.getState();
-
-                        if (status == TaskStatus.CANCELED) {
-                                return;
-                        }
-
-                        component1Coords = result[xAxisDimension - 1];
-                        component2Coords = result[yAxisDimension - 1];
-                } else if (visualizationType.contains(ClusteringParameters.visualizationSammon)) {
-                        // Scale data and do Sammon's mapping
-                        Preprocess.scaleToUnityVariance(rawData);
-                        Sammons sammonsProj = new Sammons(rawData);
-                        projectionStatus = sammonsProj.getProjectionStatus();
-
-                        sammonsProj.iterate(100);
-
-                        double[][] result = sammonsProj.getState();
-
-                        if (status == TaskStatus.CANCELED) {
-                                return;
-                        }
-
-                        component1Coords = result[xAxisDimension - 1];
-                        component2Coords = result[yAxisDimension - 1];
-                }
-
-                ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
-                        parameters);
-                desktop.addInternalFrame(newFrame);
-
-                status = TaskStatus.FINISHED;
-                logger.info("Finished computing Clustering visualization.");
-
+                return rawData;
         }
 
         /**
-         * Create the weka data set
+         * Creates the weka data set for clustering of samples
          * @param rawData Data extracted from selected Raw data files and rows.
          * @return Weka library data set
          */
-        private Instances createWekaDataset(double[][] rawData) {
+        private Instances createSampleWekaDataset(double[][] rawData) {
                 FastVector attributes = new FastVector();
-                int cont = 1;
-                for (int i = 0; i < rawData[0].length; i++) {
-                        String rowName = "";
-                        if (rowName == null || rowName.isEmpty()) {
-                                rowName = "Var";
-                        }
-                        rowName += cont++;
 
-                        Attribute var = new Attribute(rowName);
+                for (int i = 0; i < rawData[0].length; i++) {
+                        String varName = "Var" + i;
+                        Attribute var = new Attribute(varName);
                         attributes.addElement(var);
                 }
-               
+
+                if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                        Attribute name = new Attribute("name", (FastVector) null);
+                        attributes.addElement(name);
+                }
                 Instances data = new Instances("Dataset", attributes, 0);
 
                 for (int i = 0; i < rawData.length; i++) {
                         double[] values = new double[data.numAttributes()];
                         for (int e = 0; e < rawData[0].length; e++) {
                                 values[e] = rawData[i][e];
+                        }
+                        if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                                values[data.numAttributes() - 1] = data.attribute("name").addStringValue(this.selectedRawDataFiles[i].getName());
                         }
                         Instance inst = new SparseInstance(1.0, values);
                         data.add(inst);
@@ -276,7 +379,47 @@ public class ClusteringDataset extends AbstractXYDataset implements
         }
 
         /**
-         * Construct the clustering algorithm using Weka library
+         * Creates the weka data set for clustering of variables (metabolites)
+         * @param rawData Data extracted from selected Raw data files and rows.
+         * @return Weka library data set
+         */
+        private Instances createVariableWekaDataset(double[][] rawData) {
+                FastVector attributes = new FastVector();
+
+                for (int i = 0; i < this.selectedRawDataFiles.length; i++) {
+                        String varName = "Var" + i;
+                        Attribute var = new Attribute(varName);
+                        attributes.addElement(var);
+                }
+
+                if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                        Attribute name = new Attribute("name", (FastVector) null);
+                        attributes.addElement(name);
+                }
+                Instances data = new Instances("Dataset", attributes, 0);
+
+                for (int i = 0; i < selectedRows.length; i++) {
+                        double[] values = new double[data.numAttributes()];
+                        for (int e = 0; e < rawData[0].length; e++) {
+                                values[e] = rawData[i][e];
+                        }
+
+                        if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                                String rowName = "Var " + selectedRows[i].getAverageMZ() + " - " + selectedRows[i].getAverageRT();
+                                if (selectedRows[i].getPeakIdentities() != null && selectedRows[i].getPeakIdentities().length > 0) {
+                                        rowName += " - " + selectedRows[i].getPeakIdentities()[0].getName();
+                                }
+
+                                values[data.numAttributes() - 1] = data.attribute("name").addStringValue(rowName);
+                        }
+                        Instance inst = new SparseInstance(1.0, values);
+                        data.add(inst);
+                }
+                return data;
+        }
+
+        /**
+         * Constructs the clustering algorithm using Weka library
          * @param algorithm Type of clustering algorithm
          * @param wekaData Weka data set
          * @return List of the cluster number of each selected Raw data file.
@@ -286,9 +429,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 String[] options = new String[2];
                 Clusterer clusterer = null;
                 switch (algorithm) {
-                        case COBWEB:
-                                clusterer = new Cobweb();
-                                break;
                         case EM:
                                 clusterer = new EM();
                                 options[0] = "-I";
@@ -334,10 +474,42 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 return clusters;
         }
 
+        public String getHierarchicalClustering(Instances wekaData) {
+
+                Clusterer clusterer = new HierarchicalClusterer();
+                String[] options = new String[4];
+                options[0] = "-L";
+                options[1] = linkType;
+                options[2] = "-A";
+                if (distances.equals("Euclidian")) {
+                        options[3] = "weka.core.EuclideanDistance";
+                } else if (distances.equals("Chebyshev")) {
+                        options[3] = "weka.core.ChebyshevDistance";
+                } else if (distances.equals("Manhattan")) {
+                        options[3] = "weka.core.ManhattanDistance";
+                } else if (distances.equals("Minkowski")) {
+                        options[3] = "weka.core.MinkowskiDistance";
+                }
+                try {
+                        ((HierarchicalClusterer) clusterer).setOptions(options);
+                } catch (Exception ex) {
+                        Logger.getLogger(ClusteringDataset.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                try {
+                        clusterer.buildClusterer(wekaData);
+                        ((HierarchicalClusterer) clusterer).setDistanceIsBranchLength(true);
+                        return ((HierarchicalClusterer) clusterer).graph();
+                } catch (Exception ex) {
+                        Logger.getLogger(ClusteringDataset.class.getName()).log(Level.SEVERE, null, ex);
+                        return null;
+                }
+        }
+
         public void cancel() {
                 if (projectionStatus != null) {
                         projectionStatus.cancel();
                 }
+
                 status = TaskStatus.CANCELED;
         }
 
@@ -353,14 +525,19 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 if ((parameters == null) || (parameters.getSourcePeakList() == null)) {
                         return "Clustering visualization";
                 }
+
                 return "Clustering visualization " + parameters.getSourcePeakList();
         }
 
         public double getFinishedPercentage() {
                 if (projectionStatus == null) {
-                        return 0;
+                        return progress;
                 }
-                return projectionStatus.getFinishedPercentage();
+                if (visualizationType.contains(ClusteringParameters.visualizationPCA)) {
+                        return projectionStatus.getFinishedPercentage() + progress;
+                } else {
+                        return projectionStatus.getFinishedPercentage();
+                }
         }
 
         public Object[] getCreatedObjects() {
@@ -390,6 +567,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 for (TaskListener t : this.taskListeners) {
                         t.statusChanged(event);
                 }
+
         }
 
         /**

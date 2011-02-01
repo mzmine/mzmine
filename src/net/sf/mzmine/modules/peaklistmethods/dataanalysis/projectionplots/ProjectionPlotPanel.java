@@ -124,11 +124,11 @@ public class ProjectionPlotPanel extends ChartPanel {
 					String fileNames = new String();
 					for (int itemNumber = 0; itemNumber < dataset
 							.getItemCount(0); itemNumber++) {
-						RawDataFile rawDataFile = dataset
+						String rawDataFile = dataset
 								.getRawDataFile(itemNumber);
 						if (dataset.getGroupNumber(itemNumber) == groupNumber)
 							fileNames = fileNames
-									.concat(rawDataFile.toString());
+									.concat(rawDataFile);
 					}
 					if (fileNames.length() == 0)
 						fileNames = "Empty group";

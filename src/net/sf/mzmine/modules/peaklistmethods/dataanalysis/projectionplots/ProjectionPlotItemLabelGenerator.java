@@ -63,7 +63,7 @@ public class ProjectionPlotItemLabelGenerator extends
 			return "";
 
 		case FileName:
-			return dataset.getRawDataFile(item).toString();
+			return dataset.getRawDataFile(item);
 
 		case ParameterValue:
 			int groupNumber = dataset.getGroupNumber(item);

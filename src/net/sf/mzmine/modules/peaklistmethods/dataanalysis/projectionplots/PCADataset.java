@@ -170,8 +170,8 @@ public class PCADataset extends AbstractXYDataset implements
 		return component2Coords[item];
 	}
 
-	public RawDataFile getRawDataFile(int item) {
-		return selectedRawDataFiles[item];
+	public String getRawDataFile(int item) {
+		return selectedRawDataFiles[item].getName();
 	}
 
 	public int getGroupNumber(int item) {

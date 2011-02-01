@@ -19,14 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.taskcontrol.Task;
 
 import org.jfree.data.xy.XYDataset;
 
 public interface ProjectionPlotDataset extends XYDataset, Task {
 
-	public RawDataFile getRawDataFile(int item);
+	public String getRawDataFile(int item);
 	
 	public int getGroupNumber(int item);
 	

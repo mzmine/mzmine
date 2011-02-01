@@ -18,12 +18,12 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-public enum ClusteringAlgorithmsEnum {
+public enum ClusteringAlgorithmsEnum {     
 
-        COBWEB("CobWeb"),
         EM("Density Based Clusterer"),
         FARTHESTFIRST("Farthest First"),
-        SIMPLEKMEANS("Simple KMeans");
+        SIMPLEKMEANS("Simple KMeans"),
+        HIERARCHICAL("Hierarchical Clusterer");
         private String name;
 
         ClusteringAlgorithmsEnum(String name) {
@@ -33,5 +33,4 @@ public enum ClusteringAlgorithmsEnum {
         public String getName() {
                 return name;
         }
-
 }

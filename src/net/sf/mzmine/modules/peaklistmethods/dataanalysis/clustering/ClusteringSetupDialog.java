@@ -39,7 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -65,6 +64,8 @@ public class ClusteringSetupDialog extends JDialog implements
         private JComboBox comboPeakMeasuringMethod;
         private JComboBox comboClusteringAlgorithm;
         private JComboBox comboClusteringVisualization;
+        private JComboBox comboClusteringData;
+        private JComboBox comboLink, comboDistance;
         private JTextField textFieldClusteringNumberGroups;
         private Vector<ExtendedCheckBox<RawDataFile>> rawDataFileCheckBoxes;
         private Vector<ExtendedCheckBox<PeakListRow>> peakCheckBoxes;
@@ -143,8 +144,6 @@ public class ClusteringSetupDialog extends JDialog implements
                 components.add(dataFileButtonsPanel);
                 layout.setConstraints(dataFileButtonsPanel, constraints);
 
-                Parameter projectParameters[] = MZmineCore.getCurrentProject().getParameters();
-
 
                 comp = GUIUtils.addLabel(components, "Peak measuring approach");
                 constraints.gridx = 0;
@@ -210,44 +209,10 @@ public class ClusteringSetupDialog extends JDialog implements
                 components.add(peakButtonsPanel);
                 layout.setConstraints(peakButtonsPanel, constraints);
 
-                comp = GUIUtils.addLabel(components, "Algorithm");
-                constraints.gridx = 0;
-                constraints.gridy = 3;
-                layout.setConstraints(comp, constraints);
-
-
-                ClusteringAlgorithmsEnum[] algorithms = ClusteringAlgorithmsEnum.values();
-                String[] algorithmsString = new String[algorithms.length];
-                for (int i = 0; i < algorithms.length; i++) {
-                        algorithmsString[i] = algorithms[i].getName();
-                }
-                comboClusteringAlgorithm = new JComboBox(algorithmsString);
-                textFieldClusteringNumberGroups = new JTextField(String.valueOf(parameterSet.getParameterValue(ClusteringParameters.numberOfGroups)));
-               
-                comboClusteringAlgorithm.addActionListener(this);
-                for (ClusteringAlgorithmsEnum algorithmsEnum : ClusteringAlgorithmsEnum.values()) {
-                        if (parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) == algorithmsEnum) {
-                                comboClusteringAlgorithm.setSelectedItem(algorithmsEnum.getName());
-                        }
-                }
-
-                constraints.gridx = 1;
-                components.add(comboClusteringAlgorithm, constraints);
-                comp = GUIUtils.addLabel(components, "Number of groups");
-                constraints.gridx = 0;
-                constraints.gridy = 4;
-                layout.setConstraints(comp, constraints);
-                
-                if (parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) != ClusteringAlgorithmsEnum.FARTHESTFIRST &&
-                        parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) != ClusteringAlgorithmsEnum.SIMPLEKMEANS) {
-                        textFieldClusteringNumberGroups.setEnabled(false);
-                }
-                constraints.gridx = 1;
-                components.add(textFieldClusteringNumberGroups, constraints);
-
+                // Visualization combo box
                 comp = GUIUtils.addLabel(components, "Visualization");
                 constraints.gridx = 0;
-                constraints.gridy = 5;
+                constraints.gridy = 3;
                 layout.setConstraints(comp, constraints);
                 String[] visualizationType = {ClusteringParameters.visualizationPCA, ClusteringParameters.visualizationSammon};
                 comboClusteringVisualization = new JComboBox(visualizationType);
@@ -261,9 +226,99 @@ public class ClusteringSetupDialog extends JDialog implements
                 components.add(comboClusteringVisualization, constraints);
 
 
-                comp = GUIUtils.addSeparator(components, PADDING_SIZE);
+                // Type of data combo box
+                comp = GUIUtils.addLabel(components, "Type of data");
+                constraints.gridx = 0;
+                constraints.gridy = 4;
+                layout.setConstraints(comp, constraints);
+
+                String[] dataString = {"Samples", "Variables"};
+                comboClusteringData = new JComboBox(dataString);
+                String data = (String) parameterSet.getParameterValue(ClusteringParameters.typeOfData);
+                comboClusteringData.setSelectedItem(data);
+                constraints.gridx = 1;
+                components.add(comboClusteringData, constraints);
+
+
+                // More parameters for the hierarchical clustering
+                comp = GUIUtils.addLabel(components, "Link type");
                 constraints.gridx = 0;
                 constraints.gridy = 6;
+                layout.setConstraints(comp, constraints);
+
+                String[] links = {"Single", "Complete", "Average", "Mean", "Centroid", "Ward", "Adjusted complete", "Neighbor Joining"};
+                comboLink = new JComboBox(links);
+
+                String link = (String) parameterSet.getParameterValue(ClusteringParameters.linkType);
+                comboLink.setSelectedItem(link);
+                comboLink.setEnabled(false);
+                constraints.gridx = 1;
+                components.add(comboLink, constraints);
+
+                comp = GUIUtils.addLabel(components, "Distance function");
+                constraints.gridx = 0;
+                constraints.gridy = 7;
+                layout.setConstraints(comp, constraints);
+                String[] distances = {"Euclidian", "Chebyshev", "Manhattan", "Minkowski"};
+                comboDistance = new JComboBox(distances);
+                String distance = (String) parameterSet.getParameterValue(ClusteringParameters.distances);
+                comboDistance.setSelectedItem(distance);
+                comboDistance.setEnabled(false);
+                constraints.gridx = 1;
+                components.add(comboDistance, constraints);
+
+
+
+                // Clustering algorithms combo box
+                comp = GUIUtils.addLabel(components, "Algorithm");
+                constraints.gridx = 0;
+                constraints.gridy = 5;
+                layout.setConstraints(comp, constraints);
+
+
+                ClusteringAlgorithmsEnum[] algorithms = ClusteringAlgorithmsEnum.values();
+                String[] algorithmsString = new String[algorithms.length];
+                for (int i = 0; i < algorithms.length; i++) {
+                        algorithmsString[i] = algorithms[i].getName();
+                }
+                comboClusteringAlgorithm = new JComboBox(algorithmsString);
+                textFieldClusteringNumberGroups = new JTextField(String.valueOf(parameterSet.getParameterValue(ClusteringParameters.numberOfGroups)));
+
+                comboClusteringAlgorithm.addActionListener(this);
+                for (ClusteringAlgorithmsEnum algorithmsEnum : ClusteringAlgorithmsEnum.values()) {
+                        if (parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) == algorithmsEnum) {
+                                comboClusteringAlgorithm.setSelectedItem(algorithmsEnum.getName());
+                        }
+                }
+                constraints.gridx = 1;
+                components.add(comboClusteringAlgorithm, constraints);
+
+                if (comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.HIERARCHICAL.getName())) {
+                        comboLink.setEnabled(true);
+                        comboDistance.setEnabled(true);
+                }
+
+
+                // Number of groups text field
+                comp = GUIUtils.addLabel(components, "Number of groups");
+                constraints.gridx = 0;
+                constraints.gridy = 8;
+                layout.setConstraints(comp, constraints);
+
+                if (parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) == ClusteringAlgorithmsEnum.EM ||
+                        parameterSet.getParameterValue(ClusteringParameters.clusteringAlgorithm) == ClusteringAlgorithmsEnum.HIERARCHICAL) {
+                        textFieldClusteringNumberGroups.setEnabled(false);
+                } else {
+                        textFieldClusteringNumberGroups.setEnabled(true);
+                }
+                constraints.gridx = 1;
+                components.add(textFieldClusteringNumberGroups, constraints);
+
+
+                // Separator and button panel
+                comp = GUIUtils.addSeparator(components, PADDING_SIZE);
+                constraints.gridx = 0;
+                constraints.gridy = 9;
                 constraints.weightx = 0;
                 constraints.weighty = 0;
                 constraints.gridheight = 1;
@@ -279,7 +334,7 @@ public class ClusteringSetupDialog extends JDialog implements
                         buttonsPanel.add(btnHelp);
                 }
                 constraints.gridx = 0;
-                constraints.gridy = 7;
+                constraints.gridy = 10;
                 constraints.gridwidth = 3;
                 components.add(buttonsPanel, constraints);
 
@@ -337,7 +392,7 @@ public class ClusteringSetupDialog extends JDialog implements
                                 comboPeakMeasuringMethod.getSelectedItem());
 
                         String algorithm = (String) comboClusteringAlgorithm.getSelectedItem();
-                        ClusteringAlgorithmsEnum selectedAlgorithm = ClusteringAlgorithmsEnum.COBWEB;
+                        ClusteringAlgorithmsEnum selectedAlgorithm = ClusteringAlgorithmsEnum.EM;
                         for (ClusteringAlgorithmsEnum a : ClusteringAlgorithmsEnum.values()) {
                                 if (a.getName().equals(algorithm)) {
                                         selectedAlgorithm = a;
@@ -348,12 +403,31 @@ public class ClusteringSetupDialog extends JDialog implements
                                 ClusteringParameters.clusteringAlgorithm,
                                 selectedAlgorithm);
 
+
+                        if (comboClusteringData.getSelectedItem() != null) {
+                                parameterSet.setParameterValue(
+                                        ClusteringParameters.typeOfData,
+                                        comboClusteringData.getSelectedItem());
+                        }
+
+                        if (comboLink.getSelectedItem() != null) {
+                                parameterSet.setParameterValue(
+                                        ClusteringParameters.linkType,
+                                        comboLink.getSelectedItem());
+                        }
+
+                        if (comboDistance.getSelectedItem() != null) {
+                                parameterSet.setParameterValue(
+                                        ClusteringParameters.distances,
+                                        comboDistance.getSelectedItem());
+                        }
+
                         parameterSet.setParameterValue(
                                 ClusteringParameters.visualization,
                                 comboClusteringVisualization.getSelectedItem());
                         try {
-                                if (this.comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.FARTHESTFIRST.getName()) ||
-                                        this.comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.SIMPLEKMEANS.getName())) {
+                                if (comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.FARTHESTFIRST.getName()) ||
+                                        comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.SIMPLEKMEANS.getName())) {
                                         parameterSet.setParameterValue(
                                                 ClusteringParameters.numberOfGroups,
                                                 Integer.parseInt(this.textFieldClusteringNumberGroups.getText()));
@@ -368,13 +442,24 @@ public class ClusteringSetupDialog extends JDialog implements
                 }
 
                 if (src == comboClusteringAlgorithm) {
-                        if (!this.comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.FARTHESTFIRST.getName()) &&
-                                !this.comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.SIMPLEKMEANS.getName())) {
+                        if (!comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.FARTHESTFIRST.getName()) &&
+                                !comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.SIMPLEKMEANS.getName())) {
                                 textFieldClusteringNumberGroups.setEnabled(false);
                         } else {
                                 textFieldClusteringNumberGroups.setEnabled(true);
                         }
+
+                        if (comboClusteringAlgorithm.getSelectedItem().toString().equals(ClusteringAlgorithmsEnum.HIERARCHICAL.getName())) {
+                                comboClusteringVisualization.setEnabled(false);
+                                comboLink.setEnabled(true);
+                                comboDistance.setEnabled(true);
+                        } else {
+                                comboClusteringVisualization.setEnabled(true);
+                                comboLink.setEnabled(false);
+                                comboDistance.setEnabled(false);
+                        }
                 }
+
 
                 if (src == btnCancel) {
                         exitCode = ExitCode.CANCEL;
