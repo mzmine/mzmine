@@ -46,12 +46,6 @@ public interface IsotopePattern {
 	public DataPoint getHighestIsotope();
 
 	/**
-	 * Creates a new isotope pattern which has same ratios between isotopes, but
-	 * maximum intensity is normalized to given value
-	 */
-	public IsotopePattern normalizeTo(double value);
-
-	/**
 	 * Returns a description of this isotope pattern (formula, etc.)
 	 */
 	public String getDescription();

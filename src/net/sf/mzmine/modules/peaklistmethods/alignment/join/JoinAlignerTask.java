@@ -217,7 +217,7 @@ class JoinAlignerTask extends AbstractTask {
 
 						if ((ip1 != null) && (ip2 != null)) {
 							double isotopeSimilarity = IsotopePatternScoreCalculator
-									.getSimilarityScore(ip1, ip2);
+									.getSimilarityScore(ip1, ip2, mzTolerance);
 							if (isotopeSimilarity < isotopePatternScoreThreshold) {
 								continue;
 							}

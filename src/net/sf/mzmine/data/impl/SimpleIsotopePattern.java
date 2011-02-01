@@ -56,27 +56,6 @@ public class SimpleIsotopePattern implements IsotopePattern {
 		return status;
 	}
 
-	public IsotopePattern normalizeTo(double normalizedValue) {
-
-		double maxIntensity = highestIsotope.getIntensity();
-
-		DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
-
-		for (int i = 0; i < dataPoints.length; i++) {
-
-			double mz = dataPoints[i].getMZ();
-			double intensity = dataPoints[i].getIntensity() / maxIntensity
-					* normalizedValue;
-
-			newDataPoints[i] = new SimpleDataPoint(mz, intensity);
-		}
-
-		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
-				newDataPoints, status, description);
-
-		return newPattern;
-	}
-
 	public DataPoint getHighestIsotope() {
 		return highestIsotope;
 	}

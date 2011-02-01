@@ -37,6 +37,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -52,6 +53,7 @@ import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.components.PercentageCellRenderer;
 
 public class ResultWindow extends JInternalFrame implements ActionListener {
 
@@ -59,7 +61,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private JTable IDList;
-	private String description;
 	private Task searchTask;
 	private String title;
 
@@ -91,7 +92,14 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
 				listElementModel);
+		sorter.toggleSortOrder(2);
+		sorter.toggleSortOrder(2);
+
 		IDList.setRowSorter(sorter);
+
+		TableColumnModel columnModel = IDList.getColumnModel();
+		columnModel.getColumn(2).setCellRenderer(new PercentageCellRenderer());
+		columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer());
 
 		JScrollPane listScroller = new JScrollPane(IDList);
 		listScroller.setPreferredSize(new Dimension(350, 100));
@@ -115,7 +123,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		setSize(500, 200);
 		add(pnlLabelsAndList, BorderLayout.CENTER);
 		add(pnlButtons, BorderLayout.SOUTH);
-		setTitle(description);
 		pack();
 
 	}
@@ -124,18 +131,17 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		String command = e.getActionCommand();
 
+		int index = IDList.getSelectedRow();
+
+		if (index < 0) {
+			MZmineCore.getDesktop().displayMessage("Please select one result");
+			return;
+		}
+		index = IDList.convertRowIndexToModel(index);
+		ResultFormula formula = listElementModel.getFormula(index);
+
 		if (command.equals("ADD")) {
-			int index = IDList.getSelectedRow();
 
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Please select one result to add as compound identity");
-				return;
-
-			}
-			index = IDList.convertRowIndexToModel(index);
-
-			ResultFormula formula = listElementModel.getFormula(index);
 			SimplePeakIdentity newIdentity = new SimplePeakIdentity(
 					formula.getFormulaAsString());
 			peakListRow.addPeakIdentity(newIdentity, false);
@@ -149,16 +155,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		}
 
 		if (command.equals("COPY")) {
-			int index = IDList.getSelectedRow();
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Please select one result");
-				return;
-			}
-			index = IDList.convertRowIndexToModel(index);
-
-			ResultFormula formula = listElementModel.getFormula(index);
 
 			String formulaString = formula.getFormulaAsString();
 			StringSelection stringSelection = new StringSelection(formulaString);
@@ -170,16 +166,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		if (command.equals("SHOW_ISOTOPES")) {
 
-			int index = IDList.getSelectedRow();
-			index = IDList.convertRowIndexToModel(index);
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one result to display the isotope pattern");
-				return;
-			}
-
-			ResultFormula formula = listElementModel.getFormula(index);
 			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
 			if (predictedPattern == null)
@@ -195,15 +181,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		}
 
 		if (command.equals("SHOW_MSMS")) {
-
-			int index = IDList.getSelectedRow();
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one result to display the isotope pattern");
-				return;
-			}
-			index = IDList.convertRowIndexToModel(index);
 
 			ChromatographicPeak bestPeak = peakListRow.getBestPeak();
 
@@ -229,10 +206,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 						+ " formulas found");
 			}
 		});
-	}
-
-	public String toString() {
-		return description;
 	}
 
 	public void dispose() {

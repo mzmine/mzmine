@@ -26,10 +26,9 @@ import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.main.MZmineCore;
 
-// TODO: return values as double and change renderer to display %
-
 public class ResultTableModel extends AbstractTableModel {
 
+	public static final String questionMark = "?";
 	public static final String checkMark = new String(new char[] { '\u2713' });
 	public static final String crossMark = new String(new char[] { '\u2717' });
 
@@ -40,8 +39,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	private Vector<ResultFormula> formulas = new Vector<ResultFormula>();
 
-	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-	final NumberFormat massFormat = MZmineCore.getMZFormat();
+	private final NumberFormat massFormat = MZmineCore.getMZFormat();
 
 	ResultTableModel(double searchedMass) {
 		this.searchedMass = searchedMass;
@@ -49,6 +47,19 @@ public class ResultTableModel extends AbstractTableModel {
 
 	public String getColumnName(int col) {
 		return columnNames[col].toString();
+	}
+
+	public Class<?> getColumnClass(int col) {
+		switch (col) {
+		case 0:
+		case 1:
+		case 3:
+			return String.class;
+		case 2:
+		case 4:
+			return Double.class;
+		}
+		return null;
 	}
 
 	public int getRowCount() {
@@ -69,13 +80,14 @@ public class ResultTableModel extends AbstractTableModel {
 			double massDifference = Math.abs(searchedMass - formulaMass);
 			return massFormat.format(massDifference);
 		case 2:
-			Double isotopeScore = formula.getIsotopeScore();
-			if (isotopeScore == null) return null;
-			return percentFormat.format(isotopeScore);
+			return formula.getIsotopeScore();
 		case 3:
 			StringBuilder marks = new StringBuilder();
 			for (HeuristicRule rule : HeuristicRule.values()) {
-				if (formula.conformsRule(rule))
+				Boolean conformity = formula.conformsRule(rule);
+				if (conformity == null)
+					marks.append(questionMark);
+				else if (conformity == true)
 					marks.append(checkMark);
 				else
 					marks.append(crossMark);
@@ -83,9 +95,7 @@ public class ResultTableModel extends AbstractTableModel {
 			}
 			return marks.toString();
 		case 4:
-			Double msmsScore = formula.getMSMSScore();
-			if (msmsScore == null) return null;
-			return percentFormat.format(msmsScore);
+			return formula.getMSMSScore();
 		}
 		return null;
 	}

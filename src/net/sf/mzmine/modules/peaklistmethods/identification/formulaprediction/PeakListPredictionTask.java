@@ -54,7 +54,7 @@ public class PeakListPredictionTask extends AbstractTask implements
 
 	private FormulaPredictionEngine predictionEngine;
 
-	private double massTolerance;
+	private double massTolerance, isotopeMassTolerance;
 	private int charge;
 	private IonizationType ionType;
 	private int maxFormulas;
@@ -86,6 +86,8 @@ public class PeakListPredictionTask extends AbstractTask implements
 				.getParameterValue(FormulaPredictionParameters.ionizationMethod);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeFilter);
+		isotopeMassTolerance = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.isotopeMassTolerance);
 		msmsFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.msmsFilter);
 		isotopeScoreThreshold = (Double) parameters
@@ -224,9 +226,9 @@ public class PeakListPredictionTask extends AbstractTask implements
 
 		predictionEngine = new FormulaPredictionEngine(targetRange,
 				adjustedRules, heuristicRules, isotopeFilter,
-				isotopeScoreThreshold, charge, ionType, msmsFilter,
-				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel, maxFormulas,
-				currentRow, this);
+				isotopeMassTolerance, isotopeScoreThreshold, charge, ionType,
+				msmsFilter, msmsScoreThreshold, msmsTolerance, msmsNoiseLevel,
+				maxFormulas, currentRow, this);
 
 		logger.finest("Starting search for formulas for " + targetRange
 				+ " m/z, elements " + Arrays.toString(elementRules));

@@ -72,6 +72,11 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 			"Search only for formulas with a isotope pattern similar", null,
 			false, null, null, null);
 
+	public static final Parameter isotopeMassTolerance = new SimpleParameter(
+			ParameterType.DOUBLE, "Mass tolerance for isotopes",
+			"Tolerance of the mass value to search (+/- range)", "amu",
+			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
+
 	public static final Parameter isotopeScoreTolerance = new SimpleParameter(
 			ParameterType.DOUBLE, "Isotope pattern score threshold",
 			"Threshold level for isotope pattern score", "%", new Double(0.65),
@@ -100,12 +105,12 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 			ParameterType.DOUBLE, "MS/MS score threshold",
 			"Threshold level for MS/MS score", "%", new Double(0.65),
 			new Double(0.0), new Double(1.0), percentFormat);
-	
+
 	public FormulaPredictionParameters() {
 		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
 				numOfResults, massTolerance, elements, isotopeFilter,
-				isotopeScoreTolerance, heuristicRules, msmsFilter,
-				msmsTolerance, msmsNoiseLevel, msmsScoreTolerance });
+				isotopeMassTolerance, isotopeScoreTolerance, heuristicRules,
+				msmsFilter, msmsTolerance, msmsNoiseLevel, msmsScoreTolerance });
 	}
 
 }

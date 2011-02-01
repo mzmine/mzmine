@@ -28,17 +28,14 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class ResultFormula {
 
 	private final IMolecularFormula cdkFormula;
-	private HeuristicRule conformingRules[];
 	private Double isotopeScore, msmsScore;
 	private IsotopePattern predictedIsotopePattern;
 
 	ResultFormula(MolecularFormula cdkFormula,
-			HeuristicRule conformingRules[],
 			IsotopePattern predictedIsotopePattern, Double isotopeScore,
 			Double msmsScore) {
 
 		this.cdkFormula = cdkFormula;
-		this.conformingRules = conformingRules;
 		this.predictedIsotopePattern = predictedIsotopePattern;
 		this.isotopeScore = isotopeScore;
 		this.msmsScore = msmsScore;
@@ -64,7 +61,7 @@ public class ResultFormula {
 	public Double getIsotopeScore() {
 		return isotopeScore;
 	}
-	
+
 	public Double getMSMSScore() {
 		return msmsScore;
 	}
@@ -73,12 +70,8 @@ public class ResultFormula {
 		return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
 	}
 
-	public boolean conformsRule(HeuristicRule rule) {
-		for (HeuristicRule cr : conformingRules) {
-			if (cr.equals(rule))
-				return true;
-		}
-		return false;
+	public Boolean conformsRule(HeuristicRule rule) {
+		return HeuristicRuleChecker.checkRule(cdkFormula, rule);
 	}
 
 }

@@ -121,7 +121,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		PeakListRow rows[] = peakList.getRows();
 
@@ -135,7 +135,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 			for (PeakListRow row : rows) {
 
-				if (getStatus( ) != TaskStatus.PROCESSING)
+				if (getStatus() != TaskStatus.PROCESSING)
 					return;
 
 				// Retrieve results for each row
@@ -152,13 +152,13 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Could not connect to " + db, e);
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Could not connect to " + db + ": "
 					+ ExceptionUtils.exceptionToString(e);
 			return;
 		}
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -184,7 +184,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 		// Process each one of the result ID's.
 		for (String compoundID : compoundIDs) {
 
-			if (getStatus( ) != TaskStatus.PROCESSING) {
+			if (getStatus() != TaskStatus.PROCESSING) {
 				return;
 			}
 
@@ -201,9 +201,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 				String adjustedFormula = FormulaUtils.ionizeFormula(formula,
 						ionType.getPolarity(), charge);
 
-				logger
-						.finest("Calculating isotope pattern for compound formula "
-								+ formula + " adjusted to " + adjustedFormula);
+				logger.finest("Calculating isotope pattern for compound formula "
+						+ formula + " adjusted to " + adjustedFormula);
 
 				// Generate IsotopePattern for this compound
 				IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
@@ -212,7 +211,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 				double score = IsotopePatternScoreCalculator
 						.getSimilarityScore(rowIsotopePattern,
-								compoundIsotopePattern);
+								compoundIsotopePattern, massTolerance);
 
 				compound.setIsotopePatternScore(score);
 

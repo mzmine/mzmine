@@ -225,7 +225,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	public void loadPeaks(PeakList selectedPeakList) {
 
 		spectrumPlot.removePeakListDataSets();
-		
+
 		if (selectedPeakList == null) {
 			return;
 		}
@@ -240,7 +240,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		spectrumPlot.addDataSet(peaksDataSet, peaksColor, true);
 
 	}
-	
+
 	public void loadSinglePeak(ChromatographicPeak peak) {
 
 		SinglePeakDataSet peakDataSet = new SinglePeakDataSet(
@@ -270,8 +270,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 					.getHighestIntensity(searchMZRange);
 		}
 
-		IsotopePattern normalizedPattern = newPattern
-				.normalizeTo(normalizationFactor);
+		IsotopePattern normalizedPattern = IsotopePatternCalculator
+				.normalizeIsotopePattern(newPattern, normalizationFactor);
 		Color newColor;
 		if (newPattern.getStatus() == IsotopePatternStatus.DETECTED)
 			newColor = detectedIsotopesColor;
@@ -315,8 +315,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 			int msLevel = currentScan.getMSLevel();
 			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
-					.getScanNumber());
+			int scanIndex = Arrays.binarySearch(scanNumbers,
+					currentScan.getScanNumber());
 			if (scanIndex > 0) {
 				final int prevScanIndex = scanNumbers[scanIndex - 1];
 
@@ -341,8 +341,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 			int msLevel = currentScan.getMSLevel();
 			int scanNumbers[] = dataFile.getScanNumbers(msLevel);
-			int scanIndex = Arrays.binarySearch(scanNumbers, currentScan
-					.getScanNumber());
+			int scanIndex = Arrays.binarySearch(scanNumbers,
+					currentScan.getScanNumber());
 
 			if (scanIndex < (scanNumbers.length - 1)) {
 				final int nextScanIndex = scanNumbers[scanIndex + 1];
@@ -404,8 +404,8 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 		}
 
 		if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(spectrumPlot
-					.getXYPlot());
+			AxesSetupDialog dialog = new AxesSetupDialog(
+					spectrumPlot.getXYPlot());
 			dialog.setVisible(true);
 		}
 
@@ -423,14 +423,14 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 		if ((command.equals("ZOOM_IN"))
 				|| (command.equals("ZOOM_IN_BOTH_COMMAND"))) {
-			spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
-					1 / zoomCoefficient);
+			spectrumPlot.getXYPlot().getDomainAxis()
+					.resizeRange(1 / zoomCoefficient);
 		}
 
 		if ((command.equals("ZOOM_OUT"))
 				|| (command.equals("ZOOM_OUT_BOTH_COMMAND"))) {
-			spectrumPlot.getXYPlot().getDomainAxis().resizeRange(
-					zoomCoefficient);
+			spectrumPlot.getXYPlot().getDomainAxis()
+					.resizeRange(zoomCoefficient);
 		}
 
 		if (command.equals("SET_SAME_RANGE")) {

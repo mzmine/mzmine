@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
+import java.util.ArrayList;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
@@ -66,7 +68,6 @@ public class IsotopePatternCalculator implements MZmineModule {
 	}
 
 	/**
-	 * Returns
 	 */
 	public static IsotopePattern calculateIsotopePattern(
 			String molecularFormula, int charge, Polarity polarity) {
@@ -106,6 +107,83 @@ public class IsotopePatternCalculator implements MZmineModule {
 
 		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(dataPoints,
 				IsotopePatternStatus.PREDICTED, molecularFormula);
+
+		return newPattern;
+
+	}
+
+	/**
+	 * Returns same isotope pattern (same ratios between isotope intensities)
+	 * with maximum intensity normalized to 1
+	 */
+	public static IsotopePattern normalizeIsotopePattern(IsotopePattern pattern) {
+		return normalizeIsotopePattern(pattern, 1);
+	}
+
+	/**
+	 * Returns same isotope pattern (same ratios between isotope intensities)
+	 * with maximum intensity normalized to given intensity
+	 */
+	public static IsotopePattern normalizeIsotopePattern(
+			IsotopePattern pattern, double normalizedValue) {
+
+		DataPoint highestIsotope = pattern.getHighestIsotope();
+		DataPoint dataPoints[] = pattern.getDataPoints();
+
+		double maxIntensity = highestIsotope.getIntensity();
+
+		DataPoint newDataPoints[] = new DataPoint[dataPoints.length];
+
+		for (int i = 0; i < dataPoints.length; i++) {
+
+			double mz = dataPoints[i].getMZ();
+			double intensity = dataPoints[i].getIntensity() / maxIntensity
+					* normalizedValue;
+
+			newDataPoints[i] = new SimpleDataPoint(mz, intensity);
+		}
+
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+				newDataPoints, pattern.getStatus(), pattern.getDescription());
+
+		return newPattern;
+
+	}
+
+	/**
+	 * Merges the isotopes falling within the given m/z tolerance. If the m/z
+	 * difference between the isotopes is smaller than mzTolerance, their
+	 * intensity is added together and new m/z value is calculated as a weighted
+	 * average.
+	 */
+	public static IsotopePattern mergeIsotopes(IsotopePattern pattern,
+			double mzTolerance) {
+
+		DataPoint dataPoints[] = pattern.getDataPoints().clone();
+
+		for (int i = 0; i < dataPoints.length - 1; i++) {
+
+			if (Math.abs(dataPoints[i].getMZ() - dataPoints[i + 1].getMZ()) < mzTolerance) {
+				double newIntensity = dataPoints[i].getIntensity()
+						+ dataPoints[i + 1].getIntensity();
+				double newMZ = (dataPoints[i].getMZ()
+						* dataPoints[i].getIntensity() + dataPoints[i + 1]
+						.getMZ() * dataPoints[i + 1].getIntensity())
+						/ newIntensity;
+				dataPoints[i + 1] = new SimpleDataPoint(newMZ, newIntensity);
+				dataPoints[i] = null;
+			}
+		}
+
+		ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>();
+		for (DataPoint dp : dataPoints) {
+			if (dp != null)
+				newDataPoints.add(dp);
+		}
+
+		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+				newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(),
+				pattern.getDescription());
 
 		return newPattern;
 

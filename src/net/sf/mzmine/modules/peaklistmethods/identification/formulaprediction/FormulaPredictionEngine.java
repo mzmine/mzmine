@@ -54,27 +54,28 @@ public class FormulaPredictionEngine {
 	private boolean checkConstraints, checkIsotopes, checkMSMS;
 	private HeuristicRule[] heuristicRules;
 	private double minIsotopeScore, minMSMSScore, msmsTolerance,
-			msmsNoiseLevel;
+			msmsNoiseLevel, isotopeMassTolerance;
 	private boolean canceled = false;
 
 	FormulaPredictionEngine(Range massRange, ElementRule elementRules[]) {
-		this(massRange, elementRules, null, false, 0d, 0, null, false, 0d, 0,
+		this(massRange, elementRules, null, false, 0, 0, 0, null, false, 0d, 0,
 				0, 1, null, null);
 		this.checkConstraints = false;
 	}
 
 	FormulaPredictionEngine(Range massRange, ElementRule elementRules[],
 			HeuristicRule heuristicRules[], boolean checkIsotopes,
-			double minIsotopeScore, int charge, IonizationType ionType,
-			boolean checkMSMS, double minMSMSScore, double msmsTolerance,
-			double msmsNoiseLevel, int maxFormulas, PeakListRow peakListRow,
-			FormulaAcceptor acceptor) {
+			double isotopeMassTolerance, double minIsotopeScore, int charge,
+			IonizationType ionType, boolean checkMSMS, double minMSMSScore,
+			double msmsTolerance, double msmsNoiseLevel, int maxFormulas,
+			PeakListRow peakListRow, FormulaAcceptor acceptor) {
 
 		this.checkConstraints = true;
 		this.massRange = massRange;
 		this.elementRules = elementRules;
 		this.heuristicRules = heuristicRules;
 		this.checkIsotopes = checkIsotopes;
+		this.isotopeMassTolerance = isotopeMassTolerance;
 		this.minIsotopeScore = minIsotopeScore;
 		this.charge = charge;
 		this.ionType = ionType;
@@ -178,18 +179,11 @@ public class FormulaPredictionEngine {
 					currentCounts[i]);
 		}
 
-		// Determine the conformity to all heuristic rules
-		ArrayList<HeuristicRule> conformingRules = new ArrayList<HeuristicRule>();
-		for (HeuristicRule rule : HeuristicRule.values()) {
-			if (HeuristicRuleChecker.checkRule(cdkFormula, rule))
-				conformingRules.add(rule);
-		}
-		HeuristicRule conformingRulesArray[] = conformingRules
-				.toArray(new HeuristicRule[0]);
-
 		// Check if the required rules are fulfilled
 		for (HeuristicRule rule : heuristicRules) {
-			if (!conformingRules.contains(rule))
+			Boolean conformity = HeuristicRuleChecker.checkRule(cdkFormula,
+					rule);
+			if ((conformity != null) && (conformity == false))
 				return;
 		}
 
@@ -203,12 +197,14 @@ public class FormulaPredictionEngine {
 					.getString(cdkFormula);
 			String adjustedFormula = FormulaUtils.ionizeFormula(
 					originalFormula, ionType.getPolarity(), charge);
+
 			predictedIsotopePattern = IsotopePatternCalculator
 					.calculateIsotopePattern(adjustedFormula, charge,
 							ionType.getPolarity());
 
 			isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(
-					detectedPattern, predictedIsotopePattern);
+					detectedPattern, predictedIsotopePattern,
+					isotopeMassTolerance);
 
 			// Check the isotope condition
 			if (isotopeScore < minIsotopeScore)
@@ -227,9 +223,23 @@ public class FormulaPredictionEngine {
 
 			int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
 
-			for (DataPoint dp : msmsPeaks) {
+			msmsCycle: for (DataPoint dp : msmsPeaks) {
+
 				if (dp.getIntensity() < msmsNoiseLevel)
-					continue;
+					continue msmsCycle;
+
+				// Check if this is an isotope
+				Range isotopeCheckRange = new Range(dp.getMZ() - 1.4,
+						dp.getMZ() - 0.6);
+				for (DataPoint dpCheck : msmsPeaks) {
+					// If we have any MS/MS peak with 1 neutron mass smaller m/z
+					// and higher intensity, it means the current peak is an
+					// isotope and we should ignore it
+					if (isotopeCheckRange.contains(dpCheck.getMZ())
+							&& (dpCheck.getIntensity() > dp.getIntensity())) {
+						continue msmsCycle;
+					}
+				}
 
 				// We don't know the charge of the fragment, so we will simply
 				// assume 1
@@ -257,8 +267,9 @@ public class FormulaPredictionEngine {
 				FormulaPredictionEngine msmsEngine = new FormulaPredictionEngine(
 						msmsTargetRange, msmsElementRules);
 				int foundMSMSformulas = msmsEngine.run();
-				if (foundMSMSformulas > 0)
+				if (foundMSMSformulas > 0) {
 					interpretedMSMSpeaks++;
+				}
 
 				totalMSMSpeaks++;
 
@@ -276,8 +287,7 @@ public class FormulaPredictionEngine {
 
 		// Create a new formula entry
 		final ResultFormula resultEntry = new ResultFormula(cdkFormula,
-				conformingRulesArray, predictedIsotopePattern, isotopeScore,
-				msmsScore);
+				predictedIsotopePattern, isotopeScore, msmsScore);
 
 		// Add the new formula entry
 		if (acceptor != null)

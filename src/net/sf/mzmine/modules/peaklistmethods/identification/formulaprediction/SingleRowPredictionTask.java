@@ -42,13 +42,13 @@ public class SingleRowPredictionTask extends AbstractTask implements
 
 	public static final NumberFormat mzFormat = MZmineCore.getMZFormat();
 
-	private ResultWindow window;
+	private ResultWindow resultWindow;
 	private ElementRule elementRules[];
 	private HeuristicRule heuristicRules[];
 
 	private FormulaPredictionEngine predictionEngine;
 
-	private double searchedMass, massTolerance;
+	private double searchedMass, massTolerance, isotopeMassTolerance;
 	private int charge;
 	private IonizationType ionType;
 	private int maxFormulas;
@@ -83,6 +83,8 @@ public class SingleRowPredictionTask extends AbstractTask implements
 				.getParameterValue(FormulaPredictionParameters.ionizationMethod);
 		isotopeFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.isotopeFilter);
+		isotopeMassTolerance = (Double) parameters
+				.getParameterValue(FormulaPredictionParameters.isotopeMassTolerance);
 		msmsFilter = (Boolean) parameters
 				.getParameterValue(FormulaPredictionParameters.msmsFilter);
 		isotopeScoreThreshold = (Double) parameters
@@ -168,24 +170,31 @@ public class SingleRowPredictionTask extends AbstractTask implements
 		Desktop desktop = MZmineCore.getDesktop();
 		NumberFormat massFormater = MZmineCore.getMZFormat();
 
-		window = new ResultWindow("Searching for "
+		resultWindow = new ResultWindow("Searching for "
 				+ massFormater.format(searchedMass) + " amu", peakList,
 				peakListRow, searchedMass, charge, this);
-		desktop.addInternalFrame(window);
+		desktop.addInternalFrame(resultWindow);
 
 		Range targetRange = new Range(searchedMass - massTolerance,
 				searchedMass + massTolerance);
 
 		predictionEngine = new FormulaPredictionEngine(targetRange,
 				elementRules, heuristicRules, isotopeFilter,
-				isotopeScoreThreshold, charge, ionType, msmsFilter,
-				msmsScoreThreshold, msmsTolerance, msmsNoiseLevel, maxFormulas,
-				peakListRow, this);
+				isotopeMassTolerance, isotopeScoreThreshold, charge, ionType,
+				msmsFilter, msmsScoreThreshold, msmsTolerance, msmsNoiseLevel,
+				maxFormulas, peakListRow, this);
 
 		logger.finest("Starting search for formulas for " + targetRange
 				+ " m/z, elements " + Arrays.toString(elementRules));
 
 		int foundFormulas = predictionEngine.run();
+
+		if (getStatus() == TaskStatus.CANCELED)
+			return;
+
+		resultWindow.setTitle("Finished searching for "
+				+ massFormater.format(searchedMass) + " amu, " + foundFormulas
+				+ " formulas found");
 
 		logger.finest("Finished formula search for " + targetRange
 				+ " m/z, found " + foundFormulas + " formulas");
@@ -195,6 +204,6 @@ public class SingleRowPredictionTask extends AbstractTask implements
 	}
 
 	public void addFormula(ResultFormula formula) {
-		window.addNewListItem(formula);
+		resultWindow.addNewListItem(formula);
 	}
 }

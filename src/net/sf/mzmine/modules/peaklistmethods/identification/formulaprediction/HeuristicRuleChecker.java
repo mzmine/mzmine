@@ -34,21 +34,15 @@ public class HeuristicRuleChecker {
 	private static final Map<String, Integer> groundValences = new HashMap<String, Integer>();
 	static {
 		groundValences.put("H", 1);
-		groundValences.put("B", 3);
 		groundValences.put("C", 4);
 		groundValences.put("N", 3);
 		groundValences.put("O", 2);
 		groundValences.put("F", 1);
-		groundValences.put("Na", 1);
-		groundValences.put("Mg", 2);
-		groundValences.put("Al", 3);
 		groundValences.put("Si", 4);
 		groundValences.put("P", 3);
 		groundValences.put("S", 2);
 		groundValences.put("Cl", 1);
 		groundValences.put("Br", 1);
-		groundValences.put("Ca", 2);
-		groundValences.put("I", 1);
 	}
 
 	/**
@@ -65,7 +59,7 @@ public class HeuristicRuleChecker {
 		maxValences.put("Br", 7);
 	}
 
-	public static boolean checkRule(IMolecularFormula formula, HeuristicRule rule) {
+	public static Boolean checkRule(IMolecularFormula formula, HeuristicRule rule) {
 		switch (rule) {
 		case LEWIS:
 			return checkLewisOctetRule(formula);
@@ -83,7 +77,7 @@ public class HeuristicRuleChecker {
 
 	}
 
-	private static int calculateE(IMolecularFormula formula) {
+	private static Integer calculateE(IMolecularFormula formula) {
 
 		int sum = 0;
 
@@ -91,31 +85,30 @@ public class HeuristicRuleChecker {
 
 			Integer maxValence = maxValences.get(isotope.getSymbol());
 			if (maxValence == null)
-				continue;
+				return null;
 			sum += maxValence * formula.getIsotopeCount(isotope);
 		}
 		return sum;
 	}
 
-	private static int calculateLewisSum(IMolecularFormula formula) {
+	private static Integer calculateLewisSum(IMolecularFormula formula) {
 
 		int sum = 0;
 
 		for (IIsotope isotope : formula.isotopes()) {
-
 			Integer valence = groundValences.get(isotope.getSymbol());
 			if (valence == null)
-				continue;
+				return null;
 			sum += valence * formula.getIsotopeCount(isotope);
 		}
 		return sum;
 	}
 
-	private static boolean checkLewisOctetRule(IMolecularFormula formula) {
-		int sume = calculateE(formula);
-		int ls = calculateLewisSum(formula);
+	private static Boolean checkLewisOctetRule(IMolecularFormula formula) {
+		Integer sume = calculateE(formula);
+		Integer ls = calculateLewisSum(formula);
+		if ((sume == null) || (ls == null)) return null;
 		return (sume > 7) && (ls % 2 == 0);
-
 	}
 
 	private static int getAtoms(IMolecularFormula formula) {
@@ -128,15 +121,16 @@ public class HeuristicRuleChecker {
 		return sum;
 	}
 
-	private static boolean checkSeniorRule(IMolecularFormula formula) {
+	private static Boolean checkSeniorRule(IMolecularFormula formula) {
 
-		double sume = calculateE(formula);
-		double atoms = getAtoms(formula);
+		Integer sume = calculateE(formula);
+		int atoms = getAtoms(formula);
 
+		if (sume == null) return null;
 		return sume >= (2 * (atoms - 1));
 	}
 
-	private static boolean checkHC(IMolecularFormula formula) {
+	private static Boolean checkHC(IMolecularFormula formula) {
 
 		double eC = 0, eH = 0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -153,7 +147,7 @@ public class HeuristicRuleChecker {
 		return (rHC > 0) && (rHC < 6);
 	}
 
-	private static boolean checkNOPS(IMolecularFormula formula) {
+	private static Boolean checkNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eN = 0, eO = 0, eP = 0, eS = 0;
 		for (IIsotope isotope : formula.isotopes()) {
@@ -180,7 +174,7 @@ public class HeuristicRuleChecker {
 		return (rNC <= 4) && (rOC <= 3) && (rPC <= 2) && (rSC <= 3);
 	}
 
-	private static boolean checkHNOPS(IMolecularFormula formula) {
+	private static Boolean checkHNOPS(IMolecularFormula formula) {
 
 		double eC = 0, eH = 0, eN = 0, eO = 0, eP = 0, eS = 0;
 		for (IIsotope isotope : formula.isotopes()) {

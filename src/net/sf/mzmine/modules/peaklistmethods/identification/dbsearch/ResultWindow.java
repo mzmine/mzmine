@@ -63,7 +63,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private JTable IDList;
-	private String description;
 	private Task searchTask;
 
 	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
@@ -127,7 +126,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		setSize(500, 200);
 		add(pnlLabelsAndList, BorderLayout.CENTER);
 		add(pnlButtons, BorderLayout.SOUTH);
-		setTitle(description);
 		pack();
 
 	}
@@ -251,10 +249,6 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			}
 		});
 
-	}
-
-	public String toString() {
-		return description;
 	}
 
 	public void dispose() {

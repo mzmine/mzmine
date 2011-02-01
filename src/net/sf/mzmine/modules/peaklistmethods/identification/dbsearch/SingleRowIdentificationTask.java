@@ -188,7 +188,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 						double score = IsotopePatternScoreCalculator
 								.getSimilarityScore(rawDataIsotopePattern,
-										compoundIsotopePattern);
+										compoundIsotopePattern, massTolerance);
 
 						compound.setIsotopePatternScore(score);
 
