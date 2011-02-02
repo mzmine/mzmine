@@ -238,7 +238,7 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
-				dataFile);
+				selectedPeakList.getRawDataFiles());
 
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
 			if (peakRow.getDataPointMaxIntensity() > intensity) {
@@ -257,7 +257,7 @@ class TwoDBottomPanel extends JPanel implements ProjectListener {
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
-				dataFile);
+				selectedPeakList.getRawDataFiles());
 
 		Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
 
