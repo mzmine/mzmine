@@ -25,7 +25,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
- * This class represents one datapoint of a spectra (m/z and intensity)
+ * This class represents one data point of a spectrum (m/z and intensity pair)
  */
 public class SimpleDataPoint implements DataPoint {
 
@@ -38,7 +38,7 @@ public class SimpleDataPoint implements DataPoint {
 		this.mz = dp.getMZ();
 		this.intensity = dp.getIntensity();
 	}
-	
+
 	/**
 	 * @param mz
 	 * @param intensity
@@ -62,6 +62,17 @@ public class SimpleDataPoint implements DataPoint {
 
 	public void setMZ(double mz) {
 		this.mz = mz;
+	}
+
+	public boolean equals(Object obj) {
+		if (!(obj instanceof DataPoint))
+			return false;
+		DataPoint dp = (DataPoint) obj;
+		return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
+	}
+
+	public int hashCode() {
+		return (int) (this.mz + this.intensity);
 	}
 
 	public String toString() {

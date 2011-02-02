@@ -107,22 +107,22 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 
 	}
 
-	public static void showNewSpectrumWindow(RawDataFile dataFile,
+	public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber) {
-		showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
+		return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
 	}
 
-	public static void showNewSpectrumWindow(RawDataFile dataFile,
+	public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber, ChromatographicPeak peak) {
-		showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
+		return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
 	}
 
-	public static void showNewSpectrumWindow(RawDataFile dataFile,
+	public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber, IsotopePattern detectedPattern) {
-		showNewSpectrumWindow(dataFile, scanNumber, null, detectedPattern, null);
+		return showNewSpectrumWindow(dataFile, scanNumber, null, detectedPattern, null);
 	}
 
-	public static void showNewSpectrumWindow(RawDataFile dataFile,
+	public static SpectraVisualizerWindow showNewSpectrumWindow(RawDataFile dataFile,
 			int scanNumber, ChromatographicPeak peak, IsotopePattern detectedPattern,
 			IsotopePattern predictedPattern) {
 
@@ -132,7 +132,7 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 			MZmineCore.getDesktop().displayErrorMessage(
 					"Raw data file " + dataFile + " does not contain scan #"
 							+ scanNumber);
-			return;
+			return null;
 		}
 
 		SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
@@ -149,6 +149,8 @@ public class SpectraVisualizer implements MZmineModule, ActionListener {
 			newWindow.loadIsotopes(predictedPattern);
 
 		MZmineCore.getDesktop().addInternalFrame(newWindow);
+		
+		return newWindow;
 
 	}
 

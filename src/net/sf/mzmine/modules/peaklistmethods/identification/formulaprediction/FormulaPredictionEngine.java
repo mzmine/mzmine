@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
@@ -31,11 +31,12 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScore;
+import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreCalculator;
 import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.Range;
 
 import org.openscience.cdk.formula.MolecularFormula;
-import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaPredictionEngine {
@@ -51,16 +52,17 @@ public class FormulaPredictionEngine {
 	private int charge;
 	private int maxFormulas;
 	private PeakListRow peakListRow;
-	private boolean checkConstraints, checkIsotopes, checkMSMS;
+	private boolean checkIsotopes, checkMSMS;
 	private HeuristicRule[] heuristicRules;
 	private double minIsotopeScore, minMSMSScore, msmsTolerance,
 			msmsNoiseLevel, isotopeMassTolerance;
 	private boolean canceled = false;
 
-	FormulaPredictionEngine(Range massRange, ElementRule elementRules[]) {
-		this(massRange, elementRules, null, false, 0, 0, 0, null, false, 0d, 0,
-				0, 1, null, null);
-		this.checkConstraints = false;
+	public FormulaPredictionEngine(Range massRange, ElementRule elementRules[],
+			FormulaAcceptor acceptor) {
+		this(massRange, elementRules, new HeuristicRule[] {
+				HeuristicRule.LEWIS, HeuristicRule.SENIOR }, false, 0, 0, 0,
+				null, false, 0d, 0, 0, 1, null, acceptor);
 	}
 
 	FormulaPredictionEngine(Range massRange, ElementRule elementRules[],
@@ -70,7 +72,6 @@ public class FormulaPredictionEngine {
 			double msmsTolerance, double msmsNoiseLevel, int maxFormulas,
 			PeakListRow peakListRow, FormulaAcceptor acceptor) {
 
-		this.checkConstraints = true;
 		this.massRange = massRange;
 		this.elementRules = elementRules;
 		this.heuristicRules = heuristicRules;
@@ -92,7 +93,7 @@ public class FormulaPredictionEngine {
 	 * 
 	 * @return Number of formulas found
 	 */
-	int run() {
+	public int run() {
 
 		// Sort the elements by mass in descending order
 		Arrays.sort(elementRules, new ElementRuleSorterByMass());
@@ -122,11 +123,25 @@ public class FormulaPredictionEngine {
 
 			if (massRange.contains(mass)) {
 
+				MolecularFormula cdkFormula = new MolecularFormula();
+
+				for (int i = 0; i < elementRules.length; i++) {
+					if (currentCounts[i] == 0)
+						continue;
+					cdkFormula.addIsotope(elementRules[i].getElementObject(),
+							currentCounts[i]);
+				}
+
 				// Mass is ok, so test other constraints, if required
-				if (checkConstraints)
-					checkConstraints(currentCounts);
-				else
+				ResultFormula resultEntry = checkConstraints(cdkFormula);
+
+				if (resultEntry != null) {
+					// Add the new formula entry
+					if (acceptor != null)
+						acceptor.addFormula(resultEntry);
+
 					foundFormulas++;
+				}
 
 				// Stopping condition
 				if (foundFormulas == maxFormulas)
@@ -168,23 +183,20 @@ public class FormulaPredictionEngine {
 
 	}
 
-	private void checkConstraints(int currentCounts[]) {
-
-		MolecularFormula cdkFormula = new MolecularFormula();
-
-		for (int i = 0; i < elementRules.length; i++) {
-			if (currentCounts[i] == 0)
-				continue;
-			cdkFormula.addIsotope(elementRules[i].getElementObject(),
-					currentCounts[i]);
-		}
+	private ResultFormula checkConstraints(MolecularFormula cdkFormula) {
 
 		// Check if the required rules are fulfilled
 		for (HeuristicRule rule : heuristicRules) {
 			Boolean conformity = HeuristicRuleChecker.checkRule(cdkFormula,
 					rule);
 			if ((conformity != null) && (conformity == false))
-				return;
+				return null;
+		}
+
+		if (peakListRow == null) {
+			final ResultFormula resultEntry = new ResultFormula(cdkFormula,
+					null, null, null, null);
+			return resultEntry;
 		}
 
 		// Calculate isotope similarity score
@@ -208,92 +220,39 @@ public class FormulaPredictionEngine {
 
 			// Check the isotope condition
 			if (isotopeScore < minIsotopeScore)
-				return;
+				return null;
 		}
 
 		// MS/MS evaluation is slowest, so let's do it last
 		Double msmsScore = null;
 		ChromatographicPeak bestPeak = peakListRow.getBestPeak();
 		RawDataFile dataFile = bestPeak.getDataFile();
+		Map<DataPoint, String> msmsAnnotations = null;
 		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 		if ((checkMSMS) && (msmsScanNumber > 0)) {
 
 			Scan msmsScan = dataFile.getScan(msmsScanNumber);
-			DataPoint msmsPeaks[] = msmsScan.getDataPoints();
 
-			int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
+			MSMSScore score = MSMSScoreCalculator.evaluateMSMS(msmsScan,
+					msmsTolerance, msmsNoiseLevel, cdkFormula);
 
-			msmsCycle: for (DataPoint dp : msmsPeaks) {
+			if (score != null) {
+				msmsScore = score.getScore();
+				msmsAnnotations = score.getAnnotation();
 
-				if (dp.getIntensity() < msmsNoiseLevel)
-					continue msmsCycle;
-
-				// Check if this is an isotope
-				Range isotopeCheckRange = new Range(dp.getMZ() - 1.4,
-						dp.getMZ() - 0.6);
-				for (DataPoint dpCheck : msmsPeaks) {
-					// If we have any MS/MS peak with 1 neutron mass smaller m/z
-					// and higher intensity, it means the current peak is an
-					// isotope and we should ignore it
-					if (isotopeCheckRange.contains(dpCheck.getMZ())
-							&& (dpCheck.getIntensity() > dp.getIntensity())) {
-						continue msmsCycle;
-					}
-				}
-
-				// We don't know the charge of the fragment, so we will simply
-				// assume 1
-				double neutralLoss = msmsScan.getPrecursorMZ()
-						* msmsScan.getPrecursorCharge() - dp.getMZ();
-
-				// Ignore negative neutral losses and parent ion, 5 is a good
-				// threshold
-				if (neutralLoss < 5)
-					continue;
-
-				// Sorted by mass in descending order
-				ArrayList<ElementRule> rulesSet = new ArrayList<ElementRule>();
-				for (IIsotope isotope : cdkFormula.isotopes()) {
-					ElementRule rule = new ElementRule(isotope.getSymbol(), 0,
-							cdkFormula.getIsotopeCount(isotope));
-					rulesSet.add(rule);
-				}
-				ElementRule msmsElementRules[] = rulesSet
-						.toArray(new ElementRule[0]);
-
-				Range msmsTargetRange = new Range(neutralLoss - msmsTolerance,
-						neutralLoss + msmsTolerance);
-
-				FormulaPredictionEngine msmsEngine = new FormulaPredictionEngine(
-						msmsTargetRange, msmsElementRules);
-				int foundMSMSformulas = msmsEngine.run();
-				if (foundMSMSformulas > 0) {
-					interpretedMSMSpeaks++;
-				}
-
-				totalMSMSpeaks++;
-
-			}
-			if (totalMSMSpeaks > 0)
-				msmsScore = (double) interpretedMSMSpeaks / totalMSMSpeaks;
-
-			// Check the MS/MS condition
-			if (msmsScore != null) {
+				// Check the MS/MS condition
 				if (msmsScore < minMSMSScore)
-					return;
+					return null;
 			}
 
 		}
 
 		// Create a new formula entry
 		final ResultFormula resultEntry = new ResultFormula(cdkFormula,
-				predictedIsotopePattern, isotopeScore, msmsScore);
+				predictedIsotopePattern, isotopeScore, msmsScore,
+				msmsAnnotations);
 
-		// Add the new formula entry
-		if (acceptor != null)
-			acceptor.addFormula(resultEntry);
-
-		foundFormulas++;
+		return resultEntry;
 
 	}
 

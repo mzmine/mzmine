@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
@@ -461,6 +462,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 		}
 
+	}
+	
+	public void addAnnotation(Map<DataPoint, String> annotation) {
+		spectrumDataSet.addAnnotation(annotation);
 	}
 
 	public SpectraPlot getSpectrumPlot() {

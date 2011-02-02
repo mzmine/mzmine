@@ -27,6 +27,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -41,6 +42,7 @@ import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -48,6 +50,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
@@ -190,7 +193,16 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			if (msmsScanNumber < 1)
 				return;
 
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, msmsScanNumber);
+			SpectraVisualizerWindow msmsPlot = SpectraVisualizer
+					.showNewSpectrumWindow(dataFile, msmsScanNumber);
+
+			if (msmsPlot == null)
+				return;
+			Map<DataPoint, String> annotation = formula.getMSMSannotation();
+
+			if (annotation == null)
+				return;
+			msmsPlot.addAnnotation(annotation);
 
 		}
 

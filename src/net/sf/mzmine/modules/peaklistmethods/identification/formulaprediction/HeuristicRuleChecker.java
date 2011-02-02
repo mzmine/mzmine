@@ -51,15 +51,18 @@ public class HeuristicRuleChecker {
 	private static final Map<String, Integer> maxValences = new HashMap<String, Integer>();
 	static {
 		maxValences.putAll(groundValences);
+		maxValences.put("O", 6);
 		maxValences.put("N", 5);
 		maxValences.put("F", 7);
 		maxValences.put("P", 5);
 		maxValences.put("S", 6);
 		maxValences.put("Cl", 7);
+		maxValences.put("F", 7);
 		maxValences.put("Br", 7);
 	}
 
-	public static Boolean checkRule(IMolecularFormula formula, HeuristicRule rule) {
+	public static Boolean checkRule(IMolecularFormula formula,
+			HeuristicRule rule) {
 		switch (rule) {
 		case LEWIS:
 			return checkLewisOctetRule(formula);
@@ -107,7 +110,8 @@ public class HeuristicRuleChecker {
 	private static Boolean checkLewisOctetRule(IMolecularFormula formula) {
 		Integer sume = calculateE(formula);
 		Integer ls = calculateLewisSum(formula);
-		if ((sume == null) || (ls == null)) return null;
+		if ((sume == null) || (ls == null))
+			return null;
 		return (sume > 7) && (ls % 2 == 0);
 	}
 
@@ -126,7 +130,8 @@ public class HeuristicRuleChecker {
 		Integer sume = calculateE(formula);
 		int atoms = getAtoms(formula);
 
-		if (sume == null) return null;
+		if (sume == null)
+			return null;
 		return sume >= (2 * (atoms - 1));
 	}
 

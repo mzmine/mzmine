@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
+import java.util.Map;
+
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 
 import org.openscience.cdk.formula.MolecularFormula;
@@ -30,16 +33,22 @@ public class ResultFormula {
 	private final IMolecularFormula cdkFormula;
 	private Double isotopeScore, msmsScore;
 	private IsotopePattern predictedIsotopePattern;
+	private Map<DataPoint, String> msmsAnnotation;
 
 	ResultFormula(MolecularFormula cdkFormula,
 			IsotopePattern predictedIsotopePattern, Double isotopeScore,
-			Double msmsScore) {
+			Double msmsScore, Map<DataPoint, String> msmsAnnotation) {
 
 		this.cdkFormula = cdkFormula;
 		this.predictedIsotopePattern = predictedIsotopePattern;
 		this.isotopeScore = isotopeScore;
 		this.msmsScore = msmsScore;
+		this.msmsAnnotation = msmsAnnotation;
 
+	}
+
+	public Map<DataPoint, String> getMSMSannotation() {
+		return msmsAnnotation;
 	}
 
 	public String getFormulaAsString() {

@@ -100,10 +100,8 @@ public class IsotopePatternScoreCalculator {
 			if (remainingIntensity > 1)
 				remainingIntensity = 1;
 
-			// During formula prediction, we often get many candidates with ~99%
-			// isotope pattern similarity. To avoid that, we use square function
-			// to increase the distance between similar scores.
-			result *= Math.pow(1 - remainingIntensity, 2);
+			// Decrease the score with each remaining peak
+			result *= 1 - remainingIntensity;
 		}
 
 		return result;

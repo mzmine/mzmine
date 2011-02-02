@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
+import java.util.Map;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.Range;
@@ -32,8 +34,9 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
 	private String label;
-    private Scan scan;
-    
+	private Scan scan;
+	private Map<DataPoint, String> annotation;
+
 	/*
 	 * Save a local copy of m/z and intensity values, because accessing the scan
 	 * every time may cause reloading the data from HDD
@@ -43,7 +46,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 	public ScanDataSet(Scan scan) {
 		this("Scan #" + scan.getScanNumber(), scan);
 	}
-	
+
 	public ScanDataSet(String label, Scan scan) {
 		this.dataPoints = scan.getDataPoints();
 		this.scan = scan;
@@ -119,9 +122,19 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 
 		return maxIntensity;
 	}
-	
+
 	public Scan getScan() {
 		return scan;
 	}
 
+	public void addAnnotation(Map<DataPoint, String> annotation) {
+		this.annotation = annotation;
+	}
+
+	public String getAnnotation(int item) {
+		if (annotation == null)
+			return null;
+		return annotation.get(dataPoints[item]);
+	}
+	
 }
