@@ -235,7 +235,11 @@ public class ClusteringSetupDialog extends JDialog implements
                 String[] dataString = {"Samples", "Variables"};
                 comboClusteringData = new JComboBox(dataString);
                 String data = (String) parameterSet.getParameterValue(ClusteringParameters.typeOfData);
-                comboClusteringData.setSelectedItem(data);
+                if (data == null) {
+                        comboClusteringData.setSelectedItem("Samples");
+                } else {
+                        comboClusteringData.setSelectedItem(data);
+                }
                 constraints.gridx = 1;
                 components.add(comboClusteringData, constraints);
 
@@ -250,7 +254,11 @@ public class ClusteringSetupDialog extends JDialog implements
                 comboLink = new JComboBox(links);
 
                 String link = (String) parameterSet.getParameterValue(ClusteringParameters.linkType);
-                comboLink.setSelectedItem(link);
+                if (link == null) {
+                        comboLink.setSelectedItem("Complete");
+                } else {
+                        comboLink.setSelectedItem(link);
+                }
                 comboLink.setEnabled(false);
                 constraints.gridx = 1;
                 components.add(comboLink, constraints);
@@ -262,7 +270,11 @@ public class ClusteringSetupDialog extends JDialog implements
                 String[] distances = {"Euclidian", "Chebyshev", "Manhattan", "Minkowski"};
                 comboDistance = new JComboBox(distances);
                 String distance = (String) parameterSet.getParameterValue(ClusteringParameters.distances);
-                comboDistance.setSelectedItem(distance);
+                if (distance == null) {
+                        comboDistance.setSelectedItem("Euclidian");
+                } else {
+                        comboDistance.setSelectedItem(distance);
+                }
                 comboDistance.setEnabled(false);
                 constraints.gridx = 1;
                 components.add(comboDistance, constraints);
