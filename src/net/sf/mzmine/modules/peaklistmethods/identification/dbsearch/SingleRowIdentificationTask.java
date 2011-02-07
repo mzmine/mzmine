@@ -174,7 +174,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 					// Generate IsotopePattern for this compound
 					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-							.calculateIsotopePattern(adjustedFormula, charge,
+							.calculateIsotopePattern(adjustedFormula, 0.001, charge,
 									ionType.getPolarity());
 
 					compound.setIsotopePattern(compoundIsotopePattern);

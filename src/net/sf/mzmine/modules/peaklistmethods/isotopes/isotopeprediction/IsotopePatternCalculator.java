@@ -67,24 +67,35 @@ public class IsotopePatternCalculator implements MZmineModule {
 		return parameters;
 	}
 
-	/**
-	 */
 	public static IsotopePattern calculateIsotopePattern(
-			String molecularFormula, int charge, Polarity polarity) {
+			String molecularFormula, double minAbundance, int charge,
+			Polarity polarity) {
 
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
-		IMolecularFormula formulaObject = MolecularFormulaManipulator
+		IMolecularFormula cdkFormula = MolecularFormulaManipulator
 				.getMolecularFormula(molecularFormula, builder);
+
+		return calculateIsotopePattern(cdkFormula, minAbundance, charge,
+				polarity);
+
+	}
+
+	/**
+	 */
+	public static IsotopePattern calculateIsotopePattern(
+			IMolecularFormula cdkFormula, double minAbundance, int charge,
+			Polarity polarity) {
 
 		// TODO: check if the formula is not too big (>100 of a single atom?).
 		// if so, just cancel the prediction
 
-		// Set the minimum abundance of isotope to 0.1%
-		IsotopePatternGenerator generator = new IsotopePatternGenerator(0.001);
+		// Set the minimum abundance of isotope
+		IsotopePatternGenerator generator = new IsotopePatternGenerator(
+				minAbundance);
 
 		org.openscience.cdk.formula.IsotopePattern pattern = generator
-				.getIsotopes(formulaObject);
+				.getIsotopes(cdkFormula);
 
 		int numOfIsotopes = pattern.getNumberOfIsotopes();
 
@@ -105,8 +116,11 @@ public class IsotopePatternCalculator implements MZmineModule {
 			dataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
+		String formulaString = MolecularFormulaManipulator
+				.getString(cdkFormula);
+
 		SimpleIsotopePattern newPattern = new SimpleIsotopePattern(dataPoints,
-				IsotopePatternStatus.PREDICTED, molecularFormula);
+				IsotopePatternStatus.PREDICTED, formulaString);
 
 		return newPattern;
 
@@ -209,9 +223,11 @@ public class IsotopePatternCalculator implements MZmineModule {
 				.getParameterValue(IsotopePatternCalculatorParameters.charge);
 		Polarity polarity = (Polarity) parameters
 				.getParameterValue(IsotopePatternCalculatorParameters.polarity);
+		double minAbundance = (Double) parameters
+				.getParameterValue(IsotopePatternCalculatorParameters.minAbundance);
 
 		IsotopePattern predictedPattern = calculateIsotopePattern(formula,
-				charge, polarity);
+				minAbundance, charge, polarity);
 
 		return predictedPattern;
 

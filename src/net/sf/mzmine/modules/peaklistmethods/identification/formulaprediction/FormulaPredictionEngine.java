@@ -210,8 +210,9 @@ public class FormulaPredictionEngine {
 			String adjustedFormula = FormulaUtils.ionizeFormula(
 					originalFormula, ionType.getPolarity(), charge);
 
+			// TODO: make 0.001 user parameter
 			predictedIsotopePattern = IsotopePatternCalculator
-					.calculateIsotopePattern(adjustedFormula, charge,
+					.calculateIsotopePattern(adjustedFormula, 0.001, charge,
 							ionType.getPolarity());
 
 			isotopeScore = IsotopePatternScoreCalculator.getSimilarityScore(
