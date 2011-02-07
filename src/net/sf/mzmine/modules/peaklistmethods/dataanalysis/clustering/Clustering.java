@@ -47,7 +47,7 @@ public class Clustering implements MZmineModule, ActionListener {
                 this.desktop = MZmineCore.getDesktop();
 
                 desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-                        "Clustering (under development)",
+                        "Clustering",
                         "Clustering algorithms", KeyEvent.VK_P, false, this,
                         null);
 
@@ -75,7 +75,7 @@ public class Clustering implements MZmineModule, ActionListener {
                 }
 
                 if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
-                        desktop.displayErrorMessage("Selected alignment result is empty");
+                        desktop.displayErrorMessage("Selected peak list is empty");
                         return;
                 }
 
