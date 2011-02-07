@@ -23,8 +23,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.RawDataFile;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;

@@ -1,0 +1,85 @@
+<html>
+        <head>
+                <title>Data analysis - Clustering</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Formula prediction</h1>
+
+                <h2>Description</h2>
+
+                <p>
+                        This module tries to calculate all possible molecular formulas for a peak, using given
+                        elemental and heuristic constraints. The module can be invoked in two ways: either by
+                        selecting a peak list and starting the prediction module from MZmine menu, or by
+                        selecting a single peak within a peak list and starting the prediction for this
+                        individual peak.  The second method is recommended, because it allows the
+                        user to select the right ionization adduct.
+                </p>
+                
+                <p>
+                		Selection of the peak for formula prediction:<br>
+                        <img src="selection.png">
+                </p>
+
+                <p>
+                		List of formula candidates:<br>
+                        <img src="candidates.png">
+                </p>
+                
+
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>Peak m/z</dt>
+                        <dd>Detected m/z value of the peak. This is set automatically according to the peak subjected to identification.</dd>
+
+                        <dt>Charge</dt>
+                        <dd>Charge of the peak being identified. This value is used to calculate the neutral mass.</dd>
+
+                        <dt>Ionization method</dt>
+                        <dd>Type of ionization that produced the peak subjected to identification. This is used to calculate the neutral mass.</dd>
+
+                        <dt>Neutral mass</dt>
+                        <dd>This value is automatically calculated from the parameters above. The neutral mass represents the final search term for querying the on-line database.</dd>
+
+                        <dt>Number of results</dt>
+                        <dd>Limit for the number of results to be predicted. Please not that limiting the number to X does not mean that X best results will be returned, simply first X results matching the constraints will be returned.</dd>
+
+                        <dt>Mass tolerance</dt>
+                        <dd>Tolerance of the neutral mass for searching the formula.</dd>
+
+                        <dt>Elements</dt>
+                        <dd>Elements allowed in the formula and their minimum and maximum counts.</dd>
+
+                        <dt>Isotope pattern filter</dt>
+                        <dd>If selected, only results which fit the required isotope pattern similarity score will be returned.</dd>
+
+                        <dt>Mass tolerance for isotopes</dt>
+                        <dd>m/z tolerance for calculating the isotope pattern score. This should be higher than m/z tolerance for comparing the mass of the formula to the peak mass.</dd>
+
+                        <dt>Isotope pattern score threshold</dt>
+                        <dd>The score required for the isotope pattern filter.</dd>
+                        
+                      	<dt>Heuristic rules</dt>
+                        <dd>Selection of heuristic rules to restrict the candidate formulas. See Kind and Fiehn: Seven Golden Rules for heuristic filtering of molecular formulas obtained by accurate mass spectrometry. BMC Bioinformatics (2007).</dd>
+                        
+						<dt>MS/MS filter</dt>
+                        <dd>Restrict the formulas to those that can be interpreted in the peak’s MS/MS pattern.</dd>
+                        
+                        <dt>MS/MS mass tolerance</dt>
+                        <dd>m/z tolerance for MS/MS scans.</dd>
+                        
+                      	<dt>MS/MS noise level</dt>
+                        <dd>All MS/MS data points below this intensity will be ignored.</dd>
+                        
+						<dt>MS/MS score threshold</dt>
+                        <dd>Only formulas with MS/MS matching score above this level will be reported.</dd>
+                        
+                </dl>
+
+        </body>
+</html>
