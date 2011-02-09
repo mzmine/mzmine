@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
 import figs.treeVisualization.TreeViewJ;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.logging.Logger;
@@ -193,8 +194,9 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
                         cluster = this.getHierarchicalClustering(dataset);
                         cluster = cluster.replaceAll("Newick:", "");
-                        cluster = addMissingSamples(cluster);
-                        System.out.println(cluster);
+                        if (typeOfData.equals("Samples")) {
+                                cluster = addMissingSamples(cluster);
+                        }                     
                         if (cluster != null) {
                                 Desktop desktop = MZmineCore.getDesktop();
                                 TreeViewJ visualizer = new TreeViewJ(640, 480);
@@ -408,10 +410,14 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 values[e] = rawData[i][e];
                         }
 
+
                         if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
-                                String rowName = "Var " + selectedRows[i].getAverageMZ() + " - " + selectedRows[i].getAverageRT();
+                                DecimalFormat twoDForm = new DecimalFormat("#.##");
+                                double MZ = Double.valueOf(twoDForm.format(selectedRows[i].getAverageMZ()));
+                                double RT = Double.valueOf(twoDForm.format(selectedRows[i].getAverageRT()));
+                                String rowName = "MZ->" + MZ + "/RT->" + RT;
                                 if (selectedRows[i].getPeakIdentities() != null && selectedRows[i].getPeakIdentities().length > 0) {
-                                        rowName += " - " + selectedRows[i].getPeakIdentities()[0].getName();
+                                        rowName += "/Name->" + selectedRows[i].getPeakIdentities()[0].getName();
                                 }
 
                                 values[data.numAttributes() - 1] = data.attribute("name").addStringValue(rowName);
@@ -591,6 +597,12 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 return status == TaskStatus.FINISHED;
         }
 
+        /**
+         * Adds the missing samples (these samples have no relation with the rest of the samples)
+         * to the cluster using the maximun distance inside the cluster result plus 1.
+         * @param cluster String with the cluster result in Newick format.
+         * @return String with the cluster result after adding the missing samples in Newick format.
+         */
         private String addMissingSamples(String cluster) {
                 String[] data = cluster.split(":");
                 double max = 0;
@@ -612,7 +624,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         lastValue = Double.parseDouble(data[data.length - 1].substring(m.start(), m.end()));
                 }
 
-                max +=lastValue;
+                max += lastValue;
                 for (int i = 0; i < this.selectedRawDataFiles.length; i++) {
                         if (!cluster.contains(this.selectedRawDataFiles[i].getName())) {
                                 max++;
