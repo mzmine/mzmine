@@ -78,7 +78,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
         private ClusteringAlgorithmsEnum clusteringAlgorithm;
         private String visualizationType;
         private String typeOfData, linkType, distances;
-        private float progress = 0.0f;
+        private float progress;
 
         public ClusteringDataset(ClusteringParameters parameters) {
 
@@ -176,6 +176,9 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
                 logger.info("Clustering");
 
+                progressAlgorithm progressThread = new progressAlgorithm();
+                progressThread.run();
+
                 double[][] rawData;
 
                 // Creating weka dataset using samples or metabolites (variables)
@@ -187,7 +190,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         rawData = createMatrix(true);
                         dataset = createSampleWekaDataset(rawData);
                 }
-                progress = 0.05f;
 
                 // Running cluster algorithms
                 String cluster = "";
@@ -196,7 +198,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         cluster = cluster.replaceAll("Newick:", "");
                         if (typeOfData.equals("Samples")) {
                                 cluster = addMissingSamples(cluster);
-                        }                     
+                        }
                         if (cluster != null) {
                                 Desktop desktop = MZmineCore.getDesktop();
                                 TreeViewJ visualizer = new TreeViewJ(640, 480);
@@ -204,7 +206,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 visualizer.openMenuAction(cluster);
                                 desktop.addInternalFrame(visualizer);
                         }
-                        progress = 0.12f;
                 } else {
 
                         List<Integer> clusteringResult = getClusterer(clusteringAlgorithm, dataset);
@@ -232,8 +233,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 desktop.addInternalFrame(reportWindow);
 
                         }
-
-                        progress = 0.12f;
 
                         // Visualization
                         if (typeOfData.equals("Variables")) {
@@ -293,7 +292,8 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 parameters);
                         desktop.addInternalFrame(newFrame);
                 }
-
+                progressThread = null;
+                progress = 1f;
                 status = TaskStatus.FINISHED;
                 logger.info("Finished computing Clustering visualization.");
         }
@@ -415,11 +415,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                                 DecimalFormat twoDForm = new DecimalFormat("#.##");
                                 double MZ = Double.valueOf(twoDForm.format(selectedRows[i].getAverageMZ()));
                                 double RT = Double.valueOf(twoDForm.format(selectedRows[i].getAverageRT()));
-                                String rowName = "MZ->" + MZ + "/RT->" + RT;
-                                if (selectedRows[i].getPeakIdentities() != null && selectedRows[i].getPeakIdentities().length > 0) {
-                                        rowName += "/Name->" + selectedRows[i].getPeakIdentities()[0].getName();
-                                }
-
+                                String rowName = "MZ->" + MZ + "/RT->" + RT;                                
                                 values[data.numAttributes() - 1] = data.attribute("name").addStringValue(rowName);
                         }
                         Instance inst = new SparseInstance(1.0, values);
@@ -545,9 +541,9 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         return progress;
                 }
                 if (visualizationType.contains(ClusteringParameters.visualizationPCA)) {
-                        return projectionStatus.getFinishedPercentage() + progress;
+                        return (projectionStatus.getFinishedPercentage() / 2) + 0.56;
                 } else {
-                        return projectionStatus.getFinishedPercentage();
+                        return (projectionStatus.getFinishedPercentage() / 2) + 0.5;
                 }
         }
 
@@ -634,4 +630,46 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
                 return cluster;
         }
+
+        /**
+         * Estimation of the progress of each algorithm. It is not the best solution..
+         */
+        public class progressAlgorithm extends Thread {
+
+                @Override
+                public void run() {
+                        int x = 10;
+                        int end = 50;
+                        switch (clusteringAlgorithm) {
+                                case EM:
+                                        x = 600;
+                                        break;
+                                case FARTHESTFIRST:
+                                        x = 20;
+                                        break;
+                                case SIMPLEKMEANS:
+                                        x = 20;
+                                        break;
+                                case HIERARCHICAL:
+                                        x = 100;
+                                        end = 100;
+                                        break;
+                        }
+
+                        if (typeOfData.equals("Variables")) {
+                                x += selectedRows.length;
+                        }
+
+                        for (int i = 0; i < end; i++) {
+                                try {
+                                        sleep(x);
+                                        progress += 0.01f;
+                                } catch (InterruptedException ex) {
+                                        Logger.getLogger(ClusteringDataset.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                        }
+                }
+        }
 }
+
+
