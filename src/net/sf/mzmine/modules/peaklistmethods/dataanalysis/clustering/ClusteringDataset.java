@@ -26,6 +26,8 @@ import java.util.LinkedList;
 
 import java.util.List;
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
@@ -190,11 +192,13 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 String cluster = "";
                 if (clusteringAlgorithm == ClusteringAlgorithmsEnum.HIERARCHICAL) {
                         cluster = this.getHierarchicalClustering(dataset);
+                        cluster = cluster.replaceAll("Newick:", "");
+                        cluster = addMissingSamples(cluster);
+                        System.out.println(cluster);
                         if (cluster != null) {
                                 Desktop desktop = MZmineCore.getDesktop();
-                                TreeViewJ visualizer = new TreeViewJ(640,480);
+                                TreeViewJ visualizer = new TreeViewJ(640, 480);
                                 cluster += ";";
-                                cluster = cluster.replaceAll("Newick:", "");
                                 visualizer.openMenuAction(cluster);
                                 desktop.addInternalFrame(visualizer);
                         }
@@ -477,7 +481,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
         public String getHierarchicalClustering(Instances wekaData) {
 
                 Clusterer clusterer = new HierarchicalClusterer();
-                String[] options = new String[4];
+                String[] options = new String[5];
                 options[0] = "-L";
                 options[1] = linkType;
                 options[2] = "-A";
@@ -490,6 +494,8 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 } else if (distances.equals("Minkowski")) {
                         options[3] = "weka.core.MinkowskiDistance";
                 }
+                options[4] = "-P";
+                // options[5] = "-B";
                 try {
                         ((HierarchicalClusterer) clusterer).setOptions(options);
                 } catch (Exception ex) {
@@ -497,7 +503,6 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 }
                 try {
                         clusterer.buildClusterer(wekaData);
-                        ((HierarchicalClusterer) clusterer).setDistanceIsBranchLength(true);
                         return ((HierarchicalClusterer) clusterer).graph();
                 } catch (Exception ex) {
                         Logger.getLogger(ClusteringDataset.class.getName()).log(Level.SEVERE, null, ex);
@@ -584,5 +589,37 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
         public boolean isFinished() {
                 return status == TaskStatus.FINISHED;
+        }
+
+        private String addMissingSamples(String cluster) {
+                String[] data = cluster.split(":");
+                double max = 0;
+                for (String d : data) {
+                        double value = -1;
+                        Pattern p = Pattern.compile("^\\d+(.\\d+)");
+                        Matcher m = p.matcher(d);
+                        if (m.find()) {
+                                value = Double.parseDouble(d.substring(m.start(), m.end()));
+                        }
+                        if (value > max) {
+                                max = value;
+                        }
+                }
+                Pattern p = Pattern.compile("^\\d+(.\\d+)?");
+                Matcher m = p.matcher(data[data.length - 1]);
+                double lastValue = 0.0;
+                if (m.find()) {
+                        lastValue = Double.parseDouble(data[data.length - 1].substring(m.start(), m.end()));
+                }
+
+                max +=lastValue;
+                for (int i = 0; i < this.selectedRawDataFiles.length; i++) {
+                        if (!cluster.contains(this.selectedRawDataFiles[i].getName())) {
+                                max++;
+                                cluster = "(" + cluster + ":1.0," + this.selectedRawDataFiles[i].getName() + ":" + max + ")";
+                        }
+                }
+
+                return cluster;
         }
 }
