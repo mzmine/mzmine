@@ -19,7 +19,7 @@
  * ------------------------------------------------------------------------------
  *
  * This program binds to the XRawfile2.dll provided by the MSFileReader library 
- * (http://sjsupport.thermofinnigan.com/public/detail.asp?id=624) and dumps the 
+ * (http://sjsupport.thermofinnigan.com/public/detail.asp?id=703) and dumps the 
  * contents of a given RAW file as text data. The code is partly based on ReAdW 
  * program (GPL). To compile this source, you can use Microsoft Visual C++ 
  * command line compiler:
