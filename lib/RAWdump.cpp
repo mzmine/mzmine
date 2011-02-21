@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2010 The MZmine 2 Development Team
+ * Copyright 2006-2011 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -72,9 +72,19 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Open the Thermo RAW file
+    // Get the filename parameter
     char *filename = argv[1];
 
+	// Test whether the file exists, because the rawFile->Open() 
+	// function does not check that
+	FILE *fp = fopen(filename, "r");
+	if (! fp) {
+        fprintf(stdout, "ERROR: Unable to read file %s\n", filename);
+        return 1;
+	}
+	fclose(fp);
+	
+    // Open the Thermo RAW file
     hr = rawFile->Open(filename);
     if (FAILED(hr)) {
         fprintf(stdout, "ERROR: Unable to open RAW file %s\n", filename);
