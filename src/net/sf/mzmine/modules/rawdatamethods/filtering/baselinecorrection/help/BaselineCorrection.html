@@ -1,0 +1,125 @@
+<!--
+  Code created was by or on behalf of Syngenta and is released under the open source license in use for the
+  pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
+  -->
+
+<html>
+<head>
+    <title>Raw data filtering - Baseline correction</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+</head>
+
+<body>
+
+<h1>Baseline correction</h1>
+
+<h2>Description</h2>
+
+<p>
+    This module performs baseline correction on raw data files. It is designed to compensate for gradual shifts in the
+    chromatographic baseline by detecting the baseline and then subtracting it from the raw data intensity values. The
+    module proceeds as follows for each raw data file passed to it:
+</p>
+<ol>
+    <li> The full range of m/z values present in the raw data is divided into a series of bins of a specified width (see
+        <em>m/z bin width</em>).
+    </li>
+    <li>For each bin a chromatogram is constucted from the raw data points whose m/z values fall within the bin. This
+        chromatogram (see <em>Chromatogram type</em>) may be either the base peak chromatogram or total ion count
+        (TIC) chromatogram.
+    </li>
+    <li>The raw intensity values of each data point in a bin are corrected by subtracting the bin's baseline.
+        Subtraction of baseline intensity values proceeds according to the type of chromatogram used to determine the
+        baseline.
+        <p>If the base peak chromatogram was used then the corrected intensity values are calculated as follows:<br/>
+            <em>I<sub>corr</sub></em> = max(0, <em>I<sub>orig</sub></em> - <em>I<sub>base</sub></em>)</p>
+
+        <p>If the TIC chromatogram was used then the corrected intensity values are calculated as follows:<br/>
+            <em>I<sub>corr</sub></em> = max(0, <em>I<sub>orig</sub></em> * (1 - <em>I<sub>base</sub></em> /
+            <em>I<sub>max</sub></em>))
+        </p>
+
+        <p>where <em>I<sub>orig</sub></em>, <em>I<sub>base</sub></em>, <em>I<sub>max</sub></em> and
+            <em>I<sub>corr</sub></em> are the original, baseline, maximum and corrected intensity values, respectively,
+            for a given scan and m/z bin. If <em>I<sub>base</sub></em> is less or equal to zero then no correction is
+            performed, i.e. <em>I<sub>corr</sub></em>&nbsp;=&nbsp;<em>I<sub>orig</sub></em>.
+        </p>
+    </li>
+    <li>A new raw data file is generated from the corrected intensity values.</li>
+</ol>
+
+<h4>Method Parameters</h4>
+
+<dl>
+    <dt>Filename suffix</dt>
+    <dd>The text to append to the name of the baseline corrected raw data file.</dd>
+
+    <dt>Chromatogram type</dt>
+    <dd>TIC: total ion count, i.e. summed intensities per scan, or<br/>
+        Base peak intensity: maximum intensity per scan.
+    </dd>
+
+    <dt>MS-level</dt>
+    <dd>MS level to which to apply correction. Select "0" for all levels.</dd>
+
+    <dt>Smoothing</dt>
+    <dd>The smoothing factor. Typically in the range 10<sup>5</sup> to 10<sup>8</sup>. Larger values produce a smoother
+        baseline.
+    </dd>
+
+    <dt>Asymmetry</dt>
+    <dd>The weight (<em>p</em>) for points below the trendline. Conversely, 1-<em>p</em> is the weight applied to points
+        above the trendline. For baselines use a small value of <em>p</em>.
+    </dd>
+
+    <dt>Use m/z bins</dt>
+    <dd>Baselines can be calculated and data points corrected per m/z bin or to the entire raw data file. If no binning
+        is performed then a single chromatogram is calculated for the entire raw data file and its baseline used to
+        correct the full data file. No binning is very quick but much less accurate and so is only suitable for
+        fine-tuning the smoothing and asymmetry parameters.
+    </dd>
+
+    <dt>m/z bin width</dt>
+    <dd>The width of the m/z bins if binning is performed (see <em>use m/z bins</em>). Smaller bin widths result in
+        longer processing times and greater memory requirements. Avoid values below 0.01.
+    </dd>
+
+    <dt>Remove source file</dt>
+    <dd>Whether to remove the original raw data file once baseline correction is complete.</dd>
+
+</dl>
+
+<h3>Requirements</h3>
+
+<p>This module relies on the <a href="http://www.r-project.org/">R statistical computing</a> software being installed
+    and two "packages" being installed in R:</p>
+<ol>
+    <li><a href="http://cran.r-project.org/web/packages/ptw/index.html">ptw</a>: parametric time-warping provides the
+        asymmetric least-squares implementation. To install ptw run R and enter
+        <pre>install.packages("ptw")</pre>
+    </li>
+    <li><a href="http://cran.r-project.org/web/packages/rJava/index.html">rJava</a>: provides an interface between
+        MZmine and R. To install rJava run R and enter
+        <pre>install.packages("rJava")</pre>
+    </li>
+</ol>
+<p>In order for MZmine to make use of R, various environment variables related to R and rJava must be correctly
+    defined in the MZmine start-up shell-script or batch file.
+</p>
+
+<h3>References</h3>
+
+<table>
+    <tr valign="top">
+        <td>[1]</td>
+        <td>Boelens, H.F.M., Eilers, P.H.C., Hankemeier, T. (2005) "<a
+                href="http://pubs.acs.org/doi/abs/10.1021/ac051370e">Sign constraints improve the detection of
+            differences between complex spectral data sets: LC-IR as an example</a>", <em>Analytical Chemistry</em>,
+            <strong>77</strong>, 7998 – 8007.
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
