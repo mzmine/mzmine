@@ -19,36 +19,79 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.HMDBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.KEGGGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.*;
 
-public enum OnlineDatabase {
+/**
+ * Enumerates online databases.
+ *
+ * @author $Author$
+ * @version $Revision$
+ */
+public enum OnlineDatabase
+{
+    /**
+     * KEGG database.
+     */
+    KEGG("KEGG Compound Database", KEGGGateway.class),
 
-	KEGG("KEGG Compound Database", KEGGGateway.class), 
-	PubChem("PubChem Compound Database", PubChemGateway.class),
-	HMDB("Human Metabolome Database", HMDBGateway.class),
-	METLIN("METLIN Database", MetLinGateway.class),
-	LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
-	MASSBANK("MassBank Database", MassBankGateway.class);
+    /**
+     * PubChem database.
+     */
+    PubChem("PubChem Compound Database", PubChemGateway.class),
 
-	private final String dbName;
-	private final Class<? extends DBGateway> gatewayClass;
+    /**
+     * Human metabolome database.
+     */
+    HMDB("Human Metabolome Database", HMDBGateway.class),
 
-	OnlineDatabase(String dbName, Class<? extends DBGateway> gatewayClass) {
-		this.dbName = dbName;
-		this.gatewayClass = gatewayClass;
-	}
+    /**
+     * METLIN database.
+     */
+    METLIN("METLIN Database", MetLinGateway.class),
 
-	public Class<? extends DBGateway> getGatewayClass() {
-		return this.gatewayClass;
-	}
+    /**
+     * LipidMaps database.
+     */
+    LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
 
-	public String toString() {
-		return dbName;
-	}
+    /**
+     * MassBank database.
+     */
+    MASSBANK("MassBank Database", MassBankGateway.class),
 
+    /**
+     * ChemSpider database.
+     */
+    CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class);
+
+    private final String dbName;
+    private final Class<? extends DBGateway> gatewayClass;
+
+    /**
+     * Create the database resource.
+     *
+     * @param name       database name.
+     * @param klass database class.
+     */
+    OnlineDatabase(final String name, final Class<? extends DBGateway> klass)
+    {
+        dbName = name;
+        gatewayClass = klass;
+    }
+
+    /**
+     * Get the database class.
+     *
+     * @return the class.
+     */
+    public Class<? extends DBGateway> getGatewayClass()
+    {
+        return gatewayClass;
+    }
+
+    @Override
+    public String toString()
+    {
+        return dbName;
+    }
 }
