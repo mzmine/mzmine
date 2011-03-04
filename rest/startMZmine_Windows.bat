@@ -20,7 +20,7 @@ rem It is not necessary to modify the following section
 set LOGGING_CONFIG_FILE=conf/logging.properties
 set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m
 set CLASS_PATH=MZmine2.jar
-set MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
+set MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 rem Show java version, in case a problem occurs
 %JAVA_COMMAND% -version

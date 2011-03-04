@@ -26,7 +26,7 @@ JAVA_COMMAND=java
 LOGGING_CONFIG_FILE=conf/logging.properties
 JAVA_PARAMETERS="-XX:+UseParallelGC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Djava.util.logging.config.file=$LOGGING_CONFIG_FILE $USE_64_BIT -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m"
 CLASS_PATH=MZmine2.jar
-MAIN_CLASS=net.sf.mzmine.main.mzmineclient.MZmineClient 
+MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory
 SCRIPTDIR=`dirname "$0"`
