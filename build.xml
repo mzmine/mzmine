@@ -40,7 +40,7 @@
 		
 	</target>
 
-	<target name="jar" depends="compile,manifest">
+	<target name="jar" depends="clean,compile,manifest">
 		
 		<mkdir dir="${dist}" />
 		<mkdir dir="${dist}/lib" />
