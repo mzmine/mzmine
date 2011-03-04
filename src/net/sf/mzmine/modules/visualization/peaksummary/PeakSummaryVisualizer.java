@@ -21,58 +21,53 @@ package net.sf.mzmine.modules.visualization.peaksummary;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * 
  */
 public class PeakSummaryVisualizer implements MZmineModule, ActionListener {
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	public PeakSummaryVisualizer() {
 
-        /*
-         * desktop.addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Peaklist
-         * summary", "Plotcan", KeyEvent.VK_N, false, this, null);
-         */
+          MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONRAWDATA, "Peaklist summary", "Plotcan", KeyEvent.VK_N, false, this, null);
+         
     }
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Peak list row summary";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Peak list row summary";
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return null;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return null;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 */
 
-    public static void showNewPeakSummaryWindow(PeakListRow row) {
-        PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
-        MZmineCore.getDesktop().addInternalFrame(newWindow);
-    }
+	public static void showNewPeakSummaryWindow(PeakListRow row) {
+		PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
+		MZmineCore.getDesktop().addInternalFrame(newWindow);
+	}
 
 }

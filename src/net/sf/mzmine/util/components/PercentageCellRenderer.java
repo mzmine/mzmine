@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.util.components;
 
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
 import javax.swing.table.DefaultTableCellRenderer;
@@ -28,8 +29,27 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public class PercentageCellRenderer extends DefaultTableCellRenderer {
 
-	private final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	private final NumberFormat percentFormat;
+
+	public PercentageCellRenderer() {
+		this(0);
+	}
+
+	public PercentageCellRenderer(int decimals) {
+
+		assert decimals >= 0;
+
+		if (decimals == 0) {
+			percentFormat = NumberFormat.getPercentInstance();
+		} else {
+			StringBuilder pattern = new StringBuilder("0.");
+			for (int i = 0; i < decimals; i++)
+				pattern.append("0");
+			pattern.append("%");
+			percentFormat = new DecimalFormat(pattern.toString());
+		}
+
+	}
 
 	protected void setValue(Object value) {
 		if ((value == null) || (!(value instanceof Double))) {

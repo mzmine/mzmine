@@ -23,19 +23,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * Duplicate peak filter
@@ -52,107 +50,89 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class DuplicateFilter implements BatchStep, ActionListener {
 
-    private DuplicateFilterParameters parameters;
+	private DuplicateFilterParameters parameters;
 
+	private Desktop desktop;
 
-    private Desktop desktop;
+	final String helpID = GUIUtils.generateHelpID(this);
 
+	/**
+	 */
+	public DuplicateFilter() {
 
-    final String helpID = GUIUtils.generateHelpID(this);
+		this.desktop = MZmineCore.getDesktop();
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+		parameters = new DuplicateFilterParameters();
 
-        this.desktop = MZmineCore.getDesktop();
+		desktop.addMenuItem(MZmineMenu.PEAKLISTFILTERING, toString(),
+				"Removing of duplicate entries in a peak list", KeyEvent.VK_D,
+				false, this, null);
 
-        parameters = new DuplicateFilterParameters();
+	}
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTFILTERING, toString(),
-                "Removing of duplicate entries in a peak list", KeyEvent.VK_D,
-                false, this, null);
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-    }
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (DuplicateFilterParameters) parameters;
-    }
+		if (peakLists.length == 0) {
+			desktop.displayErrorMessage("Please select peak lists to filter");
+			return;
+		}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+		ExitCode exitCode = parameters.showSetupDialog();
 
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
+		if (exitCode != ExitCode.OK)
+			return;
 
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select peak lists to filter");
-            return;
-        }
+		runModule(null, peakLists, parameters.clone());
+	}
 
-        ExitCode exitCode = setupParameters(parameters);
-        if (exitCode != ExitCode.OK)
-            return;
+	/**
+	 * @see net.sf.mzmine.modules.BatchStep#toString()
+	 */
+	public String toString() {
+		return "Duplicate peak filter";
+	}
 
-        runModule(null, peakLists, parameters.clone());
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-  
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#toString()
-     */
-    public String toString() {
-        return "Duplicate peak filter";
-    }
+		// check peak lists
+		if ((peakLists == null) || (peakLists.length == 0)) {
+			desktop.displayErrorMessage("Please select peak lists for filtering");
+			return null;
+		}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public ExitCode setupParameters(ParameterSet currentParameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + toString(),
-                (SimpleParameterSet) currentParameters, helpID);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
-    }
+		// prepare a new group of tasks
+		Task tasks[] = new DuplicateFilterTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new DuplicateFilterTask(peakLists[i],
+					(DuplicateFilterParameters) parameters);
+		}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+		return tasks;
 
-        // check peak lists
-        if ((peakLists == null) || (peakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for filtering");
-            return null;
-        }
+	}
 
-        // prepare a new group of tasks
-        Task tasks[] = new DuplicateFilterTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new DuplicateFilterTask(peakLists[i],
-                    (DuplicateFilterParameters) parameters);
-        }
-        
-        MZmineCore.getTaskController().addTasks(tasks);
-
-        return tasks;
-
-    }
-
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PEAKLISTPROCESSING;
-    }
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PEAKLISTPROCESSING;
+	}
 }

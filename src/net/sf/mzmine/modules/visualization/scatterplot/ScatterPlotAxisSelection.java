@@ -22,11 +22,12 @@ package net.sf.mzmine.modules.visualization.scatterplot;
 import java.util.Vector;
 
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 
 /**
  * This class represents axis selected in the scatter plot visualizer. This can
@@ -37,14 +38,14 @@ import net.sf.mzmine.main.MZmineCore;
 public class ScatterPlotAxisSelection {
 
 	private RawDataFile file;
-	private Parameter parameter;
+	private UserParameter parameter;
 	private Object parameterValue;
 
 	public ScatterPlotAxisSelection(RawDataFile file) {
 		this.file = file;
 	}
 
-	public ScatterPlotAxisSelection(Parameter parameter, Object parameterValue) {
+	public ScatterPlotAxisSelection(UserParameter parameter, Object parameterValue) {
 		this.parameter = parameter;
 		this.parameterValue = parameterValue;
 	}
@@ -108,11 +109,11 @@ public class ScatterPlotAxisSelection {
 			options.add(newOption);
 		}
 
-		for (Parameter parameter : MZmineCore.getCurrentProject()
+		for (UserParameter parameter : MZmineCore.getCurrentProject()
 				.getParameters()) {
-			Object possibleValues[] = parameter.getPossibleValues();
-			if (possibleValues == null)
-				continue;
+			if (!(parameter instanceof ComboParameter)) continue;
+			
+			Object possibleValues[] = ((ComboParameter) parameter).getChoices();
 			for (Object value : possibleValues) {
 				ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
 						parameter, value);

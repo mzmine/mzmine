@@ -19,53 +19,45 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class TICVisualizerParameters extends SimpleParameterSet {
 
-	public static final String plotTypeTIC = "TIC";
-	public static final String plotTypeBP = "Base peak intensity";
+	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+			"Raw data files",
+			"List of raw data files to display in TIC visualizer",
+			new RawDataFile[0]);
 
-	public static final String[] plotTypes = { plotTypeTIC, plotTypeBP };
-	public static final Integer[] msLevels = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+	public static final ComboParameter<Integer> msLevel = new ComboParameter<Integer>(
+			"MS level", "MS level of plotted scans", new Integer[0]);
 
-	public static final Parameter dataFiles = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Raw data files",
-			"List of raw data files to display in TIC visualizer", null, null,
-			new Integer(1), null);
-
-	public static final Parameter msLevel = new SimpleParameter(
-			ParameterType.INTEGER, "MS level", "MS level of plotted scans", 1,
-			msLevels);
-
-	public static final Parameter plotType = new SimpleParameter(
-			ParameterType.STRING, "Plot type",
+	public static final ComboParameter<PlotType> plotType = new ComboParameter<PlotType>(
+			"Plot type",
 			"Type of Y value calculation (TIC = sum, base peak = max)",
-			plotTypeTIC, plotTypes);
+			PlotType.values());
 
-	public static final Parameter retentionTimeRange = new SimpleParameter(
-			ParameterType.RANGE, "Retention time",
-			"Retention time (X axis) range", null, new Range(0, 600),
-			new Double(0), null, MZmineCore.getRTFormat());
+	public static final RangeParameter retentionTimeRange = new RangeParameter(
+			"Retention time", "Retention time (X axis) range",
+			MZmineCore.getRTFormat());
 
-	public static final Parameter mzRange = new SimpleParameter(
-			ParameterType.RANGE,
+	public static final RangeParameter mzRange = new RangeParameter(
 			"m/z range",
 			"Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
-			"m/z", new Range(0, 1000), new Double(0), null, MZmineCore
-					.getMZFormat());
+			MZmineCore.getMZFormat());
 
-	public static final Parameter selectionPeaks = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Selected peaks",
-			"List of peaks to display in TIC visualizer");
+	public static final MultiChoiceParameter<ChromatographicPeak> selectionPeaks = new MultiChoiceParameter<ChromatographicPeak>(
+			"Selected peaks", "List of peaks to display in TIC visualizer",
+			new ChromatographicPeak[0]);
 
 	public TICVisualizerParameters() {
-		super(new Parameter[] { dataFiles, msLevel, plotType,
+		super(new UserParameter[] { dataFiles, msLevel, plotType,
 				retentionTimeRange, mzRange, selectionPeaks });
 	}
 

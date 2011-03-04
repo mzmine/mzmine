@@ -36,10 +36,6 @@ public enum ExportRowDataFileElement {
         this.common = common;
     }
 
-    public String getName() {
-        return this.name;
-    }
-    
     public boolean isCommon(){
     	return this.common;
     }

@@ -29,10 +29,13 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.Range;
 
 import com.Ostermiller.util.CSVParser;
 
@@ -48,12 +51,12 @@ class CustomDBSearchTask extends AbstractTask {
 	private String[][] databaseValues;
 	private int finishedLines = 0;
 
-	private String dataBaseFile;
+	private File dataBaseFile;
 	private String fieldSeparator;
-	private Object[] fieldOrder;
+	private FieldItem[] fieldOrder;
 	private boolean ignoreFirstLine;
-	private double mzTolerance;
-	private double rtTolerance;
+	private MZTolerance mzTolerance;
+	private RTTolerance rtTolerance;
 	private CustomDBSearchParameters parameters;
 
 	CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
@@ -61,20 +64,20 @@ class CustomDBSearchTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		dataBaseFile = (String) parameters
-				.getParameterValue(CustomDBSearchParameters.dataBaseFile);
-		fieldSeparator = (String) parameters
-				.getParameterValue(CustomDBSearchParameters.fieldSeparator);
+		dataBaseFile = parameters.getParameter(
+				CustomDBSearchParameters.dataBaseFile).getValue();
+		fieldSeparator = parameters.getParameter(
+				CustomDBSearchParameters.fieldSeparator).getValue();
 
-		fieldOrder = (Object[]) parameters
-				.getParameterValue(CustomDBSearchParameters.fieldOrder);
+		fieldOrder = parameters.getParameter(
+				CustomDBSearchParameters.fieldOrder).getValue();
 
-		ignoreFirstLine = (Boolean) parameters
-				.getParameterValue(CustomDBSearchParameters.ignoreFirstLine);
-		mzTolerance = (Double) parameters
-				.getParameterValue(CustomDBSearchParameters.mzTolerance);
-		rtTolerance = (Double) parameters
-				.getParameterValue(CustomDBSearchParameters.rtTolerance);
+		ignoreFirstLine = parameters.getParameter(
+				CustomDBSearchParameters.ignoreFirstLine).getValue();
+		mzTolerance = parameters
+				.getParameter(CustomDBSearchParameters.mzTolerance).getValue();
+		rtTolerance = parameters
+				.getParameter(CustomDBSearchParameters.rtTolerance).getValue();
 
 	}
 
@@ -100,15 +103,13 @@ class CustomDBSearchTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
-
-		File dbFile = new File(dataBaseFile);
+		setStatus(TaskStatus.PROCESSING);
 
 		try {
 			// read database contents in memory
-			FileReader dbFileReader = new FileReader(dbFile);
-			databaseValues = CSVParser.parse(dbFileReader, fieldSeparator
-					.charAt(0));
+			FileReader dbFileReader = new FileReader(dataBaseFile);
+			databaseValues = CSVParser.parse(dbFileReader,
+					fieldSeparator.charAt(0));
 			if (ignoreFirstLine)
 				finishedLines++;
 			for (; finishedLines < databaseValues.length; finishedLines++) {
@@ -121,8 +122,8 @@ class CustomDBSearchTask extends AbstractTask {
 			dbFileReader.close();
 
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Could not read file " + dbFile, e);
-			setStatus( TaskStatus.ERROR );
+			logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
+			setStatus(TaskStatus.ERROR);
 			errorMessage = e.toString();
 			return;
 		}
@@ -137,7 +138,7 @@ class CustomDBSearchTask extends AbstractTask {
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -161,16 +162,17 @@ class CustomDBSearchTask extends AbstractTask {
 				lineRT = Double.parseDouble(values[i]) * 60;
 		}
 
-		File dbFile = new File(dataBaseFile);
 		SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineName,
-				lineFormula, dbFile.getName(), lineID, null);
+				lineFormula, dataBaseFile.getName(), lineID, null);
 
 		for (PeakListRow peakRow : peakList.getRows()) {
 
-			boolean mzOK = (Math.abs(peakRow.getAverageMZ() - lineMZ) < mzTolerance);
-			boolean rtOK = (Math.abs(peakRow.getAverageRT() - lineRT) < rtTolerance);
+			Range mzRange = mzTolerance.getToleranceRange(peakRow
+					.getAverageMZ());
+			Range rtRange = rtTolerance.getToleranceRange(peakRow
+					.getAverageRT());
 
-			if (mzOK && rtOK) {
+			if (mzRange.contains(lineMZ) && rtRange.contains(lineRT)) {
 
 				logger.finest("Found compound " + lineName + " (m/z " + lineMZ
 						+ ", RT " + lineRT + ")");

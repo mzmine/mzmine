@@ -19,10 +19,8 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -37,35 +35,33 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 class ScanFilteringTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private RawDataFile dataFile,  filteredRawDataFile;
+	private RawDataFile dataFile, filteredRawDataFile;
 
 	// scan counter
-	private int processedScans = 0,  totalScans;
+	private int processedScans = 0, totalScans;
 	private int[] scanNumbers;
 
 	// User parameters
 	private String suffix;
 	private boolean removeOriginal;
-	private int rawDataFilterTypeNumber;
 
 	// Raw Data Filter
-	private RawDataFilter rawDataFilter;
-	private ParameterSet parameters;
+	private ScanFilter rawDataFilter;
 	private SimplePeakList newPeakList;
 
 	/**
 	 * @param dataFile
 	 * @param parameters
 	 */
-	ScanFilteringTask(RawDataFile dataFile,
-			ScanFiltersParameters parameters) {
+	ScanFilteringTask(RawDataFile dataFile, ScanFiltersParameters parameters) {
 
 		this.dataFile = dataFile;
 
-		rawDataFilterTypeNumber = parameters.getRawDataFilterTypeNumber();
-		this.parameters = parameters.getRawDataFilteringParameters(rawDataFilterTypeNumber);
+		rawDataFilter = parameters.getParameter(ScanFiltersParameters.filter)
+				.getValue();
 
-		suffix = parameters.getSuffix();
+		suffix = parameters.getParameter(ScanFiltersParameters.suffix)
+				.getValue();
 
 	}
 
@@ -96,39 +92,30 @@ class ScanFilteringTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Started filtering scans on " + dataFile);
 
 		scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
 
-		// Create raw data filter according with the user's selection
-		String rawDataFilterClassName = ScanFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
-		try {
-			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
-			Constructor rawDataFilterConstruct = rawDataFilterClass.getConstructors()[0];
-			rawDataFilter = (RawDataFilter) rawDataFilterConstruct.newInstance(parameters);
-		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of raw data filter " + rawDataFilterClassName;
-			setStatus( TaskStatus.ERROR );
-			return;
-		}
 		try {
 
 			// Create new raw data file
 
 			String newName = dataFile.getName() + " " + suffix;
-			RawDataFileWriter rawDataFileWriter = MZmineCore.createNewFile(newName);
+			RawDataFileWriter rawDataFileWriter = MZmineCore
+					.createNewFile(newName);
 
 			for (int i = 0; i < totalScans; i++) {
 
-				if ( isCanceled( )) {
+				if (isCanceled()) {
 					return;
 				}
 
 				Scan scan = dataFile.getScan(scanNumbers[i]);
-				if ((scan.getMSLevel() != 1) && (scan.getParentScanNumber() <= 0)) {
+				if ((scan.getMSLevel() != 1)
+						&& (scan.getParentScanNumber() <= 0)) {
 					return;
 				}
 				Scan newScan = rawDataFilter.filterScan(scan);
@@ -139,12 +126,10 @@ class ScanFilteringTask extends AbstractTask {
 				processedScans++;
 			}
 
-
 			// Finalize writing
 			try {
 				filteredRawDataFile = rawDataFileWriter.finishWriting();
 				MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
-
 
 				// Remove the original file if requested
 				if (removeOriginal) {
@@ -153,11 +138,11 @@ class ScanFilteringTask extends AbstractTask {
 			} catch (Exception exception) {
 			}
 
-			setStatus( TaskStatus.FINISHED );
+			setStatus(TaskStatus.FINISHED);
 			logger.info("Finished scan filter on " + dataFile);
 
 		} catch (IOException e) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = e.toString();
 			return;
 		}
@@ -165,6 +150,6 @@ class ScanFilteringTask extends AbstractTask {
 	}
 
 	public Object[] getCreatedObjects() {
-		return new Object[]{newPeakList};
+		return new Object[] { newPeakList };
 	}
 }

@@ -19,37 +19,28 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.recursive;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-
-	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "Noise level",
+	public static final NumberParameter noiseLevel = new NumberParameter(
+			"Noise level",
 			"Intensities less than this value are interpreted as noise",
-			"absolute", new Double(10.0), new Double(0.0), null, MZmineCore
-					.getIntensityFormat());
+			MZmineCore.getIntensityFormat());
 
-	public static final Parameter minimumMZPeakWidth = new SimpleParameter(
-			ParameterType.DOUBLE, "Min m/z peak width",
-			"Minimum acceptable peak width in m/z", "m/z", new Double(0.2),
-			new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter minimumMZPeakWidth = new NumberParameter(
+			"Min m/z peak width", "Minimum acceptable peak width in m/z",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter maximumMZPeakWidth = new SimpleParameter(
-			ParameterType.DOUBLE, "Max m/z peak width",
-			"Maximum acceptable peak width in m/z", "m/z", new Double(1.00),
-			new Double(0.0010), null, MZmineCore.getMZFormat());
+	public static final NumberParameter maximumMZPeakWidth = new NumberParameter(
+			"Max m/z peak width", "Maximum acceptable peak width in m/z",
+			MZmineCore.getMZFormat());
 
 	public RecursiveMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel, minimumMZPeakWidth,
+		super(new UserParameter[] { noiseLevel, minimumMZPeakWidth,
 				maximumMZPeakWidth });
 
 	}

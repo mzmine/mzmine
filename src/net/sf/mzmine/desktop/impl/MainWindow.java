@@ -20,6 +20,8 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
@@ -37,14 +39,14 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -56,8 +58,8 @@ import net.sf.mzmine.util.TextUtils;
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		WindowListener, ProjectListener {
-	
-	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html"; 
+
+	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html";
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -163,14 +165,20 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		// Construct menu
 		menuBar = new MainMenu();
 		setJMenuBar(menuBar);
-		
+
 		// Initialize window listener for responding to user events
 		addWindowListener(this);
 
 		pack();
 
-		// TODO: check screen size?
-		setBounds(0, 0, 1000, 700);
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension screenSize = toolkit.getScreenSize();
+
+		// Set initial window size to 1000x700 pixels, but check the screen size
+		// first
+		int width = Math.min(screenSize.width, 1000);
+		int height = Math.min(screenSize.height, 700);
+		setBounds(0, 0, width, height);
 		setLocationRelativeTo(null);
 
 		// Application wants to control closing by itself
@@ -211,18 +219,24 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	 *      java.awt.Color)
 	 */
 	public void setStatusBarText(String text, Color textColor) {
+
+		// If the request was caused by exception during MZmine startup, desktop
+		// may not be initialized yet
+		if ((mainPanel == null) || (mainPanel.getStatusBar() == null))
+			return;
+
 		mainPanel.getStatusBar().setStatusText(text, textColor);
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return null;
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
 	}
@@ -251,17 +265,17 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	public JInternalFrame getSelectedFrame() {
 		return mainPanel.getSelectedFrame();
 	}
-	
+
 	public void showAboutDialog() {
-		
-        MZmineHelpSet hs = MZmineCore.getHelpImpl().getHelpSet();
-        if (hs == null)
-                return;
 
-        HelpBroker hb = hs.createHelpBroker();
-        hs.setHomeID(aboutHelpID);
+		MZmineHelpSet hs = MZmineCore.getHelpImpl().getHelpSet();
+		if (hs == null)
+			return;
 
-        hb.setDisplayed(true);
+		HelpBroker hb = hs.createHelpBroker();
+		hs.setHomeID(aboutHelpID);
+
+		hb.setDisplayed(true);
 	}
 
 }

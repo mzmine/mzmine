@@ -24,7 +24,7 @@ import java.util.Vector;
 
 import javax.swing.JList;
 
-import net.sf.mzmine.data.ParameterSet;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class BatchListComponent extends JList {
 

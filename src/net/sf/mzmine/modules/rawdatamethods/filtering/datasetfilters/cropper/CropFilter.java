@@ -25,21 +25,24 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
-public class CropFilter implements RawDataFilter {
+public class CropFilter implements RawDataSetFilter {
 
-	private Range RTRange;
+	private CropFilterParameters parameters;
 	private int processedScans, totalScans;
 
-	public CropFilter(CropFilterParameters parameters) {
-		this.RTRange = (Range) parameters
-				.getParameterValue(CropFilterParameters.retentionTimeRange);
+	public CropFilter() {
+		parameters = new CropFilterParameters(this);
 	}
 
 	public RawDataFile filterDatafile(RawDataFile dataFile,
 			RawDataFileWriter rawDataFileWriter) throws IOException {
+
+		Range RTRange = parameters.getParameter(
+				CropFilterParameters.retentionTimeRange).getValue();
 
 		int[] scanNumbers = dataFile.getScanNumbers(1);
 		totalScans = scanNumbers.length;
@@ -61,5 +64,14 @@ public class CropFilter implements RawDataFilter {
 		if (totalScans == 0)
 			return 0;
 		return (double) processedScans / totalScans;
+	}
+	
+	public String toString() {
+		return "Crop filter";
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

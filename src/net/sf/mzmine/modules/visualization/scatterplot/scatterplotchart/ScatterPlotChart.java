@@ -33,8 +33,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
+import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SearchDefinition;
@@ -246,7 +246,7 @@ public class ScatterPlotChart extends ChartPanel implements
 
 			TICVisualizer.showNewTICVisualizerWindow(
 					peakList.getRawDataFiles(), peaks, peaks, 1,
-					TICVisualizerParameters.plotTypeBP, rtRange, mzRange);
+					PlotType.BASEPEAK, rtRange, mzRange);
 
 			return;
 		}

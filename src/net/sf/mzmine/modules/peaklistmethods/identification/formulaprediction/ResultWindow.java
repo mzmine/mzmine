@@ -37,7 +37,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableRowSorter;
 
@@ -95,14 +97,19 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
 				listElementModel);
-		sorter.toggleSortOrder(2);
-		sorter.toggleSortOrder(2);
+
+		// set descending order by isotope score
+		sorter.toggleSortOrder(3);
+		sorter.toggleSortOrder(3);
 
 		IDList.setRowSorter(sorter);
 
 		TableColumnModel columnModel = IDList.getColumnModel();
-		columnModel.getColumn(2).setCellRenderer(new PercentageCellRenderer());
-		columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer());
+		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+		renderer.setHorizontalAlignment(SwingConstants.LEFT);
+		IDList.setDefaultRenderer(Double.class, renderer);
+		columnModel.getColumn(3).setCellRenderer(new PercentageCellRenderer(1));
+		columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer(1));
 
 		JScrollPane listScroller = new JScrollPane(IDList);
 		listScroller.setPreferredSize(new Dimension(350, 100));

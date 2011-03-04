@@ -47,8 +47,8 @@ public class Range {
 	 */
 	public Range(double min, double max) {
 		if (min > max) {
-			throw (new IllegalArgumentException(
-					"Range minimum (" + min + ") must be <= maximum (" + max + ")"));
+			throw (new IllegalArgumentException("Range minimum (" + min
+					+ ") must be <= maximum (" + max + ")"));
 		}
 		this.min = min;
 		this.max = max;
@@ -65,10 +65,7 @@ public class Range {
 	}
 
 	/**
-	 * Copy constructor.
 	 * 
-	 * @param range
-	 *            Range to copy
 	 */
 	public Range(String rangeString) {
 		String vals[] = rangeString.split("~");

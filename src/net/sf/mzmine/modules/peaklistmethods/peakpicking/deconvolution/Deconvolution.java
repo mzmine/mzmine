@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
@@ -31,6 +30,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -38,17 +38,14 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class Deconvolution implements BatchStep, ActionListener {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	public static final String MODULE_NAME = "Chromatogram deconvolution";
-	
-	private DeconvolutionParameters parameters;
+
+	private ParameterSet parameters;
 
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public Deconvolution() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -71,13 +68,12 @@ public class Deconvolution implements BatchStep, ActionListener {
 
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
-				desktop
-						.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
+				desktop.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
 				return;
 			}
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -93,40 +89,23 @@ public class Deconvolution implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		DeconvolutionSetupDialog dialog = new DeconvolutionSetupDialog(
-				"Please set parameter values for " + toString(),
-				(DeconvolutionParameters) parameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
-
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
-	}
-
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (DeconvolutionParameters) parameters;
 	}
 
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 		// check peak lists
 		if ((peakLists == null) || (peakLists.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select peak lists for deconvolution");
+			desktop.displayErrorMessage("Please select peak lists for deconvolution");
 			return null;
 		}
 
 		for (int i = 0; i < peakLists.length; i++) {
 			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
-				desktop
-						.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
+				desktop.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
 				return null;
 			}
 		}
@@ -135,7 +114,7 @@ public class Deconvolution implements BatchStep, ActionListener {
 		Task tasks[] = new DeconvolutionTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new DeconvolutionTask(peakLists[i],
-					(DeconvolutionParameters) parameters);
+					parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

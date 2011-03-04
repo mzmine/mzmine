@@ -18,7 +18,9 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
+import java.io.File;
 import java.io.FileWriter;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
@@ -27,7 +29,6 @@ import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.CollectionUtils;
 
 class CSVExportTask extends AbstractTask {
 
@@ -35,7 +36,8 @@ class CSVExportTask extends AbstractTask {
 	private int processedRows, totalRows;
 
 	// parameter values
-	private String fileName, fieldSeparator;
+	private File fileName;
+	private String fieldSeparator;
 	private ExportRowCommonElement[] commonElements;
 	private String[] identityElements;
 	private ExportRowDataFileElement[] dataFileElements;
@@ -44,25 +46,18 @@ class CSVExportTask extends AbstractTask {
 
 		this.peakList = peakList;
 
-		fileName = (String) parameters
-				.getParameterValue(CSVExporterParameters.filename);
-		fieldSeparator = (String) parameters
-				.getParameterValue(CSVExporterParameters.fieldSeparator);
+		fileName = parameters.getParameter(CSVExporterParameters.filename)
+				.getValue();
+		fieldSeparator = parameters.getParameter(
+				CSVExporterParameters.fieldSeparator).getValue();
 
-		Object commonElementsObjects[] = (Object[]) parameters
-				.getParameterValue(CSVExporterParameters.exportCommonItemMultipleSelection);
-		commonElements = CollectionUtils.changeArrayType(commonElementsObjects,
-				ExportRowCommonElement.class);
+		commonElements = parameters.getParameter(
+				CSVExporterParameters.exportCommonItems).getValue();
 
-		Object identityElementsObjects[] = (Object[]) parameters
-				.getParameterValue(CSVExporterParameters.exportIdentityItemMultipleSelection);
-		identityElements = CollectionUtils.changeArrayType(
-				identityElementsObjects, String.class);
-
-		Object dataFileElementsObjects[] = (Object[]) parameters
-				.getParameterValue(CSVExporterParameters.exportDataFileItemMultipleSelection);
-		dataFileElements = CollectionUtils.changeArrayType(
-				dataFileElementsObjects, ExportRowDataFileElement.class);
+		identityElements = parameters.getParameter(
+				CSVExporterParameters.exportIdentityItems).getValue();
+		dataFileElements = parameters.getParameter(
+				CSVExporterParameters.exportDataFileItems).getValue();
 
 	}
 
@@ -102,7 +97,7 @@ class CSVExportTask extends AbstractTask {
 		int length = commonElements.length;
 		String name;
 		for (int i = 0; i < length; i++) {
-			name = commonElements[i].getName();
+			name = commonElements[i].toString();
 			name = name.replace("Export ", "");
 			line.append(name + fieldSeparator);
 		}
@@ -118,7 +113,7 @@ class CSVExportTask extends AbstractTask {
 		length = dataFileElements.length;
 		for (int df = 0; df < peakList.getNumberOfRawDataFiles(); df++) {
 			for (int i = 0; i < length; i++) {
-				name = dataFileElements[i].getName();
+				name = dataFileElements[i].toString();
 				name = name.replace("Export", rawDataFiles[df].getName());
 				line.append(name + fieldSeparator);
 			}

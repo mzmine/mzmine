@@ -25,9 +25,9 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -40,7 +40,7 @@ import net.sf.mzmine.util.SortingProperty;
  */
 public class WaveletMassDetector implements MassDetector {
 
-	private WaveletMassDetectorParameters parameters;
+	private ParameterSet parameters;
 
 	// Parameter value
 	private int scaleLevel;
@@ -60,12 +60,12 @@ public class WaveletMassDetector implements MassDetector {
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
-		noiseLevel = (Double) parameters
-				.getParameterValue(WaveletMassDetectorParameters.noiseLevel);
-		scaleLevel = (Integer) parameters
-				.getParameterValue(WaveletMassDetectorParameters.scaleLevel);
-		waveletWindow = (Double) parameters
-				.getParameterValue(WaveletMassDetectorParameters.waveletWindow);
+		noiseLevel = parameters.getParameter(
+				WaveletMassDetectorParameters.noiseLevel).getDouble();
+		scaleLevel = parameters.getParameter(
+				WaveletMassDetectorParameters.scaleLevel).getInt();
+		waveletWindow = parameters.getParameter(
+				WaveletMassDetectorParameters.waveletWindow).getDouble();
 
 		DataPoint[] originalDataPoints = scan.getDataPoints();
 		mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(SortingProperty.MZ,
@@ -219,15 +219,13 @@ public class WaveletMassDetector implements MassDetector {
 		return aproxIntensity;
 	}
 
-	public String getName() {
+	public String toString() {
 		return "Wavelet transform";
 	}
 
-	public SimpleParameterSet getParameters() {
+	@Override
+	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	public String toString() {
-		return getName();
-	}
 }

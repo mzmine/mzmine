@@ -22,7 +22,9 @@ import java.util.Collections;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.util.Range;
+
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
@@ -50,13 +52,13 @@ public class RANSAC {
 
     public RANSAC(RansacAlignerParameters parameters) {
 
-        this.numRatePoints = (Double) parameters.getParameterValue(RansacAlignerParameters.NMinPoints);
+        this.numRatePoints = parameters.getParameter(RansacAlignerParameters.NMinPoints).getDouble();
 
-        this.t = (Double) parameters.getParameterValue(RansacAlignerParameters.Margin);
+        this.t = parameters.getParameter(RansacAlignerParameters.Margin).getDouble();
+        
+        this.k = parameters.getParameter(RansacAlignerParameters.Iterations).getInt();
 
-        this.k = (Integer) parameters.getParameterValue(RansacAlignerParameters.Iterations);
-
-        this.Linear = (Boolean) parameters.getParameterValue(RansacAlignerParameters.Linear);
+        this.Linear = parameters.getParameter(RansacAlignerParameters.Linear).getValue();
 
     }
 

@@ -25,8 +25,6 @@ import java.awt.Font;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
-import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -151,7 +149,7 @@ public class HistogramChart extends ChartPanel{
 		HistogramDomainAxis axis = (HistogramDomainAxis) plot.getDomainAxis();
 		axis.setAutoRange(true);
 		axis.setAutoRangeIncludesZero(false);
-		axis.setLabel(dataType.getText());
+		axis.setLabel(dataType.toString());
 		axis.setRange(lower, upper);
 		axis.setLowerTickValue(lower);
 		axis.setUpperTickValue(upper);
@@ -164,7 +162,7 @@ public class HistogramChart extends ChartPanel{
 
 		plot.getRangeAxis().setLabel("Number of peaks");
 		plot.setDataset(0, newSet);
-		setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType.getText());
+		setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType);
 	}
 	
 	public void setAxisNumberFormat(HistogramDataType dataType){

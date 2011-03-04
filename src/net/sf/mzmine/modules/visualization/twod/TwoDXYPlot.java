@@ -41,9 +41,7 @@ class TwoDXYPlot extends XYPlot {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	// TODO: crosshair, show only top XXX peaks, checkbox display peaklist
-
-	private Range totalRTRange, totalMZRange;;
+	private Range totalRTRange, totalMZRange;
 	private BufferedImage zoomOutBitmap;
 
 	private TwoDDataSet dataset;
@@ -67,7 +65,7 @@ class TwoDXYPlot extends XYPlot {
 			int index, PlotRenderingInfo info, CrosshairState crosshairState) {
 
 		// if this is not TwoDDataSet
-		if (index != 0) // TODO  check by instanceof
+		if (index != 0)
 			return super.render(g2, dataArea, index, info, crosshairState);
 
 		// prepare some necessary constants

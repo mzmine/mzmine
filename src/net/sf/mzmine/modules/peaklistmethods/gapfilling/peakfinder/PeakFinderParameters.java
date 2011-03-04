@@ -21,61 +21,35 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class PeakFinderParameters extends SimpleParameterSet {
 
-    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
-    public static final String RTToleranceTypeAbsolute = "Absolute";
-    public static final String RTToleranceTypeRelative = "Relative";
+	public static final NumberParameter intTolerance = new NumberParameter(
+			"Intensity tolerance",
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
+			NumberFormat.getPercentInstance());
 
-    public static final Object[] RTToleranceTypePossibleValues = {
-            RTToleranceTypeAbsolute, RTToleranceTypeRelative };
+	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "gap-filled", null);
+	public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-    public static final Parameter intTolerance = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Intensity tolerance",
-            "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-            "%", new Double(0.20), new Double(0.0), null, percentFormat);
+	public static final BooleanParameter RTCorrection = new BooleanParameter(
+			"RT correction",
+			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
 
-    public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum allowed M/Z difference", "m/z", new Double(0.2), new Double(
-                    0.0), null, MZmineCore.getMZFormat());
-
-    public static final Parameter RTToleranceType = new SimpleParameter(
-            ParameterType.STRING,
-            "Retention time tolerance type",
-            "Maximum RT difference can be defined either using absolute or relative value",
-            RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
-
-    public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-            ParameterType.DOUBLE, "Absolute RT tolerance",
-            "Maximum allowed absolute RT difference", null, new Double(15.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
-
-    public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-            ParameterType.DOUBLE, "Relative RT tolerance",
-            "Maximum allowed relative RT difference", "%", new Double(0.15),
-            new Double(0.0), null, percentFormat);
-
-    public static final Parameter RTCorrection = new SimpleParameter(
-			ParameterType.BOOLEAN, "RT correction",
-			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.",
-			new Boolean(true));
-
-    public PeakFinderParameters() {
-        super(new Parameter[] { suffix, intTolerance, MZTolerance,
-                RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent, RTCorrection });
-    }
+	public PeakFinderParameters() {
+		super(new UserParameter[] { suffix, intTolerance, MZTolerance, RTTolerance,
+				RTCorrection });
+	}
 
 }

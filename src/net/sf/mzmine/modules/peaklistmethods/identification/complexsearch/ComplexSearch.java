@@ -22,19 +22,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -48,16 +46,13 @@ public class ComplexSearch implements BatchStep, ActionListener {
 	private ComplexSearchParameters parameters;
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public ComplexSearch() {
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new ComplexSearchParameters();
@@ -69,7 +64,7 @@ public class ComplexSearch implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
 		this.parameters = (ComplexSearchParameters) parameterValues;
@@ -80,17 +75,6 @@ public class ComplexSearch implements BatchStep, ActionListener {
 	 */
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.IDENTIFICATION;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) parameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
 	}
 
 	/**
@@ -106,7 +90,8 @@ public class ComplexSearch implements BatchStep, ActionListener {
 			return;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+		
 		if (exitCode != ExitCode.OK)
 			return;
 

@@ -42,8 +42,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
 import net.sf.mzmine.util.components.GroupableTableHeader;
@@ -67,8 +67,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 	private ComponentToolTipManager ttm;
 	private DefaultCellEditor currentEditor = null;
 
-	public PeakListTable(PeakListTableVisualizer visualizer,
-			PeakListTableWindow window, PeakListTableParameters parameters,
+	public PeakListTable(PeakListTableWindow window, ParameterSet parameters,
 			PeakList peakList) {
 
 		this.peakList = peakList;
@@ -82,8 +81,8 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 		GroupableTableHeader header = new GroupableTableHeader();
 		setTableHeader(header);
 
-		cm = new PeakListTableColumnModel(visualizer, header, pkTableModel,
-				parameters, peakList);
+		cm = new PeakListTableColumnModel(header, pkTableModel, parameters,
+				peakList);
 		cm.setColumnMargin(0);
 		setColumnModel(cm);
 
@@ -98,7 +97,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 				this, cm, peakList);
 		addMouseListener(new PopupListener(popupMenu));
 
-		setRowHeight(parameters.getRowHeight());
+		int rowHeight = parameters.getParameter(
+				PeakListTableParameters.rowHeight).getInt();
+		setRowHeight(rowHeight);
 
 		ttm = new ComponentToolTipManager();
 		ttm.registerComponent(this);
@@ -117,9 +118,9 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 			int myID = Integer.parseInt(values[1].trim());
 			for (PeakListRow row : peakList.getRows()) {
 				if (row.getID() == myID) {
-					component = new PeakSummaryComponent(row, peakList
-							.getRawDataFiles(), true, false, false, true,
-							false, ComponentToolTipManager.bg);
+					component = new PeakSummaryComponent(row,
+							peakList.getRawDataFiles(), true, false, false,
+							true, false, ComponentToolTipManager.bg);
 					break;
 				}
 			}

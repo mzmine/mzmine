@@ -23,29 +23,26 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 
 	final String helpID = GUIUtils.generateHelpID(XMLExporter.class);
-	
+
 	public static final String MODULE_NAME = "Import from XML file";
-	
+
 	private XMLImporterParameters parameters;
 	private Desktop desktop;
 	public static XMLImporter myInstance;
@@ -54,7 +51,7 @@ public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 		return parameters;
 	}
 
-	public void initModule() {
+	public XMLImporter() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -76,13 +73,9 @@ public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 
 	}
 
-	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (XMLImporterParameters) parameterValues;
-	}
-
 	public void actionPerformed(ActionEvent e) {
 
-		ExitCode setupExitCode = setupParameters(parameters);
+		ExitCode setupExitCode = parameters.showSetupDialog();
 
 		if (setupExitCode != ExitCode.OK) {
 			return;
@@ -104,36 +97,25 @@ public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 
 	}
 
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + MODULE_NAME,
-				(XMLImporterParameters) parameters);
-
-		dialog.setVisible(true);
-
-		return dialog.getExitCode();
-	}
-
-	public void loadPeakLists(String[] peakListNames) {
+/*	public void loadPeakLists(String[] peakListNames) {
 
 		Parameter filename;
-		SimpleParameterSet parameterSet;
+		ParameterSet parameterSet;
 		for (String name : peakListNames) {
 			parameterSet = new XMLImporterParameters();
 			filename = parameterSet.getParameter("Filename");
-			parameterSet.setParameterValue(filename, name);
+			filename.setValue(name);
 			runModule(null, null, parameterSet);
 		}
 
-	}
-	
+	}*/
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;
 	}
 
-    public String toString() {
-        return MODULE_NAME;
-    }
+	public String toString() {
+		return MODULE_NAME;
+	}
 
 }

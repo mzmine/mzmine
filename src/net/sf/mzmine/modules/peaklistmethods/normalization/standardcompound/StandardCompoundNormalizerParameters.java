@@ -19,62 +19,50 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.PeakMeasurementType;
 
 /**
  * 
  */
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
-    public static final String standardUsageTypeNearest = "Nearest standard";
-    public static final String standardUsageTypeWeighted = "Weighted contribution of all standards";
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
-    public static final Object[] standardUsageTypePossibleValues = {
-            standardUsageTypeNearest, standardUsageTypeWeighted };
+	public static final ComboParameter<StandardUsageType> standardUsageType = new ComboParameter<StandardUsageType>(
+			"Normalization type", "Normalize intensities using ",
+			StandardUsageType.values());
 
-    public static final String peakMeasurementTypeHeight = "Peak height";
-    public static final String peakMeasurementTypeArea = "Peak area";
+	public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+			"Peak measurement type", "Measure peaks using ",
+			PeakMeasurementType.values());
 
-    public static final Object[] peakMeasurementTypePossibleValues = {
-            peakMeasurementTypeHeight, peakMeasurementTypeArea };
+	public static final NumberParameter MZvsRTBalance = new NumberParameter(
+			"m/z vs RT balance",
+			"Used in distance measuring as multiplier of m/z difference");
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "normalized", null);
+	public static final BooleanParameter autoRemove = new BooleanParameter(
 
-    public static final Parameter standardUsageType = new SimpleParameter(
-            ParameterType.STRING, "Normalization type",
-            "Normalize intensities using ", standardUsageTypeNearest,
-            standardUsageTypePossibleValues);
+			"Remove original peak list",
+			"If checked, original peak list will be removed and only normalized version remains");
 
-    public static final Parameter peakMeasurementType = new SimpleParameter(
-            ParameterType.STRING, "Peak measurement type",
-            "Measure peaks using ", peakMeasurementTypeHeight,
-            peakMeasurementTypePossibleValues);
+	public static final MultiChoiceParameter<PeakListRow> standardCompounds = new MultiChoiceParameter<PeakListRow>(
+			"Standard compounds",
+			"List of peaks for choosing the normalization standards",
+			new PeakListRow[0]);
 
-    public static final Parameter MZvsRTBalance = new SimpleParameter(
-            ParameterType.DOUBLE, "m/z vs RT balance",
-            "Used in distance measuring as multiplier of m/z difference", "",
-            new Double(10.0), new Double(0.0), null);
+	public StandardCompoundNormalizerParameters() {
+		super(new UserParameter[] { suffix, standardUsageType, peakMeasurementType,
+				MZvsRTBalance, autoRemove, standardCompounds });
 
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peak list",
-            "If checked, original peak list will be removed and only normalized version remains",
-            new Boolean(false));
-
-    public static final Parameter standardCompounds = new SimpleParameter(
-            ParameterType.MULTIPLE_SELECTION,
-            "Standard compounds",
-            "List of peaks for choosing the normalization standards");
-
-    public StandardCompoundNormalizerParameters() {
-        super(new Parameter[] { suffix, standardUsageType, peakMeasurementType,
-                MZvsRTBalance, autoRemove, standardCompounds });
-
-    }
+	}
 
 }

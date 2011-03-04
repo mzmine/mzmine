@@ -18,28 +18,22 @@
  */
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class RTCorrectionFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter mzRange = new SimpleParameter(
-			ParameterType.RANGE, "m/z range",
-			"m/z boundary of the cropped region", "m/z", new Range(0, 1000),
-			new Double(0), null, MZmineCore.getMZFormat());
-	
-	public static final Parameter retentionTimeRange = new SimpleParameter(
-			ParameterType.RANGE, "Retention time",
-			"retention time boundary of the cropped region", null, new Range(0,
-			600), new Double(0), null, MZmineCore.getRTFormat());
+	public static final RangeParameter mzRange = new RangeParameter(
+			"m/z range", "m/z boundary of the cropped region",
+			MZmineCore.getMZFormat());
+
+	public static final RangeParameter retentionTimeRange = new RangeParameter(
+			"Retention time", "retention time boundary of the cropped region",
+			MZmineCore.getRTFormat());
 
 	public RTCorrectionFilterParameters() {
-		super(
-				new Parameter[]{mzRange, retentionTimeRange
-				});
+		super(new UserParameter[] { mzRange, retentionTimeRange });
 	}
 }

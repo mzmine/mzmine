@@ -20,65 +20,62 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	public static final StringParameter peakListName = new StringParameter(
+			"Peak list name", "Peak list name", "Aligned peak list");
 
-	public static final Parameter peakListName = new SimpleParameter(
-			ParameterType.STRING, "Peak list name", "Peak list name", null,
-			"Aligned peak list", null);
+	public static final NumberParameter MZTolerance = new NumberParameter(
+			"m/z tolerance", "Maximum allowed M/Z difference",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter MZTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed M/Z difference", "m/z", new Double(0.02),
-			new Double(0.0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter RTToleranceValueAbs = new NumberParameter(
 			"RT tolerance after correction",
 			"Maximum allowed absolute RT difference after the algorithm correction for the retention time",
-			null, new Double(15.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+			MZmineCore.getRTFormat());
 
-	public static final Parameter RTTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "RT tolerance",
-			"Maximum allowed absolute RT difference", null, new Double(15.0),
-			new Double(0.0), null, MZmineCore.getRTFormat());
+	public static final NumberParameter RTTolerance = new NumberParameter(
+			"RT tolerance", "Maximum allowed absolute RT difference",
+			MZmineCore.getRTFormat());
 
-	public static final Parameter Iterations = new SimpleParameter(
-			ParameterType.INTEGER, "RANSAC Iterations",
+	public static final NumberParameter Iterations = new NumberParameter(
+			"RANSAC Iterations",
 			"Maximum number of iterations allowed in the algorithm",
-			new Integer(1000));
+			NumberFormat.getPercentInstance());
 
-	public static final Parameter NMinPoints = new SimpleParameter(
-			ParameterType.DOUBLE, "Minimun Number of Points",
-			"Minimum number of aligned peaks required to fit the model", "%",
-			new Double(0.2), null, null, percentFormat);
+	public static final NumberParameter NMinPoints = new NumberParameter(
+			"Minimun Number of Points",
+			"Minimum number of aligned peaks required to fit the model",
+			NumberFormat.getPercentInstance());
 
-	public static final Parameter Margin = new SimpleParameter(
-			ParameterType.DOUBLE, "Threshold value",
+	public static final NumberParameter Margin = new NumberParameter(
+			"Threshold value",
 			"Threshold value for determining when a data point fits a model",
-			"seconds", new Double(3.0), null, MZmineCore.getRTFormat());
+			MZmineCore.getRTFormat());
 
-	public static final Parameter Linear = new SimpleParameter(
-			ParameterType.BOOLEAN, "Linear model",
-			"Switch between polynomial model or lineal model", new Boolean(
-					false));
+	public static final BooleanParameter Linear = new BooleanParameter(
+			"Linear model", "Switch between polynomial model or lineal model");
 
-	public static final Parameter SameChargeRequired = new SimpleParameter(
-			ParameterType.BOOLEAN, "Require same charge state",
-			"If checked, only rows having same charge state can be aligned",
-			new Boolean(false));
+	public static final BooleanParameter SameChargeRequired = new BooleanParameter(
+			"Require same charge state",
+			"If checked, only rows having same charge state can be aligned");
 
+	public ExitCode showSetupDialog() {
+		RansacAlignerSetupDialog dialog = new RansacAlignerSetupDialog(this, null);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+	
 	public RansacAlignerParameters() {
-		super(new Parameter[] { peakListName, MZTolerance, RTToleranceValueAbs,
+		super(new UserParameter[] { peakListName, MZTolerance, RTToleranceValueAbs,
 				RTTolerance, Iterations, NMinPoints, Margin, Linear,
 				SameChargeRequired });
 	}

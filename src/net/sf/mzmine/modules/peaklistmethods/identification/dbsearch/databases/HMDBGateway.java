@@ -28,7 +28,9 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.Range;
 
 public class HMDBGateway implements DBGateway {
 
@@ -36,13 +38,15 @@ public class HMDBGateway implements DBGateway {
 
 	/**
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
 
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+
 		String queryAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight&query_from="
-				+ (mass - massTolerance)
+				+ toleranceRange.getMin()
 				+ "&query_to="
-				+ (mass + massTolerance);
+				+ toleranceRange.getMax();
 
 		URL queryURL = new URL(queryAddress);
 

@@ -57,6 +57,17 @@ class TaskQueue extends AbstractTableModel {
 		progressBars = new Hashtable<Integer, LabeledProgressBar>();
 	}
 
+	synchronized int getNumOfWaitingTasks() {
+		int numOfWaitingTasks = 0;
+		for (int i = 0; i < size; i++) {
+			TaskStatus status = queue[i].getActualTask().getStatus();
+			if ((status == TaskStatus.PROCESSING)
+					|| (status == TaskStatus.WAITING))
+				numOfWaitingTasks++;
+		}
+		return numOfWaitingTasks;
+	}
+
 	synchronized void addWrappedTask(WrappedTask task) {
 
 		logger.finest("Adding task \"" + task

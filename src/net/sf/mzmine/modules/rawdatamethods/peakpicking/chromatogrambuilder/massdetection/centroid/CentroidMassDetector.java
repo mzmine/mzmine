@@ -23,27 +23,26 @@ import java.util.ArrayList;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class CentroidMassDetector implements MassDetector {
 
-	private CentroidMassDetectorParameters parameters;
-	
+	private ParameterSet parameters;
+
 	public CentroidMassDetector() {
-		parameters = new CentroidMassDetectorParameters();
+		parameters = new CentroidMassDetectorParameters(this);
 	}
 
 	public MzPeak[] getMassValues(Scan scan) {
-		
-		double noiseLevel = (Double) parameters
-		.getParameterValue(CentroidMassDetectorParameters.noiseLevel);
 
-		
-        ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
-        
-        DataPoint dataPoints[] = scan.getDataPoints();
+		double noiseLevel = parameters.getParameter(
+				CentroidMassDetectorParameters.noiseLevel).getDouble();
+
+		ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
+
+		DataPoint dataPoints[] = scan.getDataPoints();
 
 		// Find possible mzPeaks
 		for (int j = 0; j < dataPoints.length; j++) {
@@ -57,16 +56,17 @@ public class CentroidMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getName() {
-		return "Centroid";
-	}
-
-	public SimpleParameterSet getParameters() {
+	public ParameterSet getParameters() {
 		return parameters;
 	}
 
 	public String toString() {
-		return getName();
+		return "Centroid";
 	}
-	
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
 }

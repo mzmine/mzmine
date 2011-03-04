@@ -30,7 +30,6 @@ import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -57,21 +56,19 @@ public class AdductSearchTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		rtTolerance = (Double) parameters
-				.getParameterValue(AdductSearchParameters.rtTolerance);
-		mzTolerance = (Double) parameters
-				.getParameterValue(AdductSearchParameters.mzTolerance);
+		rtTolerance = parameters.getParameter(
+				AdductSearchParameters.rtTolerance).getDouble();
+		mzTolerance = parameters.getParameter(
+				AdductSearchParameters.mzTolerance).getDouble();
 
-		Object adductObjects[] = (Object[]) parameters
-				.getParameterValue(AdductSearchParameters.adducts);
-		selectedAdducts = CollectionUtils.changeArrayType(adductObjects,
-				AdductType.class);
+		selectedAdducts = parameters.getParameter(
+				AdductSearchParameters.adducts).getValue();
 
-		customMassDifference = (Double) parameters
-				.getParameterValue(AdductSearchParameters.customAdductValue);
+		customMassDifference = parameters.getParameter(
+				AdductSearchParameters.customAdductValue).getDouble();
 
-		maxAdductHeight = (Double) parameters
-				.getParameterValue(AdductSearchParameters.maxAdductHeight);
+		maxAdductHeight = parameters.getParameter(
+				AdductSearchParameters.maxAdductHeight).getDouble();
 
 	}
 

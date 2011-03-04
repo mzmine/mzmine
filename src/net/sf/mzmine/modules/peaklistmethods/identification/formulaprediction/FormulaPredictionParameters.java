@@ -21,96 +21,54 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.ElementalHeuristicParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.RDBERestrictionParameters;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
+import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 
 public class FormulaPredictionParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	public static final NeutralMassParameter neutralMass = new NeutralMassParameter(
+			"Neutral mass", "Original neutral mass");
 
-	public static final Parameter rawMass = new SimpleParameter(
-			ParameterType.DOUBLE, "Peak m/z", "Detected m/z value of the peak",
-			"m/z", null, new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter numOfResults = new NumberParameter(
+			"Number of results", "Maximum number of results to display",
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter charge = new SimpleParameter(
-			ParameterType.INTEGER, "Charge",
-			"This value is used to calculate the neutral mass", null,
-			new Integer(1), new Integer(1), null, null);
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final Parameter ionizationMethod = new SimpleParameter(
-			ParameterType.STRING, "Ionization method",
-			"Type of ion used to calculate the neutral mass", null,
-			IonizationType.values());
+	public static final ElementsParameter elements = new ElementsParameter(
+			"Elements", "Elements and ranges");
 
-	public static final Parameter neutralMass = new SimpleParameter(
-			ParameterType.DOUBLE, "Neutral mass",
-			"Value to use in the search query", null, null, null, null,
-			MZmineCore.getMZFormat());
+	public static final OptionalModuleParameter elementalRatios = new OptionalModuleParameter(
+			"Element count heuristics",
+			"Restrict formulas by heuristic restrictions of elemental counts and ratios",
+			new ElementalHeuristicParameters());
 
-	public static final Parameter numOfResults = new SimpleParameter(
-			ParameterType.INTEGER, "Number of results",
-			"Maximum number of results to display", null, new Integer(1000),
-			new Integer(1), null, null);
+	public static final OptionalModuleParameter rdbeRestrictions = new OptionalModuleParameter(
+			"RDBE restrictions",
+			"Search only for formulas which correspond to the given RDBE restrictions",
+			new RDBERestrictionParameters());
 
-	public static final Parameter massTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "Mass tolerance",
-			"Tolerance of the mass value to search (+/- range)", "amu",
-			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
+	public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
+			"Isotope pattern filter",
+			"Search only for formulas with a isotope pattern similar",
+			new IsotopePatternScoreParameters());
 
-	public static final Parameter elements = new SimpleParameter(
-			ParameterType.STRING,
-			"Elements",
-			"Elements to consider for a formula and minimum and maximum number of atoms of each element");
-
-	public static final Parameter isotopeFilter = new SimpleParameter(
-			ParameterType.BOOLEAN, "Isotope pattern filter",
-			"Search only for formulas with a isotope pattern similar", null,
-			false, null, null, null);
-
-	public static final Parameter isotopeMassTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "Mass tolerance for isotopes",
-			"Tolerance of the mass value to search (+/- range)", "amu",
-			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter isotopeScoreTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "Isotope pattern score threshold",
-			"Threshold level for isotope pattern score", "%", new Double(0.65),
-			new Double(0.0), new Double(1.0), percentFormat);
-
-	public static final Parameter heuristicRules = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Heuristic rules",
-			"Search only for formulas which correspond to the set rules", null,
-			HeuristicRule.values());
-
-	public static final Parameter msmsFilter = new SimpleParameter(
-			ParameterType.BOOLEAN, "MS/MS filter", "Check MS/MS data", null,
-			false, null, null, null);
-
-	public static final Parameter msmsTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "MS/MS mass tolerance",
-			"Tolerance of the mass value to search (+/- range)", "amu",
-			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter msmsNoiseLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "MS/MS noise level",
-			"Intensity level below which all data points are ignored", null,
-			new Double(1), new Double(0), null, MZmineCore.getIntensityFormat());
-
-	public static final Parameter msmsScoreTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "MS/MS score threshold",
-			"Threshold level for MS/MS score", "%", new Double(0.65),
-			new Double(0.0), new Double(1.0), percentFormat);
+	public static final OptionalModuleParameter msmsFilter = new OptionalModuleParameter(
+			"MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
 	public FormulaPredictionParameters() {
-		super(new Parameter[] { rawMass, charge, ionizationMethod, neutralMass,
-				numOfResults, massTolerance, elements, isotopeFilter,
-				isotopeMassTolerance, isotopeScoreTolerance, heuristicRules,
-				msmsFilter, msmsTolerance, msmsNoiseLevel, msmsScoreTolerance });
+		super(new Parameter[] { neutralMass, numOfResults, mzTolerance,
+				elements, elementalRatios, rdbeRestrictions, isotopeFilter,
+				msmsFilter });
 	}
 
 }

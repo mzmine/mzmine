@@ -16,25 +16,25 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.io.xmlexport;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 
 public class XMLExporterParameters extends SimpleParameterSet {
 
-	public static final Parameter filename = new SimpleParameter(
-			ParameterType.FILE_NAME,
+	public static final FileNameParameter filename = new FileNameParameter(
 			"Filename",
-			"Name of exported peak list file name. If the file exists, it will be overwritten.", null, "mpl", null);
-	public static final Parameter compression = new SimpleParameter(
-			ParameterType.BOOLEAN, "Compressed file",
-			"Generates a compressed file (.zip)", null, true,
-			null, null, null);	
+			"Name of exported peak list file name. If the file exists, it will be overwritten.",
+			"mpl");
+
+	public static final BooleanParameter compression = new BooleanParameter(
+			"Compressed file", "Generates a compressed file (.zip)");
 
 	public XMLExporterParameters() {
-		super(new Parameter[]{filename, compression});
-	}	
+		super(new UserParameter[] { filename, compression });
+	}
 }

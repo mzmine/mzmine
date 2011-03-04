@@ -25,11 +25,11 @@ import java.util.Vector;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
@@ -40,7 +40,7 @@ import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
  */
 public class MZmineProjectImpl implements MZmineProject {
 
-	private Hashtable<Parameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
+	private Hashtable<UserParameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
 	private Vector<RawDataFile> dataFiles;
 	private Vector<PeakList> peakLists;
@@ -51,11 +51,11 @@ public class MZmineProjectImpl implements MZmineProject {
 
 		this.dataFiles = new Vector<RawDataFile>();
 		this.peakLists = new Vector<PeakList>();
-		projectParametersAndValues = new Hashtable<Parameter, Hashtable<RawDataFile, Object>>();
+		projectParametersAndValues = new Hashtable<UserParameter, Hashtable<RawDataFile, Object>>();
 
 	}
 
-	public void addParameter(Parameter parameter) {
+	public void addParameter(UserParameter parameter) {
 		if (projectParametersAndValues.containsKey(parameter))
 			return;
 
@@ -64,19 +64,19 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	}
 
-	public void removeParameter(Parameter parameter) {
+	public void removeParameter(UserParameter parameter) {
 		projectParametersAndValues.remove(parameter);
 	}
 
-	public boolean hasParameter(Parameter parameter) {
+	public boolean hasParameter(UserParameter parameter) {
 		return projectParametersAndValues.containsKey(parameter);
 	}
 
-	public Parameter[] getParameters() {
-		return projectParametersAndValues.keySet().toArray(new Parameter[0]);
+	public UserParameter[] getParameters() {
+		return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
 	}
 
-	public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+	public void setParameterValue(UserParameter parameter, RawDataFile rawDataFile,
 			Object value) {
 		if (!(hasParameter(parameter)))
 			addParameter(parameter);
@@ -85,13 +85,13 @@ public class MZmineProjectImpl implements MZmineProject {
 		parameterValues.put(rawDataFile, value);
 	}
 
-	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile) {
+	public Object getParameterValue(UserParameter parameter, RawDataFile rawDataFile) {
 		if (!(hasParameter(parameter)))
 			return null;
 		Object value = projectParametersAndValues.get(parameter).get(
 				rawDataFile);
-		if (value == null)
-			return parameter.getDefaultValue();
+		/*if (value == null)
+			return parameter.getDefaultValue();*/
 		return value;
 	}
 
@@ -171,7 +171,7 @@ public class MZmineProjectImpl implements MZmineProject {
 				ProjectEvent newEvent = new ProjectEvent(
 						ProjectEventType.DATAFILES_REORDERED);
 				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-			};
+			}
 		};
 
 		SwingUtilities.invokeLater(swingThreadCode);

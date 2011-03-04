@@ -64,11 +64,11 @@ public class ProjectSavingTask extends AbstractTask {
 	private String currentSavedObjectName;
 
 	// This hashtable maps raw data files to their ID within the saved project
-	private Hashtable<RawDataFile, Integer> dataFilesIDMap;
+	private Hashtable<RawDataFile, String> dataFilesIDMap;
 
 	public ProjectSavingTask(File saveFile) {
 		this.saveFile = saveFile;
-		dataFilesIDMap = new Hashtable<RawDataFile, Integer>();
+		dataFilesIDMap = new Hashtable<RawDataFile, String>();
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class ProjectSavingTask extends AbstractTask {
 
 		logger.info("Canceling saving of project to " + saveFile);
 
-		setStatus( TaskStatus.CANCELED );
+		setStatus(TaskStatus.CANCELED);
 
 		if (rawDataFileSaveHandler != null)
 			rawDataFileSaveHandler.cancel();
@@ -126,7 +126,7 @@ public class ProjectSavingTask extends AbstractTask {
 		try {
 
 			logger.info("Saving project to " + saveFile);
-			setStatus( TaskStatus.PROCESSING );
+			setStatus(TaskStatus.PROCESSING);
 
 			// Get current project
 			savedProject = (MZmineProjectImpl) MZmineCore.getCurrentProject();
@@ -146,7 +146,7 @@ public class ProjectSavingTask extends AbstractTask {
 			currentStage++;
 			saveVersion(zipStream);
 			saveConfiguration(zipStream);
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -155,7 +155,7 @@ public class ProjectSavingTask extends AbstractTask {
 			// Stage 2 - save RawDataFile objects
 			currentStage++;
 			saveRawDataFiles(zipStream);
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -164,7 +164,7 @@ public class ProjectSavingTask extends AbstractTask {
 			// Stage 3 - save PeakList objects
 			currentStage++;
 			savePeakLists(zipStream);
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				zipStream.close();
 				tempFile.delete();
 				return;
@@ -176,7 +176,7 @@ public class ProjectSavingTask extends AbstractTask {
 			zipStream.close();
 
 			// Final check for cancel
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				tempFile.delete();
 				return;
 			}
@@ -185,7 +185,7 @@ public class ProjectSavingTask extends AbstractTask {
 			if (saveFile.exists() && !saveFile.delete()) {
 				throw new IOException("Could not delete old file " + saveFile);
 			}
-			
+
 			boolean renameOK = tempFile.renameTo(saveFile);
 			if (!renameOK) {
 				throw new IOException("Could not move the temporary file "
@@ -197,11 +197,11 @@ public class ProjectSavingTask extends AbstractTask {
 
 			logger.info("Finished saving the project to " + saveFile);
 
-			setStatus( TaskStatus.FINISHED );
+			setStatus(TaskStatus.FINISHED);
 
 		} catch (Throwable e) {
 
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 
 			if (currentSavedObjectName == null) {
 				errorMessage = "Failed saving the project: "
@@ -245,7 +245,12 @@ public class ProjectSavingTask extends AbstractTask {
 		zipStream.putNextEntry(new ZipEntry(CONFIG_FILENAME));
 		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
 
-		MZmineCore.saveConfiguration(tempConfigFile);
+		try {
+			MZmineCore.saveConfiguration(tempConfigFile);
+		} catch (Exception e) {
+			throw new IOException("Could not save configuration"
+					+ ExceptionUtils.exceptionToString(e));
+		}
 
 		FileInputStream fileStream = new FileInputStream(tempConfigFile);
 
@@ -270,13 +275,13 @@ public class ProjectSavingTask extends AbstractTask {
 		RawDataFile rawDataFiles[] = savedProject.getDataFiles();
 
 		for (int i = 0; i < rawDataFiles.length; i++) {
-			
-			if ( isCanceled( ))
+
+			if (isCanceled())
 				return;
-			
+
 			currentSavedObjectName = rawDataFiles[i].getName();
 			rawDataFileSaveHandler.writeRawDataFile(rawDataFiles[i], i + 1);
-			dataFilesIDMap.put(rawDataFiles[i], i + 1);
+			dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
 		}
 	}
 
@@ -289,18 +294,25 @@ public class ProjectSavingTask extends AbstractTask {
 	private void savePeakLists(ZipOutputStream zipStream) throws IOException,
 			TransformerConfigurationException, SAXException {
 
-		peakListSaveHandler = new PeakListSaveHandler(zipStream);
-
 		PeakList peakLists[] = savedProject.getPeakLists();
 
 		for (int i = 0; i < peakLists.length; i++) {
-			
-			if ( isCanceled( ))
+
+			if (isCanceled())
 				return;
-			
-			currentSavedObjectName = peakLists[i].getName();
-			peakListSaveHandler.savePeakList(peakLists[i], i + 1,
+
+			logger.info("Saving peak list: " + peakLists[i].getName());
+
+			String peakListSavedName = "Peak list #" + (i + 1) + " "
+					+ peakLists[i].getName();
+
+			zipStream.putNextEntry(new ZipEntry(peakListSavedName + ".xml"));
+
+			peakListSaveHandler = new PeakListSaveHandler(zipStream,
 					dataFilesIDMap);
+
+			currentSavedObjectName = peakLists[i].getName();
+			peakListSaveHandler.savePeakList(peakLists[i]);
 		}
 	}
 

@@ -19,38 +19,32 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class PeakExtenderParameters extends SimpleParameterSet {
 
-	public static final Parameter suffix = new SimpleParameter(
-			ParameterType.STRING, "Name suffix",
-			"Suffix to be added to peak list name", null, "extended", null);
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "extended");
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"m/z tolerance",
-			"Maximum allowed distance in M/Z between data points in successive scans",
-			"m/z", new Double(0.1), new Double(0.0), new Double(1.0),
-			MZmineCore.getMZFormat());
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final Parameter minimumHeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Min height",
-			"Minimum allowed intensity for succesive scans", null, new Double(100.0),
-			new Double(0.0), null, MZmineCore.getIntensityFormat());
+	public static final NumberParameter minimumHeight = new NumberParameter(
+			"Min height", "Minimum allowed intensity for succesive scans",
+			MZmineCore.getIntensityFormat());
 
-	public static final Parameter autoRemove = new SimpleParameter(
-			ParameterType.BOOLEAN,
+	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peaklist",
-			"If checked, original peaklist will be removed and only deisotoped version remains",
-			new Boolean(true));
-	
+			"If checked, original peaklist will be removed and only deisotoped version remains");
+
 	public PeakExtenderParameters() {
-		super(new Parameter[] { suffix, mzTolerance, minimumHeight, autoRemove });
+		super(new UserParameter[] { suffix, mzTolerance, minimumHeight,
+				autoRemove });
 	}
 
 }

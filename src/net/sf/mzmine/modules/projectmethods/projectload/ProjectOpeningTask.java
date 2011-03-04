@@ -50,7 +50,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.StreamCopy;
 
-import org.dom4j.DocumentException;
 import org.xml.sax.SAXException;
 
 import de.schlichtherle.util.zip.ZipEntry;
@@ -63,9 +62,6 @@ public class ProjectOpeningTask extends AbstractTask {
 	private File openFile;
 	private MZmineProjectImpl newProject;
 
-	private Class<? extends RawDataFileOpenHandler> rawDataFileOpenHandlerClass;
-	private Class<? extends PeakListOpenHandler> peakListOpenHandlerClass;
-
 	private RawDataFileOpenHandler rawDataFileOpenHandler;
 	private PeakListOpenHandler peakListOpenHandler;
 
@@ -73,11 +69,11 @@ public class ProjectOpeningTask extends AbstractTask {
 	private String currentLoadedObjectName;
 
 	// This hashtable maps stored IDs to raw data file objects
-	private Hashtable<Integer, RawDataFile> dataFilesIDMap;
+	private Hashtable<String, RawDataFile> dataFilesIDMap;
 
 	public ProjectOpeningTask(File openFile) {
 		this.openFile = openFile;
-		dataFilesIDMap = new Hashtable<Integer, RawDataFile>();
+		dataFilesIDMap = new Hashtable<String, RawDataFile>();
 	}
 
 	/**
@@ -253,15 +249,15 @@ public class ProjectOpeningTask extends AbstractTask {
 					+ " may result in errors or loss of information.";
 			MZmineCore.getDesktop().displayMessage(warning);
 			// We can still use 1.97 opening handlers for 1.96 project
-			rawDataFileOpenHandlerClass = RawDataFileOpenHandler_1_97.class;
-			peakListOpenHandlerClass = PeakListOpenHandler_1_97.class;
+			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
+			peakListOpenHandler = new PeakListOpenHandler_1_97(dataFilesIDMap);
 			return;
 		}
 
 		// Check if the project version is at least 1.97
 		if ((projectVersionNumber >= 1.97) && (projectVersionNumber < 2.0)) {
-			rawDataFileOpenHandlerClass = RawDataFileOpenHandler_1_97.class;
-			peakListOpenHandlerClass = PeakListOpenHandler_1_97.class;
+			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
+			peakListOpenHandler= new PeakListOpenHandler_1_97(dataFilesIDMap);
 			return;
 		}
 
@@ -276,8 +272,8 @@ public class ProjectOpeningTask extends AbstractTask {
 		}
 
 		// Default opening handler
-		rawDataFileOpenHandlerClass = RawDataFileOpenHandler_2_0.class;
-		peakListOpenHandlerClass = PeakListOpenHandler_2_0.class;
+		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
+		peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
 
 	}
 
@@ -305,7 +301,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
 		try {
 			MZmineCore.loadConfiguration(tempConfigFile);
-		} catch (DocumentException e) {
+		} catch (Exception e) {
 			throw (new IOException("Could not load configuration: "
 					+ ExceptionUtils.exceptionToString(e)));
 		}
@@ -334,14 +330,12 @@ public class ProjectOpeningTask extends AbstractTask {
 			Matcher fileMatcher = filePattern.matcher(entryName);
 
 			if (fileMatcher.matches()) {
-				Integer fileID = Integer.parseInt(fileMatcher.group(1));
+				String fileID = fileMatcher.group(1);
 				currentLoadedObjectName = fileMatcher.group(2);
 
 				String scansFileName = entryName.replaceFirst("\\.xml$",
 						".scans");
 				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
-				rawDataFileOpenHandler = rawDataFileOpenHandlerClass
-						.newInstance();
 				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
 						zipFile, scansEntry, entry);
 				newProject.addFile(newFile);
@@ -377,10 +371,10 @@ public class ProjectOpeningTask extends AbstractTask {
 
 				currentLoadedObjectName = fileMatcher.group(2);
 
-				peakListOpenHandler = peakListOpenHandlerClass.newInstance();
-
+				InputStream peakListStream = zipFile.getInputStream(entry);
+				
 				PeakList newPeakList = peakListOpenHandler.readPeakList(
-						zipFile, entry, dataFilesIDMap);
+						peakListStream);
 
 				newProject.addPeakList(newPeakList);
 			}

@@ -21,28 +21,43 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.mas
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter resolution = new SimpleParameter(
-			ParameterType.INTEGER,
+	public static final NumberParameter resolution = new NumberParameter(
 			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
 					+ " Peak width is taken as the full width at half maximum intensity (FWHM).",
-			null, new Integer(60000), new Integer(0), null, NumberFormat
-					.getIntegerInstance());
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter peakModel = new SimpleParameter(
-			ParameterType.STRING, "Peak model function",
-			"Peaks under the curve of this peak model are removed", null,
+	public static final ComboParameter<PeakModelType> peakModel = new ComboParameter<PeakModelType>(
+			"Peak model function",
+			"Peaks under the curve of this peak model are removed",
 			PeakModelType.values());
 
+
 	public ShoulderPeaksFilterParameters() {
-		super(new Parameter[] { resolution, peakModel });
+		super(new UserParameter[] { resolution, peakModel });
+
+	}
+
+	public ExitCode showSetupDialog() {
+		// TODO:
+		return super.showSetupDialog();
+		/*
+		MassFilter filter = parentParameterSet.getParameter(
+				ChromatogramBuilderParameters.massFilter).getValue();
+		MassDetector detector = parentParameterSet.getParameter(
+				ChromatogramBuilderParameters.massDetector).getValue();
+		MassFilterSetupDialog dialog = new MassFilterSetupDialog(detector,
+				filter);
+		dialog.setVisible(true);
+		return dialog.getExitCode();*/
 	}
 
 }

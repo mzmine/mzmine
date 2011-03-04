@@ -16,52 +16,39 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameter;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em.EMClusterer;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.farthestfirst.FarthestFirstClusterer;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical.HierarClusterer;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.simplekmeans.SimpleKMeansClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotParameters;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 
-public class ClusteringParameters extends ProjectionPlotParameters {
+public class ClusteringParameters extends SimpleParameterSet {
 
-        private static ClusteringAlgorithmsEnum[] val = ClusteringAlgorithmsEnum.values();
-        public static String visualizationPCA = "PCA";
-        public static String visualizationSammon = "Sammon's projection";
-        private static String[] visualizationType = {visualizationPCA, visualizationSammon};
-        private static String[] clusteringData = {"Samples", "Variables"};
-        private static String[] hierarchicalLinkType = {"Single", "Complete", "Average", "Mean", "Centroid", "Ward", "Adjusted complete", "Neighbor Joining"};
-        private static String[] hierarchicaldistances = {"Euclidian", "Chebyshev", "Manhattan", "Minkowski"};
-        public static final Parameter clusteringAlgorithm = new SimpleParameter(
-                ParameterType.STRING, "Select the algorithm",
-                "Select the algorithm you want to use for clustering", null, val);
-        public static final Parameter typeOfData = new SimpleParameter(
-                ParameterType.STRING, "Type of data",
-                "Specify the type of data used for the clustering: samples or variables", null, clusteringData);
-        public static final Parameter linkType = new SimpleParameter(
-                ParameterType.STRING, "Type of link",
-                "", null, hierarchicalLinkType);
-        public static final Parameter distances = new SimpleParameter(
-                ParameterType.STRING, "Distances",
-                "", null, hierarchicaldistances);
-        public static final Parameter numberOfGroups = new SimpleParameter(
-                ParameterType.INTEGER, "Number of clusters to generate",
-                "Specify the number of clusters to generate.",
-                new Integer(3));
-        public static final Parameter visualization = new SimpleParameter(
-                ParameterType.STRING, "Select the visualization type",
-                "Select the kind of visualization for the clustering result", null, visualizationType);
+	private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {
+			new EMClusterer(), new FarthestFirstClusterer(),
+			new SimpleKMeansClusterer(), new HierarClusterer() };
 
-        public ClusteringParameters(PeakList sourcePeakList) {
-                this();
-                this.sourcePeakList = sourcePeakList;
-                this.selectedDataFiles = sourcePeakList.getRawDataFiles();
-                this.selectedRows = sourcePeakList.getRows();
-                this.selectedParameter = null;
-        }
+	public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm = new ModuleComboParameter<ClusteringAlgorithm>(
+			"Clustering algorithm",
+			"Select the algorithm you want to use for clustering", algorithms);
 
-        public ClusteringParameters() {
-                super(new Parameter[]{peakMeasurementType, clusteringAlgorithm, typeOfData, linkType, distances, numberOfGroups, visualization});
-        }
+	public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
+			"Type of data",
+			"Specify the type of data used for the clustering: samples or variables",
+			ClusteringDataType.values());
+
+	public ClusteringParameters() {
+		super(
+				new Parameter[] { ProjectionPlotParameters.dataFiles,
+						ProjectionPlotParameters.peakMeasurementType,
+						ProjectionPlotParameters.rows, clusteringAlgorithm,
+						typeOfData });
+	}
 }

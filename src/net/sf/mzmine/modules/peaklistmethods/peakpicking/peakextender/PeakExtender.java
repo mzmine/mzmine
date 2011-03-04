@@ -23,40 +23,35 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class PeakExtender implements BatchStep, ActionListener {
-	
+
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	public static final String MODULE_NAME = "Peak extender";
-	
+
 	private Desktop desktop;
 	private PeakExtenderParameters parameters;
-		
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+
+	public PeakExtender() {
 
 		this.desktop = MZmineCore.getDesktop();
 		parameters = new PeakExtenderParameters();
 
 		desktop.addMenuItem(MZmineMenu.PEAKLISTPICKING, MODULE_NAME,
-				"Extends detected peaks over their chromatogram", KeyEvent.VK_P,
-				false, this, null);
+				"Extends detected peaks over their chromatogram",
+				KeyEvent.VK_P, false, this, null);
 
 	}
 
@@ -71,7 +66,8 @@ public class PeakExtender implements BatchStep, ActionListener {
 			return;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -96,8 +92,7 @@ public class PeakExtender implements BatchStep, ActionListener {
 
 		// check data files
 		if ((peakLists == null) || (peakLists.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select peak list for peaks extending");
+			desktop.displayErrorMessage("Please select peak list for peaks extending");
 			return null;
 		}
 
@@ -115,32 +110,18 @@ public class PeakExtender implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (PeakExtenderParameters) parameters;
-	}
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PEAKPICKING;
 	}
-
-	public ExitCode setupParameters(ParameterSet currentParameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters, helpID);
-
-		dialog.setVisible(true);
-
-		return dialog.getExitCode();
-	}
-
 
 }

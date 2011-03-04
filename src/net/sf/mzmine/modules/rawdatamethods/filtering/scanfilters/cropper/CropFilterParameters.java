@@ -19,21 +19,31 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter mzRange = new SimpleParameter(
-			ParameterType.RANGE, "m/z range",
-			"m/z boundary of the cropped region", "m/z", new Range(0, 1000),
-			new Double(0), null, MZmineCore.getMZFormat());
+	public static final RangeParameter mzRange = new RangeParameter(
+			"m/z range", "m/z boundary of the cropped region",
+			MZmineCore.getMZFormat());
 
-	public CropFilterParameters() {
-		super(new Parameter[] { mzRange });
+	private ScanFilter scanFilter;
+
+	public CropFilterParameters(ScanFilter scanFilter) {
+		super(new UserParameter[] { mzRange });
+		this.scanFilter = scanFilter;
 	}
+
+	public ExitCode showSetupDialog() {
+		ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(scanFilter);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
 }

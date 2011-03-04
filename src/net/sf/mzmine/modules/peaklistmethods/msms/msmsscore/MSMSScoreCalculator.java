@@ -25,33 +25,29 @@ import java.util.Map;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ElementRule;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionEngine;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.HeuristicRule;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormulaWrapper;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
 
+import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
+import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MSMSScoreCalculator {
-
-	public static MSMSScore evaluateMSMS(Scan msmsScan, double msmsTolerance,
-			double msmsNoiseLevel, IMolecularFormula parentFormula) {
-
-		return evaluateMSMS(msmsScan, msmsTolerance, msmsNoiseLevel,
-				parentFormula, new HeuristicRule[] { HeuristicRule.LEWIS,
-						HeuristicRule.SENIOR });
-
-	}
 
 	/**
 	 * Returns a calculated similarity score of
 	 */
-	public static MSMSScore evaluateMSMS(Scan msmsScan, double msmsTolerance,
-			double msmsNoiseLevel, IMolecularFormula parentFormula,
-			HeuristicRule rules[]) {
+	public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula,
+			Scan msmsScan, ParameterSet parameters) {
+
+		double msmsNoiseLevel = parameters.getParameter(
+				MSMSScoreParameters.msmsNoiseLevel).getDouble();
+		MZTolerance msmsTolerance = parameters.getParameter(
+				MSMSScoreParameters.msmsTolerance).getValue();
 
 		DataPoint msmsPeaks[] = msmsScan.getDataPoints();
 		// Sorted by mass in descending order
@@ -95,18 +91,17 @@ public class MSMSScoreCalculator {
 			if (neutralLoss < 5)
 				continue;
 
-			Range msmsTargetRange = new Range(neutralLoss - msmsTolerance,
-					neutralLoss + msmsTolerance);
+			Range msmsTargetRange = msmsTolerance
+					.getToleranceRange(neutralLoss);
 
-			ResultFormulaWrapper wrap = new ResultFormulaWrapper();
+			FormulaGenerator msmsEngine = new FormulaGenerator(msmsTargetRange,
+					msmsElementRules);
 
-			FormulaPredictionEngine msmsEngine = new FormulaPredictionEngine(
-					msmsTargetRange, msmsElementRules, wrap);
-
-			int foundMSMSformulas = msmsEngine.run();
-			if (foundMSMSformulas > 0) {
-				ResultFormula msmsFormula = wrap.getFormula();
-				msmsAnnotations.put(dp, msmsFormula.getFormulaAsString());
+			MolecularFormula formula = msmsEngine.getNextFormula();
+			if (formula != null) {
+				String formulaString = MolecularFormulaManipulator
+						.getString(formula);
+				msmsAnnotations.put(dp, formulaString);
 				interpretedMSMSpeaks++;
 			}
 

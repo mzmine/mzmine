@@ -30,7 +30,6 @@ import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.CollectionUtils;
 
 public class GPLipidSearchTask extends AbstractTask {
 
@@ -56,22 +55,18 @@ public class GPLipidSearchTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		minChainLength = (Integer) parameters
-				.getParameterValue(GPLipidSearchParameters.minChainLength);
-		maxChainLength = (Integer) parameters
-				.getParameterValue(GPLipidSearchParameters.maxChainLength);
-		maxDoubleBonds = (Integer) parameters
-				.getParameterValue(GPLipidSearchParameters.maxDoubleBonds);
-		mzTolerance = (Double) parameters
-				.getParameterValue(GPLipidSearchParameters.mzTolerance);
-
-		Object selectedLipidObjects[] = (Object[]) parameters
-				.getParameterValue(GPLipidSearchParameters.lipidTypes);
-		selectedLipids = CollectionUtils.changeArrayType(selectedLipidObjects,
-				GPLipidType.class);
-
-		ionizationType = (IonizationType) parameters
-				.getParameterValue(GPLipidSearchParameters.ionizationMethod);
+		minChainLength = parameters.getParameter(
+				GPLipidSearchParameters.minChainLength).getInt();
+		maxChainLength = parameters.getParameter(
+				GPLipidSearchParameters.maxChainLength).getInt();
+		maxDoubleBonds = parameters.getParameter(
+				GPLipidSearchParameters.maxDoubleBonds).getInt();
+		mzTolerance = parameters.getParameter(
+				GPLipidSearchParameters.mzTolerance).getDouble();
+		selectedLipids = parameters.getParameter(
+				GPLipidSearchParameters.lipidTypes).getValue();
+		ionizationType = parameters.getParameter(
+				GPLipidSearchParameters.ionizationMethod).getValue();
 
 	}
 
@@ -96,7 +91,7 @@ public class GPLipidSearchTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Starting glycerophospholipid search in " + peakList);
 
@@ -115,7 +110,7 @@ public class GPLipidSearchTask extends AbstractTask {
 						for (int fattyAcid2DoubleBonds = 0; fattyAcid2DoubleBonds <= maxDoubleBonds; fattyAcid2DoubleBonds++) {
 
 							// Task canceled?
-							if ( isCanceled( ))
+							if (isCanceled())
 								return;
 
 							// If we have non-zero fatty acid, which is shorter
@@ -161,7 +156,7 @@ public class GPLipidSearchTask extends AbstractTask {
 				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
 		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished glycerophospholipid search in " + peakList);
 
@@ -177,13 +172,13 @@ public class GPLipidSearchTask extends AbstractTask {
 
 		final double lipidIonMass = lipid.getMass()
 				+ ionizationType.getAddedMass();
-		
-		logger.finest("Searching for lipid " + lipid.getDescription() + ", " + lipidIonMass + " m/z");
 
+		logger.finest("Searching for lipid " + lipid.getDescription() + ", "
+				+ lipidIonMass + " m/z");
 
 		for (int rowIndex = 0; rowIndex < rows.length; rowIndex++) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			if (Math.abs(lipidIonMass - rows[rowIndex].getAverageMZ()) <= mzTolerance) {

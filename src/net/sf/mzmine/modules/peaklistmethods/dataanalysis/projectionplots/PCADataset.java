@@ -19,38 +19,40 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.LinkedList;
 
 import jmprojection.PCA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakMeasurementType;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class PCADataset extends AbstractXYDataset implements
 		ProjectionPlotDataset {
-	
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
+	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 
 	private double[] component1Coords;
 	private double[] component2Coords;
 
 	private ProjectionPlotParameters parameters;
-
-	private Parameter selectedParameter;
+	private PeakList peakList;
+	
+	private ColoringType coloringType;
 
 	private RawDataFile[] selectedRawDataFiles;
 	private PeakListRow[] selectedRows;
@@ -65,26 +67,32 @@ public class PCADataset extends AbstractXYDataset implements
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	
+
 	private ProjectionStatus projectionStatus;
 
-	public PCADataset(ProjectionPlotParameters parameters) {
+	public PCADataset(PeakList peakList, ProjectionPlotParameters parameters) {
 
+		this.peakList = peakList;
 		this.parameters = parameters;
-	
-		this.xAxisPC = (Integer)parameters.getParameterValue(ProjectionPlotParameters.xAxisComponent);
-		this.yAxisPC = (Integer)parameters.getParameterValue(ProjectionPlotParameters.yAxisComponent);
 
-		selectedParameter = parameters.getSelectedParameter();
-		selectedRawDataFiles = parameters.getSelectedDataFiles();
-		selectedRows = parameters.getSelectedRows();
+		this.xAxisPC = parameters.getParameter(
+				ProjectionPlotParameters.xAxisComponent).getValue();
+		this.yAxisPC = parameters.getParameter(
+				ProjectionPlotParameters.yAxisComponent).getValue();
+
+		coloringType = parameters.getParameter(
+				ProjectionPlotParameters.coloringType).getValue();
+		selectedRawDataFiles = parameters.getParameter(
+				ProjectionPlotParameters.dataFiles).getValue();
+		selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+				.getValue();
 
 		datasetTitle = "Principal component analysis";
 
 		// Determine groups for selected raw data files
 		groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
 
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeSingleColor) {
+		if (coloringType.equals(ColoringType.NOCOLORING)) {
 			// All files to a single group
 			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = 0;
@@ -92,7 +100,7 @@ public class PCADataset extends AbstractXYDataset implements
 			numberOfGroups = 1;
 		}
 
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByFile) {
+		if (coloringType.equals(ColoringType.COLORBYFILE)) {
 			// Each file to own group
 			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = ind;
@@ -100,10 +108,11 @@ public class PCADataset extends AbstractXYDataset implements
 			numberOfGroups = selectedRawDataFiles.length;
 		}
 
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByParameterValue) {
+		if (coloringType.isByParameter()) {
 			// Group files with same parameter value to same group
 			MZmineProject project = MZmineCore.getCurrentProject();
 			Vector<Object> availableParameterValues = new Vector<Object>();
+			UserParameter selectedParameter = coloringType.getParameter();
 			for (RawDataFile rawDataFile : selectedRawDataFiles) {
 				Object paramValue = project.getParameterValue(
 						selectedParameter, rawDataFile);
@@ -195,14 +204,13 @@ public class PCADataset extends AbstractXYDataset implements
 		status = TaskStatus.PROCESSING;
 
 		logger.info("Computing projection plot");
-		
+
 		// Generate matrix of raw data (input to PCA)
-		boolean useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
+		boolean useArea = false;
+		if (parameters.getParameter(
+				ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
 			useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
-			useArea = false;
-		
+
 		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
 		for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
 			PeakListRow peakListRow = selectedRows[rowIndex];
@@ -228,25 +236,25 @@ public class PCADataset extends AbstractXYDataset implements
 		projectionStatus = pcaProj.getProjectionStatus();
 
 		double[][] result = pcaProj.getState();
-		
-		if (status == TaskStatus.CANCELED) return;
+
+		if (status == TaskStatus.CANCELED)
+			return;
 
 		component1Coords = result[xAxisPC - 1];
 		component2Coords = result[yAxisPC - 1];
 
-
-		Desktop desktop = MZmineCore.getDesktop();
-		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
 				parameters);
-		desktop.addInternalFrame(newFrame);
-		
+		MZmineCore.getDesktop().addInternalFrame(newFrame);
+
 		status = TaskStatus.FINISHED;
 		logger.info("Finished computing projection plot.");
 
 	}
 
 	public void cancel() {
-        if (projectionStatus != null) projectionStatus.cancel();
+		if (projectionStatus != null)
+			projectionStatus.cancel();
 		status = TaskStatus.CANCELED;
 	}
 
@@ -259,9 +267,7 @@ public class PCADataset extends AbstractXYDataset implements
 	}
 
 	public String getTaskDescription() {
-		if ( (parameters==null) || (parameters.getSourcePeakList()==null) ) 
-			return "PCA projection";
-		return "PCA projection " + parameters.getSourcePeakList(); 
+		return "PCA projection";
 	}
 
 	public double getFinishedPercentage() {
@@ -277,10 +283,11 @@ public class PCADataset extends AbstractXYDataset implements
 	/**
 	 * Adds a TaskListener to this Task
 	 * 
-	 * @param t The TaskListener to add
+	 * @param t
+	 *            The TaskListener to add
 	 */
-	public void addTaskListener( TaskListener t ) {
-		this.taskListeners.add( t );
+	public void addTaskListener(TaskListener t) {
+		this.taskListeners.add(t);
 	}
 
 	/**
@@ -288,30 +295,31 @@ public class PCADataset extends AbstractXYDataset implements
 	 * 
 	 * @return An array containing the TaskListeners
 	 */
-	public TaskListener[] getTaskListeners( ) {
-		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	public TaskListener[] getTaskListeners() {
+		return this.taskListeners.toArray(new TaskListener[this.taskListeners
+				.size()]);
 	}
 
-	private void fireTaskEvent( ) {
-		TaskEvent event = new TaskEvent( this );
-		for( TaskListener t : this.taskListeners ) {
-			t.statusChanged( event );
+	private void fireTaskEvent() {
+		TaskEvent event = new TaskEvent(this);
+		for (TaskListener t : this.taskListeners) {
+			t.statusChanged(event);
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
 	 */
-	public void setStatus( TaskStatus newStatus ) {
+	public void setStatus(TaskStatus newStatus) {
 		this.status = newStatus;
-		this.fireTaskEvent( );
+		this.fireTaskEvent();
 	}
 
-	public boolean isCanceled( ) {
+	public boolean isCanceled() {
 		return status == TaskStatus.CANCELED;
 	}
 
-	public boolean isFinished( ) {
+	public boolean isFinished() {
 		return status == TaskStatus.FINISHED;
 	}
 }

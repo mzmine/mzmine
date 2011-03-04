@@ -47,6 +47,7 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -54,8 +55,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
+import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
 import net.sf.mzmine.util.Range;
 
@@ -154,10 +155,10 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		// Ratio between peaks
 		JPanel ratioPanel = new JPanel(new BorderLayout());
 		ratio = new JLabel("", SwingUtilities.LEFT);
-				ratio.setFont(ratioFont);
-				
-				ratio.setBackground(bg);
-				ratioPanel.add(ratio, BorderLayout.CENTER);
+		ratio.setFont(ratioFont);
+
+		ratio.setBackground(bg);
+		ratioPanel.add(ratio, BorderLayout.CENTER);
 
 		ratioPanel.setBackground(bg);
 		ratioPanel.setVisible(ratioVisible);
@@ -193,25 +194,24 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		listElementModel = new PeakSummaryTableModel();
 		peaksInfoList = new JTable();
 		peaksInfoList.setModel(listElementModel);
-		peaksInfoList
-				.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		peaksInfoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		peaksInfoList.setDefaultRenderer(Object.class,
 				new PeakSummaryTableCellRenderer());
-		
 
 		int countLines = 0, colorIndex = 0;
 		Color peakColor;
-		
+
 		for (ChromatographicPeak peak : peaks) {
-            // set color for current XIC
+			// set color for current XIC
 			if (peak != null) {
 				peakColor = CombinedXICComponent.plotColors[colorIndex];
 				listElementModel.addElement(peak, peakColor);
 				countLines++;
 			}
-            colorIndex = (colorIndex + 1) % CombinedXICComponent.plotColors.length;
+			colorIndex = (colorIndex + 1)
+					% CombinedXICComponent.plotColors.length;
 		}
-		
+
 		JPanel listPanel = new JPanel(new BorderLayout());
 		listPanel.add(new JScrollPane(peaksInfoList), BorderLayout.CENTER);
 		listPanel.add(peaksInfoList.getTableHeader(), BorderLayout.NORTH);
@@ -220,7 +220,6 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		Dimension d = calculatedTableDimension(peaksInfoList);
 		listPanel.setPreferredSize(d);
 
-		
 		tablePanel.add(Box.createVerticalStrut(5));
 		tablePanel.add(listPanel, BorderLayout.CENTER);
 		tablePanel.setBackground(bg);
@@ -278,7 +277,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		ratio.setForeground(ratioColor);
 		ratio.setText(text);
 	}
-	
+
 	/**
 	 * 
 	 * @param peaksInfoList
@@ -318,10 +317,11 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				if (c == 0) {
 					totalHeight += comp.getPreferredSize().height;
 				}
-				
+
 				// Consider max 10 rows
-				if (r == 8) break;
-				
+				if (r == 8)
+					break;
+
 			}
 			totalWidth += maxWidth;
 			column = peaksInfoList.getColumnModel().getColumn(c);
@@ -332,7 +332,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		// add 30x10 px for a scrollbar
 		totalWidth += 30;
 		totalHeight += 10;
-		
+
 		comp = headerRenderer.getTableCellRendererComponent(peaksInfoList,
 				model.getColumnName(0), false, false, 0, 0);
 		totalHeight += comp.getPreferredSize().height;
@@ -356,7 +356,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				selectedPeaks[i] = listElementModel.getElementAt(indexesRow[i]);
 				dataFiles[i] = selectedPeaks[i].getDataFile();
 
-				if (rtRange == null) {
+				if ((rtRange == null) || (mzRange == null)) {
 					rtRange = dataFiles[i].getDataRTRange(1);
 					mzRange = selectedPeaks[i].getRawDataPointsMZRange();
 				} else {
@@ -365,12 +365,13 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 							.getRawDataPointsMZRange());
 				}
 			}
-            
-            if (dataFiles.length == 0) return;
+
+			if (dataFiles.length == 0)
+				return;
 
 			if (visualizerType.equals("Chromatogram")) {
 				TICVisualizer.showNewTICVisualizerWindow(dataFiles,
-						selectedPeaks, selectedPeaks, 1, TICVisualizerParameters.plotTypeBP,
+						selectedPeaks, selectedPeaks, 1, PlotType.BASEPEAK,
 						rtRange, mzRange);
 				return;
 			} else if (visualizerType.equals("Mass spectrum")) {
@@ -383,15 +384,13 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 							.getRawDataPointsRTRange();
 					Range peakMZRange = selectedPeaks[i]
 							.getRawDataPointsMZRange();
-					Range localRTRange = new Range(Math.max(0, peakRTRange
-							.getMin()
-							- peakRTRange.getSize()), peakRTRange.getMax()
-							+ peakRTRange.getSize());
+					Range localRTRange = new Range(Math.max(0,
+							peakRTRange.getMin() - peakRTRange.getSize()),
+							peakRTRange.getMax() + peakRTRange.getSize());
 
-					Range localMZRange = new Range(Math.max(0, peakMZRange
-							.getMin()
-							- peakMZRange.getSize()), peakMZRange.getMax()
-							+ peakMZRange.getSize());
+					Range localMZRange = new Range(Math.max(0,
+							peakMZRange.getMin() - peakMZRange.getSize()),
+							peakMZRange.getMax() + peakMZRange.getSize());
 					TwoDVisualizer.show2DVisualizerSetupDialog(dataFiles[i],
 							localMZRange, localRTRange);
 				}
@@ -401,15 +400,13 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 							.getRawDataPointsRTRange();
 					Range peakMZRange = selectedPeaks[i]
 							.getRawDataPointsMZRange();
-					Range localRTRange = new Range(Math.max(0, peakRTRange
-							.getMin()
-							- peakRTRange.getSize()), peakRTRange.getMax()
-							+ peakRTRange.getSize());
+					Range localRTRange = new Range(Math.max(0,
+							peakRTRange.getMin() - peakRTRange.getSize()),
+							peakRTRange.getMax() + peakRTRange.getSize());
 
-					Range localMZRange = new Range(Math.max(0, peakMZRange
-							.getMin()
-							- peakMZRange.getSize()), peakMZRange.getMax()
-							+ peakMZRange.getSize());
+					Range localMZRange = new Range(Math.max(0,
+							peakMZRange.getMin() - peakMZRange.getSize()),
+							peakMZRange.getMax() + peakMZRange.getSize());
 					ThreeDVisualizer.show3DVisualizerSetupDialog(dataFiles[i],
 							localMZRange, localRTRange);
 				}
@@ -432,8 +429,16 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 			} else if (visualizerType.equals("Isotope pattern")) {
 				for (int i = 0; i < selectedPeaks.length; i++) {
-					//if (selectedPeaks[i] instanceof IsotopePattern)
-						// TODO SpectraVisualizer.showIsotopePattern(dataFiles[i],(IsotopePattern) selectedPeaks[i]);
+					IsotopePattern ip = selectedPeaks[i].getIsotopePattern();
+					if (ip == null)
+						return;
+					SpectraVisualizer
+							.showNewSpectrumWindow(
+									dataFiles[i],
+									selectedPeaks[i]
+											.getMostIntenseFragmentScanNumber(),
+									ip);
+
 				}
 			}
 			return;
@@ -441,7 +446,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
 		if (command.equals("CHANGE")) {
 			int indexRow = peaksInfoList.getSelectedRow();
-			if(indexRow == -1)
+			if (indexRow == -1)
 				return;
 			ChromatographicPeak selectedPeak = listElementModel
 					.getElementAt(indexRow);

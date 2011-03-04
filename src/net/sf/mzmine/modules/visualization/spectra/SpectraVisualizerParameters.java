@@ -19,19 +19,19 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import java.text.NumberFormat;
+
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class SpectraVisualizerParameters extends SimpleParameterSet {
 
-	public static final Parameter scanNumber = new SimpleParameter(
-			ParameterType.INTEGER, "Scan number", "Scan number", null, null, 1,
-			null);
+	public static final NumberParameter scanNumber = new NumberParameter(
+			"Scan number", "Scan number", NumberFormat.getIntegerInstance());
 
 	public SpectraVisualizerParameters() {
-		super(new Parameter[] { scanNumber });
+		super(new UserParameter[] { scanNumber });
 	}
 	
 }

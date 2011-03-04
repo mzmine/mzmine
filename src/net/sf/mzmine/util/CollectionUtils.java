@@ -61,8 +61,8 @@ public class CollectionUtils {
 	/**
 	 * Change the type of array of Objects to an array of objects of type
 	 * newClass.
-	 * 
-	 */
+	 * 	
+ */
 	@SuppressWarnings("unchecked")
 	public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
@@ -76,7 +76,7 @@ public class CollectionUtils {
 		}
 
 		return newArray.toArray((T[]) Array.newInstance(newClass, 0));
-	}
+	}	 	
 
 	/**
 	 * Returns an array of doubles consisting of the elements of the specified

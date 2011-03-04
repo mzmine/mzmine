@@ -22,19 +22,22 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
-public class CropFilter implements RawDataFilter {
+public class CropFilter implements ScanFilter {
 
-	private Range mzRange;
+	private CropFilterParameters parameters;
 
-	public CropFilter(CropFilterParameters parameters) {
-		mzRange = (Range) parameters
-				.getParameterValue(CropFilterParameters.mzRange);
+	public CropFilter() {
+		parameters = new CropFilterParameters(this);
 	}
 
 	public Scan filterScan(Scan scan) {
+
+		Range mzRange = parameters.getParameter(CropFilterParameters.mzRange)
+				.getValue();
 
 		// Check if whole m/z range is within cropping region or
 		// scan is a fragmentation scan. In such case we copy the
@@ -54,5 +57,14 @@ public class CropFilter implements RawDataFilter {
 
 		return newScan;
 
+	}
+
+	public String toString() {
+		return "Crop filter";
+	}
+	
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

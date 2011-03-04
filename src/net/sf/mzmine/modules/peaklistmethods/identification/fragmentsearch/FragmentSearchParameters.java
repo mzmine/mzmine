@@ -20,43 +20,33 @@ package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 
 public class FragmentSearchParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-	public static final Parameter rtTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"RT tolerance",
-			"Maximum allowed retention time difference to set a relationship between peaks",
-			null, new Double(10.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+	public static final MZToleranceParameter ms2mzTolerance = new MZToleranceParameter(
+			"m/z tolerance of MS2 data",
+			"Tolerance value of the m/z difference between peaks in MS/MS scans");
 
-	public static final Parameter ms2mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance of MS2 data",
-			"Tolerance value of the m/z difference between peaks in MS/MS scans", "m/z",
-			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter maxFragmentHeight = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter maxFragmentHeight = new NumberParameter(
 			"Max fragment peak height",
 			"Maximum height of the recognized fragment peak, relative to the main peak",
-			"%", new Double(0.20), new Double(0.0), null, percentFormat);
+			NumberFormat.getPercentInstance());
 
-	public static final Parameter minMS2peakHeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Min MS2 peak height",
-			"Minimum absolute intensity of the MS2 fragment peak", null,
-			new Double(100), new Double(0.0), null, MZmineCore
-					.getIntensityFormat());
+	public static final NumberParameter minMS2peakHeight = new NumberParameter(
+			"Min MS2 peak height",
+			"Minimum absolute intensity of the MS2 fragment peak",
+			MZmineCore.getIntensityFormat());
 
 	public FragmentSearchParameters() {
-		super(new Parameter[] { rtTolerance, ms2mzTolerance, maxFragmentHeight,
+		super(new UserParameter[] { rtTolerance, ms2mzTolerance, maxFragmentHeight,
 				minMS2peakHeight });
 	}
 

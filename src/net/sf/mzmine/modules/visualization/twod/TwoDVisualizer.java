@@ -25,17 +25,17 @@ import java.awt.event.KeyEvent;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -43,27 +43,20 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class TwoDVisualizer implements MZmineModule, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-    final String helpID = GUIUtils.generateHelpID(this);
+
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	private static TwoDVisualizer myInstance;
 
 	private TwoDParameters parameters;
 
-	private static PeakThresholdParameters peakThresholdParameters;
-
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public TwoDVisualizer() {
 
 		myInstance = this;
 
 		this.desktop = MZmineCore.getDesktop();
-
-		peakThresholdParameters = new PeakThresholdParameters();
 
 		parameters = new TwoDParameters();
 
@@ -90,28 +83,17 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
 	 */
 	public String toString() {
 		return "2D visualizer";
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (TwoDParameters) parameters;
-	}
-
-	static PeakThresholdParameters getThresholdParameters() {
-		return peakThresholdParameters;
 	}
 
 	public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
@@ -121,37 +103,38 @@ public class TwoDVisualizer implements MZmineModule, ActionListener {
 	public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
 			Range mzRange, Range rtRange) {
 
-		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		Hashtable<UserParameter, Object> autoValues = new Hashtable<UserParameter, Object>();
 		autoValues.put(TwoDParameters.msLevel, 1);
-		autoValues.put(TwoDParameters.retentionTimeRange, dataFile
-				.getDataRTRange(1));
+		autoValues.put(TwoDParameters.retentionTimeRange,
+				dataFile.getDataRTRange(1));
 		autoValues.put(TwoDParameters.mzRange, dataFile.getDataMZRange(1));
 
 		if (rtRange != null)
-			myInstance.parameters.setParameterValue(
-					TwoDParameters.retentionTimeRange, rtRange);
+			myInstance.parameters.getParameter(
+					TwoDParameters.retentionTimeRange).setValue(rtRange);
 		if (mzRange != null)
-			myInstance.parameters.setParameterValue(TwoDParameters.mzRange,
-					mzRange);
+			myInstance.parameters.getParameter(TwoDParameters.mzRange)
+					.setValue(mzRange);
 
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for 2D visualizer",
-				myInstance.parameters, autoValues, myInstance.helpID);
+		Integer msLevels[] = CollectionUtils.toIntegerArray(dataFile
+				.getMSLevels());
+		myInstance.parameters.getParameter(TwoDParameters.msLevel).setChoices(
+				msLevels);
 
-		dialog.setVisible(true);
+		ExitCode exitCode = myInstance.parameters.showSetupDialog(autoValues);
 
-		if (dialog.getExitCode() != ExitCode.OK)
+		if (exitCode != ExitCode.OK)
 			return;
 
-		int msLevel = (Integer) myInstance.parameters
-				.getParameterValue(TwoDParameters.msLevel);
-		rtRange = (Range) myInstance.parameters
-				.getParameterValue(TwoDParameters.retentionTimeRange);
-		mzRange = (Range) myInstance.parameters
-				.getParameterValue(TwoDParameters.mzRange);
+		int msLevel = myInstance.parameters
+				.getParameter(TwoDParameters.msLevel).getValue();
+		rtRange = myInstance.parameters.getParameter(
+				TwoDParameters.retentionTimeRange).getValue();
+		mzRange = myInstance.parameters.getParameter(TwoDParameters.mzRange)
+				.getValue();
 
 		TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
-				msLevel, rtRange, mzRange, peakThresholdParameters);
+				msLevel, rtRange, mzRange, myInstance.parameters);
 
 		MZmineCore.getDesktop().addInternalFrame(newWindow);
 

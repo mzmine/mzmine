@@ -23,12 +23,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -37,104 +37,86 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class IntensityPlot implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    final String helpID = GUIUtils.generateHelpID(this);
-    
-    private Desktop desktop;
-    
-    private IntensityPlotParameters parameters;
-    
-    private static IntensityPlot myInstance;
+	final String helpID = GUIUtils.generateHelpID(this);
 
+	private Desktop desktop;
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	private IntensityPlotParameters parameters;
 
-        this.desktop = MZmineCore.getDesktop();
+	private static IntensityPlot myInstance;
 
-        parameters = new IntensityPlotParameters();
+	public IntensityPlot() {
 
-        myInstance = this;
+		this.desktop = MZmineCore.getDesktop();
 
+		parameters = new IntensityPlotParameters();
 
-    }
-    
+		myInstance = this;
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	}
 
-        PeakList selectedAlignedPeakLists[] = desktop.getSelectedPeakLists();
-        if (selectedAlignedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single aligned peaklist");
-            return;
-        }
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
-            desktop.displayErrorMessage("Selected alignment result is empty");
-            return;
-        }
+		PeakList selectedAlignedPeakLists[] = desktop.getSelectedPeakLists();
+		if (selectedAlignedPeakLists.length != 1) {
+			desktop.displayErrorMessage("Please select a single aligned peaklist");
+			return;
+		}
 
-        logger.finest("Showing intensity plot setup dialog");
+		if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
+			desktop.displayErrorMessage("Selected alignment result is empty");
+			return;
+		}
 
-        if (selectedAlignedPeakLists[0] != parameters.getSourcePeakList()) {
-            parameters = new IntensityPlotParameters(
-                    selectedAlignedPeakLists[0]);
-        }
+		logger.finest("Showing intensity plot setup dialog");
 
-        IntensityPlotDialog setupDialog = new IntensityPlotDialog(
-                selectedAlignedPeakLists[0], parameters, helpID);
-        setupDialog.setVisible(true);
+		ExitCode exitCode = parameters.showSetupDialog();
 
-        if (setupDialog.getExitCode() == ExitCode.OK) {
-            logger.info("Opening new intensity plot");
-            IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
-            desktop.addInternalFrame(newFrame);
-        }
+		if (exitCode == ExitCode.OK) {
+			logger.info("Opening new intensity plot");
+			IntensityPlotFrame newFrame = new IntensityPlotFrame(
+					selectedAlignedPeakLists[0], parameters.clone());
+			desktop.addInternalFrame(newFrame);
+		}
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Peak intensity plot";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Peak intensity plot";
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public IntensityPlotParameters getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (IntensityPlotParameters) parameterValues;
-    }
+	public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
 
-    public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
+		myInstance.parameters
+				.getParameter(IntensityPlotParameters.selectedRows).setChoices(
+						peakList.getRows());
+		myInstance.parameters
+				.getParameter(IntensityPlotParameters.selectedRows).setValue(
+						rows);
+		ExitCode exitCode = myInstance.parameters.showSetupDialog();
 
-        IntensityPlotParameters newParameters = new IntensityPlotParameters(
-                peakList, myInstance.parameters.getXAxisValueSource(),
-                myInstance.parameters.getYAxisValueSource(),
-                peakList.getRawDataFiles(), rows);
-        IntensityPlotDialog setupDialog = new IntensityPlotDialog(peakList,
-                newParameters, myInstance.helpID);
-        setupDialog.setVisible(true);
-        if (setupDialog.getExitCode() == ExitCode.OK) {
-            myInstance.setParameters(newParameters);
-            Desktop desktop = MZmineCore.getDesktop();
-            IntensityPlotFrame newFrame = new IntensityPlotFrame(newParameters);
-            desktop.addInternalFrame(newFrame);
-        }
-    }
-    
+		if (exitCode == ExitCode.OK) {
+			// myInstance.setParameters(newParameters);
+			Desktop desktop = MZmineCore.getDesktop();
+			IntensityPlotFrame newFrame = new IntensityPlotFrame(peakList,
+					myInstance.parameters.clone());
+			desktop.addInternalFrame(newFrame);
+		}
+	}
 
 }

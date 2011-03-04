@@ -50,7 +50,7 @@ class ShapeModelerTask extends AbstractTask {
 	private String suffix;
 	private boolean removeOriginal;
 
-	private String shapeModelerType;
+	private ShapeModel shapeModelerType;
 	private double resolution;
 
 	private SimplePeakList newPeakList;
@@ -62,15 +62,14 @@ class ShapeModelerTask extends AbstractTask {
 		this.originalPeakList = peakList;
 		this.parameters = parameters;
 
-		shapeModelerType = (String) parameters
-				.getParameterValue(ShapeModelerParameters.shapeModelerType);
-		suffix = (String) parameters
-				.getParameterValue(ShapeModelerParameters.suffix);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(ShapeModelerParameters.autoRemove);
-		int value = (Integer) parameters
-				.getParameterValue(ShapeModelerParameters.massResolution);
-		resolution = value;
+		shapeModelerType = parameters.getParameter(
+				ShapeModelerParameters.shapeModelerType).getValue();
+		suffix = parameters.getParameter(ShapeModelerParameters.suffix)
+				.getValue();
+		removeOriginal = parameters.getParameter(
+				ShapeModelerParameters.autoRemove).getValue();
+		resolution = parameters.getParameter(
+				ShapeModelerParameters.massResolution).getInt();
 
 	}
 
@@ -93,35 +92,11 @@ class ShapeModelerTask extends AbstractTask {
 
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
-		// Create shape model
-		String[] shapeModelTypes = ShapeModelerParameters.shapeModelerNames;
-		int index = -1;
-		for (int i = 0; i < shapeModelTypes.length; i++) {
-			if (shapeModelerType.equals(shapeModelTypes[i]))
-				index = i;
-		}
-
-		if (index < 0) {
-			errorMessage = "Error trying to get class name of shape model ";
-			setStatus( TaskStatus.ERROR );
-			return;
-		}
-
-		String shapeModelClassName = ShapeModelerParameters.shapeModelerClasses[index];
+		Class shapeModelClass = shapeModelerType.getModelClass();
 		Constructor shapeModelConstruct;
-
-		try {
-			Class shapeModelClass = Class.forName(shapeModelClassName);
-			shapeModelConstruct = shapeModelClass.getConstructors()[0];
-
-		} catch (Exception e) {
-			errorMessage = "Error trying to get constructor of shape model "
-					+ shapeModelClassName;
-			setStatus( TaskStatus.ERROR );
-			return;
-		}
+		shapeModelConstruct = shapeModelClass.getConstructors()[0];
 
 		// Get data file information
 		RawDataFile dataFile = originalPeakList.getRawDataFile(0);
@@ -137,7 +112,7 @@ class ShapeModelerTask extends AbstractTask {
 
 		for (PeakListRow row : originalPeakList.getRows()) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			newRow = new SimplePeakListRow(newPeakID);
@@ -170,8 +145,8 @@ class ShapeModelerTask extends AbstractTask {
 				}
 
 			} catch (Exception e) {
-				String message = "Error trying to make an instance of Peak Builder "
-						+ shapeModelClassName;
+				String message = "Error trying to make an instance of shape model class "
+						+ shapeModelClass;
 				MZmineCore.getDesktop().displayErrorMessage(message);
 				logger.severe(message);
 				return;
@@ -204,7 +179,7 @@ class ShapeModelerTask extends AbstractTask {
 		logger.finest("Finished peak shape modeler " + processedRows
 				+ " rows processed");
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 

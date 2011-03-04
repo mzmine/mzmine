@@ -26,7 +26,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.MzPeaksDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithScanPreview;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -45,8 +45,7 @@ public class MassDetectorSetupDialog extends
 	 */
 	public MassDetectorSetupDialog(MassDetector massDetector) {
 
-		super(massDetector.getName() + "'s parameter setup dialog ",
-				massDetector.getParameters(), null);
+		super(massDetector.getParameterSet(), null);
 
 		this.massDetector = massDetector;
 

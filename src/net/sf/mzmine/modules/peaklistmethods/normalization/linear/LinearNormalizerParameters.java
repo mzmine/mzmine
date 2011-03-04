@@ -19,55 +19,33 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.linear;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.PeakMeasurementType;
 
-/**
- * 
- */
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
-    public static final String NormalizationTypeAverageIntensity = "Average intensity";
-    public static final String NormalizationTypeAverageSquaredIntensity = "Average squared intensity";
-    public static final String NormalizationTypeMaximumPeakHeight = "Maximum peak intensity";
-    public static final String NormalizationTypeTotalRawSignal = "Total raw signal";
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
-    public static final Object[] normalizationTypePossibleValues = {
-            NormalizationTypeAverageIntensity,
-            NormalizationTypeAverageSquaredIntensity,
-            NormalizationTypeMaximumPeakHeight, NormalizationTypeTotalRawSignal };
+	public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
+			"Normalization type", "Normalize intensities by...",
+			NormalizationType.values());
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "normalized", null);
+	public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+			"Peak measurement type", "Measure peaks using",
+			PeakMeasurementType.values());
 
-    public static final Parameter normalizationType = new SimpleParameter(
-            ParameterType.STRING, "Normalization type",
-            "Normalize intensities by...", NormalizationTypeAverageIntensity,
-            normalizationTypePossibleValues);
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, original peak list will be removed and only normalized version remains");
 
-    public static final String PeakMeasurementTypeHeight = "Peak height";
-    public static final String PeakMeasurementTypeArea = "Peak area";
-
-    public static final Object[] PeakMeasurementTypePossibleValues = {
-            PeakMeasurementTypeHeight, PeakMeasurementTypeArea };
-
-    public static final Parameter peakMeasurementType = new SimpleParameter(
-            ParameterType.STRING, "Peak measurement type",
-            "Measure peaks using", PeakMeasurementTypeHeight,
-            PeakMeasurementTypePossibleValues);
-
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peak list",
-            "If checked, original peak list will be removed and only normalized version remains",
-            new Boolean(true));
-
-    public LinearNormalizerParameters() {
-        super(new Parameter[] { suffix, normalizationType, peakMeasurementType,
-                autoRemove });
-    }
+	public LinearNormalizerParameters() {
+		super(new UserParameter[] { suffix, normalizationType, peakMeasurementType,
+				autoRemove });
+	}
 
 }

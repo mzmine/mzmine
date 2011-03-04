@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.data.impl;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakListAppliedMethod;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class SimplePeakListAppliedMethod implements PeakListAppliedMethod {
 

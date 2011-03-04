@@ -32,6 +32,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.Range;
 
 class RowsFilterTask extends AbstractTask {
 
@@ -45,7 +46,7 @@ class RowsFilterTask extends AbstractTask {
 	// Method parameters
 	private int minPresent, minIsotopePatternSize;
 	private String suffix;
-	private double minMZ, maxMZ, minRT, maxRT;
+	private Range mzRange, rtRange;
 	private boolean identified, removeOriginal;
 	private RowsFilterParameters parameters;
 
@@ -54,24 +55,20 @@ class RowsFilterTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		suffix = (String) parameters
-				.getParameterValue(RowsFilterParameters.suffix);
-		minPresent = (Integer) parameters
-				.getParameterValue(RowsFilterParameters.minPeaks);
-		minIsotopePatternSize = (Integer) parameters
-				.getParameterValue(RowsFilterParameters.minIsotopePatternSize);
-		minMZ = (Double) parameters
-				.getParameterValue(RowsFilterParameters.minMZ);
-		maxMZ = (Double) parameters
-				.getParameterValue(RowsFilterParameters.maxMZ);
-		minRT = (Double) parameters
-				.getParameterValue(RowsFilterParameters.minRT);
-		maxRT = (Double) parameters
-				.getParameterValue(RowsFilterParameters.maxRT);
-		identified = (Boolean) parameters
-				.getParameterValue(RowsFilterParameters.identified);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(RowsFilterParameters.autoRemove);
+		suffix = parameters.getParameter(RowsFilterParameters.suffix)
+				.getValue();
+		minPresent = parameters.getParameter(RowsFilterParameters.minPeaks)
+				.getInt();
+		minIsotopePatternSize = parameters.getParameter(
+				RowsFilterParameters.minIsotopePatternSize).getInt();
+		mzRange = parameters.getParameter(RowsFilterParameters.mzRange)
+				.getValue();
+		rtRange = parameters.getParameter(RowsFilterParameters.rtRange)
+				.getValue();
+		identified = parameters.getParameter(RowsFilterParameters.identified)
+				.getValue();
+		removeOriginal = parameters.getParameter(
+				RowsFilterParameters.autoRemove).getValue();
 
 	}
 
@@ -87,7 +84,7 @@ class RowsFilterTask extends AbstractTask {
 
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Running peak list rows filter");
 
 		totalRows = peakList.getNumberOfRows();
@@ -100,7 +97,7 @@ class RowsFilterTask extends AbstractTask {
 		// Copy rows with enough peaks to new alignment result
 		for (PeakListRow row : peakList.getRows()) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			boolean rowIsGood = true;
@@ -109,9 +106,9 @@ class RowsFilterTask extends AbstractTask {
 				rowIsGood = false;
 			if ((identified) && (row.getPreferredPeakIdentity() == null))
 				rowIsGood = false;
-			if ((row.getAverageMZ() > maxMZ) || (row.getAverageMZ() < minMZ))
+			if (!mzRange.contains(row.getAverageMZ()))
 				rowIsGood = false;
-			if ((row.getAverageRT() > maxRT) || (row.getAverageRT() < minRT))
+			if (!rtRange.contains(row.getAverageRT()))
 				rowIsGood = false;
 
 			int maxIsotopePatternSizeOnRow = 1;
@@ -152,7 +149,7 @@ class RowsFilterTask extends AbstractTask {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished peak list rows filter");
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 

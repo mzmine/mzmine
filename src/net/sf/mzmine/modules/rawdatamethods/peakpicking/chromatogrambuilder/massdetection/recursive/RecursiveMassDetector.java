@@ -24,22 +24,20 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class RecursiveMassDetector implements MassDetector {
 
-	private RecursiveMassDetectorParameters parameters;
+	private ParameterSet parameters;
 	// Parameter values
 	private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
 	private TreeSet<MzPeak> mzPeaks;
 	private DataPoint[] dataPoints;
-
-	// private Scan scan;
 
 	public RecursiveMassDetector() {
 		parameters = new RecursiveMassDetectorParameters();
@@ -47,14 +45,13 @@ public class RecursiveMassDetector implements MassDetector {
 
 	public MzPeak[] getMassValues(Scan scan) {
 
-		noiseLevel = (Double) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.noiseLevel);
-		minimumMZPeakWidth = (Double) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.minimumMZPeakWidth);
-		maximumMZPeakWidth = (Double) parameters
-				.getParameterValue(RecursiveMassDetectorParameters.maximumMZPeakWidth);
+		noiseLevel = parameters.getParameter(
+				RecursiveMassDetectorParameters.noiseLevel).getDouble();
+		minimumMZPeakWidth = parameters.getParameter(
+				RecursiveMassDetectorParameters.minimumMZPeakWidth).getDouble();
+		maximumMZPeakWidth = parameters.getParameter(
+				RecursiveMassDetectorParameters.maximumMZPeakWidth).getDouble();
 
-		// this.scan = scan;
 		dataPoints = scan.getDataPoints();
 		mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(SortingProperty.MZ,
 				SortingDirection.Ascending));
@@ -153,16 +150,13 @@ public class RecursiveMassDetector implements MassDetector {
 
 	}
 
-	public String getName() {
+	public String toString() {
 		return "Recursive threshold";
 	}
 
-	public SimpleParameterSet getParameters() {
+	@Override
+	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	public String toString() {
-		return getName();
-	}
-	
 }

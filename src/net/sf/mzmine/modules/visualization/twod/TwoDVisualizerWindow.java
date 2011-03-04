@@ -45,8 +45,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 	private boolean tooltipMode;
 
 	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
-			Range rtRange, Range mzRange,
-			PeakThresholdParameters peakThresholdParameters) {
+			Range rtRange, Range mzRange, TwoDParameters parameters) {
 
 		super(dataFile.toString(), true, true, true, true);
 
@@ -66,18 +65,15 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
 		add(twoDPlot, BorderLayout.CENTER);
 
-		bottomPanel = new TwoDBottomPanel(this, dataFile,
-				peakThresholdParameters);
+		bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
 		add(bottomPanel, BorderLayout.SOUTH);
 
 		updateTitle();
 
-
 		// After we have constructed everything, load the peak lists into the
 		// bottom panel
 		bottomPanel.rebuildPeakListSelector();
-		bottomPanel.buildPeakThresholdSelector();
-		
+
 		pack();
 	}
 
@@ -110,11 +106,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
 		if (command.equals("SHOW_DATA_POINTS")) {
 			twoDPlot.switchDataPointsVisible();
-		}
-
-		if (command.equals("PEAKLIST_CHANGE") || command.equals("PEAKS_VIEW_THRESHOLD")) {
-
-			setPeakThreshold();
 		}
 
 		if (command.equals("SETUP_AXES")) {
@@ -156,34 +147,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		}
 	}
 
-	private void setPeakThreshold() {
-		toolBar.toggleContinuousModeButtonSetEnable(true);
-
-		String selectedPeakThreshold = bottomPanel.getPeaksSelectedThreshold();
-		if (selectedPeakThreshold == null) {
-			return;
-		}
-
-		if (selectedPeakThreshold.equals(PeakThresholdMode.NO_PEAKS.getName())) {
-			bottomPanel.peakTextFieldSetVisible(false);
-			toolBar.toggleContinuousModeButtonSetEnable(false);
-			twoDPlot.setPeaksNotVisible();
-		}
-		if (selectedPeakThreshold.equals(PeakThresholdMode.ALL_PEAKS.getName())) {
-			bottomPanel.peakTextFieldSetVisible(false);
-		}
-		if (selectedPeakThreshold.equals(PeakThresholdMode.ABOVE_INTENSITY_PEAKS.getName()) || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS.getName()) || selectedPeakThreshold.equals(PeakThresholdMode.TOP_PEAKS_AREA.getName())) {
-			bottomPanel.peakTextFieldSetVisible(true);
-		}
-
-		PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-		if (selectedPeakList == null) {
-			return;
-		}
-		twoDPlot.loadPeakList(selectedPeakList);
-
-		bottomPanel.revalidate();
-	}
 
 	TwoDPlot getPlot() {
 		return twoDPlot;

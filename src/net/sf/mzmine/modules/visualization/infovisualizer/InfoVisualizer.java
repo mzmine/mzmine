@@ -25,27 +25,19 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class InfoVisualizer implements MZmineModule, ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Desktop desktop;
+    public InfoVisualizer() {
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
-
-        this.desktop = MZmineCore.getDesktop();
-
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list info",
+        MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST, "Peak list info",
                 "Visualization of peak list information", KeyEvent.VK_I, false,
                 this, null);
 
@@ -59,22 +51,22 @@ public class InfoVisualizer implements MZmineModule, ActionListener {
 
         logger.finest("Opening peak list info window");
 
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
+        PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
 
         if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select at least one peak list");
+        	MZmineCore.getDesktop().displayErrorMessage("Please select at least one peak list");
             return;
         }
         
         for (PeakList peakList: peakLists){
         	InfoWindow newWindow = new InfoWindow(peakList);
-            desktop.addInternalFrame(newWindow);
+        	MZmineCore.getDesktop().addInternalFrame(newWindow);
         }
         
     }
 
     /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
+     * @see net.sf.mzmine.modules.MZmineModule#toString()
      */
     public String toString() {
         return "Peak list info window";

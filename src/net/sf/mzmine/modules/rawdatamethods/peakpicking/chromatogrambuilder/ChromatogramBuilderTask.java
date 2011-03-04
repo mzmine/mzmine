@@ -27,9 +27,10 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massconnection.MassConnector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.MassFilter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -49,6 +50,8 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
 	// User parameters
 	private String suffix;
+	private MZTolerance mzTolerance;
+	private double minimumTimeSpan, minimumHeight;
 
 	// Mass detector
 	private MassDetector massDetector;
@@ -56,25 +59,29 @@ public class ChromatogramBuilderTask extends AbstractTask {
 	// Mass filter
 	private MassFilter massFilter;
 
-	// Mass connector
-	private MassConnector massConnector;
-
 	private SimplePeakList newPeakList;
 
 	/**
 	 * @param dataFile
 	 * @param parameters
 	 */
-	public ChromatogramBuilderTask(RawDataFile dataFile,
-			ChromatogramBuilderParameters parameters) {
+	public ChromatogramBuilderTask(RawDataFile dataFile, ParameterSet parameters) {
 
 		this.dataFile = dataFile;
 
-		this.massDetector = parameters.getMassDetector();
-		this.massFilter = parameters.getMassFilter();
-		this.massConnector = parameters.getMassConnector();
+		this.massDetector = parameters.getParameter(
+				ChromatogramBuilderParameters.massDetector).getValue();
+		this.massFilter = parameters.getParameter(
+				ChromatogramBuilderParameters.massFilter).getValue();
+		this.mzTolerance = parameters.getParameter(
+				ChromatogramBuilderParameters.mzTolerance).getValue();
+		this.minimumTimeSpan = parameters.getParameter(
+				ChromatogramBuilderParameters.minimumTimeSpan).getDouble();
+		this.minimumHeight = parameters.getParameter(
+				ChromatogramBuilderParameters.minimumHeight).getDouble();
 
-		suffix = parameters.getSuffix();
+		this.suffix = parameters.getParameter(
+				ChromatogramBuilderParameters.suffix).getValue();
 
 	}
 
@@ -104,7 +111,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Started chromatogram builder on " + dataFile);
 
@@ -116,10 +123,12 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
 		MzPeak[] mzValues;
 		Chromatogram[] chromatograms;
+		HighestDataPointConnector massConnector = new HighestDataPointConnector(
+				minimumTimeSpan, minimumHeight, mzTolerance);
 
 		for (int i = 0; i < totalScans; i++) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			Scan scan = dataFile.getScan(scanNumbers[i]);
@@ -147,7 +156,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 		MZmineProject currentProject = MZmineCore.getCurrentProject();
 		currentProject.addPeakList(newPeakList);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished chromatogram builder on " + dataFile);
 

@@ -19,61 +19,49 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "filtered", null);
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "filtered");
 
-    public static final Parameter minPeaks = new SimpleParameter(
-            ParameterType.INTEGER, "Minimum peaks in a row",
-            "Minimum number of peak detections required to select a row",
-            "peaks", new Integer(1), new Integer(1), null);
+	public static final NumberParameter minPeaks = new NumberParameter(
+			"Minimum peaks in a row",
+			"Minimum number of peak detections required to select a row",
+			NumberFormat.getIntegerInstance());
 
-    public static final Parameter minIsotopePatternSize = new SimpleParameter(
-            ParameterType.INTEGER, "Minimum peaks in an isotope pattern",
-            "Minimum number of peaks required in an isotope pattern",
-            "peaks", new Integer(1), new Integer(1), null);    
-    
-    public static final Parameter minMZ = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum m/z",
-            "Minimum average m/z value of a row", "m/z", 0d,
-            MZmineCore.getMZFormat());
+	public static final NumberParameter minIsotopePatternSize = new NumberParameter(
+			"Minimum peaks in an isotope pattern",
+			"Minimum number of peaks required in an isotope pattern",
+			NumberFormat.getIntegerInstance());
 
-    public static final Parameter maxMZ = new SimpleParameter(
-            ParameterType.DOUBLE, "Maximum m/z",
-            "Maximum average m/z value of a row", "m/z", 0d,
-            MZmineCore.getMZFormat());
+	public static final RangeParameter mzRange = new RangeParameter(
+			"m/z range", "Range of allowed m/z values",
+			MZmineCore.getMZFormat());
 
-    public static final Parameter minRT = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum retention time",
-            "Maximum average retention time of a row", null, 0d,
-            MZmineCore.getRTFormat());
+	public static final RangeParameter rtRange = new RangeParameter(
+			"Retention time range", "Maximum average retention time of a row",
+			MZmineCore.getRTFormat());
 
-    public static final Parameter maxRT = new SimpleParameter(
-            ParameterType.DOUBLE, "Maximum retention time",
-            "Maximum average retention time of a row", null, 0d,
-            MZmineCore.getRTFormat());
+	public static final BooleanParameter identified = new BooleanParameter(
+			"Only identified?", "Select to filter only identified compounds");
 
-    public static final Parameter identified = new SimpleParameter(
-            ParameterType.BOOLEAN, "Only identified?",
-            "Select to filter only identified compounds");
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove source peak list after filtering",
+			"If checked, original peak list will be removed and only filtered version remains");
 
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove source peak list after filtering",
-            "If checked, original peak list will be removed and only filtered version remains",
-            new Boolean(true));
-
-    public RowsFilterParameters() {
-        super(new Parameter[] { suffix, minPeaks, minIsotopePatternSize, minMZ, maxMZ, minRT, maxRT,
-                identified, autoRemove });
-    }
+	public RowsFilterParameters() {
+		super(new UserParameter[] { suffix, minPeaks, minIsotopePatternSize,
+				mzRange, rtRange, identified, autoRemove });
+	}
 
 }

@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
 import javax.swing.JInternalFrame;
@@ -24,23 +25,24 @@ import javax.swing.JTable;
 
 public class ClusteringReportWindow extends JInternalFrame {
 
-        private JTable table;
+	private JTable table;
 
-        public ClusteringReportWindow(String[] samplesOrVariables, Integer[] clusteringData, String title) {
-                super(title, true, true, true, true);
-                String[] columnNames = {"Variables", "Cluster number"};
-                Object[][] data = new Object[samplesOrVariables.length][2];
-                for (int i = 0; i < samplesOrVariables.length; i++) {
-                        data[i][0] = samplesOrVariables[i];
-                        data[i][1] = clusteringData[i];
-                }
+	public ClusteringReportWindow(String[] samplesOrVariables,
+			Integer[] clusteringData, String title) {
+		super(title, true, true, true, true);
+		String[] columnNames = { "Variables", "Cluster number" };
+		Object[][] data = new Object[samplesOrVariables.length][2];
+		for (int i = 0; i < samplesOrVariables.length; i++) {
+			data[i][0] = samplesOrVariables[i];
+			data[i][1] = clusteringData[i];
+		}
 
-                table = new JTable(data, columnNames);
+		table = new JTable(data, columnNames);
 
-                JScrollPane scrollPane = new JScrollPane(table);
-                table.setFillsViewportHeight(true);
-                this.add(scrollPane);
+		JScrollPane scrollPane = new JScrollPane(table);
+		table.setFillsViewportHeight(true);
+		this.add(scrollPane);
 
-                pack();
-        }
+		pack();
+	}
 }

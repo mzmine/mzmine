@@ -24,22 +24,22 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 
-public class MeanFilter implements RawDataFilter {
+public class MeanFilter implements ScanFilter {
 
-	private double oneSidedWindowLength;
+	private MeanFilterParameters parameters;
 
-	public MeanFilter(MeanFilterParameters parameters) {
-		oneSidedWindowLength = ((Double) parameters.getParameterValue(MeanFilterParameters.oneSidedWindowLength)).doubleValue();
+	public MeanFilter() {
+		parameters = new MeanFilterParameters(this);
 	}
 
-	public Scan filterScan(Scan scan) {
-		return processOneScan(scan, oneSidedWindowLength);
-	}
+	public Scan filterScan(Scan sc) {
 
-	private Scan processOneScan(Scan sc,
-			double windowLength) {
+		double windowLength = parameters.getParameter(
+				MeanFilterParameters.oneSidedWindowLength).getDouble();
+
 		if (sc.getMSLevel() != 1) {
 			return sc;
 		}
@@ -78,7 +78,8 @@ public class MeanFilter implements RawDataFilter {
 
 			// Add new elements as long as their m/z values are less than the hi
 			// limit
-			while ((addi < oldDataPoints.length) && (oldDataPoints[addi].getMZ() <= hiLimit)) {
+			while ((addi < oldDataPoints.length)
+					&& (oldDataPoints[addi].getMZ() <= hiLimit)) {
 				massWindow.add(oldDataPoints[addi].getMZ());
 				intensityWindow.add(oldDataPoints[addi].getIntensity());
 				addi++;
@@ -89,18 +90,28 @@ public class MeanFilter implements RawDataFilter {
 				elSum += ((Double) (intensityWindow.get(j))).doubleValue();
 			}
 
-			newDataPoints[i] = new SimpleDataPoint(currentMass, elSum / (double) intensityWindow.size());
+			newDataPoints[i] = new SimpleDataPoint(currentMass, elSum
+					/ (double) intensityWindow.size());
 
 		}
 
 		// Create filtered scan
 		Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
 				sc.getMSLevel(), sc.getRetentionTime(),
-				sc.getParentScanNumber(), sc.getPrecursorMZ(), sc.getPrecursorCharge(),
-				sc.getFragmentScanNumbers(), newDataPoints, true);
-
+				sc.getParentScanNumber(), sc.getPrecursorMZ(),
+				sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
+				newDataPoints, true);
 
 		return newScan;
 
+	}
+
+	public String toString() {
+		return "Mean filter";
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

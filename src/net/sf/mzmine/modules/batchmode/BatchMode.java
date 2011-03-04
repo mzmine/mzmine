@@ -24,92 +24,81 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * Batch mode module
  */
-public class BatchMode implements MZmineModule, 
-        ActionListener {
+public class BatchMode implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    private BatchQueue currentBatchConfiguration;
+	private BatchQueue currentBatchConfiguration;
 
-    private RawDataFile selectedDataFiles[];
-    private PeakList selectedPeakLists[];
+	private RawDataFile selectedDataFiles[];
+	private PeakList selectedPeakLists[];
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	/**
+	 */
+	public BatchMode() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        currentBatchConfiguration = new BatchQueue();
+		currentBatchConfiguration = new BatchQueue();
 
-        desktop.addMenuItem(MZmineMenu.PROJECT, "Run batch...",
-                "Configure and run a batch of tasks", KeyEvent.VK_B, true,
-                this, null);
+		desktop.addMenuItem(MZmineMenu.PROJECT, "Run batch...",
+				"Configure and run a batch of tasks", KeyEvent.VK_B, true,
+				this, null);
 
-    }
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        logger.finest("Showing batch mode setup dialog");
+		logger.finest("Showing batch mode setup dialog");
 
-        BatchModeDialog setupDialog = new BatchModeDialog(
-				currentBatchConfiguration);
-        setupDialog.setVisible(true);
+		ExitCode exitCode = currentBatchConfiguration.showSetupDialog();
 
-        if (setupDialog.getExitCode() == ExitCode.OK) {
-            
-        	BatchQueue newBatchRun = currentBatchConfiguration.clone();
+		if (exitCode == ExitCode.OK) {
 
-            selectedDataFiles = desktop.getSelectedDataFiles();
-            selectedPeakLists = desktop.getSelectedPeakLists();
+			BatchQueue newBatchRun = currentBatchConfiguration.clone();
 
-            BatchTask newTask = new BatchTask(newBatchRun, selectedDataFiles,
+			selectedDataFiles = desktop.getSelectedDataFiles();
+			selectedPeakLists = desktop.getSelectedPeakLists();
+
+			BatchTask newTask = new BatchTask(newBatchRun, selectedDataFiles,
 					selectedPeakLists);
 
 			MZmineCore.getTaskController().addTask(newTask, TaskPriority.HIGH);
 
-        }
+		}
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Batch mode";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Batch mode";
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return currentBatchConfiguration;
-    }
-
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameters) {
-    	currentBatchConfiguration = (BatchQueue) parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return currentBatchConfiguration;
+	}
 
 }

@@ -23,14 +23,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -38,26 +39,22 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class ChromatogramBuilder implements BatchStep, ActionListener {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	private ChromatogramBuilderParameters parameters;
 
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public ChromatogramBuilder() {
 
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new ChromatogramBuilderParameters();
 
-		desktop
-				.addMenuItem(
-						MZmineMenu.PEAKPICKING,
-						"Chromatogram builder",
-						"Chromatogram construction by detecting masses in each m/z spectrum and connecting following masses together",
-						KeyEvent.VK_C, true, this, null);
+		desktop.addMenuItem(
+				MZmineMenu.PEAKPICKING,
+				"Chromatogram builder",
+				"Chromatogram construction by detecting masses in each m/z spectrum and connecting following masses together",
+				KeyEvent.VK_C, true, this, null);
 	}
 
 	/**
@@ -71,11 +68,36 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 			return;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+
 		if (exitCode != ExitCode.OK)
 			return;
 
-		runModule(dataFiles, null, parameters);
+		boolean centroid = false;
+		for (RawDataFile file : dataFiles) {
+			int scanNums[] = file.getScanNumbers();
+			for (int scanNum : scanNums) {
+				Scan s = file.getScan(scanNum);
+				if (s.isCentroided())
+					centroid = true;
+			}
+		}
+
+		String massDetectorName = parameters
+				.getParameter(ChromatogramBuilderParameters.massDetector)
+				.getValue().toString();
+
+		if ((centroid) && (!massDetectorName.startsWith("Centroid"))) {
+			desktop.displayMessage("One or more selected files contains centroided data points."
+					+ " The actual mass detector could give an unexpected result");
+		}
+
+		if ((!centroid) && (massDetectorName.startsWith("Centroid"))) {
+			desktop.displayMessage("Neither one of the selected files contains centroided data points."
+					+ " The actual mass detector could give an unexpected result");
+		}
+
+		runModule(dataFiles, null, parameters.clone());
 
 	}
 
@@ -89,23 +111,12 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ChromatogramBuilderSetupDialog dialog = new ChromatogramBuilderSetupDialog(
-				"Please set parameter values for " + toString(),
-				(ChromatogramBuilderParameters) parameters, helpID);
-			dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
-	}
-
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ChromatogramBuilderParameters) parameters;
 	}
 
 	/**
@@ -119,8 +130,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 			ParameterSet parameters) {
 		// check data files
 		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select data files for peak picking");
+			desktop.displayErrorMessage("Please select data files for peak picking");
 			return null;
 		}
 
@@ -128,7 +138,7 @@ public class ChromatogramBuilder implements BatchStep, ActionListener {
 		Task tasks[] = new ChromatogramBuilderTask[dataFiles.length];
 		for (int i = 0; i < dataFiles.length; i++) {
 			tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
-					(ChromatogramBuilderParameters) parameters.clone());
+					parameters.clone());
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

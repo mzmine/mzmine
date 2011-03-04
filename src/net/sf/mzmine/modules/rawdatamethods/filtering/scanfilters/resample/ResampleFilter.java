@@ -23,22 +23,27 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
-public class ResampleFilter implements RawDataFilter {
+public class ResampleFilter implements ScanFilter {
 
-	private double binSize;
+	private ResampleFilterParameters parameters;
 
-	public ResampleFilter(ResampleFilterParameters parameters) {
-		binSize = (Double) parameters.getParameterValue(ResampleFilterParameters.binSize);
+	public ResampleFilter() {
+		parameters = new ResampleFilterParameters(this);
 	}
 
 	public Scan filterScan(Scan scan) {
 
+		double binSize = parameters.getParameter(
+				ResampleFilterParameters.binSize).getDouble();
+
 		Range mzRange = scan.getMZRange();
-		int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange.getMin()) / binSize);
+		int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange
+				.getMin()) / binSize);
 		if (numberOfBins == 0) {
 			numberOfBins++;
 		}
@@ -52,9 +57,8 @@ public class ResampleFilter implements RawDataFilter {
 			y[i] = dps[i].getIntensity();
 		}
 		// the new intensity values
-		double[] newY = ScanUtils.binValues(x, y, mzRange,
-				numberOfBins, !scan.isCentroided(),
-				ScanUtils.BinningType.AVG);
+		double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins,
+				!scan.isCentroided(), ScanUtils.BinningType.AVG);
 		SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
 
 		// set the new m/z value in the middle of the bin
@@ -71,5 +75,14 @@ public class ResampleFilter implements RawDataFilter {
 		newScan.setCentroided(true);
 
 		return newScan;
+	}
+
+	public String toString() {
+		return "Resampling filter";
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

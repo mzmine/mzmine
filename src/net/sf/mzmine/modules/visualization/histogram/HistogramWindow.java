@@ -31,8 +31,6 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
-import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramPlotDataset;
 import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JInternalFrame {
@@ -44,14 +42,11 @@ public class HistogramWindow extends JInternalFrame {
         super(null, true, true, true, true);
         this.setTitle("Histogram of " + peakList.toString());
 
-        Object dataFileObjects[] = (Object[]) parameters.getParameterValue(HistogramParameters.dataFiles);
-        RawDataFile rawDataFiles[] = new RawDataFile[dataFileObjects.length];
-        for (int i = 0; i < dataFileObjects.length; i++)
-            rawDataFiles[i] = (RawDataFile) dataFileObjects[i];
+        RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();
 
-        HistogramDataType dataType = (HistogramDataType) parameters.getParameterValue(HistogramParameters.dataType);
-        int numOfBins = (Integer) parameters.getParameterValue(HistogramParameters.numOfBins);
-        Range range = (Range) parameters.getParameterValue(HistogramParameters.rangeData);
+        HistogramDataType dataType = parameters.getParameter(HistogramParameters.dataRange).getType();
+        int numOfBins =  parameters.getParameter(HistogramParameters.numOfBins).getInt();
+        Range range = parameters.getParameter(HistogramParameters.dataRange).getValue();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);

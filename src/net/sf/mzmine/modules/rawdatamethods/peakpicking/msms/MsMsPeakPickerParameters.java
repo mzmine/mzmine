@@ -19,29 +19,28 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.msms;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
 
-	public static final Parameter mzWindow = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z window", "m/z window for peak search",
-			"m/z", new Double(1.0), null, null, MZmineCore.getMZFormat());
+	public static final NumberParameter mzWindow = new NumberParameter(
+			"m/z window", "m/z window for peak search",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter rtWindow = new SimpleParameter(
-			ParameterType.DOUBLE, "Time window",
-			"Time window", null, new Double(1.0),
-			new Double(0), null, MZmineCore.getRTFormat());
-	
-	public static final Parameter msLevel = new SimpleParameter(
-			ParameterType.INTEGER, "MS level", "MS level of scans to use for search",
-			"", new Integer(2), null, null, null);
-	
+	public static final NumberParameter rtWindow = new NumberParameter(
+			"Time window", "Time window", MZmineCore.getRTFormat());
+
+	public static final NumberParameter msLevel = new NumberParameter(
+			"MS level", "MS level of scans to use for search",
+			NumberFormat.getIntegerInstance(), 1);
+
 	public MsMsPeakPickerParameters() {
-		super(new Parameter[] { mzWindow, rtWindow, msLevel });
+		super(new UserParameter[] { mzWindow, rtWindow, msLevel });
 	}
 
 }

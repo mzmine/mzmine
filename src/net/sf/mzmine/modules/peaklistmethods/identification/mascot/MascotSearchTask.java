@@ -292,6 +292,8 @@ public class MascotSearchTask extends AbstractTask {
                 ioe.printStackTrace();
             }
 
+            assert mdf != null;
+            
             QueryToPeptideMap queryPeptideMap = mdf.getQueryToPeptideMap();
             int numberOfQueries = mdf.getNumberOfQueries();
 

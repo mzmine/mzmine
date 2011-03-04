@@ -32,6 +32,8 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -46,14 +48,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	private int finishedItems = 0, numItems;
 
 	private OnlineDatabase db;
-	private double searchedMass, massTolerance;
+	private double searchedMass;
+	private MZTolerance mzTolerance;
 	private int charge;
 	private int numOfResults;
 	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private IonizationType ionType;
 	private boolean isotopeFilter = false;
-	private double isotopeScoreThreshold;
+	private ParameterSet isotopeFilterParameters;
 	private DBGateway gateway;
 
 	/**
@@ -69,8 +72,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 
-		db = (OnlineDatabase) parameters
-				.getParameterValue(OnlineDBSearchParameters.database);
+		db = parameters.getParameter(OnlineDBSearchParameters.database).getValue();
 
 		try {
 			gateway = db.getGatewayClass().newInstance();
@@ -78,25 +80,16 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			e.printStackTrace();
 		}
 
-		searchedMass = (Double) parameters
-				.getParameterValue(OnlineDBSearchParameters.neutralMass);
-		massTolerance = (Double) parameters
-				.getParameterValue(OnlineDBSearchParameters.massTolerance);
-		numOfResults = (Integer) parameters
-				.getParameterValue(OnlineDBSearchParameters.numOfResults);
-		charge = (Integer) parameters
-				.getParameterValue(OnlineDBSearchParameters.charge);
-		isotopeFilter = (Boolean) parameters
-				.getParameterValue(OnlineDBSearchParameters.isotopeFilter);
-
+		searchedMass = parameters.getParameter(OnlineDBSearchParameters.neutralMass).getValue();
+		mzTolerance = parameters.getParameter(OnlineDBSearchParameters.mzTolerance).getValue();
+		numOfResults = parameters.getParameter(OnlineDBSearchParameters.numOfResults).getInt();
+		
+		isotopeFilter = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getValue();
+		isotopeFilterParameters = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
+		
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
-
-		isotopeScoreThreshold = (Double) parameters
-				.getParameterValue(OnlineDBSearchParameters.isotopeScoreTolerance);
-		ionType = (IonizationType) parameters
-				.getParameterValue(OnlineDBSearchParameters.ionizationMethod);
 
 	}
 
@@ -136,7 +129,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			desktop.addInternalFrame(window);
 
 			String compoundIDs[] = gateway.findCompounds(searchedMass,
-					massTolerance, numOfResults);
+					mzTolerance, numOfResults);
 
 			// Get the number of results
 			numItems = compoundIDs.length;
@@ -186,13 +179,11 @@ public class SingleRowIdentificationTask extends AbstractTask {
 					if ((rawDataIsotopePattern != null)
 							&& (compoundIsotopePattern != null)) {
 
-						double score = IsotopePatternScoreCalculator
-								.getSimilarityScore(rawDataIsotopePattern,
-										compoundIsotopePattern, massTolerance);
+						boolean isotopeCheck = IsotopePatternScoreCalculator
+								.checkMatch(rawDataIsotopePattern,
+										compoundIsotopePattern, isotopeFilterParameters);
 
-						compound.setIsotopePatternScore(score);
-
-						if ((isotopeFilter) && (score < isotopeScoreThreshold)) {
+						if ((isotopeFilter) && (isotopeCheck)) {
 							finishedItems++;
 							continue;
 						}

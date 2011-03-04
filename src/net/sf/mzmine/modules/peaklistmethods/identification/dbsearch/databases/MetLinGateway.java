@@ -28,7 +28,9 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.Range;
 
 public class MetLinGateway implements DBGateway {
 
@@ -39,12 +41,14 @@ public class MetLinGateway implements DBGateway {
 
 	/**
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
 
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+
 		String queryAddress = metLinSearchAddress + "mass_min="
-				+ (mass - massTolerance) + "&mass_max="
-				+ (mass + massTolerance);
+				+ toleranceRange.getMin() + "&mass_max="
+				+ toleranceRange.getMax();
 
 		URL queryURL = new URL(queryAddress);
 

@@ -21,88 +21,50 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	public static final StringParameter peakListName = new StringParameter(
+			"Peak list name", "Peak list name", "Aligned peak list");
 
-	public static final String RTToleranceTypeAbsolute = "Absolute";
-	public static final String RTToleranceTypeRelative = "Relative";
+	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final Object[] RTToleranceTypePossibleValues = {
-			RTToleranceTypeAbsolute, RTToleranceTypeRelative };
+	public static final NumberParameter MZWeight = new NumberParameter(
+			"Weight for m/z", "Score for perfectly matching m/z values",
+			NumberFormat.getNumberInstance());
 
-	public static final Parameter peakListName = new SimpleParameter(
-			ParameterType.STRING, "Peak list name", "Peak list name", null,
-			"Aligned peak list", null);
+	public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-	public static final Parameter MZTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed M/Z difference", "m/z", new Double(0.2),
-			new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter RTWeight = new NumberParameter(
+			"Weight for RT", "Score for perfectly matching RT values",
+			NumberFormat.getNumberInstance());
 
-	public static final Parameter MZWeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Weight for m/z",
-			"Score for perfectly matching m/z values", "", new Double(10.0),
-			new Double(0.0), null, NumberFormat.getNumberInstance());
-
-	public static final Parameter RTToleranceType = new SimpleParameter(
-			ParameterType.STRING,
-			"Retention time tolerance type",
-			"Maximum RT difference can be defined either using absolute or relative value",
-			RTToleranceTypeAbsolute, RTToleranceTypePossibleValues);
-
-	public static final Parameter RTToleranceValueAbs = new SimpleParameter(
-			ParameterType.DOUBLE, "Absolute RT tolerance",
-			"Maximum allowed absolute RT difference", null, new Double(15.0),
-			new Double(0.0), null, MZmineCore.getRTFormat());
-
-	public static final Parameter RTToleranceValuePercent = new SimpleParameter(
-			ParameterType.DOUBLE, "Relative RT tolerance",
-			"Maximum allowed relative RT difference", "%", new Double(0.15),
-			new Double(0.0), null, percentFormat);
-
-	public static final Parameter RTWeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Weight for RT",
-			"Score for perfectly matching RT values", "", new Double(10.0),
-			new Double(0.0), null, NumberFormat.getNumberInstance());
-
-	public static final Parameter SameChargeRequired = new SimpleParameter(
-			ParameterType.BOOLEAN,
+	public static final BooleanParameter SameChargeRequired = new BooleanParameter(
 			"Require same charge state",
-			"If checked, only rows having same charge state can be aligned",
-			new Boolean(false));
-	
-	public static final Parameter SameIDRequired = new SimpleParameter(
-			ParameterType.BOOLEAN,
-			"Require same ID",
-			"If checked, only rows having same compound identities (or no identities) can be aligned",
-			new Boolean(false));
+			"If checked, only rows having same charge state can be aligned");
 
-	public static final Parameter compareIsotopePattern = new SimpleParameter(
-			ParameterType.BOOLEAN,
+	public static final BooleanParameter SameIDRequired = new BooleanParameter(
+			"Require same ID",
+			"If checked, only rows having same compound identities (or no identities) can be aligned");
+
+	public static final OptionalModuleParameter compareIsotopePattern = new OptionalModuleParameter(
 			"Compare isotope pattern",
 			"If both peaks represent an isotope pattern, add isotope pattern score to match score",
-			new Boolean(false));
-
-	public static final Parameter isotopePatternScoreThreshold = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"Isotope pattern score thresold level",
-			"If the score between isotope pattern is lower, discard this match",
-			"%", new Double(0.65), new Double(0.15), new Double(1.0),
-			percentFormat);
+			new IsotopePatternScoreParameters());
 
 	public JoinAlignerParameters() {
-		super(new Parameter[] { peakListName, MZTolerance, MZWeight,
-				RTToleranceType, RTToleranceValueAbs, RTToleranceValuePercent,
-				RTWeight, SameChargeRequired, SameIDRequired, compareIsotopePattern,
-				isotopePatternScoreThreshold });
+		super(new UserParameter[] { peakListName, MZTolerance, MZWeight,
+				RTTolerance, RTWeight, SameChargeRequired, SameIDRequired,
+				compareIsotopePattern });
 	}
 
 }

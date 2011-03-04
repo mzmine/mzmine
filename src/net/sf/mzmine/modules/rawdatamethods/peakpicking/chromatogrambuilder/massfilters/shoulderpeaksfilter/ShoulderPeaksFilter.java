@@ -25,10 +25,10 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.MassFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
@@ -36,8 +36,8 @@ import net.sf.mzmine.util.SortingProperty;
 public class ShoulderPeaksFilter implements MassFilter {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-	private ShoulderPeaksFilterParameters parameters;
+
+	private ParameterSet parameters;
 
 	private PeakModel peakModel;
 
@@ -49,15 +49,17 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 		// Try to create an instance of the peak model
 		try {
-			PeakModelType type = (PeakModelType) parameters
-					.getParameterValue(ShoulderPeaksFilterParameters.peakModel);
-			if (type == null) type = PeakModelType.GAUSS;
+			PeakModelType type = parameters.getParameter(
+					ShoulderPeaksFilterParameters.peakModel).getValue();
+			if (type == null)
+				type = PeakModelType.GAUSS;
 			Class modelClass = type.getModelClass();
 			peakModel = (PeakModel) modelClass.newInstance();
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Could not create instance of peak model class", e);
+			logger.log(Level.WARNING,
+					"Could not create instance of peak model class", e);
 		}
-		
+
 		// If peakModel is null, just don't do any filtering
 		if (peakModel == null)
 			return mzPeaks;
@@ -92,16 +94,8 @@ public class ShoulderPeaksFilter implements MassFilter {
 		return finalMZPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getName() {
-		return "FTML shoulder peaks filter";
-	}
-
-	public SimpleParameterSet getParameters() {
-		return parameters;
-	}
-
 	public String toString() {
-		return getName();
+		return "FTML shoulder peaks filter";
 	}
 
 	/**
@@ -119,13 +113,13 @@ public class ShoulderPeaksFilter implements MassFilter {
 	private void removeLateralPeaks(MzPeak currentCandidate,
 			TreeSet<MzPeak> candidates, PeakModel peakModel) {
 
-		int resolution = (Integer) parameters
-				.getParameterValue(ShoulderPeaksFilterParameters.resolution);
+		int resolution = parameters.getParameter(
+				ShoulderPeaksFilterParameters.resolution).getInt();
 
 		// We set our peak model with same position(m/z), height(intensity) and
 		// resolution of the current peak
-		peakModel.setParameters(currentCandidate.getMZ(), currentCandidate
-				.getIntensity(), resolution);
+		peakModel.setParameters(currentCandidate.getMZ(),
+				currentCandidate.getIntensity(), resolution);
 
 		// We search over all peak candidates and remove all of them that are
 		// under the curve defined by our peak model
@@ -141,5 +135,10 @@ public class ShoulderPeaksFilter implements MassFilter {
 			}
 		}
 
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

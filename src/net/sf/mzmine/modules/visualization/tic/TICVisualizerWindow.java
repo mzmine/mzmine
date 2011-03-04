@@ -54,7 +54,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	// Data sets
 	private Hashtable<RawDataFile, TICDataSet> ticDataSets;
 
-	private String plotType;
+	private PlotType plotType;
 	private int msLevel;
 	private Range rtRange, mzRange;
 
@@ -64,7 +64,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	 * Constructor for total ion chromatogram visualizer
 	 * 
 	 */
-	public TICVisualizerWindow(RawDataFile dataFiles[], String plotType,
+	public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
 			int msLevel, Range rtRange, Range mzRange,
 			ChromatographicPeak[] peaks) {
 
@@ -112,7 +112,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 		StringBuffer mainTitle = new StringBuffer();
 		StringBuffer subTitle = new StringBuffer();
 
-		if (plotType == TICVisualizerParameters.plotTypeBP)
+		if (plotType == PlotType.BASEPEAK)
 			mainTitle.append("Base peak plot");
 		else {
 			// If all datafiles have m/z range less than or equal to range of
@@ -140,7 +140,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 			if (ticDataSets.size() > 1)
 				subTitle.append(" (" + pos.getDataFile() + ")");
 			subTitle.append(", RT: " + rtFormat.format(pos.getRetentionTime()));
-			if (plotType == TICVisualizerParameters.plotTypeBP)
+			if (plotType == PlotType.BASEPEAK)
 				subTitle.append(", base peak: "
 						+ mzFormat.format(pos.getMzValue()) + " m/z");
 			subTitle.append(", IC: "
@@ -158,7 +158,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 	/**
 	 * @return Returns the plotType.
 	 */
-	String getPlotType() {
+	PlotType getPlotType() {
 		return plotType;
 	}
 
@@ -240,7 +240,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 			int index = dataSet.getIndex(selectedRT, selectedIT);
 			if (index >= 0) {
 				double mz = 0;
-				if (plotType == TICVisualizerParameters.plotTypeBP)
+				if (plotType == PlotType.BASEPEAK)
 					mz = (double) dataSet.getZValue(0, index);
 				CursorPosition pos = new CursorPosition(selectedRT, mz,
 						selectedIT, dataSet.getDataFile(),

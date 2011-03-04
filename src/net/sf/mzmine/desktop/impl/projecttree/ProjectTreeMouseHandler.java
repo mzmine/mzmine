@@ -101,7 +101,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		if (command.equals("SHOW_TIC")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			TICVisualizer.showNewTICVisualizerWindow(selectedFiles, null, null);
+			TICVisualizer.showNewTICVisualizerWindow(selectedFiles);
 		}
 
 		if (command.equals("SHOW_SPECTRUM")) {
@@ -230,8 +230,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
 		if (clickedObject instanceof RawDataFile) {
 			RawDataFile clickedFile = (RawDataFile) clickedObject;
-			TICVisualizer.showNewTICVisualizerWindow(
-					new RawDataFile[] { clickedFile }, null, null);
+			TICVisualizer.showNewTICVisualizerWindow(clickedFile);
 		}
 
 		if (clickedObject instanceof PeakList) {

@@ -24,90 +24,83 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class PeakListTableVisualizer implements MZmineModule, ActionListener {
 
-    private Desktop desktop;
-    private PeakListTableParameters parameters;
-    private static PeakListTableVisualizer myInstance;
+	private Desktop desktop;
+	private ParameterSet parameters;
+	private static PeakListTableVisualizer myInstance;
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-     */
-    public void initModule() {
+	public PeakListTableVisualizer() {
 
-        this.desktop = MZmineCore.getDesktop();
-        myInstance = this;
+		this.desktop = MZmineCore.getDesktop();
+		myInstance = this;
 
-        parameters = new PeakListTableParameters();
+		parameters = new PeakListTableParameters();
 
-        desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
-                "Peak list table", "Shows a table view of a peak list",
-                KeyEvent.VK_T, false, this, null);
+		desktop.addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
+				"Peak list table", "Shows a table view of a peak list",
+				KeyEvent.VK_T, false, this, null);
 
-    }
-    
- 
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        PeakList peakLists[] = desktop.getSelectedPeakLists();
+		PeakList peakLists[] = desktop.getSelectedPeakLists();
 
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select peak list");
-            return;
-        }
+		if (peakLists.length == 0) {
+			desktop.displayErrorMessage("Please select peak list");
+			return;
+		}
 
-        for (PeakList peakList : peakLists) {
+		for (PeakList peakList : peakLists) {
 
-            logger.finest("Showing a new peak list table view");
+			logger.finest("Showing a new peak list table view");
 
-            PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-                    peakList);
-            desktop.addInternalFrame(alignmentResultView);
+			PeakListTableWindow alignmentResultView = new PeakListTableWindow(
+					peakList, parameters.clone());
+			desktop.addInternalFrame(alignmentResultView);
 
-        }
-    }
+		}
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#toString()
-     */
-    public String toString() {
-        return "Peak list table visualizer";
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
+	 */
+	public String toString() {
+		return "Peak list table visualizer";
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
-     */
-    public PeakListTableParameters getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+	
+	public void setParameterSet(ParameterSet newParameters) {
+		this.parameters = newParameters;
+	}
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-     */
-    public void setParameters(ParameterSet parameterValues) {
-        parameters = (PeakListTableParameters) parameterValues;
-    }
+	public static PeakListTableVisualizer getInstance() {
+		return myInstance;
+	}
 
-    public static PeakListTableVisualizer getInstance() {
-        return myInstance;
-    }
-    
-    public static void showNewPeakListVisualizerWindow(PeakList peakList) {
-        PeakListTableWindow window = new PeakListTableWindow(peakList);
-        MZmineCore.getDesktop().addInternalFrame(window);
-    }
+	public static void showNewPeakListVisualizerWindow(PeakList peakList) {
+		ParameterSet parametersCopy = getInstance().getParameterSet().clone();
+		PeakListTableWindow window = new PeakListTableWindow(peakList, parametersCopy);
+		MZmineCore.getDesktop().addInternalFrame(window);
+	}
 
 }

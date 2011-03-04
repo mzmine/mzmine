@@ -25,18 +25,20 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.Vector;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
-import org.dom4j.Element;
+import org.w3c.dom.Element;
 
 import be.proteomics.lims.util.http.forms.HTTPForm;
 import be.proteomics.lims.util.http.forms.inputs.InputInterface;
@@ -46,26 +48,21 @@ import be.proteomics.lims.util.http.forms.inputs.TextFieldInput;
 
 public class MascotParameters extends SimpleParameterSet {
 
-	private SimpleParameterSet parameterSet = null;
-	Vector<SimpleParameter> para = null;
+	ArrayList<UserParameter> para = new ArrayList<UserParameter>();
 	HTTPForm iForm = null;
-
-	Map<SimpleParameter, String[]> multi = null;
 
 	private String serverName = "127.0.0.1";
 
-
 	@SuppressWarnings("unchecked")
-	public MascotParameters(MascotSearchParameters parameters) throws MalformedURLException, IOException {
-		super(new Parameter[] {});
-		serverName = (String) parameters.getParameterValue(MascotSearchParameters.urlAddress);
-		para = new Vector<SimpleParameter>();
+	public MascotParameters(String serverName) throws MalformedURLException,
+			IOException {
+		
+		super(new Parameter[0]);
 
 		URL url = new URL(getSearchMaskUrlString());
 		URLConnection lConn = url.openConnection();
 		InputStream ins = lConn.getInputStream();
 
-		multi = new HashMap<SimpleParameter, String[]>();
 		iForm = HTTPForm.parseHTMLForm(ins);
 		// Get all inputs.
 		Vector<InputInterface> lvInputs = iForm.getInputs();
@@ -86,16 +83,14 @@ public class MascotParameters extends SimpleParameterSet {
 					String[] elements = ((SelectInput) lInput).getElements();
 
 					if (input.getMultiple()) {
-						SimpleParameter p = new SimpleParameter(
-								ParameterType.MULTIPLE_SELECTION, lInput
-										.getComment(), lInput.getName(), null,
-								null, Integer.valueOf(0), Integer.valueOf(8));
+						UserParameter p = new MultiChoiceParameter<String>(
+								lInput.getComment(), lInput.getName(), elements);
 						para.add(p);
-						multi.put(p, elements);
+
 					} else {
-							para.add(new SimpleParameter(ParameterType.STRING,
-									lInput.getComment(), lInput.getName(),
-									elements[0], elements));
+						UserParameter p = new ComboParameter<String>(
+								lInput.getComment(), lInput.getName(), elements);
+						para.add(p);
 					}
 				}
 			}
@@ -105,19 +100,16 @@ public class MascotParameters extends SimpleParameterSet {
 				if (lInput.getName().equals("OVERVIEW")) {
 					lInput.setValue("0");
 				} else
-					para.add(new SimpleParameter(ParameterType.BOOLEAN, lInput
-							.getComment(), lInput.getName(), null, true, null,
-							null, null));
+					para.add(new BooleanParameter(lInput.getComment(), lInput
+							.getName()));
 			}
 
 			// Radio
 			if (lInput.getType() == InputInterface.RADIOINPUT) {
 				RadioInput input = (RadioInput) lInput;
 				String[] elements = input.getChoices();
-				para
-						.add(new SimpleParameter(ParameterType.STRING, lInput
-								.getComment(), lInput.getName(), elements[0],
-								elements));
+				para.add(new ComboParameter<String>(lInput.getComment(), lInput
+						.getName(), elements));
 
 			}
 
@@ -144,30 +136,20 @@ public class MascotParameters extends SimpleParameterSet {
 					// Proteinmass
 					textFiled.setValue("");
 				} else {
-					para.add(new SimpleParameter(ParameterType.STRING, lInput
-							.getComment(), lInput.getName()));
+					para.add(new StringParameter(lInput.getComment(), lInput
+							.getName()));
 				}
 			}
 		}
-		parameterSet = new SimpleParameterSet((Parameter[]) para
-				.toArray(new Parameter[0]));
-		Iterator<SimpleParameter> it = multi.keySet().iterator();
-		while (it.hasNext()) {
-			SimpleParameter p = (SimpleParameter) it.next();
-			parameterSet.setMultipleSelection(p, multi.get(p));
-		}
+
 	}
 
 	protected String getSearchMaskUrlString() {
 		return getMascotInstallUrlString() + "cgi/search_form.pl?SEARCH=MIS";
-
-
 	}
 
 	protected String getMascotSubmitUrlString() {
 		return getMascotInstallUrlString() + "cgi/nph-mascot.exe?1";
-
-
 	}
 
 	protected String getMascotInstallUrlString() {
@@ -178,69 +160,17 @@ public class MascotParameters extends SimpleParameterSet {
 		return serverName;
 	}
 
-	@Override
-	public void exportValuesToXML(Element element) {
-		// not used because we build the mask on the fly from the given URL
-		// parameterSet.exportValuesToXML(element);
-	}
-
-	@Override
-	public Object[] getMultipleSelection(Parameter parameter) {
-		return parameterSet.getMultipleSelection(parameter);
-	}
-
-	@Override
-	public Parameter getParameter(String name) {
-		return parameterSet.getParameter(name);
-	}
-
-	@Override
-	public Parameter[] getParameters() {
-		return parameterSet.getParameters();
-	}
-
-	@Override
-	public Object getParameterValue(Parameter parameter) {
-		return parameterSet.getParameterValue(parameter);
-	}
-
-	@Override
-	public void importValuesFromXML(Element element) {
-		SimpleParameterSet parameterSet = new SimpleParameterSet();
-		parameterSet.importValuesFromXML(element);
-	}
-
-	@Override
-	public void setMultipleSelection(Parameter parameter,
-			Object[] selectionArray) {
-		parameterSet.setMultipleSelection(parameter, selectionArray);
-	}
-
-	@Override
-	public void setParameterValue(Parameter parameter, Object value)
-			throws IllegalArgumentException {
-		parameterSet.setParameterValue(parameter, value);
-	}
-
-	@Override
-	public String toString() {
-		return parameterSet.toString();
-	}
-
-	@Override
-	public SimpleParameterSet clone() {
-		return this;
-	}
-
 	public synchronized String getBoundery() {
 		return iForm.getBoundary();
 	}
 
 	public synchronized String getSubmissionString(File file, int charge) {
-		SimpleParameter[] parameters = para.toArray(new SimpleParameter[0]);
-		for (int i = 0; i < parameters.length; i++) {
-			if (getParameterValue(parameters[i]) instanceof Object[]) {
-				Object[] vals = (Object[]) getParameterValue(parameters[i]);
+
+		for (UserParameter p : para) {
+			Object value = p.getValue();
+
+			if (value.getClass().isArray()) {
+				Object[] vals = (Object[]) value;
 				StringBuffer buffer = new StringBuffer();
 				int leng = (vals.length > 9) ? 9 : vals.length;
 				for (int j = 0; j < leng; j++) {
@@ -249,11 +179,11 @@ public class MascotParameters extends SimpleParameterSet {
 						buffer.append(",");
 					}
 				}
-				iForm.getInputByName(parameters[i].getDescription()).setValue(
+				iForm.getInputByName(p.getDescription()).setValue(
 						buffer.toString());
 			} else {
-				iForm.getInputByName(parameters[i].getDescription()).setValue(
-						getParameterValue(parameters[i]).toString());
+				iForm.getInputByName(p.getDescription()).setValue(
+						value.toString());
 			}
 		}
 		iForm.getInputByName("FILE").setValue(file.getAbsolutePath());
@@ -262,6 +192,35 @@ public class MascotParameters extends SimpleParameterSet {
 		}
 
 		return iForm.getSubmissionString();
+	}
+
+	@Override
+	public Parameter[] getParameters() {
+		return para.toArray(new Parameter[0]);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Parameter> T getParameter(T parameter) {
+		for (Parameter p : para) {
+			if (p.getName().equals(parameter.getName())) return (T) p;
+		}
+		return null;
+	}
+
+	@Override
+	public void loadValuesFromXML(Element element) {
+		// ignore
+	}
+
+	@Override
+	public void saveValuesToXML(Element element) {
+		// ignore
+	}
+
+
+	public ParameterSet clone() {
+		return this;
 	}
 
 }

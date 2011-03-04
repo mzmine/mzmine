@@ -19,42 +19,39 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class CSVExporterParameters extends SimpleParameterSet {
 
-	public static final Parameter filename = new SimpleParameter(
-			ParameterType.FILE_NAME,
+	public static final FileNameParameter filename = new FileNameParameter(
 			"Filename",
-			"Name of exported peak list file name. If the file already exists, it will be overwritten.");
+			"Name of exported peak list file name. If the file already exists, it will be overwritten.",
+			"csv");
 
-	public static final Parameter fieldSeparator = new SimpleParameter(
-			ParameterType.STRING, "Field separator",
-			"Character(s) used to separate fields in the exported file",
-			(Object) ",");
+	public static final StringParameter fieldSeparator = new StringParameter(
+			"Field separator",
+			"Character(s) used to separate fields in the exported file", ",");
 
-	public static final Parameter exportCommonItemMultipleSelection = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Export common elements",
-			"Selection of row's elements to export", null,
+	public static final MultiChoiceParameter<ExportRowCommonElement> exportCommonItems = new MultiChoiceParameter<ExportRowCommonElement>(
+			"Export common elements", "Selection of row's elements to export",
 			ExportRowCommonElement.values());
 
-	public static final Parameter exportIdentityItemMultipleSelection = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Export identity elements",
-			"Selection of identities to export");
+	public static final MultiChoiceParameter<String> exportIdentityItems = new MultiChoiceParameter<String>(
+			"Export identity elements", "Selection of identities to export",
+			new String[0]);
 
-	public static final Parameter exportDataFileItemMultipleSelection = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Export data file elements",
-			"Selection of peak's elements to export", null,
+	public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<ExportRowDataFileElement>(
+			"Export data file elements",
+			"Selection of peak's elements to export",
 			ExportRowDataFileElement.values());
 
 	public CSVExporterParameters() {
-		super(new Parameter[] { filename, fieldSeparator,
-				exportCommonItemMultipleSelection,
-				exportIdentityItemMultipleSelection,
-				exportDataFileItemMultipleSelection });
+		super(new UserParameter[] { filename, fieldSeparator,
+				exportCommonItems, exportIdentityItems, exportDataFileItems });
 	}
 
 }

@@ -25,7 +25,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 public class ProjectionPlotWindow extends JInternalFrame implements
@@ -34,8 +35,8 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 	private ProjectionPlotToolbar toolbar;
 	private ProjectionPlotPanel plot;
 
-	public ProjectionPlotWindow(Desktop desktop, ProjectionPlotDataset dataset,
-			ProjectionPlotParameters parameters) {
+	public ProjectionPlotWindow(PeakList peakList,
+			ProjectionPlotDataset dataset, ProjectionPlotParameters parameters) {
 		super(null, true, true, true, true);
 
 		toolbar = new ProjectionPlotToolbar(this);
@@ -44,15 +45,15 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 		plot = new ProjectionPlotPanel(this, dataset, parameters);
 		add(plot, BorderLayout.CENTER);
 
-		String title = parameters.getSourcePeakList().toString();
+		String title = peakList.getName();
 		title = title.concat(" : ");
 		title = title.concat(dataset.toString());
-		if (parameters
-				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
+		if (parameters.getParameter(
+				ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.HEIGHT)
 			title = title.concat(" (using peak heights)");
-		if (parameters
-				.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
+		else
 			title = title.concat(" (using peak areas)");
+
 		this.setTitle(title);
 
 		pack();
@@ -71,14 +72,12 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 
 		if (command.equals("TOGGLE_LABELS")) {
 			/*
-			XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
-			rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
-			*/
+			 * XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
+			 * rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
+			 */
 			plot.cycleItemLabelMode();
 		}
 
 	}
-	
-	
 
 }

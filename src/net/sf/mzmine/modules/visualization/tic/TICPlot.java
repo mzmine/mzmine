@@ -135,7 +135,7 @@ public class TICPlot extends ChartPanel {
 
 		String yAxisLabel;
 		if (visualizer instanceof TICVisualizerWindow) {
-			if (((TICVisualizerWindow) visualizer).getPlotType() == TICVisualizerParameters.plotTypeBP)
+			if (((TICVisualizerWindow) visualizer).getPlotType() == PlotType.BASEPEAK)
 				yAxisLabel = "Base peak intensity";
 			else
 				yAxisLabel = "Total ion intensity";

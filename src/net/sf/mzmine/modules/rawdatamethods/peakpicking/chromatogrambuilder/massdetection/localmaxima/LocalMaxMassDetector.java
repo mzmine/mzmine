@@ -24,9 +24,9 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * This class detects all local maxima in a given scan.
@@ -34,7 +34,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.mass
 public class LocalMaxMassDetector implements MassDetector {
 
 	// Parameter value
-	private LocalMaxMassDetectorParameters parameters;
+	private ParameterSet parameters;
 
 	public LocalMaxMassDetector() {
 		parameters = new LocalMaxMassDetectorParameters();
@@ -42,8 +42,8 @@ public class LocalMaxMassDetector implements MassDetector {
 
 	public MzPeak[] getMassValues(Scan scan) {
 
-		double noiseLevel = (Double) parameters
-				.getParameterValue(LocalMaxMassDetectorParameters.noiseLevel);
+		double noiseLevel = parameters.getParameter(
+				LocalMaxMassDetectorParameters.noiseLevel).getDouble();
 
 		// List of found mz peaks
 		ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
@@ -80,6 +80,8 @@ public class LocalMaxMassDetector implements MassDetector {
 				ascending = false;
 				continue;
 			}
+			
+			assert currentMzPeakTop != null;
 
 			// Check for the end of the peak
 			if ((!ascending) && (nextIsBigger || nextIsZero)) {
@@ -101,15 +103,12 @@ public class LocalMaxMassDetector implements MassDetector {
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	public String getName() {
+	public String toString() {
 		return "Local maxima";
 	}
 
-	public SimpleParameterSet getParameters() {
+	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	public String toString() {
-		return getName();
-	}
 }

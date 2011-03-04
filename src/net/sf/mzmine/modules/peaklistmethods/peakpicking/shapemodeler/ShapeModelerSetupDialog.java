@@ -22,262 +22,268 @@ import javax.swing.SwingConstants;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ChromatogramTICDataSet;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakPreviewComboRenderer;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.modules.visualization.tic.TICToolBar;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
-        ActionListener, PropertyChangeListener {
+		ActionListener, PropertyChangeListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    // Dialog components
-    static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
-    
-    private JPanel pnlPlotXY, pnlVisible, pnlLabelsFields;
-    private JComboBox comboPeakList, comboPeak;
-    private JCheckBox preview;
+	// Dialog components
+	static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    // XYPlot
-    private TICToolBar toolBar;
-    private TICPlot ticPlot;
-    private ChromatogramTICDataSet ticDataset;
+	private JPanel pnlPlotXY, pnlVisible, pnlLabelsFields;
+	private JComboBox comboPeakList, comboPeak;
+	private JCheckBox preview;
 
-    // Peak resolver
-    private SimpleParameterSet smParameters;
+	// XYPlot
+	private TICToolBar toolBar;
+	private TICPlot ticPlot;
+	private ChromatogramTICDataSet ticDataset;
 
-    /**
-     * @param parameters
-     * @param massDetectorTypeNumber
-     */
-	public ShapeModelerSetupDialog(String title, ShapeModelerParameters parameters, String helpID) {
+	// Peak resolver
+	private ParameterSet smParameters;
 
-        super(title, parameters, helpID);
+	/**
+	 * @param parameters
+	 * @param massDetectorTypeNumber
+	 */
+	public ShapeModelerSetupDialog(ShapeModelerParameters parameters,
+			String helpID) {
 
-        // Parameters of local mass detector to get preview values
-        smParameters = parameters;
+		super(parameters, helpID);
 
-        // Set a listener in all parameters's fields to add functionality to
-        // this dialog
-        for (Parameter p : smParameters.getParameters()) {
-        	
-        	if ((p.getName().equals(ShapeModelerParameters.suffix.getName())) ||
-        			(p.getName().equals(ShapeModelerParameters.autoRemove.getName())))
-        		continue;
+		// Parameters of local mass detector to get preview values
+		smParameters = parameters;
 
-            JComponent field = getComponentForParameter(p);
-            field.addPropertyChangeListener("value", this);
-            if (field instanceof JCheckBox)
-                ((JCheckBox) field).addActionListener(this);
-            if (field instanceof JComboBox)
-                ((JComboBox) field).addActionListener(this);
-        }
+		// Set a listener in all parameters's fields to add functionality to
+		// this dialog
+		for (Parameter p : smParameters.getParameters()) {
 
-        addComponents();
+			if ((p.getName().equals(ShapeModelerParameters.suffix.getName()))
+					|| (p.getName().equals(ShapeModelerParameters.autoRemove
+							.getName())))
+				continue;
 
-    }
+			JComponent field = getComponentForParameter(p);
+			if (field == null)
+				continue;
+			field.addPropertyChangeListener("value", this);
+			if (field instanceof JCheckBox)
+				((JCheckBox) field).addActionListener(this);
+			if (field instanceof JComboBox)
+				((JComboBox) field).addActionListener(this);
+		}
 
-    public void actionPerformed(ActionEvent event) {
+		addComponents();
 
-        super.actionPerformed(event);
+	}
 
-        Object src = event.getSource();
+	public void actionPerformed(ActionEvent event) {
 
-        if (src == comboPeakList) {
-            PeakList selectedPeakList = (PeakList) comboPeakList.getSelectedItem();
-            PeakListRow rows[] = selectedPeakList.getRows();
-            comboPeak.removeActionListener(this);
-            comboPeak.removeAllItems();
-            for (PeakListRow row : rows){
-                comboPeak.addItem(row);
-            }
-            comboPeak.addActionListener(this);
-            comboPeak.setSelectedIndex(0);
-            return;
-        }
+		super.actionPerformed(event);
 
-        if (src == preview) {
-            if (preview.isSelected()) {
+		Object src = event.getSource();
+
+		if (src == comboPeakList) {
+			PeakList selectedPeakList = (PeakList) comboPeakList
+					.getSelectedItem();
+			PeakListRow rows[] = selectedPeakList.getRows();
+			comboPeak.removeActionListener(this);
+			comboPeak.removeAllItems();
+			for (PeakListRow row : rows) {
+				comboPeak.addItem(row);
+			}
+			comboPeak.addActionListener(this);
+			comboPeak.setSelectedIndex(0);
+			return;
+		}
+
+		if (src == preview) {
+			if (preview.isSelected()) {
 				// Set the height of the preview to 200 cells, so it will span
-				// the whole vertical length of the dialog (buttons are at row no
+				// the whole vertical length of the dialog (buttons are at row
+				// no
 				// 100). Also, we set the weight to 10, so the preview component
 				// will consume most of the extra available space.
 				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
-                pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
-                updateMinimumSize();
-                pack();
-                PeakList selected[] = MZmineCore.getDesktop().getSelectedPeakLists();
-                if (selected.length > 0)
-                    comboPeakList.setSelectedItem(selected[0]);
-                else
-                    comboPeakList.setSelectedIndex(0);
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-            } else {
-                mainPanel.remove(pnlPlotXY);
-                pnlVisible.remove(pnlLabelsFields);
-                updateMinimumSize();
-                pack();
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-            }
-            return;
-        }
+				pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
+				updateMinimumSize();
+				pack();
+				PeakList selected[] = MZmineCore.getDesktop()
+						.getSelectedPeakLists();
+				if (selected.length > 0)
+					comboPeakList.setSelectedItem(selected[0]);
+				else
+					comboPeakList.setSelectedIndex(0);
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+			} else {
+				mainPanel.remove(pnlPlotXY);
+				pnlVisible.remove(pnlLabelsFields);
+				updateMinimumSize();
+				pack();
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+			}
+			return;
+		}
 
-        // Any other event will cause reloading the preview
-        if (preview.isSelected()) {
-            loadPreviewPeak();
-        }
+		// Any other event will cause reloading the preview
+		if (preview.isSelected()) {
+			loadPreviewPeak();
+		}
 
-    }
+	}
 
-    public void propertyChange(PropertyChangeEvent e) {
-        if ((preview != null) && (preview.isSelected())) {
-            loadPreviewPeak();
-        }
-    }
+	public void propertyChange(PropertyChangeEvent e) {
+		if ((preview != null) && (preview.isSelected())) {
+			loadPreviewPeak();
+		}
+	}
 
-    private void loadPreviewPeak() {
+	private void loadPreviewPeak() {
 
-        PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
-        if (previewRow == null)
-            return;
-        logger.finest("Loading new preview peak " + previewRow);
-        ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
+		PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
+		if (previewRow == null)
+			return;
+		logger.finest("Loading new preview peak " + previewRow);
+		ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
 
-        ticPlot.removeAllTICDataSets();
+		ticPlot.removeAllTICDataSets();
 
-        // Load the intensities into array
-        RawDataFile dataFile = previewPeak.getDataFile();
-        int scanNumbers[] = previewPeak.getScanNumbers();
-        double retentionTimes[] = new double[scanNumbers.length];
-        for (int i = 0; i < scanNumbers.length; i++)
-            retentionTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-        double intensities[] = new double[scanNumbers.length];
-        for (int i = 0; i < scanNumbers.length; i++) {
-        	DataPoint dp = previewPeak.getDataPoint(scanNumbers[i]);
+		// Load the intensities into array
+		RawDataFile dataFile = previewPeak.getDataFile();
+		int scanNumbers[] = previewPeak.getScanNumbers();
+		double retentionTimes[] = new double[scanNumbers.length];
+		for (int i = 0; i < scanNumbers.length; i++)
+			retentionTimes[i] = dataFile.getScan(scanNumbers[i])
+					.getRetentionTime();
+		double intensities[] = new double[scanNumbers.length];
+		for (int i = 0; i < scanNumbers.length; i++) {
+			DataPoint dp = previewPeak.getDataPoint(scanNumbers[i]);
 			if (dp != null)
 				intensities[i] = dp.getIntensity();
-            else
-                intensities[i] = 0;
-        }
+			else
+				intensities[i] = 0;
+		}
 
-        // Create shape model
-        updateParameterSetFromComponents();
-        JComponent component = (JComponent) getComponentForParameter(smParameters.getParameter("Shape model"));
-        int index = ((JComboBox) component).getSelectedIndex();
-        String shapeModelClassName = ShapeModelerParameters.shapeModelerClasses[index];
+		// Create shape model
+		updateParameterSetFromComponents();
+		JComboBox component = (JComboBox) getComponentForParameter(ShapeModelerParameters.shapeModelerType);
+		ShapeModel model = (ShapeModel) component.getSelectedItem();
 
-        component = (JComponent) getComponentForParameter(smParameters.getParameter("Mass resolution"));
-        Number value = (Number) ((JFormattedTextField)component).getValue();
-        double resolution = value.doubleValue();
-        
-        try {
-            Class shapeModelClass = Class.forName(shapeModelClassName);
-            Constructor shapeModelConstruct = shapeModelClass.getConstructors()[0];
+		JFormattedTextField resolutionField = (JFormattedTextField) getComponentForParameter(ShapeModelerParameters.massResolution);
+		double resolution = ((Number) resolutionField.getValue()).doubleValue();
 
-            // shapePeakModel(ChromatographicPeak originalDetectedShape, int[] scanNumbers, 
-            // double[] intensities, double[] retentionTimes, double resolution)
-            ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct.newInstance (
-                    previewPeak, scanNumbers, intensities, retentionTimes, resolution);
-            
-            PeakDataSet peakDataSet = new PeakDataSet(shapePeak);
-            ticPlot.addPeakDataset(peakDataSet);
+		try {
+			Class shapeModelClass = model.getModelClass();
+			Constructor shapeModelConstruct = shapeModelClass.getConstructors()[0];
 
-            ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
-            ticPlot.addTICDataset(ticDataset);
+			// shapePeakModel(ChromatographicPeak originalDetectedShape, int[]
+			// scanNumbers,
+			// double[] intensities, double[] retentionTimes, double resolution)
+			ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct
+					.newInstance(previewPeak, scanNumbers, intensities,
+							retentionTimes, resolution);
 
-            // Set auto range to axes
-            ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
-            ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-            ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
-            ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+			PeakDataSet peakDataSet = new PeakDataSet(shapePeak);
+			ticPlot.addPeakDataset(peakDataSet);
 
-        } catch (Exception e) {
-            String message = "Error trying to make an instance of Peak Builder "
-                    + shapeModelClassName;
-            MZmineCore.getDesktop().displayErrorMessage(message);
-            logger.severe(message);
-            e.printStackTrace();
-            return;
-        }
-        
+			ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
+			ticPlot.addTICDataset(ticDataset);
 
-    }
+			// Set auto range to axes
+			ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
+			ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+			ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
+			ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
 
-    /**
-     * This function add all the additional components for this dialog over the
-     * original ParameterSetupDialog.
-     * 
-     */
-    private void addComponents() {
+		} catch (Exception e) {
+			String message = "Error trying to make an instance of Peak Builder "
+					+ model;
+			MZmineCore.getDesktop().displayErrorMessage(message);
+			logger.severe(message);
+			e.printStackTrace();
+			return;
+		}
 
-        PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+	}
 
-        // Elements of pnlpreview
-        JPanel pnlpreview = new JPanel(new BorderLayout());
+	/**
+	 * This function add all the additional components for this dialog over the
+	 * original ParameterSetupDialog.
+	 * 
+	 */
+	private void addComponents() {
 
-        preview = new JCheckBox(" Show preview of peak building ");
-        preview.addActionListener(this);
-        preview.setHorizontalAlignment(SwingConstants.CENTER);
-        preview.setEnabled(peakLists.length > 0);
+		PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
 
-        pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-        pnlpreview.add(preview, BorderLayout.CENTER);
-        pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+		// Elements of pnlpreview
+		JPanel pnlpreview = new JPanel(new BorderLayout());
 
-        JComponent tableComponents[] = new JComponent[4];
-        tableComponents[0] =  new JLabel("Peak list");
+		preview = new JCheckBox(" Show preview of peak building ");
+		preview.addActionListener(this);
+		preview.setHorizontalAlignment(SwingConstants.CENTER);
+		preview.setEnabled(peakLists.length > 0);
 
-        comboPeakList = new JComboBox();
-        for (PeakList peakList : peakLists) {
-            comboPeakList.addItem(peakList);
-        }
-        comboPeakList.setFont(comboFont);
-        comboPeakList.addActionListener(this);
-        tableComponents[1] = comboPeakList;
+		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
+		pnlpreview.add(preview, BorderLayout.CENTER);
+		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-        comboPeak = new JComboBox();
-        comboPeak.setFont(comboFont);
-        comboPeak.setRenderer(new PeakPreviewComboRenderer());
-        
-        tableComponents[2] = new JLabel("Peak");
+		JComponent tableComponents[] = new JComponent[4];
+		tableComponents[0] = new JLabel("Peak list");
 
-        tableComponents[3] = comboPeak;
+		comboPeakList = new JComboBox();
+		for (PeakList peakList : peakLists) {
+			comboPeakList.addItem(peakList);
+		}
+		comboPeakList.setFont(comboFont);
+		comboPeakList.addActionListener(this);
+		tableComponents[1] = comboPeakList;
 
-        pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, tableComponents);
+		comboPeak = new JComboBox();
+		comboPeak.setFont(comboFont);
+		comboPeak.setRenderer(new PeakPreviewComboRenderer());
 
-        // Put all together
-        pnlVisible = new JPanel(new BorderLayout());
-        pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+		tableComponents[2] = new JLabel("Peak");
 
-        // Panel for XYPlot
-        pnlPlotXY = new JPanel(new BorderLayout());
-        GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
-        pnlPlotXY.setBackground(Color.white);
+		tableComponents[3] = comboPeak;
 
-        ticPlot = new TICPlot((ActionListener) this);
-        pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
+		pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, tableComponents);
 
-        toolBar = new TICToolBar(ticPlot);
-        toolBar.getComponentAtIndex(0).setVisible(false);
-        pnlPlotXY.add(toolBar, BorderLayout.EAST);
+		// Put all together
+		pnlVisible = new JPanel(new BorderLayout());
+		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
 
-		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
-				3, 1, 0, 0);
+		// Panel for XYPlot
+		pnlPlotXY = new JPanel(new BorderLayout());
+		GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
+		pnlPlotXY.setBackground(Color.white);
+
+		ticPlot = new TICPlot((ActionListener) this);
+		pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
+
+		toolBar = new TICToolBar(ticPlot);
+		toolBar.getComponentAtIndex(0).setVisible(false);
+		pnlPlotXY.add(toolBar, BorderLayout.EAST);
+
+		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
 
 		updateMinimumSize();
-        pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		pack();
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-    }
+	}
 
 }

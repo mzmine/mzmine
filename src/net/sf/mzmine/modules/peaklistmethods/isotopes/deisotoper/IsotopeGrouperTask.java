@@ -84,20 +84,20 @@ class IsotopeGrouperTask extends AbstractTask {
 		this.parameters = parameters;
 
 		// Get parameter values for easier use
-		suffix = (String) parameters
-				.getParameterValue(IsotopeGrouperParameters.suffix);
-		mzTolerance = (Double) parameters
-				.getParameterValue(IsotopeGrouperParameters.mzTolerance);
-		rtTolerance = (Double) parameters
-				.getParameterValue(IsotopeGrouperParameters.rtTolerance);
-		monotonicShape = (Boolean) parameters
-				.getParameterValue(IsotopeGrouperParameters.monotonicShape);
-		maximumCharge = (Integer) parameters
-				.getParameterValue(IsotopeGrouperParameters.maximumCharge);
-		chooseMostIntense = (parameters
-				.getParameterValue(IsotopeGrouperParameters.representativeIsotope) == IsotopeGrouperParameters.ChooseTopIntensity);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(IsotopeGrouperParameters.autoRemove);
+		suffix = parameters.getParameter(IsotopeGrouperParameters.suffix)
+				.getValue();
+		mzTolerance = parameters.getParameter(
+				IsotopeGrouperParameters.mzTolerance).getDouble();
+		rtTolerance = parameters.getParameter(
+				IsotopeGrouperParameters.rtTolerance).getDouble();
+		monotonicShape = parameters.getParameter(
+				IsotopeGrouperParameters.monotonicShape).getValue();
+		maximumCharge = parameters.getParameter(
+				IsotopeGrouperParameters.maximumCharge).getInt();
+		chooseMostIntense = (parameters.getParameter(
+				IsotopeGrouperParameters.representativeIsotope).getValue() == IsotopeGrouperParameters.ChooseTopIntensity);
+		removeOriginal = parameters.getParameter(
+				IsotopeGrouperParameters.autoRemove).getValue();
 
 	}
 
@@ -180,6 +180,8 @@ class IsotopeGrouperTask extends AbstractTask {
 
 			PeakListRow oldRow = peakList.getPeakRow(aPeak);
 
+			assert bestFitPeaks != null;
+			
 			// Verify the number of detected isotopes. If there is only one
 			// isotope, we skip this left the original peak in the peak list.
 			if (bestFitPeaks.size() == 1) {

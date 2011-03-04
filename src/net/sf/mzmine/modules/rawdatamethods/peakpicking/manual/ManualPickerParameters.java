@@ -19,26 +19,21 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class ManualPickerParameters extends SimpleParameterSet {
 
-    public static final Parameter retentionTimeRange = new SimpleParameter(
-            ParameterType.RANGE, "Retention time", "Retention time range",
-            null, new Range(0, 600), new Double(0), null,
-            MZmineCore.getRTFormat());
+	public static final RangeParameter retentionTimeRange = new RangeParameter(
+			"Retention time", "Retention time range", MZmineCore.getRTFormat());
 
-    public static final Parameter mzRange = new SimpleParameter(
-            ParameterType.RANGE, "m/z range", "m/z range", "m/z", new Range(0,
-                    1000), new Double(0), null, MZmineCore.getMZFormat());
+	public static final RangeParameter mzRange = new RangeParameter(
+			"m/z range", "m/z range", MZmineCore.getMZFormat());
 
-    public ManualPickerParameters() {
-        super(new Parameter[] { retentionTimeRange, mzRange });
-    }
+	public ManualPickerParameters() {
+		super(new UserParameter[] { retentionTimeRange, mzRange });
+	}
 
 }

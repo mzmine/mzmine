@@ -30,6 +30,8 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -46,9 +48,10 @@ public class FragmentSearchTask extends AbstractTask {
 	private int finishedRows, totalRows;
 	private PeakList peakList;
 
-	private double rtTolerance, ms2mzTolerance, maxFragmentHeight,
-			minMS2peakHeight;
-	
+	private RTTolerance rtTolerance;
+	private MZTolerance ms2mzTolerance;
+	private double maxFragmentHeight, minMS2peakHeight;
+
 	private FragmentSearchParameters parameters;
 
 	/**
@@ -61,14 +64,14 @@ public class FragmentSearchTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		rtTolerance = (Double) parameters
-				.getParameterValue(FragmentSearchParameters.rtTolerance);
-		ms2mzTolerance = (Double) parameters
-				.getParameterValue(FragmentSearchParameters.ms2mzTolerance);
-		maxFragmentHeight = (Double) parameters
-				.getParameterValue(FragmentSearchParameters.maxFragmentHeight);
-		minMS2peakHeight = (Double) parameters
-				.getParameterValue(FragmentSearchParameters.minMS2peakHeight);
+		rtTolerance = parameters.getParameter(
+				FragmentSearchParameters.rtTolerance).getValue();
+		ms2mzTolerance = parameters.getParameter(
+				FragmentSearchParameters.ms2mzTolerance).getValue();
+		maxFragmentHeight = parameters.getParameter(
+				FragmentSearchParameters.maxFragmentHeight).getDouble();
+		minMS2peakHeight = parameters.getParameter(
+				FragmentSearchParameters.minMS2peakHeight).getDouble();
 
 	}
 
@@ -155,9 +158,9 @@ public class FragmentSearchTask extends AbstractTask {
 			PeakListRow possibleFragment) {
 
 		// Check retention time condition
-		double rtDifference = Math.abs(mainPeak.getAverageRT()
-				- possibleFragment.getAverageRT());
-		if (rtDifference > rtTolerance)
+		boolean rtCheck = rtTolerance.checkWithinTolerance(
+				mainPeak.getAverageRT(), possibleFragment.getAverageRT());
+		if (!rtCheck)
 			return false;
 
 		// Check height condition
@@ -177,9 +180,9 @@ public class FragmentSearchTask extends AbstractTask {
 			return false;
 
 		// Get MS/MS data points in the tolerance range
-		Range ms2mzRange = new Range(possibleFragment.getAverageMZ()
-				- ms2mzTolerance, possibleFragment.getAverageMZ()
-				+ ms2mzTolerance);
+		Range ms2mzRange = ms2mzTolerance.getToleranceRange(possibleFragment
+				.getAverageMZ());
+
 		DataPoint fragmentDataPoints[] = fragmentScan
 				.getDataPointsByMass(ms2mzRange);
 

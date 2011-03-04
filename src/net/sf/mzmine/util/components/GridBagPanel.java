@@ -20,11 +20,11 @@
 
 package net.sf.mzmine.util.components;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /**
@@ -48,8 +48,8 @@ public class GridBagPanel extends JPanel {
 	 * of the component is set to 0, therefore it is not resized even when there
 	 * is extra space available.
 	 */
-	public void add(JComponent component, int gridx, int gridy) {
-		add(component, gridx, gridy, 1, 1, 0, 0);
+	public void add(Component component, int gridx, int gridy) {
+		add(component, gridx, gridy, 1, 1, 0, 0, GridBagConstraints.NONE);
 	}
 
 	/**
@@ -58,27 +58,49 @@ public class GridBagPanel extends JPanel {
 	 * over several other cells. The weight of the component is set to 0,
 	 * therefore it is not resized even when there is extra space available.
 	 */
-	public void add(JComponent component, int gridx, int gridy, int gridwidth,
+	public void add(Component component, int gridx, int gridy, int gridwidth,
 			int gridheight) {
-		add(component, gridx, gridy, gridwidth, gridheight, 0, 0);
+		add(component, gridx, gridy, gridwidth, gridheight, 0, 0,
+				GridBagConstraints.NONE);
 	}
 
 	/**
 	 * Adds a component to the given cell (gridx:gridy) of the grid, with given
 	 * width and height and also weight for resizing.
 	 */
-	public void add(JComponent component, int gridx, int gridy, int gridwidth,
+	public void add(Component component, int gridx, int gridy, int gridwidth,
 			int gridheight, int weightx, int weighty) {
+		add(component, gridx, gridy, gridwidth, gridheight, weightx, weighty,
+				GridBagConstraints.NONE);
+	}
+
+	/**
+	 * Adds a component to the given cell (gridx:gridy) of the grid, with given
+	 * width and height and also weight for resizing.
+	 */
+	public void add(Component component, int gridx, int gridy, int gridwidth,
+			int gridheight, int weightx, int weighty, int fill) {
 
 		GridBagConstraints constraints = new GridBagConstraints(gridx, gridy,
 				gridwidth, gridheight, weightx, weighty,
-				GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-				borderInsets, 0, 0);
+				GridBagConstraints.WEST, fill, borderInsets, 0, 0);
 
 		super.add(component);
 
 		layout.setConstraints(component, constraints);
 
+	}
+
+	public void addCenter(Component component, int gridx, int gridy,
+			int gridwidth, int gridheight) {
+
+		GridBagConstraints constraints = new GridBagConstraints(gridx, gridy,
+				gridwidth, gridheight, 0, 0, GridBagConstraints.CENTER,
+				GridBagConstraints.NONE, borderInsets, 0, 0);
+
+		super.add(component);
+
+		layout.setConstraints(component, constraints);
 	}
 
 }

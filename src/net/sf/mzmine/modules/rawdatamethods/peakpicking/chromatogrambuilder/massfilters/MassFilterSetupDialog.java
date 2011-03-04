@@ -31,7 +31,7 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.MzPeaksDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialogWithScanPreview;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -53,8 +53,8 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 	public MassFilterSetupDialog(MassDetector massDetector,
 			MassFilter massFilter) {
 
-		super(massFilter.getName() + "'s parameter setup dialog ", massFilter
-				.getParameters(), null);
+		super(massFilter
+				.getParameterSet(), null);
 
 		this.massFilter = massFilter;
 		this.massDetector = massDetector;

@@ -19,47 +19,42 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * 
  */
 public class RTNormalizerParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "normalized", null);
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
-    public static final Parameter MZTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "m/z tolerance",
-            "Maximum allowed m/z difference", "m/z", new Double(0.2), new Double(
-                    0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter MZTolerance = new NumberParameter(
+			"m/z tolerance", "Maximum allowed m/z difference",
+			MZmineCore.getMZFormat());
 
-    public static final Parameter RTTolerance = new SimpleParameter(
-            ParameterType.DOUBLE, "Retention time tolerance",
-            "Maximum allowed retention time difference", null, new Double(60.0),
-            new Double(0.0), null, MZmineCore.getRTFormat());
+	public static final NumberParameter RTTolerance = new NumberParameter(
+			"Retention time tolerance",
+			"Maximum allowed retention time difference",
+			MZmineCore.getRTFormat());
 
-    public static final Parameter minHeight = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Minimum standard intensity",
-            "Minimum height of a peak to be selected as normalization standard",
-            null, new Double(1000.0), new Double(0.0), null,
-            MZmineCore.getIntensityFormat());
+	public static final NumberParameter minHeight = new NumberParameter(
+			"Minimum standard intensity",
+			"Minimum height of a peak to be selected as normalization standard",
+			MZmineCore.getIntensityFormat());
 
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peak list",
-            "If checked, original peak list will be removed and only normalized version remains",
-            new Boolean(true));
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, original peak list will be removed and only normalized version remains");
 
-    public RTNormalizerParameters() {
-        super(new Parameter[] { suffix, MZTolerance, RTTolerance, minHeight,
-                autoRemove });
-    }
+	public RTNormalizerParameters() {
+		super(new UserParameter[] { suffix, MZTolerance, RTTolerance, minHeight,
+				autoRemove });
+	}
 
 }

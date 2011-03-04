@@ -19,9 +19,6 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
-import java.lang.reflect.Constructor;
-
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -39,11 +36,9 @@ class DataSetFilteringTask extends AbstractTask {
 	// User parameters
 	private String suffix;
 	private boolean removeOriginal;
-	private int rawDataFilterTypeNumber;
 
 	// Raw Data Filter
-	private RawDataFilter rawDataFilter;
-	private ParameterSet parameters;
+	private RawDataSetFilter rawDataFilter;
 	private SimplePeakList newPeakList;
 
 	/**
@@ -55,11 +50,11 @@ class DataSetFilteringTask extends AbstractTask {
 
 		this.dataFiles = dataFiles;
 
-		rawDataFilterTypeNumber = parameters.getRawDataFilterTypeNumber();
-		this.parameters = parameters
-				.getRawDataFilteringParameters(rawDataFilterTypeNumber);
+		rawDataFilter = parameters.getParameter(DataSetFiltersParameters.filter).getValue();
+		
+		this.removeOriginal = parameters.getParameter(DataSetFiltersParameters.autoRemove).getValue();
 
-		suffix = parameters.getSuffix();
+		suffix = parameters.getParameter(DataSetFiltersParameters.suffix).getValue();
 
 	}
 
@@ -88,20 +83,6 @@ class DataSetFilteringTask extends AbstractTask {
 
 		setStatus(TaskStatus.PROCESSING);
 
-		// Create raw data filter according with the user's selection
-		String rawDataFilterClassName = DataSetFiltersParameters.rawDataFilterClasses[rawDataFilterTypeNumber];
-		try {
-			Class rawDataFilterClass = Class.forName(rawDataFilterClassName);
-			Constructor rawDataFilterConstruct = rawDataFilterClass
-					.getConstructors()[0];
-			rawDataFilter = (RawDataFilter) rawDataFilterConstruct
-					.newInstance(parameters);
-		} catch (Exception e) {
-			errorMessage = "Error trying to make an instance of raw data filter "
-					+ rawDataFilterClassName;
-			setStatus(TaskStatus.ERROR);
-			return;
-		}
 		try {
 			for (RawDataFile dataFile : dataFiles) {
 				RawDataFileWriter rawDataFileWriter = MZmineCore

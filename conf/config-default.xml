@@ -32,7 +32,8 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer.RTNormalizer" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizer" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound.StandardCompoundNormalizer" /> 
-    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzer" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlot" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlot" />
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlot" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.Clustering" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.custom.CustomDBSearch" /> 
@@ -55,30 +56,6 @@
     <module class="net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot" /> 
 
-  </modules>  
-  <preferences>
-    <format type="m/z">
-      <type>NUMBER</type>
-      <pattern>#0.0000</pattern>
-    </format>
-    <format type="Retention time">
-      <type>TIME</type>
-      <pattern>H:mm:ss</pattern>
-    </format>
-    <format type="Intensity">
-      <type>NUMBER</type>
-      <pattern>#0.0</pattern>
-    </format>
-    <mainwindow>
-      <x>0</x>
-      <y>22</y>
-      <width>-1</width>
-      <height>-1</height>
-    </mainwindow>
-    <threads auto="true">4</threads>
-    <proxy_settings>
-      <proxy_address></proxy_address>
-      <proxy_port></proxy_port>
-    </proxy_settings>
-  </preferences> 
+  </modules>
+    
 </configuration>

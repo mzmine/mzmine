@@ -23,19 +23,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -49,9 +47,8 @@ public class JoinAligner implements BatchStep, ActionListener {
 	private Desktop desktop;
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
-	public void initModule() {
+	public JoinAligner() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -68,26 +65,13 @@ public class JoinAligner implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (JoinAlignerParameters) parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet currentParameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) currentParameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+	
 
 	/**
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
@@ -103,7 +87,8 @@ public class JoinAligner implements BatchStep, ActionListener {
 		}
 
 		// Setup parameters
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+		
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -129,7 +114,7 @@ public class JoinAligner implements BatchStep, ActionListener {
 
 		// prepare a new group with just one task
 		Task task = new JoinAlignerTask(peakLists,
-				(JoinAlignerParameters) parameters);
+				 parameters);
 
 		MZmineCore.getTaskController().addTask(task);
 

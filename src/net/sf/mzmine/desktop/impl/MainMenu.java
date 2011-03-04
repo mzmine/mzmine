@@ -31,14 +31,10 @@ import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
-import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.dialogs.FormatSetupDialog;
-import net.sf.mzmine.util.dialogs.PreferencesDialog;
-
-import org.dom4j.DocumentException;
 
 /**
  * This class represents the main menu of MZmine desktop
@@ -53,7 +49,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private WindowsMenu windowsMenu;
 
-	private JMenuItem projectSampleParameters, projectFormats,
+	private JMenuItem projectSampleParameters, 
 			projectPreferences, projectSaveParameters, projectLoadParameters,
 			projectExit, showAbout;
 
@@ -82,9 +78,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
 				"Set sample parameters...", this, KeyEvent.VK_P);
 
 		projectMenu.addSeparator();
-
-		projectFormats = GUIUtils.addMenuItem(projectMenu,
-				"Set number formats...", this, KeyEvent.VK_F);
 
 		projectPreferences = GUIUtils.addMenuItem(projectMenu,
 				"Set preferences...", this, KeyEvent.VK_S);
@@ -293,7 +286,11 @@ public class MainMenu extends JMenuBar implements ActionListener {
 					.getMainFrame());
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				File configFile = chooser.getSelectedFile();
-				MZmineCore.saveConfiguration(configFile);
+				try {
+					MZmineCore.saveConfiguration(configFile);
+				} catch (Exception ex) {
+					MZmineCore.getDesktop().displayException(ex);
+				}
 			}
 		}
 
@@ -305,10 +302,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 				File configFile = chooser.getSelectedFile();
 				try {
 					MZmineCore.loadConfiguration(configFile);
-				} catch (DocumentException ex) {
-					MZmineCore.getDesktop().displayErrorMessage(
-							"Could not load configuration: "
-									+ ExceptionUtils.exceptionToString(ex));
+				} catch (Exception ex) {
+					MZmineCore.getDesktop().displayException(ex);
 				}
 			}
 		}
@@ -318,14 +313,9 @@ public class MainMenu extends JMenuBar implements ActionListener {
 			dialog.setVisible(true);
 		}
 
-		if (src == projectFormats) {
-			FormatSetupDialog formatDialog = new FormatSetupDialog();
-			formatDialog.setVisible(true);
-		}
-
 		if (src == projectPreferences) {
-			PreferencesDialog preferencesDialog = new PreferencesDialog();
-			preferencesDialog.setVisible(true);
+			MZminePreferences preferences = MZmineCore.getPreferences();
+			preferences.showSetupDialog();
 		}
 
 		if (src == showAbout) {

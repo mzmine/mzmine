@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.project.impl;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Vector;
@@ -26,6 +27,7 @@ import java.util.Vector;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader;
+import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
@@ -47,7 +49,7 @@ public class ProjectManagerImpl implements ProjectManager {
 	MZmineProject currentProject;
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	 * @see net.sf.mzmine.modules.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
 		listeners = new Vector<WeakReference<ProjectListener>>();
@@ -75,9 +77,10 @@ public class ProjectManagerImpl implements ProjectManager {
 		// value was overwritten when configuration file was loaded from the new
 		// project)
 		if (project.getProjectFile() != null) {
-			String lastPath = project.getProjectFile().getParentFile()
-					.getPath();
-			ProjectLoader.setLastProjectOpenPath(lastPath);
+			File projectFile = project.getProjectFile();
+			ProjectLoader.getInstance().getParameterSet()
+					.getParameter(ProjectLoaderParameters.projectFile)
+					.setValue(projectFile);
 		}
 	}
 

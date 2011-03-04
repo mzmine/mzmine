@@ -46,6 +46,10 @@ public enum CommonColumnType {
     public Class getColumnClass() {
         return columnClass;
     }
+    
+    public String toString() {
+    	return columnName;
+    }
 
 }
 

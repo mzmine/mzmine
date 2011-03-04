@@ -28,7 +28,9 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.Range;
 
 public class MassBankGateway implements DBGateway {
 
@@ -39,11 +41,14 @@ public class MassBankGateway implements DBGateway {
 
 	/**
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
 
-		String queryAddress = massBankSearchAddress + "&mz=" + mass + "&tol="
-				+ massTolerance;
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+
+		String queryAddress = massBankSearchAddress + "&mz="
+				+ toleranceRange.getAverage() + "&tol="
+				+ (toleranceRange.getSize() / 2);
 
 		URL queryURL = new URL(queryAddress);
 

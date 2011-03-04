@@ -19,164 +19,34 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import java.util.Iterator;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.StorableParameterSet;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+public class DeconvolutionParameters extends SimpleParameterSet {
 
-import org.dom4j.Element;
+	private static final PeakResolver peakResolvers[] = {
+			new BaselinePeakDetector(), new NoiseAmplitudePeakDetector(),
+			new SavitzkyGolayPeakDetector(), new MinimumSearchPeakDetector() };
 
-public class DeconvolutionParameters implements StorableParameterSet {
+	public static final StringParameter suffix = new StringParameter("Suffix",
+			"This string is added to peak list name as suffix", "deconvoluted");
 
-    private static final String PARAMETER_NAME_ATTRIBUTE = "name";
+	public static final ModuleComboParameter<PeakResolver> peakResolver = new ModuleComboParameter<PeakResolver>(
+			"Peak recognition", "Peak recognition description", peakResolvers);
 
-    // Peak recognition
-    public static final String peakResolverNames[] = { "Baseline cut-off",
-            "Noise amplitude", "Savitzky-Golay",
-            "Local minimum search" };
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, original peak list will be removed and only deconvoluted version remains");
 
-    public static final String peakResolverClasses[] = {
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.BaselinePeakDetector",
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector",
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector",
-            "net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector" };
-
-    // Three step parameters
-    private SimpleParameterSet peakResolverParameters[], myParameters;
-
-    private static final Parameter peakResolverTypeNumber = new SimpleParameter(
-            ParameterType.INTEGER,
-            "Peak Resolver type",
-            "This value defines the type of peak builder to use in three steps peak picking process",
-            0);
-
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Suffix",
-            "This string is added to peak list name as suffix", "deconvoluted");
-
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peak list",
-            "If checked, original peak list will be removed and only deconvoluted version remains",
-            new Boolean(false));
-
-    public DeconvolutionParameters() {
-
-        peakResolverParameters = new SimpleParameterSet[peakResolverClasses.length];
-
-        myParameters = new SimpleParameterSet(new Parameter[] {
-                peakResolverTypeNumber, suffix, autoRemove });
-
-        for (int i = 0; i < peakResolverClasses.length; i++) {
-            String className = peakResolverClasses[i] + "Parameters";
-            Class paramClass;
-            try {
-                paramClass = Class.forName(className);
-                peakResolverParameters[i] = (SimpleParameterSet) paramClass.newInstance();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    /**
-     * 
-     * @param int index
-     * @return SimpleParameterSet
-     */
-    public SimpleParameterSet getPeakResolverParameters(int ind) {
-        return peakResolverParameters[ind];
-    }
-
-    /**
-     * 
-     * @param int massDetectorInd
-     * @param int chromatogramResolverInd
-     * @param int peakResolverInd
-     */
-    public void setTypeNumber(int peakResolverInd) {
-        myParameters.setParameterValue(peakResolverTypeNumber, peakResolverInd);
-    }
-
-    /**
-     * 
-     * @return Integer peakResolverTypeNumber
-     */
-    public int getPeakResolverTypeNumber() {
-        return (Integer) myParameters.getParameterValue(peakResolverTypeNumber);
-    }
-
-    /**
-     * 
-     * @see net.sf.mzmine.data.StorableParameterSet#exportValuesToXML(org.dom4j.Element)
-     */
-    public void exportValuesToXML(Element element) {
-
-        for (int i = 0; i < peakResolverParameters.length; i++) {
-            Element subElement = element.addElement("peakbuilder");
-            subElement.addAttribute(PARAMETER_NAME_ATTRIBUTE,
-                    peakResolverNames[i]);
-            peakResolverParameters[i].exportValuesToXML(subElement);
-        }
-
-        myParameters.exportValuesToXML(element);
-    }
-
-    /**
-     * 
-     * @see net.sf.mzmine.data.StorableParameterSet#importValuesFromXML(org.dom4j.Element)
-     */
-    public void importValuesFromXML(Element element) {
-
-        Iterator paramIter = element.elementIterator("peakbuilder");
-        while (paramIter.hasNext()) {
-            Element paramElem = (Element) paramIter.next();
-            for (int i = 0; i < peakResolverNames.length; i++) {
-                if (paramElem.attributeValue(PARAMETER_NAME_ATTRIBUTE).equals(
-                        peakResolverNames[i])) {
-                    peakResolverParameters[i].importValuesFromXML(paramElem);
-                    break;
-                }
-            }
-        }
-
-        myParameters.importValuesFromXML(element);
-
-    }
-
-    /**
-     * This function allows to use these parameters by others threads. So it is
-     * possible to configure any other task with different parameters value
-     * without modify the behavior of other launched tasks
-     * 
-     */
-    public DeconvolutionParameters clone() {
-
-        DeconvolutionParameters newSet = new DeconvolutionParameters();
-
-        newSet.peakResolverParameters = new SimpleParameterSet[peakResolverParameters.length];
-        for (int i = 0; i < peakResolverParameters.length; i++) {
-            newSet.peakResolverParameters[i] = peakResolverParameters[i].clone();
-        }
-
-        newSet.myParameters = myParameters.clone();
-        return newSet;
-
-    }
-
-    public Object getParameterValue(Parameter parameter) {
-        return myParameters.getParameterValue(parameter);
-    }
-    
-    void setParameterValue(Parameter parameter, Object value) {
-        myParameters.setParameterValue(parameter, value);
-    }
-
-    public Parameter[] getParameters() {
-        return myParameters.getParameters();
-    }
+	public DeconvolutionParameters() {
+		super(new UserParameter[] { suffix, peakResolver, autoRemove });
+	}
 
 }

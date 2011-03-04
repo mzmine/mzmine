@@ -24,15 +24,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaver;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -52,64 +51,34 @@ public class ProjectLoader implements BatchStep, ActionListener {
 
 	private ProjectLoaderParameters parameters;
 
-	private Desktop desktop;
-
-	public void initModule() {
+	public ProjectLoader() {
 
 		myInstance = this;
 
-		this.desktop = MZmineCore.getDesktop();
-
 		parameters = new ProjectLoaderParameters();
 
-		desktop.addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
+		MZmineCore.getDesktop().addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
 				"Loads a stored MZmine project", KeyEvent.VK_O, true, this,
 				null);
 
 	}
 
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameterSet) {
-		ProjectLoaderParameters parameters = (ProjectLoaderParameters) parameterSet;
-		String selectedFileName = (String) parameters
-				.getParameterValue(ProjectLoaderParameters.projectFile);
-		File selectedFile = new File(selectedFileName);
+			ParameterSet parameters) {
+		File selectedFile = parameters.getParameter(
+				ProjectLoaderParameters.projectFile).getValue();
+		if (selectedFile == null) {
+			return null;
+		}
 		ProjectOpeningTask task = new ProjectOpeningTask(selectedFile);
 		Task[] tasksArray = new Task[] { task };
 		MZmineCore.getTaskController().addTasks(tasksArray);
 		return tasksArray;
 	}
 
-	public ExitCode setupParameters(ParameterSet parameterSet) {
-
-		ProjectLoaderParameters parameters = (ProjectLoaderParameters) parameterSet;
-
-		String path = (String) parameters
-				.getParameterValue(ProjectLoaderParameters.lastDirectory);
-		File lastPath = null;
-		if (path != null)
-			lastPath = new File(path);
-
-		ProjectLoaderDialog dialog = new ProjectLoaderDialog(lastPath, helpID);
-		dialog.setVisible(true);
-		ExitCode exitCode = dialog.getExitCode();
-
-		if (exitCode == ExitCode.OK) {
-			File selectedFile = dialog.getSelectedFile();
-			String lastDir = dialog.getCurrentDirectory();
-			parameters.setParameterValue(ProjectLoaderParameters.projectFile,
-					selectedFile.getPath());
-			parameters.setParameterValue(ProjectLoaderParameters.lastDirectory,
-					lastDir);
-		}
-
-		return exitCode;
-
-	}
-
 	public void actionPerformed(ActionEvent event) {
 
-		ExitCode setupExitCode = setupParameters(parameters);
+		ExitCode setupExitCode = parameters.showSetupDialog();
 
 		if (setupExitCode != ExitCode.OK) {
 			return;
@@ -123,10 +92,6 @@ public class ProjectLoader implements BatchStep, ActionListener {
 		return parameters;
 	}
 
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ProjectLoaderParameters) parameters;
-	}
-
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;
 	}
@@ -135,13 +100,8 @@ public class ProjectLoader implements BatchStep, ActionListener {
 		return MODULE_NAME;
 	}
 
-	/**
-	 * This function is called from ProjectManagerImpl.setCurrentProject() so we
-	 * can update last open path
-	 */
-	public static void setLastProjectOpenPath(String path) {
-		myInstance.parameters.setParameterValue(
-				ProjectLoaderParameters.lastDirectory, path);
+	public static ProjectLoader getInstance() {
+		return myInstance;
 	}
 
 }

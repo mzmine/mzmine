@@ -16,52 +16,46 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class AdductSearchParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-
-	public static final Parameter rtTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter rtTolerance = new NumberParameter(
 			"RT tolerance",
 			"Maximum allowed difference of retention time to set a relationship between peaks",
-			null, new Double(10.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+			MZmineCore.getRTFormat());
 
-	public static final Parameter adducts = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION,
+	public static final MultiChoiceParameter<AdductType> adducts = new MultiChoiceParameter<AdductType>(
 			"Adducts",
 			"List of adducts, each one refers a specific distance in m/z axis between related peaks",
-			null, AdductType.values());
+			AdductType.values());
 
-	public static final Parameter customAdductValue = new SimpleParameter(
-			ParameterType.DOUBLE, "Custom adduct value",
-			"Mass value (m/z difference) for custom adduct", "m/z", new Double(
-					0.0), new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter customAdductValue = new NumberParameter(
+			"Custom adduct value",
+			"Mass value (m/z difference) for custom adduct",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Tolerance value of the m/z difference between peaks", "m/z",
-			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter mzTolerance = new NumberParameter(
+			"m/z tolerance",
+			"Tolerance value of the m/z difference between peaks",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter maxAdductHeight = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter maxAdductHeight = new NumberParameter(
 			"Max adduct peak height",
 			"Maximum height of the recognized adduct peak, relative to the main peak",
-			"%", new Double(0.20), new Double(0.0), null, percentFormat);
+			NumberFormat.getPercentInstance());
 
 	public AdductSearchParameters() {
-		super(new Parameter[] { rtTolerance, adducts, customAdductValue,
+		super(new UserParameter[] { rtTolerance, adducts, customAdductValue,
 				mzTolerance, maxAdductHeight });
 	}
 

@@ -19,17 +19,13 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters;
 
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 
 /**
  * 
  */
-public interface MassFilter {
-
-	public String getName();
-	
-	public SimpleParameterSet getParameters();
+public interface MassFilter extends MZmineModule {
 
     /**
      * Performs filtering of detected mass values 

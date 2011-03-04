@@ -50,8 +50,8 @@ import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
+import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerParameters;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
@@ -301,7 +301,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				preSelectedPeaks = peaks;
 
 			TICVisualizer.showNewTICVisualizerWindow(selectedDataFiles, peaks,
-					preSelectedPeaks, 1, TICVisualizerParameters.plotTypeBP,
+					preSelectedPeaks, 1, PlotType.BASEPEAK,
 					rtRange, mzRange);
 
 			return;

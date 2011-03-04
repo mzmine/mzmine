@@ -34,11 +34,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * This class imports project parameters and their values from a CSV file to the
@@ -73,7 +74,7 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class ProjectParametersImporter {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());;
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private ProjectParametersSetupDialog mainDialog;
 	private Desktop desktop;
@@ -95,7 +96,7 @@ public class ProjectParametersImporter {
 		}
 
 		// Read and interpret parameters
-		Parameter[] parameters = processParameters(parameterFile);
+		UserParameter[] parameters = processParameters(parameterFile);
 
 		if (parameters == null)
 			return false;
@@ -126,9 +127,9 @@ public class ProjectParametersImporter {
 		return chooser.getSelectedFile();
 	}
 
-	private Parameter[] processParameters(File parameterFile) {
+	private UserParameter[] processParameters(File parameterFile) {
 
-		ArrayList<Parameter> parameters = new ArrayList<Parameter>();
+		ArrayList<UserParameter> parameters = new ArrayList<UserParameter>();
 
 		// Open reader
 		BufferedReader parameterFileReader;
@@ -211,8 +212,8 @@ public class ProjectParametersImporter {
 					}
 				}
 				if (isAllNumeric) {
-					parameters.add(new SimpleParameter(ParameterType.DOUBLE,
-							name, null, new Double(0.0)));
+					parameters.add(new NumberParameter(
+							name, null));
 					continue;
 				}
 
@@ -225,15 +226,15 @@ public class ProjectParametersImporter {
 						uniqueValues.add(val);
 				}
 				if (uniqueValues.size() < vals.size()) {
-					parameters.add(new SimpleParameter(ParameterType.STRING,
-							name, null, uniqueValues.get(0), uniqueValues
+					parameters.add(new ComboParameter<String>(
+							name, null, uniqueValues
 									.toArray(new String[0])));
 					continue;
 				}
 
 				// Otherwise it is a free text parameter
-				parameters.add(new SimpleParameter(ParameterType.STRING, name,
-						null, new String("")));
+				parameters.add(new StringParameter(name,
+						null));
 
 			}
 
@@ -254,16 +255,16 @@ public class ProjectParametersImporter {
 			return null;
 		}
 
-		return parameters.toArray(new Parameter[0]);
+		return parameters.toArray(new UserParameter[0]);
 
 	}
 
 	private boolean processParameterValues(File parameterFile,
-			Parameter[] parameters) {
+			UserParameter[] parameters) {
 
 		// Warn user if main dialog already contains a parameter with same name
-		for (Parameter parameter : parameters) {
-			Parameter p = mainDialog.getParameter(parameter.getName());
+		for (UserParameter parameter : parameters) {
+			UserParameter p = mainDialog.getParameter(parameter.getName());
 			if (p != null) {
 				int res = JOptionPane.showConfirmDialog(mainDialog,
 						"Overwrite previous parameter(s) with same name?",
@@ -276,15 +277,15 @@ public class ProjectParametersImporter {
 		}
 
 		// Remove parameters with same name
-		for (Parameter parameter : parameters) {
-			Parameter p = mainDialog.getParameter(parameter.getName());
+		for (UserParameter parameter : parameters) {
+			UserParameter p = mainDialog.getParameter(parameter.getName());
 			if (p != null) {
 				mainDialog.removeParameter(p);
 			}
 		}
 
 		// Add new parameters to the main dialog
-		for (Parameter parameter : parameters) {
+		for (UserParameter parameter : parameters) {
 			mainDialog.addParameter(parameter);
 		}
 
@@ -319,9 +320,9 @@ public class ProjectParametersImporter {
 				int parameterIndex = 0;
 				while (st.hasMoreTokens()) {
 					String parameterValue = st.nextToken();
-					Parameter parameter = parameters[parameterIndex];
+					UserParameter parameter = parameters[parameterIndex];
 
-					if (parameter.getType() == ParameterType.DOUBLE)
+					if (parameter instanceof NumberParameter)
 						mainDialog.setParameterValue(parameter, fileName,
 								Double.parseDouble(parameterValue));
 					else

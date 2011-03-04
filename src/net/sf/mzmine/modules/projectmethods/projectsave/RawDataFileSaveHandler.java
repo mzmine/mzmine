@@ -73,7 +73,7 @@ class RawDataFileSaveHandler {
 
 		numOfScans = rawDataFile.getNumOfScans();
 		completedScans = 0;
-		
+
 		// step 1 - save scan file
 		logger.info("Saving scan file of: " + rawDataFile.getName());
 
@@ -82,7 +82,7 @@ class RawDataFileSaveHandler {
 
 		zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 
-		File scanFile = ((RawDataFileImpl) rawDataFile).getScanDataFileasFile();
+		File scanFile = ((RawDataFileImpl) rawDataFile).getScanFile();
 		FileInputStream fileStream = new FileInputStream(scanFile);
 		copyMachine = new StreamCopy();
 		copyMachine.copy(fileStream, zipOutputStream, scanFile.length());
@@ -136,13 +136,11 @@ class RawDataFileSaveHandler {
 		hd.endElement("", "", RawDataElementName.NAME.getElementName());
 
 		// <QUANTITY>
-		hd.startElement("", "", RawDataElementName.QUANTITY_SCAN
-				.getElementName(), atts);
+		hd.startElement("", "",
+				RawDataElementName.QUANTITY_SCAN.getElementName(), atts);
 		hd.characters(String.valueOf(numOfScans).toCharArray(), 0, String
 				.valueOf(numOfScans).length());
-		hd
-				.endElement("", "", RawDataElementName.QUANTITY_SCAN
-						.getElementName());
+		hd.endElement("", "", RawDataElementName.QUANTITY_SCAN.getElementName());
 
 		// <SCAN>
 		for (int scanNumber : rawDataFile.getScanNumbers()) {
@@ -187,41 +185,41 @@ class RawDataFileSaveHandler {
 
 		// <PARENT_SCAN>
 		if (scan.getParentScanNumber() > 0) {
-			hd.startElement("", "", RawDataElementName.PARENT_SCAN
-					.getElementName(), atts);
+			hd.startElement("", "",
+					RawDataElementName.PARENT_SCAN.getElementName(), atts);
 			hd.characters(String.valueOf(scan.getParentScanNumber())
-					.toCharArray(), 0, String.valueOf(
-					scan.getParentScanNumber()).length());
-			hd.endElement("", "", RawDataElementName.PARENT_SCAN
-					.getElementName());
+					.toCharArray(), 0,
+					String.valueOf(scan.getParentScanNumber()).length());
+			hd.endElement("", "",
+					RawDataElementName.PARENT_SCAN.getElementName());
 		}
 
 		if (scan.getMSLevel() >= 2) {
 			// <PRECURSOR_MZ>
-			hd.startElement("", "", RawDataElementName.PRECURSOR_MZ
-					.getElementName(), atts);
+			hd.startElement("", "",
+					RawDataElementName.PRECURSOR_MZ.getElementName(), atts);
 			hd.characters(String.valueOf(scan.getPrecursorMZ()).toCharArray(),
 					0, String.valueOf(scan.getPrecursorMZ()).length());
-			hd.endElement("", "", RawDataElementName.PRECURSOR_MZ
-					.getElementName());
+			hd.endElement("", "",
+					RawDataElementName.PRECURSOR_MZ.getElementName());
 
 			// <PRECURSOR_CHARGE>
-			hd.startElement("", "", RawDataElementName.PRECURSOR_CHARGE
-					.getElementName(), atts);
+			hd.startElement("", "",
+					RawDataElementName.PRECURSOR_CHARGE.getElementName(), atts);
 			hd.characters(String.valueOf(scan.getPrecursorCharge())
 					.toCharArray(), 0, String
 					.valueOf(scan.getPrecursorCharge()).length());
-			hd.endElement("", "", RawDataElementName.PRECURSOR_CHARGE
-					.getElementName());
+			hd.endElement("", "",
+					RawDataElementName.PRECURSOR_CHARGE.getElementName());
 		}
 
 		// <RETENTION_TIME>
-		hd.startElement("", "", RawDataElementName.RETENTION_TIME
-				.getElementName(), atts);
+		hd.startElement("", "",
+				RawDataElementName.RETENTION_TIME.getElementName(), atts);
 		hd.characters(String.valueOf(scan.getRetentionTime()).toCharArray(), 0,
 				String.valueOf(scan.getRetentionTime()).length());
-		hd.endElement("", "", RawDataElementName.RETENTION_TIME
-				.getElementName());
+		hd.endElement("", "",
+				RawDataElementName.RETENTION_TIME.getElementName());
 
 		// <CENTROIDED>
 		hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(),
@@ -231,33 +229,34 @@ class RawDataFileSaveHandler {
 		hd.endElement("", "", RawDataElementName.CENTROIDED.getElementName());
 
 		// <QUANTITY_DATAPOINTS>
-		hd.startElement("", "", RawDataElementName.QUANTITY_DATAPOINTS
-				.getElementName(), atts);
+		hd.startElement("", "",
+				RawDataElementName.QUANTITY_DATAPOINTS.getElementName(), atts);
 		hd.characters(String.valueOf((scan.getNumberOfDataPoints()))
-				.toCharArray(), 0, String.valueOf(
-				(scan.getNumberOfDataPoints())).length());
-		hd.endElement("", "", RawDataElementName.QUANTITY_DATAPOINTS
-				.getElementName());
+				.toCharArray(), 0,
+				String.valueOf((scan.getNumberOfDataPoints())).length());
+		hd.endElement("", "",
+				RawDataElementName.QUANTITY_DATAPOINTS.getElementName());
 
 		// <FRAGMENT_SCAN>
 		if (scan.getFragmentScanNumbers() != null) {
 			int[] fragmentScans = scan.getFragmentScanNumbers();
-			atts.addAttribute("", "", RawDataElementName.QUANTITY
-					.getElementName(), "CDATA", String
-					.valueOf(fragmentScans.length));
-			hd.startElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN
-					.getElementName(), atts);
+			atts.addAttribute("", "",
+					RawDataElementName.QUANTITY.getElementName(), "CDATA",
+					String.valueOf(fragmentScans.length));
+			hd.startElement("", "",
+					RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName(),
+					atts);
 			atts.clear();
 			for (int i : fragmentScans) {
-				hd.startElement("", "", RawDataElementName.FRAGMENT_SCAN
-						.getElementName(), atts);
+				hd.startElement("", "",
+						RawDataElementName.FRAGMENT_SCAN.getElementName(), atts);
 				hd.characters(String.valueOf(i).toCharArray(), 0, String
 						.valueOf(i).length());
-				hd.endElement("", "", RawDataElementName.FRAGMENT_SCAN
-						.getElementName());
+				hd.endElement("", "",
+						RawDataElementName.FRAGMENT_SCAN.getElementName());
 			}
-			hd.endElement("", "", RawDataElementName.QUANTITY_FRAGMENT_SCAN
-					.getElementName());
+			hd.endElement("", "",
+					RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
 
 		}
 	}

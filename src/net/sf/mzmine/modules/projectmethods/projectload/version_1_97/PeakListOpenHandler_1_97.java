@@ -54,9 +54,6 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.Ostermiller.util.Base64;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipFile;
-
 public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		PeakListOpenHandler {
 
@@ -86,13 +83,14 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 	private int currentPeakCharge;
 	private String currentIsotopePatternDescription;
 
-	private Hashtable<Integer, RawDataFile> dataFilesIDMap;
+	private Hashtable<String, RawDataFile> dataFilesIDMap;
 
 	private int parsedRows, totalRows;
 
 	private boolean canceled = false;
 
-	public PeakListOpenHandler_1_97() {
+	public PeakListOpenHandler_1_97(
+			Hashtable<String, RawDataFile> dataFilesIDMap) {
 		charBuffer = new StringBuffer();
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();
@@ -103,13 +101,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 	/**
 	 * Load the peak list from the zip file reading the XML peak list file
 	 */
-	public PeakList readPeakList(ZipFile zipFile, ZipEntry entry,
-			Hashtable<Integer, RawDataFile> dataFilesIDMap) throws IOException,
-			ParserConfigurationException, SAXException {
-
-		this.dataFilesIDMap = dataFilesIDMap;
-
-		InputStream peakListStream = zipFile.getInputStream(entry);
+	public PeakList readPeakList(InputStream peakListStream)
+			throws IOException, ParserConfigurationException, SAXException {
 
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -150,8 +143,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 			if (buildingPeakList == null) {
 				initializePeakList();
 			}
-			int rowID = Integer.parseInt(attrs.getValue(PeakListElementName_1_97.ID
-					.getElementName()));
+			int rowID = Integer.parseInt(attrs
+					.getValue(PeakListElementName_1_97.ID.getElementName()));
 			buildingRow = new SimplePeakListRow(rowID);
 			String comment = attrs.getValue(PeakListElementName_1_97.COMMENT
 					.getElementName());
@@ -159,30 +152,34 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		}
 
 		// <PEAK_IDENTITY>
-		if (qName.equals(PeakListElementName_1_97.PEAK_IDENTITY.getElementName())) {
-			identityID = attrs
-					.getValue(PeakListElementName_1_97.ID.getElementName());
+		if (qName.equals(PeakListElementName_1_97.PEAK_IDENTITY
+				.getElementName())) {
+			identityID = attrs.getValue(PeakListElementName_1_97.ID
+					.getElementName());
 			preferred = Boolean.parseBoolean(attrs
-					.getValue(PeakListElementName_1_97.PREFERRED.getElementName()));
+					.getValue(PeakListElementName_1_97.PREFERRED
+							.getElementName()));
 		}
 
 		// <PEAK>
 		if (qName.equals(PeakListElementName_1_97.PEAK.getElementName())) {
 
-			peakColumnID = Integer.parseInt(attrs
-					.getValue(PeakListElementName_1_97.COLUMN.getElementName()));
-			mass = Double.parseDouble(attrs.getValue(PeakListElementName_1_97.MZ
-					.getElementName()));
+			peakColumnID = Integer
+					.parseInt(attrs.getValue(PeakListElementName_1_97.COLUMN
+							.getElementName()));
+			mass = Double.parseDouble(attrs
+					.getValue(PeakListElementName_1_97.MZ.getElementName()));
 			rt = Double.parseDouble(attrs.getValue(PeakListElementName_1_97.RT
 					.getElementName()));
-			height = Double.parseDouble(attrs
-					.getValue(PeakListElementName_1_97.HEIGHT.getElementName()));
-			area = Double.parseDouble(attrs.getValue(PeakListElementName_1_97.AREA
-					.getElementName()));
+			height = Double
+					.parseDouble(attrs.getValue(PeakListElementName_1_97.HEIGHT
+							.getElementName()));
+			area = Double.parseDouble(attrs
+					.getValue(PeakListElementName_1_97.AREA.getElementName()));
 			peakStatus = attrs.getValue(PeakListElementName_1_97.STATUS
 					.getElementName());
-			String chargeString = attrs.getValue(PeakListElementName_1_97.CHARGE
-					.getElementName());
+			String chargeString = attrs
+					.getValue(PeakListElementName_1_97.CHARGE.getElementName());
 			if (chargeString != null)
 				currentPeakCharge = Integer.valueOf(chargeString);
 			else
@@ -193,16 +190,20 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		// <MZPEAK>
 		if (qName.equals(PeakListElementName_1_97.MZPEAKS.getElementName())) {
 			numOfMZpeaks = Integer.parseInt(attrs
-					.getValue(PeakListElementName_1_97.QUANTITY.getElementName()));
+					.getValue(PeakListElementName_1_97.QUANTITY
+							.getElementName()));
 		}
 
 		// <ISOTOPE_PATTERN>
-		if (qName.equals(PeakListElementName_1_97.ISOTOPE_PATTERN.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.ISOTOPE_PATTERN
+				.getElementName())) {
 			currentIsotopes.clear();
-			currentIsotopePatternStatus = IsotopePatternStatus.valueOf(attrs
-					.getValue(PeakListElementName_1_97.STATUS.getElementName()));
+			currentIsotopePatternStatus = IsotopePatternStatus
+					.valueOf(attrs.getValue(PeakListElementName_1_97.STATUS
+							.getElementName()));
 			currentIsotopePatternDescription = attrs
-					.getValue(PeakListElementName_1_97.DESCRIPTION.getElementName());
+					.getValue(PeakListElementName_1_97.DESCRIPTION
+							.getElementName());
 		}
 
 	}
@@ -218,14 +219,16 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 			throw new SAXException("Parsing canceled");
 
 		// <NAME>
-		if (qName.equals(PeakListElementName_1_97.PEAKLIST_NAME.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.PEAKLIST_NAME
+				.getElementName())) {
 			name = getTextOfElement();
 			logger.info("Loading peak list: " + name);
 			peakListName = name;
 		}
 
 		// <PEAKLIST_DATE>
-		if (qName.equals(PeakListElementName_1_97.PEAKLIST_DATE.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.PEAKLIST_DATE
+				.getElementName())) {
 			dateCreated = getTextOfElement();
 		}
 
@@ -267,7 +270,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 
 		// <FRAGMENT_SCAN>
 
-		if (qName.equals(PeakListElementName_1_97.FRAGMENT_SCAN.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.FRAGMENT_SCAN
+				.getElementName())) {
 			fragmentScan = Integer.valueOf(getTextOfElement());
 		}
 
@@ -311,7 +315,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		}
 
 		// <IDENTITY_NAME>
-		if (qName.equals(PeakListElementName_1_97.IDENTITY_NAME.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.IDENTITY_NAME
+				.getElementName())) {
 			identityName = getTextOfElement();
 		}
 
@@ -336,7 +341,7 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 				double mz = masses[i];
 				double intensity = intensities[i];
 
-				if (i == 0) {
+				if ((peakRTRange == null) || (peakIntensityRange == null)) {
 					peakRTRange = new Range(retentionTime);
 					peakIntensityRange = new Range(intensity);
 				} else {
@@ -375,7 +380,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		}
 
 		// <PEAK_IDENTITY>
-		if (qName.equals(PeakListElementName_1_97.PEAK_IDENTITY.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.PEAK_IDENTITY
+				.getElementName())) {
 			SimplePeakIdentity identity = new SimplePeakIdentity(identityName,
 					formula, identificationMethod, identityID, null);
 			buildingRow.addPeakIdentity(identity, preferred);
@@ -404,8 +410,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 			appliedMethods.add(appliedMethod);
 		}
 
-		if (qName
-				.equals(PeakListElementName_1_97.METHOD_PARAMETERS.getElementName())) {
+		if (qName.equals(PeakListElementName_1_97.METHOD_PARAMETERS
+				.getElementName())) {
 			String appliedMethodParam = getTextOfElement();
 			appliedMethodParameters.add(appliedMethodParam);
 		}

@@ -49,4 +49,7 @@ public enum DataFileColumnType {
         return columnClass;
     }
 
+    public String toString() {
+    	return columnName;
+    }
 }

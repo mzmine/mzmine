@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -35,13 +34,13 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 
@@ -52,10 +51,7 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 	private CSVExporterParameters parameters;
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public CSVExporter() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -71,10 +67,6 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 		return parameters;
 	}
 
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (CSVExporterParameters) parameters;
-	}
-
 	public void actionPerformed(ActionEvent event) {
 
 		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
@@ -86,11 +78,11 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 		// Generate dynamically from the peak list the exportable elements of
 		// peak identity
 		String[] identityElements = generateExportIdentityElements(selectedPeakLists[0]);
-		parameters.setMultipleSelection(
-				CSVExporterParameters.exportIdentityItemMultipleSelection,
-				identityElements);
 
-		ExitCode setupExitCode = setupParameters(parameters);
+		parameters.getParameter(CSVExporterParameters.exportIdentityItems)
+				.setChoices(identityElements);
+
+		ExitCode setupExitCode = parameters.showSetupDialog();
 
 		if (setupExitCode != ExitCode.OK) {
 			return;
@@ -156,14 +148,4 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 
 	}
 
-	public ExitCode setupParameters(ParameterSet parameters) {
-
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(CSVExporterParameters) parameters, helpID);
-
-		dialog.setVisible(true);
-
-		return dialog.getExitCode();
-	}
 }

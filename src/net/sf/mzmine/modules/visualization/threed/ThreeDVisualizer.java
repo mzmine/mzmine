@@ -25,17 +25,18 @@ import java.awt.event.KeyEvent;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.visualization.twod.TwoDParameters;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 3D visualizer module
@@ -43,8 +44,8 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	
-    final String helpID = GUIUtils.generateHelpID(this);
+
+	final String helpID = GUIUtils.generateHelpID(this);
 
 	private static ThreeDVisualizer myInstance;
 
@@ -52,10 +53,7 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public ThreeDVisualizer() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -87,25 +85,22 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
 	 */
 	public String toString() {
 		return "3D visualizer";
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ThreeDVisualizerParameters) parameters;
-	}
 
 	public static void show3DVisualizerSetupDialog(RawDataFile dataFile) {
 		show3DVisualizerSetupDialog(dataFile, null, null);
@@ -114,39 +109,41 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 	public static void show3DVisualizerSetupDialog(RawDataFile dataFile,
 			Range mzRange, Range rtRange) {
 
-		Hashtable<Parameter, Object> autoValues = new Hashtable<Parameter, Object>();
+		Hashtable<UserParameter, Object> autoValues = new Hashtable<UserParameter, Object>();
 		autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
-		autoValues.put(ThreeDVisualizerParameters.retentionTimeRange, dataFile
-				.getDataRTRange(1));
-		autoValues.put(ThreeDVisualizerParameters.mzRange, dataFile
-				.getDataMZRange(1));
+		autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
+				dataFile.getDataRTRange(1));
+		autoValues.put(ThreeDVisualizerParameters.mzRange,
+				dataFile.getDataMZRange(1));
 
 		if (rtRange != null)
-			myInstance.parameters.setParameterValue(
-					ThreeDVisualizerParameters.retentionTimeRange, rtRange);
+			myInstance.parameters.getParameter(
+					ThreeDVisualizerParameters.retentionTimeRange).setValue(
+					rtRange);
 		if (mzRange != null)
-			myInstance.parameters.setParameterValue(
-					ThreeDVisualizerParameters.mzRange, mzRange);
+			myInstance.parameters.getParameter(
+					ThreeDVisualizerParameters.mzRange).setValue(mzRange);
 
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for 3D visualizer",
-				myInstance.parameters, autoValues, myInstance.helpID);
+		Integer msLevels[] = CollectionUtils.toIntegerArray(dataFile
+				.getMSLevels());
+		myInstance.parameters.getParameter(TwoDParameters.msLevel).setChoices(
+				msLevels);
 
-		dialog.setVisible(true);
+		ExitCode exitCode = myInstance.parameters.showSetupDialog(autoValues);
 
-		if (dialog.getExitCode() != ExitCode.OK)
+		if (exitCode != ExitCode.OK)
 			return;
 
-		int msLevel = (Integer) myInstance.parameters
-				.getParameterValue(ThreeDVisualizerParameters.msLevel);
-		rtRange = (Range) myInstance.parameters
-				.getParameterValue(ThreeDVisualizerParameters.retentionTimeRange);
-		mzRange = (Range) myInstance.parameters
-				.getParameterValue(ThreeDVisualizerParameters.mzRange);
-		int rtRes = (Integer) myInstance.parameters
-				.getParameterValue(ThreeDVisualizerParameters.rtResolution);
-		int mzRes = (Integer) myInstance.parameters
-				.getParameterValue(ThreeDVisualizerParameters.mzResolution);
+		int msLevel = myInstance.parameters.getParameter(
+				ThreeDVisualizerParameters.msLevel).getValue();
+		rtRange = myInstance.parameters.getParameter(
+				ThreeDVisualizerParameters.retentionTimeRange).getValue();
+		mzRange = myInstance.parameters.getParameter(
+				ThreeDVisualizerParameters.mzRange).getValue();
+		int rtRes = myInstance.parameters.getParameter(
+				ThreeDVisualizerParameters.rtResolution).getInt();
+		int mzRes = myInstance.parameters.getParameter(
+				ThreeDVisualizerParameters.mzResolution).getInt();
 
 		try {
 			ThreeDVisualizerWindow newWindow = new ThreeDVisualizerWindow(
@@ -158,7 +155,6 @@ public class ThreeDVisualizer implements MZmineModule, ActionListener {
 					.displayErrorMessage(
 							"It seems that Java3D is not installed. Please install Java3D and try again.");
 		}
-
 
 	}
 

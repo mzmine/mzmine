@@ -20,22 +20,17 @@
 package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.io.IOException;
-import java.util.Hashtable;
+import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 
 import org.xml.sax.SAXException;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipFile;
-
 public interface PeakListOpenHandler {
 
-	public PeakList readPeakList(ZipFile zipFile, ZipEntry entry,
-			Hashtable<Integer, RawDataFile> dataFilesIDMap) throws IOException,
+	public PeakList readPeakList(InputStream inputStream) throws IOException,
 			ParserConfigurationException, SAXException;
 
 	public double getProgress();

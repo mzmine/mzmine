@@ -18,46 +18,48 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class GPLipidSearchParameters extends SimpleParameterSet {
 
-	public static final Parameter lipidTypes = new SimpleParameter(
-			ParameterType.MULTIPLE_SELECTION, "Type of lipids",
-			"Selection of glycerophospholipis to consider", null, GPLipidType.values());
+	public static final MultiChoiceParameter<GPLipidType> lipidTypes = new MultiChoiceParameter<GPLipidType>(
+			"Type of lipids", "Selection of glycerophospholipis to consider",
+			GPLipidType.values());
 
-	public static final Parameter minChainLength = new SimpleParameter(
-			ParameterType.INTEGER, "Minimum fatty acid length",
-			"Minimum length of the fatty acid chain", "carbons",
-			new Integer(12), new Integer(0), null);
+	public static final NumberParameter minChainLength = new NumberParameter(
+			"Minimum fatty acid length",
+			"Minimum length of the fatty acid chain",
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter maxChainLength = new SimpleParameter(
-			ParameterType.INTEGER, "Maximum fatty acid length",
-			"Maximum length of the fatty acid chain", "carbons",
-			new Integer(36), new Integer(0), null);
+	public static final NumberParameter maxChainLength = new NumberParameter(
+			"Maximum fatty acid length",
+			"Maximum length of the fatty acid chain",
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter maxDoubleBonds = new SimpleParameter(
-			ParameterType.INTEGER, "Maximum number of double bonds",
-			"Maximum number of double bonds in one fatty acid chain", null,
-			new Integer(3), new Integer(0), null);
+	public static final NumberParameter maxDoubleBonds = new NumberParameter(
+			"Maximum number of double bonds",
+			"Maximum number of double bonds in one fatty acid chain",
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed m/z difference", "m/z", new Double(0.1),
-			new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter mzTolerance = new NumberParameter(
+			"m/z tolerance", "Maximum allowed m/z difference",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter ionizationMethod = new SimpleParameter(
-			ParameterType.STRING, "Ionization method",
-			"Type of ion used to calculate the ionized mass", null,
+	public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
+			"Ionization method",
+			"Type of ion used to calculate the ionized mass",
 			IonizationType.values());
 
 	public GPLipidSearchParameters() {
-		super(new Parameter[] { lipidTypes, minChainLength, maxChainLength,
+		super(new UserParameter[] { lipidTypes, minChainLength, maxChainLength,
 				maxDoubleBonds, mzTolerance, ionizationMethod });
 	}
 

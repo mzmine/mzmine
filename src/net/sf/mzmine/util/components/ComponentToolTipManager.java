@@ -292,7 +292,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		String newText = component.getToolTipText(event);
 		Point newPreferredLocation = component.getToolTipLocation(event);
 
-		if (newText != null || newPreferredLocation != null) {
+		if (newText != null && newPreferredLocation != null) {
 
 			if ((newText.equals(toolTipText))) {
 				return;
@@ -323,7 +323,7 @@ public class ComponentToolTipManager extends MouseAdapter implements
 		newToolTipComponent = null;
 	}
 
-	/*
+	/**
 	 * This listener is registered when the tooltip is first registered on a
 	 * component in order to catch the situation where the tooltip was turned on
 	 * while the mouse was already within the bounds of the component. This way,

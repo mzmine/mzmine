@@ -29,6 +29,8 @@ import keggapi.KEGGPortType;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.util.Range;
 
 public class KEGGGateway implements DBGateway {
 
@@ -39,8 +41,10 @@ public class KEGGGateway implements DBGateway {
 
 	/**
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
+
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
 		KEGGLocator locator = new KEGGLocator();
 		KEGGPortType serv;
@@ -50,8 +54,8 @@ public class KEGGGateway implements DBGateway {
 			throw (new IOException(e));
 		}
 
-		String[] results = serv.search_compounds_by_mass((float) mass,
-				(float) massTolerance);
+		String[] results = serv.search_compounds_by_mass((float) toleranceRange.getAverage(),
+				(float) toleranceRange.getSize() / 2);
 
 		return results;
 

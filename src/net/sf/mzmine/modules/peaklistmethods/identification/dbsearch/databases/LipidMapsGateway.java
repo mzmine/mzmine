@@ -26,7 +26,9 @@ import java.util.Vector;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.Range;
 
 public class LipidMapsGateway implements DBGateway {
 
@@ -37,11 +39,14 @@ public class LipidMapsGateway implements DBGateway {
 
 	/**
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
 
-		String queryAddress = lipidMapsSearchAddress + "ExactMass=" + mass
-				+ "&ExactMassOffSet=" + massTolerance;
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+
+		String queryAddress = lipidMapsSearchAddress + "ExactMass="
+				+ toleranceRange.getAverage() + "&ExactMassOffSet="
+				+ (toleranceRange.getSize() / 2);
 
 		URL queryURL = new URL(queryAddress);
 

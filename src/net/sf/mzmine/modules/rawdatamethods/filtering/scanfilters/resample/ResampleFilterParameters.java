@@ -19,20 +19,29 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ResampleFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter binSize = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z bin length", "The length of m/z bin",
-			"m/z", new Double(1.0), new Double(0.00001), new Double(10.0),
-			MZmineCore.getMZFormat());
+	public static final NumberParameter binSize = new NumberParameter(
+			"m/z bin length", "The length of m/z bin", MZmineCore.getMZFormat());
 
-	public ResampleFilterParameters() {
-		super(new Parameter[]{binSize});
+	private ScanFilter scanFilter;
+
+	public ResampleFilterParameters(ScanFilter scanFilter) {
+		super(new UserParameter[] { binSize });
+		this.scanFilter = scanFilter;
+	}
+
+	public ExitCode showSetupDialog() {
+		ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(scanFilter);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
 	}
 }

@@ -35,9 +35,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -158,11 +158,12 @@ class BatchModeDialog extends JDialog implements ActionListener {
 			logger.finest("Adding " + selectedMethod);
 
 			// clone the parameters to
-			ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
-			ExitCode exitCode = selectedMethod.setupParameters(paramsCopy);
+
+			ExitCode exitCode = selectedMethod.getParameterSet().showSetupDialog();
 			if (exitCode != ExitCode.OK)
 				return;
-			selectedMethod.setParameters(paramsCopy);
+			
+			ParameterSet paramsCopy = selectedMethod.getParameterSet().clone();
 
 			BatchStepWrapper newStep = new BatchStepWrapper(selectedMethod,
 					paramsCopy);
@@ -188,7 +189,8 @@ class BatchModeDialog extends JDialog implements ActionListener {
 			if (selected == null)
 				return;
 			logger.finest("Configuring " + selected);
-			selected.getMethod().setupParameters(selected.getParameters());
+			ParameterSet params = selected.getParameters();
+			params.showSetupDialog();
 			return;
 		}
 
@@ -197,6 +199,5 @@ class BatchModeDialog extends JDialog implements ActionListener {
 	public ExitCode getExitCode() {
 		return exitCode;
 	}
-
 
 }

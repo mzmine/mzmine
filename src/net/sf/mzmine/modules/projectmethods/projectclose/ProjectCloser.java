@@ -27,10 +27,10 @@ import java.util.logging.Logger;
 import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -45,7 +45,7 @@ public class ProjectCloser implements MZmineModule, ActionListener {
 
 	public static final String MODULE_NAME = "Close project";
 
-	public void initModule() {
+	public ProjectCloser() {
 
 		MZmineCore.getDesktop().addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
 				"Close the current project", KeyEvent.VK_L, true, this, null);

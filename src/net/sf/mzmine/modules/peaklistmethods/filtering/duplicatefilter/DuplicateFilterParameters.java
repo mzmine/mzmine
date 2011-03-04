@@ -19,45 +19,35 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter suffix = new SimpleParameter(
-            ParameterType.STRING, "Name suffix",
-            "Suffix to be added to peak list name", null, "Duplicate peaks filtered", null);
+	public static final StringParameter suffix = new StringParameter(
+			"Name suffix", "Suffix to be added to peak list name", "filtered");
 
-    public static final Parameter mzDifferenceMax = new SimpleParameter(
-            ParameterType.DOUBLE, "M/Z tolerance",
-            "Maximum m/z difference between duplicate peaks",
-            "m/z", new Double(0.05), new Double(0.0), null,
-            MZmineCore.getMZFormat());
+	public static final MZToleranceParameter mzDifferenceMax = new MZToleranceParameter(
+			"m/z tolerance", "Maximum m/z difference between duplicate peaks");
+	public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
+			"RT tolerance",
+			"Maximum retention time difference between duplicate peaks");
 
-    public static final Parameter rtDifferenceMax = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "RT tolerance",
-            "Maximum retention time difference between duplicate peaks",
-            "seconds", new Double(5.0), new Double(0.0), null,
-            MZmineCore.getRTFormat());
+	public static final BooleanParameter requireSameIdentification = new BooleanParameter(
+			"Require same identification",
+			"If checked, duplicate peaks must have same identification(s)");
 
-    public static final Parameter requireSameIdentification = new SimpleParameter(
-    		ParameterType.BOOLEAN, "Require same identification",
-    		"If checked, duplicate peaks must have same identification(s)",
-    		new Boolean(true));   
-    
-    public static final Parameter autoRemove = new SimpleParameter(
-            ParameterType.BOOLEAN,
-            "Remove original peaklist",
-            "If checked, original peaklist will be removed and only deisotoped version remains",
-            new Boolean(true));
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peaklist",
+			"If checked, original peaklist will be removed and only deisotoped version remains");
 
-    public DuplicateFilterParameters() {
-        super(new Parameter[] { suffix, mzDifferenceMax,
-                rtDifferenceMax, requireSameIdentification, autoRemove, });
-    }
+	public DuplicateFilterParameters() {
+		super(new UserParameter[] { suffix, mzDifferenceMax, rtDifferenceMax,
+				requireSameIdentification, autoRemove, });
+	}
 
 }

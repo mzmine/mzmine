@@ -27,7 +27,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -42,7 +41,7 @@ public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener
 	private RTMZToolbar toolbar;
 	private RTMZPlot plot;
 	
-	public RTMZAnalyzerWindow(Desktop desktop, AbstractXYZDataset dataset, PeakList peakList, SimpleParameterSet parameters, InterpolatingLookupPaintScale paintScale) {
+	public RTMZAnalyzerWindow(Desktop desktop, AbstractXYZDataset dataset, PeakList peakList, InterpolatingLookupPaintScale paintScale) {
 		super(null, true, true, true, true);
 		
 		this.desktop = desktop;

@@ -23,6 +23,7 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -33,19 +34,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.NumberFormatter;
 import net.sf.mzmine.util.Range;
 
 class InfoWindow extends JInternalFrame {
 
-	private NumberFormatter rtFormat = MZmineCore.getRTFormat();
-	private NumberFormatter mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat rtFormat = MZmineCore.getRTFormat();
+	private NumberFormat mzFormat = MZmineCore.getMZFormat();
 
 	Range rtRange, mzRange;
 	int numOfRows, numOfIdentities;
@@ -61,6 +59,11 @@ class InfoWindow extends JInternalFrame {
 
 		this.getInfoRange(peakList);
 
+		if (peakList.getNumberOfRows() == 0) {
+			mzRange = new Range(0, 0);
+			rtRange = new Range(0, 0);
+		}
+		
 		// Raw data file list
 		JList rawDataFileList = new JList(peakList.getRawDataFiles());
 		rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -97,6 +100,7 @@ class InfoWindow extends JInternalFrame {
 		pnlGrid.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 
+		
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = new Insets(5, 5, 5, 5);
 		c.gridwidth = 1;
@@ -120,8 +124,10 @@ class InfoWindow extends JInternalFrame {
 				+ numOfRows + "</font></html>"), c);
 		c.gridx = 0;
 		c.gridy = 4;
-		String text = mzFormat.format(mzRange.getMin()) + " - "
-				+ mzFormat.format(mzRange.getMax());
+		String text = mzFormat.format(
+				mzRange.getMin()) + " - "
+				+ mzFormat.format(
+						mzRange.getMax());
 		pnlGrid.add(new JLabel("<html>m/z range: <font color=\"blue\">" + text
 				+ "</font></html>"), c);
 		c.gridx = 0;
@@ -147,26 +153,14 @@ class InfoWindow extends JInternalFrame {
 	}
 
 	void getInfoRange(PeakList peakList) {
-		RawDataFile[] rawDataFiles = peakList.getRawDataFiles();
 		PeakListRow[] rows = peakList.getRows();
 		numOfRows = rows.length;
-		ChromatographicPeak peak;
 
+		mzRange = peakList.getRowsMZRange();
+		rtRange = peakList.getRowsRTRange();
 		for (PeakListRow row : rows) {
 			if (row.getPreferredPeakIdentity() != null)
 				numOfIdentities++;
-			for (RawDataFile rawData : rawDataFiles) {
-				peak = row.getPeak(rawData);
-				if (peak != null) {
-					if (rtRange == null) {
-						rtRange = new Range(peak.getRT());
-						mzRange = new Range(peak.getMZ());
-					} else {
-						rtRange.extendRange(peak.getRT());
-						mzRange.extendRange(peak.getMZ());
-					}
-				}
-			}
 		}
 
 	}

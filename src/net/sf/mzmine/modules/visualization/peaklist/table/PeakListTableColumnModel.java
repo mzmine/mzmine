@@ -22,6 +22,9 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.NumberFormat;
+import java.util.Arrays;
+import java.util.Enumeration;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
@@ -34,9 +37,10 @@ import javax.swing.table.TableColumn;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.peaklist.ColumnSettingParameter;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
-import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.components.ColumnGroup;
 import net.sf.mzmine.util.components.GroupableTableHeader;
 
@@ -44,265 +48,265 @@ import net.sf.mzmine.util.components.GroupableTableHeader;
  * 
  */
 public class PeakListTableColumnModel extends DefaultTableColumnModel implements
-        MouseListener {
+		MouseListener {
 
-    private static final Font editFont = new Font("SansSerif", Font.PLAIN, 10);
+	private static final Font editFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;
-    private TableCellRenderer peakShapeRenderer, identityRenderer,
-            peakStatusRenderer;
-    private DefaultTableCellRenderer defaultRenderer;
+	private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;
+	private TableCellRenderer peakShapeRenderer, identityRenderer,
+			peakStatusRenderer;
+	private DefaultTableCellRenderer defaultRenderer;
 
-    private PeakListTableVisualizer visualizer;
+	private ParameterSet parameters;
+	private PeakList peakList;
+	private GroupableTableHeader header;
 
-    private PeakListTableParameters parameters;
-    private PeakList peakList;
-    private GroupableTableHeader header;
+	private TableColumn columnBeingResized;
 
-    private TableColumn allColumns[];
-
-    private TableColumn columnBeingResized;
-
-    /**
+	/**
      * 
      */
-    PeakListTableColumnModel(PeakListTableVisualizer visualizer,
-            GroupableTableHeader header, PeakListTableModel tableModel,
-            PeakListTableParameters parameters, PeakList peakList) {
+	PeakListTableColumnModel(GroupableTableHeader header,
+			PeakListTableModel tableModel, ParameterSet parameters,
+			PeakList peakList) {
 
-        this.visualizer = visualizer;
+		this.parameters = parameters;
+		this.peakList = peakList;
 
-        this.parameters = parameters;
-        this.peakList = peakList;
+		this.header = header;
 
-        allColumns = new TableColumn[tableModel.getColumnCount()];
+		header.addMouseListener(this);
 
-        this.header = header;
+		// prepare formatters
+		NumberFormat mzFormat = MZmineCore.getMZFormat();
+		NumberFormat rtFormat = MZmineCore.getRTFormat();
+		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-        header.addMouseListener(this);
+		// prepare cell renderers
+		mzRenderer = new FormattedCellRenderer(mzFormat);
+		rtRenderer = new FormattedCellRenderer(rtFormat);
+		intensityRenderer = new FormattedCellRenderer(intensityFormat);
+		peakShapeRenderer = new PeakShapeCellRenderer(peakList, parameters);
+		identityRenderer = new CompoundIdentityCellRenderer();
+		peakStatusRenderer = new PeakStatusCellRenderer();
+		defaultRenderer = new DefaultTableCellRenderer();
+		defaultRenderer.setHorizontalAlignment(SwingConstants.LEFT);
 
-        // prepare formatters
-        NumberFormatter mzFormat = MZmineCore.getMZFormat();
-        NumberFormatter rtFormat = MZmineCore.getRTFormat();
-        NumberFormatter intensityFormat = MZmineCore.getIntensityFormat();
+	}
 
-        // prepare cell renderers
-        mzRenderer = new FormattedCellRenderer(mzFormat);
-        rtRenderer = new FormattedCellRenderer(rtFormat);
-        intensityRenderer = new FormattedCellRenderer(intensityFormat);
-        peakShapeRenderer = new PeakShapeCellRenderer(peakList, parameters);
-        identityRenderer = new CompoundIdentityCellRenderer();
-        peakStatusRenderer = new PeakStatusCellRenderer();
-        defaultRenderer = new DefaultTableCellRenderer();
-        defaultRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+	public void createColumns() {
 
-        JTextField editorField = new JTextField();
-        editorField.setFont(editFont);
-        DefaultCellEditor defaultEditor = new DefaultCellEditor(editorField);
+		// clear column groups
+		ColumnGroup groups[] = header.getColumnGroups();
+		if (groups != null) {
+			for (ColumnGroup group : groups) {
+				header.removeColumnGroup(group);
+			}
+		}
 
-        int modelIndex = 0;
+		// clear the column model
+		while (getColumnCount() > 0) {
+			TableColumn col = getColumn(0);
+			removeColumn(col);
+		}
 
-        for (CommonColumnType commonColumn : CommonColumnType.values()) {
+		// create the "average" group
+		ColumnGroup averageGroup = new ColumnGroup("Average");
+		header.addColumnGroup(averageGroup);
 
-            TableColumn newColumn = new TableColumn(modelIndex);
-            newColumn.setHeaderValue(commonColumn.getColumnName());
-            newColumn.setIdentifier(commonColumn);
-            
-            switch (commonColumn) {
-            case AVERAGEMZ:
-                newColumn.setCellRenderer(mzRenderer);
-                break;
-            case AVERAGERT:
-                newColumn.setCellRenderer(rtRenderer);
-                break;
-            case IDENTITY:
-                newColumn.setCellRenderer(identityRenderer);
-                break;
-            case COMMENT:
-                newColumn.setCellRenderer(defaultRenderer);
-                newColumn.setCellEditor(defaultEditor);
-                break;
-            case PEAKSHAPE:
-                newColumn.setCellRenderer(peakShapeRenderer);
-                break;
-            default:
-                newColumn.setCellRenderer(defaultRenderer);
-            }
+		JTextField editorField = new JTextField();
+		editorField.setFont(editFont);
+		DefaultCellEditor defaultEditor = new DefaultCellEditor(editorField);
 
-            allColumns[modelIndex] = newColumn;
+		ColumnSettingParameter<CommonColumnType> csPar = parameters
+				.getParameter(PeakListTableParameters.commonColumns);
+		CommonColumnType visibleCommonColumns[] = csPar.getValue();
 
-            modelIndex++;
+		ColumnSettingParameter<DataFileColumnType> dfPar = parameters
+				.getParameter(PeakListTableParameters.dataFileColumns);
+		DataFileColumnType visibleDataFileColumns[] = dfPar.getValue();
 
-        }
+		for (int i = 0; i < visibleCommonColumns.length; i++) {
 
-        for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
+			CommonColumnType commonColumn = visibleCommonColumns[i];
+			int modelIndex = Arrays.asList(CommonColumnType.values()).indexOf(
+					commonColumn);
 
-            for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
+			TableColumn newColumn = new TableColumn(modelIndex);
+			newColumn.setHeaderValue(commonColumn.getColumnName());
+			newColumn.setIdentifier(commonColumn);
 
-                TableColumn newColumn = new TableColumn(modelIndex);
-                newColumn.setHeaderValue(dataFileColumn.getColumnName());
-                newColumn.setIdentifier(dataFileColumn);
+			switch (commonColumn) {
+			case AVERAGEMZ:
+				newColumn.setCellRenderer(mzRenderer);
+				break;
+			case AVERAGERT:
+				newColumn.setCellRenderer(rtRenderer);
+				break;
+			case IDENTITY:
+				newColumn.setCellRenderer(identityRenderer);
+				break;
+			case COMMENT:
+				newColumn.setCellRenderer(defaultRenderer);
+				newColumn.setCellEditor(defaultEditor);
+				break;
+			case PEAKSHAPE:
+				newColumn.setCellRenderer(peakShapeRenderer);
+				break;
+			default:
+				newColumn.setCellRenderer(defaultRenderer);
+			}
 
-                switch (dataFileColumn) {
-                case MZ:
-                    newColumn.setCellRenderer(mzRenderer);
-                    break;
-                case PEAKSHAPE:
-                    newColumn.setCellRenderer(peakShapeRenderer);
-                    break;
-                case STATUS:
-                    newColumn.setCellRenderer(peakStatusRenderer);
-                    break;
-                case RT:
-                    newColumn.setCellRenderer(rtRenderer);
-                    break;
-                case DURATION:
-                    newColumn.setCellRenderer(rtRenderer);
-                    break;
-                case HEIGHT:
-                    newColumn.setCellRenderer(intensityRenderer);
-                    break;
-                case AREA:
-                    newColumn.setCellRenderer(intensityRenderer);
-                    break;
-                default:
-                	newColumn.setCellRenderer(defaultRenderer);
-                    break;
-                }
+			this.addColumn(newColumn);
+			newColumn.setPreferredWidth(csPar.getColumnWidth(modelIndex));
+			if ((commonColumn == CommonColumnType.AVERAGEMZ)
+					|| (commonColumn == CommonColumnType.AVERAGERT)) {
+				averageGroup.add(newColumn);
+			}
 
-                allColumns[modelIndex] = newColumn;
+		}
 
-                modelIndex++;
-            }
-        }
+		for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
 
-    }
+			RawDataFile dataFile = peakList.getRawDataFile(i);
+			ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
+			header.addColumnGroup(fileGroup);
 
-    public void createColumns() {
+			for (int j = 0; j < visibleDataFileColumns.length; j++) {
 
-        // clear column groups
-        ColumnGroup groups[] = header.getColumnGroups();
-        if (groups != null) {
-            for (ColumnGroup group : groups) {
-                header.removeColumnGroup(group);
-            }
-        }
+				DataFileColumnType dataFileColumn = visibleDataFileColumns[j];
+				int dataFileColumnIndex = Arrays.asList(
+						DataFileColumnType.values()).indexOf(dataFileColumn);
+				int modelIndex = CommonColumnType.values().length
+						+ (i * DataFileColumnType.values().length)
+						+ dataFileColumnIndex;
 
-        // clear the column model
-        while (getColumnCount() > 0) {
-            TableColumn col = getColumn(0);
-            removeColumn(col);
-        }
+				TableColumn newColumn = new TableColumn(modelIndex);
+				newColumn.setHeaderValue(dataFileColumn.getColumnName());
+				newColumn.setIdentifier(dataFileColumn);
 
-        int modelIndex = 0;
+				switch (dataFileColumn) {
+				case MZ:
+					newColumn.setCellRenderer(mzRenderer);
+					break;
+				case PEAKSHAPE:
+					newColumn.setCellRenderer(peakShapeRenderer);
+					break;
+				case STATUS:
+					newColumn.setCellRenderer(peakStatusRenderer);
+					break;
+				case RT:
+					newColumn.setCellRenderer(rtRenderer);
+					break;
+				case DURATION:
+					newColumn.setCellRenderer(rtRenderer);
+					break;
+				case HEIGHT:
+					newColumn.setCellRenderer(intensityRenderer);
+					break;
+				case AREA:
+					newColumn.setCellRenderer(intensityRenderer);
+					break;
+				default:
+					newColumn.setCellRenderer(defaultRenderer);
+					break;
+				}
 
-        ColumnGroup averageGroup = new ColumnGroup("Average");
-        header.addColumnGroup(averageGroup);
+				this.addColumn(newColumn);
+				newColumn.setPreferredWidth(dfPar
+						.getColumnWidth(dataFileColumnIndex));
+				fileGroup.add(newColumn);
+			}
 
-        for (CommonColumnType commonColumn : CommonColumnType.values()) {
+		}
 
-            if (parameters.isColumnVisible(commonColumn)) {
-                this.addColumn(allColumns[modelIndex]);
-                allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(commonColumn));
-                if ((commonColumn == CommonColumnType.AVERAGEMZ)
-                        || (commonColumn == CommonColumnType.AVERAGERT)) {
-                    averageGroup.add(allColumns[modelIndex]);
-                }
-            }
+	}
 
-            modelIndex++;
+	/**
+	 * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
+	 */
+	public void mouseClicked(MouseEvent e) {
+		// ignore
+	}
 
-        }
+	/**
+	 * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
+	 */
+	public void mouseEntered(MouseEvent e) {
+		// ignore
+	}
 
-        for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+	/**
+	 * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
+	 */
+	public void mouseExited(MouseEvent e) {
+		// ignore
+	}
 
-            ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
-            header.addColumnGroup(fileGroup);
+	/**
+	 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
+	 */
+	public void mousePressed(MouseEvent e) {
+		columnBeingResized = header.getResizingColumn();
+	}
 
-            for (DataFileColumnType dataFileColumn : DataFileColumnType.values()) {
+	/**
+	 * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
+	 */
+	public void mouseReleased(MouseEvent e) {
 
-                if (parameters.isColumnVisible(dataFileColumn)) {
-                    this.addColumn(allColumns[modelIndex]);
-                    fileGroup.add(allColumns[modelIndex]);
-                    allColumns[modelIndex].setPreferredWidth(parameters.getColumnWidth(dataFileColumn));
-                }
+		if (columnBeingResized == null)
+			return;
 
-                modelIndex++;
-            }
-        }
+		ColumnSettingParameter<CommonColumnType> csPar = parameters
+				.getParameter(PeakListTableParameters.commonColumns);
 
-    }
+		ColumnSettingParameter<DataFileColumnType> dfPar = parameters
+				.getParameter(PeakListTableParameters.dataFileColumns);
 
-    /**
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
-    public void mouseClicked(MouseEvent e) {
-        // ignore
-    }
+		final int modelIndex = columnBeingResized.getModelIndex();
+		final int newWidth = columnBeingResized.getPreferredWidth();
 
-    /**
-     * @see java.awt.event.MouseListener#mouseEntered(java.awt.event.MouseEvent)
-     */
-    public void mouseEntered(MouseEvent e) {
-        // ignore
-    }
+		final int numOfCommonColumns = CommonColumnType.values().length;
+		final int numOfDataFileColumns = DataFileColumnType.values().length;
 
-    /**
-     * @see java.awt.event.MouseListener#mouseExited(java.awt.event.MouseEvent)
-     */
-    public void mouseExited(MouseEvent e) {
-        // ignore
-    }
+		if (modelIndex < numOfCommonColumns) {
+			csPar.setColumnWidth(modelIndex, newWidth);
+		} else {
+			int dataFileColumnIndex = (modelIndex - numOfCommonColumns)
+					% numOfDataFileColumns;
+			dfPar.setColumnWidth(dataFileColumnIndex, newWidth);
 
-    /**
-     * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
-     */
-    public void mousePressed(MouseEvent e) {
-        columnBeingResized = header.getResizingColumn();
-    }
+			// set same width to other data file columns of this type
+			for (int dataFileIndex = peakList.getNumberOfRawDataFiles() - 1; dataFileIndex >= 0; dataFileIndex--) {
+				int columnIndex = numOfCommonColumns
+						+ (dataFileIndex * numOfDataFileColumns)
+						+ dataFileColumnIndex;
 
-    /**
-     * @see java.awt.event.MouseListener#mouseReleased(java.awt.event.MouseEvent)
-     */
-    public void mouseReleased(MouseEvent e) {
+				TableColumn col = this.getColumnByModelIndex(columnIndex);
 
-        if (columnBeingResized != null) {
+				int currentWidth = col.getPreferredWidth();
 
-            final int modelIndex = columnBeingResized.getModelIndex();
-            final int newWidth = columnBeingResized.getPreferredWidth();
+				if (currentWidth != newWidth) {
+					col.setPreferredWidth(newWidth);
+				}
+			}
 
-            final int numOfCommonColumns = CommonColumnType.values().length;
-            final int numOfDataFileColumns = DataFileColumnType.values().length;
-            final CommonColumnType commonColumns[] = CommonColumnType.values();
-            final DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
+		}
 
-            if (modelIndex < numOfCommonColumns) {
-                parameters.setColumnWidth(commonColumns[modelIndex], newWidth);
-            } else {
-                int dataFileColumnIndex = (modelIndex - numOfCommonColumns)
-                        % numOfDataFileColumns;
-                parameters.setColumnWidth(dataFileColumns[dataFileColumnIndex],
-                        newWidth);
+		// Save the widths as global settings
+		PeakListTableVisualizer.getInstance().setParameterSet(parameters);
 
-                // set same width to other data file columns of this type
-                for (int dataFileIndex = peakList.getNumberOfRawDataFiles() - 1; dataFileIndex >= 0; dataFileIndex--) {
-                    int columnIndex = numOfCommonColumns
-                            + (dataFileIndex * numOfDataFileColumns)
-                            + dataFileColumnIndex;
-                    int currentWidth = allColumns[columnIndex].getPreferredWidth();
+	}
 
-                    if (currentWidth != newWidth) {
-                        allColumns[columnIndex].setPreferredWidth(newWidth);
-                    }
-                }
-
-            }
-
-            // store current widths as default
-            visualizer.setParameters(parameters.clone());
-
-        }
-
-    }
+	public TableColumn getColumnByModelIndex(int modelIndex) {
+		Enumeration<TableColumn> allColumns = this.getColumns();
+		while (allColumns.hasMoreElements()) {
+			TableColumn col = allColumns.nextElement();
+			if (col.getModelIndex() == modelIndex)
+				return col;
+		}
+		return null;
+	}
 
 }

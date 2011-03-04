@@ -22,19 +22,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * 
@@ -49,29 +47,28 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 	private GPLipidSearchParameters parameters;
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public GPLipidSearch() {
 
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new GPLipidSearchParameters();
 
-		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-				"Identification of glycerophospholipids by predicting their mass", KeyEvent.VK_A, false,
-				this, null);
+		desktop.addMenuItem(
+				MZmineMenu.IDENTIFICATION,
+				MODULE_NAME,
+				"Identification of glycerophospholipids by predicting their mass",
+				KeyEvent.VK_A, false, this, null);
 
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
 		this.parameters = (GPLipidSearchParameters) parameterValues;
@@ -85,17 +82,6 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set parameter values for " + toString(),
-				(SimpleParameterSet) parameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
-
-	/**
 	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
 	 */
 	public void actionPerformed(ActionEvent e) {
@@ -103,12 +89,12 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
 		if (peakLists.length == 0) {
-			desktop
-					.displayErrorMessage("Please select a peak lists to process");
+			desktop.displayErrorMessage("Please select a peak lists to process");
 			return;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+
 		if (exitCode != ExitCode.OK)
 			return;
 

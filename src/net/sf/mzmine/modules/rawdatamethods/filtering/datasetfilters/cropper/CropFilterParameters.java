@@ -16,23 +16,36 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFilterSetupDialog;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
-    public static final Parameter retentionTimeRange = new SimpleParameter(
-            ParameterType.RANGE, "Retention time",
-            "retention time boundary of the cropped region", null, new Range(0,
-            600), new Double(0), null, MZmineCore.getRTFormat());
+	public static final RangeParameter retentionTimeRange = new RangeParameter(
+			"Retention time", "retention time boundary of the cropped region",
+			MZmineCore.getRTFormat());
 
-    public CropFilterParameters() {
-        super(new Parameter[]{retentionTimeRange});
-    }
+	private RawDataSetFilter dataSetFilter;
+
+	public CropFilterParameters(RawDataSetFilter dataSetFilter) {
+		super(new UserParameter[] { retentionTimeRange });
+
+		this.dataSetFilter = dataSetFilter;
+	}
+
+	public ExitCode showSetupDialog() {
+		DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(
+				dataSetFilter);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
 }

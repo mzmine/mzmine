@@ -28,14 +28,12 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.AgilentCsvReadTask;
@@ -44,6 +42,7 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzMLReadTa
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.MzXMLReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFReadTask;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.XcaliburRawFileReadTask;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -65,25 +64,20 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
 	private RawDataImporterParameters parameters;
 
-	private Desktop desktop;
-
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
-	public void initModule() {
-
-		this.desktop = MZmineCore.getDesktop();
+	public RawDataImporter() {
 
 		parameters = new RawDataImporterParameters();
 
-		desktop.addMenuItem(MZmineMenu.RAWDATA, MODULE_NAME,
+		MZmineCore.getDesktop().addMenuItem(MZmineMenu.RAWDATA, MODULE_NAME,
 				"This module imports raw data files into the project",
 				KeyEvent.VK_I, true, this, null);
 
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
@@ -92,9 +86,6 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 	/**
 	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (RawDataImporterParameters) parameters;
-	}
 
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
@@ -105,13 +96,13 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
 	public void actionPerformed(ActionEvent event) {
 
-		ExitCode setupExitCode = setupParameters(parameters);
+		ExitCode setupExitCode = parameters.showSetupDialog();
 
 		if (setupExitCode != ExitCode.OK) {
 			return;
 		}
 
-		runModule(null, null, parameters);
+		runModule(null, null, parameters.clone());
 
 	}
 
@@ -122,75 +113,73 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 
-		RawDataImporterParameters rawDataImporterParameters = (RawDataImporterParameters) parameters;
-		String fileNames = (String) rawDataImporterParameters
-				.getParameterValue(RawDataImporterParameters.fileNames);
-		String splitFilenames[] = fileNames.split(":");
+		File fileNames[] = parameters.getParameter(
+				RawDataImporterParameters.fileNames).getValue();
 
-		Task openTasks[] = new Task[splitFilenames.length];
+		Task openTasks[] = new Task[fileNames.length];
 
-		for (int i = 0; i < splitFilenames.length; i++) {
+		for (int i = 0; i < fileNames.length; i++) {
 
-			String filePath = splitFilenames[i];
-			filePath = filePath.replaceAll("&colon", ":");
-			filePath = filePath.replaceAll("&amp", "&");
-
-			File file = new File(filePath);
-
-			if ((!file.exists()) || (!file.canRead())) {
-				desktop.displayErrorMessage("Cannot read file " + file);
-				logger.warning("Cannot read file " + file);
+			if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Cannot read file " + fileNames[i]);
+				logger.warning("Cannot read file " + fileNames[i]);
 				return null;
 			}
 
 			RawDataFileWriter newMZmineFile;
 			try {
-				newMZmineFile = MZmineCore.createNewFile(file.getName());
+				newMZmineFile = MZmineCore
+						.createNewFile(fileNames[i].getName());
 			} catch (IOException e) {
-				desktop.displayErrorMessage("Could not create a new temporary file "
-						+ e);
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Could not create a new temporary file " + e);
 				logger.log(Level.SEVERE,
 						"Could not create a new temporary file ", e);
 				return null;
 			}
 
-			String extension = file.getName()
-					.substring(file.getName().lastIndexOf(".") + 1)
+			String extension = fileNames[i].getName()
+					.substring(fileNames[i].getName().lastIndexOf(".") + 1)
 					.toLowerCase();
 
 			if (extension.endsWith("mzdata")) {
-				openTasks[i] = new MzDataReadTask(file, newMZmineFile);
+				openTasks[i] = new MzDataReadTask(fileNames[i], newMZmineFile);
 			}
 			if (extension.endsWith("mzxml")) {
-				openTasks[i] = new MzXMLReadTask(file, newMZmineFile);
+				openTasks[i] = new MzXMLReadTask(fileNames[i], newMZmineFile);
 			}
 			if (extension.endsWith("mzml")) {
-				openTasks[i] = new MzMLReadTask(file, newMZmineFile);
+				openTasks[i] = new MzMLReadTask(fileNames[i], newMZmineFile);
 			}
 			if (extension.endsWith("cdf")) {
-				openTasks[i] = new NetCDFReadTask(file, newMZmineFile);
+				openTasks[i] = new NetCDFReadTask(fileNames[i], newMZmineFile);
 			}
 			if (extension.endsWith("raw")) {
-				openTasks[i] = new XcaliburRawFileReadTask(file, newMZmineFile);
+				openTasks[i] = new XcaliburRawFileReadTask(fileNames[i],
+						newMZmineFile);
 			}
 			if (extension.endsWith("xml")) {
 
 				try {
 					// Check the first 512 bytes of the file, to determine the
 					// file type
-					FileReader reader = new FileReader(file);
+					FileReader reader = new FileReader(fileNames[i]);
 					char buffer[] = new char[512];
 					reader.read(buffer);
 					reader.close();
 					String fileHeader = new String(buffer);
 					if (fileHeader.contains("mzXML")) {
-						openTasks[i] = new MzXMLReadTask(file, newMZmineFile);
+						openTasks[i] = new MzXMLReadTask(fileNames[i],
+								newMZmineFile);
 					}
 					if (fileHeader.contains("mzData")) {
-						openTasks[i] = new MzDataReadTask(file, newMZmineFile);
+						openTasks[i] = new MzDataReadTask(fileNames[i],
+								newMZmineFile);
 					}
 					if (fileHeader.contains("mzML")) {
-						openTasks[i] = new MzMLReadTask(file, newMZmineFile);
+						openTasks[i] = new MzMLReadTask(fileNames[i],
+								newMZmineFile);
 					}
 				} catch (Exception e) {
 					// If an exception occurs, we just continue without
@@ -199,13 +188,15 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 			}
 
 			if (extension.endsWith("csv")) {
-				openTasks[i] = new AgilentCsvReadTask(file, newMZmineFile);
+				openTasks[i] = new AgilentCsvReadTask(fileNames[i],
+						newMZmineFile);
 			}
 
 			if (openTasks[i] == null) {
-				desktop.displayErrorMessage("Cannot determine file type of file "
-						+ file);
-				logger.warning("Cannot determine file type of file " + file);
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Cannot determine file type of file " + fileNames[i]);
+				logger.warning("Cannot determine file type of file "
+						+ fileNames[i]);
 				return null;
 			}
 
@@ -232,47 +223,4 @@ public class RawDataImporter implements MZmineModule, ActionListener,
 
 	}
 
-	public ExitCode setupParameters(ParameterSet parameterSet) {
-
-		RawDataImporterParameters parameters = (RawDataImporterParameters) parameterSet;
-
-		String path = (String) parameters
-				.getParameterValue(RawDataImporterParameters.lastDirectory);
-		File lastPath = null;
-		if (path != null)
-			lastPath = new File(path);
-
-		RawDataImporterDialog dialog = new RawDataImporterDialog(lastPath,
-				helpID);
-		dialog.setVisible(true);
-		ExitCode exitCode = dialog.getExitCode();
-
-		if (exitCode == ExitCode.OK) {
-
-			String lastDir = dialog.getCurrentDirectory();
-			parameters.setParameterValue(
-					RawDataImporterParameters.lastDirectory, lastDir);
-
-			File[] selectedFiles = dialog.getSelectedFiles();
-			if (selectedFiles.length == 0)
-				return ExitCode.CANCEL;
-
-			StringBuilder fileNames = new StringBuilder();
-			for (int i = 0; i < selectedFiles.length; i++) {
-				String filePath = selectedFiles[i].getPath();
-				filePath = filePath.replaceAll("&", "&amp");
-				filePath = filePath.replaceAll(":", "&colon");
-				if (i > 0)
-					fileNames.append(":");
-				fileNames.append(filePath);
-			}
-
-			parameters.setParameterValue(RawDataImporterParameters.fileNames,
-					fileNames.toString());
-
-		}
-
-		return exitCode;
-
-	}
 }

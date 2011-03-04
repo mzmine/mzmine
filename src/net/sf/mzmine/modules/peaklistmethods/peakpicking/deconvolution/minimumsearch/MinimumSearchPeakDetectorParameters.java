@@ -21,50 +21,53 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimums
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
-    public static final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+	private PeakResolver peakResolver;
 
-    public static final Parameter chromatographicThresholdLevel = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Chromatographic threshold",
-            "Find such intensity that given percentage of the chromatogram data points is below, and ignore all data points below that intensity",
-            "%", new Double(0.70), new Double(0.0), new Double(1.0),
-            percentFormat);
+	public static final PercentParameter chromatographicThresholdLevel = new PercentParameter(
+			"Chromatographic threshold",
+			"Find such intensity that given percentage of the chromatogram data points is below, and ignore all data points below that intensity");
 
-    public static final Parameter searchRTRange = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Search minimum in RT range",
-            "If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-            null, new Double(10.0), new Double(0.0), null,
-            MZmineCore.getRTFormat());
+	public static final NumberParameter searchRTRange = new NumberParameter(
+			"Search minimum in RT range",
+			"If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
+			MZmineCore.getRTFormat());
 
-    public static final Parameter minRelativeHeight = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Minimum relative height",
-            "Minimum height of a peak relative to the chromatogram top data point",
-            null, 0.05, 0d, 1d, percentFormat);
+	public static final PercentParameter minRelativeHeight = new PercentParameter(
+			"Minimum relative height",
+			"Minimum height of a peak relative to the chromatogram top data point");
 
-    public static final Parameter minAbsoluteHeight = new SimpleParameter(
-            ParameterType.DOUBLE, "Minimum absolute height",
-            "Minimum absolute height of a peak to be recognized", null, 1000d,
-            0d, null, MZmineCore.getIntensityFormat());
+	public static final NumberParameter minAbsoluteHeight = new NumberParameter(
+			"Minimum absolute height",
+			"Minimum absolute height of a peak to be recognized",
+			MZmineCore.getIntensityFormat());
 
-    public static final Parameter minRatio = new SimpleParameter(
-            ParameterType.DOUBLE,
-            "Min ratio of peak top/edge",
-            "Minimum ratio between peak's top intensity and side (lowest) data points",
-            null, 2d, 0d, null);
+	public static final NumberParameter minRatio = new NumberParameter(
+			"Min ratio of peak top/edge",
+			"Minimum ratio between peak's top intensity and side (lowest) data points",
+			NumberFormat.getNumberInstance());
 
-    public MinimumSearchPeakDetectorParameters() {
-        super(new Parameter[] { chromatographicThresholdLevel, searchRTRange,
-                minRelativeHeight, minAbsoluteHeight, minRatio });
-    }
+	public ExitCode showSetupDialog() {
+		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+				peakResolver);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
+	public MinimumSearchPeakDetectorParameters(PeakResolver peakResolver) {
+		super(new UserParameter[] { chromatographicThresholdLevel,
+				searchRTRange, minRelativeHeight, minAbsoluteHeight, minRatio });
+		this.peakResolver = peakResolver;
+	}
 
 }

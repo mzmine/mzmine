@@ -19,23 +19,57 @@
 
 package net.sf.mzmine.modules.projectmethods.projectload;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import java.io.File;
+
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ProjectLoaderParameters extends SimpleParameterSet {
 
-	public static final Parameter lastDirectory = new SimpleParameter(
-			ParameterType.STRING, "Last open directory",
-			"Last directory used to load project");
+	private static final FileFilter filters[] = new FileFilter[] { new FileNameExtensionFilter(
+			"MZmine projects", "mzmine") };
 
-	public static final Parameter projectFile = new SimpleParameter(
-			ParameterType.FILE_NAME, "Project file to load",
-			"File name of project to be loaded");
+	public static final FileNameParameter projectFile = new FileNameParameter(
+			"Project file", "File name of project to be loaded");
 
 	public ProjectLoaderParameters() {
-		super(new Parameter[] { lastDirectory, projectFile });
+		super(new Parameter[] { projectFile });
+	}
+
+	public ExitCode showSetupDialog() {
+
+		JFileChooser chooser = new JFileChooser();
+
+		for (FileFilter filter : filters)
+			chooser.setFileFilter(filter);
+
+		File currentFile = getParameter(projectFile).getValue();
+		if (currentFile != null) {
+			File currentDir = currentFile.getParentFile();
+			if (currentDir.exists())
+				chooser.setCurrentDirectory(currentDir);
+		}
+
+		chooser.setMultiSelectionEnabled(false);
+
+		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
+				.getMainFrame());
+		if (returnVal != JFileChooser.APPROVE_OPTION)
+			return ExitCode.CANCEL;
+
+		File selectedFile = chooser.getSelectedFile();
+
+		getParameter(projectFile).setValue(selectedFile);
+
+		return ExitCode.OK;
+
 	}
 
 }

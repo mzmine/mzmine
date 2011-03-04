@@ -22,14 +22,14 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -44,10 +44,7 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 
 	private Desktop desktop;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public ShapeModeler() {
 
 		this.desktop = MZmineCore.getDesktop();
 
@@ -89,16 +86,16 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 			}
 
 			if (!resolvedFlag)
-				desktop
-						.displayMessage(
-								"Warning",
-								"Peak list "
-										+ peakLists[i]
-										+ " has not been processed using \"Peak deconvolution\", result could be uncertain");
+				desktop.displayMessage(
+						"Warning",
+						"Peak list "
+								+ peakLists[i]
+								+ " has not been processed using \"Peak deconvolution\", result could be uncertain");
 			resolvedFlag = false;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -109,13 +106,6 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	public ExitCode setupParameters(ParameterSet parameters) {
-		ShapeModelerSetupDialog dialog = new ShapeModelerSetupDialog(
-				"Please set parameter values for " + toString(),
-				(ShapeModelerParameters) parameters, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
 
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#toString()
@@ -125,14 +115,10 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
-	}
-
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ShapeModelerParameters) parameters;
 	}
 
 	/**
@@ -146,8 +132,7 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 			ParameterSet parameters) {
 		// check peak lists
 		if ((peakLists == null) || (peakLists.length == 0)) {
-			desktop
-					.displayErrorMessage("Please select peak lists for recognition");
+			desktop.displayErrorMessage("Please select peak lists for recognition");
 			return null;
 		}
 

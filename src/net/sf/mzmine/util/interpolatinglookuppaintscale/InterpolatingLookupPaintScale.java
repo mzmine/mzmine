@@ -105,13 +105,19 @@ public class InterpolatingLookupPaintScale implements PaintScale,
 		Entry<Double, Color> floor = lookupTable.floorEntry(value);
 		Entry<Double, Color> ceil = lookupTable.ceilingEntry(value);
 
+		
 		// Special cases, no floor, ceil or both available for given value
 		if ((floor == null) && (ceil == null))
 			getDefaultPaint();
-		if (floor == null)
+		if (floor == null) {
+			assert ceil != null;
 			return ceil.getValue();
-		if (ceil == null)
+		}
+
+		if (ceil == null) {
+			assert floor != null;
 			return floor.getValue();
+		}
 
 		// Normal case, interpolate between floor and ceil
 		double floorValue = floor.getKey();

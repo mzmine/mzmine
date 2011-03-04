@@ -19,22 +19,15 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class MascotSearchParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-
-	public static final Parameter urlAddress = new SimpleParameter(
-			ParameterType.STRING,
+	public static final StringParameter urlAddress = new StringParameter(
 			"Mascot Server address, http://",
-			"URL address where the Mascot Server is installed",null, "127.0.0.1", null);
+			"URL address where the Mascot Server is installed", "127.0.0.1");
 
 	public MascotSearchParameters() {
 		super(new Parameter[] { urlAddress });

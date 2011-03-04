@@ -21,17 +21,24 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
+import net.sf.mzmine.util.Range;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 public class PubChemGateway implements DBGateway {
 
@@ -45,8 +52,10 @@ public class PubChemGateway implements DBGateway {
 	 * CID. If chargedOnly parameter is set, returns only molecules with
 	 * non-zero charge.
 	 */
-	public String[] findCompounds(double mass, double massTolerance,
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
+
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
 		StringBuilder pubchemUrl = new StringBuilder();
 
@@ -54,28 +63,35 @@ public class PubChemGateway implements DBGateway {
 				.append("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?usehistory=n&db=pccompound&sort=cida&retmax=");
 		pubchemUrl.append(numOfResults);
 		pubchemUrl.append("&term=");
-		pubchemUrl.append(mass - massTolerance);
+		pubchemUrl.append(toleranceRange.getMin());
 		pubchemUrl.append(":");
-		pubchemUrl.append(mass + massTolerance);
+		pubchemUrl.append(toleranceRange.getMax());
 		pubchemUrl.append("[MonoisotopicMass]");
 
 		URL url = new URL(pubchemUrl.toString());
 
 		String resultDocument = InetUtils.retrieveData(url);
-		Document parsedResult;
+		NodeList cidElements;
+
 		try {
-			parsedResult = DocumentHelper.parseText(resultDocument);
-		} catch (DocumentException e) {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = dbf.newDocumentBuilder();
+			Document parsedResult = builder.parse(resultDocument);
+
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+			XPathExpression expr = xpath.compile("//eSearchResult/IdList/Id");
+			cidElements = (NodeList) expr.evaluate(parsedResult,
+					XPathConstants.NODESET);
+
+		} catch (Exception e) {
 			throw (new IOException(e));
 		}
 
-		List cidElements = parsedResult.getRootElement().element("IdList")
-				.elements("Id");
-
-		String cidArray[] = new String[cidElements.size()];
-		for (int i = 0; i < cidElements.size(); i++) {
-			Element cidElement = (Element) cidElements.get(i);
-			cidArray[i] = cidElement.getText();
+		String cidArray[] = new String[cidElements.getLength()];
+		for (int i = 0; i < cidElements.getLength(); i++) {
+			Element cidElement = (Element) cidElements.item(i);
+			cidArray[i] = cidElement.getTextContent();
 		}
 
 		return cidArray;
@@ -94,32 +110,55 @@ public class PubChemGateway implements DBGateway {
 
 		String resultDocument = InetUtils.retrieveData(url);
 
-		Document parsedResult;
+		Element nameElement, formulaElement;
+
 		try {
-			parsedResult = DocumentHelper.parseText(resultDocument);
-		} catch (DocumentException e) {
+
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = dbf.newDocumentBuilder();
+			Document parsedResult = builder.parse(resultDocument);
+
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+
+			XPathExpression expr = xpath
+					.compile("//eSummaryResult/DocSum/Item[@Name='MeSHHeadingList']/Item");
+			NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult,
+					XPathConstants.NODESET);
+			nameElement = (Element) nameElementNL.item(0);
+
+			if (nameElement == null) {
+				expr = xpath
+						.compile("//eSummaryResult/DocSum/Item[@Name='SynonymList']/Item");
+				nameElementNL = (NodeList) expr.evaluate(parsedResult,
+						XPathConstants.NODESET);
+				nameElement = (Element) nameElementNL.item(0);
+			}
+
+			if (nameElement == null) {
+				expr = xpath
+						.compile("//eSummaryResult/DocSum/Item[@Name='IUPACName']");
+				nameElementNL = (NodeList) expr.evaluate(parsedResult,
+						XPathConstants.NODESET);
+				nameElement = (Element) nameElementNL.item(0);
+			}
+
+			if (nameElement == null)
+				throw new IOException("Could not parse compound name");
+
+			expr = xpath
+					.compile("//eSummaryResult/DocSum/Item[@Name='MolecularFormula']");
+			NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult,
+					XPathConstants.NODESET);
+			formulaElement = (Element) formulaElementNL.item(0);
+
+		} catch (Exception e) {
 			throw new IOException(e);
 		}
 
-		Element nameElement = (Element) parsedResult
-				.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='MeSHHeadingList']/Item");
-		if (nameElement == null) {
-			nameElement = (Element) parsedResult
-					.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='SynonymList']/Item");
-		}
-		if (nameElement == null) {
-			nameElement = (Element) parsedResult
-					.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='IUPACName']");
-		}
-		if (nameElement == null)
-			throw new IOException("Could not parse compound name");
+		String compoundName = nameElement.getTextContent();
 
-		String compoundName = nameElement.getText();
-
-		Element formulaElement = (Element) parsedResult
-				.selectSingleNode("//eSummaryResult/DocSum/Item[@Name='MolecularFormula']");
-
-		String compoundFormula = formulaElement.getText();
+		String compoundFormula = formulaElement.getTextContent();
 
 		URL entryURL = new URL(pubchemEntryAddress + CID);
 		URL structure2DURL = new URL(pubchem2DStructureAddress + CID);

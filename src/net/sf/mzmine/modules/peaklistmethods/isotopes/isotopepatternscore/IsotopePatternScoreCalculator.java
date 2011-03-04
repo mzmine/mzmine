@@ -26,21 +26,39 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.DataPointSorter;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class IsotopePatternScoreCalculator {
+
+	public static boolean checkMatch(IsotopePattern ip1, IsotopePattern ip2,
+			ParameterSet parameters) {
+
+		double score = getSimilarityScore(ip1, ip2, parameters);
+
+		double minimumScore = parameters.getParameter(
+				IsotopePatternScoreParameters.isotopePatternScoreThreshold)
+				.getValue();
+
+		return score >= minimumScore;
+	}
 
 	/**
 	 * Returns a calculated similarity score of two isotope patterns in the
 	 * range of 0 (not similar at all) to 1 (100% same).
 	 */
 	public static double getSimilarityScore(IsotopePattern ip1,
-			IsotopePattern ip2, double mzTolerance) {
+			IsotopePattern ip2, ParameterSet parameters) {
 
 		assert ip1 != null;
 		assert ip2 != null;
+
+		MZTolerance mzTolerance = parameters.getParameter(
+				IsotopePatternScoreParameters.mzTolerance).getValue();
 
 		// Normalize the isotopes to intensity 0..1
 		IsotopePattern nip1 = IsotopePatternCalculator
@@ -69,10 +87,10 @@ public class IsotopePatternScoreCalculator {
 		// tolerance
 		for (int i = 0; i < mergedDPArray.length - 1; i++) {
 
-			double mzDifference = Math.abs(mergedDPArray[i].getMZ()
-					- mergedDPArray[i + 1].getMZ());
+			Range toleranceRange = mzTolerance
+					.getToleranceRange(mergedDPArray[i].getMZ());
 
-			if (mzDifference > mzTolerance)
+			if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
 				continue;
 
 			double summedIntensity = mergedDPArray[i].getIntensity()

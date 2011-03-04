@@ -128,6 +128,8 @@ public class StorableScan implements Scan {
 	public DataPoint[] getDataPoints() {
 
 		try {
+			
+			
 			ByteBuffer bytes = rawDataFile.readFromFloatBufferFile(
 					scanFileOffset, numberOfDataPoints * 2 * 4);
 

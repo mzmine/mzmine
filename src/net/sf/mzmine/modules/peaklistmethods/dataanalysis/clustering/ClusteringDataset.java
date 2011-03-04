@@ -16,45 +16,24 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import figs.treeVisualization.TreeViewJ;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.logging.Logger;
 import java.util.LinkedList;
-
-import java.util.List;
-import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jmprojection.PCA;
-import jmprojection.Preprocess;
+
 import jmprojection.ProjectionStatus;
-import jmprojection.Sammons;
-import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotDataset;
-import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotWindow;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotParameters;
 import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import org.jfree.data.xy.AbstractXYDataset;
-import weka.clusterers.Clusterer;
-import weka.clusterers.EM;
-import weka.clusterers.FarthestFirst;
-import weka.clusterers.HierarchicalClusterer;
-import weka.clusterers.SimpleKMeans;
-import weka.core.Attribute;
-import weka.core.FastVector;
-import weka.core.Instance;
-import weka.core.Instances;
-import weka.core.SparseInstance;
 
 public class ClusteringDataset extends AbstractXYDataset implements
         ProjectionPlotDataset {
@@ -75,23 +54,19 @@ public class ClusteringDataset extends AbstractXYDataset implements
         private TaskStatus status = TaskStatus.WAITING;
         private String errorMessage;
         private ProjectionStatus projectionStatus;
-        private ClusteringAlgorithmsEnum clusteringAlgorithm;
+        private ClusteringAlgorithm clusteringAlgorithm;
         private String visualizationType;
-        private String typeOfData, linkType, distances;
+        private ClusteringDataType typeOfData;
         private float progress;
 
         public ClusteringDataset(ClusteringParameters parameters) {
 
                 this.parameters = parameters;
 
-                selectedRawDataFiles = parameters.getSelectedDataFiles();
-                selectedRows = parameters.getSelectedRows();
-                numberOfGroups = (Integer) parameters.getParameterValue(ClusteringParameters.numberOfGroups);
-                clusteringAlgorithm = (ClusteringAlgorithmsEnum) parameters.getParameterValue(ClusteringParameters.clusteringAlgorithm);
-                visualizationType = (String) parameters.getParameterValue(ClusteringParameters.visualization);
-                typeOfData = (String) parameters.getParameterValue(ClusteringParameters.typeOfData);
-                linkType = (String) parameters.getParameterValue(ClusteringParameters.linkType);
-                distances = (String) parameters.getParameterValue(ClusteringParameters.distances);
+                selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue();
+                selectedRows = parameters.getParameter(ProjectionPlotParameters.rows).getValue();
+                clusteringAlgorithm = parameters.getParameter(ClusteringParameters.clusteringAlgorithm).getValue();
+                typeOfData = parameters.getParameter(ClusteringParameters.typeOfData).getValue();
 
                 datasetTitle = "Clustering";
 
@@ -176,7 +151,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
 
                 logger.info("Clustering");
 
-                progressAlgorithm progressThread = new progressAlgorithm();
+/*                progressAlgorithm progressThread = new progressAlgorithm();
                 progressThread.run();
 
                 double[][] rawData;
@@ -293,7 +268,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         desktop.addInternalFrame(newFrame);
                 }
                 progressThread = null;
-                progress = 1f;
+                progress = 1f; */
                 status = TaskStatus.FINISHED;
                 logger.info("Finished computing Clustering visualization.");
         }
@@ -302,7 +277,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
          * Creates a matrix of heights of areas
          * @param isForSamples
          * @return
-         */
+
         private double[][] createMatrix(boolean isForSamples) {
                 // Generate matrix of raw data (input to CDA)
                 boolean useArea = true;
@@ -354,7 +329,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
          * Creates the weka data set for clustering of samples
          * @param rawData Data extracted from selected Raw data files and rows.
          * @return Weka library data set
-         */
+
         private Instances createSampleWekaDataset(double[][] rawData) {
                 FastVector attributes = new FastVector();
 
@@ -388,7 +363,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
          * Creates the weka data set for clustering of variables (metabolites)
          * @param rawData Data extracted from selected Raw data files and rows.
          * @return Weka library data set
-         */
+
         private Instances createVariableWekaDataset(double[][] rawData) {
                 FastVector attributes = new FastVector();
 
@@ -429,7 +404,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
          * @param algorithm Type of clustering algorithm
          * @param wekaData Weka data set
          * @return List of the cluster number of each selected Raw data file.
-         */
+         
         private List<Integer> getClusterer(ClusteringAlgorithmsEnum algorithm, Instances wekaData) {
                 List<Integer> clusters = new ArrayList<Integer>();
                 String[] options = new String[2];
@@ -511,6 +486,8 @@ public class ClusteringDataset extends AbstractXYDataset implements
                         return null;
                 }
         }
+                */
+
 
         public void cancel() {
                 if (projectionStatus != null) {
@@ -527,7 +504,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
         public TaskStatus getStatus() {
                 return status;
         }
-
+/*
         public String getTaskDescription() {
                 if ((parameters == null) || (parameters.getSourcePeakList() == null)) {
                         return "Clustering visualization";
@@ -545,7 +522,7 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 } else {
                         return (projectionStatus.getFinishedPercentage() / 2) + 0.5;
                 }
-        }
+        }*/
 
         public Object[] getCreatedObjects() {
                 return null;
@@ -631,45 +608,19 @@ public class ClusteringDataset extends AbstractXYDataset implements
                 return cluster;
         }
 
-        /**
-         * Estimation of the progress of each algorithm. It is not the best solution..
-         */
-        public class progressAlgorithm extends Thread {
+		@Override
+		public String getTaskDescription() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 
-                @Override
-                public void run() {
-                        int x = 10;
-                        int end = 50;
-                        switch (clusteringAlgorithm) {
-                                case EM:
-                                        x = 600;
-                                        break;
-                                case FARTHESTFIRST:
-                                        x = 20;
-                                        break;
-                                case SIMPLEKMEANS:
-                                        x = 20;
-                                        break;
-                                case HIERARCHICAL:
-                                        x = 100;
-                                        end = 100;
-                                        break;
-                        }
+		@Override
+		public double getFinishedPercentage() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
 
-                        if (typeOfData.equals("Variables")) {
-                                x += selectedRows.length;
-                        }
-
-                        for (int i = 0; i < end; i++) {
-                                try {
-                                        sleep(x);
-                                        progress += 0.01f;
-                                } catch (InterruptedException ex) {
-                                        Logger.getLogger(ClusteringDataset.class.getName()).log(Level.SEVERE, null, ex);
-                                }
-                        }
-                }
-        }
+       
 }
 
 

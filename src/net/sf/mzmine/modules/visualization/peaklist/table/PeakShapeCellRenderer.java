@@ -32,92 +32,96 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
+import net.sf.mzmine.modules.visualization.peaklist.PeakShapeNormalization;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.components.CombinedXICComponent;
 import net.sf.mzmine.util.components.PeakXICComponent;
-
 
 /**
  * 
  */
 class PeakShapeCellRenderer implements TableCellRenderer {
 
-    private PeakList peakList;
-    private PeakListTableParameters parameters;
+	private PeakList peakList;
+	private ParameterSet parameters;
 
-    /**
+	/**
      * 
      */
-    PeakShapeCellRenderer(PeakList peakList, PeakListTableParameters parameters) {
-        this.peakList = peakList;
-        this.parameters = parameters;
-    }
+	PeakShapeCellRenderer(PeakList peakList, ParameterSet parameters) {
+		this.peakList = peakList;
+		this.parameters = parameters;
+	}
 
-    /**
-     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-     *      java.lang.Object, boolean, boolean, int, int)
-     */
-    public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+	/**
+	 * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+	 *      java.lang.Object, boolean, boolean, int, int)
+	 */
+	public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column) {
 
-        JPanel newPanel = new JPanel();
-        newPanel.setLayout(new OverlayLayout(newPanel));
+		JPanel newPanel = new JPanel();
+		newPanel.setLayout(new OverlayLayout(newPanel));
 
-        Color bgColor;
+		Color bgColor;
 
-        if (isSelected)
-            bgColor = table.getSelectionBackground();
-        else
-            bgColor = table.getBackground();
+		if (isSelected)
+			bgColor = table.getSelectionBackground();
+		else
+			bgColor = table.getBackground();
 
-        newPanel.setBackground(bgColor);
+		newPanel.setBackground(bgColor);
 
-        if (value instanceof ChromatographicPeak) {
+		if (value instanceof ChromatographicPeak) {
 
-            ChromatographicPeak peak = (ChromatographicPeak) value;
-            double maxHeight = 0;
+			ChromatographicPeak peak = (ChromatographicPeak) value;
+			double maxHeight = 0;
 
-            switch (parameters.getPeakShapeNormalization()) {
-            case GLOBALMAX:
-                maxHeight = peakList.getDataPointMaxIntensity();
-                break;
-            case ROWMAX:
-                int rowNumber = peakList.getPeakRowNum(peak);
-                maxHeight = peakList.getRow(rowNumber).getDataPointMaxIntensity();
-                break;
-            default:
-                maxHeight = peak.getRawDataPointsIntensityRange().getMax();
-                break;
-            }
+			PeakShapeNormalization norm = parameters.getParameter(
+					PeakListTableParameters.peakShapeNormalization).getValue();
+			switch (norm) {
+			case GLOBALMAX:
+				maxHeight = peakList.getDataPointMaxIntensity();
+				break;
+			case ROWMAX:
+				int rowNumber = peakList.getPeakRowNum(peak);
+				maxHeight = peakList.getRow(rowNumber)
+						.getDataPointMaxIntensity();
+				break;
+			default:
+				maxHeight = peak.getRawDataPointsIntensityRange().getMax();
+				break;
+			}
 
-            PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
+			PeakXICComponent xic = new PeakXICComponent(peak, maxHeight);
 
-            newPanel.add(xic);
+			newPanel.add(xic);
 
-            newPanel.setToolTipText(xic.getToolTipText());
+			newPanel.setToolTipText(xic.getToolTipText());
 
-        }
+		}
 
-        if (value instanceof PeakListRow) {
+		if (value instanceof PeakListRow) {
 
-            PeakListRow plRow = (PeakListRow) value;
+			PeakListRow plRow = (PeakListRow) value;
 
-            RawDataFile[] dataFiles = peakList.getRawDataFiles();
-            ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
-            for (int i = 0; i < dataFiles.length; i++) {
-                peaks[i] = plRow.getPeak(dataFiles[i]);
-            }
+			RawDataFile[] dataFiles = peakList.getRawDataFiles();
+			ChromatographicPeak[] peaks = new ChromatographicPeak[dataFiles.length];
+			for (int i = 0; i < dataFiles.length; i++) {
+				peaks[i] = plRow.getPeak(dataFiles[i]);
+			}
 
-            CombinedXICComponent xic = new CombinedXICComponent(peaks,
-                    plRow.getID());
+			CombinedXICComponent xic = new CombinedXICComponent(peaks,
+					plRow.getID());
 
-            newPanel.add(xic);
+			newPanel.add(xic);
 
-            newPanel.setToolTipText(xic.getToolTipText());
+			newPanel.setToolTipText(xic.getToolTipText());
 
-        }
+		}
 
-        return newPanel;
+		return newPanel;
 
-    }
+	}
 
 }

@@ -56,16 +56,16 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		this.dataFile = dataFile;
 
-		//Retrieve parameter's values
-		Range rtRange = (Range) parameters
-				.getParameterValue(NeutralLossParameters.retentionTimeRange);
-		Range mzRange = (Range) parameters
-				.getParameterValue(NeutralLossParameters.mzRange);
-		int numOfFragments = (Integer) parameters
-				.getParameterValue(NeutralLossParameters.numOfFragments);
+		// Retrieve parameter's values
+		Range rtRange = parameters.getParameter(
+				NeutralLossParameters.retentionTimeRange).getValue();
+		Range mzRange = parameters.getParameter(NeutralLossParameters.mzRange)
+				.getValue();
+		int numOfFragments = parameters.getParameter(
+				NeutralLossParameters.numOfFragments).getInt();
 
 		Object xAxisType = parameters
-				.getParameterValue(NeutralLossParameters.xAxisType);
+				.getParameter(NeutralLossParameters.xAxisType);
 
 		// Set window components
 		dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
@@ -77,20 +77,19 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 		toolBar = new NeutralLossToolBar(this);
 		add(toolBar, BorderLayout.EAST);
 
-		//Set range for Y axis
+		// Set range for Y axis
 		ValueAxis yAxis = neutralLossPlot.getXYPlot().getDomainAxis();
-		
+
 		if (xAxisType == NeutralLossParameters.xAxisRT)
-			yAxis.setRange(rtRange.getMin(),rtRange.getMax());
+			yAxis.setRange(rtRange.getMin(), rtRange.getMax());
 		else
-			yAxis.setRange(mzRange.getMin(),mzRange.getMax());
+			yAxis.setRange(mzRange.getMin(), mzRange.getMax());
 
 		updateTitle();
 
 		pack();
 
 	}
-
 
 	void updateTitle() {
 
@@ -119,16 +118,18 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		String command = event.getActionCommand();
 
-		if (command.equals("HIGHLIGHT_PRECURSOR") || command.equals("HIGHLIGHT_NEUTRALLOSS")) {
-			JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot, command);
+		if (command.equals("HIGHLIGHT_PRECURSOR")
+				|| command.equals("HIGHLIGHT_NEUTRALLOSS")) {
+			JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot,
+					command);
 			dialog.setVisible(true);
 		}
 
 		if (command.equals("SHOW_SPECTRUM")) {
 			NeutralLossDataPoint pos = getCursorPosition();
 			if (pos != null) {
-				SpectraVisualizer.showNewSpectrumWindow(dataFile, pos
-						.getScanNumber());
+				SpectraVisualizer.showNewSpectrumWindow(dataFile,
+						pos.getScanNumber());
 			}
 		}
 

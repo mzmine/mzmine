@@ -59,16 +59,16 @@ class RTNormalizerTask extends AbstractTask {
 		this.originalPeakLists = peakLists;
 		this.parameters = parameters;
 
-		suffix = (String) parameters
-				.getParameterValue(RTNormalizerParameters.suffix);
-		mzTolerance = (Double) parameters
-				.getParameterValue(RTNormalizerParameters.MZTolerance);
-		rtTolerance = (Double) parameters
-				.getParameterValue(RTNormalizerParameters.RTTolerance);
-		minHeight = (Double) parameters
-				.getParameterValue(RTNormalizerParameters.minHeight);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(RTNormalizerParameters.autoRemove);
+		suffix = parameters.getParameter(RTNormalizerParameters.suffix)
+				.getValue();
+		mzTolerance = parameters.getParameter(
+				RTNormalizerParameters.MZTolerance).getDouble();
+		rtTolerance = parameters.getParameter(
+				RTNormalizerParameters.RTTolerance).getDouble();
+		minHeight = parameters.getParameter(RTNormalizerParameters.minHeight)
+				.getDouble();
+		removeOriginal = parameters.getParameter(
+				RTNormalizerParameters.autoRemove).getValue();
 
 	}
 
@@ -85,7 +85,7 @@ class RTNormalizerTask extends AbstractTask {
 
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Running retention time normalizer");
 
 		// First we need to find standards by iterating through first peak list
@@ -112,7 +112,7 @@ class RTNormalizerTask extends AbstractTask {
 				.getRows()) {
 
 			// Cancel?
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				return;
 			}
 
@@ -164,7 +164,7 @@ class RTNormalizerTask extends AbstractTask {
 
 		// Check if we have any standards
 		if (goodStandards.size() == 0) {
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "No good standard peak was found";
 			return;
 		}
@@ -194,7 +194,7 @@ class RTNormalizerTask extends AbstractTask {
 		}
 
 		// Cancel?
-		if ( isCanceled( )) {
+		if (isCanceled()) {
 			return;
 		}
 
@@ -223,7 +223,7 @@ class RTNormalizerTask extends AbstractTask {
 		}
 
 		logger.info("Finished retention time normalizer");
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -250,7 +250,7 @@ class RTNormalizerTask extends AbstractTask {
 		for (PeakListRow originalRow : originalRows) {
 
 			// Cancel?
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				return;
 			}
 
@@ -357,5 +357,5 @@ class RTNormalizerTask extends AbstractTask {
 	public Object[] getCreatedObjects() {
 		return normalizedPeakLists;
 	}
-	
+
 }

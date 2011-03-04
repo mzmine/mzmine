@@ -37,7 +37,6 @@ class Gap {
 	private PeakListRow peakListRow;
 	private RawDataFile rawDataFile;
 
-	private double searchMZ, searchRT;
 	private Range mzRange, rtRange;
 	private double intTolerance;
 
@@ -54,19 +53,14 @@ class Gap {
 	 * @param rt
 	 *            RT coordinate of this empty gap
 	 */
-	Gap(PeakListRow peakListRow, RawDataFile rawDataFile, double mz, double rt,
-			double intTolerance, double mzTolerance, double rtTolerance) {
+	Gap(PeakListRow peakListRow, RawDataFile rawDataFile, Range mzRange, Range rtRange,
+			double intTolerance) {
 
 		this.peakListRow = peakListRow;
 		this.rawDataFile = rawDataFile;
-
-		this.searchMZ = mz;
-		this.searchRT = rt;
-
 		this.intTolerance = intTolerance;
-
-		this.mzRange = new Range(searchMZ - mzTolerance, searchMZ + mzTolerance);
-		this.rtRange = new Range(searchRT - rtTolerance, searchRT + rtTolerance);
+		this.mzRange = mzRange;
+		this.rtRange = rtRange;
 
 	}
 
@@ -90,7 +84,7 @@ class Gap {
 			currentDataPoint = new GapDataPoint(scan.getScanNumber(), basePeak
 					.getMZ(), scanRT, basePeak.getIntensity());
 		} else {
-			currentDataPoint = new GapDataPoint(scan.getScanNumber(), searchMZ,
+			currentDataPoint = new GapDataPoint(scan.getScanNumber(), mzRange.getAverage(),
 					scanRT, 0);
 		}
 
@@ -147,6 +141,7 @@ class Gap {
 					finalMZRange = new Range(dp.getMZ());
 					finalIntensityRange = new Range(dp.getIntensity());
 				} else {
+					assert finalRTRange != null && finalMZRange != null && finalIntensityRange != null;
 					finalRTRange.extendRange(dp.getRT());
 					finalMZRange.extendRange(dp.getMZ());
 					finalIntensityRange.extendRange(dp.getIntensity());

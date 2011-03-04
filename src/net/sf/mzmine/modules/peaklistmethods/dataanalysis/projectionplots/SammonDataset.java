@@ -19,127 +19,142 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import java.util.LinkedList;
 import java.util.Vector;
 import java.util.logging.Logger;
-import java.util.LinkedList;
 
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
 import jmprojection.Sammons;
 import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.Parameter;
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakMeasurementType;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
-public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDataset {
+public class SammonDataset extends AbstractXYDataset implements
+		ProjectionPlotDataset {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
-	
+	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
+
 	private double[] component1Coords;
 	private double[] component2Coords;
 
+	private PeakList peakList;
 	private ProjectionPlotParameters parameters;
-	
-	private Parameter selectedParameter;
-	
+
+	private ColoringType coloringType;
+
 	private RawDataFile[] selectedRawDataFiles;
 	private PeakListRow[] selectedRows;
-	
+
 	private int[] groupsForSelectedRawDataFiles;
 	private Object[] parameterValuesForGroups;
 	int numberOfGroups;
-	
+
 	private String datasetTitle;
 	private int xAxisDimension;
 	private int yAxisDimension;
 
 	private TaskStatus status = TaskStatus.WAITING;
 	private String errorMessage;
-	
+
 	private ProjectionStatus projectionStatus;
 
-	public SammonDataset(ProjectionPlotParameters parameters) {
+	public SammonDataset(PeakList peakList, ProjectionPlotParameters parameters) {
 
+		this.peakList = peakList;
 		this.parameters = parameters;
-		this.xAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.xAxisComponent);
-		this.yAxisDimension = (Integer)parameters.getParameterValue(ProjectionPlotParameters.yAxisComponent);
+		this.xAxisDimension = parameters.getParameter(
+				ProjectionPlotParameters.xAxisComponent).getValue();
+		this.yAxisDimension = parameters.getParameter(
+				ProjectionPlotParameters.yAxisComponent).getValue();
 
-		selectedParameter = parameters.getSelectedParameter();
-		selectedRawDataFiles = parameters.getSelectedDataFiles();
-		selectedRows = parameters.getSelectedRows();
-		
+		coloringType = parameters.getParameter(
+				ProjectionPlotParameters.coloringType).getValue();
+		selectedRawDataFiles = parameters.getParameter(
+				ProjectionPlotParameters.dataFiles).getValue();
+		selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
+				.getValue();
+
 		datasetTitle = "Sammon's projection";
 
-		
 		// Determine groups for selected raw data files
 		groupsForSelectedRawDataFiles = new int[selectedRawDataFiles.length];
-		
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeSingleColor) {
+
+		if (coloringType.equals(ColoringType.NOCOLORING)) {
 			// All files to a single group
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = 0;
-			
-			numberOfGroups = 1;	
+
+			numberOfGroups = 1;
 		}
 
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByFile) {
+		if (coloringType.equals(ColoringType.COLORBYFILE)) {
 			// Each file to own group
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++)
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++)
 				groupsForSelectedRawDataFiles[ind] = ind;
-			
+
 			numberOfGroups = selectedRawDataFiles.length;
-		}		
-		
-		if (parameters.getParameterValue(ProjectionPlotParameters.coloringType)== ProjectionPlotParameters.ColoringTypeByParameterValue) {
+		}
+
+		if (coloringType.isByParameter()) {
 			// Group files with same parameter value to same group
 			MZmineProject project = MZmineCore.getCurrentProject();
-			Vector<Object> availableParameterValues = new Vector<Object>(); 
+			Vector<Object> availableParameterValues = new Vector<Object>();
+			UserParameter selectedParameter = coloringType.getParameter();
 			for (RawDataFile rawDataFile : selectedRawDataFiles) {
-				Object paramValue = project.getParameterValue(selectedParameter, rawDataFile);
+				Object paramValue = project.getParameterValue(
+						selectedParameter, rawDataFile);
 				if (!availableParameterValues.contains(paramValue))
 					availableParameterValues.add(paramValue);
 			}
-			
-			for (int ind=0; ind<selectedRawDataFiles.length; ind++) {
-				Object paramValue = project.getParameterValue(selectedParameter, selectedRawDataFiles[ind]);
-				groupsForSelectedRawDataFiles[ind] = availableParameterValues.indexOf(paramValue);  
+
+			for (int ind = 0; ind < selectedRawDataFiles.length; ind++) {
+				Object paramValue = project.getParameterValue(
+						selectedParameter, selectedRawDataFiles[ind]);
+				groupsForSelectedRawDataFiles[ind] = availableParameterValues
+						.indexOf(paramValue);
 			}
 			parameterValuesForGroups = availableParameterValues.toArray();
-			
+
 			numberOfGroups = parameterValuesForGroups.length;
 		}
 
 	}
-		
 
 	public String toString() {
 		return datasetTitle;
 	}
 
-
 	public String getXLabel() {
-		if (xAxisDimension==1) return "1st projected dimension";
-		if (xAxisDimension==2) return "2nd projected dimension";
-		if (xAxisDimension==3) return "3rd projected dimension";
+		if (xAxisDimension == 1)
+			return "1st projected dimension";
+		if (xAxisDimension == 2)
+			return "2nd projected dimension";
+		if (xAxisDimension == 3)
+			return "3rd projected dimension";
 		return "" + xAxisDimension + "th projected dimension";
 	}
 
 	public String getYLabel() {
-		if (yAxisDimension==1) return "1st projected dimension";
-		if (yAxisDimension==2) return "2nd projected dimension";
-		if (yAxisDimension==3) return "3rd projected dimension";
+		if (yAxisDimension == 1)
+			return "1st projected dimension";
+		if (yAxisDimension == 2)
+			return "2nd projected dimension";
+		if (yAxisDimension == 3)
+			return "3rd projected dimension";
 		return "" + yAxisDimension + "th projected dimension";
 	}
-
 
 	@Override
 	public int getSeriesCount() {
@@ -172,35 +187,36 @@ public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDa
 	}
 
 	public Object getGroupParameterValue(int groupNumber) {
-		if (parameterValuesForGroups==null) return null;
-		if ((parameterValuesForGroups.length-1)<groupNumber) return null;		
+		if (parameterValuesForGroups == null)
+			return null;
+		if ((parameterValuesForGroups.length - 1) < groupNumber)
+			return null;
 		return parameterValuesForGroups[groupNumber];
 	}
 
 	public int getNumberOfGroups() {
 		return numberOfGroups;
-	}	
+	}
 
 	public void run() {
-		
-		setStatus( TaskStatus.PROCESSING );
+
+		setStatus(TaskStatus.PROCESSING);
 
 		logger.info("Computing projection plot");
-		
+
 		// Generate matrix of raw data (input to Sammon's projection)
-		boolean useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeArea)
+		boolean useArea = false;
+		if (parameters.getParameter(
+				ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA)
 			useArea = true;
-		if (parameters.getParameterValue(ProjectionPlotParameters.peakMeasurementType) == ProjectionPlotParameters.PeakMeasurementTypeHeight)
-			useArea = false;
-		
+
 		double[][] rawData = new double[selectedRawDataFiles.length][selectedRows.length];
-		for (int rowIndex=0; rowIndex<selectedRows.length; rowIndex++) {
+		for (int rowIndex = 0; rowIndex < selectedRows.length; rowIndex++) {
 			PeakListRow peakListRow = selectedRows[rowIndex];
-			for (int fileIndex=0; fileIndex<selectedRawDataFiles.length; fileIndex++) {
+			for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
 				ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
-				if (p!=null) {
+				if (p != null) {
 					if (useArea)
 						rawData[fileIndex][rowIndex] = p.getArea();
 					else
@@ -210,38 +226,41 @@ public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDa
 		}
 
 		int numComponents = xAxisDimension;
-		if (yAxisDimension>numComponents) numComponents = yAxisDimension;
+		if (yAxisDimension > numComponents)
+			numComponents = yAxisDimension;
 
 		// Scale data and do Sammon's mapping
 		Preprocess.scaleToUnityVariance(rawData);
 		Sammons sammonsProj = new Sammons(rawData);
-		
+
 		projectionStatus = sammonsProj.getProjectionStatus();
-		
+
 		sammonsProj.iterate(100);
-		
-		if (status == TaskStatus.CANCELED) return;
+
+		if (status == TaskStatus.CANCELED)
+			return;
 
 		double[][] result = sammonsProj.getState();
 
-		if (status == TaskStatus.CANCELED) return;
-		
-		component1Coords = result[xAxisDimension-1];
-		component2Coords = result[yAxisDimension-1];
+		if (status == TaskStatus.CANCELED)
+			return;
 
-		Desktop desktop = MZmineCore.getDesktop();
-		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(desktop, this,
+		component1Coords = result[xAxisDimension - 1];
+		component2Coords = result[yAxisDimension - 1];
+
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
 				parameters);
-		desktop.addInternalFrame(newFrame);
+		MZmineCore.getDesktop().addInternalFrame(newFrame);
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 		logger.info("Finished computing projection plot.");
-		
+
 	}
-		
+
 	public void cancel() {
-        if (projectionStatus != null) projectionStatus.cancel();
-		setStatus( TaskStatus.CANCELED );
+		if (projectionStatus != null)
+			projectionStatus.cancel();
+		setStatus(TaskStatus.CANCELED);
 	}
 
 	public String getErrorMessage() {
@@ -253,11 +272,9 @@ public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDa
 	}
 
 	public String getTaskDescription() {
-		if ( (parameters==null) || (parameters.getSourcePeakList()==null) ) 
-			return "Sammon's projection";
-		return "Sammon's projection " + parameters.getSourcePeakList().toString(); 
-	}	
-	
+		return "Sammon's projection";
+	}
+
 	public double getFinishedPercentage() {
 		if (projectionStatus == null)
 			return 0;
@@ -266,15 +283,16 @@ public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDa
 
 	public Object[] getCreatedObjects() {
 		return null;
-	}	
-	
+	}
+
 	/**
 	 * Adds a TaskListener to this Task
 	 * 
-	 * @param t The TaskListener to add
+	 * @param t
+	 *            The TaskListener to add
 	 */
-	public void addTaskListener( TaskListener t ) {
-		this.taskListeners.add( t );
+	public void addTaskListener(TaskListener t) {
+		this.taskListeners.add(t);
 	}
 
 	/**
@@ -282,30 +300,31 @@ public class SammonDataset extends AbstractXYDataset implements ProjectionPlotDa
 	 * 
 	 * @return An array containing the TaskListeners
 	 */
-	public TaskListener[] getTaskListeners( ) {
-		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	public TaskListener[] getTaskListeners() {
+		return this.taskListeners.toArray(new TaskListener[this.taskListeners
+				.size()]);
 	}
 
-	private void fireTaskEvent( ) {
-		TaskEvent event = new TaskEvent( this );
-		for( TaskListener t : this.taskListeners ) {
-			t.statusChanged( event );
+	private void fireTaskEvent() {
+		TaskEvent event = new TaskEvent(this);
+		for (TaskListener t : this.taskListeners) {
+			t.statusChanged(event);
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
 	 */
-	public void setStatus( TaskStatus newStatus ) {
+	public void setStatus(TaskStatus newStatus) {
 		this.status = newStatus;
-		this.fireTaskEvent( );
+		this.fireTaskEvent();
 	}
 
-	public boolean isCanceled( ) {
+	public boolean isCanceled() {
 		return status == TaskStatus.CANCELED;
 	}
 
-	public boolean isFinished( ) {
+	public boolean isFinished() {
 		return status == TaskStatus.FINISHED;
 	}
 }

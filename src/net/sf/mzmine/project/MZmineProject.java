@@ -21,9 +21,9 @@ package net.sf.mzmine.project;
 
 import java.io.File;
 
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.UserParameter;
 
 /**
  * 
@@ -42,7 +42,7 @@ import net.sf.mzmine.data.RawDataFile;
  * version of a preceding aligned PeakList.
  * </ul>
  * 
- * @see Parameter
+ * @see UserParameter
  * @see ParameterValue
  * @see RawDataFile
  * @see PeakList
@@ -60,24 +60,24 @@ public interface MZmineProject {
 	 * 
 	 * @param parameter
 	 */
-	public void addParameter(Parameter parameter);
+	public void addParameter(UserParameter parameter);
 
 	/**
 	 * Removes an experimental parameter from the project
 	 * 
 	 * @param parameter
 	 */
-	public void removeParameter(Parameter parameter);
+	public void removeParameter(UserParameter parameter);
 
 	/**
 	 * Returns true if project contains the experimental parameter
 	 */
-	public boolean hasParameter(Parameter parameter);
+	public boolean hasParameter(UserParameter parameter);
 
 	/**
 	 * Returns all experimental parameter of the project
 	 */
-	public Parameter[] getParameters();
+	public UserParameter[] getParameters();
 
 	/**
 	 * Sets experimental parameter's value corresponding to a RawDataFile.
@@ -87,14 +87,14 @@ public interface MZmineProject {
 	 * previous value is replaced.
 	 * 
 	 */
-	public void setParameterValue(Parameter parameter, RawDataFile rawDataFile,
+	public void setParameterValue(UserParameter parameter, RawDataFile rawDataFile,
 			Object value);
 
 	/**
 	 * Returns experimental parameter's value corresponding to a RawDataFile.
 	 * 
 	 */
-	public Object getParameterValue(Parameter parameter, RawDataFile rawDataFile);
+	public Object getParameterValue(UserParameter parameter, RawDataFile rawDataFile);
 
 	/**
 	 * Adds a new RawDataFile to the project.

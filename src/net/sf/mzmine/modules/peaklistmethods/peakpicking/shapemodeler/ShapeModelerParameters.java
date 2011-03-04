@@ -21,47 +21,34 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class ShapeModelerParameters extends SimpleParameterSet {
 
-	public static final String shapeModelerNames[] = { "Triangle", "Gaussian",
-			"EMG" };
+	public static final ComboParameter<ShapeModel> shapeModelerType = new ComboParameter<ShapeModel>(
+			"Shape model", "This value defines the type of shape model",
+			ShapeModel.values());
 
-	public static final String shapeModelerClasses[] = {
-			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.TrianglePeakModel",
-			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.GaussianPeakModel",
-			"net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels.EMGPeakModel" };
+	public static final StringParameter suffix = new StringParameter("Suffix",
+			"This string is added to filename as suffix", "shaped peaks");
 
-	public static final Parameter shapeModelerType = new SimpleParameter(
-			ParameterType.STRING, "Shape model",
-			"This value defines the type of shape model", null,
-			shapeModelerNames);
-
-	public static final Parameter suffix = new SimpleParameter(
-			ParameterType.STRING, "Suffix",
-			"This string is added to filename as suffix",
-			(Object) "shaped peaks");
-
-	public static final Parameter massResolution = new SimpleParameter(
-			ParameterType.INTEGER,
+	public static final NumberParameter massResolution = new NumberParameter(
 			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
 					+ " Peak width is taken as the full width at half maximum intensity (FWHM).",
-			null, new Integer(60000), new Integer(0), null, NumberFormat
-					.getIntegerInstance());
+			NumberFormat.getIntegerInstance());
 
-	public static final Parameter autoRemove = new SimpleParameter(
-			ParameterType.BOOLEAN,
+	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peak list",
-			"If checked, original peak list will be removed and only resolved version remains",
-			new Boolean(false));
+			"If checked, original peak list will be removed and only resolved version remains");
 
 	public ShapeModelerParameters() {
-		super(new Parameter[] { suffix, massResolution, shapeModelerType,
+		super(new UserParameter[] { suffix, massResolution, shapeModelerType,
 				autoRemove });
 	}
 

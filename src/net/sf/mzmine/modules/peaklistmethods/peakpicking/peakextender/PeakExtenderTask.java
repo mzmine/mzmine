@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -54,7 +55,7 @@ public class PeakExtenderTask extends AbstractTask {
 	private int processedPeaks, totalPeaks;
 
 	// Parameters
-	private double mzTolerance;
+	private MZTolerance mzTolerance;
 	private double minimumHeight;
 	private String suffix;
 	private boolean removeOriginal;
@@ -66,14 +67,14 @@ public class PeakExtenderTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		suffix = (String) parameters
-				.getParameterValue(PeakExtenderParameters.suffix);
-		mzTolerance = (Double) parameters
-				.getParameterValue(PeakExtenderParameters.mzTolerance);
-		minimumHeight = (Double) parameters
-				.getParameterValue(PeakExtenderParameters.minimumHeight);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(PeakExtenderParameters.autoRemove);
+		suffix = parameters.getParameter(PeakExtenderParameters.suffix)
+				.getValue();
+		mzTolerance = parameters.getParameter(
+				PeakExtenderParameters.mzTolerance).getValue();
+		minimumHeight = parameters.getParameter(
+				PeakExtenderParameters.minimumHeight).getDouble();
+		removeOriginal = parameters.getParameter(
+				PeakExtenderParameters.autoRemove).getValue();
 	}
 
 	/**
@@ -97,15 +98,15 @@ public class PeakExtenderTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Running peak extender on " + peakList);
 
 		// We assume source peakList contains one datafile
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
 		// Create a new deisotoped peakList
-		extendedPeakList = new SimplePeakList(peakList + " " + suffix, peakList
-				.getRawDataFiles());
+		extendedPeakList = new SimplePeakList(peakList + " " + suffix,
+				peakList.getRawDataFiles());
 
 		// Sort peaks by descending height
 		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
@@ -118,7 +119,7 @@ public class PeakExtenderTask extends AbstractTask {
 
 		for (int ind = 0; ind < totalPeaks; ind++) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			oldPeak = sortedPeaks[ind];
@@ -160,7 +161,7 @@ public class PeakExtenderTask extends AbstractTask {
 			currentProject.removePeakList(peakList);
 
 		logger.info("Finished peak extender on " + peakList);
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -171,8 +172,7 @@ public class PeakExtenderTask extends AbstractTask {
 		RawDataFile rawFile = oldPeak.getDataFile();
 		ExtendedPeak newPeak = new ExtendedPeak(rawFile);
 		int totalScanNumber = rawFile.getNumOfScans();
-		Range mzRange = new Range(oldPeak.getMZ() - mzTolerance,
-				oldPeak.getMZ() + mzTolerance);
+		Range mzRange = mzTolerance.getToleranceRange(oldPeak.getMZ());
 		Scan scan;
 		DataPoint dataPoint;
 
@@ -209,8 +209,8 @@ public class PeakExtenderTask extends AbstractTask {
 		}
 
 		// Add original dataPoint
-		newPeak.addMzPeak(originScanNumber, new MzPeak(oldPeak
-				.getDataPoint(originScanNumber)));
+		newPeak.addMzPeak(originScanNumber,
+				new MzPeak(oldPeak.getDataPoint(originScanNumber)));
 
 		// Look to the right
 		scanNumber = originScanNumber;
@@ -245,8 +245,9 @@ public class PeakExtenderTask extends AbstractTask {
 		}
 
 		newPeak.finishExtendedPeak();
-		
-		newPeak.setMostIntenseFragmentScanNumber(oldPeak.getMostIntenseFragmentScanNumber());
+
+		newPeak.setMostIntenseFragmentScanNumber(oldPeak
+				.getMostIntenseFragmentScanNumber());
 
 		int[] scanNumbers = newPeak.getScanNumbers();
 		logger.finest("Extended peak original " + originScanNumber + " from "

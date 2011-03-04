@@ -56,8 +56,7 @@ class SameRangeTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		suffix = (String) parameters
-				.getParameterValue(SameRangeParameters.suffix);
+		suffix = parameters.getParameter(SameRangeParameters.suffix).getValue();
 
 	}
 
@@ -65,7 +64,7 @@ class SameRangeTask extends AbstractTask {
 
 		logger.info("Started gap-filling " + peakList);
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		// Get total number of rows
 		totalRows = peakList.getNumberOfRows();
@@ -80,7 +79,7 @@ class SameRangeTask extends AbstractTask {
 		for (int row = 0; row < totalRows; row++) {
 
 			// Canceled?
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			PeakListRow sourceRow = peakList.getRow(row);
@@ -100,7 +99,7 @@ class SameRangeTask extends AbstractTask {
 			for (RawDataFile column : columns) {
 
 				// Canceled?
-				if ( isCanceled( ))
+				if (isCanceled())
 					return;
 
 				// Get current peak
@@ -131,7 +130,7 @@ class SameRangeTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling using RT and m/z range", parameters));
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished gap-filling " + peakList);
 
@@ -148,7 +147,7 @@ class SameRangeTask extends AbstractTask {
 			ChromatographicPeak peak = row.getPeak(dataFile);
 			if (peak == null)
 				continue;
-			if (mzRange == null) {
+			if ((mzRange == null) || (rtRange == null)) {
 				mzRange = new Range(peak.getRawDataPointsMZRange());
 				rtRange = new Range(peak.getRawDataPointsRTRange());
 			} else {
@@ -156,6 +155,8 @@ class SameRangeTask extends AbstractTask {
 				rtRange.extendRange(peak.getRawDataPointsRTRange());
 			}
 		}
+		
+		assert mzRange != null;
 
 		// Get scan numbers
 		int[] scanNumbers = column.getScanNumbers(1, rtRange);
@@ -164,7 +165,7 @@ class SameRangeTask extends AbstractTask {
 
 		for (int scanNumber : scanNumbers) {
 
-			if ( isCanceled( ))
+			if (isCanceled())
 				return null;
 
 			// Get next scan
@@ -178,8 +179,8 @@ class SameRangeTask extends AbstractTask {
 					dataPointFound = true;
 				newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 			} else {
-				DataPoint fakeDataPoint = new SimpleDataPoint(mzRange
-						.getAverage(), 0);
+				DataPoint fakeDataPoint = new SimpleDataPoint(
+						mzRange.getAverage(), 0);
 				newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 			}
 

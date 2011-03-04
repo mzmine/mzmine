@@ -19,47 +19,48 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay;
 
 import java.util.Hashtable;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 
-public class SGFilter implements RawDataFilter {
+public class SGFilter implements ScanFilter {
 
-	private int numberOfDataPoints;
+	private SGFilterParameters parameters;
+
 	private Hashtable<Integer, Integer> Hvalues;
 	private Hashtable<Integer, int[]> Avalues;
 
-	public SGFilter(SGFilterParameters parameters) {
-		numberOfDataPoints = (Integer) parameters
-				.getParameterValue(SGFilterParameters.datapoints);
-
+	public SGFilter() {
+		parameters = new SGFilterParameters(this);
 	}
 
 	public Scan filterScan(Scan scan) {
-		initializeAHValues();
-		int[] aVals = Avalues.get(new Integer(numberOfDataPoints));
-		int h = Hvalues.get(new Integer(numberOfDataPoints)).intValue();
-		return processOneScan(scan, numberOfDataPoints, h, aVals);
-	}
 
-	private Scan processOneScan(Scan sc, int numOfDataPoints, int h, int[] aVals) {
+		int numOfDataPoints = parameters.getParameter(
+				SGFilterParameters.datapoints).getValue();
+
+		initializeAHValues();
+		int[] aVals = Avalues.get(new Integer(numOfDataPoints));
+		int h = Hvalues.get(new Integer(numOfDataPoints)).intValue();
 
 		// only process MS level 1 scans
-		if (sc.getMSLevel() != 1) {
-			return sc;
+		if (scan.getMSLevel() != 1) {
+			return scan;
 		}
 
 		int marginSize = (numOfDataPoints + 1) / 2 - 1;
 		double sumOfInts;
 
-		DataPoint oldDataPoints[] = sc.getDataPoints();
+		DataPoint oldDataPoints[] = scan.getDataPoints();
 		int newDataPointsLength = oldDataPoints.length - (marginSize * 2);
 
 		// only process scans with datapoints
 		if (newDataPointsLength < 1) {
-			return sc;
+			return scan;
 		}
 
 		DataPoint newDataPoints[] = new DataPoint[newDataPointsLength];
@@ -91,7 +92,7 @@ public class SGFilter implements RawDataFilter {
 
 		}
 
-		SimpleScan newScan = new SimpleScan(sc);
+		SimpleScan newScan = new SimpleScan(scan);
 		newScan.setDataPoints(newDataPoints);
 		return newScan;
 
@@ -142,5 +143,14 @@ public class SGFilter implements RawDataFilter {
 		Hvalues.put(21, 3059);
 		Hvalues.put(23, 805);
 		Hvalues.put(25, 5175);
+	}
+
+	public String toString() {
+		return "Savitzky-Golay filter";
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

@@ -39,7 +39,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 	private File file;
 	private RawDataFileImpl newMZmineFile;
 	private RawDataFile finalRawDataFile;
-	
+
 	private int totalScans, parsedScans;
 
 	/**
@@ -57,7 +57,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 	 * Reads the file.
 	 */
 	public void run() {
-		
+
 		setStatus(TaskStatus.PROCESSING);
 		Scanner scanner;
 
@@ -77,13 +77,13 @@ public class AgilentCsvReadTask extends AbstractTask {
 					"number of spectra"));
 
 			// advance to the spectrum data...
-			while (!scanner.nextLine().trim().equals("[spectra]"))
-				;
+			while (!scanner.nextLine().trim().equals("[spectra]")) {
+			}
 
 			scanner.useDelimiter(",");
-			
+
 			for (parsedScans = 0; parsedScans < totalScans; parsedScans++) {
-				
+
 				if (isCanceled()) {
 					return;
 				} // if the task is canceled.
@@ -101,15 +101,15 @@ public class AgilentCsvReadTask extends AbstractTask {
 					dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(),
 							scanner.nextDouble());
 				}
-				newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1, msLevel,
-						retentionTime, -1, 0.0, charge, null, dataPoints,
-						ScanUtils.isCentroided(dataPoints)));
+				newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1,
+						msLevel, retentionTime, -1, 0.0, charge, null,
+						dataPoints, ScanUtils.isCentroided(dataPoints)));
 
 				scanner.nextLine();
 			}
 
 			finalRawDataFile = newMZmineFile.finishWriting();
-			
+
 		} catch (Exception e) {
 			errorMessage = e.getMessage();
 			this.setStatus(TaskStatus.ERROR);

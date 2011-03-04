@@ -36,6 +36,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.PeakUtils;
 
 class LinearNormalizerTask extends AbstractTask {
@@ -48,7 +49,9 @@ class LinearNormalizerTask extends AbstractTask {
 
 	private int processedDataFiles, totalDataFiles;
 
-	private String suffix, normalizationType, peakMeasurementType;
+	private String suffix;
+	private NormalizationType normalizationType;
+	private PeakMeasurementType peakMeasurementType;
 	private boolean removeOriginal;
 	private LinearNormalizerParameters parameters;
 
@@ -60,14 +63,14 @@ class LinearNormalizerTask extends AbstractTask {
 
 		totalDataFiles = originalPeakList.getNumberOfRawDataFiles();
 
-		suffix = (String) parameters
-				.getParameterValue(LinearNormalizerParameters.suffix);
-		normalizationType = (String) parameters
-				.getParameterValue(LinearNormalizerParameters.normalizationType);
-		peakMeasurementType = (String) parameters
-				.getParameterValue(LinearNormalizerParameters.peakMeasurementType);
-		removeOriginal = (Boolean) parameters
-				.getParameterValue(LinearNormalizerParameters.autoRemove);
+		suffix = parameters.getParameter(LinearNormalizerParameters.suffix)
+				.getValue();
+		normalizationType = parameters.getParameter(
+				LinearNormalizerParameters.normalizationType).getValue();
+		peakMeasurementType = parameters.getParameter(
+				LinearNormalizerParameters.peakMeasurementType).getValue();
+		removeOriginal = parameters.getParameter(
+				LinearNormalizerParameters.autoRemove).getValue();
 
 	}
 
@@ -82,7 +85,7 @@ class LinearNormalizerTask extends AbstractTask {
 
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Running linear normalizer");
 
 		// This hashtable maps rows from original alignment result to rows of
@@ -91,8 +94,8 @@ class LinearNormalizerTask extends AbstractTask {
 
 		// Create new peak list
 		normalizedPeakList = new SimplePeakList(
-				originalPeakList + " " + suffix, originalPeakList
-						.getRawDataFiles());
+				originalPeakList + " " + suffix,
+				originalPeakList.getRawDataFiles());
 
 		// Loop through all raw data files, and find the peak with biggest
 		// height
@@ -111,7 +114,7 @@ class LinearNormalizerTask extends AbstractTask {
 		for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 
 			// Cancel?
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				return;
 			}
 
@@ -119,13 +122,13 @@ class LinearNormalizerTask extends AbstractTask {
 			double normalizationFactor = 1.0;
 
 			// - normalization by average peak intensity
-			if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageIntensity) {
+			if (normalizationType == NormalizationType.AverageIntensity) {
 				double intensitySum = 0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
 					if (p != null) {
-						if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
+						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							intensitySum += p.getHeight();
 						} else {
 							intensitySum += p.getArea();
@@ -137,13 +140,13 @@ class LinearNormalizerTask extends AbstractTask {
 			}
 
 			// - normalization by average squared peak intensity
-			if (normalizationType == LinearNormalizerParameters.NormalizationTypeAverageSquaredIntensity) {
+			if (normalizationType == NormalizationType.AverageSquaredIntensity) {
 				double intensitySum = 0.0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
 					if (p != null) {
-						if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
+						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							intensitySum += (p.getHeight() * p.getHeight());
 						} else {
 							intensitySum += (p.getArea() * p.getArea());
@@ -155,12 +158,12 @@ class LinearNormalizerTask extends AbstractTask {
 			}
 
 			// - normalization by maximum peak intensity
-			if (normalizationType == LinearNormalizerParameters.NormalizationTypeMaximumPeakHeight) {
+			if (normalizationType == NormalizationType.MaximumPeakHeight) {
 				double maximumIntensity = 0.0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
 					ChromatographicPeak p = peakListRow.getPeak(file);
 					if (p != null) {
-						if (peakMeasurementType == LinearNormalizerParameters.PeakMeasurementTypeHeight) {
+						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							if (maximumIntensity < p.getHeight())
 								maximumIntensity = p.getHeight();
 						} else {
@@ -174,7 +177,7 @@ class LinearNormalizerTask extends AbstractTask {
 			}
 
 			// - normalization by total raw signal
-			if (normalizationType == LinearNormalizerParameters.NormalizationTypeTotalRawSignal) {
+			if (normalizationType == NormalizationType.TotalRawSignal) {
 				normalizationFactor = 0;
 				for (int scanNumber : file.getScanNumbers(1)) {
 					Scan scan = file.getScan(scanNumber);
@@ -194,18 +197,18 @@ class LinearNormalizerTask extends AbstractTask {
 			for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
 
 				// Cancel?
-				if ( isCanceled( )) {
+				if (isCanceled()) {
 					return;
 				}
 
 				ChromatographicPeak originalPeak = originalpeakListRow
 						.getPeak(file);
 				if (originalPeak != null) {
-					
+
 					SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
 							originalPeak);
 					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
-					
+
 					double normalizedHeight = originalPeak.getHeight()
 							/ normalizationFactor;
 					double normalizedArea = originalPeak.getArea()
@@ -217,13 +220,13 @@ class LinearNormalizerTask extends AbstractTask {
 							.get(originalpeakListRow);
 
 					if (normalizedRow == null) {
-						
+
 						normalizedRow = new SimplePeakListRow(
 								originalpeakListRow.getID());
-						
+
 						PeakUtils.copyPeakListRowProperties(
 								originalpeakListRow, normalizedRow);
-						
+
 						rowMap.put(originalpeakListRow, normalizedRow);
 					}
 
@@ -264,7 +267,7 @@ class LinearNormalizerTask extends AbstractTask {
 			currentProject.removePeakList(originalPeakList);
 
 		logger.info("Finished linear normalizer");
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 

@@ -24,16 +24,16 @@ import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
-	private ExactMassDetectorParameters parameters;
+	private ParameterSet parameters;
 
 	public ExactMassDetector() {
 		parameters = new ExactMassDetectorParameters();
@@ -44,7 +44,6 @@ public class ExactMassDetector implements MassDetector {
 	 */
 	public MzPeak[] getMassValues(Scan scan) {
 
-		
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
 		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(
 				SortingProperty.MZ, SortingDirection.Ascending));
@@ -92,9 +91,9 @@ public class ExactMassDetector implements MassDetector {
 	 */
 	private void getLocalMaxima(Scan scan, TreeSet<MzPeak> candidatePeaks) {
 
-		double noiseLevel = (Double) parameters
-		.getParameterValue(ExactMassDetectorParameters.noiseLevel);
-		
+		double noiseLevel = parameters.getParameter(
+				ExactMassDetectorParameters.noiseLevel).getDouble();
+
 		DataPoint[] scanDataPoints = scan.getDataPoints();
 		if (scanDataPoints.length == 0)
 			return;
@@ -238,16 +237,12 @@ public class ExactMassDetector implements MassDetector {
 		return exactMass;
 	}
 
-	public String getName() {
+	public String toString() {
 		return "Exact mass";
 	}
 
-	public SimpleParameterSet getParameters() {
+	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	public String toString() {
-		return getName();
-	}
-	
 }

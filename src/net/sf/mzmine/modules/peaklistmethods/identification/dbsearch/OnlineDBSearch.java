@@ -23,7 +23,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -32,6 +31,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -42,7 +42,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class OnlineDBSearch implements BatchStep, ActionListener {
 
 	final static String helpID = GUIUtils.generateHelpID(OnlineDBSearch.class);
-	
+
 	public static final String MODULE_NAME = "Online database search";
 
 	private Desktop desktop;
@@ -52,16 +52,13 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 	private static OnlineDBSearch myInstance;
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public OnlineDBSearch() {
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new OnlineDBSearchParameters();
@@ -73,13 +70,13 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 		myInstance = this;
 
 	}
-	
+
 	public static OnlineDBSearch getInstance() {
 		return myInstance;
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public void setParameters(ParameterSet parameterValues) {
 		this.parameters = (OnlineDBSearchParameters) parameterValues;
@@ -87,13 +84,6 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.IDENTIFICATION;
-	}
-
-	public ExitCode setupParameters(ParameterSet parameters) {
-		OnlineDBSearchDialog dialog = new OnlineDBSearchDialog(
-				(OnlineDBSearchParameters) parameters, null, helpID);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
@@ -105,7 +95,8 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 			return;
 		}
 
-		ExitCode exitCode = setupParameters(parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
+
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -117,10 +108,8 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 		OnlineDBSearchParameters parameters = (OnlineDBSearchParameters) myInstance
 				.getParameterSet();
-		OnlineDBSearchDialog dialog = new OnlineDBSearchDialog(parameters, row, helpID);
-		dialog.setVisible(true);
 
-		ExitCode exitCode = dialog.getExitCode();
+		ExitCode exitCode = parameters.showSetupDialog();
 		if (exitCode != ExitCode.OK)
 			return;
 

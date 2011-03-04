@@ -50,7 +50,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 
 	private StringBuffer charBuffer;
 	private RawDataFileImpl rawDataFileWriter;
-	private int numberOfScans, parsedScans;
+	private int numberOfScans = 0, parsedScans = 0;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
@@ -86,16 +86,21 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 			ZipEntry xmlEntry) throws IOException,
 			ParserConfigurationException, SAXException {
 		stepNumber = 0;
+		numberOfScans = 0;
+		parsedScans = 0;
+		storageFileOffset = 0;
 
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
 				+ " to the temporary folder");
 
-		File tempFile = File.createTempFile("mzmine", ".scans");
-		tempFile.deleteOnExit();
+		rawDataFileWriter = (RawDataFileImpl) MZmineCore.createNewFile(null);
+
+		
+		File scanFile = rawDataFileWriter.getScanFile();
 
 		InputStream scanInputStream = zipFile.getInputStream(scansEntry);
-		FileOutputStream fileStream = new FileOutputStream(tempFile);
+		FileOutputStream fileStream = new FileOutputStream(scanFile);
 
 		// Extracts the scan file from the zip project file to the temporary
 		// folder
@@ -104,8 +109,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 		copyMachine.copy(scanInputStream, fileStream, scansEntry.getSize());
 		fileStream.close();
 
-		rawDataFileWriter = (RawDataFileImpl) MZmineCore.createNewFile(null);
-		rawDataFileWriter.openScanFile(tempFile);
+		rawDataFileWriter.openScanFile(scanFile);
 
 		stepNumber++;
 
@@ -158,8 +162,9 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 
 		if (qName.equals(RawDataElementName_2_0.QUANTITY_FRAGMENT_SCAN
 				.getElementName())) {
-			numberOfFragments = Integer.parseInt(attrs
-					.getValue(RawDataElementName_2_0.QUANTITY.getElementName()));
+			numberOfFragments = Integer
+					.parseInt(attrs.getValue(RawDataElementName_2_0.QUANTITY
+							.getElementName()));
 			if (numberOfFragments > 0) {
 				fragmentScan = new int[numberOfFragments];
 				fragmentCount = 0;
@@ -207,11 +212,13 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 			precursorMZ = Double.parseDouble(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_2_0.PRECURSOR_CHARGE.getElementName())) {
+		if (qName.equals(RawDataElementName_2_0.PRECURSOR_CHARGE
+				.getElementName())) {
 			precursorCharge = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_2_0.RETENTION_TIME.getElementName())) {
+		if (qName
+				.equals(RawDataElementName_2_0.RETENTION_TIME.getElementName())) {
 			retentionTime = Double.parseDouble(getTextOfElement());
 		}
 

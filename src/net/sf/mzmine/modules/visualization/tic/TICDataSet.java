@@ -132,14 +132,14 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 			if (basePeak != null)
 				basePeakValues[index] = basePeak.getMZ();
 
-			String plotType;
+			PlotType plotType;
 
 			if (visualizer != null)
 				plotType = visualizer.getPlotType();
 			else
-				plotType = TICVisualizerParameters.plotTypeBP;
+				plotType = PlotType.BASEPEAK;
 
-			if (plotType == TICVisualizerParameters.plotTypeTIC) {
+			if (plotType == PlotType.TIC) {
 				if (scan.getMZRange().isWithin(mzRange)) {
 					totalIntensity = scan.getTIC();
 				} else {
@@ -151,7 +151,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
 			}
 
-			if (plotType == TICVisualizerParameters.plotTypeBP) {
+			if (plotType == PlotType.BASEPEAK) {
 				if (basePeak != null)
 					totalIntensity = basePeak.getIntensity();
 			}

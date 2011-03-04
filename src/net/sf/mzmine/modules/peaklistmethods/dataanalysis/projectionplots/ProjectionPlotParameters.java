@@ -19,143 +19,42 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.util.PeakMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
-	// Normal (stored) parameters
-	public static final String ColoringTypeSingleColor = "No coloring";
-	public static final String ColoringTypeByParameterValue = "Color by parameter value";
-	public static final String ColoringTypeByFile = "Color by file";
-	private static final String[] ColoringTypePossibleValues = {
-			ColoringTypeSingleColor, ColoringTypeByParameterValue,
-			ColoringTypeByFile };
+	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+			"Data files", "Samples", new RawDataFile[0]);
 
-	public static final Parameter coloringType = new SimpleParameter(
-			ParameterType.STRING, "Coloring type", "Measure peaks using",
-			ColoringTypeSingleColor, ColoringTypePossibleValues);
+	public static final ColoringTypeParameter coloringType = new ColoringTypeParameter();
 
-	public static final String PeakMeasurementTypeHeight = "Peak height";
-	public static final String PeakMeasurementTypeArea = "Peak area";
-	public static final String[] PeakMeasurementTypePossibleValues = {
-			PeakMeasurementTypeHeight, PeakMeasurementTypeArea };
-
-	public static final Parameter peakMeasurementType = new SimpleParameter(
-			ParameterType.STRING, "Peak measurement type",
-			"Measure peaks using", PeakMeasurementTypeHeight,
-			PeakMeasurementTypePossibleValues);
+	public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+			"Peak measurement type", "Measure peaks using",
+			PeakMeasurementType.values());
 
 	public static final Integer[] componentPossibleValues = { 1, 2, 3, 4, 5 };
 
-	public static final Parameter xAxisComponent = new SimpleParameter(
-			ParameterType.INTEGER, "X-axis component",
-			"Component on the X-axis", componentPossibleValues[0],
+	public static final ComboParameter<Integer> xAxisComponent = new ComboParameter<Integer>(
+			"X-axis component", "Component on the X-axis",
 			componentPossibleValues);
 
-	public static final Parameter yAxisComponent = new SimpleParameter(
-			ParameterType.INTEGER, "Y-axis component",
-			"Component on the Y-axis", componentPossibleValues[1],
-			componentPossibleValues);
+	public static final ComboParameter<Integer> yAxisComponent = new ComboParameter<Integer>(
+			"Y-axis component", "Component on the Y-axis",
+			componentPossibleValues, componentPossibleValues[1]);
 
-	// Non-stored parameter values
+	public static final MultiChoiceParameter<PeakListRow> rows = new MultiChoiceParameter<PeakListRow>(
+			"Peak list rows", "Peak list rows to include in calculation",
+			new PeakListRow[0]);
 
-	protected PeakList sourcePeakList;
-
-	protected Parameter selectedParameter; // Parameter used when coloring by
-	// parameter value
-	protected RawDataFile[] selectedDataFiles;
-	protected PeakListRow[] selectedRows;
-
-	public ProjectionPlotParameters(PeakList sourcePeakList) {
-		this();
-		
-		this.sourcePeakList = sourcePeakList;
-		this.selectedDataFiles = sourcePeakList.getRawDataFiles();
-		this.selectedRows = sourcePeakList.getRows();
-
-		selectedParameter = null;
-	}
-
-	private ProjectionPlotParameters(PeakList sourcePeakList,
-			Object coloringTypeValue, Object peakMeasuringValue,
-			Object xAxisComponentNumber, Object yAxisComponentNumber,
-			Parameter selectedParameter, RawDataFile[] selectedDataFiles,
-			PeakListRow[] selectedRows) {
-
-		this();
-		
-		setParameterValue(coloringType, coloringTypeValue);
-		setParameterValue(peakMeasurementType, peakMeasuringValue);
-		setParameterValue(xAxisComponent, xAxisComponentNumber);
-		setParameterValue(yAxisComponent, yAxisComponentNumber);
-
-		this.sourcePeakList = sourcePeakList;
-		this.selectedParameter = selectedParameter;
-		this.selectedDataFiles = selectedDataFiles;
-		this.selectedRows = selectedRows;
-	}
-
-	/**
-	 * Represent method's parameters and their values in human-readable format
-	 */
-	public String toString() {
-		return "Coloring mode: " + getParameterValue(coloringType)
-				+ ", peak measurement type: "
-				+ getParameterValue(peakMeasurementType)
-				+ ", selected parameter: " + selectedParameter;
-	}
-
-	public ProjectionPlotParameters clone() {
-		return new ProjectionPlotParameters(sourcePeakList, coloringType,
-				peakMeasurementType, xAxisComponent, yAxisComponent,
-				selectedParameter, selectedDataFiles, selectedRows);
-	}
-
-	public RawDataFile[] getSelectedDataFiles() {
-		return selectedDataFiles;
-	}
-
-	public void setSelectedDataFiles(RawDataFile[] selectedDataFiles) {
-		this.selectedDataFiles = selectedDataFiles;
-	}
-
-	public Parameter getSelectedParameter() {
-		return selectedParameter;
-	}
-
-	public void setSelectedParameter(Parameter selectedParameter) {
-		this.selectedParameter = selectedParameter;
-	}
-
-	public PeakListRow[] getSelectedRows() {
-		return selectedRows;
-	}
-
-	public void setSelectedRows(PeakListRow[] selectedRows) {
-		this.selectedRows = selectedRows;
-	}
-
-	public PeakList getSourcePeakList() {
-		return sourcePeakList;
-	}
-
-	public void setSourcePeakList(PeakList sourcePeakList) {
-		this.sourcePeakList = sourcePeakList;
-	}
-
-	
 	public ProjectionPlotParameters() {
-	    super(new Parameter[] { coloringType, peakMeasurementType, xAxisComponent,
-	    		yAxisComponent });
+		super(new Parameter[] { dataFiles, coloringType, peakMeasurementType,
+				xAxisComponent, yAxisComponent });
 	}
 
-        public ProjectionPlotParameters(Parameter[] newParameters) {
-	    super(newParameters);
-	}
 }

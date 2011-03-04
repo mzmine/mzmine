@@ -28,7 +28,7 @@ import javax.swing.JMenuItem;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 
 /**
  * This interface represents the application GUI

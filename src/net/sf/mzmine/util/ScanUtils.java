@@ -127,7 +127,7 @@ public class ScanUtils {
 	 */
 	public static enum BinningType {
 		SUM, MAX, MIN, AVG
-	};
+	}
 
 	/**
 	 * This method bins values on x-axis. Each bin is assigned biggest y-value
@@ -237,6 +237,8 @@ public class ScanUtils {
 
 		}
 
+		assert noOfEntries != null;
+		
 		// calculate the AVG
 		if (binningType.equals(BinningType.AVG)) {
 			for (int binIndex = 0; binIndex < binValues.length; binIndex++) {

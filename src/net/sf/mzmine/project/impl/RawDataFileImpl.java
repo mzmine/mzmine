@@ -84,6 +84,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		scanDataFile = new RandomAccessFile(scanFile, "rw");
 
 	}
+	
+	public File getScanFile() {
+		return scanFile;
+	}
 
 	public void openScanFile(File scanFile) throws IOException {
 
@@ -97,13 +101,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// instance of MZmine exits.
 		scanFileChannel.lock(0, scanDataFile.length(), true);
 
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.RawDataFile#getScanDataFileasFile()
-	 */
-	public File getScanDataFileasFile() {
-		return scanFile;
 	}
 
 	/**

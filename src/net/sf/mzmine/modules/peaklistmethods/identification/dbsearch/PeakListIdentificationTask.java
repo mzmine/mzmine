@@ -33,6 +33,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -51,14 +53,14 @@ public class PeakListIdentificationTask extends AbstractTask {
 	private int finishedItems = 0, numItems;
 
 	private OnlineDatabase db;
-	private double massTolerance;
+	private MZTolerance mzTolerance;
 	private int numOfResults;
 	private PeakList peakList;
 	private PeakListRow currentRow;
-	private IonizationType ionType;
 	private boolean isotopeFilter = false;
-	private double isotopeScoreThreshold;
+	private ParameterSet isotopeFilterParameters;
 	private DBGateway gateway;
+	private IonizationType ionType;
 
 	/**
 	 * 
@@ -72,8 +74,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 		this.peakList = peakList;
 
-		db = (OnlineDatabase) parameters
-				.getParameterValue(OnlineDBSearchParameters.database);
+		db = parameters.getParameter(OnlineDBSearchParameters.database).getValue();
 
 		try {
 			gateway = db.getGatewayClass().newInstance();
@@ -81,18 +82,13 @@ public class PeakListIdentificationTask extends AbstractTask {
 			e.printStackTrace();
 		}
 
-		massTolerance = (Double) parameters
-				.getParameterValue(OnlineDBSearchParameters.massTolerance);
-		numOfResults = (Integer) parameters
-				.getParameterValue(OnlineDBSearchParameters.numOfResults);
-		isotopeFilter = (Boolean) parameters
-				.getParameterValue(OnlineDBSearchParameters.isotopeFilter);
-		isotopeScoreThreshold = (Double) parameters
-				.getParameterValue(OnlineDBSearchParameters.isotopeScoreTolerance);
-		ionType = (IonizationType) parameters
-				.getParameterValue(OnlineDBSearchParameters.ionizationMethod);
-
-	}
+		mzTolerance = parameters.getParameter(OnlineDBSearchParameters.mzTolerance).getValue();
+		numOfResults = parameters.getParameter(OnlineDBSearchParameters.numOfResults).getInt();
+		isotopeFilter = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getValue();
+		isotopeFilterParameters = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
+		this.ionType = parameters.getParameter(OnlineDBSearchParameters.neutralMass).getIonType();
+		
+		}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
@@ -178,7 +174,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 		double massValue = (row.getAverageMZ() - ionType.getAddedMass())
 				* charge;
 
-		String compoundIDs[] = gateway.findCompounds(massValue, massTolerance,
+		String compoundIDs[] = gateway.findCompounds(massValue, mzTolerance,
 				numOfResults);
 
 		// Process each one of the result ID's.
@@ -209,13 +205,11 @@ public class PeakListIdentificationTask extends AbstractTask {
 						.calculateIsotopePattern(adjustedFormula, 0.001, charge,
 								ionType.getPolarity());
 
-				double score = IsotopePatternScoreCalculator
-						.getSimilarityScore(rowIsotopePattern,
-								compoundIsotopePattern, massTolerance);
+				boolean check = IsotopePatternScoreCalculator
+						.checkMatch(rowIsotopePattern,
+								compoundIsotopePattern, isotopeFilterParameters);
 
-				compound.setIsotopePatternScore(score);
-
-				if (score < isotopeScoreThreshold)
+				if (! check)
 					continue;
 
 			}

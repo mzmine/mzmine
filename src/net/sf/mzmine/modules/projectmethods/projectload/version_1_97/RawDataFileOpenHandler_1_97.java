@@ -86,6 +86,9 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			ZipEntry xmlEntry) throws IOException,
 			ParserConfigurationException, SAXException {
 		stepNumber = 0;
+		numberOfScans = 0;
+		parsedScans = 0;
+		storageFileOffset = 0;
 
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
@@ -158,8 +161,9 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 
 		if (qName.equals(RawDataElementName_1_97.QUANTITY_FRAGMENT_SCAN
 				.getElementName())) {
-			numberOfFragments = Integer.parseInt(attrs
-					.getValue(RawDataElementName_1_97.QUANTITY.getElementName()));
+			numberOfFragments = Integer
+					.parseInt(attrs.getValue(RawDataElementName_1_97.QUANTITY
+							.getElementName()));
 			if (numberOfFragments > 0) {
 				fragmentScan = new int[numberOfFragments];
 				fragmentCount = 0;
@@ -186,7 +190,8 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			rawDataFileWriter.setName(name);
 		}
 
-		if (qName.equals(RawDataElementName_1_97.QUANTITY_SCAN.getElementName())) {
+		if (qName
+				.equals(RawDataElementName_1_97.QUANTITY_SCAN.getElementName())) {
 			numberOfScans = Integer.parseInt(getTextOfElement());
 		}
 
@@ -207,11 +212,13 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			precursorMZ = Double.parseDouble(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.PRECURSOR_CHARGE.getElementName())) {
+		if (qName.equals(RawDataElementName_1_97.PRECURSOR_CHARGE
+				.getElementName())) {
 			precursorCharge = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.RETENTION_TIME.getElementName())) {
+		if (qName.equals(RawDataElementName_1_97.RETENTION_TIME
+				.getElementName())) {
 			retentionTime = Double.parseDouble(getTextOfElement());
 		}
 
@@ -224,7 +231,8 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			dataPointsNumber = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.FRAGMENT_SCAN.getElementName())) {
+		if (qName
+				.equals(RawDataElementName_1_97.FRAGMENT_SCAN.getElementName())) {
 			fragmentScan[fragmentCount++] = Integer
 					.parseInt(getTextOfElement());
 		}

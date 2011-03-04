@@ -24,13 +24,12 @@ import java.util.ArrayList;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.Polarity;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
 import org.openscience.cdk.formula.IsotopeContainer;
@@ -49,19 +48,12 @@ public class IsotopePatternCalculator implements MZmineModule {
 
 	private static IsotopePatternCalculatorParameters parameters;
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public IsotopePatternCalculator() {
 		parameters = new IsotopePatternCalculatorParameters();
 	}
 
-	public void setParameters(ParameterSet parameters) {
-		parameters = (IsotopePatternCalculatorParameters) parameters;
-	}
-
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#getParameterSet()
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
 	 */
 	public ParameterSet getParameterSet() {
 		return parameters;
@@ -209,22 +201,18 @@ public class IsotopePatternCalculator implements MZmineModule {
 			throw new IllegalStateException("Module not initialized");
 		}
 
-		ParameterSetupDialog dialog = new ParameterSetupDialog(
-				"Please set the formula", parameters);
-
-		dialog.setVisible(true);
-
-		if (dialog.getExitCode() != ExitCode.OK)
+		ExitCode exitCode = parameters.showSetupDialog();
+		if (exitCode != ExitCode.OK)
 			return null;
 
-		String formula = (String) parameters
-				.getParameterValue(IsotopePatternCalculatorParameters.formula);
-		int charge = (Integer) parameters
-				.getParameterValue(IsotopePatternCalculatorParameters.charge);
-		Polarity polarity = (Polarity) parameters
-				.getParameterValue(IsotopePatternCalculatorParameters.polarity);
-		double minAbundance = (Double) parameters
-				.getParameterValue(IsotopePatternCalculatorParameters.minAbundance);
+		String formula = parameters.getParameter(
+				IsotopePatternCalculatorParameters.formula).getValue();
+		int charge = parameters.getParameter(
+				IsotopePatternCalculatorParameters.charge).getInt();
+		Polarity polarity = parameters.getParameter(
+				IsotopePatternCalculatorParameters.polarity).getValue();
+		double minAbundance = parameters.getParameter(
+				IsotopePatternCalculatorParameters.minAbundance).getDouble();
 
 		IsotopePattern predictedPattern = calculateIsotopePattern(formula,
 				minAbundance, charge, polarity);

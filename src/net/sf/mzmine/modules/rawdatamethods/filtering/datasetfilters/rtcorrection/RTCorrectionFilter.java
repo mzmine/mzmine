@@ -23,38 +23,49 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
+import net.sf.mzmine.parameters.ParameterSet;
 
-public class RTCorrectionFilter implements RawDataFilter {
+public class RTCorrectionFilter implements RawDataSetFilter {
 
-    RTCorrectionFilterParameters parameters;
+	RTCorrectionFilterParameters parameters;
+
 	public RTCorrectionFilter(RTCorrectionFilterParameters parameters) {
-        this.parameters = parameters;
+		this.parameters = parameters;
 	}
 
-	public RawDataFile filterDatafile(RawDataFile dataFile, RawDataFileWriter rawDataFileWriter) {
+	public RawDataFile filterDatafile(RawDataFile dataFile,
+			RawDataFileWriter rawDataFileWriter) {
 
 		try {
 			int[] scanNumbers = dataFile.getScanNumbers(1);
 			int totalScans = scanNumbers.length;
 
 			for (int i = 0; i < totalScans; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);               
-				if (scan != null) {               
+				Scan scan = dataFile.getScan(scanNumbers[i]);
+				if (scan != null) {
 					rawDataFileWriter.addScan(new SimpleScan(scan));
 				}
 			}
 
 			return rawDataFileWriter.finishWriting();
 
-
 		} catch (Exception e) {
-            e.printStackTrace();
+			e.printStackTrace();
 			return null;
 		}
 	}
 
 	public double getProgress() {
 		return 0.5f;
+	}
+	
+	public String toString() {
+		return "RT correction filter";
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 }

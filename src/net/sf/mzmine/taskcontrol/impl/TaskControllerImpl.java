@@ -19,15 +19,17 @@
 
 package net.sf.mzmine.taskcontrol.impl;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZminePreferences;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskControlListener;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -38,6 +40,8 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 public class TaskControllerImpl implements TaskController, Runnable {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
+	ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
 
 	/**
 	 * Update the task progress window every 300 ms
@@ -129,7 +133,16 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	 */
 	public void run() {
 
+		int previousQueueSize = -1;
+
 		while (true) {
+
+			int currentQueueSize = taskQueue.getNumOfWaitingTasks();
+			if (currentQueueSize != previousQueueSize) {
+				previousQueueSize = currentQueueSize;
+				for (TaskControlListener listener : listeners)
+					listener.numberOfWaitingTasksChanged(currentQueueSize);
+			}
 
 			// If the queue is empty, we can sleep. When new task is added into
 			// the queue, we will be awaken by notify()
@@ -165,13 +178,12 @@ public class TaskControllerImpl implements TaskController, Runnable {
 			// Get a snapshot of the queue
 			WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
-			// Get the settings for maximum # of threads
 			MZminePreferences preferences = MZmineCore.getPreferences();
-			int maxRunningThreads;
-			if (preferences.isAutoNumberOfThreads()) {
-				maxRunningThreads = Runtime.getRuntime().availableProcessors();
-			} else {
-				maxRunningThreads = preferences.getManualNumberOfThreads();
+			int maxRunningThreads = Runtime.getRuntime().availableProcessors();
+			if (preferences.getParameter(MZminePreferences.numOfThreads)
+					.isAutomatic()) {
+				maxRunningThreads = preferences.getParameter(
+						MZminePreferences.numOfThreads).getValue();
 			}
 
 			// Check all tasks in the queue
@@ -228,6 +240,11 @@ public class TaskControllerImpl implements TaskController, Runnable {
 				taskQueue.refresh();
 			}
 		}
+	}
+
+	@Override
+	public void addTaskControlListener(TaskControlListener listener) {
+		listeners.add(listener);
 	}
 
 }

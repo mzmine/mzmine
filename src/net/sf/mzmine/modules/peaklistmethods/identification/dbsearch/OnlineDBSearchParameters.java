@@ -21,65 +21,37 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 
 public class OnlineDBSearchParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	public static final ComboParameter<OnlineDatabase> database = new ComboParameter<OnlineDatabase>(
+			"Database", "Database to search", OnlineDatabase.values());
 
-	public static final Parameter database = new SimpleParameter(
-			ParameterType.STRING, "Database", "Database to search", null,
-			OnlineDatabase.values());
+	public static final NeutralMassParameter neutralMass = new NeutralMassParameter(
+			"Neutral mass", "Value to use in the search query");
 
-	public static final Parameter rawMass = new SimpleParameter(
-			ParameterType.DOUBLE, "Peak m/z", "Detected m/z value of the peak",
-			"m/z", null, new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter numOfResults = new NumberParameter(
+			"Number of results", "Maximum number of results to display",
+			NumberFormat.getIntegerInstance(), 100);
 
-	public static final Parameter charge = new SimpleParameter(
-			ParameterType.INTEGER, "Charge",
-			"This value is used to calculate the neutral mass", null,
-			new Integer(1), new Integer(1), null, null);
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final Parameter ionizationMethod = new SimpleParameter(
-			ParameterType.STRING, "Ionization method",
-			"Type of ion used to calculate the neutral mass", null,
-			IonizationType.values());
-
-	public static final Parameter neutralMass = new SimpleParameter(
-			ParameterType.DOUBLE, "Neutral mass",
-			"Value to use in the search query", null, null, null,
-			null, MZmineCore.getMZFormat());
-
-	public static final Parameter numOfResults = new SimpleParameter(
-			ParameterType.INTEGER, "Number of results",
-			"Maximum number of results to display", null, new Integer(15),
-			new Integer(1), null, null);
-
-	public static final Parameter massTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "Mass tolerance",
-			"Tolerance of the mass value to search (+/- range)", "amu",
-			new Double(0.0010), new Double(0), null, MZmineCore.getMZFormat());
-
-	public static final Parameter isotopeFilter = new SimpleParameter(
-			ParameterType.BOOLEAN, "Isotope pattern filter",
-			"Search only for compounds with a isotope pattern similar", null,
-			false, null, null, null);
-
-	public static final Parameter isotopeScoreTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "Isotope pattern score threshold",
-			"Threshold level for isotope pattern score", "%", new Double(0.65),
-			new Double(0.0), new Double(1.0), percentFormat);
+	public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
+			"Isotope pattern filter",
+			"Search only for compounds with a isotope pattern similar",
+			new IsotopePatternScoreParameters());
 
 	public OnlineDBSearchParameters() {
-		super(new Parameter[] { database, rawMass, charge, ionizationMethod,
-				neutralMass, numOfResults, massTolerance, isotopeFilter,
-				isotopeScoreTolerance });
+		super(new UserParameter[] { database, neutralMass, numOfResults,
+				mzTolerance, isotopeFilter });
 	}
 
 }

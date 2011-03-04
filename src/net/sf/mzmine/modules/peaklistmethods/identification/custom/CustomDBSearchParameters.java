@@ -19,51 +19,42 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.custom;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.OrderParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * 
  */
 public class CustomDBSearchParameters extends SimpleParameterSet {
 
-	public static final Parameter dataBaseFile = new SimpleParameter(
-			ParameterType.FILE_NAME, "Database file",
+	public static final FileNameParameter dataBaseFile = new FileNameParameter(
+			"Database file",
 			"Name of file that contains information for peak identification");
 
-	public static final Parameter fieldSeparator = new SimpleParameter(
-			ParameterType.STRING, "Field separator",
-			"Character(s) used to separate fields in the database file",
-			(Object) ",");
+	public static final StringParameter fieldSeparator = new StringParameter(
+			"Field separator",
+			"Character(s) used to separate fields in the database file", ",");
 
-	public static final Parameter fieldOrder = new SimpleParameter(
-			ParameterType.ORDERED_LIST, "Field order",
-			"Order of items in which they are read from database file", null,
+	public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
+			"Field order",
+			"Order of items in which they are read from database file",
 			FieldItem.values());
 
-	public static final Parameter ignoreFirstLine = new SimpleParameter(
-			ParameterType.BOOLEAN, "Ignore first line",
-			"Ignore the first line of database file", null, true, null, null,
-			null);
+	public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
+			"Ignore first line", "Ignore the first line of database file");
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Maximum allowed m/z difference to set an identification to a peak",
-			"m/z", new Double(1.0), new Double(0.0), null, MZmineCore
-					.getMZFormat());
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final Parameter rtTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
-			"RT tolerance",
-			"Maximum allowed retention time difference to set an identification to a peak",
-			null, new Double(60.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
 	public CustomDBSearchParameters() {
-		super(new Parameter[] { dataBaseFile, fieldSeparator, fieldOrder,
+		super(new UserParameter[] { dataBaseFile, fieldSeparator, fieldOrder,
 				ignoreFirstLine, mzTolerance, rtTolerance });
 	}
 

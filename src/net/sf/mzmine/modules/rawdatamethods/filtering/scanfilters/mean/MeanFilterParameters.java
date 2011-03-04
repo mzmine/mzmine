@@ -16,22 +16,33 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
+import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 
-	public static final Parameter oneSidedWindowLength = new SimpleParameter(
-			ParameterType.DOUBLE, "Window length",
-			"One-sided length of the smoothing window", "m/z", new Double(0.1),
-			new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter oneSidedWindowLength = new NumberParameter(
+			"Window length", "One-sided length of the smoothing window",
+			MZmineCore.getMZFormat());
 
-	public MeanFilterParameters() {
-		super(new Parameter[]{oneSidedWindowLength});
+	private ScanFilter scanFilter;
+
+	public MeanFilterParameters(ScanFilter scanFilter) {
+		super(new UserParameter[] { oneSidedWindowLength });
+		this.scanFilter = scanFilter;
+	}
+
+	public ExitCode showSetupDialog() {
+		ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(scanFilter);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
 	}
 }

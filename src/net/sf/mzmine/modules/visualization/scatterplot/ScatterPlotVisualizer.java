@@ -24,20 +24,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	/**
-	 * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
+	public ScatterPlotVisualizer() {
 
 		MZmineCore.getDesktop().addMenuItem(MZmineMenu.VISUALIZATIONPEAKLIST,
 				"Scatter plot",
@@ -78,7 +75,7 @@ public class ScatterPlotVisualizer implements MZmineModule, ActionListener {
 	}
 
 	/**
-	 * @see net.sf.mzmine.main.MZmineModule#toString()
+	 * @see net.sf.mzmine.modules.MZmineModule#toString()
 	 */
 	public String toString() {
 		return "Scatter plot";

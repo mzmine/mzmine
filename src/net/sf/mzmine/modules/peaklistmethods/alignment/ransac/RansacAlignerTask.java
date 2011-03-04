@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.ArrayList;
@@ -68,15 +69,15 @@ class RansacAlignerTask extends AbstractTask {
         this.parameters = parameters;
 
         // Get parameter values for easier use
-        peakListName = (String) parameters.getParameterValue(RansacAlignerParameters.peakListName);
+        peakListName = parameters.getParameter(RansacAlignerParameters.peakListName).getValue();
 
-        mzTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.MZTolerance);
+        mzTolerance = parameters.getParameter(RansacAlignerParameters.MZTolerance).getDouble();
 
-        rtTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.RTTolerance);
+        rtTolerance = parameters.getParameter(RansacAlignerParameters.RTTolerance).getDouble();
+        
+        rtToleranceValueAbs = parameters.getParameter(RansacAlignerParameters.RTToleranceValueAbs).getDouble();
 
-        rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTToleranceValueAbs);
-
-        sameChargeRequired = (Boolean) parameters.getParameterValue(RansacAlignerParameters.SameChargeRequired);
+        sameChargeRequired = parameters.getParameter(RansacAlignerParameters.SameChargeRequired).getValue();
 
     }
 

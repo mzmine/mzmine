@@ -19,90 +19,110 @@
 
 package net.sf.mzmine.modules.batchmode;
 
-import java.util.Iterator;
+import java.util.Map;
 import java.util.Vector;
 
-import net.sf.mzmine.data.ParameterSet;
-import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
-import org.dom4j.Element;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Batch steps queue
  */
 public class BatchQueue extends Vector<BatchStepWrapper> implements
-        StorableParameterSet {
+		ParameterSet {
 
-    public static final String BATCHSTEP_ELEMENT = "batchstep";
-    public static final String METHOD_ELEMENT = "method";
-    public static final String PARAMETERS_ELEMENT = "parameters";
+	public static final String BATCHSTEP_ELEMENT = "batchstep";
+	public static final String METHOD_ELEMENT = "method";
 
-    public void exportValuesToXML(Element element) {
+	public void saveValuesToXML(Element xmlElement) {
 
-        for (int i = 0; i < size(); i++) {
-            BatchStepWrapper step = get(i);
+		Document parentDocument = xmlElement.getOwnerDocument();
 
-            Element stepElement = element.addElement(BATCHSTEP_ELEMENT);
-            String methodName = step.getMethod().getClass().getName();
+		for (int i = 0; i < size(); i++) {
+			BatchStepWrapper step = get(i);
 
-            Element methodElement = stepElement.addElement(METHOD_ELEMENT);
-            methodElement.setText(methodName);
+			Element stepElement = parentDocument
+					.createElement(BATCHSTEP_ELEMENT);
+			String methodName = step.getMethod().getClass().getName();
+			stepElement.setAttribute(METHOD_ELEMENT, methodName);
+			ParameterSet stepParameters = step.getParameters();
+			stepParameters.saveValuesToXML(stepElement);
 
-            Element parametersElement = stepElement.addElement(PARAMETERS_ELEMENT);
-            if (step.getParameters() instanceof StorableParameterSet) {
-                StorableParameterSet stepParameters = (StorableParameterSet) step.getParameters();
-                stepParameters.exportValuesToXML(parametersElement);
-            }
+		}
 
-        }
+	}
 
-    }
+	public void loadValuesFromXML(Element xmlElement) {
 
-    public void importValuesFromXML(Element element) {
+		// erase current steps
+		clear();
 
-        // erase current steps
-        clear();
+		MZmineModule allModules[] = MZmineCore.getAllModules();
 
-        MZmineModule allModules[] = MZmineCore.getAllModules();
+		NodeList nodes = xmlElement.getElementsByTagName(BATCHSTEP_ELEMENT);
+		for (int i = 0; i < nodes.getLength(); i++) {
 
-        Iterator i = element.elements(BATCHSTEP_ELEMENT).iterator();
-        while (i.hasNext()) {
+			Element stepElement = (Element) nodes.item(i);
+			String methodName = stepElement.getAttribute(METHOD_ELEMENT);
 
-            Element stepElement = (Element) i.next();
-            String methodName = stepElement.elementText(METHOD_ELEMENT);
+			for (MZmineModule module : allModules) {
+				if ((module instanceof BatchStep)
+						&& (module.getClass().getName().equals(methodName))) {
+					BatchStep method = (BatchStep) module;
+					ParameterSet parameters = module.getParameterSet().clone();
+						parameters.loadValuesFromXML(stepElement);
+					BatchStepWrapper step = new BatchStepWrapper(method,
+							parameters);
+					add(step);
+					break;
+				}
+			}
 
-            for (MZmineModule module : allModules) {
-                if ((module instanceof BatchStep)
-                        && (module.getClass().getName().equals(methodName))) {
-                    BatchStep method = (BatchStep) module;
-                    ParameterSet parameters = module.getParameterSet().clone();
-                    if (parameters instanceof StorableParameterSet) {
-                        Element parametersElement = stepElement.element(PARAMETERS_ELEMENT);
-                        ((StorableParameterSet) parameters).importValuesFromXML(parametersElement);
-                    }
-                    BatchStepWrapper step = new BatchStepWrapper(method,
-                            parameters);
-                    add(step);
-                    break;
-                }
-            }
+		}
 
-        }
+	}
 
-    }
+	public BatchQueue clone() {
 
-    public BatchQueue clone() {
+		BatchQueue clonedQueue = new BatchQueue();
+		for (int i = 0; i < size(); i++) {
+			BatchStepWrapper step = get(i);
+			BatchStepWrapper clonedStep = new BatchStepWrapper(
+					step.getMethod(), step.getParameters().clone());
+			clonedQueue.add(clonedStep);
+		}
+		return clonedQueue;
+	}
 
-        BatchQueue clonedQueue = new BatchQueue();
-        for (int i = 0; i < size(); i++) {
-            BatchStepWrapper step = get(i);
-            BatchStepWrapper clonedStep = new BatchStepWrapper(
-                    step.getMethod(), step.getParameters().clone());
-            clonedQueue.add(clonedStep);
-        }
-        return clonedQueue;
-    }
+	@Override
+	public UserParameter[] getParameters() {
+		return null;
+	}
+
+	@Override
+	public <T extends Parameter> T getParameter(T parameter) {
+		return null;
+	}
+
+	@Override
+	public ExitCode showSetupDialog() {
+		BatchModeDialog dialog = new BatchModeDialog(this);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
+	@Override
+	public ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
+		return null;
+	}
+
 
 }

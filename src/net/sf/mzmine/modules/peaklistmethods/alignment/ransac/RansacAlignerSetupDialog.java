@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BorderLayout;
@@ -40,8 +41,8 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -49,199 +50,209 @@ import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
  * over the raw data file.
  */
 public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
-        ActionListener {
+		ActionListener {
 
-    // Dialog components
-    private JPanel pnlPlotXY, peakListsPanel;
-    private JCheckBox preview;
-    private AlignmentRansacPlot chart;
-    private JComboBox peakListsComboX, peakListsComboY;
-    private JButton alignmentPreviewButton;
-    private RansacAlignerParameters parameters;
+	// Dialog components
+	private JPanel pnlPlotXY, peakListsPanel;
+	private JCheckBox preview;
+	private AlignmentRansacPlot chart;
+	private JComboBox peakListsComboX, peakListsComboY;
+	private JButton alignmentPreviewButton;
+	private RansacAlignerParameters parameters;
 
-    /**
-     * @param parameters
-     * @param massDetectorTypeNumber
-     */
-    public RansacAlignerSetupDialog(String title, RansacAlignerParameters parameters, String helpID) {
+	/**
+	 * @param parameters
+	 * @param massDetectorTypeNumber
+	 */
+	public RansacAlignerSetupDialog(RansacAlignerParameters parameters,
+			String helpID) {
+		super(parameters, helpID);
+		this.parameters = parameters;
+		addComponents();
+	}
 
-        super(title, parameters, helpID);
-        this.parameters = parameters;
-        addComponents();
-    }
+	/**
+	 * @see net.sf.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent event) {
 
-    /**
-     * @see net.sf.mzmine.util.dialogs.ParameterSetupDialog#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent event) {
+		super.actionPerformed(event);
+		Object src = event.getSource();
 
-        super.actionPerformed(event);
-        Object src = event.getSource();
+		if (src == preview) {
+			if (preview.isSelected()) {
+				// Set the height of the preview to 200 cells, so it will span
+				// the whole vertical length of the dialog (buttons are at row
+				// no
+				// 100). Also, we set the weight to 10, so the preview component
+				// will consume most of the extra available space.
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
+				peakListsPanel.setVisible(true);
+				updateMinimumSize();
+				pack();
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+			} else {
+				mainPanel.remove(pnlPlotXY);
+				peakListsPanel.setVisible(false);
+				updateMinimumSize();
+				pack();
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+			}
+		}
 
-        if (src == preview) {
-            if (preview.isSelected()) {
-                // Set the height of the preview to 200 cells, so it will span
-                // the whole vertical length of the dialog (buttons are at row no
-                // 100). Also, we set the weight to 10, so the preview component
-                // will consume most of the extra available space.
-                mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
-                peakListsPanel.setVisible(true);
-                updateMinimumSize();
-                pack();
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-            } else {
-                mainPanel.remove(pnlPlotXY);
-                peakListsPanel.setVisible(false);
-                updateMinimumSize();
-                pack();
-                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-            }
-        }
+		if (src == alignmentPreviewButton) {
+			PeakList peakListX = (PeakList) peakListsComboX.getSelectedItem();
+			PeakList peakListY = (PeakList) peakListsComboY.getSelectedItem();
 
-        if (src == alignmentPreviewButton) {
-            PeakList peakListX = (PeakList) peakListsComboX.getSelectedItem();
-            PeakList peakListY = (PeakList) peakListsComboY.getSelectedItem();
+			// Select the rawDataFile which has more peaks in each peakList
+			int numPeaks = 0;
+			RawDataFile file = null;
+			RawDataFile file2 = null;
 
-            // Select the rawDataFile which has more peaks in each peakList
-            int numPeaks = 0;
-            RawDataFile file = null;
-            RawDataFile file2 = null;
+			for (RawDataFile rfile : peakListX.getRawDataFiles()) {
+				if (peakListX.getPeaks(rfile).length > numPeaks) {
+					numPeaks = peakListX.getPeaks(rfile).length;
+					file = rfile;
+				}
+			}
+			numPeaks = 0;
+			for (RawDataFile rfile : peakListY.getRawDataFiles()) {
+				if (peakListY.getPeaks(rfile).length > numPeaks) {
+					numPeaks = peakListY.getPeaks(rfile).length;
+					file2 = rfile;
+				}
+			}
 
-            for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-                if (peakListX.getPeaks(rfile).length > numPeaks) {
-                    numPeaks = peakListX.getPeaks(rfile).length;
-                    file = rfile;
-                }
-            }
-            numPeaks = 0;
-            for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-                if (peakListY.getPeaks(rfile).length > numPeaks) {
-                    numPeaks = peakListY.getPeaks(rfile).length;
-                    file2 = rfile;
-                }
-            }
+			super.updateParameterSetFromComponents();
 
-            super.updateParameterSetFromComponents();
+			// Ransac Alignment
+			Vector<AlignStructMol> list = this.getVectorAlignment(peakListX,
+					peakListY, file, file2);
+			RANSAC ransac = new RANSAC(parameters);
+			ransac.alignment(list);
 
-            // Ransac Alignment
-            Vector<AlignStructMol> list = this.getVectorAlignment(peakListX, peakListY, file, file2);
-            RANSAC ransac = new RANSAC(parameters);
-            ransac.alignment(list);
+			// Plot the result
+			this.chart.removeSeries();
+			this.chart.addSeries(list,
+					peakListX.getName() + " vs " + peakListY.getName(),
+					this.parameters
+							.getParameter(RansacAlignerParameters.Linear)
+							.getValue());
+			this.chart.printAlignmentChart(peakListX.getName() + " RT",
+					peakListY.getName() + " RT");
 
-            // Plot the result
-            this.chart.removeSeries();
-            this.chart.addSeries(list, peakListX.getName() + " vs " + peakListY.getName(), (Boolean) this.parameters.getParameterValue(RansacAlignerParameters.Linear));
-            this.chart.printAlignmentChart(peakListX.getName() + " RT", peakListY.getName() + " RT");
+		}
 
-        }
+	}
 
-    }
+	/**
+	 * This function add all the additional components for this dialog over the
+	 * original ParameterSetupDialog.
+	 * 
+	 */
+	private void addComponents() {
 
-    /**
-     * This function add all the additional components for this dialog over the
-     * original ParameterSetupDialog.
-     *
-     */
-    private void addComponents() {
+		// Elements of pnlpreview
+		JPanel pnlpreview = new JPanel(new BorderLayout());
+		preview = new JCheckBox(" Show preview of RANSAC alignment ");
+		preview.addActionListener(this);
+		preview.setHorizontalAlignment(SwingConstants.CENTER);
+		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
+		pnlpreview.add(preview, BorderLayout.CENTER);
+		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-        // Elements of pnlpreview
-        JPanel pnlpreview = new JPanel(new BorderLayout());
-        preview = new JCheckBox(" Show preview of RANSAC alignment ");
-        preview.addActionListener(this);
-        preview.setHorizontalAlignment(SwingConstants.CENTER);
-        pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-        pnlpreview.add(preview, BorderLayout.CENTER);
-        pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
+		pnlpreview.add(preview, BorderLayout.CENTER);
 
-        pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-        pnlpreview.add(preview, BorderLayout.CENTER);
+		// Panel for the combo boxes with the peak lists
+		peakListsPanel = new JPanel();
+		peakListsPanel.setLayout(new BoxLayout(peakListsPanel,
+				BoxLayout.PAGE_AXIS));
 
-        // Panel for the combo boxes with the peak lists
-        peakListsPanel = new JPanel();
-        peakListsPanel.setLayout(new BoxLayout(peakListsPanel, BoxLayout.PAGE_AXIS));
+		JPanel comboPanel = new JPanel();
+		comboPanel.setLayout(new BoxLayout(comboPanel, BoxLayout.PAGE_AXIS));
+		PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
+		peakListsComboX = new JComboBox();
+		peakListsComboY = new JComboBox();
+		for (PeakList peakList : peakLists) {
+			peakListsComboX.addItem(peakList);
+			peakListsComboY.addItem(peakList);
+		}
+		comboPanel.add(peakListsComboX);
+		comboPanel.add(peakListsComboY);
 
+		// Preview button
+		alignmentPreviewButton = new JButton("Preview Alignmnet");
+		alignmentPreviewButton.addActionListener(this);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.add(alignmentPreviewButton, BorderLayout.CENTER);
 
-        JPanel comboPanel = new JPanel();
-        comboPanel.setLayout(new BoxLayout(comboPanel, BoxLayout.PAGE_AXIS));
-        PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
-        peakListsComboX = new JComboBox();
-        peakListsComboY = new JComboBox();
-        for (PeakList peakList : peakLists) {
-            peakListsComboX.addItem(peakList);
-            peakListsComboY.addItem(peakList);
-        }
-        comboPanel.add(peakListsComboX);
-        comboPanel.add(peakListsComboY);
+		peakListsPanel.add(comboPanel);
+		peakListsPanel.add(buttonPanel);
+		peakListsPanel.setVisible(false);
 
+		JPanel pnlVisible = new JPanel(new BorderLayout());
+		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+		pnlVisible.add(peakListsPanel, BorderLayout.CENTER);
 
+		// Panel for XYPlot
+		pnlPlotXY = new JPanel(new BorderLayout());
+		Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+		Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+		pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
+		pnlPlotXY.setBackground(Color.white);
 
-        // Preview button
-        alignmentPreviewButton = new JButton("Preview Alignmnet");
-        alignmentPreviewButton.addActionListener(this);
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(alignmentPreviewButton, BorderLayout.CENTER);
+		chart = new AlignmentRansacPlot();
+		pnlPlotXY.add(chart, BorderLayout.CENTER);
 
-        peakListsPanel.add(comboPanel);
-        peakListsPanel.add(buttonPanel);
-        peakListsPanel.setVisible(false);
+		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
 
-        JPanel pnlVisible = new JPanel(new BorderLayout());
-        pnlVisible.add(pnlpreview, BorderLayout.NORTH);
-        pnlVisible.add(peakListsPanel, BorderLayout.CENTER);
+		updateMinimumSize();
+		pack();
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 
-        // Panel for XYPlot
-        pnlPlotXY = new JPanel(new BorderLayout());
-        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-        Border two = BorderFactory.createEmptyBorder(10, 10, 10, 10);
-        pnlPlotXY.setBorder(BorderFactory.createCompoundBorder(one, two));
-        pnlPlotXY.setBackground(Color.white);
+	}
 
-        chart = new AlignmentRansacPlot();
-        pnlPlotXY.add(chart, BorderLayout.CENTER);
+	/**
+	 * Create the vector which contains all the possible aligned peaks.
+	 * 
+	 * @return vector which contains all the possible aligned peaks.
+	 */
+	private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX,
+			PeakList peakListY, RawDataFile file, RawDataFile file2) {
 
-        mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
-                3, 1, 0, 0);
+		Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
 
-        updateMinimumSize();
-        pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		for (PeakListRow row : peakListX.getRows()) {
 
-    }
+			// Calculate limits for a row with which the row can be aligned
+			double mzTolerance = parameters.getParameter(
+					RansacAlignerParameters.MZTolerance).getDouble();
+			double rtToleranceValueAbs = parameters.getParameter(
+					RansacAlignerParameters.RTTolerance).getDouble();
+			double mzMin = row.getAverageMZ() - mzTolerance;
+			double mzMax = row.getAverageMZ() + mzTolerance;
+			double rtMin, rtMax;
+			double rtToleranceValue = rtToleranceValueAbs;
+			rtMin = row.getAverageRT() - rtToleranceValue;
+			rtMax = row.getAverageRT() + rtToleranceValue;
 
-    /**
-     * Create the vector which contains all the possible aligned peaks.
-     * @return vector which contains all the possible aligned peaks.
-     */
-    private Vector<AlignStructMol> getVectorAlignment(PeakList peakListX, PeakList peakListY, RawDataFile file, RawDataFile file2) {
+			// Get all rows of the aligned peaklist within parameter limits
+			PeakListRow candidateRows[] = peakListY
+					.getRowsInsideScanAndMZRange(new Range(rtMin, rtMax),
+							new Range(mzMin, mzMax));
 
-        Vector<AlignStructMol> alignMol = new Vector<AlignStructMol>();
-
-        for (PeakListRow row : peakListX.getRows()) {
-
-            // Calculate limits for a row with which the row can be aligned
-            double mzTolerance = (Double) parameters.getParameterValue(RansacAlignerParameters.MZTolerance);
-            double rtToleranceValueAbs = (Double) parameters.getParameterValue(RansacAlignerParameters.RTTolerance);
-            double mzMin = row.getAverageMZ() - mzTolerance;
-            double mzMax = row.getAverageMZ() + mzTolerance;
-            double rtMin, rtMax;
-            double rtToleranceValue = rtToleranceValueAbs;
-            rtMin = row.getAverageRT() - rtToleranceValue;
-            rtMax = row.getAverageRT() + rtToleranceValue;
-
-            // Get all rows of the aligned peaklist within parameter limits
-            PeakListRow candidateRows[] = peakListY.getRowsInsideScanAndMZRange(
-                    new Range(rtMin, rtMax), new Range(mzMin, mzMax));
-
-            for (PeakListRow candidateRow : candidateRows) {
-                if (file == null || file2 == null) {
-                    alignMol.addElement(new AlignStructMol(row, candidateRow));
-                } else {
-                    if (candidateRow.getPeak(file2) != null) {
-                        alignMol.addElement(new AlignStructMol(row, candidateRow, file, file2));
-                    }
-                }
-            }
-        }
-        return alignMol;
-    }
+			for (PeakListRow candidateRow : candidateRows) {
+				if (file == null || file2 == null) {
+					alignMol.addElement(new AlignStructMol(row, candidateRow));
+				} else {
+					if (candidateRow.getPeak(file2) != null) {
+						alignMol.addElement(new AlignStructMol(row,
+								candidateRow, file, file2));
+					}
+				}
+			}
+		}
+		return alignMol;
+	}
 }

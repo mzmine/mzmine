@@ -20,25 +20,21 @@
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 public class ExportRowIdentityElement {
-	
-    private String name;
-    private String propertyName;
 
-    public ExportRowIdentityElement(String propertyName, String name) {
-        this.name = name;
-        this.propertyName = propertyName;
-    }
+	private String name;
+	private String propertyName;
 
-    public String getName() {
-        return this.name;
-    }
-    
-    public String getPropertyName() {
-        return this.propertyName;
-    }
-    
-    public String toString(){
-    	return this.name;
-    }
+	public ExportRowIdentityElement(String propertyName, String name) {
+		this.name = name;
+		this.propertyName = propertyName;
+	}
+
+	public String getPropertyName() {
+		return this.propertyName;
+	}
+
+	public String toString() {
+		return this.name;
+	}
 
 }

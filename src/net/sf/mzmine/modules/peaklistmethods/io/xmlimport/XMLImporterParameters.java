@@ -19,21 +19,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.xmlimport;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 
-public class XMLImporterParameters extends SimpleParameterSet{
+public class XMLImporterParameters extends SimpleParameterSet {
 
-    public static final Parameter filename = new SimpleParameter(
-            ParameterType.FILE_NAME,
-            "Filename",
-            "Name of imported peak list file name", null, "mpl", null);
+	public static final FileNameParameter filename = new FileNameParameter(
+			"Filename", "Name of imported peak list file name", "mpl");
 
-
-    public XMLImporterParameters() {
-        super(new Parameter[] { filename });
-    }
+	public XMLImporterParameters() {
+		super(new UserParameter[] { filename });
+	}
 
 }

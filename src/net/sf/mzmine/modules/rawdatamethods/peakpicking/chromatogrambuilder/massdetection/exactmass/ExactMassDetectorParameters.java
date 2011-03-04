@@ -19,22 +19,20 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.exactmass;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
-	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "Noise level",
+	public static final NumberParameter noiseLevel = new NumberParameter(
+			"Noise level",
 			"Intensities less than this value are interpreted as noise.",
-			"absolute", new Double(10.0), new Double(0), null, MZmineCore
-					.getIntensityFormat());
+			MZmineCore.getIntensityFormat());
 
 	public ExactMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel });
+		super(new UserParameter[] { noiseLevel });
 
 	}
 

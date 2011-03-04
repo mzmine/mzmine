@@ -38,18 +38,20 @@ class ProjectTreeTransferable implements Transferable {
 	ProjectTreeTransferable(RawDataFile rawDataFiles[]) {
 		this.transferObject = rawDataFiles;
 		try {
-			this.transferFlavor = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
-			        ";class=\"" + RawDataFile[].class.getName() + "\"");
+			this.transferFlavor = new DataFlavor(
+					DataFlavor.javaJVMLocalObjectMimeType + ";class=\""
+							+ RawDataFile[].class.getName() + "\"");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
-		};
+		}
 	}
 
 	ProjectTreeTransferable(PeakList peakLists[]) {
 		this.transferObject = peakLists;
 		try {
-			this.transferFlavor = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
-			        ";class=\"" + PeakList[].class.getName() + "\"");
+			this.transferFlavor = new DataFlavor(
+					DataFlavor.javaJVMLocalObjectMimeType + ";class=\""
+							+ PeakList[].class.getName() + "\"");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -57,7 +59,7 @@ class ProjectTreeTransferable implements Transferable {
 
 	public Object getTransferData(DataFlavor flavor)
 			throws UnsupportedFlavorException, IOException {
-		if (! flavor.equals(transferFlavor)) {
+		if (!flavor.equals(transferFlavor)) {
 			throw (new UnsupportedFlavorException(flavor));
 		}
 		return transferObject;

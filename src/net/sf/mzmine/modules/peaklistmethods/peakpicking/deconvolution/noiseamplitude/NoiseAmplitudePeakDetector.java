@@ -27,38 +27,47 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * 
  */
 public class NoiseAmplitudePeakDetector implements PeakResolver {
 
+	private ParameterSet parameters;
+
 	private double amplitudeOfNoise;
 	private double minimumPeakHeight, minimumPeakDuration;
 
-	public NoiseAmplitudePeakDetector(NoiseAmplitudePeakDetectorParameters parameters) {
-
-		minimumPeakDuration = (Double) parameters
-				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakDuration);
-		minimumPeakHeight = (Double) parameters
-				.getParameterValue(NoiseAmplitudePeakDetectorParameters.minimumPeakHeight);
-		amplitudeOfNoise = (Double) parameters
-				.getParameterValue(NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise);
+	public NoiseAmplitudePeakDetector() {
+		parameters = new NoiseAmplitudePeakDetectorParameters(this);
 
 	}
 
-	/**
-	 */
-    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
-            int scanNumbers[], double retentionTimes[], double intensities[]) {
+	public String toString() {
+		return "Noise amplitude";
+	}
 
-        Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-        // This treeMap stores the score of frequency of intensity ranges
+		minimumPeakDuration = parameters.getParameter(
+				NoiseAmplitudePeakDetectorParameters.minimumPeakDuration)
+				.getDouble();
+		minimumPeakHeight = parameters.getParameter(
+				NoiseAmplitudePeakDetectorParameters.minimumPeakHeight)
+				.getDouble();
+		amplitudeOfNoise = parameters.getParameter(
+				NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise)
+				.getDouble();
+
+		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
+
+		// This treeMap stores the score of frequency of intensity ranges
 		TreeMap<Integer, Integer> binsFrequency = new TreeMap<Integer, Integer>();
 		double maxIntensity = 0;
 		double avgChromatoIntensities = 0;
-		
+
 		for (int i = 0; i < scanNumbers.length; i++) {
 
 			addNewIntensity(intensities[i], binsFrequency);
@@ -82,7 +91,6 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 		// Index of starting region of the current peak
 		int totalNumberPoints = scanNumbers.length;
 		int currentPeakStart = totalNumberPoints;
-
 
 		for (int i = 0; i < totalNumberPoints; i++) {
 			if ((intensities[i] > noiseThreshold) && (!activePeak)) {
@@ -167,6 +175,11 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 			noiseThreshold = amplitudeOfNoise;
 
 		return noiseThreshold;
+	}
+
+	@Override
+	public ParameterSet getParameterSet() {
+		return parameters;
 	}
 
 }

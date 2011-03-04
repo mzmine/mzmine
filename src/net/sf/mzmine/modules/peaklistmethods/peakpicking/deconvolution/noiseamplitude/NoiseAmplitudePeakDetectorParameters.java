@@ -19,39 +19,41 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
+	private PeakResolver peakResolver;
+	
+	public static final NumberParameter minimumPeakHeight = new NumberParameter(
+			"Min peak height", "Minimum acceptable peak height",
+			MZmineCore.getIntensityFormat());
 
-	public static final Parameter minimumPeakHeight = new SimpleParameter(
-			ParameterType.DOUBLE, "Min peak height",
-			"Minimum acceptable peak height", "absolute", new Double(100.0),
-			new Double(0.0), null, MZmineCore.getIntensityFormat());
+	public static final NumberParameter minimumPeakDuration = new NumberParameter(
+			"Min peak duration", "Minimum acceptable peak duration",
+			MZmineCore.getRTFormat());
 
-	public static final Parameter minimumPeakDuration = new SimpleParameter(
-			ParameterType.DOUBLE, "Min peak duration",
-			"Minimum acceptable peak duration", null, new Double(10.0),
-			new Double(0.0), null, MZmineCore.getRTFormat());
-
-	public static final Parameter amplitudeOfNoise = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter amplitudeOfNoise = new NumberParameter(
 			"Amplitude of noise",
 			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			"absolute", new Double(1000.0), new Double(0), null, MZmineCore
-					.getIntensityFormat());
+			MZmineCore.getIntensityFormat());
 
-	public NoiseAmplitudePeakDetectorParameters() {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
+	public ExitCode showSetupDialog() {
+		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(peakResolver);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+	
+	public NoiseAmplitudePeakDetectorParameters(PeakResolver peakResolver) {
+		super(new UserParameter[] { minimumPeakHeight, minimumPeakDuration,
 				amplitudeOfNoise });
+		this.peakResolver = peakResolver;
 	}
 
 }

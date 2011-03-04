@@ -33,6 +33,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class PeakListTableWindow extends JInternalFrame implements
@@ -41,14 +42,17 @@ public class PeakListTableWindow extends JInternalFrame implements
 	private JScrollPane scrollPane;
 
 	private PeakListTable table;
-	private PeakListTableParameters myParameters;
+
+	private ParameterSet parameters;
 
 	/**
 	 * Constructor: initializes an empty visualizer
 	 */
-	PeakListTableWindow(PeakList peakList) {
+	PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
 		super(peakList.toString(), true, true, true, true);
+
+		this.parameters = parameters;
 
 		setResizable(true);
 		setIconifiable(true);
@@ -60,13 +64,8 @@ public class PeakListTableWindow extends JInternalFrame implements
 		PeakListTableToolBar toolBar = new PeakListTableToolBar(this);
 		add(toolBar, BorderLayout.EAST);
 
-		PeakListTableVisualizer visualizer = PeakListTableVisualizer
-				.getInstance();
-
-		myParameters = visualizer.getParameterSet().clone();
-
 		// Build table
-		table = new PeakListTable(visualizer, this, myParameters, peakList);
+		table = new PeakListTable(this, parameters, peakList);
 
 		scrollPane = new JScrollPane(table);
 
@@ -83,23 +82,20 @@ public class PeakListTableWindow extends JInternalFrame implements
 
 		String command = event.getActionCommand();
 
-		if (command.equals("ZOOM_TO_PEAK")) {
-			// TODO
-		}
-
 		if (command.equals("PROPERTIES")) {
 
-			PeakListTablePropertiesDialog dialog = new PeakListTablePropertiesDialog(
-					myParameters);
-			dialog.setVisible(true);
-			if (dialog.getExitCode() == ExitCode.OK) {
-				table.setRowHeight(myParameters.getRowHeight());
+			ExitCode exitCode = parameters.showSetupDialog();
+			if (exitCode == ExitCode.OK) {
+				int rowHeight = parameters.getParameter(
+						PeakListTableParameters.rowHeight).getInt();
+				table.setRowHeight(rowHeight);
+
 				PeakListTableColumnModel cm = (PeakListTableColumnModel) table
 						.getColumnModel();
 				cm.createColumns();
-				PeakListTableVisualizer visualizer = PeakListTableVisualizer
-						.getInstance();
-				visualizer.setParameters(myParameters);
+
+				PeakListTableVisualizer.getInstance().setParameterSet(
+						parameters);
 			}
 		}
 

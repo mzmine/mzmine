@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.modules.batchmode;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * Interface representing a data processing method which can be executed in a
@@ -32,31 +31,25 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public interface BatchStep extends MZmineModule {
 
-    /**
-     * Show a setup dialog for the module parameter set
-     * 
-     * @return ExitCode.OK or ExitCode.CANCEL depending how user closed the
-     *         dialog
-     */
-    public ExitCode setupParameters(ParameterSet parameters);
-
-    /**
-     * Runs this method on a given items, and calls another task listener after
-     * task is complete and results have been processed.
-     * 
-     * @param dataFiles Data files to be processed
-     * @param alignmentResult AlignmentResults to be processed
-     * 
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+	/**
+	 * Runs this method on a given items, and calls another task listener after
+	 * task is complete and results have been processed.
+	 * 
+	 * @param dataFiles
+	 *            Data files to be processed
+	 * @param alignmentResult
+	 *            AlignmentResults to be processed
+	 * 
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters);
 
-    /**
-     * Returns the category of the batch step (e.g. raw data processing, peak
-     * picking etc.)
-     * 
-     * @return Category of this batch step
-     */
-    public BatchStepCategory getBatchStepCategory();
+	/**
+	 * Returns the category of the batch step (e.g. raw data processing, peak
+	 * picking etc.)
+	 * 
+	 * @return Category of this batch step
+	 */
+	public BatchStepCategory getBatchStepCategory();
 
 }

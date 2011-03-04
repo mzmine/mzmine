@@ -21,11 +21,11 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
 import javax.swing.Box;
@@ -39,17 +39,15 @@ import javax.swing.SwingConstants;
 
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Parameter;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.modules.visualization.tic.TICToolBar;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 /**
  * This class extends ParameterSetupDialog class, adding
@@ -70,40 +68,17 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 	private TICPlot ticPlot;
 	private ChromatogramTICDataSet ticDataset;
 
-	// Peak resolver
-	private SimpleParameterSet pbParameters;
-	private int peakResolverTypeNumber;
+	private PeakResolver peakResolver;
 
 	/**
 	 * @param parameters
 	 * @param massDetectorTypeNumber
 	 */
-	public PeakResolverSetupDialog(DeconvolutionParameters parameters,
-			int peakResolverTypeNumber) {
+	public PeakResolverSetupDialog(PeakResolver peakResolver) {
 
-		super(DeconvolutionParameters.peakResolverNames[peakResolverTypeNumber]
-				+ "'s parameter setup dialog ", parameters
-				.getPeakResolverParameters(peakResolverTypeNumber));
+		super(peakResolver.getParameterSet());
 
-		this.peakResolverTypeNumber = peakResolverTypeNumber;
-
-		// Parameters of local mass detector to get preview values
-		pbParameters = parameters
-				.getPeakResolverParameters(peakResolverTypeNumber);
-
-		// Set a listener in all parameters's fields to add functionality to
-		// this dialog
-		for (Parameter p : pbParameters.getParameters()) {
-
-			JComponent field = getComponentForParameter(p);
-			field.addPropertyChangeListener("value", this);
-			if (field instanceof JCheckBox)
-				((JCheckBox) field).addActionListener(this);
-			if (field instanceof JComboBox)
-				((JComboBox) field).addActionListener(this);
-		}
-
-		addComponents();
+		this.peakResolver = peakResolver;
 
 	}
 
@@ -131,9 +106,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 		if (src == preview) {
 			if (preview.isSelected()) {
 				// Set the height of the preview to 200 cells, so it will span
-				// the whole vertical length of the dialog (buttons are at row no
-				// 100). Also, we set the weight to 10, so the preview component
-				// will consume most of the extra available space.
+				// the whole vertical length of the dialog (buttons are at row
+				// no 100). Also, we set the weight to 10, so the preview
+				// component will consume most of the extra available space.
 				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
 				pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
 				updateMinimumSize();
@@ -155,21 +130,12 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 			return;
 		}
 
-		// Any other event will cause reloading the preview
-		if (preview.isSelected()) {
-			loadPreviewPeak();
-		}
-
 	}
 
-	public void propertyChange(PropertyChangeEvent e) {
-		if ((preview != null) && (preview.isSelected())) {
-			loadPreviewPeak();
-		}
-	}
-
-	private void loadPreviewPeak() {
-
+	@Override
+	public void parametersChanged() {
+		if ((preview == null) || (! preview.isSelected())) return;
+		
 		PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
 		if (previewRow == null)
 			return;
@@ -178,22 +144,11 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 		ticPlot.removeAllTICDataSets();
 
-		// Create Peak Builder
-		PeakResolver peakResolver;
-		updateParameterSetFromComponents();
-		String peakResolverClassName = DeconvolutionParameters.peakResolverClasses[peakResolverTypeNumber];
-
 		try {
-			Class peakResolverClass = Class.forName(peakResolverClassName);
-			Constructor peakResolverConstruct = peakResolverClass
-					.getConstructors()[0];
-			peakResolver = (PeakResolver) peakResolverConstruct
-					.newInstance(pbParameters);
+			updateParameterSetFromComponents();
 		} catch (Exception e) {
-			String message = "Error trying to make an instance of Peak Builder "
-					+ peakResolverClassName;
-			MZmineCore.getDesktop().displayErrorMessage(message);
-			logger.severe(message);
+			// If there is exception, it means some of the values is invalid or
+			// missing. Let's just quit.
 			return;
 		}
 
@@ -244,14 +199,17 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 	 * original ParameterSetupDialog.
 	 * 
 	 */
-	private void addComponents() {
+	@Override
+	protected void addDialogComponents() {
+
+		super.addDialogComponents();
 
 		PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
 
 		// Elements of pnlpreview
 		JPanel pnlpreview = new JPanel(new BorderLayout());
 
-		preview = new JCheckBox(" Show preview ");
+		preview = new JCheckBox("Show preview");
 		preview.addActionListener(this);
 		preview.setHorizontalAlignment(SwingConstants.CENTER);
 		preview.setEnabled(peakLists.length > 0);
@@ -275,8 +233,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 		comboPeak = new JComboBox();
 		comboPeak.setFont(comboFont);
 		comboPeak.setRenderer(new PeakPreviewComboRenderer());
-
-		tableComponents[2] = new JLabel("Peak");
+		comboPeak.setPreferredSize(new Dimension(250, comboPeak
+				.getPreferredSize().height));
+		tableComponents[2] = new JLabel("Chromatogram");
 
 		tableComponents[3] = comboPeak;
 
@@ -298,8 +257,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 		toolBar.getComponentAtIndex(0).setVisible(false);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		mainPanel.add(pnlVisible, 0, parametersAndComponents.size() + 3,
-				3, 1, 0, 0);
+		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0, GridBagConstraints.HORIZONTAL);
 
 		updateMinimumSize();
 		pack();

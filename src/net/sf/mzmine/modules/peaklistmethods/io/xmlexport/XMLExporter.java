@@ -23,19 +23,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
-import net.sf.mzmine.util.dialogs.ParameterSetupDialog;
 
 public class XMLExporter implements MZmineModule, ActionListener, BatchStep {
 
@@ -51,7 +50,7 @@ public class XMLExporter implements MZmineModule, ActionListener, BatchStep {
         return parameters;
 	}
 
-	public void initModule() {
+	public XMLExporter() {
 		this.desktop = MZmineCore.getDesktop();
 
         parameters = new XMLExporterParameters();
@@ -73,7 +72,7 @@ public class XMLExporter implements MZmineModule, ActionListener, BatchStep {
             return;
         }
 
-        ExitCode setupExitCode = setupParameters(parameters);
+        ExitCode setupExitCode = parameters.showSetupDialog();
 
         if (setupExitCode != ExitCode.OK) {
             return;
@@ -94,15 +93,7 @@ public class XMLExporter implements MZmineModule, ActionListener, BatchStep {
 
 	}
 
-	public ExitCode setupParameters(ParameterSet parameters) {
-        ParameterSetupDialog dialog = new ParameterSetupDialog(
-                "Please set parameter values for " + MODULE_NAME,
-                (XMLExporterParameters) parameters, helpID);
-
-        dialog.setVisible(true);
-
-        return dialog.getExitCode();
-	}
+	
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;

@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.project.parameterssetup;
 
 import java.awt.BorderLayout;
@@ -39,10 +40,12 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class AddProjectParameterDialog extends JDialog implements
 		ActionListener {
@@ -268,14 +271,9 @@ public class AddProjectParameterDialog extends JDialog implements
 			}
 			String paramName = fieldName.getText();
 
-			SimpleParameter parameter = null;
+			UserParameter parameter = null;
 
 			if (radiobuttonNumerical.isSelected()) {
-				ParameterType paramType = ParameterType.DOUBLE;
-				Double minValue = Double.NEGATIVE_INFINITY;
-				if (fieldNumericalMinValue.getValue() != null)
-					minValue = ((Number) fieldNumericalMinValue.getValue())
-							.doubleValue();
 
 				Double defaultValue = 0.0;
 				if (fieldNumericalDefaultValue.getValue() != null) {
@@ -283,26 +281,19 @@ public class AddProjectParameterDialog extends JDialog implements
 							.getValue()).doubleValue();
 				}
 
-				Double maxValue = Double.POSITIVE_INFINITY;
-				if (fieldNumericalMaxValue.getValue() != null)
-					maxValue = ((Number) fieldNumericalMaxValue.getValue())
-							.doubleValue();
-
-				parameter = new SimpleParameter(paramType, paramName, null,
-						null, defaultValue, minValue, maxValue);
+				parameter = new NumberParameter(paramName, null,
+						NumberFormat.getNumberInstance(), defaultValue);
 			}
 
 			if (radiobuttonFreeText.isSelected()) {
-				ParameterType paramType = ParameterType.STRING;
 				String defaultValue = "";
 				if (fieldFreeTextDefaultValue.getText() != null)
 					defaultValue = fieldFreeTextDefaultValue.getText();
-				parameter = new SimpleParameter(paramType, paramName, null,
-						(Object) defaultValue);
+				parameter = new StringParameter(paramName, null,
+						defaultValue);
 			}
 
 			if (radiobuttonCategorical.isSelected()) {
-				ParameterType paramType = ParameterType.STRING;
 				String[] possibleValues = new String[categories.size()];
 				if (possibleValues.length == 0) {
 					desktop
@@ -312,8 +303,8 @@ public class AddProjectParameterDialog extends JDialog implements
 				for (int valueIndex = 0; valueIndex < categories.size(); valueIndex++)
 					possibleValues[valueIndex] = (String) categories
 							.get(valueIndex);
-				parameter = new SimpleParameter(paramType, paramName, null,
-						possibleValues[0], possibleValues);
+				parameter = new ComboParameter<String>(paramName, null,
+						possibleValues);
 			}
 
 			mainDialog.addParameter(parameter);

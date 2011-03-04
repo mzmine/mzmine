@@ -19,42 +19,40 @@
 
 package net.sf.mzmine.modules.visualization.neutralloss;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
+import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class NeutralLossParameters extends SimpleParameterSet {
 
-    public static final String xAxisPrecursor = "Precursor mass";
-    public static final String xAxisRT = "Retention time";
+	public static final String xAxisPrecursor = "Precursor mass";
+	public static final String xAxisRT = "Retention time";
 
-    public static final String[] xAxisTypes = { xAxisPrecursor, xAxisRT };
+	public static final String[] xAxisTypes = { xAxisPrecursor, xAxisRT };
 
-    public static final Parameter xAxisType = new SimpleParameter(
-            ParameterType.STRING, "X axis", "X axis type", xAxisPrecursor,
-            xAxisTypes);
+	public static final ComboParameter<String> xAxisType = new ComboParameter<String>(
+			"X axis", "X axis type", xAxisTypes);
 
-    public static final Parameter retentionTimeRange = new SimpleParameter(
-            ParameterType.RANGE, "Retention time",
-            "Retention time (X axis) range", null, new Range(0, 600),
-            new Double(0), null, MZmineCore.getRTFormat());
+	public static final RangeParameter retentionTimeRange = new RangeParameter(
+			"Retention time", "Retention time (X axis) range",
+			MZmineCore.getRTFormat());
 
-    public static final Parameter mzRange = new SimpleParameter(
-            ParameterType.RANGE, "Precursor m/z",
-            "Range of precursor m/z values", "m/z", new Range(0, 1000),
-            new Double(0), null, MZmineCore.getMZFormat());
+	public static final RangeParameter mzRange = new RangeParameter(
+			"Precursor m/z", "Range of precursor m/z values",
+			MZmineCore.getMZFormat());
 
-    public static final Parameter numOfFragments = new SimpleParameter(
-            ParameterType.INTEGER, "Fragments",
-            "Number of most intense fragments", null, new Integer(5),
-            new Integer(0), null);
+	public static final NumberParameter numOfFragments = new NumberParameter(
+			"Fragments", "Number of most intense fragments",
+			NumberFormat.getIntegerInstance());
 
-    public NeutralLossParameters() {
-        super(new Parameter[] { xAxisType, retentionTimeRange, mzRange,
-                numOfFragments });
-    }
+	public NeutralLossParameters() {
+		super(new UserParameter[] { xAxisType, retentionTimeRange, mzRange,
+				numOfFragments });
+	}
 
 }

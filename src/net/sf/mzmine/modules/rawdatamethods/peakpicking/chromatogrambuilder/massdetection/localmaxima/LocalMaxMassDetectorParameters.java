@@ -19,27 +19,20 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.localmaxima;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-
-	public static final Parameter noiseLevel = new SimpleParameter(
-			ParameterType.DOUBLE, "Noise level",
-			"Intensities less than this value are interpreted as noise",
-			"absolute", new Double(10.0), new Double(0.0), null, MZmineCore
-					.getIntensityFormat());
+	public static final NumberParameter noiseLevel = new NumberParameter(
+			"Noise level",
+			"Intensities less than this value are interpreted as noise.",
+			MZmineCore.getIntensityFormat());
 
 	public LocalMaxMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel });
+		super(new UserParameter[] { noiseLevel });
 
 	}
 

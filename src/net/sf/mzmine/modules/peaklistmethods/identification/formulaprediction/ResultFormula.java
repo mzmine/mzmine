@@ -32,19 +32,26 @@ public class ResultFormula {
 
 	private final IMolecularFormula cdkFormula;
 	private Double isotopeScore, msmsScore;
+	private double rdbeValue;
 	private IsotopePattern predictedIsotopePattern;
 	private Map<DataPoint, String> msmsAnnotation;
 
 	ResultFormula(MolecularFormula cdkFormula,
-			IsotopePattern predictedIsotopePattern, Double isotopeScore,
-			Double msmsScore, Map<DataPoint, String> msmsAnnotation) {
+			IsotopePattern predictedIsotopePattern, double rdbeValue,
+			Double isotopeScore, Double msmsScore,
+			Map<DataPoint, String> msmsAnnotation) {
 
 		this.cdkFormula = cdkFormula;
 		this.predictedIsotopePattern = predictedIsotopePattern;
 		this.isotopeScore = isotopeScore;
 		this.msmsScore = msmsScore;
 		this.msmsAnnotation = msmsAnnotation;
+		this.rdbeValue = rdbeValue;
 
+	}
+	
+	public double getRDBE() {
+		return rdbeValue;
 	}
 
 	public Map<DataPoint, String> getMSMSannotation() {
@@ -77,10 +84,6 @@ public class ResultFormula {
 
 	public double getExactMass() {
 		return MolecularFormulaManipulator.getTotalExactMass(cdkFormula);
-	}
-
-	public Boolean conformsRule(HeuristicRule rule) {
-		return HeuristicRuleChecker.checkRule(cdkFormula, rule);
 	}
 
 }

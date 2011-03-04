@@ -25,6 +25,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * This class implements a simple peak builder. This takes all collected MzPeaks
@@ -35,15 +36,16 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
  */
 public class BaselinePeakDetector implements PeakResolver {
 
+	private ParameterSet parameters;
+
 	private double minimumPeakHeight, minimumPeakDuration, baselineLevel;
 
-	public BaselinePeakDetector(BaselinePeakDetectorParameters parameters) {
-		minimumPeakHeight = (Double) parameters
-				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakHeight);
-		minimumPeakDuration = (Double) parameters
-				.getParameterValue(BaselinePeakDetectorParameters.minimumPeakDuration);
-		baselineLevel = (Double) parameters
-				.getParameterValue(BaselinePeakDetectorParameters.baselineLevel);
+	public BaselinePeakDetector() {
+		parameters = new BaselinePeakDetectorParameters(this);
+	}
+	
+	public String toString() {
+		return "Baseline cut-off";
 	}
 
 	/**
@@ -51,6 +53,13 @@ public class BaselinePeakDetector implements PeakResolver {
      */
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
+
+		minimumPeakHeight = parameters.getParameter(
+				BaselinePeakDetectorParameters.minimumPeakHeight).getDouble();
+		minimumPeakDuration = parameters.getParameter(
+				BaselinePeakDetectorParameters.minimumPeakDuration).getDouble();
+		baselineLevel = parameters.getParameter(
+				BaselinePeakDetectorParameters.baselineLevel).getDouble();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 
@@ -108,4 +117,9 @@ public class BaselinePeakDetector implements PeakResolver {
 
 		return resolvedPeaks.toArray(new ResolvedPeak[0]);
 	}
+
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
 }

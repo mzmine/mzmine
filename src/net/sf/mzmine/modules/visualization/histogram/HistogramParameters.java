@@ -19,35 +19,28 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.histogram.histogramdatalabel.HistogramDataType;
-import net.sf.mzmine.util.Range;
+import java.text.NumberFormat;
+
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class HistogramParameters extends SimpleParameterSet {
 
-    public static final Parameter dataFiles = new SimpleParameter(
-            ParameterType.MULTIPLE_SELECTION, "Raw data files",
-            "Column of peaks to be plotted", null, null, 1, null);
+	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+			"Raw data files", "Column of peaks to be plotted",
+			new RawDataFile[0]);
 
-    public static final Parameter dataType = new SimpleParameter(
-            ParameterType.STRING, "Plotted data type",
-            "Peak's data to be plotted", null, HistogramDataType.values());
+	public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();
 
-    public static final Parameter rangeData = new SimpleParameter(
-            ParameterType.RANGE, "Plotted data range",
-            "Range of data to be plotted", null, new Range(0, 1000),
-            new Double(0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter numOfBins = new NumberParameter(
+			"Number of bins", "The plot is divides into this number of bins",
+			NumberFormat.getIntegerInstance());
 
-    public static final Parameter numOfBins = new SimpleParameter(
-            ParameterType.INTEGER, "Number of bins",
-            "The plot is divides into this number of bins", new Integer(5));
-
-    public HistogramParameters() {
-        super(new Parameter[] { dataFiles, dataType, rangeData, numOfBins });
-    }
+	public HistogramParameters() {
+		super(new UserParameter[] { dataFiles, dataRange, numOfBins });
+	}
 
 }

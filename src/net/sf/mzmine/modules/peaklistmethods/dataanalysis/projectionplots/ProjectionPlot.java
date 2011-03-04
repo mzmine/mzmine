@@ -24,109 +24,98 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.main.MZmineModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ProjectionPlot implements MZmineModule, ActionListener {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    private ProjectionPlotParameters parameters;
+	private ProjectionPlotParameters parameters;
 
-    final String helpID = GUIUtils.generateHelpID(this);
+	final String helpID = GUIUtils.generateHelpID(this);
 
-    /**
-     * @see net.sf.mzmine.main.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+	/**
      */
-    public void initModule() {
+	public ProjectionPlot() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-                "Principal component analysis (PCA)",
-                "Principal component analysis", KeyEvent.VK_P, false, this,
-                "PCA_PLOT");
+		desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
+				"Principal component analysis (PCA)",
+				"Principal component analysis", KeyEvent.VK_P, false, this,
+				"PCA_PLOT");
 
-        desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-                "Curvilinear distance analysis (CDA)",
-                "Curvilinear distance analysis", KeyEvent.VK_C, false, this,
-                "CDA_PLOT");
+		desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
+				"Curvilinear distance analysis (CDA)",
+				"Curvilinear distance analysis", KeyEvent.VK_C, false, this,
+				"CDA_PLOT");
 
-        desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Sammon's projection",
-                "Sammon's projection", KeyEvent.VK_S, false, this,
-                "SAMMON_PLOT");
+		desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Sammon's projection",
+				"Sammon's projection", KeyEvent.VK_S, false, this,
+				"SAMMON_PLOT");
 
-    }
+		parameters = new ProjectionPlotParameters();
+	}
 
-    public String toString() {
-        return "Projection plot analyzer";
-    }
+	public String toString() {
+		return "Projection plot analyzer";
+	}
 
-    public void setParameters(ParameterSet parameters) {
-        this.parameters = (ProjectionPlotParameters) parameters;
-    }
+	public ProjectionPlotParameters getParameterSet() {
+		return parameters;
+	}
 
-    public ProjectionPlotParameters getParameterSet() {
-        return parameters;
-    }
+	public void actionPerformed(ActionEvent event) {
 
-    public void actionPerformed(ActionEvent event) {
+		PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
+		if (selectedPeakLists.length != 1) {
+			desktop.displayErrorMessage("Please select a single aligned peaklist");
+			return;
+		}
 
-        PeakList selectedAlignedPeakLists[] = desktop.getSelectedPeakLists();
-        if (selectedAlignedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single aligned peaklist");
-            return;
-        }
+		if (selectedPeakLists[0].getNumberOfRows() == 0) {
+			desktop.displayErrorMessage("Selected alignment result is empty");
+			return;
+		}
 
-        if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
-            desktop.displayErrorMessage("Selected alignment result is empty");
-            return;
-        }
+		logger.finest("Showing projection plot setup dialog");
 
-        logger.finest("Showing projection plot setup dialog");
+		String command = event.getActionCommand();
+		if (!command.equals("PCA_PLOT")) {
+			parameters.getParameter(ProjectionPlotParameters.xAxisComponent)
+					.setChoices(new Integer[] { 1 });
+			parameters.getParameter(ProjectionPlotParameters.yAxisComponent)
+					.setChoices(new Integer[] { 2 });
+		}
 
-        if ((parameters == null)
-                || (selectedAlignedPeakLists[0] != parameters.getSourcePeakList())) {
-            parameters = new ProjectionPlotParameters(
-                    selectedAlignedPeakLists[0]);
-        }
+		ExitCode exitCode = parameters.showSetupDialog();
 
-        boolean forceXYComponents = true;
-        String command = event.getActionCommand();
-        if (command.equals("PCA_PLOT"))
-            forceXYComponents = false;
+		if (exitCode == ExitCode.OK) {
+			logger.info("Opening new projection plot");
 
-        ProjectionPlotSetupDialog setupDialog = new ProjectionPlotSetupDialog(
-                selectedAlignedPeakLists[0], parameters, forceXYComponents, helpID);
-        setupDialog.setVisible(true);
+			ProjectionPlotDataset dataset = null;
 
-        if (setupDialog.getExitCode() == ExitCode.OK) {
-            logger.info("Opening new projection plot");
+			if (command.equals("PCA_PLOT"))
+				dataset = new PCADataset(selectedPeakLists[0], parameters);
 
-            ProjectionPlotDataset dataset = null;
+			if (command.equals("CDA_PLOT"))
+				dataset = new CDADataset(selectedPeakLists[0], parameters);
 
-            if (command.equals("PCA_PLOT"))
-                dataset = new PCADataset(parameters);
+			if (command.equals("SAMMON_PLOT"))
+				dataset = new SammonDataset(selectedPeakLists[0], parameters);
 
-            if (command.equals("CDA_PLOT"))
-                dataset = new CDADataset(parameters);
+			MZmineCore.getTaskController().addTask(dataset);
 
-            if (command.equals("SAMMON_PLOT"))
-                dataset = new SammonDataset(parameters);
+		}
 
-            MZmineCore.getTaskController().addTask(dataset);
-            
-
-        }
-
-    }
+	}
 
 }

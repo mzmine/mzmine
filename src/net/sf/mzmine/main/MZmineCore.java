@@ -20,50 +20,63 @@
 package net.sf.mzmine.main;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
+import java.text.NumberFormat;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.StorableParameterSet;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
-import net.sf.mzmine.util.NumberFormatter;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import de.schlichtherle.io.FileOutputStream;
 
 /**
  * This interface represents MZmine core modules - I/O, task controller and GUI.
  */
-public abstract class MZmineCore {
-
-	public static final String MZMINE_VERSION = "2.2";
+public class MZmineCore implements Runnable {
 
 	public static final File CONFIG_FILE = new File("conf/config.xml");
 	public static final File DEFAULT_CONFIG_FILE = new File(
 			"conf/config-default.xml");
-
-	// configuration XML structure
-	public static final String PARAMETER_ELEMENT_NAME = "parameter";
-	public static final String PARAMETERS_ELEMENT_NAME = "parameters";
-	public static final String MODULES_ELEMENT_NAME = "modules";
-	public static final String MODULE_ELEMENT_NAME = "module";
-	public static final String CLASS_ATTRIBUTE_NAME = "class";
-	public static final String PREFERENCES_ELEMENT_NAME = "preferences";
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
@@ -85,10 +98,7 @@ public abstract class MZmineCore {
 	}
 
 	/**
-	 * Returns a reference to Desktop. May return null on MZmine nodes with no
-	 * GUI.
-	 * 
-	 * @return Desktop reference or null
+	 * Returns a reference to Desktop.
 	 */
 	public static Desktop getDesktop() {
 		return desktop;
@@ -106,13 +116,6 @@ public abstract class MZmineCore {
      */
 	public static MZmineProject getCurrentProject() {
 		return projectManager.getCurrentProject();
-	}
-
-	/**
-     * 
-     */
-	public static MZminePreferences getPreferences() {
-		return preferences;
 	}
 
 	/**
@@ -137,7 +140,7 @@ public abstract class MZmineCore {
 	 * Saves configuration and exits the application.
 	 * 
 	 */
-	public static void exitMZmine() {
+	public static ExitCode exitMZmine() {
 
 		// If we have GUI, ask if use really wants to quit
 		int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
@@ -146,152 +149,296 @@ public abstract class MZmineCore {
 				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
 		if (selectedValue != JOptionPane.YES_OPTION)
-			return;
+			return ExitCode.CANCEL;
 
 		desktop.getMainFrame().dispose();
 
 		logger.info("Exiting MZmine");
 
 		System.exit(0);
+		
+		return ExitCode.OK;
 
 	}
 
-	public static void saveConfiguration(File file) {
+	/**
+	 * Main method
+	 */
+	public static void main(String args[]) {
+		// create the GUI in the event-dispatching thread
+		MZmineCore core = new MZmineCore();
+		SwingUtilities.invokeLater(core);
+	}
+
+	/**
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
+
+		logger.info("Starting MZmine 2");
+
+		logger.fine("Checking for old temporary files...");
 
 		try {
 
-			// load current configuration from XML
-			SAXReader reader = new SAXReader();
-			Document configuration = null;
-			try {
-				configuration = reader.read(CONFIG_FILE);
-			} catch (DocumentException e) {
-				configuration = reader.read(DEFAULT_CONFIG_FILE);
-			}
-			Element configRoot = configuration.getRootElement();
+			// Get the temporary directory
+			File tempDir = new File(System.getProperty("java.io.tmpdir"));
 
-			// save desktop configuration
+			// Find all files with the mask mzmine*.scans
+			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return name.matches("mzmine.*\\.scans");
+				}
+			});
 
-			Element preferencesConfigElement = configRoot
-					.element(PREFERENCES_ELEMENT_NAME);
-			if (preferencesConfigElement == null) {
-				preferencesConfigElement = configRoot
-						.addElement(PREFERENCES_ELEMENT_NAME);
-			}
-			preferencesConfigElement.clearContent();
-			try {
-				preferences.exportValuesToXML(preferencesConfigElement);
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Could not save preferences", e);
-			}
+			for (File remainingTmpFile : remainingTmpFiles) {
 
-			// traverse modules
-			for (MZmineModule module : getAllModules()) {
-
-				ParameterSet currentParameters = module.getParameterSet();
-				if ((currentParameters == null)
-						|| (!(currentParameters instanceof StorableParameterSet)))
+				// Skip files created by someone else
+				if (!remainingTmpFile.canWrite())
 					continue;
 
-				String className = module.getClass().getName();
-				String xpathLocation = "//configuration/modules/module[@class='"
-						+ className + "']";
-				Element moduleElement = (Element) configuration
-						.selectSingleNode(xpathLocation);
-				if (moduleElement != null) {
+				// Try to obtain a lock on the file
+				RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
+						"rw");
 
-					Element parametersElement = moduleElement
-							.element(PARAMETERS_ELEMENT_NAME);
-					if (parametersElement == null)
-						parametersElement = moduleElement
-								.addElement(PARAMETERS_ELEMENT_NAME);
-					else
-						parametersElement.clearContent();
+				FileLock lock = rac.getChannel().tryLock();
+				rac.close();
 
-					try {
-						((StorableParameterSet) currentParameters)
-								.exportValuesToXML(parametersElement);
-					} catch (Exception e) {
-						logger.log(Level.SEVERE,
-								"Could not save configuration of module "
-										+ module, e);
-					}
+				if (lock != null) {
+					// We locked the file, which means nobody is using it
+					// anymore and it can be removed
+					logger.finest("Removing unused file " + remainingTmpFile);
+					remainingTmpFile.delete();
 				}
 
 			}
+		} catch (IOException e) {
+			logger.log(Level.WARNING,
+					"Error while checking for old temporary files", e);
+		}
 
-			// write the config file
-			OutputFormat format = OutputFormat.createPrettyPrint();
+		logger.fine("Loading configuration..");
 
-			// It is important to use FileOutputStream, not FileWriter. If we
-			// use FileWriter, the file will be written using incorrect encoding
-			// (not UTF8).
-			XMLWriter writer = new XMLWriter(new FileOutputStream(file), format);
-			writer.write(configuration);
-			writer.close();
+		File configFileToLoad = CONFIG_FILE;
+		if (!CONFIG_FILE.canRead())
+			configFileToLoad = DEFAULT_CONFIG_FILE;
+		if (!configFileToLoad.canRead()) {
+			logger.log(Level.SEVERE, "Cannot read default configuration file "
+					+ DEFAULT_CONFIG_FILE);
+			System.exit(1);
+		}
 
-			logger.info("Saved configuration to file " + file);
+		Document configuration = null;
+		NodeList modulesItems = null;
+
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
+					.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			configuration = dBuilder.parse(configFileToLoad);
+
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+
+			XPathExpression expr = xpath.compile("//modules/module");
+			modulesItems = (NodeList) expr.evaluate(configuration,
+					XPathConstants.NODESET);
 
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Could not save configuration file "
-					+ file, e);
+
+			logger.log(Level.SEVERE, "Error parsing the configuration file "
+					+ configFileToLoad + ", loading default configuration", e);
+			System.exit(1);
+			return;
 		}
+
+		logger.fine("Loading core classes..");
+
+		// create instance of preferences
+		preferences = new MZminePreferences();
+
+		// create instances of core modules
+
+		// load configuration from XML
+		MZmineCore.taskController = new TaskControllerImpl();
+		projectManager = new ProjectManagerImpl();
+		MZmineCore.desktop = new MainWindow();
+		help = new HelpImpl();
+
+		logger.fine("Initializing core classes..");
+
+		// First initialize project manager, because desktop needs to
+		// register project listener
+		projectManager.initModule();
+
+		// Second, initialize desktop, because task controller needs to add
+		// TaskProgressWindow to the desktop
+		((MainWindow) desktop).initModule();
+
+		// Last, initialize task controller
+		((TaskControllerImpl) taskController).initModule();
+
+		logger.fine("Loading modules");
+
+		Vector<MZmineModule> moduleSet = new Vector<MZmineModule>();
+
+		for (int i = 0; i < modulesItems.getLength(); i++) {
+			Element modElement = (Element) modulesItems.item(i);
+
+			String className = modElement.getAttribute("class");
+
+			try {
+
+				logger.finest("Loading module " + className);
+
+				// load the module class
+				Class moduleClass = Class.forName(className);
+
+				// create instance and init module
+				MZmineModule moduleInstance = (MZmineModule) moduleClass
+						.newInstance();
+
+				// add to the module set
+				moduleSet.add(moduleInstance);
+
+			} catch (Throwable e) {
+				logger.log(Level.SEVERE, "Could not load module " + className,
+						e);
+				continue;
+			}
+
+		}
+
+		MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+
+		try {
+			loadConfiguration(configFileToLoad);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		// register shutdown hook
+		ShutDownHook shutDownHook = new ShutDownHook();
+		Runtime.getRuntime().addShutdownHook(shutDownHook);
+
+		// show the GUI
+		logger.info("Showing main window");
+		((MainWindow) desktop).setVisible(true);
+
+		// show the welcome message
+		desktop.setStatusBarText("Welcome to MZmine 2!");
 
 	}
 
-	public static void loadConfiguration(File file) throws DocumentException {
+	public static void saveConfiguration(File file)
+			throws ParserConfigurationException, TransformerException,
+			FileNotFoundException {
 
-		SAXReader reader = new SAXReader();
-		Document configuration = reader.read(file);
-		Element configRoot = configuration.getRootElement();
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+		Document configuration = dBuilder.newDocument();
+		Element configRoot = configuration.createElement("configuration");
+		configuration.appendChild(configRoot);
+
+		Element prefElement = configuration.createElement("preferences");
+		configRoot.appendChild(prefElement);
+		preferences.saveValuesToXML(prefElement);
+
+		Element modulesElement = configuration.createElement("modules");
+		configRoot.appendChild(modulesElement);
+
+		// traverse modules
+		for (MZmineModule module : getAllModules()) {
+
+			String className = module.getClass().getName();
+
+			Element moduleElement = configuration.createElement("module");
+			moduleElement.setAttribute("class", className);
+			modulesElement.appendChild(moduleElement);
+
+			Element paramElement = configuration.createElement("parameters");
+			moduleElement.appendChild(paramElement);
+
+			ParameterSet moduleParameters = module.getParameterSet();
+			if (moduleParameters != null) {
+				moduleParameters.saveValuesToXML(paramElement);
+			}
+
+		}
+
+		TransformerFactory transfac = TransformerFactory.newInstance();
+		Transformer transformer = transfac.newTransformer();
+		transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+		transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+		transformer.setOutputProperty(
+				"{http://xml.apache.org/xslt}indent-amount", "4");
+
+		StreamResult result = new StreamResult(new FileOutputStream(file));
+		DOMSource source = new DOMSource(configuration);
+		transformer.transform(source, result);
+
+		logger.info("Saved configuration to file " + file);
+
+	}
+
+	public static void loadConfiguration(File file)
+			throws ParserConfigurationException, SAXException, IOException,
+			XPathExpressionException {
+
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document configuration = dBuilder.parse(file);
+
+		XPathFactory factory = XPathFactory.newInstance();
+		XPath xpath = factory.newXPath();
 
 		logger.finest("Loading desktop configuration");
 
-		Element preferencesConfigElement = configRoot
-				.element(PREFERENCES_ELEMENT_NAME);
-		if (preferencesConfigElement != null)
-			preferences.importValuesFromXML(preferencesConfigElement);
+		XPathExpression expr = xpath.compile("//configuration/preferences");
+		NodeList nodes = (NodeList) expr.evaluate(configuration,
+				XPathConstants.NODESET);
+		if (nodes.getLength() == 1) {
+			Element preferencesElement = (Element) nodes.item(0);
+			preferences.loadValuesFromXML(preferencesElement);
+		}
 
 		logger.finest("Loading modules configuration");
 
 		for (MZmineModule module : getAllModules()) {
-			String className = module.getClass().getName();
-			String xpathLocation = "//configuration/modules/module[@class='"
-					+ className + "']";
 
-			Element moduleElement = (Element) configuration
-					.selectSingleNode(xpathLocation);
-			if (moduleElement == null)
+			String className = module.getClass().getName();
+			expr = xpath.compile("//configuration/modules/module[@class='"
+					+ className + "']/parameters");
+			nodes = (NodeList) expr.evaluate(configuration,
+					XPathConstants.NODESET);
+			if (nodes.getLength() != 1)
 				continue;
 
-			Element parametersElement = moduleElement
-					.element(PARAMETERS_ELEMENT_NAME);
+			Element moduleElement = (Element) nodes.item(0);
 
-			if (parametersElement != null) {
-				ParameterSet moduleParameters = module.getParameterSet();
-				if ((moduleParameters != null)
-						&& (moduleParameters instanceof StorableParameterSet))
-					((StorableParameterSet) moduleParameters)
-							.importValuesFromXML(parametersElement);
+			ParameterSet moduleParameters = module.getParameterSet();
+			if (moduleParameters != null) {
+				moduleParameters.loadValuesFromXML(moduleElement);
 			}
-
 		}
 
 		logger.info("Loaded configuration from file " + file);
-
 	}
 
 	// Number formatting functions
-	public static NumberFormatter getIntensityFormat() {
-		return preferences.getIntensityFormat();
+	public static NumberFormat getIntensityFormat() {
+		return preferences.getParameter(MZminePreferences.intensityFormat)
+				.getValue();
 	}
 
-	public static NumberFormatter getMZFormat() {
-		return preferences.getMZFormat();
+	public static NumberFormat getMZFormat() {
+		return preferences.getParameter(MZminePreferences.mzFormat).getValue();
 	}
 
-	public static NumberFormatter getRTFormat() {
-		return preferences.getRTFormat();
+	public static NumberFormat getRTFormat() {
+		return preferences.getParameter(MZminePreferences.rtFormat).getValue();
 	}
 
 	public static RawDataFileWriter createNewFile(String name)
@@ -300,7 +447,11 @@ public abstract class MZmineCore {
 	}
 
 	public static String getMZmineVersion() {
-		return MZMINE_VERSION;
+		return MZmineVersion.MZMINE_VERSION;
+	}
+
+	public static MZminePreferences getPreferences() {
+		return preferences;
 	}
 
 }

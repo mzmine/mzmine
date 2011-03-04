@@ -25,9 +25,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 
-import net.sf.mzmine.data.ParameterSet;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
@@ -35,6 +33,7 @@ import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
 import net.sf.mzmine.modules.batchmode.BatchStepCategory;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -55,75 +54,33 @@ public class ProjectSaver implements BatchStep, ActionListener {
 
 	private Desktop desktop;
 
-	public void initModule() {
+	public ProjectSaver() {
 
 		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new ProjectSaverParameters();
 
 		projectSave = desktop.addMenuItem(MZmineMenu.PROJECTIO, MODULE_NAME,
-				"Saves the MZmine project", KeyEvent.VK_S, true, this,
-				null);
+				"Saves the MZmine project", KeyEvent.VK_S, true, this, null);
 
 		projectSaveAs = desktop.addMenuItem(MZmineMenu.PROJECTIO,
-				"Save project as...", "Saves the MZmine project under a different name",
+				"Save project as...",
+				"Saves the MZmine project under a different name",
 				KeyEvent.VK_A, true, this, null);
 
 	}
 
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-			ParameterSet parameterSet) {
-		ProjectSaverParameters parameters = (ProjectSaverParameters) parameterSet;
-		String selectedFileName = (String) parameters
-				.getParameterValue(ProjectSaverParameters.projectFile);
-		File selectedFile = new File(selectedFileName);
+			ParameterSet parameters) {
+		File selectedFile = parameters.getParameter(
+				ProjectSaverParameters.projectFile).getValue();
+		if (selectedFile == null)
+			return null;
+
 		ProjectSavingTask task = new ProjectSavingTask(selectedFile);
 		Task[] tasksArray = new Task[] { task };
 		MZmineCore.getTaskController().addTasks(tasksArray);
 		return tasksArray;
-	}
-
-	public ExitCode setupParameters(ParameterSet parameterSet) {
-
-		ProjectSaverParameters parameters = (ProjectSaverParameters) parameterSet;
-
-		String path = (String) parameters
-				.getParameterValue(ProjectSaverParameters.lastDirectory);
-		File lastPath = null;
-		if (path != null)
-			lastPath = new File(path);
-
-		ProjectSaveDialog dialog = new ProjectSaveDialog(lastPath, helpID);
-		dialog.setVisible(true);
-		ExitCode exitCode = dialog.getExitCode();
-
-		if (exitCode == ExitCode.OK) {
-
-			File selectedFile = dialog.getSelectedFile();
-			String lastDirectory = dialog.getCurrentDirectory();
-
-			if (!selectedFile.getName().endsWith(".mzmine")) {
-				selectedFile = new File(selectedFile.getPath() + ".mzmine");
-			}
-
-			if (selectedFile.exists()) {
-				int selectedValue = JOptionPane.showConfirmDialog(MZmineCore
-						.getDesktop().getMainFrame(), selectedFile.getName()
-						+ " already exists, overwrite ?", "Question...",
-						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-				if (selectedValue != JOptionPane.YES_OPTION)
-					return ExitCode.CANCEL;
-			}
-
-			parameters.setParameterValue(ProjectSaverParameters.lastDirectory,
-					lastDirectory);
-			parameters.setParameterValue(ProjectSaverParameters.projectFile,
-					selectedFile.getPath());
-		}
-
-		return exitCode;
-
 	}
 
 	public void actionPerformed(ActionEvent event) {
@@ -135,35 +92,32 @@ public class ProjectSaver implements BatchStep, ActionListener {
 
 			// If the project has not been saved yet, do Save as..
 			if (currentFile == null) {
-				ExitCode setupExitCode = setupParameters(parameters);
+				ExitCode setupExitCode = parameters.showSetupDialog();
 				if (setupExitCode != ExitCode.OK)
 					return;
 				runModule(null, null, parameters.clone());
 				return;
 			}
 
-			ProjectSaverParameters parametersCopy = (ProjectSaverParameters) parameters
-					.clone();
-			parametersCopy.setParameterValue(
-					ProjectSaverParameters.projectFile, currentFile.getPath());
+			ParameterSet parametersCopy = parameters.clone();
+			parametersCopy.getParameter(ProjectSaverParameters.projectFile)
+					.setValue(currentFile);
 			runModule(null, null, parametersCopy);
 		}
 
 		if (src == projectSaveAs) {
-			ExitCode setupExitCode = setupParameters(parameters);
+			ExitCode setupExitCode = parameters.showSetupDialog();
 			if (setupExitCode != ExitCode.OK)
 				return;
-			runModule(null, null, parameters.clone());
+			ParameterSet parametersCopy = parameters.clone();
+			runModule(null, null, parametersCopy);
+
 		}
 
 	}
 
 	public ParameterSet getParameterSet() {
 		return parameters;
-	}
-
-	public void setParameters(ParameterSet parameters) {
-		this.parameters = (ProjectSaverParameters) parameters;
 	}
 
 	public BatchStepCategory getBatchStepCategory() {

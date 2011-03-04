@@ -20,8 +20,9 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.modules.MZmineModule;
 
-public interface PeakResolver {
+public interface PeakResolver extends MZmineModule {
 
     /**
      * Resolve a peaks found within given chromatogram. For easy use, three

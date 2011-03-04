@@ -19,182 +19,32 @@
 
 package net.sf.mzmine.modules.visualization.intensityplot;
 
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.StorableParameterSet;
-
-import org.dom4j.Element;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 
 /**
  */
-public class IntensityPlotParameters implements StorableParameterSet {
+public class IntensityPlotParameters extends SimpleParameterSet {
 
-    public static final String yValueSourceElement = "yValueSource";
+	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+			"Raw data files", "Raw data files to display", new RawDataFile[0]);
 
-    public static final String DataFileOption = "Raw data file";
-    public static final String PeakHeightOption = "Peak height";
-    public static final String PeakAreaOption = "Peak area";
-    public static final String PeakRTOption = "Peak retention time";
+	public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
+			"X axis value", "X axis value", new Object[0]);
 
-    private PeakList sourcePeakList;
+	public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
+			"Y axis value", "Y axis value", YAxisValueSource.values());
 
-    private Object xAxisValueSource;
-    private Object yAxisValueSource;
+	public static final MultiChoiceParameter<PeakListRow> selectedRows = new MultiChoiceParameter<PeakListRow>(
+			"Peak list rows", "Select peaks to display", new PeakListRow[0]);
 
-    private RawDataFile selectedDataFiles[];
-    private PeakListRow selectedRows[];
-
-    public IntensityPlotParameters() {
-    }
-
-    public IntensityPlotParameters(PeakList sourcePeakList) {
-        this.sourcePeakList = sourcePeakList;
-        this.selectedDataFiles = sourcePeakList.getRawDataFiles();
-        this.selectedRows = new PeakListRow[0];
-    }
-
-    /**
-     * @param axisValueSource
-     * @param axisValueSource2
-     * @param datafiles
-     * @param selectedRows
-     */
-    public IntensityPlotParameters(PeakList sourcePeakList,
-            Object xAxisValueSource, Object yAxisValueSource,
-            RawDataFile[] selectedDataFiles,
-            PeakListRow[] selectedRows) {
-        this.sourcePeakList = sourcePeakList;
-        this.xAxisValueSource = xAxisValueSource;
-        this.yAxisValueSource = yAxisValueSource;
-        this.selectedDataFiles = selectedDataFiles;
-        this.selectedRows = selectedRows;
-    }
-
-    /**
-     * @return Returns the selectedDataFiles.
-     */
-    public RawDataFile[] getSelectedDataFiles() {
-        return selectedDataFiles;
-    }
-
-    /**
-     * @param selectedDataFiles The selectedDataFiles to set.
-     */
-    public void setSelectedDataFiles(RawDataFile[] selectedDataFiles) {
-        this.selectedDataFiles = selectedDataFiles;
-    }
-
-    /**
-     * @return Returns the selectedRows.
-     */
-    public PeakListRow[] getSelectedRows() {
-        return selectedRows;
-    }
-
-    /**
-     * @param selectedRows The selectedRows to set.
-     */
-    public void setSelectedRows(PeakListRow[] selectedRows) {
-        this.selectedRows = selectedRows;
-    }
-
-    /**
-     * @return Returns the sourcePeakList.
-     */
-    public PeakList getSourcePeakList() {
-        return sourcePeakList;
-    }
-
-    /**
-     * @param sourcePeakList The sourcePeakList to set.
-     */
-    public void setSourcePeakList(PeakList sourcePeakList) {
-        this.sourcePeakList = sourcePeakList;
-    }
-
-    /**
-     * @return Returns the xAxisValueSource.
-     */
-    public Object getXAxisValueSource() {
-        return xAxisValueSource;
-    }
-
-    /**
-     * @param axisValueSource The xAxisValueSource to set.
-     */
-    public void setXAxisValueSource(Object axisValueSource) {
-        xAxisValueSource = axisValueSource;
-    }
-
-    /**
-     * @return Returns the yAxisValueSource.
-     */
-    public Object getYAxisValueSource() {
-        return yAxisValueSource;
-    }
-
-    /**
-     * @param axisValueSource The yAxisValueSource to set.
-     */
-    public void setYAxisValueSource(Object axisValueSource) {
-        yAxisValueSource = axisValueSource;
-    }
-
-    /**
-     * Represent method's parameters and their values in human-readable format
-     */
-    public String toString() {
-    	StringBuffer buffer = new StringBuffer("X value source: " + xAxisValueSource
-                + ", Y axis value source: " + yAxisValueSource
-                + ", data files: ");
-    	for (int i = 0; i < selectedDataFiles.length; i++) {
-			buffer.append(selectedDataFiles[i].getName());
-			if (i < selectedDataFiles.length-1) {
-				buffer.append(",");
-			}
-		}
-    	buffer.append(", selected peaks: ");
-    	for (int i = 0; i < selectedRows.length; i++) {
-			buffer.append(selectedRows[i].toString());
-		}
-
-        return  buffer.toString();
-    }
-
-
-    /**
-     * @see net.sf.mzmine.data.ParameterSet#clone()
-     */
-    public IntensityPlotParameters clone() {
-        return new IntensityPlotParameters(sourcePeakList,
-                xAxisValueSource, yAxisValueSource, selectedDataFiles,
-                selectedRows);
-    }
-
-    public void exportValuesToXML(Element element) {
-        if (yAxisValueSource != null)
-            element.addElement(yValueSourceElement).setText(yAxisValueSource.toString());
-    }
-
-    public void importValuesFromXML(Element element) {
-        String yValueSource = element.elementText(yValueSourceElement);
-        if (PeakHeightOption.equals(yValueSource)) yAxisValueSource = PeakHeightOption;
-        if (PeakAreaOption.equals(yValueSource)) yAxisValueSource = PeakAreaOption;
-        if (PeakRTOption.equals(yValueSource)) yAxisValueSource = PeakRTOption;
-    }
-
-	public Object getParameterValue(Parameter parameter) {
-		return null;
-	}
-
-	public Parameter[] getParameters() {
-		return null;
-	}
-
-	public Object[] getCustomObjectArray() {
-		return null;
+	public IntensityPlotParameters() {
+		super(new UserParameter[] { dataFiles, xAxisValueSource, xAxisValueSource,
+				selectedRows });
 	}
 
 }

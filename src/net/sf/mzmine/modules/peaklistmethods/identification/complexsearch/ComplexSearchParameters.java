@@ -16,47 +16,42 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.Parameter;
-import net.sf.mzmine.data.ParameterType;
-import net.sf.mzmine.data.impl.SimpleParameter;
-import net.sf.mzmine.data.impl.SimpleParameterSet;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 
 public class ComplexSearchParameters extends SimpleParameterSet {
 
-	public static final NumberFormat percentFormat = NumberFormat
-			.getPercentInstance();
-
-	public static final Parameter ionizationMethod = new SimpleParameter(
-			ParameterType.STRING, "Ionization method",
-			"Type of ion used to calculate the neutral mass", null,
+	public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
+			"Ionization method",
+			"Type of ion used to calculate the neutral mass",
 			IonizationType.values());
 
-	public static final Parameter rtTolerance = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter rtTolerance = new NumberParameter(
 			"RT tolerance",
 			"Maximum allowed retention retention time difference to set the relationship between peaks",
-			null, new Double(10.0), new Double(0.0), null, MZmineCore
-					.getRTFormat());
+			MZmineCore.getRTFormat());
 
-	public static final Parameter mzTolerance = new SimpleParameter(
-			ParameterType.DOUBLE, "m/z tolerance",
-			"Tolerance value of the m/z difference between peaks", "m/z",
-			new Double(0.1), new Double(0.0), null, MZmineCore.getMZFormat());
+	public static final NumberParameter mzTolerance = new NumberParameter(
+			"m/z tolerance",
+			"Tolerance value of the m/z difference between peaks",
+			MZmineCore.getMZFormat());
 
-	public static final Parameter maxComplexHeight = new SimpleParameter(
-			ParameterType.DOUBLE,
+	public static final NumberParameter maxComplexHeight = new NumberParameter(
 			"Max complex peak height",
 			"Maximum height of the recognized complex peak, relative to the highest of component peaks",
-			"%", new Double(0.20), new Double(0.0), null, percentFormat);
+			NumberFormat.getPercentInstance());
 
 	public ComplexSearchParameters() {
-		super(new Parameter[] { ionizationMethod, rtTolerance, mzTolerance,
+		super(new UserParameter[] { ionizationMethod, rtTolerance, mzTolerance,
 				maxComplexHeight });
 	}
 
