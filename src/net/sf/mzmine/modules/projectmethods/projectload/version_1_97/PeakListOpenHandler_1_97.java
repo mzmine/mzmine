@@ -106,6 +106,8 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		currentPeakListDataFiles = new Vector<RawDataFile>();
 		currentIsotopes = new Vector<DataPoint>();
 		
+		buildingPeakList = null;
+		
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
