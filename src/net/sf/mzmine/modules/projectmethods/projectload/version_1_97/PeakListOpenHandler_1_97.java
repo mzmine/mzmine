@@ -91,11 +91,7 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 
 	public PeakListOpenHandler_1_97(
 			Hashtable<String, RawDataFile> dataFilesIDMap) {
-		charBuffer = new StringBuffer();
-		appliedMethods = new Vector<String>();
-		appliedMethodParameters = new Vector<String>();
-		currentPeakListDataFiles = new Vector<RawDataFile>();
-		currentIsotopes = new Vector<DataPoint>();
+		this.dataFilesIDMap = dataFilesIDMap;
 	}
 
 	/**
@@ -104,6 +100,12 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 	public PeakList readPeakList(InputStream peakListStream)
 			throws IOException, ParserConfigurationException, SAXException {
 
+		charBuffer = new StringBuffer();
+		appliedMethods = new Vector<String>();
+		appliedMethodParameters = new Vector<String>();
+		currentPeakListDataFiles = new Vector<RawDataFile>();
+		currentIsotopes = new Vector<DataPoint>();
+		
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();

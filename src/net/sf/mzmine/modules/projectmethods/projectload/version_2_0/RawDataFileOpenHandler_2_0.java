@@ -68,10 +68,6 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 
 	private boolean canceled = false;
 
-	public RawDataFileOpenHandler_2_0() {
-		charBuffer = new StringBuffer();
-	}
-
 	/**
 	 * Extract the scan file and copies it into the temporary folder. Create a
 	 * new raw data file using the information from the XML raw data description
@@ -85,10 +81,13 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 	public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
 			ZipEntry xmlEntry) throws IOException,
 			ParserConfigurationException, SAXException {
+		
 		stepNumber = 0;
 		numberOfScans = 0;
 		parsedScans = 0;
 		storageFileOffset = 0;
+		
+		charBuffer = new StringBuffer();
 
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
