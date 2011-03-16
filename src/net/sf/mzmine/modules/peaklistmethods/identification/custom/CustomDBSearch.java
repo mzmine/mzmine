@@ -112,7 +112,7 @@ public class CustomDBSearch implements BatchStep, ActionListener {
 		Task tasks[] = new CustomDBSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new CustomDBSearchTask(peakLists[i],
-					(CustomDBSearchParameters) parameters);
+					parameters);
 		}
 
 		// execute the sequence

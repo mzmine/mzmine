@@ -29,6 +29,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.ProjectEvent;
@@ -57,9 +58,9 @@ class CustomDBSearchTask extends AbstractTask {
 	private boolean ignoreFirstLine;
 	private MZTolerance mzTolerance;
 	private RTTolerance rtTolerance;
-	private CustomDBSearchParameters parameters;
+	private ParameterSet parameters;
 
-	CustomDBSearchTask(PeakList peakList, CustomDBSearchParameters parameters) {
+	CustomDBSearchTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
