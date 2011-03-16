@@ -33,6 +33,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -49,9 +50,9 @@ class SameRangeTask extends AbstractTask {
 
 	private int processedRows, totalRows;
 
-	private SameRangeParameters parameters;
+	private ParameterSet parameters;
 
-	SameRangeTask(PeakList peakList, SameRangeParameters parameters) {
+	SameRangeTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;

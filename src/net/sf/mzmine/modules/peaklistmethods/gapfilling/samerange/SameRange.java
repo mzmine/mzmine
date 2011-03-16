@@ -108,7 +108,7 @@ public class SameRange implements BatchStep, ActionListener {
 		Task tasks[] = new SameRangeTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new SameRangeTask(peakLists[i],
-					(SameRangeParameters) parameters);
+					 parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);
