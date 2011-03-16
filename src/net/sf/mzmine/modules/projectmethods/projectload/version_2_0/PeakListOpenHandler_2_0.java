@@ -100,6 +100,9 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 	public PeakList readPeakList(InputStream peakListStream)
 			throws IOException, ParserConfigurationException, SAXException {
 
+		totalRows = 0;
+		parsedRows = 0;
+		
 		charBuffer = new StringBuffer();
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();

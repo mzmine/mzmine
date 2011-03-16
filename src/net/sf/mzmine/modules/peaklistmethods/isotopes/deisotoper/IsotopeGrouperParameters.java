@@ -21,12 +21,13 @@ package net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class IsotopeGrouperParameters extends SimpleParameterSet {
@@ -40,15 +41,9 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "deisotoped");
 
-	public static final NumberParameter mzTolerance = new NumberParameter(
-			"m/z tolerance",
-			"Maximum distance in m/z from the expected location of a peak",
-			MZmineCore.getMZFormat());
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final NumberParameter rtTolerance = new NumberParameter(
-			"RT tolerance",
-			"Maximum distance in RT from the expected location of a peak",
-			MZmineCore.getRTFormat());
+	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
 	public static final BooleanParameter monotonicShape = new BooleanParameter(
 			"Monotonic shape",

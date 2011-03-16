@@ -125,7 +125,7 @@ public class IsotopeGrouper implements BatchStep, ActionListener {
 		Task tasks[] = new IsotopeGrouperTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new IsotopeGrouperTask(peakLists[i],
-					(IsotopeGrouperParameters) parameters);
+				 parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

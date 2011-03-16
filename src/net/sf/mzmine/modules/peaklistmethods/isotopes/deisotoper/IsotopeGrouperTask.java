@@ -37,6 +37,9 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -69,16 +72,17 @@ class IsotopeGrouperTask extends AbstractTask {
 
 	// parameter values
 	private String suffix;
-	private double mzTolerance, rtTolerance;
+	private MZTolerance mzTolerance;
+	private RTTolerance rtTolerance;
 	private boolean monotonicShape, removeOriginal, chooseMostIntense;
 	private int maximumCharge;
-	private IsotopeGrouperParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param rawDataFile
 	 * @param parameters
 	 */
-	IsotopeGrouperTask(PeakList peakList, IsotopeGrouperParameters parameters) {
+	IsotopeGrouperTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
@@ -87,9 +91,9 @@ class IsotopeGrouperTask extends AbstractTask {
 		suffix = parameters.getParameter(IsotopeGrouperParameters.suffix)
 				.getValue();
 		mzTolerance = parameters.getParameter(
-				IsotopeGrouperParameters.mzTolerance).getDouble();
+				IsotopeGrouperParameters.mzTolerance).getValue();
 		rtTolerance = parameters.getParameter(
-				IsotopeGrouperParameters.rtTolerance).getDouble();
+				IsotopeGrouperParameters.rtTolerance).getValue();
 		monotonicShape = parameters.getParameter(
 				IsotopeGrouperParameters.monotonicShape).getValue();
 		maximumCharge = parameters.getParameter(
@@ -334,11 +338,11 @@ class IsotopeGrouperTask extends AbstractTask {
 				// - within tolerances from the expected location (M/Z and RT)
 				// - not already a fitted peak (only necessary to avoid
 				// conflicts when parameters are set too wide)
-
-				if ((Math.abs((candidatePeakMZ - isotopeDistance * direction
-						* n / (double) charge)
-						- mainMZ) <= mzTolerance)
-						&& (Math.abs(candidatePeakRT - mainRT) < rtTolerance)
+				double isotopeMZ = candidatePeakMZ - isotopeDistance * direction
+						* n / (double) charge;
+				
+				if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
+						&& rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
 						&& (!fittedPeaks.contains(candidatePeak))) {
 					goodCandidates.add(candidatePeak);
 
