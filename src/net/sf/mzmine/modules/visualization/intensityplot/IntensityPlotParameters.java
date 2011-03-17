@@ -30,11 +30,13 @@ import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
  */
 public class IntensityPlotParameters extends SimpleParameterSet {
 
+	public static final String rawDataFilesOption = "Raw data file";
+	
 	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
 			"Raw data files", "Raw data files to display", new RawDataFile[0]);
 
 	public static final ComboParameter<Object> xAxisValueSource = new ComboParameter<Object>(
-			"X axis value", "X axis value", new Object[0]);
+			"X axis value", "X axis value", new Object[] { rawDataFilesOption } );
 
 	public static final ComboParameter<YAxisValueSource> yAxisValueSource = new ComboParameter<YAxisValueSource>(
 			"Y axis value", "Y axis value", YAxisValueSource.values());
@@ -43,7 +45,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 			"Peak list rows", "Select peaks to display", new PeakListRow[0]);
 
 	public IntensityPlotParameters() {
-		super(new UserParameter[] { dataFiles, xAxisValueSource, xAxisValueSource,
+		super(new UserParameter[] { dataFiles, xAxisValueSource, yAxisValueSource,
 				selectedRows });
 	}
 

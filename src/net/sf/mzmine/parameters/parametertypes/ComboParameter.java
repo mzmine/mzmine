@@ -26,8 +26,7 @@ import net.sf.mzmine.parameters.UserParameter;
 import org.w3c.dom.Element;
 
 /**
- * Simple Parameter implementation
- * 
+ * Combo Parameter implementation
  * 
  */
 public class ComboParameter<ValueType> implements
@@ -36,15 +35,15 @@ public class ComboParameter<ValueType> implements
 	private String name, description;
 	private ValueType choices[], value;
 
-	public ComboParameter(String name, String description, ValueType values[]) {
-		this(name, description, values, null);
+	public ComboParameter(String name, String description, ValueType choices[]) {
+		this(name, description, choices, null);
 	}
 
-	public ComboParameter(String name, String description, ValueType values[],
+	public ComboParameter(String name, String description, ValueType choices[],
 			ValueType defaultValue) {
 		this.name = name;
 		this.description = description;
-		this.choices = values;
+		this.choices = choices;
 		this.value = defaultValue;
 	}
 
@@ -92,7 +91,7 @@ public class ComboParameter<ValueType> implements
 	public ComboParameter<ValueType> clone() {
 		ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name,
 				description, choices);
-		copy.setValue(this.getValue());
+		copy.value = this.value;
 		return copy;
 	}
 
@@ -127,6 +126,11 @@ public class ComboParameter<ValueType> implements
 		if (value == null)
 			return;
 		xmlElement.setTextContent(value.toString());
+	}
+	
+	@Override
+	public String toString() {
+		return name;
 	}
 
 }

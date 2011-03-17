@@ -106,18 +106,14 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 	public static void showSingleRowIdentificationDialog(PeakList peakList,
 			PeakListRow row) {
 
-		OnlineDBSearchParameters parameters = (OnlineDBSearchParameters) myInstance
-				.getParameterSet();
+		ParameterSet parameters = myInstance.getParameterSet();
 
 		ExitCode exitCode = parameters.showSetupDialog();
 		if (exitCode != ExitCode.OK)
 			return;
 
-		// clone the parameters to avoid further changes
-		parameters = (OnlineDBSearchParameters) parameters.clone();
-
 		SingleRowIdentificationTask newTask = new SingleRowIdentificationTask(
-				parameters, peakList, row);
+				parameters.clone(), peakList, row);
 
 		// execute the sequence
 		MZmineCore.getTaskController().addTask(newTask);

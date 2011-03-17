@@ -83,10 +83,10 @@ class IntensityPlotDataset extends AbstractDataset implements
 			}
 		}
 
-		if (xAxisValueSource instanceof String) {
+		if (xAxisValueSource == IntensityPlotParameters.rawDataFilesOption) {
 			xValues = new String[selectedFiles.length];
 			for (int i = 0; i < selectedFiles.length; i++)
-				xValues[i] = selectedFiles[i].toString();
+				xValues[i] = selectedFiles[i].getName();
 		}
 	}
 
@@ -119,6 +119,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 			for (RawDataFile file : selectedFiles) {
 				Object fileValue = project.getParameterValue(xAxisParameter,
 						file);
+				if (fileValue == null) continue;
 				if (fileValue.equals(xValue))
 					files.add(file);
 			}

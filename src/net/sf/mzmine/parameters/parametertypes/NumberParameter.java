@@ -132,5 +132,10 @@ public class NumberParameter implements UserParameter<Number, JFormattedTextFiel
 			return;
 		xmlElement.setTextContent(value.toString());
 	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 
 }

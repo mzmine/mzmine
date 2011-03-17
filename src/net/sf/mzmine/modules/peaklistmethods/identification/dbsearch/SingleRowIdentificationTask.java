@@ -66,7 +66,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	SingleRowIdentificationTask(OnlineDBSearchParameters parameters,
+	SingleRowIdentificationTask(ParameterSet parameters,
 			PeakList peakList, PeakListRow peakListRow) {
 
 		this.peakList = peakList;

@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -83,7 +82,7 @@ public class IntensityPlotFrame extends JInternalFrame {
 		Object xAxisValueSource = parameters.getParameter(
 				IntensityPlotParameters.xAxisValueSource).getValue();
 
-		if ((xAxisValueSource instanceof RawDataFile)
+		if ((xAxisValueSource == IntensityPlotParameters.rawDataFilesOption)
 				|| (xAxisValueSource instanceof ComboParameter)) {
 
 			chart = ChartFactory.createLineChart(title, xAxisLabel, yAxisLabel,

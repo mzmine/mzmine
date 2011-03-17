@@ -117,6 +117,7 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
 		String elementsArray[] = elements.split(",");
 
 		for (String elementEntry : elementsArray) {
+			if (elementEntry.length() == 0) continue;
 			ElementRule rule = new ElementRule(elementEntry);
 			elementsTableModel.addRow(rule);
 			

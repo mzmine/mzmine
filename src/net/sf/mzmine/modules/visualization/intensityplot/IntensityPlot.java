@@ -28,6 +28,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -102,12 +103,29 @@ public class IntensityPlot implements MZmineModule, ActionListener {
 
 	public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
 
+		myInstance.parameters.getParameter(IntensityPlotParameters.dataFiles)
+				.setChoices(peakList.getRawDataFiles());
+
+		myInstance.parameters.getParameter(IntensityPlotParameters.dataFiles)
+				.setValue(peakList.getRawDataFiles());
+
 		myInstance.parameters
 				.getParameter(IntensityPlotParameters.selectedRows).setChoices(
-						peakList.getRows());
+						rows);
 		myInstance.parameters
 				.getParameter(IntensityPlotParameters.selectedRows).setValue(
 						rows);
+
+		Parameter projectParams[] = MZmineCore.getCurrentProject()
+				.getParameters();
+		Object xAxisSources[] = new Object[projectParams.length + 1];
+		xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
+		System.arraycopy(projectParams, 0, xAxisSources, 1,
+				projectParams.length);
+		myInstance.parameters.getParameter(
+				IntensityPlotParameters.xAxisValueSource).setChoices(
+				xAxisSources);
+
 		ExitCode exitCode = myInstance.parameters.showSetupDialog();
 
 		if (exitCode == ExitCode.OK) {

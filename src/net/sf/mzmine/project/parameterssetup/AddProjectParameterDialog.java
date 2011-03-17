@@ -352,6 +352,7 @@ public class AddProjectParameterDialog extends JDialog implements
 			int[] selectedIndices = listCategories.getSelectedIndices();
 			if ((selectedIndices == null) || (selectedIndices.length == 0)) {
 				desktop.displayErrorMessage("Select at least one value first.");
+				return;
 			}
 
 			for (int selectedIndex : selectedIndices) {

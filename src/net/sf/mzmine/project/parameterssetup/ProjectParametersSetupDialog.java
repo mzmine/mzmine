@@ -216,10 +216,10 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	private boolean validateParameterValues() {
 		// Create new parameters and set values
 		for (int columnIndex = 0; columnIndex < parameterValues.keySet().size(); columnIndex++) {
-			UserParameter parameter = tablemodelParameterValues
+			/*UserParameter parameter = tablemodelParameterValues
 					.getParameter(columnIndex + 1);
 
-			/*
+			
 			 * TODO: if (parameter.getType() == ParameterType.DOUBLE) { Double
 			 * minValue = null; Double maxValue = null; if
 			 * (parameter.getMinimumValue() != null) minValue = (Double)
@@ -287,6 +287,12 @@ public class ProjectParametersSetupDialog extends JDialog implements
 							doubleValue);
 				}
 				if (parameter instanceof StringParameter) {
+					if (value == null)
+						value = "";
+					currentProject.setParameterValue(parameter, file,
+							(String) value);
+				}
+				if (parameter instanceof ComboParameter) {
 					if (value == null)
 						value = "";
 					currentProject.setParameterValue(parameter, file,
