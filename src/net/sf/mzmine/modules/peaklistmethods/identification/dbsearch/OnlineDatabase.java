@@ -19,36 +19,32 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.HMDBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.KEGGGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.*;
 
 public enum OnlineDatabase {
 
-	KEGG("KEGG Compound Database", KEGGGateway.class), 
-	PubChem("PubChem Compound Database", PubChemGateway.class),
-	HMDB("Human Metabolome Database", HMDBGateway.class),
-	METLIN("METLIN Database", MetLinGateway.class),
-	LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
-	MASSBANK("MassBank Database", MassBankGateway.class);
+    KEGG("KEGG Compound Database", KEGGGateway.class),
+    PubChem("PubChem Compound Database", PubChemGateway.class),
+    HMDB("Human Metabolome Database", HMDBGateway.class),
+    METLIN("METLIN Database", MetLinGateway.class),
+    LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
+    MASSBANK("MassBank Database", MassBankGateway.class),
+    CHEMSPIDER("ChemSpider Database",ChemSpiderGateway.class);
 
-	private final String dbName;
-	private final Class<? extends DBGateway> gatewayClass;
+    private final String dbName;
+    private final Class<? extends DBGateway> gatewayClass;
 
-	OnlineDatabase(String dbName, Class<? extends DBGateway> gatewayClass) {
-		this.dbName = dbName;
-		this.gatewayClass = gatewayClass;
-	}
+    OnlineDatabase(final String dbName, final Class<? extends DBGateway> gatewayClass) {
+        this.dbName = dbName;
+        this.gatewayClass = gatewayClass;
+    }
 
-	public Class<? extends DBGateway> getGatewayClass() {
-		return this.gatewayClass;
-	}
+    public Class<? extends DBGateway> getGatewayClass() {
+        return gatewayClass;
+    }
 
-	public String toString() {
-		return dbName;
-	}
+    public String toString() {
+        return dbName;
+    }
 
 }
