@@ -44,7 +44,8 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.complexsearch.ComplexSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearch" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.identification.mascot.MascotSearch" />
-    <module class="net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearch" />      
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearch" />
+    <module class="net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearch" />
 
     <module class="net.sf.mzmine.modules.visualization.tic.TICVisualizer" /> 
     <module class="net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer" /> 
