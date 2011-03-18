@@ -24,8 +24,9 @@
     <module class="net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRange" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouper" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator" /> 
-    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.Deconvolution" /> 
-    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModeler" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing.Smoothing" />
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.Deconvolution" />
+    <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModeler" />
     <module class="net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtender" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilter" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilter" /> 
