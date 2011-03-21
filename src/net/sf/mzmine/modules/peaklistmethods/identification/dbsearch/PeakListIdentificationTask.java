@@ -69,12 +69,12 @@ public class PeakListIdentificationTask extends AbstractTask {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	PeakListIdentificationTask(OnlineDBSearchParameters parameters,
-			PeakList peakList) {
+	PeakListIdentificationTask(ParameterSet parameters, PeakList peakList) {
 
 		this.peakList = peakList;
 
-		db = parameters.getParameter(OnlineDBSearchParameters.database).getValue();
+		db = parameters.getParameter(OnlineDBSearchParameters.database)
+				.getValue();
 
 		try {
 			gateway = db.getGatewayClass().newInstance();
@@ -82,13 +82,18 @@ public class PeakListIdentificationTask extends AbstractTask {
 			e.printStackTrace();
 		}
 
-		mzTolerance = parameters.getParameter(OnlineDBSearchParameters.mzTolerance).getValue();
-		numOfResults = parameters.getParameter(OnlineDBSearchParameters.numOfResults).getInt();
-		isotopeFilter = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getValue();
-		isotopeFilterParameters = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
-		this.ionType = parameters.getParameter(OnlineDBSearchParameters.neutralMass).getIonType();
-		
-		}
+		mzTolerance = parameters.getParameter(
+				OnlineDBSearchParameters.mzTolerance).getValue();
+		numOfResults = parameters.getParameter(
+				OnlineDBSearchParameters.numOfResults).getInt();
+		isotopeFilter = parameters.getParameter(
+				OnlineDBSearchParameters.isotopeFilter).getValue();
+		isotopeFilterParameters = parameters.getParameter(
+				OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
+		this.ionType = parameters.getParameter(
+				OnlineDBSearchParameters.neutralMass).getIonType();
+
+	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
@@ -202,14 +207,14 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 				// Generate IsotopePattern for this compound
 				IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-						.calculateIsotopePattern(adjustedFormula, 0.001, charge,
-								ionType.getPolarity());
+						.calculateIsotopePattern(adjustedFormula, 0.001,
+								charge, ionType.getPolarity());
 
-				boolean check = IsotopePatternScoreCalculator
-						.checkMatch(rowIsotopePattern,
-								compoundIsotopePattern, isotopeFilterParameters);
+				boolean check = IsotopePatternScoreCalculator.checkMatch(
+						rowIsotopePattern, compoundIsotopePattern,
+						isotopeFilterParameters);
 
-				if (! check)
+				if (!check)
 					continue;
 
 			}

@@ -26,7 +26,6 @@ import java.awt.event.KeyEvent;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
@@ -45,9 +44,7 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 	public static final String MODULE_NAME = "Online database search";
 
-	private Desktop desktop;
-
-	private OnlineDBSearchParameters parameters;
+	private ParameterSet parameters;
 
 	private static OnlineDBSearch myInstance;
 
@@ -59,13 +56,12 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 	}
 
 	public OnlineDBSearch() {
-		this.desktop = MZmineCore.getDesktop();
 
 		parameters = new OnlineDBSearchParameters();
 
-		desktop.addMenuItem(MZmineMenu.IDENTIFICATION, MODULE_NAME,
-				"Identification by searching online database", KeyEvent.VK_O,
-				false, this, null);
+		MZmineCore.getDesktop().addMenuItem(MZmineMenu.IDENTIFICATION,
+				MODULE_NAME, "Identification by searching online database",
+				KeyEvent.VK_O, false, this, null);
 
 		myInstance = this;
 
@@ -88,10 +84,12 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 	public void actionPerformed(ActionEvent arg0) {
 
-		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+		PeakList[] selectedPeakLists = MZmineCore.getDesktop()
+				.getSelectedPeakLists();
 
 		if (selectedPeakLists.length < 1) {
-			desktop.displayErrorMessage("Please select a peak list");
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Please select a peak list");
 			return;
 		}
 
@@ -108,6 +106,16 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 
 		ParameterSet parameters = myInstance.getParameterSet();
 
+		double mzValue = row.getAverageMZ();
+		parameters.getParameter(OnlineDBSearchParameters.neutralMass)
+				.setIonMass(mzValue);
+
+		int charge = row.getBestPeak().getCharge();
+		if (charge > 0) {
+			parameters.getParameter(OnlineDBSearchParameters.neutralMass)
+					.setCharge(charge);
+		}
+		
 		ExitCode exitCode = parameters.showSetupDialog();
 		if (exitCode != ExitCode.OK)
 			return;
@@ -137,8 +145,7 @@ public class OnlineDBSearch implements BatchStep, ActionListener {
 		// prepare a new sequence of tasks
 		Task tasks[] = new PeakListIdentificationTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PeakListIdentificationTask(
-					(OnlineDBSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new PeakListIdentificationTask(parameters, peakLists[i]);
 		}
 
 		// execute the sequence

@@ -33,7 +33,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
 import org.w3c.dom.Document;
@@ -68,15 +67,12 @@ public class PubChemGateway implements DBGateway {
 		pubchemUrl.append(toleranceRange.getMax());
 		pubchemUrl.append("[MonoisotopicMass]");
 
-		URL url = new URL(pubchemUrl.toString());
-
-		String resultDocument = InetUtils.retrieveData(url);
 		NodeList cidElements;
 
 		try {
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = dbf.newDocumentBuilder();
-			Document parsedResult = builder.parse(resultDocument);
+			Document parsedResult = builder.parse(pubchemUrl.toString());
 
 			XPathFactory factory = XPathFactory.newInstance();
 			XPath xpath = factory.newXPath();
@@ -104,11 +100,8 @@ public class PubChemGateway implements DBGateway {
 	 */
 	public DBCompound getCompound(String CID) throws IOException {
 
-		URL url = new URL(
-				"http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pccompound&id="
-						+ CID);
-
-		String resultDocument = InetUtils.retrieveData(url);
+		String url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pccompound&id="
+				+ CID;
 
 		Element nameElement, formulaElement;
 
@@ -116,7 +109,7 @@ public class PubChemGateway implements DBGateway {
 
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = dbf.newDocumentBuilder();
-			Document parsedResult = builder.parse(resultDocument);
+			Document parsedResult = builder.parse(url);
 
 			XPathFactory factory = XPathFactory.newInstance();
 			XPath xpath = factory.newXPath();

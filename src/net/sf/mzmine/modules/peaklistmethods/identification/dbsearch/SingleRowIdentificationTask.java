@@ -66,13 +66,14 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	SingleRowIdentificationTask(ParameterSet parameters,
-			PeakList peakList, PeakListRow peakListRow) {
+	SingleRowIdentificationTask(ParameterSet parameters, PeakList peakList,
+			PeakListRow peakListRow) {
 
 		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 
-		db = parameters.getParameter(OnlineDBSearchParameters.database).getValue();
+		db = parameters.getParameter(OnlineDBSearchParameters.database)
+				.getValue();
 
 		try {
 			gateway = db.getGatewayClass().newInstance();
@@ -80,13 +81,21 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			e.printStackTrace();
 		}
 
-		searchedMass = parameters.getParameter(OnlineDBSearchParameters.neutralMass).getValue();
-		mzTolerance = parameters.getParameter(OnlineDBSearchParameters.mzTolerance).getValue();
-		numOfResults = parameters.getParameter(OnlineDBSearchParameters.numOfResults).getInt();
-		
-		isotopeFilter = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getValue();
-		isotopeFilterParameters = parameters.getParameter(OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
-		
+		searchedMass = parameters.getParameter(
+				OnlineDBSearchParameters.neutralMass).getValue();
+		mzTolerance = parameters.getParameter(
+				OnlineDBSearchParameters.mzTolerance).getValue();
+		numOfResults = parameters.getParameter(
+				OnlineDBSearchParameters.numOfResults).getInt();
+
+		ionType = parameters.getParameter(OnlineDBSearchParameters.neutralMass)
+				.getIonType();
+
+		isotopeFilter = parameters.getParameter(
+				OnlineDBSearchParameters.isotopeFilter).getValue();
+		isotopeFilterParameters = parameters.getParameter(
+				OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
+
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
@@ -115,15 +124,15 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	 */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 
 		try {
 
 			Desktop desktop = MZmineCore.getDesktop();
 			NumberFormat massFormater = MZmineCore.getMZFormat();
 
-			ResultWindow window = new ResultWindow(peakList,
-					peakListRow, searchedMass, this);
+			ResultWindow window = new ResultWindow(peakList, peakListRow,
+					searchedMass, this);
 			window.setTitle("Searching for "
 					+ massFormater.format(searchedMass) + " amu");
 			desktop.addInternalFrame(window);
@@ -143,7 +152,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			// Process each one of the result ID's.
 			for (int i = 0; i < numItems; i++) {
 
-				if (getStatus( ) != TaskStatus.PROCESSING) {
+				if (getStatus() != TaskStatus.PROCESSING) {
 					return;
 				}
 
@@ -151,42 +160,42 @@ public class SingleRowIdentificationTask extends AbstractTask {
 				String formula = compound
 						.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 
-				if (formula != null) {
+				if (formula == null) {
+					finishedItems++;
+					continue;
+				}
 
-					// First modify the formula according to polarity - for
-					// negative, remove one hydrogen; for positive, add one
-					// hydrogen
-					String adjustedFormula = FormulaUtils.ionizeFormula(
-							formula, ionType.getPolarity(), charge);
+				// First modify the formula according to polarity - for
+				// negative, remove one hydrogen; for positive, add one
+				// hydrogen
+				String adjustedFormula = FormulaUtils.ionizeFormula(formula,
+						ionType.getPolarity(), charge);
 
-					logger
-							.finest("Calculating isotope pattern for compound formula "
-									+ formula
-									+ " adjusted to "
-									+ adjustedFormula);
+				logger.finest("Calculating isotope pattern for compound formula "
+						+ formula + " adjusted to " + adjustedFormula);
 
-					// Generate IsotopePattern for this compound
-					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-							.calculateIsotopePattern(adjustedFormula, 0.001, charge,
-									ionType.getPolarity());
+				// Generate IsotopePattern for this compound
+				IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
+						.calculateIsotopePattern(adjustedFormula, 0.001,
+								charge, ionType.getPolarity());
 
-					compound.setIsotopePattern(compoundIsotopePattern);
+				compound.setIsotopePattern(compoundIsotopePattern);
 
-					IsotopePattern rawDataIsotopePattern = peakListRow
-							.getBestIsotopePattern();
+				IsotopePattern rawDataIsotopePattern = peakListRow
+						.getBestIsotopePattern();
 
-					// If required, check isotope score
-					if ((rawDataIsotopePattern != null)
-							&& (compoundIsotopePattern != null)) {
+				// If required, check isotope score
+				if ((rawDataIsotopePattern != null)
+						&& (compoundIsotopePattern != null)) {
 
-						boolean isotopeCheck = IsotopePatternScoreCalculator
-								.checkMatch(rawDataIsotopePattern,
-										compoundIsotopePattern, isotopeFilterParameters);
+					boolean isotopeCheck = IsotopePatternScoreCalculator
+							.checkMatch(rawDataIsotopePattern,
+									compoundIsotopePattern,
+									isotopeFilterParameters);
 
-						if ((isotopeFilter) && (isotopeCheck)) {
-							finishedItems++;
-							continue;
-						}
+					if ((isotopeFilter) && (isotopeCheck)) {
+						finishedItems++;
+						continue;
 					}
 				}
 
@@ -205,13 +214,13 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 		} catch (Exception e) {
 			logger.log(Level.WARNING, "Could not connect to " + db, e);
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Could not connect to " + db + ": "
 					+ ExceptionUtils.exceptionToString(e);
 			return;
 		}
 
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
