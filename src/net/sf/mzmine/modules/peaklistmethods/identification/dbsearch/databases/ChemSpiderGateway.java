@@ -23,20 +23,23 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
-import com.chemspider.www.ExtendedCompoundInfo;
-import com.chemspider.www.MassSpecAPILocator;
-import com.chemspider.www.MassSpecAPISoap;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
-import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-
-import javax.xml.rpc.ServiceException;
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.rpc.ServiceException;
+
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.util.Range;
+
+import com.chemspider.www.ExtendedCompoundInfo;
+import com.chemspider.www.MassSpecAPILocator;
+import com.chemspider.www.MassSpecAPISoap;
 
 /**
  * Searches the ChemSpider database.
@@ -70,8 +73,12 @@ public class ChemSpiderGateway implements DBGateway {
 
         LOG.finest("Searching by mass...");
 
+        // Get search range
+        final Range mzRange = mzTolerance.getToleranceRange(mass);
+
         // These are returned in #CSID (numerical) order.
-        final String[] results = createMassSpecAPI().searchByMass2(mass, mzTolerance.getTolerance());
+		final String[] results = createMassSpecAPI().searchByMass2(
+				mzRange.getAverage(), mzRange.getSize() / 2);
 
         // Copy results.
         final int len = Math.min(numOfResults, results.length);
