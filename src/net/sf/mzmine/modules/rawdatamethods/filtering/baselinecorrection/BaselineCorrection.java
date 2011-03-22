@@ -25,7 +25,6 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
@@ -72,17 +71,9 @@ public class BaselineCorrection implements ActionListener, BatchStep {
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-        // Obtain a reference to MZmine 2 desktop.
-        final Desktop desktop = MZmineCore.getDesktop();
-
         // Obtain selected raw data files.
-        final RawDataFile[] dataFiles = desktop.getSelectedDataFiles();
-        if (dataFiles.length == 0) {
-
-            // No data file selected,
-            desktop.displayErrorMessage("Please select at least one data file.");
-
-        } else if (parameterSet.showSetupDialog() == ExitCode.OK) {
+        final RawDataFile[] dataFiles = MZmineCore.getDesktop().getSelectedDataFiles();
+        if (isReadyToRun(dataFiles) && parameterSet.showSetupDialog() == ExitCode.OK) {
 
             // Run the module.
             runModule(dataFiles, null, parameterSet.clone());
@@ -104,16 +95,20 @@ public class BaselineCorrection implements ActionListener, BatchStep {
     @Override
     public Task[] runModule(final RawDataFile[] dataFiles, final PeakList[] peakLists, final ParameterSet parameters) {
 
-        // Create a task for each data file.
-        final Task[] tasks = new BaselineCorrectionTask[dataFiles.length];
-        int i = 0;
-        for (final RawDataFile dataFile : dataFiles) {
+        Task[] tasks = null;
+        if (isReadyToRun(dataFiles)) {
 
-            tasks[i++] = new BaselineCorrectionTask(dataFile, parameters);
+            // Create a task for each data file.
+            tasks = new BaselineCorrectionTask[dataFiles.length];
+            int i = 0;
+            for (final RawDataFile dataFile : dataFiles) {
+
+                tasks[i++] = new BaselineCorrectionTask(dataFile, parameters);
+            }
+
+            // Queue and return tasks.
+            MZmineCore.getTaskController().addTasks(tasks);
         }
-
-        // Queue and return tasks.
-        MZmineCore.getTaskController().addTasks(tasks);
         return tasks;
     }
 
@@ -121,5 +116,23 @@ public class BaselineCorrection implements ActionListener, BatchStep {
     public BatchStepCategory getBatchStepCategory() {
 
         return BatchStepCategory.RAWDATAPROCESSING;
+    }
+
+    /**
+     * Checks before running module - display error messages.
+     *
+     * @param dataFiles the data files.
+     * @return true/false if checks are passed/failed.
+     */
+    private static boolean isReadyToRun(final RawDataFile[] dataFiles) {
+
+        boolean ok = true;
+        if (dataFiles == null || dataFiles.length == 0) {
+
+            MZmineCore.getDesktop().displayErrorMessage(MODULE_NAME + ": No raw data files selected",
+                                                        "Please select at least one raw data file.");
+            ok = false;
+        }
+        return ok;
     }
 }

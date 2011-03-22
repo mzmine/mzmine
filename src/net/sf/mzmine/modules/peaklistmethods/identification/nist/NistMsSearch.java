@@ -54,11 +54,10 @@ public class NistMsSearch implements ActionListener, BatchStep {
     // System property holding the path to the executable.
     private static final String NIST_MS_SEARCH_PATH_PROPERTY = "nist.ms.search.path";
 
-    // NIST MS Search home directory.
+    // NIST MS Search home directory and executable.
     private static final String NIST_MS_SEARCH_DIR = System.getProperty(NIST_MS_SEARCH_PATH_PROPERTY);
-
-    // NIST MS search executable.
-    private static final String SEARCH_EXE = "nistms$.exe";
+    private static final File NIST_MS_SEARCH_EXE = NIST_MS_SEARCH_DIR == null ? null : new File(NIST_MS_SEARCH_DIR,
+                                                                                                "nistms$.exe");
 
     // Command-line arguments passed to executable.
     private static final String COMMAND_LINE_ARGS = "/par=2 /instrument";
@@ -76,7 +75,7 @@ public class NistMsSearch implements ActionListener, BatchStep {
 
         // Initialize parameters and add a menu item for the module (if OS is windows).
         parameterSet = new NistMsSearchParameters();
-        if (System.getProperty("os.name").toUpperCase().contains("WINDOWS")) {
+        if (isWindows()) {
 
             MZmineCore.getDesktop().addMenuItem(MZmineMenu.IDENTIFICATION,
                                                 MODULE_NAME,
@@ -88,32 +87,9 @@ public class NistMsSearch implements ActionListener, BatchStep {
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-        // Obtain a reference to MZmine 2 desktop.
-        final Desktop desktop = MZmineCore.getDesktop();
-
         // Obtain selected peak lists..
-        final PeakList[] peakLists = desktop.getSelectedPeakLists();
-
-        // Check that NIST MS Search directory is set.
-        if (NIST_MS_SEARCH_DIR == null) {
-
-            // Property not defined.
-            desktop.displayErrorMessage("The " + NIST_MS_SEARCH_PATH_PROPERTY + " system property is not set.");
-
-        } else if (!new File(NIST_MS_SEARCH_DIR, SEARCH_EXE).exists()) {
-
-            // Executable missing.
-            desktop.displayErrorMessage(
-                    new File(NIST_MS_SEARCH_DIR, SEARCH_EXE) + " not found.  Please set the " +
-                    NIST_MS_SEARCH_PATH_PROPERTY +
-                    " system property to the full path of the directory containing the NIST MS Search executable.");
-
-        } else if (peakLists.length == 0) {
-
-            // No data file selected,
-            desktop.displayErrorMessage("Please select at least one peak list.");
-
-        } else if (parameterSet.showSetupDialog() == ExitCode.OK) {
+        final PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
+        if (isReadyToRun(peakLists) && parameterSet.showSetupDialog() == ExitCode.OK) {
 
             // Run the module.
             runModule(null, peakLists, parameterSet.clone());
@@ -129,20 +105,23 @@ public class NistMsSearch implements ActionListener, BatchStep {
     @Override
     public Task[] runModule(final RawDataFile[] dataFiles, final PeakList[] peakLists, final ParameterSet parameters) {
 
-        // Construct the command string.
-        final String searchCommand =
-                new File(NIST_MS_SEARCH_DIR, SEARCH_EXE).getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
+        Task[] tasks = null;
+        if (isReadyToRun(peakLists)) {
 
-        // Process each peak list.
-        final Task[] tasks = new Task[peakLists.length];
-        int i = 0;
-        for (final PeakList peakList : peakLists) {
+            // Construct the command string.
+            final String searchCommand = NIST_MS_SEARCH_EXE.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-            tasks[i++] = new NistMsSearchTask(peakList, NIST_MS_SEARCH_DIR, searchCommand, parameters);
+            // Process each peak list.
+            tasks = new Task[peakLists.length];
+            int i = 0;
+            for (final PeakList peakList : peakLists) {
+
+                tasks[i++] = new NistMsSearchTask(peakList, NIST_MS_SEARCH_DIR, searchCommand, parameters);
+            }
+
+            // Queue and return tasks.
+            MZmineCore.getTaskController().addTasks(tasks);
         }
-
-        // Queue and return tasks.
-        MZmineCore.getTaskController().addTasks(tasks);
         return tasks;
     }
 
@@ -156,5 +135,54 @@ public class NistMsSearch implements ActionListener, BatchStep {
     public String toString() {
 
         return MODULE_NAME;
+    }
+
+    /**
+     * Checks before running module - display error messages.
+     *
+     * @param peakLists the peak lists.
+     * @return true/false if checks are passed/failed.
+     */
+    private static boolean isReadyToRun(final PeakList[] peakLists) {
+
+        final Desktop desktop = MZmineCore.getDesktop();
+        boolean ok = true;
+        if (!isWindows()) {
+
+            // Unsupported OS.
+            desktop.displayErrorMessage(MODULE_NAME + ": Operating System Not Supported",
+                                        "NIST MS Search is only supported on the Windows operating system.");
+
+        } else if (NIST_MS_SEARCH_DIR == null) {
+
+            // Property not defined.
+            desktop.displayErrorMessage(MODULE_NAME + ": Property Not Set",
+                                        "The " + NIST_MS_SEARCH_PATH_PROPERTY + " system property is not set.");
+
+        } else if (!NIST_MS_SEARCH_EXE.exists()) {
+
+            // Executable missing.
+            desktop.displayErrorMessage(
+                    MODULE_NAME + ": Executable Not Found",
+                    NIST_MS_SEARCH_EXE + " not found.  Please set the " + NIST_MS_SEARCH_PATH_PROPERTY +
+                    " system property to the full path of the directory containing the NIST MS Search executable.");
+
+        } else if (peakLists == null || peakLists.length == 0) {
+
+            desktop.displayErrorMessage(MODULE_NAME + ": No Peak-List Selected",
+                                        "Please select at least one peak-list");
+            ok = false;
+        }
+        return ok;
+    }
+
+    /**
+     * Is this a Windows OS?
+     *
+     * @return true/false if the os.name property does/doesn't contain "Windows".
+     */
+    private static boolean isWindows() {
+
+        return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
     }
 }

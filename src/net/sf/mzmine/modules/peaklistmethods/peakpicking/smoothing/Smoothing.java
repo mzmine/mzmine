@@ -25,7 +25,6 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.batchmode.BatchStep;
@@ -74,14 +73,9 @@ public class Smoothing implements BatchStep, ActionListener {
      */
     @Override public void actionPerformed(final ActionEvent e) {
 
-        // Check selected peak-lists.
-        final Desktop desktop = MZmineCore.getDesktop();
-        final PeakList[] peakLists = desktop.getSelectedPeakLists();
-        if (peakLists.length == 0) {
-
-            desktop.displayErrorMessage("No Peak-List Selected", "Please select at least one peak-list");
-
-        } else if (parameterSet.showSetupDialog() == ExitCode.OK) {
+        // Check selected peak lists then show parameters dialog.
+        final PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
+        if (isReadyToRun(peakLists) && parameterSet.showSetupDialog() == ExitCode.OK) {
 
             runModule(null, peakLists, parameterSet.clone());
         }
@@ -97,16 +91,20 @@ public class Smoothing implements BatchStep, ActionListener {
                                       final PeakList[] peakLists,
                                       final ParameterSet parameters) {
 
-        // Process peak-lists.
-        final Task[] tasks = new Task[peakLists.length];
-        int i = 0;
-        for (final PeakList peakList : peakLists) {
+        Task[] tasks = null;
+        if (isReadyToRun(peakLists)) {
 
-            tasks[i++] = new SmoothingTask(peakList, parameters);
+            // Create a task for each peak list.
+            tasks = new Task[peakLists.length];
+            int i = 0;
+            for (final PeakList peakList : peakLists) {
+
+                tasks[i++] = new SmoothingTask(peakList, parameters);
+            }
+
+            // Queue and return tasks.
+            MZmineCore.getTaskController().addTasks(tasks);
         }
-
-        // Queue and return tasks.
-        MZmineCore.getTaskController().addTasks(tasks);
         return tasks;
     }
 
@@ -119,5 +117,23 @@ public class Smoothing implements BatchStep, ActionListener {
     public String toString() {
 
         return MODULE_NAME;
+    }
+
+    /**
+     * Checks before running module - display error messages.
+     *
+     * @param peakLists the peak lists.
+     * @return true/false if checks are passed/failed.
+     */
+    private static boolean isReadyToRun(final PeakList[] peakLists) {
+
+        boolean ok = true;
+        if (peakLists == null || peakLists.length == 0) {
+
+            MZmineCore.getDesktop().displayErrorMessage(MODULE_NAME + ": No Peak-List Selected",
+                                                        "Please select at least one peak-list");
+            ok = false;
+        }
+        return ok;
     }
 }
