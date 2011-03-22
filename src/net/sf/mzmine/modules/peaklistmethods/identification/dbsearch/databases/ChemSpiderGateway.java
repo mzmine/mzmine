@@ -23,23 +23,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
-import java.io.IOException;
-import java.net.URL;
-import java.rmi.RemoteException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.xml.rpc.ServiceException;
-
+import com.chemspider.www.ExtendedCompoundInfo;
+import com.chemspider.www.MassSpecAPILocator;
+import com.chemspider.www.MassSpecAPISoap;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
 
-import com.chemspider.www.ExtendedCompoundInfo;
-import com.chemspider.www.MassSpecAPILocator;
-import com.chemspider.www.MassSpecAPISoap;
+import javax.xml.rpc.ServiceException;
+import java.io.IOException;
+import java.net.URL;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * Searches the ChemSpider database.
@@ -77,8 +76,7 @@ public class ChemSpiderGateway implements DBGateway {
         final Range mzRange = mzTolerance.getToleranceRange(mass);
 
         // These are returned in #CSID (numerical) order.
-		final String[] results = createMassSpecAPI().searchByMass2(
-				mzRange.getAverage(), mzRange.getSize() / 2);
+        final String[] results = createMassSpecAPI().searchByMass2(mzRange.getAverage(), mzRange.getSize() / 2.0);
 
         // Copy results.
         final int len = Math.min(numOfResults, results.length);
@@ -108,12 +106,16 @@ public class ChemSpiderGateway implements DBGateway {
         // Determine name and formula.
         final String name;
         final String formula;
+        final Pattern formulaPattern = Pattern.compile("[\\W_]*");
         if (info != null) {
+
             // Use returned info.
             final String commonName = info.getCommonName();
             name = commonName == null ? UNKNOWN_NAME : commonName;
-            formula = info.getMF();
+            formula = formulaPattern.matcher(info.getMF()).replaceAll("");
+
         } else {
+
             // An error occurred.
             name = ERROR_MESSAGE;
             formula = null;

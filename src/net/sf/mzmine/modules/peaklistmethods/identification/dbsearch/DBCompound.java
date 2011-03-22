@@ -43,16 +43,10 @@ public class DBCompound extends SimplePeakIdentity {
 			String compoundName, String compoundFormula, URL databaseEntryURL,
 			URL structure2DURL, URL structure3DURL) {
 
-		super(compoundName);
+		super(compoundName, compoundFormula, searchedDB + " search", compoundID, databaseEntryURL.toString());
 
 		this.structure2DURL = structure2DURL;
 		this.structure3DURL = structure3DURL;
-
-		setPropertyValue(PROPERTY_METHOD, searchedDB.toString() + " search");
-		setPropertyValue(PROPERTY_FORMULA, compoundFormula);
-		setPropertyValue(PROPERTY_URL, databaseEntryURL.toString());
-		setPropertyValue(PROPERTY_ID, compoundID);
-
 	}
 
 	/**
@@ -75,7 +69,7 @@ public class DBCompound extends SimplePeakIdentity {
 	 * @return String exact mass
 	 */
 	public void setIsotopePatternScore(double score) {
-		this.isotopePatternScore = score;
+        isotopePatternScore = score;
 	}
 
 	/**
