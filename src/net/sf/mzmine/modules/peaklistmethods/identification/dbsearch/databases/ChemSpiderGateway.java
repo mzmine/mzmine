@@ -43,8 +43,8 @@ import java.util.regex.Pattern;
 /**
  * Searches the ChemSpider database.
  *
- * @author $Author: cpudney $
- * @version $Revision: 2369 $
+ * @author $Author$
+ * @version $Revision$
  */
 public class ChemSpiderGateway implements DBGateway {
 
@@ -65,6 +65,9 @@ public class ChemSpiderGateway implements DBGateway {
             = "http://www.chemspider.com/FilesHandler.ashx?type=str&id=CSID";
     private static final String STRUCTURE3D_URL_PATTERN
             = "http://www.chemspider.com/FilesHandler.ashx?type=str&3d=yes&id=CSID";
+
+    // Pattern to clean-up formulas.
+    private static final Pattern FORMULA_PATTERN = Pattern.compile("[\\W_]*");
 
     @Override
     public String[] findCompounds(final double mass, final MZTolerance mzTolerance, final int numOfResults)
@@ -106,13 +109,12 @@ public class ChemSpiderGateway implements DBGateway {
         // Determine name and formula.
         final String name;
         final String formula;
-        final Pattern formulaPattern = Pattern.compile("[\\W_]*");
         if (info != null) {
 
             // Use returned info.
             final String commonName = info.getCommonName();
             name = commonName == null ? UNKNOWN_NAME : commonName;
-            formula = formulaPattern.matcher(info.getMF()).replaceAll("");
+            formula = FORMULA_PATTERN.matcher(info.getMF()).replaceAll("");
 
         } else {
 
