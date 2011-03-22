@@ -79,6 +79,7 @@ class PeakShapeCellRenderer implements TableCellRenderer {
 
 			PeakShapeNormalization norm = parameters.getParameter(
 					PeakListTableParameters.peakShapeNormalization).getValue();
+			if (norm == null) norm = PeakShapeNormalization.ROWMAX;
 			switch (norm) {
 			case GLOBALMAX:
 				maxHeight = peakList.getDataPointMaxIntensity();
