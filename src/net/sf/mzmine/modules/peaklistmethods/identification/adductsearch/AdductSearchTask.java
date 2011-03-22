@@ -26,6 +26,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -45,13 +46,13 @@ public class AdductSearchTask extends AbstractTask {
 			customMassDifference;
 	private AdductType[] selectedAdducts;
 
-	private AdductSearchParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param parameters
 	 * @param peakList
 	 */
-	public AdductSearchTask(AdductSearchParameters parameters, PeakList peakList) {
+	public AdductSearchTask(ParameterSet parameters, PeakList peakList) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;

@@ -99,8 +99,7 @@ public class PeakExtender implements BatchStep, ActionListener {
 		// prepare a new task group
 		Task tasks[] = new PeakExtenderTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PeakExtenderTask(peakLists[i],
-					(PeakExtenderParameters) parameters);
+			tasks[i] = new PeakExtenderTask(peakLists[i], parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

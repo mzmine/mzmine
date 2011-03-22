@@ -112,7 +112,7 @@ public class RTNormalizer implements BatchStep, ActionListener {
 
 		// prepare a new group of tasks
 		RTNormalizerTask task = new RTNormalizerTask(peakLists,
-				(RTNormalizerParameters) parameters);
+				 parameters);
 
 		MZmineCore.getTaskController().addTask(task);
 

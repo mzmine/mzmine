@@ -111,8 +111,7 @@ public class ScanFilters implements BatchStep, ActionListener {
 		// prepare a new group of tasks
 		Task tasks[] = new ScanFilteringTask[dataFiles.length];
 		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ScanFilteringTask(dataFiles[i],
-					(ScanFiltersParameters) parameters);
+			tasks[i] = new ScanFilteringTask(dataFiles[i], parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

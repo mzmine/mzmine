@@ -32,6 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -55,9 +56,9 @@ class ShapeModelerTask extends AbstractTask {
 
 	private SimplePeakList newPeakList;
 
-	private ShapeModelerParameters parameters;
+	private ParameterSet parameters;
 
-	public ShapeModelerTask(PeakList peakList, ShapeModelerParameters parameters) {
+	public ShapeModelerTask(PeakList peakList, ParameterSet parameters) {
 
 		this.originalPeakList = peakList;
 		this.parameters = parameters;

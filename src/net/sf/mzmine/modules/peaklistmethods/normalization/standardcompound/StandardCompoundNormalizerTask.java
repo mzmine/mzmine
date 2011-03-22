@@ -32,6 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerParameters;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -52,10 +53,10 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 	private double MZvsRTBalance;
 	private boolean removeOriginal;
 	private PeakListRow[] standardRows;
-	private StandardCompoundNormalizerParameters parameters;
+	private ParameterSet parameters;
 
 	public StandardCompoundNormalizerTask(PeakList peakList,
-			StandardCompoundNormalizerParameters parameters) {
+			ParameterSet parameters) {
 
 		this.originalPeakList = peakList;
 

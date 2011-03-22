@@ -26,6 +26,7 @@ import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -53,7 +54,7 @@ class ScanFilteringTask extends AbstractTask {
 	 * @param dataFile
 	 * @param parameters
 	 */
-	ScanFilteringTask(RawDataFile dataFile, ScanFiltersParameters parameters) {
+	ScanFilteringTask(RawDataFile dataFile, ParameterSet parameters) {
 
 		this.dataFile = dataFile;
 

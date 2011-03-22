@@ -139,7 +139,7 @@ public class CSVExporter implements MZmineModule, ActionListener, BatchStep {
 			ParameterSet parameters) {
 
 		CSVExportTask task = new CSVExportTask(peakLists[0],
-				(CSVExporterParameters) parameters);
+				parameters);
 
 		// start this group
 		MZmineCore.getTaskController().addTask(task);

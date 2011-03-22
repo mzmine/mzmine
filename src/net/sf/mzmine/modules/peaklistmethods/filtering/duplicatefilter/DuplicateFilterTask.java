@@ -29,6 +29,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.MZmineProject;
@@ -56,13 +57,13 @@ class DuplicateFilterTask extends AbstractTask {
 	private MZTolerance mzDifferenceMax;
 	private RTTolerance rtDifferenceMax;
 	private boolean requireSameIdentification, removeOriginal;
-	private DuplicateFilterParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param rawDataFile
 	 * @param parameters
 	 */
-	DuplicateFilterTask(PeakList peakList, DuplicateFilterParameters parameters) {
+	DuplicateFilterTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
@@ -70,10 +71,10 @@ class DuplicateFilterTask extends AbstractTask {
 		// Get parameter values for easier use
 		suffix = parameters.getParameter(DuplicateFilterParameters.suffix)
 				.getValue();
-		mzDifferenceMax = parameters
-				.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue();
-		rtDifferenceMax = parameters
-				.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue();
+		mzDifferenceMax = parameters.getParameter(
+				DuplicateFilterParameters.mzDifferenceMax).getValue();
+		rtDifferenceMax = parameters.getParameter(
+				DuplicateFilterParameters.rtDifferenceMax).getValue();
 		requireSameIdentification = parameters.getParameter(
 				DuplicateFilterParameters.requireSameIdentification).getValue();
 		removeOriginal = parameters.getParameter(

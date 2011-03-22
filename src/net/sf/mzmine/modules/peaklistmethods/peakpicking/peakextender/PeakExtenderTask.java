@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -60,9 +61,9 @@ public class PeakExtenderTask extends AbstractTask {
 	private String suffix;
 	private boolean removeOriginal;
 
-	private PeakExtenderParameters parameters;
+	private ParameterSet parameters;
 
-	public PeakExtenderTask(PeakList peakList, PeakExtenderParameters parameters) {
+	public PeakExtenderTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;

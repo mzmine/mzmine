@@ -118,8 +118,7 @@ public class AdductSearch implements BatchStep, ActionListener {
 		// prepare a new sequence of tasks
 		Task tasks[] = new AdductSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new AdductSearchTask(
-					(AdductSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new AdductSearchTask(parameters, peakLists[i]);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

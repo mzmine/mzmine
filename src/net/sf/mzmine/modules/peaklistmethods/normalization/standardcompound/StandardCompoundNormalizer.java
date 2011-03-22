@@ -107,7 +107,7 @@ public class StandardCompoundNormalizer implements MZmineModule, ActionListener 
 			}
 
 			runModule(null, new PeakList[] { pl },
-					(StandardCompoundNormalizerParameters) parameters.clone());
+					 parameters.clone());
 		}
 
 	}
@@ -120,7 +120,7 @@ public class StandardCompoundNormalizer implements MZmineModule, ActionListener 
 	 */
 	public Task[] runModule(RawDataFile[] dataFiles,
 			PeakList[] alignmentResults,
-			StandardCompoundNormalizerParameters parameters) {
+			ParameterSet parameters) {
 
 		// prepare a new group of tasks
 

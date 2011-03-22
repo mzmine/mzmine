@@ -29,6 +29,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -48,9 +49,9 @@ class RowsFilterTask extends AbstractTask {
 	private String suffix;
 	private Range mzRange, rtRange;
 	private boolean identified, removeOriginal;
-	private RowsFilterParameters parameters;
+	private ParameterSet parameters;
 
-	public RowsFilterTask(PeakList peakList, RowsFilterParameters parameters) {
+	public RowsFilterTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;

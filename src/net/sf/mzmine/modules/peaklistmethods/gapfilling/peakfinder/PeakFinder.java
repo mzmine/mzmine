@@ -105,8 +105,7 @@ public class PeakFinder implements BatchStep, ActionListener {
 		// prepare a new group of tasks
 		Task tasks[] = new PeakFinderTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PeakFinderTask(peakLists[i],
-					(PeakFinderParameters) parameters);
+			tasks[i] = new PeakFinderTask(peakLists[i], parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

@@ -139,8 +139,7 @@ public class ShapeModeler implements MZmineModule, ActionListener {
 		// prepare a new group of tasks
 		Task tasks[] = new ShapeModelerTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new ShapeModelerTask(peakLists[i],
-					(ShapeModelerParameters) parameters);
+			tasks[i] = new ShapeModelerTask(peakLists[i], parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

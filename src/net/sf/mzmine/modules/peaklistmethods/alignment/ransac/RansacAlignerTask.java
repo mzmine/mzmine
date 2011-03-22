@@ -35,11 +35,13 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
+
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.OptimizationException;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
@@ -56,14 +58,14 @@ class RansacAlignerTask extends AbstractTask {
     private String peakListName;
     private double mzTolerance;
     private double rtTolerance;
-    private RansacAlignerParameters parameters;
+    private ParameterSet parameters;
     private double rtToleranceValueAbs;
     private boolean sameChargeRequired;
     // ID counter for the new peaklist
     private int newRowID = 1;
 
     public RansacAlignerTask(PeakList[] peakLists,
-            RansacAlignerParameters parameters) {
+    		ParameterSet parameters) {
 
         this.peakLists = peakLists;
         this.parameters = parameters;
@@ -281,7 +283,7 @@ class RansacAlignerTask extends AbstractTask {
             PeakList peakList) {
         Vector<AlignStructMol> list = this.getVectorAlignment(alignedPeakList,
                 peakList);
-        RANSAC ransac = new RANSAC(parameters);
+		RANSAC ransac = new RANSAC(parameters);
         ransac.alignment(list);
         return list;
     }

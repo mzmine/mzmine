@@ -118,8 +118,7 @@ public class FragmentSearch implements BatchStep, ActionListener {
 		// prepare a new sequence of tasks
 		Task tasks[] = new FragmentSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new FragmentSearchTask(
-					(FragmentSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new FragmentSearchTask(parameters, peakLists[i]);
 		}
 
 		// execute the sequence

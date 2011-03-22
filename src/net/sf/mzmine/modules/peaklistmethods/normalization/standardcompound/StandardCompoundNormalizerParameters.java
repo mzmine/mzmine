@@ -61,7 +61,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
 	public StandardCompoundNormalizerParameters() {
 		super(new UserParameter[] { suffix, standardUsageType, peakMeasurementType,
-				MZvsRTBalance, autoRemove, standardCompounds });
+				MZvsRTBalance, standardCompounds, autoRemove });
 
 	}
 

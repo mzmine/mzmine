@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.projectmethods.projectsave.PeakListSaveHandler;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import de.schlichtherle.io.archive.zip.ZipEntry;
@@ -51,7 +52,7 @@ public class XMLExportTask extends AbstractTask {
 	 * @param peakList
 	 * @param parameters
 	 */
-	public XMLExportTask(PeakList peakList, XMLExporterParameters parameters) {
+	public XMLExportTask(PeakList peakList, ParameterSet parameters) {
 
 		fileName = parameters.getParameter(XMLExporterParameters.filename)
 				.getValue();

@@ -28,6 +28,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -46,13 +47,13 @@ public class ComplexSearchTask extends AbstractTask {
 
 	private double rtTolerance, mzTolerance, maxComplexHeight;
 	private IonizationType ionType;
-	private ComplexSearchParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param parameters
 	 * @param peakList
 	 */
-	public ComplexSearchTask(ComplexSearchParameters parameters,
+	public ComplexSearchTask(ParameterSet parameters,
 			PeakList peakList) {
 
 		this.peakList = peakList;

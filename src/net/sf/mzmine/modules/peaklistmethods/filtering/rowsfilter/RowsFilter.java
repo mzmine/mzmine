@@ -42,84 +42,84 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class RowsFilter implements BatchStep, ActionListener {
 
-    final String helpID = GUIUtils.generateHelpID(this);
+	final String helpID = GUIUtils.generateHelpID(this);
 
-    private RowsFilterParameters parameters;
+	private RowsFilterParameters parameters;
 
-    private Desktop desktop;
+	private Desktop desktop;
 
-    /**
+	/**
      */
-    public RowsFilter() {
+	public RowsFilter() {
 
-        this.desktop = MZmineCore.getDesktop();
+		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new RowsFilterParameters();
+		parameters = new RowsFilterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTFILTERING, toString(),
-                "Selection of peak list rows matching given requirements",
-                KeyEvent.VK_R, false, this, null);
+		desktop.addMenuItem(MZmineMenu.PEAKLISTFILTERING, toString(),
+				"Selection of peak list rows matching given requirements",
+				KeyEvent.VK_R, false, this, null);
 
-    }
+	}
 
-    public String toString() {
-        return new String("Peak list rows filter");
-    }
+	public String toString() {
+		return new String("Peak list rows filter");
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-     */
-    public ParameterSet getParameterSet() {
-        return parameters;
-    }
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-    /**
-     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-     */
-    public void actionPerformed(ActionEvent e) {
+	/**
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 */
+	public void actionPerformed(ActionEvent e) {
 
-        PeakList[] peakLists = desktop.getSelectedPeakLists();
-        if (peakLists.length == 0) {
-            desktop.displayErrorMessage("Please select peak lists for filtering");
-            return;
-        }
+		PeakList[] peakLists = desktop.getSelectedPeakLists();
+		if (peakLists.length == 0) {
+			desktop.displayErrorMessage("Please select peak lists for filtering");
+			return;
+		}
 
-        ExitCode exitCode = parameters.showSetupDialog();
-        if (exitCode != ExitCode.OK)
-            return;
-        runModule(null, peakLists, parameters.clone());
+		ExitCode exitCode = parameters.showSetupDialog();
+		if (exitCode != ExitCode.OK)
+			return;
+		runModule(null, peakLists, parameters.clone());
 
-    }
+	}
 
-    /**
-     * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-     *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-     *      net.sf.mzmine.taskcontrol.Task[]Listener)
-     */
-    public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
-            ParameterSet parameters) {
+	/**
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
+	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
+	 */
+	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
+			ParameterSet parameters) {
 
-        // check peak lists
-        if ((peakLists == null) || (peakLists.length == 0)) {
-            desktop.displayErrorMessage("Please select peak lists for filtering");
-            return null;
-        }
+		// check peak lists
+		if ((peakLists == null) || (peakLists.length == 0)) {
+			desktop.displayErrorMessage("Please select peak lists for filtering");
+			return null;
+		}
 
-        // prepare a new group of tasks
-        Task tasks[] = new RowsFilterTask[peakLists.length];
-        for (int i = 0; i < peakLists.length; i++) {
-            tasks[i] = new RowsFilterTask(peakLists[i],
-                    (RowsFilterParameters) parameters);
-        }
-        
-        MZmineCore.getTaskController().addTasks(tasks);
-        
-        return tasks;
+		// prepare a new group of tasks
+		Task tasks[] = new RowsFilterTask[peakLists.length];
+		for (int i = 0; i < peakLists.length; i++) {
+			tasks[i] = new RowsFilterTask(peakLists[i], parameters);
+		}
 
-    }
+		MZmineCore.getTaskController().addTasks(tasks);
 
-    public BatchStepCategory getBatchStepCategory() {
-        return BatchStepCategory.PEAKLISTPROCESSING;
-    }
+		return tasks;
+
+	}
+
+	public BatchStepCategory getBatchStepCategory() {
+		return BatchStepCategory.PEAKLISTPROCESSING;
+	}
 
 }

@@ -39,68 +39,63 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class XMLExporter implements MZmineModule, ActionListener, BatchStep {
 
 	final String helpID = GUIUtils.generateHelpID(this);
-	
+
 	public static final String MODULE_NAME = "Export to XML file";
 
-    private XMLExporterParameters parameters;
-    private Desktop desktop;
-
+	private XMLExporterParameters parameters;
+	private Desktop desktop;
 
 	public ParameterSet getParameterSet() {
-        return parameters;
+		return parameters;
 	}
 
 	public XMLExporter() {
 		this.desktop = MZmineCore.getDesktop();
 
-        parameters = new XMLExporterParameters();
+		parameters = new XMLExporterParameters();
 
-        desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
-                "Save a peak list to XML file", KeyEvent.VK_X, true,
-                this, null);
+		desktop.addMenuItem(MZmineMenu.PEAKLISTEXPORT, MODULE_NAME,
+				"Save a peak list to XML file", KeyEvent.VK_X, true, this, null);
 	}
 
 	public void setParameters(ParameterSet parameterValues) {
-        this.parameters = (XMLExporterParameters) parameterValues;
+		this.parameters = (XMLExporterParameters) parameterValues;
 	}
 
 	public void actionPerformed(ActionEvent e) {
-        PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
+		PeakList[] selectedPeakLists = desktop.getSelectedPeakLists();
 
-        if (selectedPeakLists.length != 1) {
-            desktop.displayErrorMessage("Please select a single peak list to save");
-            return;
-        }
+		if (selectedPeakLists.length != 1) {
+			desktop.displayErrorMessage("Please select a single peak list to save");
+			return;
+		}
 
-        ExitCode setupExitCode = parameters.showSetupDialog();
+		ExitCode setupExitCode = parameters.showSetupDialog();
 
-        if (setupExitCode != ExitCode.OK) {
-            return;
-        }
+		if (setupExitCode != ExitCode.OK) {
+			return;
+		}
 
-        runModule(null, selectedPeakLists, parameters);
+		runModule(null, selectedPeakLists, parameters);
 	}
 
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 
-		XMLExportTask task = new XMLExportTask(peakLists[0],
-                (XMLExporterParameters) parameters);
+		XMLExportTask task = new XMLExportTask(peakLists[0], parameters);
 
 		MZmineCore.getTaskController().addTask(task);
 
-        return new Task[] { task };
+		return new Task[] { task };
 
 	}
-
-	
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;
 	}
 
-    public String toString() {
-        return MODULE_NAME;
-    }
-    
+	public String toString() {
+		return MODULE_NAME;
+	}
+
 }

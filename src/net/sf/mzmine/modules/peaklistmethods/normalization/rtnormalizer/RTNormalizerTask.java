@@ -33,6 +33,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -51,10 +52,10 @@ class RTNormalizerTask extends AbstractTask {
 	private String suffix;
 	private double mzTolerance, rtTolerance, minHeight;
 	private boolean removeOriginal;
-	private RTNormalizerParameters parameters;
+	private ParameterSet parameters;
 
 	public RTNormalizerTask(PeakList[] peakLists,
-			RTNormalizerParameters parameters) {
+			ParameterSet parameters) {
 
 		this.originalPeakLists = peakLists;
 		this.parameters = parameters;

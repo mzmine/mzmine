@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.Collections;
@@ -23,6 +24,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
@@ -50,7 +52,7 @@ public class RANSAC {
     private double numRatePoints, t;
     private boolean Linear;
 
-    public RANSAC(RansacAlignerParameters parameters) {
+    public RANSAC(ParameterSet parameters) {
 
         this.numRatePoints = parameters.getParameter(RansacAlignerParameters.NMinPoints).getDouble();
 

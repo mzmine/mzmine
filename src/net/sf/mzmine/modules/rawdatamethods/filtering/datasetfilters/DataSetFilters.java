@@ -36,10 +36,10 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class DataSetFilters implements BatchStep, ActionListener {
 
-    final String helpID = GUIUtils.generateHelpID(this);
+	final String helpID = GUIUtils.generateHelpID(this);
 
-    public static final String MODULE_NAME = "Data set filtering";
-    
+	public static final String MODULE_NAME = "Data set filtering";
+
 	private DataSetFiltersParameters parameters;
 	private Desktop desktop;
 
@@ -50,8 +50,8 @@ public class DataSetFilters implements BatchStep, ActionListener {
 		parameters = new DataSetFiltersParameters();
 
 		desktop.addMenuItem(MZmineMenu.RAWDATAFILTERING, MODULE_NAME,
-				"Filters applied to whole data sets",
-				KeyEvent.VK_R, true, this, null);
+				"Filters applied to whole data sets", KeyEvent.VK_R, true,
+				this, null);
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class DataSetFilters implements BatchStep, ActionListener {
 		}
 
 		ExitCode exitCode = parameters.showSetupDialog();
-		
+
 		if (exitCode != ExitCode.OK) {
 			return;
 		}
@@ -85,7 +85,6 @@ public class DataSetFilters implements BatchStep, ActionListener {
 	/**
 	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
 	 */
-	
 
 	/**
 	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
@@ -94,11 +93,10 @@ public class DataSetFilters implements BatchStep, ActionListener {
 		return parameters;
 	}
 
-	
-
 	/**
-	 * @see net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.AlignmentResult[],
+	 * @see 
+	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
+	 *      [], net.sf.mzmine.data.AlignmentResult[],
 	 *      net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
@@ -113,9 +111,7 @@ public class DataSetFilters implements BatchStep, ActionListener {
 		// prepare a new group of tasks
 		Task tasks[] = new DataSetFilteringTask[1];
 
-		tasks[0] = new DataSetFilteringTask(dataFiles,
-				(DataSetFiltersParameters) parameters);
-
+		tasks[0] = new DataSetFilteringTask(dataFiles, parameters);
 
 		MZmineCore.getTaskController().addTasks(tasks);
 

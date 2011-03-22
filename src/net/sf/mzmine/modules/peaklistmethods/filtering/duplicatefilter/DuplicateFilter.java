@@ -122,8 +122,7 @@ public class DuplicateFilter implements BatchStep, ActionListener {
 		// prepare a new group of tasks
 		Task tasks[] = new DuplicateFilterTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new DuplicateFilterTask(peakLists[i],
-					(DuplicateFilterParameters) parameters);
+			tasks[i] = new DuplicateFilterTask(peakLists[i], parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

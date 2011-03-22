@@ -88,8 +88,7 @@ public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 	public Task[] runModule(RawDataFile[] dataFiles, PeakList[] peakLists,
 			ParameterSet parameters) {
 
-		XMLImportTask task = new XMLImportTask(
-				(XMLImporterParameters) parameters);
+		XMLImportTask task = new XMLImportTask(parameters);
 
 		MZmineCore.getTaskController().addTask(task);
 
@@ -97,18 +96,16 @@ public class XMLImporter implements MZmineModule, ActionListener, BatchStep {
 
 	}
 
-/*	public void loadPeakLists(String[] peakListNames) {
-
-		Parameter filename;
-		ParameterSet parameterSet;
-		for (String name : peakListNames) {
-			parameterSet = new XMLImporterParameters();
-			filename = parameterSet.getParameter("Filename");
-			filename.setValue(name);
-			runModule(null, null, parameterSet);
-		}
-
-	}*/
+	/*
+	 * public void loadPeakLists(String[] peakListNames) {
+	 * 
+	 * Parameter filename; ParameterSet parameterSet; for (String name :
+	 * peakListNames) { parameterSet = new XMLImporterParameters(); filename =
+	 * parameterSet.getParameter("Filename"); filename.setValue(name);
+	 * runModule(null, null, parameterSet); }
+	 * 
+	 * }
+	 */
 
 	public BatchStepCategory getBatchStepCategory() {
 		return BatchStepCategory.PROJECT;

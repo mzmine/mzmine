@@ -105,8 +105,7 @@ public class RansacAligner implements BatchStep, ActionListener {
 		}
 
 		// prepare a new group with just one task
-		Task task = new RansacAlignerTask(peakLists,
-				(RansacAlignerParameters) parameters);
+		Task task = new RansacAlignerTask(peakLists, parameters);
 
 		MZmineCore.getTaskController().addTask(task);
 

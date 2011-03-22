@@ -30,6 +30,7 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.ProjectEvent;
@@ -52,13 +53,13 @@ public class FragmentSearchTask extends AbstractTask {
 	private MZTolerance ms2mzTolerance;
 	private double maxFragmentHeight, minMS2peakHeight;
 
-	private FragmentSearchParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param parameters
 	 * @param peakList
 	 */
-	public FragmentSearchTask(FragmentSearchParameters parameters,
+	public FragmentSearchTask(ParameterSet parameters,
 			PeakList peakList) {
 
 		this.peakList = peakList;

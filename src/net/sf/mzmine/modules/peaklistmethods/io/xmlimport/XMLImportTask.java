@@ -32,6 +32,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.PeakListOpenHandler;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpenHandler_2_0;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -52,7 +53,7 @@ public class XMLImportTask extends AbstractTask {
 	 * 
 	 * @param parameters
 	 */
-	public XMLImportTask(XMLImporterParameters parameters) {
+	public XMLImportTask(ParameterSet parameters) {
 		fileName = parameters.getParameter(XMLImporterParameters.filename)
 				.getValue();
 	}

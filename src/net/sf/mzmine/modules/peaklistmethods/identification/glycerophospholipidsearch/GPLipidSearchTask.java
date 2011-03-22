@@ -26,6 +26,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectEvent;
 import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -43,13 +44,13 @@ public class GPLipidSearchTask extends AbstractTask {
 	private double mzTolerance;
 	private IonizationType ionizationType;
 
-	private GPLipidSearchParameters parameters;
+	private ParameterSet parameters;
 
 	/**
 	 * @param parameters
 	 * @param peakList
 	 */
-	public GPLipidSearchTask(GPLipidSearchParameters parameters,
+	public GPLipidSearchTask(ParameterSet parameters,
 			PeakList peakList) {
 
 		this.peakList = peakList;

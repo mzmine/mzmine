@@ -112,7 +112,7 @@ public class LinearNormalizer implements BatchStep, ActionListener {
 		Task tasks[] = new LinearNormalizerTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
 			tasks[i] = new LinearNormalizerTask(peakLists[i],
-					(LinearNormalizerParameters) parameters);
+					 parameters);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

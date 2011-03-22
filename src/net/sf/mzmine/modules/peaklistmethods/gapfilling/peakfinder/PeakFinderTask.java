@@ -32,6 +32,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.project.MZmineProject;
@@ -48,12 +49,12 @@ class PeakFinderTask extends AbstractTask {
 	private MZTolerance mzTolerance;
 	private RTTolerance rtTolerance;
 	private boolean rtCorrection;
-	private PeakFinderParameters parameters;
+	private ParameterSet parameters;
 	private int processedScans, totalScans;
 	private boolean MASTERLIST = true;
 	private int masterSample = 0;
 
-	PeakFinderTask(PeakList peakList, PeakFinderParameters parameters) {
+	PeakFinderTask(PeakList peakList, ParameterSet parameters) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;

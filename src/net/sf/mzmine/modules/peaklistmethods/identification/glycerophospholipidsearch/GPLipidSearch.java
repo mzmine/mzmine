@@ -119,8 +119,7 @@ public class GPLipidSearch implements BatchStep, ActionListener {
 		// prepare a new sequence of tasks
 		Task tasks[] = new GPLipidSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new GPLipidSearchTask(
-					(GPLipidSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new GPLipidSearchTask(parameters, peakLists[i]);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);

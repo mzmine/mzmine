@@ -33,6 +33,7 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -53,10 +54,10 @@ class LinearNormalizerTask extends AbstractTask {
 	private NormalizationType normalizationType;
 	private PeakMeasurementType peakMeasurementType;
 	private boolean removeOriginal;
-	private LinearNormalizerParameters parameters;
+	private ParameterSet parameters;
 
 	public LinearNormalizerTask(PeakList peakList,
-			LinearNormalizerParameters parameters) {
+			ParameterSet parameters) {
 
 		this.originalPeakList = peakList;
 		this.parameters = parameters;

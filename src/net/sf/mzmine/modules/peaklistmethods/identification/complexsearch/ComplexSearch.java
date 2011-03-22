@@ -85,13 +85,12 @@ public class ComplexSearch implements BatchStep, ActionListener {
 		PeakList[] peakLists = desktop.getSelectedPeakLists();
 
 		if (peakLists.length == 0) {
-			desktop
-					.displayErrorMessage("Please select a peak lists to process");
+			desktop.displayErrorMessage("Please select a peak lists to process");
 			return;
 		}
 
 		ExitCode exitCode = parameters.showSetupDialog();
-		
+
 		if (exitCode != ExitCode.OK)
 			return;
 
@@ -116,8 +115,7 @@ public class ComplexSearch implements BatchStep, ActionListener {
 		// prepare a new sequence of tasks
 		Task tasks[] = new ComplexSearchTask[peakLists.length];
 		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new ComplexSearchTask(
-					(ComplexSearchParameters) parameters, peakLists[i]);
+			tasks[i] = new ComplexSearchTask(parameters, peakLists[i]);
 		}
 
 		MZmineCore.getTaskController().addTasks(tasks);
