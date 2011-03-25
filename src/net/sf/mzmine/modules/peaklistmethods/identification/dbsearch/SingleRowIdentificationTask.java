@@ -185,7 +185,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 						.getBestIsotopePattern();
 
 				// If required, check isotope score
-				if ((rawDataIsotopePattern != null)
+				if (isotopeFilter && (rawDataIsotopePattern != null)
 						&& (compoundIsotopePattern != null)) {
 
 					boolean isotopeCheck = IsotopePatternScoreCalculator
@@ -193,7 +193,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 									compoundIsotopePattern,
 									isotopeFilterParameters);
 
-					if ((isotopeFilter) && (isotopeCheck)) {
+					if (! isotopeCheck) {
 						finishedItems++;
 						continue;
 					}

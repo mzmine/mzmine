@@ -194,7 +194,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 					.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 
 			// If required, check isotope score
-			if ((isotopeFilter) && (rowIsotopePattern != null)
+			if (isotopeFilter && (rowIsotopePattern != null)
 					&& (formula != null)) {
 
 				// First modify the formula according to polarity - for

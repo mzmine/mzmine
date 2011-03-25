@@ -60,6 +60,8 @@ public class IsotopePatternScoreCalculator {
 		MZTolerance mzTolerance = parameters.getParameter(
 				IsotopePatternScoreParameters.mzTolerance).getValue();
 
+		assert mzTolerance != null;
+		
 		// Normalize the isotopes to intensity 0..1
 		IsotopePattern nip1 = IsotopePatternCalculator
 				.normalizeIsotopePattern(ip1);
