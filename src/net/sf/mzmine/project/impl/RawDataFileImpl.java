@@ -83,8 +83,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		scanFile.deleteOnExit();
 		scanDataFile = new RandomAccessFile(scanFile, "rw");
 
+		lockFile(scanDataFile);
+
 	}
-	
+
 	public File getScanFile() {
 		return scanFile;
 	}
@@ -93,14 +95,18 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		this.scanFile = scanFile;
 		this.scanDataFile = new RandomAccessFile(scanFile, "r");
+		lockFile(scanDataFile);
 
-		FileChannel scanFileChannel = scanDataFile.getChannel();
+	}
 
-		// Lock the temporary file so it is not removed when another instance of
-		// MZmine is starting. Lock will be automatically released when this
-		// instance of MZmine exits.
-		scanFileChannel.lock(0, scanDataFile.length(), true);
-
+	/**
+	 * Locks the temporary file so it is not removed when another instance of
+	 * MZmine is starting. Lock will be automatically released when this
+	 * instance of MZmine exits.
+	 */
+	private void lockFile(RandomAccessFile fileToLock) throws IOException {
+		FileChannel scanFileChannel = fileToLock.getChannel();
+		scanFileChannel.lock(0, fileToLock.length(), true);
 	}
 
 	/**
