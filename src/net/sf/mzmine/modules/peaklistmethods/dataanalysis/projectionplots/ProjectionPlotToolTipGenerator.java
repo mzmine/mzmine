@@ -34,10 +34,12 @@ public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 	private LabelMode labelMode;
 
 	ProjectionPlotToolTipGenerator(ProjectionPlotParameters parameters) {
-
-		coloringType = parameters.getParameter(
+                try{
+                        coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();
-
+                }catch(IllegalArgumentException exeption){
+                        coloringType = ColoringType.NOCOLORING;
+                }
 		if (coloringType.equals(ColoringType.NOCOLORING))
 			labelMode = LabelMode.FileName;
 

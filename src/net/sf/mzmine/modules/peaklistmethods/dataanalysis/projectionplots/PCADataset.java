@@ -79,9 +79,11 @@ public class PCADataset extends AbstractXYDataset implements
 				ProjectionPlotParameters.xAxisComponent).getValue();
 		this.yAxisPC = parameters.getParameter(
 				ProjectionPlotParameters.yAxisComponent).getValue();
-
-		coloringType = parameters.getParameter(
+               
+                coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();
+              
+                
 		selectedRawDataFiles = parameters.getParameter(
 				ProjectionPlotParameters.dataFiles).getValue();
 		selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)

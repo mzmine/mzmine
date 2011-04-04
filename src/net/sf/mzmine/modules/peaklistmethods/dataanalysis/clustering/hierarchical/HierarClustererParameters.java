@@ -26,10 +26,10 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 public class HierarClustererParameters extends SimpleParameterSet {
 
 	public static final ComboParameter<LinkType> linkType = new ComboParameter<LinkType>(
-			"Type of link", "", LinkType.values());
+			"Type of link", "Type of link", LinkType.values());
 
 	public static final ComboParameter<DistanceType> distanceType = new ComboParameter<DistanceType>(
-			"Distances", "", DistanceType.values());
+			"Distances", "Distances", DistanceType.values());
 
 	public HierarClustererParameters() {
 		super(new Parameter[] { linkType, distanceType });

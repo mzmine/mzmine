@@ -36,10 +36,12 @@ public class ProjectionPlotItemLabelGenerator extends
 	ProjectionPlotItemLabelGenerator(ProjectionPlotParameters parameters) {
 
 		labelModes = new LabelMode[] { LabelMode.None };
-
-		ColoringType coloringType = parameters.getParameter(
+                ColoringType coloringType = ColoringType.NOCOLORING;
+                try{
+                        coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();
-
+                }catch(IllegalArgumentException exeption){
+                }
 		if (coloringType.equals(ColoringType.NOCOLORING))
 			labelModes = new LabelMode[] { LabelMode.None, LabelMode.FileName };
 

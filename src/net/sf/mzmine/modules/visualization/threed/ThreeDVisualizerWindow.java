@@ -156,13 +156,13 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 			// scale depending on wheel rotation direction
 			double scale = (rot < 0 ? 1.03 : 0.97);
 
-			double[] mult = MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0,
+		/*	double[] mult = MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0,
 					scale, 0.0, 0.0, 0.0);
 
 			double newMatrix[] = MouseBehaviorJ3D.static_multiply_matrix(mult,
 					pControlMatrix);
 
-			pControl.setMatrix(newMatrix);
+			pControl.setMatrix(newMatrix);*/
 
 		} catch (Exception e) {
 			e.printStackTrace();

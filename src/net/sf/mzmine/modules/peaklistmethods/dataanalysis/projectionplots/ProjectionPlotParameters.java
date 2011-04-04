@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
@@ -53,8 +53,12 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 			new PeakListRow[0]);
 
 	public ProjectionPlotParameters() {
-		super(new Parameter[] { dataFiles, coloringType, peakMeasurementType,
+		super(new UserParameter[] { dataFiles, rows, coloringType, peakMeasurementType,
 				xAxisComponent, yAxisComponent });
 	}
+
+        public ProjectionPlotParameters(UserParameter[] parameters){
+                super(parameters);
+        }
 
 }

@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.awt.event.ActionEvent;
@@ -34,88 +33,90 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ProjectionPlot implements MZmineModule, ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+        private Logger logger = Logger.getLogger(this.getClass().getName());
+        private Desktop desktop;
+        private ProjectionPlotParameters parameters;
+        final String helpID = GUIUtils.generateHelpID(this);
 
-	private Desktop desktop;
+        /**
+         */
+        public ProjectionPlot() {
 
-	private ProjectionPlotParameters parameters;
+                this.desktop = MZmineCore.getDesktop();
 
-	final String helpID = GUIUtils.generateHelpID(this);
+                desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
+                        "Principal component analysis (PCA)",
+                        "Principal component analysis", KeyEvent.VK_P, false, this,
+                        "PCA_PLOT");
 
-	/**
-     */
-	public ProjectionPlot() {
+                desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
+                        "Curvilinear distance analysis (CDA)",
+                        "Curvilinear distance analysis", KeyEvent.VK_C, false, this,
+                        "CDA_PLOT");
 
-		this.desktop = MZmineCore.getDesktop();
+                desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Sammon's projection",
+                        "Sammon's projection", KeyEvent.VK_S, false, this,
+                        "SAMMON_PLOT");
 
-		desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-				"Principal component analysis (PCA)",
-				"Principal component analysis", KeyEvent.VK_P, false, this,
-				"PCA_PLOT");
+                parameters = new ProjectionPlotParameters();
+        }
 
-		desktop.addMenuItem(MZmineMenu.DATAANALYSIS,
-				"Curvilinear distance analysis (CDA)",
-				"Curvilinear distance analysis", KeyEvent.VK_C, false, this,
-				"CDA_PLOT");
+        public String toString() {
+                return "Projection plot analyzer";
+        }
 
-		desktop.addMenuItem(MZmineMenu.DATAANALYSIS, "Sammon's projection",
-				"Sammon's projection", KeyEvent.VK_S, false, this,
-				"SAMMON_PLOT");
+        public ProjectionPlotParameters getParameterSet() {
+                return parameters;
+        }
 
-		parameters = new ProjectionPlotParameters();
-	}
+        public void actionPerformed(ActionEvent event) {
 
-	public String toString() {
-		return "Projection plot analyzer";
-	}
+                PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
+                if (selectedPeakLists.length != 1) {
+                        desktop.displayErrorMessage("Please select a single aligned peaklist");
+                        return;
+                }
 
-	public ProjectionPlotParameters getParameterSet() {
-		return parameters;
-	}
+                if (selectedPeakLists[0].getNumberOfRows() == 0) {
+                        desktop.displayErrorMessage("Selected alignment result is empty");
+                        return;
+                }
 
-	public void actionPerformed(ActionEvent event) {
+                logger.finest("Showing projection plot setup dialog");
 
-		PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
-		if (selectedPeakLists.length != 1) {
-			desktop.displayErrorMessage("Please select a single aligned peaklist");
-			return;
-		}
+                String command = event.getActionCommand();
+                if (!command.equals("PCA_PLOT")) {
+                        parameters.getParameter(ProjectionPlotParameters.xAxisComponent).setChoices(new Integer[]{1});
+                        parameters.getParameter(ProjectionPlotParameters.yAxisComponent).setChoices(new Integer[]{2});
+                }
+                parameters.getParameter(ProjectionPlotParameters.dataFiles).setChoices(selectedPeakLists[0].getRawDataFiles());
+                parameters.getParameter(ProjectionPlotParameters.rows).setChoices(selectedPeakLists[0].getRows());
 
-		if (selectedPeakLists[0].getNumberOfRows() == 0) {
-			desktop.displayErrorMessage("Selected alignment result is empty");
-			return;
-		}
+                parameters.getParameter(ProjectionPlotParameters.dataFiles).setValue(selectedPeakLists[0].getRawDataFiles());
+                parameters.getParameter(ProjectionPlotParameters.rows).setValue(selectedPeakLists[0].getRows());
 
-		logger.finest("Showing projection plot setup dialog");
+                ExitCode exitCode = parameters.showSetupDialog();
 
-		String command = event.getActionCommand();
-		if (!command.equals("PCA_PLOT")) {
-			parameters.getParameter(ProjectionPlotParameters.xAxisComponent)
-					.setChoices(new Integer[] { 1 });
-			parameters.getParameter(ProjectionPlotParameters.yAxisComponent)
-					.setChoices(new Integer[] { 2 });
-		}
+                if (exitCode == ExitCode.OK) {
+                        logger.info("Opening new projection plot");
 
-		ExitCode exitCode = parameters.showSetupDialog();
+                        ProjectionPlotDataset dataset = null;
 
-		if (exitCode == ExitCode.OK) {
-			logger.info("Opening new projection plot");
+                        if (command.equals("PCA_PLOT")) {
+                                dataset = new PCADataset(selectedPeakLists[0], parameters);
+                        }
 
-			ProjectionPlotDataset dataset = null;
+                        if (command.equals("CDA_PLOT")) {
+                                dataset = new CDADataset(selectedPeakLists[0], parameters);
+                        }
 
-			if (command.equals("PCA_PLOT"))
-				dataset = new PCADataset(selectedPeakLists[0], parameters);
+                        if (command.equals("SAMMON_PLOT")) {
+                                dataset = new SammonDataset(selectedPeakLists[0], parameters);
+                        }
 
-			if (command.equals("CDA_PLOT"))
-				dataset = new CDADataset(selectedPeakLists[0], parameters);
+                        MZmineCore.getTaskController().addTask(dataset);
 
-			if (command.equals("SAMMON_PLOT"))
-				dataset = new SammonDataset(selectedPeakLists[0], parameters);
+                }
 
-			MZmineCore.getTaskController().addTask(dataset);
-
-		}
-
-	}
-
+        }
 }

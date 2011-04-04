@@ -16,27 +16,80 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical;
 
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
 import net.sf.mzmine.parameters.ParameterSet;
+import weka.clusterers.Clusterer;
+import weka.clusterers.HierarchicalClusterer;
+import weka.core.Instances;
 
 public class HierarClusterer implements ClusteringAlgorithm {
 
-	private ParameterSet parameters;
+        private ParameterSet parameters;
 
-	public HierarClusterer() {
-		parameters = new HierarClustererParameters();
-	}
+        public HierarClusterer() {
+                parameters = new HierarClustererParameters();
+        }
 
-	public String toString() {
-		return "Hierarchical Clusterer";
-	}
+        public String toString() {
+                return "Hierarchical Clusterer";
+        }
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+        @Override
+        public ParameterSet getParameterSet() {
+                return parameters;
+        }
+
+        public List<Integer> getClusterGroups(Instances dataset) {
+                return null;
+        }
+
+        public String getHierarchicalCluster(Instances dataset) {
+                Clusterer clusterer = new HierarchicalClusterer();
+                String[] options = new String[5];
+                LinkType link = parameters.getParameter(HierarClustererParameters.linkType).getValue();
+                DistanceType distanceType = parameters.getParameter(HierarClustererParameters.distanceType).getValue();
+                options[0] = "-L";
+                options[1] = link.name();
+                options[2] = "-A";
+                switch (distanceType) {
+                        case EUCLIDIAN:
+                                options[3] = "weka.core.EuclideanDistance";
+                                break;
+                        case CHEBYSHEV:
+                                options[3] = "weka.core.ChebyshevDistance";
+                                break;
+                        case MANHATTAN:
+                                options[3] = "weka.core.ManhattanDistance";
+                                break;
+                        case MINKOWSKI:
+                                options[3] = "weka.core.MinkowskiDistance";
+                                break;
+                }
+
+                options[4] = "-P";
+                try {
+                        ((HierarchicalClusterer) clusterer).setOptions(options);
+                        clusterer.buildClusterer(dataset);
+                        return ((HierarchicalClusterer) clusterer).graph();
+                } catch (Exception ex) {
+                        Logger.getLogger(HierarClusterer.class.getName()).log(Level.SEVERE, null, ex);
+                        return null;
+                }
+        }
+
+        public VisualizationType getVisualizationType() {
+                return null;
+        }
+
+        public int getNumberOfGroups() {
+                return 1;
+        }
+
 
 }
