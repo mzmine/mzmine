@@ -71,8 +71,8 @@ public class AgilentCsvReadTask extends AbstractTask {
 			newMZmineFile.setMZRange(1, new Range(Double.parseDouble(range[0]),
 					Double.parseDouble(range[1])));
 			range = this.getMetaData(scanner, "time range").split(",");
-			newMZmineFile.setRTRange(1, new Range(Double.parseDouble(range[0]),
-					Double.parseDouble(range[1])));
+			newMZmineFile.setRTRange(1, new Range(Double.parseDouble(range[0]) * 60.0,
+					Double.parseDouble(range[1]) * 60.0 ));
 			totalScans = Integer.parseInt(this.getMetaData(scanner,
 					"number of spectra"));
 
@@ -88,7 +88,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 					return;
 				} // if the task is canceled.
 
-				double retentionTime = scanner.nextDouble();
+				double retentionTime = scanner.nextDouble() * 60.0;
 				int msLevel = scanner.nextInt(); // not sure about this value
 				scanner.next();
 				scanner.next();
