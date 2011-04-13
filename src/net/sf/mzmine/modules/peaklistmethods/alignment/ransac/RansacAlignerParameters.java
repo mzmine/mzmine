@@ -49,7 +49,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 	public static final NumberParameter Iterations = new NumberParameter(
 			"RANSAC Iterations",
 			"Maximum number of iterations allowed in the algorithm",
-			NumberFormat.getPercentInstance());
+			NumberFormat.getIntegerInstance());
 
 	public static final NumberParameter NMinPoints = new NumberParameter(
 			"Minimun Number of Points",

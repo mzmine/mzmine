@@ -23,13 +23,13 @@ import net.sf.mzmine.data.PeakListRow;
 /**
  * This class represents a score between peak list row and aligned peak list row
  */
-class RowVsRowScore implements Comparable<RowVsRowScore> {
+public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
     private PeakListRow peakListRow,  alignedRow;    
     double score;
     private String errorMessage;
 
-    RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
+    public RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
             double mzMaxDiff, double rtMaxDiff, double correctedRT) throws Exception {
 
         
@@ -46,14 +46,14 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
     /**
      * This method returns the peak list row which is being aligned
      */
-    PeakListRow getPeakListRow() {
+    public PeakListRow getPeakListRow() {
         return peakListRow;
     }
 
     /**
      * This method returns the row of aligned peak list
      */
-    PeakListRow getAlignedRow() {
+    public PeakListRow getAlignedRow() {
         return alignedRow;
     }
 
@@ -61,7 +61,7 @@ class RowVsRowScore implements Comparable<RowVsRowScore> {
      * This method returns score between the these two peaks (the lower score,
      * the better match)
      */
-    double getScore() {
+    public double getScore() {
         return score;
     }
 
