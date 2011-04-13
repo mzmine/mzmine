@@ -18,6 +18,7 @@
 
     <module class="net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAligner" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAligner" /> 
+    <module class="net.sf.mzmine.modules.peaklistmethods.alignment.graph.GraphAligner" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExporter" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExporter" /> 
     <module class="net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImporter" /> 
