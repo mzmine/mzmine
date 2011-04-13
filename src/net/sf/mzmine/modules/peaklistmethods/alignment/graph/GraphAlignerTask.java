@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
@@ -61,12 +60,11 @@ public class GraphAlignerTask extends AbstractTask {
         private RTTolerance rtTolerance;
         private double rtAbsoluteTolerance;
         private int regressionWindow, minPeakWindow;
-        private double progress;
         private boolean sameChargeRequired;
         private ParameterSet parameters;
+        private double progress;
         // ID counter for the new peaklist
         private int newRowID = 1;
-        private Random rand;
 
         public GraphAlignerTask(PeakList[] peakLists, ParameterSet parameters) {
                 this.parameters = parameters;
@@ -87,7 +85,6 @@ public class GraphAlignerTask extends AbstractTask {
 
                 sameChargeRequired = parameters.getParameter(GraphAlignerParameters.SameChargeRequired).getValue();
 
-                rand = new Random();
         }
 
         public String getTaskDescription() {
@@ -139,14 +136,15 @@ public class GraphAlignerTask extends AbstractTask {
                 HashMap<PeakListRow, PeakListRow> alignmentMapping = new HashMap<PeakListRow, PeakListRow>();
                 for (PeakList peakList : peakLists) {
                         PeakListRow allRows[] = peakList.getRows();
-                        //for each row in the main file which contains all the samples align until that moment.. get the graph of peaks..
                         for (PeakListRow row : allRows) {
-                                Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-                                Range rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
                                 // Get all rows of the aligned peaklist within parameter limits
+                                Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+                                Range rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
                                 PeakListRow candidateRows[] = alignedPeakList.getRowsInsideScanAndMZRange(rtRange, mzRange);
 
+                                // Select the best score from all the candidate matches
+                                // and add them to the alignment list.
                                 double bestScore = 100000;
                                 PeakListRow bestCandidate = null;
                                 for (PeakListRow candidate : candidateRows) {
@@ -165,6 +163,7 @@ public class GraphAlignerTask extends AbstractTask {
 
                         }
 
+                        // Get the final peak matching list
                         alignmentMapping = this.getAlignmentMap(allRows, this.getRegressionList(alignmentMapping, peakList));
 
                         // Align all rows using mapping
@@ -212,7 +211,7 @@ public class GraphAlignerTask extends AbstractTask {
          * relation with the peak to be aligned from the same sample. The graph
          * for the second sample is created by searching the nearest peaks to the
          * peaks in the first sample.
-         * Obtains a score comparing the topology of the two graphs.
+         * Obtain a score comparing the topology of the two graphs.
          * @param peakList Peak list to be aligned.
          * @param row Peak to be aligned.
          * @param alignedPeakList Master peak list.
@@ -241,7 +240,7 @@ public class GraphAlignerTask extends AbstractTask {
         }
 
         /**
-         * Returns a list with the highest peaks from the original peak list.
+         * Return a list with the highest peaks from the original peak list.
          * @param rows List of peaks.
          * @return List of X highest peaks from the peak list. X is a parameter defined by the user if the peak list contains more that X peaks.
          */
@@ -256,9 +255,8 @@ public class GraphAlignerTask extends AbstractTask {
                 return peakRows.subList(0, nPeaks);
         }
 
-
         /**
-         * Creates a list of real matches selecting the candidates after correcting the
+         * Create a list of real matches selecting the candidates after correcting the
          * retention times using the regression equations.
          * @param allRows Peaks from the sample to be aligned.
          * @param regressions A list of linear regressions from the fragmented chromatogram.
@@ -274,7 +272,7 @@ public class GraphAlignerTask extends AbstractTask {
                 }
 
                 // Create a sorted set of scores matching
-                TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();                
+                TreeSet<RowVsRowScore> scoreSet = new TreeSet<RowVsRowScore>();
 
                 for (PeakListRow row : allRows) {
                         // Calculate limits for a row with which the row can be aligned
@@ -352,7 +350,7 @@ public class GraphAlignerTask extends AbstractTask {
         }
 
         /**
-         * Creates a list of linear regression equations by cutting the chromatogram in pieces
+         * Create a list of linear regression equations by cutting the chromatogram in pieces
          * and using the points selected previously using the graph comparison scoring.
          * @param alignmentMappingSource List of matches using graph comparison scoring.
          * @param peakList Peak list to be aligned.
