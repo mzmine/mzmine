@@ -98,7 +98,7 @@ public class MetLinGateway implements DBGateway {
 
 		// Find compound formula
 		Pattern patFormula = Pattern.compile(
-				"Formula</td>.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
+				"Formula.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
 		Matcher matcherFormula = patFormula.matcher(metLinEntry);
 		if (matcherFormula.find()) {
 			String htmlFormula = matcherFormula.group(1);

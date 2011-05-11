@@ -160,43 +160,42 @@ public class SingleRowIdentificationTask extends AbstractTask {
 				String formula = compound
 						.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 
-				if (formula == null) {
-					finishedItems++;
-					continue;
-				}
+				if (formula != null) {
 
-				// First modify the formula according to polarity - for
-				// negative, remove one hydrogen; for positive, add one
-				// hydrogen
-				String adjustedFormula = FormulaUtils.ionizeFormula(formula,
-						ionType.getPolarity(), charge);
+					// First modify the formula according to polarity - for
+					// negative, remove one hydrogen; for positive, add one
+					// hydrogen
+					String adjustedFormula = FormulaUtils.ionizeFormula(
+							formula, ionType.getPolarity(), charge);
 
-				logger.finest("Calculating isotope pattern for compound formula "
-						+ formula + " adjusted to " + adjustedFormula);
+					logger.finest("Calculating isotope pattern for compound formula "
+							+ formula + " adjusted to " + adjustedFormula);
 
-				// Generate IsotopePattern for this compound
-				IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-						.calculateIsotopePattern(adjustedFormula, 0.001,
-								charge, ionType.getPolarity());
+					// Generate IsotopePattern for this compound
+					IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
+							.calculateIsotopePattern(adjustedFormula, 0.001,
+									charge, ionType.getPolarity());
 
-				compound.setIsotopePattern(compoundIsotopePattern);
+					compound.setIsotopePattern(compoundIsotopePattern);
 
-				IsotopePattern rawDataIsotopePattern = peakListRow
-						.getBestIsotopePattern();
+					IsotopePattern rawDataIsotopePattern = peakListRow
+							.getBestIsotopePattern();
 
-				// If required, check isotope score
-				if (isotopeFilter && (rawDataIsotopePattern != null)
-						&& (compoundIsotopePattern != null)) {
+					// If required, check isotope score
+					if (isotopeFilter && (rawDataIsotopePattern != null)
+							&& (compoundIsotopePattern != null)) {
 
-					boolean isotopeCheck = IsotopePatternScoreCalculator
-							.checkMatch(rawDataIsotopePattern,
-									compoundIsotopePattern,
-									isotopeFilterParameters);
+						boolean isotopeCheck = IsotopePatternScoreCalculator
+								.checkMatch(rawDataIsotopePattern,
+										compoundIsotopePattern,
+										isotopeFilterParameters);
 
-					if (! isotopeCheck) {
-						finishedItems++;
-						continue;
+						if (!isotopeCheck) {
+							finishedItems++;
+							continue;
+						}
 					}
+					
 				}
 
 				// Add compound to the list of possible candidate and
