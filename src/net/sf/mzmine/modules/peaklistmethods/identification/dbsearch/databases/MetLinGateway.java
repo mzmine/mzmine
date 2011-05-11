@@ -89,7 +89,7 @@ public class MetLinGateway implements DBGateway {
 
 		// Find compound name
 		Pattern patName = Pattern.compile(
-				"Name</td>.*?<td.*?return false\">(.+?)</a></td>",
+				"</iframe>',1,450,300\\)\">(.+?)&nbsp;&nbsp;&nbsp;&nbsp",
 				Pattern.DOTALL);
 		Matcher matcherName = patName.matcher(metLinEntry);
 		if (matcherName.find()) {
