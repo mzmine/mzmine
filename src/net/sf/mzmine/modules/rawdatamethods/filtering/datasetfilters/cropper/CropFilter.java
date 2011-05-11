@@ -44,7 +44,7 @@ public class CropFilter implements RawDataSetFilter {
 		Range RTRange = parameters.getParameter(
 				CropFilterParameters.retentionTimeRange).getValue();
 
-		int[] scanNumbers = dataFile.getScanNumbers(1);
+		int[] scanNumbers = dataFile.getScanNumbers();
 		totalScans = scanNumbers.length;
 
 		for (processedScans = 0; processedScans < totalScans; processedScans++) {
