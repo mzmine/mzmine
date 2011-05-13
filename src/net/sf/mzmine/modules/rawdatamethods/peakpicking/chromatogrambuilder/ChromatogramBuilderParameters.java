@@ -20,15 +20,15 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.MassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.centroid.CentroidMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.exactmass.ExactMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.recursive.RecursiveMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.wavelet.WaveletMassDetector;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.MassFilter;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.nofilter.NoFilter;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massfilters.shoulderpeaksfilter.ShoulderPeaksFilter;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive.RecursiveMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.WaveletMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massfilters.MassFilter;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massfilters.nofilter.NoFilter;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massfilters.shoulderpeaksfilter.ShoulderPeaksFilter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
