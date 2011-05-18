@@ -119,14 +119,14 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 			int currentPeakStart = currentRegionStart;
 			int currentPeakEnd = i;
 			while ((currentPeakStart < scanNumbers.length - 1)
-					&& (intensities[currentPeakStart + 1] == 0))
+					&& (intensities[currentPeakStart] == 0))
 				currentPeakStart++;
 			while ((currentPeakEnd > 1)
-					&& (intensities[currentPeakEnd - 1] == 0))
+					&& (intensities[currentPeakEnd] == 0))
 				currentPeakEnd--;
 
 			// Stop if we reached the end of the chromatogram
-			if (currentPeakStart == intensities.length - 1)
+			if (currentPeakStart >= scanNumbers.length - 1)
 				break;
 
 			// Find the intensity at the sides (lowest data points)
