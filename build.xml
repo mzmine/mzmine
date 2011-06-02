@@ -34,7 +34,7 @@
 
 		<mkdir dir="${build}" />
 
-		<javac target="1.6" srcdir="${src}" destdir="${build}" debug="on">
+		<javac target="1.6" srcdir="${src}" destdir="${build}" debug="on" encoding="UTF-8">
 			<classpath refid="cppath" />
 		</javac>
 		
