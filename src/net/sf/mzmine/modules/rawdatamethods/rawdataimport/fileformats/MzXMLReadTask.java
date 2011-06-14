@@ -64,6 +64,7 @@ public class MzXMLReadTask extends AbstractTask {
 	private StringBuilder charBuffer;
 	private boolean compressFlag = false;
 	private DefaultHandler handler = new MzXMLHandler();
+	private String precision;
 
 	// Retention time parser
 	private DatatypeFactory dataTypeFactory;
@@ -239,6 +240,7 @@ public class MzXMLReadTask extends AbstractTask {
 					compressFlag = false;
 				else
 					compressFlag = true;
+				precision = attrs.getValue("precision");
 
 			}
 
@@ -333,8 +335,15 @@ public class MzXMLReadTask extends AbstractTask {
 					for (int i = 0; i < completeDataPoints.length; i++) {
 
 						// Always respect this order pairOrder="m/z-int"
-						double massOverCharge = (double) peakStream.readFloat();
-						double intensity = (double) peakStream.readFloat();
+						double massOverCharge;
+						double intensity;
+						if ("64".equals(precision)) {
+							massOverCharge = peakStream.readDouble();
+							intensity = peakStream.readDouble();
+						} else {
+							massOverCharge = (double) peakStream.readFloat();
+							intensity = (double) peakStream.readFloat();
+						}
 
 						// Copy m/z and intensity data
 						completeDataPoints[i] = new SimpleDataPoint(
