@@ -70,6 +70,8 @@ public class ClusteringTask extends AbstractXYDataset implements
         private ProjectionStatus projectionStatus;
         private ClusteringAlgorithm clusteringAlgorithm;
         private ClusteringDataType typeOfData;
+        private Instances dataset;
+        private int progress;
 
         public ClusteringTask(ClusteringParameters parameters, RawDataFile[] selectedRawDataFiles, PeakListRow[] selectedRows) {
 
@@ -161,12 +163,12 @@ public class ClusteringTask extends AbstractXYDataset implements
 
                 status = TaskStatus.PROCESSING;
 
-                logger.info("Clustering");               
+                logger.info("Clustering");
 
                 double[][] rawData;
 
                 // Creating weka dataset using samples or metabolites (variables)
-                Instances dataset;
+
                 if (typeOfData == ClusteringDataType.VARIABLES) {
                         rawData = createMatrix(false);
                         dataset = createVariableWekaDataset(rawData);
@@ -178,14 +180,17 @@ public class ClusteringTask extends AbstractXYDataset implements
                 // Running cluster algorithms
                 String cluster = "";
                 if (clusteringAlgorithm.toString().equals("Hierarchical Clusterer")) {
+                        progress = 0;                     
                         cluster = clusteringAlgorithm.getHierarchicalCluster(dataset);
+                        progress = 50;
                         cluster = cluster.replaceAll("Newick:", "");
                         if (typeOfData == ClusteringDataType.SAMPLES) {
                                 cluster = addMissingSamples(cluster);
                         }
+                        progress = 85;
                         if (cluster != null) {
                                 Desktop desktop = MZmineCore.getDesktop();
-                                TreeViewJ visualizer = new TreeViewJ(640, 480);
+                                TreeViewJ visualizer = new TreeViewJ(640, 480);                               
                                 cluster += ";";
                                 visualizer.openMenuAction(cluster);
                                 desktop.addInternalFrame(visualizer);
@@ -278,7 +283,6 @@ public class ClusteringTask extends AbstractXYDataset implements
                                 parameters);
                         desktop.addInternalFrame(newFrame);
                 }
-     
                 status = TaskStatus.FINISHED;
                 logger.info("Finished computing Clustering visualization.");
         }
@@ -423,8 +427,8 @@ public class ClusteringTask extends AbstractXYDataset implements
 
         public TaskStatus getStatus() {
                 return status;
-        }       
-       
+        }
+
         public Object[] getCreatedObjects() {
                 return null;
         }
@@ -516,8 +520,15 @@ public class ClusteringTask extends AbstractXYDataset implements
 
         @Override
         public double getFinishedPercentage() {
-                return this.projectionStatus.getFinishedPercentage();
+                if (this.projectionStatus != null) {
+                        return projectionStatus.getFinishedPercentage();
+                } else {
+                        progress++;
+                        if (progress == 100) {
+                                return 1.0;
+                        }
+                        return ((double) progress / 100);
+                }
         }
+      
 }
-
-
