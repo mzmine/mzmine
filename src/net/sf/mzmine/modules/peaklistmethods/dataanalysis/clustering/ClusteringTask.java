@@ -125,7 +125,7 @@ public class ClusteringTask extends AbstractXYDataset implements
         }
 
         public String getRawDataFile(int item) {
-                if (typeOfData.equals("Variables")) {
+                if (typeOfData == ClusteringDataType.VARIABLES) {
                         String name = "ID: " + this.selectedRows[item].getID();
                         name += " M/Z: " + this.selectedRows[item].getAverageMZ() + " RT:" + this.selectedRows[item].getAverageRT();
                         if (selectedRows[item].getPeakIdentities() != null && selectedRows[item].getPeakIdentities().length > 0) {
@@ -138,7 +138,7 @@ public class ClusteringTask extends AbstractXYDataset implements
         }
 
         public int getGroupNumber(int item) {
-                if (typeOfData.equals("Variables")) {
+                if (typeOfData == ClusteringDataType.VARIABLES) {
                         return groupsForSelectedVariables[item];
                 } else {
                         return groupsForSelectedRawDataFiles[item];
@@ -180,9 +180,9 @@ public class ClusteringTask extends AbstractXYDataset implements
                 // Running cluster algorithms
                 String cluster = "";
                 if (clusteringAlgorithm.toString().equals("Hierarchical Clusterer")) {
-                        progress = 0;                     
+                        progress = 0;                        
                         cluster = clusteringAlgorithm.getHierarchicalCluster(dataset);
-                        progress = 50;
+                        progress = 50;                     
                         cluster = cluster.replaceAll("Newick:", "");
                         if (typeOfData == ClusteringDataType.SAMPLES) {
                                 cluster = addMissingSamples(cluster);
@@ -190,7 +190,7 @@ public class ClusteringTask extends AbstractXYDataset implements
                         progress = 85;
                         if (cluster != null) {
                                 Desktop desktop = MZmineCore.getDesktop();
-                                TreeViewJ visualizer = new TreeViewJ(640, 480);                               
+                                TreeViewJ visualizer = new TreeViewJ(640, 480);
                                 cluster += ";";
                                 visualizer.openMenuAction(cluster);
                                 desktop.addInternalFrame(visualizer);
@@ -361,9 +361,7 @@ public class ClusteringTask extends AbstractXYDataset implements
 
                 for (int i = 0; i < rawData.length; i++) {
                         double[] values = new double[data.numAttributes()];
-                        for (int e = 0; e < rawData[0].length; e++) {
-                                values[e] = rawData[i][e];
-                        }
+                        System.arraycopy(rawData[i], 0, values, 0, rawData[0].length);
                         if (clusteringAlgorithm.toString().equals("Hierarchical Clusterer")) {
                                 values[data.numAttributes() - 1] = data.attribute("name").addStringValue(this.selectedRawDataFiles[i].getName());
                         }
@@ -395,10 +393,7 @@ public class ClusteringTask extends AbstractXYDataset implements
 
                 for (int i = 0; i < selectedRows.length; i++) {
                         double[] values = new double[data.numAttributes()];
-                        for (int e = 0; e < rawData[0].length; e++) {
-                                values[e] = rawData[i][e];
-                        }
-
+                        System.arraycopy(rawData[i], 0, values, 0, rawData[0].length);
 
                         if (clusteringAlgorithm.toString().equals("Hierarchical Clusterer")) {
                                 DecimalFormat twoDForm = new DecimalFormat("#.##");
@@ -521,14 +516,16 @@ public class ClusteringTask extends AbstractXYDataset implements
         @Override
         public double getFinishedPercentage() {
                 if (this.projectionStatus != null) {
-                        return projectionStatus.getFinishedPercentage();
-                } else {
-                        progress++;
-                        if (progress == 100) {
+                        if (projectionStatus.getFinishedPercentage() > 1.0) {
                                 return 1.0;
                         }
+                        return projectionStatus.getFinishedPercentage();
+                } else {
+                        if (progress > 100) {
+                                return 1.0;
+                        }
+                        progress++;
                         return ((double) progress / 100);
                 }
         }
-      
 }
