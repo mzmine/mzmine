@@ -37,7 +37,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.massdetection.localmaxima.LocalMaxMassDetector;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import be.proteomics.mascotdatfile.util.mascot.MascotDatfile;
