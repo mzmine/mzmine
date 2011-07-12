@@ -34,14 +34,8 @@ public class RTScore implements ScoreCalculator {
 
         MZTolerance mzTolerance;
         RTTolerance rtTolerance;
-        /**
-         * Creates new ScoreCalculator.
-         */
         private final static double WORST_SCORE = Double.MAX_VALUE;
-       
-        /**
-         * @see gcgcaligner.scorer.ScoreCalculator#calculateScore(gcgcaligner.alignment.AlignmentPath, gcgcaligner.datastruct.GCGCDatum, gcgcaligner.alignment.AlignmentParameters)
-         */
+
         public double calculateScore(AlignmentPath path, PeakListRow peak,
                 ParameterSet parameters) {
                 try {
@@ -98,9 +92,6 @@ public class RTScore implements ScoreCalculator {
                 }
         }
 
-        /**
-         * @see gcgcaligner.scorer.ScoreCalculator#matches(Peak, Peak, gcgcaligner.alignment.AlignmentParameters)
-         */
         public boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet parameters) {
                 rtTolerance = parameters.getParameter(PathAlignerParameters.RTTolerance).getValue();
                 mzTolerance = parameters.getParameter(PathAlignerParameters.MZTolerance).getValue();
@@ -117,9 +108,6 @@ public class RTScore implements ScoreCalculator {
                 return WORST_SCORE;
         }
 
-        /* (non-Javadoc)
-         * @see gcgcaligner.ScoreCalculator#isValid(gcgcaligner.GCGCDatum)
-         */
         public boolean isValid(PeakListRow peak) {
                 return true;
         }
