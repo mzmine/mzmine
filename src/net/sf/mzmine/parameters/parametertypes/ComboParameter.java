@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import javax.swing.JComboBox;
 
 import net.sf.mzmine.parameters.UserParameter;
@@ -131,6 +133,15 @@ public class ComboParameter<ValueType> implements
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

@@ -27,8 +27,10 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -37,12 +39,13 @@ import net.sf.mzmine.project.MZmineProject;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
-	static final Icon projectIcon = new ImageIcon("icons/projecticon.png");
-	static final Icon dataFileIcon = new ImageIcon("icons/xicicon.png");
-	static final Icon spectrumIcon = new ImageIcon("icons/spectrumicon.png");
-	static final Icon peakListIcon = new ImageIcon("icons/peaklisticon.png");
-	static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
-
+	private static final Icon projectIcon = new ImageIcon("icons/projecticon.png");
+	private static final Icon dataFileIcon = new ImageIcon("icons/xicicon.png");
+	private static final Icon spectrumIcon = new ImageIcon("icons/spectrumicon.png");
+	private static final Icon peakListIcon = new ImageIcon("icons/peaklisticon.png");
+	private 	static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
+	private static final Icon listIcon = new ImageIcon("icons/listicon.png");
+	
 	static final Font bigFont = new Font("SansSerif", Font.PLAIN, 12);
 	static final Font smallerFont = new Font("SansSerif", Font.PLAIN, 11);
 	static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -53,34 +56,37 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 		setLeafIcon(null);
 	}
 
-	public Component getTreeCellRendererComponent(JTree tree, Object value,
+	public Component getTreeCellRendererComponent(JTree tree, Object node,
 			boolean sel, boolean expanded, boolean leaf, int row,
 			boolean hasFocus) {
 
-		JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, value,
+		JLabel label = (JLabel) super.getTreeCellRendererComponent(tree, node,
 				sel, expanded, leaf, row, hasFocus);
 
-		if (value instanceof MZmineProject) {
+		DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) node;
+		Object embeddedObject = treeNode.getUserObject();
+
+		if (embeddedObject instanceof MZmineProject) {
 			label.setIcon(projectIcon);
 			label.setFont(bigFont);
 		}
 
-		if (value == ProjectTreeModel.dataFilesItem) {
+		if (embeddedObject == ProjectTreeModel.dataFilesNodeName) {
 			label.setIcon(dataFileIcon);
 			label.setFont(bigFont);
 		}
 
-		if (value == ProjectTreeModel.peakListsItem) {
+		if (embeddedObject == ProjectTreeModel.peakListsNodeName) {
 			label.setFont(bigFont);
 			label.setIcon(peakListIcon);
 		}
 
-		if (value instanceof RawDataFile) {
+		if (embeddedObject instanceof RawDataFile) {
 			label.setFont(smallerFont);
 		}
 
-		if (value instanceof Scan) {
-			Scan s = (Scan) value;
+		if (embeddedObject instanceof Scan) {
+			Scan s = (Scan) embeddedObject;
 			label.setIcon(spectrumIcon);
 			label.setFont(smallFont);
 
@@ -92,11 +98,15 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 				else
 					label.setForeground(Color.blue);
 			}
-
+		}
+		
+		if (embeddedObject instanceof MassList) {
+			label.setIcon(listIcon);
+			label.setFont(smallFont);
 		}
 
-		if (value instanceof PeakList) {
-			PeakList p = (PeakList) value;
+		if (embeddedObject instanceof PeakList) {
+			PeakList p = (PeakList) embeddedObject;
 			label.setIcon(null);
 			if (p.getNumberOfRawDataFiles() > 1) {
 				label.setFont(smallerFont.deriveFont(Font.BOLD));
@@ -105,11 +115,11 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 			}
 		}
 
-		if (value instanceof PeakListRow) {
-			PeakListRow r = (PeakListRow) value;
+		if (embeddedObject instanceof PeakListRow) {
+			PeakListRow r = (PeakListRow) embeddedObject;
 			label.setIcon(peakIcon);
 			label.setFont(smallFont);
-			
+
 			// Change the color only if the row is not selected
 			if (!sel) {
 				if (r.getPreferredPeakIdentity() != null) {
@@ -118,7 +128,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 			}
 
 		}
-
+		
 		return label;
 	}
 

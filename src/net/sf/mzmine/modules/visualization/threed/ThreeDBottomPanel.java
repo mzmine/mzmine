@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.threed;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -28,101 +29,127 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
  * 3D visualizer's bottom panel
  */
-class ThreeDBottomPanel extends JPanel implements ProjectListener {
+class ThreeDBottomPanel extends JPanel implements TreeModelListener {
 
-    private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    private JComboBox peakListSelector;
-    private JCheckBox showIdChkBox;
+	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private RawDataFile dataFile;
+	private JComboBox peakListSelector;
+	private JCheckBox showIdChkBox;
 
-    ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
+	private RawDataFile dataFile;
 
-        this.dataFile = dataFile;
+	ThreeDBottomPanel(ThreeDVisualizerWindow masterFrame, RawDataFile dataFile) {
 
-        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+		this.dataFile = dataFile;
 
-        setBackground(Color.white);
-        setBorder(new EmptyBorder(5, 5, 5, 0));
+		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-        add(Box.createHorizontalGlue());
+		setBackground(Color.white);
+		setBorder(new EmptyBorder(5, 5, 5, 0));
 
-        GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
+		add(Box.createHorizontalGlue());
 
-        peakListSelector = new JComboBox();
-        peakListSelector.setBackground(Color.white);
-        peakListSelector.setFont(smallFont);
-        peakListSelector.addActionListener(masterFrame);
-        peakListSelector.setActionCommand("PEAKLIST_CHANGE");
-        add(peakListSelector);
+		GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
-        add(Box.createHorizontalStrut(10));
+		peakListSelector = new JComboBox();
+		peakListSelector.setBackground(Color.white);
+		peakListSelector.setFont(smallFont);
+		peakListSelector.addActionListener(masterFrame);
+		peakListSelector.setActionCommand("PEAKLIST_CHANGE");
+		add(peakListSelector);
 
-        showIdChkBox = new JCheckBox("Show compound name");
-        showIdChkBox.setSelected(true);
-        showIdChkBox.setBackground(Color.white);
-        showIdChkBox.setFont(smallFont);
-        showIdChkBox.addActionListener(masterFrame);
-        showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
-        //TODO Improve functionality of this button, currently it's behavior is confusing with "Show peaks value" button
-        //add(showIdChkBox);
+		add(Box.createHorizontalStrut(10));
 
-        MZmineCore.getProjectManager().addProjectListener(this);
+		showIdChkBox = new JCheckBox("Show compound name");
+		showIdChkBox.setSelected(true);
+		showIdChkBox.setBackground(Color.white);
+		showIdChkBox.setFont(smallFont);
+		showIdChkBox.addActionListener(masterFrame);
+		showIdChkBox.setActionCommand("PEAKLIST_CHANGE");
+		// TODO Improve functionality of this button, currently it's behavior is
+		// confusing with "Show peaks value" button
+		// add(showIdChkBox);
 
-        add(Box.createHorizontalGlue());
+		add(Box.createHorizontalGlue());
 
-    }
+	}
 
-    /**
-     * Returns selected peak list
-     */
-    PeakList getSelectedPeakList() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        return selectedPeakList;
-    }
+	/**
+	 * Returns selected peak list
+	 */
+	PeakList getSelectedPeakList() {
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		return selectedPeakList;
+	}
 
-    /**
-     * Reloads peak lists from the project to the selector combo box
-     */
-    void rebuildPeakListSelector() {
-        PeakList selectedPeakList = (PeakList) peakListSelector.getSelectedItem();
-        PeakList currentPeakLists[] = MZmineCore.getCurrentProject().getPeakLists(
-                dataFile);
-        peakListSelector.removeAllItems();
-        for (int i = currentPeakLists.length - 1; i >= 0; i--) {
-            peakListSelector.addItem(currentPeakLists[i]);
-        }
-        if (selectedPeakList != null)
-            peakListSelector.setSelectedItem(selectedPeakList);
-    }
+	/**
+	 * Reloads peak lists from the project to the selector combo box
+	 */
+	void rebuildPeakListSelector() {
 
-    /**
-     * ProjectListener implementaion
-     */
-    public void projectModified(ProjectEvent event) {
-		// Modify the GUI in the event dispatching thread
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				rebuildPeakListSelector();
-			}
-		});
-    }
+		logger.finest("Rebuilding the peak list selector");
 
-    boolean showCompoundNameSelected() {
-        return showIdChkBox.isSelected();
-    }
+		PeakList selectedPeakList = (PeakList) peakListSelector
+				.getSelectedItem();
+		PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
+				.getPeakLists(dataFile);
+		peakListSelector.removeAllItems();
+		for (int i = currentPeakLists.length - 1; i >= 0; i--) {
+			peakListSelector.addItem(currentPeakLists[i]);
+		}
+		if (selectedPeakList != null)
+			peakListSelector.setSelectedItem(selectedPeakList);
+	}
+
+	boolean showCompoundNameSelected() {
+		return showIdChkBox.isSelected();
+	}
+
+	@Override
+	public void treeNodesChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesInserted(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesRemoved(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeStructureChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
 }

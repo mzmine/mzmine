@@ -24,15 +24,17 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 
 /**
  * This class represents a MZmine project. That includes raw data files, peak
@@ -42,19 +44,39 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	private Hashtable<UserParameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
-	private Vector<RawDataFile> dataFiles;
-	private Vector<PeakList> peakLists;
-
+	private ProjectTreeModel treeModel;
+	
 	private File projectFile;
 
 	public MZmineProjectImpl() {
 
-		this.dataFiles = new Vector<RawDataFile>();
-		this.peakLists = new Vector<PeakList>();
+		this.treeModel = new ProjectTreeModel(this);
 		projectParametersAndValues = new Hashtable<UserParameter, Hashtable<RawDataFile, Object>>();
 
 	}
 
+	public void activateProject() {
+		
+		Runnable swingThreadCode = new Runnable() {
+			public void run() {
+				MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+				ProjectTree projectTree = mainWindow.getMainPanel().getProjectTree();
+				projectTree.setModel(treeModel);
+				
+				// Expand the rows Raw data files and Peak lists items by default
+				int childCount = treeModel.getChildCount(treeModel.getRoot());
+				for (int i = 0; i < childCount; i++) {
+					TreeNode node = (TreeNode) treeModel.getChild(treeModel.getRoot(), i);
+					TreeNode pathToRoot[] = treeModel.getPathToRoot(node);
+					TreePath path = new TreePath(pathToRoot);
+					projectTree.expandPath(path);
+				}
+			}
+		};
+		SwingUtilities.invokeLater(swingThreadCode);
+		
+	}
+	
 	public void addParameter(UserParameter parameter) {
 		if (projectParametersAndValues.containsKey(parameter))
 			return;
@@ -97,22 +119,9 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void addFile(final RawDataFile newFile) {
 
-		// In case we are loading new project, we don't want to fire listeners
-		if (MZmineCore.getCurrentProject() != this) {
-			dataFiles.add(newFile);
-			return;
-		}
-
-		// We will perform the actual addition (and listener firing) in the
-		// swing thread, because it will cause repainting the project tree.
 		Runnable swingThreadCode = new Runnable() {
 			public void run() {
-				int newFileIndex = dataFiles.size();
-				dataFiles.add(newFile);
-
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.DATAFILE_ADDED, newFile, newFileIndex);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+				treeModel.addObject(newFile);
 			}
 		};
 		SwingUtilities.invokeLater(swingThreadCode);
@@ -121,145 +130,41 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void removeFile(final RawDataFile file) {
 
-		// If the data file is present in any peak list, we must not remove it
-		PeakList currentPeakLists[] = getPeakLists();
-		for (PeakList peakList : currentPeakLists) {
-			if (peakList.hasRawDataFile(file)) {
-				Desktop desktop = MZmineCore.getDesktop();
-				desktop.displayErrorMessage("Cannot remove file \"" + file
-						+ "\", because it is present in the peak list \""
-						+ peakList + "\"");
-				return;
-			}
-		}
-
 		Runnable swingThreadCode = new Runnable() {
 			public void run() {
-				int removedFileIndex = dataFiles.indexOf(file);
-				dataFiles.remove(file);
-				file.close();
-
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.DATAFILE_REMOVED, file,
-						removedFileIndex);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+				treeModel.removeObject(file);
 			}
 		};
-
 		SwingUtilities.invokeLater(swingThreadCode);
-
 	}
 
-	public void moveDataFiles(final RawDataFile[] movedFiles,
-			final int toPosition) {
-
-		Runnable swingThreadCode = new Runnable() {
-			public void run() {
-				int currentPosition, movePosition = toPosition;
-
-				for (RawDataFile movedFile : movedFiles) {
-					currentPosition = dataFiles.indexOf(movedFile);
-					if (currentPosition < 0)
-						continue;
-					dataFiles.remove(currentPosition);
-					if (currentPosition < movePosition)
-						movePosition--;
-					dataFiles.add(movePosition, movedFile);
-					movePosition++;
-				}
-
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.DATAFILES_REORDERED);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-			}
-		};
-
-		SwingUtilities.invokeLater(swingThreadCode);
-
-	}
-
-	/**
-
-	 */
 	public RawDataFile[] getDataFiles() {
-		return dataFiles.toArray(new RawDataFile[0]);
-
+		return treeModel.getDataFiles();
 	}
 
 	public PeakList[] getPeakLists() {
-		return peakLists.toArray(new PeakList[0]);
+		return treeModel.getPeakLists();
 	}
 
 	public void addPeakList(final PeakList peakList) {
 
-		// In case we are loading new project, we don't want to fire listeners
-		if (MZmineCore.getCurrentProject() != this) {
-			peakLists.add(peakList);
-			return;
-		}
-
 		Runnable swingThreadCode = new Runnable() {
-
 			public void run() {
-				int peakListsSize = peakLists.size();
-				peakLists.add(peakList);
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.PEAKLIST_ADDED, peakList,
-						peakListsSize);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-
+				treeModel.addObject(peakList);
 			}
 		};
-
 		SwingUtilities.invokeLater(swingThreadCode);
-
+		
 	}
 
 	public void removePeakList(final PeakList peakList) {
 
 		Runnable swingThreadCode = new Runnable() {
-
 			public void run() {
-				int peakListIndex = peakLists.indexOf(peakList);
-				peakLists.remove(peakList);
-
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.PEAKLIST_REMOVED, peakList,
-						peakListIndex);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
+				treeModel.removeObject(peakList);
 			}
 		};
-
 		SwingUtilities.invokeLater(swingThreadCode);
-
-	}
-
-	public void movePeakLists(final PeakList[] movedPeakLists,
-			final int toPosition) {
-
-		Runnable swingThreadCode = new Runnable() {
-			public void run() {
-				int currentPosition, movePosition = toPosition;
-
-				for (PeakList movedPeakList : movedPeakLists) {
-					currentPosition = peakLists.indexOf(movedPeakList);
-					if (currentPosition < 0)
-						continue;
-					peakLists.remove(currentPosition);
-					if (currentPosition < movePosition)
-						movePosition--;
-					peakLists.add(movePosition, movedPeakList);
-					movePosition++;
-				}
-
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.PEAKLISTS_REORDERED);
-				ProjectManagerImpl.getInstance().fireProjectListeners(newEvent);
-			}
-		};
-
-		SwingUtilities.invokeLater(swingThreadCode);
-
 	}
 
 	public PeakList[] getPeakLists(RawDataFile file) {
@@ -279,10 +184,6 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void setProjectFile(File file) {
 		projectFile = file;
-		if (MZmineCore.getCurrentProject() == this) {
-			ProjectManagerImpl.getInstance().fireProjectListeners(
-					new ProjectEvent(ProjectEventType.PROJECT_NAME_CHANGED));
-		}
 	}
 
 	public void removeProjectFile() {
@@ -297,6 +198,15 @@ public class MZmineProjectImpl implements MZmineProject {
 			projectName = projectName.substring(0, projectName.length() - 7);
 		}
 		return projectName;
+	}
+	
+	@Override
+	public void notifyObjectChanged(Object object, boolean structureChanged) {
+		treeModel.notifyObjectChanged(object, structureChanged);
+	}
+
+	public ProjectTreeModel getTreeModel() {
+		return treeModel;
 	}
 
 }

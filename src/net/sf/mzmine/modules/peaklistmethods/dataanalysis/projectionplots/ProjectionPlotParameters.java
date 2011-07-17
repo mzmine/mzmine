@@ -21,13 +21,16 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
 			"Data files", "Samples", new RawDataFile[0]);
@@ -53,12 +56,8 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 			new PeakListRow[0]);
 
 	public ProjectionPlotParameters() {
-		super(new UserParameter[] { dataFiles, rows, coloringType, peakMeasurementType,
-				xAxisComponent, yAxisComponent });
+		super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
+				peakMeasurementType, xAxisComponent, yAxisComponent });
 	}
-
-        public ProjectionPlotParameters(UserParameter[] parameters){
-                super(parameters);
-        }
 
 }

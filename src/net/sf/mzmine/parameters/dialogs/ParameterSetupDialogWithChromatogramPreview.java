@@ -66,7 +66,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	public ParameterSetupDialogWithChromatogramPreview(ParameterSet parameters,
 			String helpFile) {
 
-		super(parameters, helpFile);
+		super(parameters, null, helpFile);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 
@@ -95,19 +95,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
 			Range rtRange, Range mzRange);
 
-	/**
-	 * Remove all the data files from the plot and add the new selected data
-	 * files to the plot using the function loadPreview()
-	 */
-	private void reloadPreview() {
-
-		Range rtRange = rtRangeBox.getValue();
-		Range mzRange = mzRangeBox.getValue();
-		// TODO: updateParameterSetFromComponents();
-		loadPreview(ticPlot, previewDataFile, rtRange, mzRange);
-		updateTitle();
-	}
-
 	private void updateTitle() {
 
 		NumberFormat rtFormat = MZmineCore.getRTFormat();
@@ -135,7 +122,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 			int ind = comboDataFileName.getSelectedIndex();
 			if (ind >= 0) {
 				previewDataFile = dataFiles[ind];
-				reloadPreview();
+				parametersChanged();
 			}
 		}
 
@@ -150,7 +137,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 				pnlPreviewFields.setVisible(true);
 				updateMinimumSize();
 				pack();
-				reloadPreview();
+				parametersChanged();
 				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 			} else {
 				mainPanel.remove(ticPlot);
@@ -165,9 +152,17 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	protected void parametersChanged() {
 		// Update preview as parameters have changed
-		if ((previewCheckBox != null) && (previewCheckBox.isSelected())) {
-			reloadPreview();
-		}
+		if ((previewCheckBox == null) || (! previewCheckBox.isSelected()))
+			return;
+		
+		Range rtRange = rtRangeBox.getValue();
+		Range mzRange = mzRangeBox.getValue();
+		updateParameterSetFromComponents();
+		
+		loadPreview(ticPlot, previewDataFile, rtRange, mzRange);
+		
+		updateTitle();
+		
 	}
 
 	/**

@@ -22,15 +22,18 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class OnlineDBSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final ComboParameter<OnlineDatabase> database = new ComboParameter<OnlineDatabase>(
 			"Database", "Database to search", OnlineDatabase.values());
@@ -50,7 +53,7 @@ public class OnlineDBSearchParameters extends SimpleParameterSet {
 			new IsotopePatternScoreParameters());
 
 	public OnlineDBSearchParameters() {
-		super(new UserParameter[] { database, neutralMass, numOfResults,
+		super(new Parameter[] { peakLists, database, neutralMass, numOfResults,
 				mzTolerance, isotopeFilter });
 	}
 

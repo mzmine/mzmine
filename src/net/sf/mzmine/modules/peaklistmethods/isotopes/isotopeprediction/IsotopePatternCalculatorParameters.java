@@ -44,8 +44,8 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 	// We do not use NumberFormat.getPercentInstance() for this parameter,
 	// because it only shows integers
 	public static final NumberParameter minAbundance = new NumberParameter(
-			"Minimum abundance", "Minimum abundance of the detected isotope",
-			new DecimalFormat("0.00%"), 0.001);
+			"Minimum abundance", "Minimum abundance of the predicted isotopes",
+			new DecimalFormat("0.000%"), 0.001);
 
 	public IsotopePatternCalculatorParameters() {
 		super(new UserParameter[] { formula, charge, polarity, minAbundance });

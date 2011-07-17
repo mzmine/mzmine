@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
-import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,15 +26,15 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.ElementalHeuristicChecker;
@@ -43,6 +42,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.re
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculatorParameters;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScore;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
@@ -54,6 +54,7 @@ import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.Range;
 
 import org.openscience.cdk.formula.MolecularFormula;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class SingleRowPredictionTask extends AbstractTask {
@@ -66,11 +67,10 @@ public class SingleRowPredictionTask extends AbstractTask {
 	private ElementRule elementRules[];
 	private FormulaGenerator generator;
 
-	private int maxFormulas, foundFormulas = 0;
+	private int foundFormulas = 0;
 	private IonizationType ionType;
 	private double searchedMass;
 	private int charge;
-	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private boolean checkIsotopes, checkMSMS, checkRatios, checkRDBE;
 	private ParameterSet isotopeParameters, msmsParameters, ratiosParameters,
@@ -83,10 +83,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	SingleRowPredictionTask(ParameterSet parameters, PeakList peakList,
-			PeakListRow peakListRow) {
-
-		this.peakList = peakList;
+	SingleRowPredictionTask(ParameterSet parameters, PeakListRow peakListRow) {
 
 		searchedMass = parameters.getParameter(
 				FormulaPredictionParameters.neutralMass).getValue();
@@ -96,8 +93,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 				FormulaPredictionParameters.neutralMass).getIonType();
 		MZTolerance mzTolerance = parameters.getParameter(
 				FormulaPredictionParameters.mzTolerance).getValue();
-		maxFormulas = parameters.getParameter(
-				FormulaPredictionParameters.numOfResults).getInt();
 
 		checkIsotopes = parameters.getParameter(
 				FormulaPredictionParameters.isotopeFilter).getValue();
@@ -165,8 +160,6 @@ public class SingleRowPredictionTask extends AbstractTask {
 	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
 	 */
 	public double getFinishedPercentage() {
-		if (foundFormulas >= maxFormulas)
-			return 1;
 		if (generator == null)
 			return 0;
 		return generator.getFinishedPercentage();
@@ -187,20 +180,17 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		setStatus(TaskStatus.PROCESSING);
 
-		Desktop desktop = MZmineCore.getDesktop();
-		NumberFormat massFormater = MZmineCore.getMZFormat();
-
 		resultWindow = new ResultWindow("Searching for "
-				+ massFormater.format(searchedMass), peakList, peakListRow,
+				+ MZmineCore.getMZFormat().format(searchedMass), peakListRow,
 				searchedMass, charge, this);
-		desktop.addInternalFrame(resultWindow);
+		MZmineCore.getDesktop().addInternalFrame(resultWindow);
 
 		logger.finest("Starting search for formulas for " + massRange
 				+ " Da, elements " + Arrays.toString(elementRules));
 
 		generator = new FormulaGenerator(massRange, elementRules);
 
-		while (foundFormulas < maxFormulas) {
+		while (true) {
 
 			if (isCanceled())
 				return;
@@ -215,12 +205,20 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		}
 
+		if (isCanceled())
+			return;
+
 		logger.finest("Finished formula search for " + massRange
 				+ " m/z, found " + foundFormulas + " formulas");
 
-		resultWindow.setTitle("Finished searching for "
-				+ massFormater.format(searchedMass) + " amu, " + foundFormulas
-				+ " formulas found");
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				resultWindow.setTitle("Finished searching for "
+						+ MZmineCore.getMZFormat().format(searchedMass)
+						+ " amu, " + foundFormulas + " formulas found");
+
+			}
+		});
 
 		setStatus(TaskStatus.FINISHED);
 
@@ -236,10 +234,10 @@ public class SingleRowPredictionTask extends AbstractTask {
 				return;
 		}
 
-		double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
+		Double rdbeValue = RDBERestrictionChecker.calculateRDBE(cdkFormula);
 
 		// Check RDBE condition
-		if (checkRDBE) {
+		if (checkRDBE && (rdbeValue != null)) {
 			boolean check = RDBERestrictionChecker.checkRDBE(rdbeValue,
 					rdbeParameters);
 			if (!check)
@@ -252,14 +250,18 @@ public class SingleRowPredictionTask extends AbstractTask {
 		Double isotopeScore = null;
 		if ((checkIsotopes) && (detectedPattern != null)) {
 
-			String originalFormula = MolecularFormulaManipulator
-					.getString(cdkFormula);
-			String adjustedFormula = FormulaUtils.ionizeFormula(
-					originalFormula, ionType.getPolarity(), charge);
+			IMolecularFormula adjustedFormulaObject = FormulaUtils
+					.ionizeFormula(cdkFormula, ionType, charge);
+			String adjustedFormula = MolecularFormulaManipulator
+					.getString(adjustedFormulaObject);
 
-			// TODO: make 0.001 user parameter
+			double minPredictedAbundance = isotopeParameters.getParameter(
+					IsotopePatternCalculatorParameters.minAbundance)
+					.getDouble();
+
 			predictedIsotopePattern = IsotopePatternCalculator
-					.calculateIsotopePattern(adjustedFormula, 0.001, charge,
+					.calculateIsotopePattern(adjustedFormula,
+							minPredictedAbundance, charge,
 							ionType.getPolarity());
 
 			isotopeScore = IsotopePatternScoreCalculator
@@ -311,6 +313,17 @@ public class SingleRowPredictionTask extends AbstractTask {
 		resultWindow.addNewListItem(resultEntry);
 
 		foundFormulas++;
+
+	}
+
+	@Override
+	public void cancel() {
+		super.cancel();
+
+		// We need to cancel the formula generator, because searching for next
+		// candidate formula may take a looong time
+		if (generator != null)
+			generator.cancel();
 
 	}
 

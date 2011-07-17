@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import net.sf.mzmine.parameters.ParameterSet;
+
 import org.jfree.chart.labels.StandardXYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
@@ -33,7 +35,7 @@ public class ProjectionPlotItemLabelGenerator extends
 	private LabelMode[] labelModes;
 	private int labelModeIndex = 0;
 
-	ProjectionPlotItemLabelGenerator(ProjectionPlotParameters parameters) {
+	ProjectionPlotItemLabelGenerator(ParameterSet parameters) {
 
 		labelModes = new LabelMode[] { LabelMode.None };
                 ColoringType coloringType = ColoringType.NOCOLORING;

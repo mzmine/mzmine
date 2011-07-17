@@ -33,8 +33,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -138,11 +136,6 @@ public class FragmentSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of fragments", parameters));
 
-		// Notify the project manager that peaklist contents have changed
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished fragments search in " + peakList);
@@ -207,6 +200,10 @@ public class FragmentSearchTask extends AbstractTask {
 		FragmentIdentity newIdentity = new FragmentIdentity(mainRow,
 				fragmentRow);
 		fragmentRow.addPeakIdentity(newIdentity, false);
+		
+		// Notify the GUI about the change in the project
+		MZmineCore.getCurrentProject().notifyObjectChanged(fragmentRow, false);
+		
 	}
 
 	public Object[] getCreatedObjects() {

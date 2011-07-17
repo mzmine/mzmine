@@ -32,8 +32,6 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -75,10 +73,10 @@ class CustomDBSearchTask extends AbstractTask {
 
 		ignoreFirstLine = parameters.getParameter(
 				CustomDBSearchParameters.ignoreFirstLine).getValue();
-		mzTolerance = parameters
-				.getParameter(CustomDBSearchParameters.mzTolerance).getValue();
-		rtTolerance = parameters
-				.getParameter(CustomDBSearchParameters.rtTolerance).getValue();
+		mzTolerance = parameters.getParameter(
+				CustomDBSearchParameters.mzTolerance).getValue();
+		rtTolerance = parameters.getParameter(
+				CustomDBSearchParameters.rtTolerance).getValue();
 
 	}
 
@@ -134,11 +132,6 @@ class CustomDBSearchTask extends AbstractTask {
 				"Peak identification using database " + dataBaseFile,
 				parameters));
 
-		// Notify the project manager that peaklist contents have changed
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 		setStatus(TaskStatus.FINISHED);
 
 	}
@@ -180,6 +173,9 @@ class CustomDBSearchTask extends AbstractTask {
 
 				// add new identity to the row
 				peakRow.addPeakIdentity(newIdentity, false);
+
+				// Notify the GUI about the change in the project
+				MZmineCore.getCurrentProject().notifyObjectChanged(peakRow, false);
 
 			}
 		}

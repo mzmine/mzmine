@@ -54,7 +54,7 @@ public class XMLImportTask extends AbstractTask {
 	 * @param parameters
 	 */
 	public XMLImportTask(ParameterSet parameters) {
-		fileName = parameters.getParameter(XMLImporterParameters.filename)
+		fileName = parameters.getParameter(XMLImportParameters.filename)
 				.getValue();
 	}
 

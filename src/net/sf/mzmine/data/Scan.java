@@ -141,4 +141,12 @@ public interface Scan {
      */
     public DataPoint[] getDataPointsOverIntensity(double intensity);
     
+	public MassList[] getMassLists();
+	
+	public MassList getMassList(String name);
+	
+	public void addMassList(MassList massList);
+	
+	public void removeMassList(MassList massList);
+	
 }

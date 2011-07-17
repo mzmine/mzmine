@@ -40,12 +40,16 @@ public class RDBERestrictionChecker {
 		valences.put("C", 4);
 		valences.put("N", 3);
 		valences.put("O", 2);
-		valences.put("F", 1);
 		valences.put("Si", 4);
 		valences.put("P", 3);
 		valences.put("S", 2);
+		valences.put("F", 1);
 		valences.put("Cl", 1);
 		valences.put("Br", 1);
+		valences.put("I", 1);
+		valences.put("Na", 1);
+		valences.put("K", 1);
+
 	}
 
 	/**
@@ -59,16 +63,31 @@ public class RDBERestrictionChecker {
 	 * for RDBE.
 	 * 
 	 */
-	public static double calculateRDBE(MolecularFormula formula) {
+	public static Double calculateRDBE(MolecularFormula formula) {
 
 		double sum = 0;
 		
+		Map<String, Integer> valences2 = new HashMap<String, Integer>();
+		valences2.put("H", 1);
+		valences2.put("C", 4);
+		valences2.put("N", 3);
+		valences2.put("O", 2);
+		valences2.put("Si", 4);
+		valences2.put("P", 3);
+		valences2.put("S", 2);
+		valences2.put("F", 1);
+		valences2.put("Cl", 1);
+		valences2.put("Br", 1);
+		valences2.put("I", 1);
+		valences2.put("Na", 1);
+		valences2.put("K", 1);
+		
 		for (IIsotope isotope : formula.isotopes()) {
 
-			Integer maxValence = valences.get(isotope.getSymbol());
-			if (maxValence == null)
-				continue;
-			sum += (maxValence - 2) * formula.getIsotopeCount(isotope);
+			Integer valence = valences2.get(isotope.getSymbol());
+			if (valence == null)
+				return null;
+			sum += (valence - 2) * formula.getIsotopeCount(isotope);
 		}
 
 		sum /= 2;

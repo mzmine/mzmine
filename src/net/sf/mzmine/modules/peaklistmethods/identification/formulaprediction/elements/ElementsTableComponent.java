@@ -89,7 +89,7 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
 			String chosenElement = dialog.getSelectedElement();
 			if (chosenElement == null)
 				return;
-			ElementRule rule = new ElementRule(chosenElement, 0, 20);
+			ElementRule rule = new ElementRule(chosenElement, 0, 100);
 			elementsTableModel.addRow(rule);
 		}
 
@@ -114,6 +114,9 @@ public class ElementsTableComponent extends JPanel implements ActionListener {
 	}
 	
 	public void setElementsFromString(String elements) {
+		
+		if (elements == null) return;
+		
 		String elementsArray[] = elements.split(",");
 
 		for (String elementEntry : elementsArray) {

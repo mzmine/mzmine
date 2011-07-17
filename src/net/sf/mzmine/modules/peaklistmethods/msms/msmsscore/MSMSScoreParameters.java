@@ -19,30 +19,26 @@
 
 package net.sf.mzmine.modules.peaklistmethods.msms.msmsscore;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 
 public class MSMSScoreParameters extends SimpleParameterSet {
 
+	public static final MassListParameter massList = new MassListParameter();
+	
 	public static final MZToleranceParameter msmsTolerance = new MZToleranceParameter(
 			"MS/MS m/z tolerance",
 			"Tolerance of the mass value to search (+/- range)");
-
-	public static final NumberParameter msmsNoiseLevel = new NumberParameter(
-			"MS/MS noise level",
-			"Intensity level below which all data points are ignored",
-			MZmineCore.getIntensityFormat());
 
 	public static final PercentParameter msmsMinScore = new PercentParameter(
 			"MS/MS score threshold",
 			"If the score for MS/MS is lower, discard this match");
 
 	public MSMSScoreParameters() {
-		super(new Parameter[] { msmsTolerance, msmsNoiseLevel, msmsMinScore });
+		super(new Parameter[] { massList, msmsTolerance, msmsMinScore });
 	}
 
 }

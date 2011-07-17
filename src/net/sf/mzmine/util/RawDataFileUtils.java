@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.util;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import net.sf.mzmine.data.RawDataFile;
 
 /**
@@ -57,4 +60,17 @@ public class RawDataFileUtils {
 			mzRange = new Range(0);
 		return mzRange;
 	}
+	
+	public static Integer[] getMSLevels(RawDataFile dataFiles[]) {
+		HashSet<Integer> msLevels = new HashSet<Integer>();
+		for (RawDataFile file : dataFiles) {
+			int dfMsLevels[] = file.getMSLevels();
+			for (int msl : dfMsLevels) msLevels.add(msl);
+		}
+		Integer msLevelsArray[] = msLevels.toArray(new Integer[0]);
+		Arrays.sort(msLevelsArray);
+		return msLevelsArray;
+	}
+	
+
 }

@@ -382,7 +382,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 	/**
 	 * 
 	 * This method calculates the height of Exponential Modified Gaussian
-	 * function, using the mathematical model proposed by Zs. Pápai and T. L.
+	 * function, using the mathematical model proposed by Zs. Papai and T. L.
 	 * Pap "Determination of chromatographic peak parameters by non-linear curve
 	 * fitting using statistical moments", The Analyst,
 	 * http://www.rsc.org/publishing/journals/AN/article.asp?doi=b111304f

@@ -367,8 +367,9 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		}
 
-		// cache the value
-		dataMZRange.put(msLevel, mzRange);
+		// cache the value, if we found any
+		if (mzRange != null)
+			dataMZRange.put(msLevel, mzRange);
 
 		return mzRange;
 

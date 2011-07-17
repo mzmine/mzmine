@@ -27,8 +27,6 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -133,11 +131,6 @@ public class AdductSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of adducts", parameters));
 
-		// Notify the project manager that peaklist contents have changed
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished adducts search in " + peakList);
@@ -209,6 +202,9 @@ public class AdductSearchTask extends AbstractTask {
 		AdductIdentity newIdentity = new AdductIdentity(mainRow, adductRow,
 				adduct);
 		adductRow.addPeakIdentity(newIdentity, false);
+		
+		// Notify the GUI about the change in the project
+		MZmineCore.getCurrentProject().notifyObjectChanged(adductRow, false);
 	}
 
 }

@@ -31,15 +31,19 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JInternalFrame {
 
     private HistogramChart histogram;
 
-    public HistogramWindow(PeakList peakList, HistogramParameters parameters) {
+    public HistogramWindow(ParameterSet parameters) {
 
         super(null, true, true, true, true);
+        
+        PeakList peakList = parameters.getParameter(HistogramParameters.peakList).getValue()[0];
+        
         this.setTitle("Histogram of " + peakList.toString());
 
         RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();

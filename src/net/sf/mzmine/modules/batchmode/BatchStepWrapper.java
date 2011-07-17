@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.batchmode;
 
+import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -26,14 +27,14 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 class BatchStepWrapper {
 
-    private BatchStep method;
+    private MZmineProcessingModule method;
     private ParameterSet parameters;
 
     /**
      * @param method
      * @param parameters
      */
-    BatchStepWrapper(BatchStep method, ParameterSet parameters) {
+    BatchStepWrapper(MZmineProcessingModule method, ParameterSet parameters) {
         this.method = method;
         this.parameters = parameters;
     }
@@ -41,7 +42,7 @@ class BatchStepWrapper {
     /**
      * @return Returns the method.
      */
-    BatchStep getMethod() {
+    MZmineProcessingModule getMethod() {
         return method;
     }
 

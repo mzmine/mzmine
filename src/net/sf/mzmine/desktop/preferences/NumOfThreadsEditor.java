@@ -20,6 +20,8 @@
 package net.sf.mzmine.desktop.preferences;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.text.NumberFormat;
 
 import javax.swing.JComboBox;
@@ -28,7 +30,7 @@ import javax.swing.JPanel;
 
 /**
  */
-public class NumOfThreadsEditor extends JPanel {
+public class NumOfThreadsEditor extends JPanel implements ActionListener {
 
 	private static final String options[] = {
 			"Set to the number of CPU cores ("
@@ -43,6 +45,7 @@ public class NumOfThreadsEditor extends JPanel {
 		super(new BorderLayout());
 
 		optionCombo = new JComboBox(options);
+		optionCombo.addActionListener(this);
 		add(optionCombo, BorderLayout.WEST);
 
 		numField = new JFormattedTextField(NumberFormat.getIntegerInstance());
@@ -68,6 +71,17 @@ public class NumOfThreadsEditor extends JPanel {
 
 	public Number getNumOfThreads() {
 		return (Number) numField.getValue();
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent event) {
+
+		Object src = event.getSource();
+
+		if (src == optionCombo) {
+			numField.setEnabled(!isAutomatic());
+		}
+
 	}
 
 }

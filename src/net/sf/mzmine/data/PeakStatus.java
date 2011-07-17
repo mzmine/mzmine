@@ -26,24 +26,24 @@ package net.sf.mzmine.data;
  */
 public enum PeakStatus {
 
-    /**
-     * Peak was not found
-     */
-    UNKNOWN,
+	/**
+	 * Peak was not found
+	 */
+	UNKNOWN,
 
-    /**
-     * Peak was found in primary peak picking
-     */
-    DETECTED,
+	/**
+	 * Peak was found in primary peak picking
+	 */
+	DETECTED,
 
-    /**
-     * Peak was estimated in secondary peak picking
-     */
-    ESTIMATED,
+	/**
+	 * Peak was estimated in secondary peak picking
+	 */
+	ESTIMATED,
 
-    /**
-     * Peak was defined manually
-     */
-    MANUAL
+	/**
+	 * Peak was defined manually
+	 */
+	MANUAL
 
 }

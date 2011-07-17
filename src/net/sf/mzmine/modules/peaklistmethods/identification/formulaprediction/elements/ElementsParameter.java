@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
@@ -100,6 +102,11 @@ public class ElementsParameter implements
 		if (value == null)
 			return;
 		xmlElement.setTextContent(value);
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		return true;
 	}
 
 }

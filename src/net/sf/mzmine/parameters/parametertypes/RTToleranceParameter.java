@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import org.w3c.dom.Element;
 
 import net.sf.mzmine.parameters.UserParameter;
@@ -114,5 +116,14 @@ public class RTToleranceParameter implements
 			xmlElement.setAttribute("type", "percent");
 		String toleranceNum = String.valueOf(value.getTolerance());
 		xmlElement.setTextContent(toleranceNum);
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 }

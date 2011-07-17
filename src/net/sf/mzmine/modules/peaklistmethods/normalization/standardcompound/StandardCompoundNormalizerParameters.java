@@ -20,12 +20,13 @@
 package net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound;
 
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 
@@ -34,6 +35,8 @@ import net.sf.mzmine.util.PeakMeasurementType;
  */
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
+	public static final PeakListsParameter peakList = new PeakListsParameter(1,1);
+			
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
@@ -60,7 +63,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 			new PeakListRow[0]);
 
 	public StandardCompoundNormalizerParameters() {
-		super(new UserParameter[] { suffix, standardUsageType, peakMeasurementType,
+		super(new Parameter[] { peakList, suffix, standardUsageType, peakMeasurementType,
 				MZvsRTBalance, standardCompounds, autoRemove });
 
 	}

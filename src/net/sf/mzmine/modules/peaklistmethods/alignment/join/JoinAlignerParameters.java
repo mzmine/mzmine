@@ -22,16 +22,19 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter peakListName = new StringParameter(
 			"Peak list name", "Peak list name", "Aligned peak list");
@@ -62,7 +65,7 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 			new IsotopePatternScoreParameters());
 
 	public JoinAlignerParameters() {
-		super(new UserParameter[] { peakListName, MZTolerance, MZWeight,
+		super(new Parameter[] { peakLists, peakListName, MZTolerance, MZWeight,
 				RTTolerance, RTWeight, SameChargeRequired, SameIDRequired,
 				compareIsotopePattern });
 	}

@@ -66,7 +66,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	 */
 	public RansacAlignerSetupDialog(RansacAlignerParameters parameters,
 			String helpID) {
-		super(parameters, helpID);
+		super(parameters, null, helpID);
 		this.parameters = parameters;
 		addComponents();
 	}

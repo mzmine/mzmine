@@ -63,14 +63,19 @@ class WorkerThread extends Thread {
 			if (actualTask.getStatus() == TaskStatus.ERROR) {
 				logger.severe("Task error: " + actualTask.getErrorMessage());
 
+				String errorMsg = actualTask.getErrorMessage();
+				if (errorMsg == null)
+					errorMsg = "Unspecified error";
+
 				MZmineCore.getDesktop().displayErrorMessage(
 						"Error of task " + actualTask.getTaskDescription(),
-						actualTask.getErrorMessage());
+						errorMsg);
 			}
-			
+
 			/*
-			 * This is important to allow the garbage collector to remove the task,
-			 * while keeping the task description in the "Tasks in progress" window
+			 * This is important to allow the garbage collector to remove the
+			 * task, while keeping the task description in the
+			 * "Tasks in progress" window
 			 */
 			wrappedTask.removeTaskReference();
 
@@ -82,9 +87,9 @@ class WorkerThread extends Thread {
 			 * OutOfMemoryError
 			 */
 
-			logger.log(Level.SEVERE, "Unhandled exception " + e
-					+ " while processing task "
-					+ actualTask.getTaskDescription(), e);
+			logger.log(Level.SEVERE,
+					"Unhandled exception " + e + " while processing task "
+							+ actualTask.getTaskDescription(), e);
 
 			e.printStackTrace();
 

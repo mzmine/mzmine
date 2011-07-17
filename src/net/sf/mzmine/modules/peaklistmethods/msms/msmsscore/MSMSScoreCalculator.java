@@ -24,6 +24,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
@@ -44,12 +45,24 @@ public class MSMSScoreCalculator {
 	public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula,
 			Scan msmsScan, ParameterSet parameters) {
 
-		double msmsNoiseLevel = parameters.getParameter(
-				MSMSScoreParameters.msmsNoiseLevel).getDouble();
 		MZTolerance msmsTolerance = parameters.getParameter(
 				MSMSScoreParameters.msmsTolerance).getValue();
+		String massListName = parameters.getParameter(
+				MSMSScoreParameters.massList).getValue();
 
-		DataPoint msmsPeaks[] = msmsScan.getDataPoints();
+		MassList massList = msmsScan.getMassList(massListName);
+
+		// TODO: handle error better
+		if (massList == null)
+			return null;
+
+		DataPoint msmsIons[] = massList.getMzPeaks();
+
+		if (msmsIons == null) {
+			throw new IllegalArgumentException("Mass list " + massList
+					+ " does not contain data for scan "
+					+ msmsScan.getScanNumber());
+		}
 		// Sorted by mass in descending order
 		ArrayList<ElementRule> rulesSet = new ArrayList<ElementRule>();
 		for (IIsotope isotope : parentFormula.isotopes()) {
@@ -62,16 +75,12 @@ public class MSMSScoreCalculator {
 		int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
 		Map<DataPoint, String> msmsAnnotations = new Hashtable<DataPoint, String>();
 
-		msmsCycle: for (DataPoint dp : msmsPeaks) {
-
-			// Ignore all data points below the noise level
-			if (dp.getIntensity() < msmsNoiseLevel)
-				continue msmsCycle;
+		msmsCycle: for (DataPoint dp : msmsIons) {
 
 			// Check if this is an isotope
 			Range isotopeCheckRange = new Range(dp.getMZ() - 1.4,
 					dp.getMZ() - 0.6);
-			for (DataPoint dpCheck : msmsPeaks) {
+			for (DataPoint dpCheck : msmsIons) {
 				// If we have any MS/MS peak with 1 neutron mass smaller m/z
 				// and higher intensity, it means the current peak is an
 				// isotope and we should ignore it
@@ -80,7 +89,7 @@ public class MSMSScoreCalculator {
 					continue msmsCycle;
 				}
 			}
-
+			
 			// We don't know the charge of the fragment, so we will simply
 			// assume 1
 			double neutralLoss = msmsScan.getPrecursorMZ()

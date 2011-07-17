@@ -19,17 +19,20 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class SameRangeParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
 	public SameRangeParameters() {
-		super(new UserParameter[] { suffix });
+		super(new Parameter[] { peakLists, suffix });
 	}
 
 }

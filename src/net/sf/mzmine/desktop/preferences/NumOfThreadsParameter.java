@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.desktop.preferences;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
@@ -69,7 +71,7 @@ public class NumOfThreadsParameter implements
 	public Integer getValue() {
 		return value;
 	}
-	
+
 	public boolean isAutomatic() {
 		return automatic;
 	}
@@ -87,9 +89,16 @@ public class NumOfThreadsParameter implements
 
 	@Override
 	public void setValueFromComponent(NumOfThreadsEditor component) {
-		Number componentValue = component.getNumOfThreads();
-		if (componentValue == null) value = null; else value = componentValue.intValue();
 		automatic = component.isAutomatic();
+		if (automatic) {
+			value = Runtime.getRuntime().availableProcessors();
+		} else {
+			Number componentValue = component.getNumOfThreads();
+			if (componentValue == null)
+				value = null;
+			else
+				value = componentValue.intValue();
+		}
 	}
 
 	@Override
@@ -102,12 +111,12 @@ public class NumOfThreadsParameter implements
 	public void loadValueFromXML(Element xmlElement) {
 		String attrValue = xmlElement.getAttribute("isautomatic");
 		if (attrValue.length() > 0) {
-		this.automatic = Boolean.valueOf(attrValue);
+			this.automatic = Boolean.valueOf(attrValue);
 		}
 
 		String textContent = xmlElement.getTextContent();
 		if (textContent.length() > 0) {
-		this.value = Integer.valueOf(textContent);
+			this.value = Integer.valueOf(textContent);
 		}
 	}
 
@@ -115,6 +124,15 @@ public class NumOfThreadsParameter implements
 	public void saveValueToXML(Element xmlElement) {
 		xmlElement.setAttribute("isautomatic", String.valueOf(automatic));
 		xmlElement.setTextContent(value.toString());
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

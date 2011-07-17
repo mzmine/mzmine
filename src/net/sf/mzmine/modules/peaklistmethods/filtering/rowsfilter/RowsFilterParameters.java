@@ -22,14 +22,17 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class RowsFilterParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "filtered");
@@ -60,8 +63,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
 			"If checked, original peak list will be removed and only filtered version remains");
 
 	public RowsFilterParameters() {
-		super(new UserParameter[] { suffix, minPeaks, minIsotopePatternSize,
-				mzRange, rtRange, identified, autoRemove });
+		super(
+				new Parameter[] { peakLists, suffix, minPeaks,
+						minIsotopePatternSize, mzRange, rtRange, identified,
+						autoRemove });
 	}
 
 }

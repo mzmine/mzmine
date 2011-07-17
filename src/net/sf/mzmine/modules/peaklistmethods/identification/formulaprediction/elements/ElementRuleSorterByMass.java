@@ -26,7 +26,7 @@ public class ElementRuleSorterByMass implements Comparator<ElementRule> {
 	public int compare(ElementRule rule1, ElementRule rule2) {
 		Double myMass = rule1.getMass();
 		Double otherMass = rule2.getMass();
-		return otherMass.compareTo(myMass);
+		return myMass.compareTo(otherMass);
 	}
 
 }

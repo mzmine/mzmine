@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore;
 
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculatorParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
@@ -39,7 +40,9 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
 			"If the score between isotope pattern is lower, discard this match");
 
 	public IsotopePatternScoreParameters() {
-		super(new Parameter[] { mzTolerance, isotopePatternScoreThreshold });
+		super(new Parameter[] { mzTolerance,
+				IsotopePatternCalculatorParameters.minAbundance,
+				isotopePatternScoreThreshold });
 	}
 
 }

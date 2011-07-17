@@ -22,7 +22,6 @@ package net.sf.mzmine.util.interpolatinglookuppaintscale;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -42,6 +41,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
@@ -50,8 +50,6 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
 	public static final int VALUEFIELD_COLUMNS = 4;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private Frame owner;
 
 	private JFormattedTextField fieldValue;
 
@@ -69,10 +67,9 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
 
 	private ExitCode exitCode = ExitCode.CANCEL;
 
-	public InterpolatingLookupPaintScaleSetupDialog(Frame owner,
+	public InterpolatingLookupPaintScaleSetupDialog(
 			InterpolatingLookupPaintScale paintScale) {
-		super(owner, "Select colors for paint scale", true);
-		this.owner = owner;
+		super(MZmineCore.getDesktop().getMainFrame(), "Select colors for paint scale", true);
 
 		// Build the form
 		initComponents();
@@ -148,7 +145,7 @@ public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
 		panelControlsAndList.add(panelOKCancelButtons, BorderLayout.SOUTH);
 
 		pack();
-		setLocationRelativeTo(owner);
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
 		setResizable(false);
 
 	}

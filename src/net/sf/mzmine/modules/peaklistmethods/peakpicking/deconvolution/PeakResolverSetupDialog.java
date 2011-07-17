@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.swing.Box;
@@ -76,7 +77,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 	 */
 	public PeakResolverSetupDialog(PeakResolver peakResolver) {
 
-		super(peakResolver.getParameterSet());
+		super(peakResolver.getParameterSet(), null, null);
 
 		this.peakResolver = peakResolver;
 
@@ -134,8 +135,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 	@Override
 	public void parametersChanged() {
-		if ((preview == null) || (! preview.isSelected())) return;
-		
+		if ((preview == null) || (!preview.isSelected()))
+			return;
+
 		PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
 		if (previewRow == null)
 			return;
@@ -144,13 +146,22 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 		ticPlot.removeAllTICDataSets();
 
-		try {
-			updateParameterSetFromComponents();
-		} catch (Exception e) {
-			// If there is exception, it means some of the values is invalid or
-			// missing. Let's just quit.
+		ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
+		ticPlot.addTICDataset(ticDataset);
+
+		// Set auto range to axes
+		ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
+		ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+		ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
+		ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+
+		updateParameterSetFromComponents();
+
+		// If there is some illegal value, do not load the preview but just exit
+		ArrayList<String> errorMessages = new ArrayList<String>();
+		boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+		if (!paramsOK)
 			return;
-		}
 
 		// Load the intensities into array
 		RawDataFile dataFile = previewPeak.getDataFile();
@@ -182,15 +193,6 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 			}
 
 		}
-
-		ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
-		ticPlot.addTICDataset(ticDataset);
-
-		// Set auto range to axes
-		ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
-		ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-		ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
-		ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
 
 	}
 
@@ -257,7 +259,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 		toolBar.getComponentAtIndex(0).setVisible(false);
 		pnlPlotXY.add(toolBar, BorderLayout.EAST);
 
-		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0, GridBagConstraints.HORIZONTAL);
+		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0,
+				GridBagConstraints.HORIZONTAL);
 
 		updateMinimumSize();
 		pack();

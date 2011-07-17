@@ -34,7 +34,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotTopPanel;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SearchDefinition;
@@ -182,11 +182,11 @@ public class ScatterPlotChart extends ChartPanel implements
 		PeakSummaryComponent newSummary = new PeakSummaryComponent(row,
 				peakList.getRawDataFiles(), true, true, true, true, false,
 				ComponentToolTipManager.bg);
-		
+
 		double xValue = mainDataSet.getXValue(series, item);
 		double yValue = mainDataSet.getYValue(series, item);
 		newSummary.setRatio(xValue, yValue);
-		
+
 		return newSummary;
 
 	}
@@ -244,9 +244,9 @@ public class ScatterPlotChart extends ChartPanel implements
 				}
 			}
 
-			TICVisualizer.showNewTICVisualizerWindow(
-					peakList.getRawDataFiles(), peaks, peaks, 1,
-					PlotType.BASEPEAK, rtRange, mzRange);
+			TICVisualizerModule.showNewTICVisualizerWindow(
+					peakList.getRawDataFiles(), peaks, 1, PlotType.BASEPEAK,
+					rtRange, mzRange);
 
 			return;
 		}
@@ -269,8 +269,7 @@ public class ScatterPlotChart extends ChartPanel implements
 		mainDataSet.setDisplayedAxes(axisX, axisY);
 		diagonalLineDataset.updateDiagonalData(mainDataSet, fold);
 
-		topPanel
-				.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
+		topPanel.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
 	}
 
 	public void setItemLabels(boolean enabled) {
@@ -279,8 +278,7 @@ public class ScatterPlotChart extends ChartPanel implements
 
 	public void updateSearchDefinition(SearchDefinition newSearch) {
 		mainDataSet.updateSearchDefinition(newSearch);
-		topPanel
-				.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
+		topPanel.updateNumOfItemsText(peakList, mainDataSet, axisX, axisY, fold);
 	}
 
 }

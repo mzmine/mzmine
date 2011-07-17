@@ -23,6 +23,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.text.NumberFormat;
 
+import net.sf.mzmine.parameters.ParameterSet;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -48,7 +50,7 @@ public class ProjectionPlotPanel extends ChartPanel {
 	private ProjectionPlotRenderer spotRenderer;
 
 	public ProjectionPlotPanel(ProjectionPlotWindow masterFrame,
-			ProjectionPlotDataset dataset, ProjectionPlotParameters parameters) {
+			ProjectionPlotDataset dataset, ParameterSet parameters) {
 		super(null);
 
 		boolean createLegend = false;

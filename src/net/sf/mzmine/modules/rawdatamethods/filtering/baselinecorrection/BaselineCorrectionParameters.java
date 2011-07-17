@@ -28,97 +28,92 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 import java.text.NumberFormat;
 
 /**
  * Holds baseline correction module parameters.
- *
+ * 
  * @author $Author$
  * @version $Revision$
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
-    /**
-     * Raw data file suffix.
-     */
-    public static final StringParameter SUFFIX =
-            new StringParameter("Filename suffix",
-                                "Suffix to be appended to raw data file names.",
-                                "baseline-corrected");
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    /**
-     * Smoothing factor.
-     */
-    public static final ComboParameter<ChromatogramType> CHROMOTAGRAM_TYPE =
-            new ComboParameter<ChromatogramType>("Chromatogram type",
-                                                 "The type of chromatogram from which infer a baseline to be corrected.",
-                                                 ChromatogramType.values(),
-                                                 ChromatogramType.TIC);
+	/**
+	 * Raw data file suffix.
+	 */
+	public static final StringParameter SUFFIX = new StringParameter(
+			"Filename suffix", "Suffix to be appended to raw data file names.",
+			"baseline-corrected");
 
-    /**
-     * Smoothing factor.
-     */
-    public static final NumberParameter SMOOTHING =
-            new NumberParameter("Smoothing",
-                                "The smoothing factor, generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
-                                NumberFormat.getNumberInstance(),
-                                1.0e7);
-    // TODO min=0.0
+	/**
+	 * Smoothing factor.
+	 */
+	public static final ComboParameter<ChromatogramType> CHROMOTAGRAM_TYPE = new ComboParameter<ChromatogramType>(
+			"Chromatogram type",
+			"The type of chromatogram from which infer a baseline to be corrected.",
+			ChromatogramType.values(), ChromatogramType.TIC);
 
-    /**
-     * Asymmetry.
-     */
-    public static final NumberParameter ASYMMETRY =
-            new NumberParameter("Asymmetry",
-                                "The weight (p) for points above the trend line, whereas 1-p is the weight for points below it.  Naturally, p should be small for estimating baselines.",
-                                NumberFormat.getNumberInstance(),
-                                0.001);
-    // TODO min=0.0; max=1.0
+	/**
+	 * Smoothing factor.
+	 */
+	public static final NumberParameter SMOOTHING = new NumberParameter(
+			"Smoothing",
+			"The smoothing factor, generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
+			NumberFormat.getNumberInstance(), 1.0e7);
+	// TODO min=0.0
 
-    /**
-     * Apply in bins.
-     */
-    public static final BooleanParameter USE_MZ_BINS =
-            new BooleanParameter("Use m/z bins",
-                                 "If checked, then full m/z range will be divided into bins a baseline correction applied to each bin (see m/z bin width).",
-                                 true);
+	/**
+	 * Asymmetry.
+	 */
+	public static final NumberParameter ASYMMETRY = new NumberParameter(
+			"Asymmetry",
+			"The weight (p) for points above the trend line, whereas 1-p is the weight for points below it.  Naturally, p should be small for estimating baselines.",
+			NumberFormat.getNumberInstance(), 0.001);
+	// TODO min=0.0; max=1.0
 
-    /**
-     * M/Z bin width.
-     */
-    public static final NumberParameter MZ_BIN_WIDTH =
-            new NumberParameter("m/z bin width",
-                                "The m/z bin size to use when the \"" + USE_MZ_BINS.getName() + "\" option is enabled.",
-                                MZmineCore.getMZFormat(),
-                                1.0);
-    // TODO min=0.001
+	/**
+	 * Apply in bins.
+	 */
+	public static final BooleanParameter USE_MZ_BINS = new BooleanParameter(
+			"Use m/z bins",
+			"If checked, then full m/z range will be divided into bins a baseline correction applied to each bin (see m/z bin width).",
+			true);
 
-    /**
-     * MS-level.
-     */
-    public static final ComboParameter<Integer> MS_LEVEL =
-            new ComboParameter<Integer>("MS-level",
-                                        "The MS-level at which to apply the baseline correction (choose 0 for all levels).",
-                                        new Integer[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-                                        1);
+	/**
+	 * M/Z bin width.
+	 */
+	public static final NumberParameter MZ_BIN_WIDTH = new NumberParameter(
+			"m/z bin width", "The m/z bin size to use when the \""
+					+ USE_MZ_BINS.getName() + "\" option is enabled.",
+			MZmineCore.getMZFormat(), 1.0);
+	// TODO min=0.001
 
-    /**
-     * Remove original data file.
-     */
-    public static final BooleanParameter REMOVE_ORIGINAL =
-            new BooleanParameter("Remove source file after baseline correction",
-                                 "If checked, original file will be replaced by the corrected version",
-                                 true);
+	/**
+	 * MS-level.
+	 */
+	public static final MSLevelParameter MS_LEVEL = new MSLevelParameter();
 
-    /**
-     * Create the parameter set.
-     */
-    public BaselineCorrectionParameters() {
-        super(new Parameter[]{SUFFIX, CHROMOTAGRAM_TYPE, MS_LEVEL, SMOOTHING, ASYMMETRY, USE_MZ_BINS, MZ_BIN_WIDTH,
-                              REMOVE_ORIGINAL});
-    }
+	/**
+	 * Remove original data file.
+	 */
+	public static final BooleanParameter REMOVE_ORIGINAL = new BooleanParameter(
+			"Remove source file after baseline correction",
+			"If checked, original file will be replaced by the corrected version",
+			true);
+
+	/**
+	 * Create the parameter set.
+	 */
+	public BaselineCorrectionParameters() {
+		super(new Parameter[] { dataFiles, SUFFIX, CHROMOTAGRAM_TYPE, MS_LEVEL,
+				SMOOTHING, ASYMMETRY, USE_MZ_BINS, MZ_BIN_WIDTH,
+				REMOVE_ORIGINAL });
+	}
 }
-

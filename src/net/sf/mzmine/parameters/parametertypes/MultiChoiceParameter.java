@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.CollectionUtils;
@@ -153,4 +154,12 @@ public class MultiChoiceParameter<ValueType> implements
 		}
 	}
 
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (values == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
+	}
 }

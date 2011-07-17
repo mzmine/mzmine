@@ -21,15 +21,18 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class PeakFinderParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
@@ -48,8 +51,8 @@ public class PeakFinderParameters extends SimpleParameterSet {
 			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
 
 	public PeakFinderParameters() {
-		super(new UserParameter[] { suffix, intTolerance, MZTolerance, RTTolerance,
-				RTCorrection });
+		super(new Parameter[] { peakLists, suffix, intTolerance, MZTolerance,
+				RTTolerance, RTCorrection });
 	}
 
 }

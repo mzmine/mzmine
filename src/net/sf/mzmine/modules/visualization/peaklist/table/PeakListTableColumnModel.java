@@ -39,7 +39,6 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.ColumnSettingParameter;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.components.ColumnGroup;
 import net.sf.mzmine.util.components.GroupableTableHeader;
@@ -295,7 +294,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		}
 
 		// Save the widths as global settings
-		PeakListTableVisualizer.getInstance().setParameterSet(parameters);
+		// TODO PeakListTableVisualizer.getInstance().setParameterSet(parameters);
 
 	}
 

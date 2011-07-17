@@ -20,18 +20,12 @@
 package net.sf.mzmine.project.impl;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.Vector;
 
-import javax.swing.SwingUtilities;
-
-import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoader;
+import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.project.ProjectManager;
 
 /**
@@ -41,18 +35,12 @@ public class ProjectManagerImpl implements ProjectManager {
 
 	private static ProjectManagerImpl myInstance;
 
-	// We use WeakReference to keep the reference to windows which want to be
-	// notified about project change. The reason is that we don't want to
-	// prevent the garbage collector from collecting these windows.
-	private Vector<WeakReference<ProjectListener>> listeners;
-
 	MZmineProject currentProject;
 
 	/**
 	 * @see net.sf.mzmine.modules.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
 	 */
 	public void initModule() {
-		listeners = new Vector<WeakReference<ProjectListener>>();
 		currentProject = new MZmineProjectImpl();
 		myInstance = this;
 	}
@@ -63,67 +51,27 @@ public class ProjectManagerImpl implements ProjectManager {
 
 	public void setCurrentProject(MZmineProject project) {
 		this.currentProject = project;
-
-		// Fire the project listeners in swing thread
-		Runnable swingCode = new Runnable() {
-			public void run() {
-				fireProjectListeners(new ProjectEvent(
-						ProjectEventType.ALL_CHANGED));
-			}
-		};
-		SwingUtilities.invokeLater(swingCode);
-
+		
 		// This is a hack to keep correct value of last opened directory (this
 		// value was overwritten when configuration file was loaded from the new
 		// project)
 		if (project.getProjectFile() != null) {
 			File projectFile = project.getProjectFile();
-			ProjectLoader.getInstance().getParameterSet()
+			ProjectLoadModule.getInstance().getParameterSet()
 					.getParameter(ProjectLoaderParameters.projectFile)
 					.setValue(projectFile);
 		}
+
+		// Notify the GUI about project structure change
+		((MZmineProjectImpl) project).activateProject();
+
+		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+		mainWindow.updateTitle();
+
 	}
 
 	public static ProjectManagerImpl getInstance() {
 		return myInstance;
-	}
-
-	public void addProjectListener(ProjectListener listener) {
-		synchronized (listeners) {
-			WeakReference<ProjectListener> newReference = new WeakReference<ProjectListener>(
-					listener);
-			listeners.add(newReference);
-		}
-	}
-
-	public void removeProjectListener(ProjectListener listener) {
-		synchronized (listeners) {
-			Iterator<WeakReference<ProjectListener>> it = listeners.iterator();
-			while (it.hasNext()) {
-				WeakReference<ProjectListener> ref = it.next();
-				ProjectListener refList = ref.get();
-				if ((refList == null) || (refList == listener)) {
-					it.remove();
-					continue;
-				}
-			}
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public void fireProjectListeners(ProjectEvent event) {
-		WeakReference<ProjectListener> listenersCopy[];
-		synchronized (listeners) {
-			listenersCopy = listeners.toArray(new WeakReference[0]);
-		}
-		// Now we released the lock of listeners, so we can safely call the
-		// actual methods
-		for (WeakReference<ProjectListener> ref : listenersCopy) {
-			ProjectListener listener = ref.get();
-			if (listener != null)
-				listener.projectModified(event);
-		}
-
 	}
 
 }

@@ -22,13 +22,20 @@ package net.sf.mzmine.project.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeModel;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
@@ -51,6 +58,7 @@ public class StorableScan implements Scan {
 	private long scanFileOffset;
 	private int numberOfDataPoints;
 	private RawDataFileImpl rawDataFile;
+	private ArrayList<MassList> massLists = new ArrayList<MassList>();
 
 	/**
 	 * Constructor for creating a storable scan from a given scan
@@ -98,7 +106,7 @@ public class StorableScan implements Scan {
 		mzRange = new Range(0, 0);
 		basePeak = null;
 		totalIonCurrent = 0;
-		
+
 		DataPoint dataPoints[] = getDataPoints();
 
 		// find m/z range and base peak
@@ -128,8 +136,7 @@ public class StorableScan implements Scan {
 	public DataPoint[] getDataPoints() {
 
 		try {
-			
-			
+
 			ByteBuffer bytes = rawDataFile.readFromFloatBufferFile(
 					scanFileOffset, numberOfDataPoints * 2 * 4);
 
@@ -304,6 +311,76 @@ public class StorableScan implements Scan {
 
 	public String toString() {
 		return ScanUtils.scanToString(this);
+	}
+
+	@Override
+	public synchronized void addMassList(MassList massList) {
+
+		// Remove all mass lists with same name, if there are any
+		MassList currentMassLists[] = massLists.toArray(new MassList[0]);
+		for (MassList ml : currentMassLists) {
+			if (ml.getName().equals(massList.getName()))
+				removeMassList(ml);
+		}
+
+		// Add the new mass list
+		massLists.add(massList);
+
+		// Add the mass list to the tree model
+		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+				.getCurrentProject();
+		ProjectTreeModel treeModel = project.getTreeModel();
+		DefaultMutableTreeNode root = treeModel.getRoot();
+		Enumeration nodes = root.breadthFirstEnumeration();
+		while (nodes.hasMoreElements()) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+					.nextElement();
+			if (node.getUserObject() == this) {
+				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+						massList);
+				int index = massLists.size() - 1;
+				treeModel.insertNodeInto(newNode, node, index);
+				break;
+			}
+		}
+
+	}
+
+	@Override
+	public synchronized void removeMassList(MassList massList) {
+
+		massLists.remove(massList);
+
+		// Add the mass list to the tree model
+		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+				.getCurrentProject();
+		ProjectTreeModel treeModel = project.getTreeModel();
+
+		DefaultMutableTreeNode root = treeModel.getRoot();
+		Enumeration nodes = root.breadthFirstEnumeration();
+		while (nodes.hasMoreElements()) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+					.nextElement();
+			if (node.getUserObject() == massList) {
+				treeModel.removeNodeFromParent(node);
+				break;
+			}
+		}
+
+	}
+
+	@Override
+	public MassList[] getMassLists() {
+		return massLists.toArray(new MassList[0]);
+	}
+
+	@Override
+	public MassList getMassList(String name) {
+		for (MassList ml : massLists) {
+			if (ml.getName().equals(name))
+				return ml;
+		}
+		return null;
 	}
 
 }

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 
 import java.io.File;
+import java.util.Collection;
 
 import net.sf.mzmine.parameters.Parameter;
 
@@ -31,7 +32,7 @@ import org.w3c.dom.NodeList;
  * This parameter stores filenames for raw data importer
  * 
  */
-public class FileNamesParameter implements Parameter {
+public class FileNamesParameter implements Parameter<File[]> {
 
 	private File value[];
 	
@@ -76,6 +77,15 @@ public class FileNamesParameter implements Parameter {
 			newElement.setTextContent(f.getPath());
 			xmlElement.appendChild(newElement);
 		}
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add("File names are not set");
+			return false;
+		}
+		return true;
 	}
 
 }

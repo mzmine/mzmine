@@ -23,12 +23,16 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class PeakListTableParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
 			"Common columns", "Visible common columns",
@@ -46,8 +50,12 @@ public class PeakListTableParameters extends SimpleParameterSet {
 			PeakShapeNormalization.values());
 
 	public PeakListTableParameters() {
-		super(new UserParameter[] { commonColumns, dataFileColumns, rowHeight,
-				peakShapeNormalization });
+		super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
+				rowHeight, peakShapeNormalization });
+	}
+	
+	public ExitCode showSetupDialog() {
+		return ExitCode.OK;
 	}
 
 }

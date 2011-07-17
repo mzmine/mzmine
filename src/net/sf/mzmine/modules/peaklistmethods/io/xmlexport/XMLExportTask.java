@@ -52,14 +52,15 @@ public class XMLExportTask extends AbstractTask {
 	 * @param peakList
 	 * @param parameters
 	 */
-	public XMLExportTask(PeakList peakList, ParameterSet parameters) {
+	public XMLExportTask(ParameterSet parameters) {
 
-		fileName = parameters.getParameter(XMLExporterParameters.filename)
+		fileName = parameters.getParameter(XMLExportParameters.filename)
 				.getValue();
 		compression = parameters
-				.getParameter(XMLExporterParameters.compression).getValue();
+				.getParameter(XMLExportParameters.compression).getValue();
 
-		this.peakList = peakList;
+		this.peakList = parameters.getParameter(XMLExportParameters.peakList)
+				.getValue()[0];
 
 	}
 

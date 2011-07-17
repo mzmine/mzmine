@@ -16,19 +16,23 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter peakListName = new StringParameter(
 			"Peak list name", "Peak list name", "Aligned peak list");
@@ -69,14 +73,15 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			"If checked, only rows having same charge state can be aligned");
 
 	public ExitCode showSetupDialog() {
-		RansacAlignerSetupDialog dialog = new RansacAlignerSetupDialog(this, null);
+		RansacAlignerSetupDialog dialog = new RansacAlignerSetupDialog(this,
+				null);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
-	
+
 	public RansacAlignerParameters() {
-		super(new UserParameter[] { peakListName, MZTolerance, RTToleranceValueAbs,
-				RTTolerance, Iterations, NMinPoints, Margin, Linear,
-				SameChargeRequired });
+		super(new Parameter[] { peakLists, peakListName, MZTolerance,
+				RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints,
+				Margin, Linear, SameChargeRequired });
 	}
 }

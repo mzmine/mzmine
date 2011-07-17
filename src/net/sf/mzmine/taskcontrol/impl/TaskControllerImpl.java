@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
+import net.sf.mzmine.desktop.preferences.NumOfThreadsParameter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskControlListener;
@@ -178,13 +179,14 @@ public class TaskControllerImpl implements TaskController, Runnable {
 			// Get a snapshot of the queue
 			WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
 
-			MZminePreferences preferences = MZmineCore.getPreferences();
-			int maxRunningThreads = Runtime.getRuntime().availableProcessors();
-			if (preferences.getParameter(MZminePreferences.numOfThreads)
-					.isAutomatic()) {
-				maxRunningThreads = preferences.getParameter(
-						MZminePreferences.numOfThreads).getValue();
-			}
+			// Obtain the settings of max concurrent threads
+			NumOfThreadsParameter parameter = MZmineCore.getPreferences()
+					.getParameter(MZminePreferences.numOfThreads);
+			int maxRunningThreads;
+			if (parameter.isAutomatic() || (parameter.getValue() == null))
+				maxRunningThreads = Runtime.getRuntime().availableProcessors();
+			else
+				maxRunningThreads = parameter.getValue();
 
 			// Check all tasks in the queue
 			for (WrappedTask task : queueSnapshot) {

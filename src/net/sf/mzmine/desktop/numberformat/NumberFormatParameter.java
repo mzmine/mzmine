@@ -20,6 +20,7 @@
 package net.sf.mzmine.desktop.numberformat;
 
 import java.text.DecimalFormat;
+import java.util.Collection;
 
 import javax.swing.JTextField;
 
@@ -109,6 +110,11 @@ public class NumberFormatParameter implements
 	@Override
 	public void saveValueToXML(Element xmlElement) {
 		xmlElement.setTextContent(value.toPattern());
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		return true;
 	}
 
 }

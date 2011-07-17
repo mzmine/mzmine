@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -152,4 +154,15 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
 			xmlElement.appendChild(newElement);
 		}
 	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		ParameterSet moduleParameters = value.getParameterSet();
+		return moduleParameters.checkParameterValues(errorMessages);
+	}
+
 }

@@ -21,13 +21,20 @@ package net.sf.mzmine.modules.visualization.histogram;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class HistogramParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakList = new PeakListsParameter(1,
+			1);
 
 	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
 			"Raw data files", "Column of peaks to be plotted",
@@ -40,7 +47,20 @@ public class HistogramParameters extends SimpleParameterSet {
 			NumberFormat.getIntegerInstance());
 
 	public HistogramParameters() {
-		super(new UserParameter[] { dataFiles, dataRange, numOfBins });
+		super(new Parameter[] { peakList, dataFiles, dataRange, numOfBins });
+	}
+
+	public ExitCode showSetupDialog() {
+		PeakList selectedPeaklists[] = getParameter(
+				HistogramParameters.peakList).getValue();
+		RawDataFile dataFiles[];
+		if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
+			dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+		} else {
+			dataFiles = selectedPeaklists[0].getRawDataFiles();
+		}
+		getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
+		return super.showSetupDialog();
 	}
 
 }

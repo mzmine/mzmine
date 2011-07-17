@@ -22,18 +22,16 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.LinkedList;
+import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskPriority;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -43,10 +41,11 @@ import org.jfree.data.xy.XYDataset;
 /**
  * 
  */
-class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGenerator {
+class NeutralLossDataSet extends AbstractXYDataset implements Task,
+		XYToolTipGenerator {
 
 	private RawDataFile rawDataFile;
-	private LinkedList <TaskListener> taskListeners = new LinkedList<TaskListener>( );
+	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 
 	private Range totalMZRange;
 	private int numOfFragments;
@@ -55,10 +54,10 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
 	private TaskStatus status = TaskStatus.WAITING;
 
-	private HashMap<Integer,Vector<NeutralLossDataPoint>> dataSeries;
+	private HashMap<Integer, Vector<NeutralLossDataPoint>> dataSeries;
 
 	private NeutralLossVisualizerWindow visualizer;
-	
+
 	private static int RAW_LEVEL = 0;
 	private static int PRECURSOR_LEVEL = 1;
 	private static int NEUTRALLOSS_LEVEL = 2;
@@ -76,16 +75,16 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
 		// get MS/MS scans
 		scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
-		
+
 		totalScans = scanNumbers.length;
 
-		dataSeries = new HashMap<Integer,Vector<NeutralLossDataPoint>>();
-		
-		dataSeries.put(RAW_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
-		dataSeries.put(PRECURSOR_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
-		dataSeries.put(NEUTRALLOSS_LEVEL,new Vector<NeutralLossDataPoint>(totalScans));
+		dataSeries = new HashMap<Integer, Vector<NeutralLossDataPoint>>();
 
-		MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
+		dataSeries.put(RAW_LEVEL, new Vector<NeutralLossDataPoint>(totalScans));
+		dataSeries.put(PRECURSOR_LEVEL, new Vector<NeutralLossDataPoint>(
+				totalScans));
+		dataSeries.put(NEUTRALLOSS_LEVEL, new Vector<NeutralLossDataPoint>(
+				totalScans));
 
 	}
 
@@ -93,21 +92,20 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
      */
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		processedScans = 0;
 
 		for (int scanNumber : scanNumbers) {
 
 			// Cancel?
-			if ( status == TaskStatus.CANCELED)
+			if (status == TaskStatus.CANCELED)
 				return;
 
 			Scan scan = rawDataFile.getScan(scanNumber);
 
 			// check parent m/z
 			if (!totalMZRange.contains(scan.getPrecursorMZ())) {
-				setStatus( TaskStatus.ERROR );
-				return;
+				continue;
 			}
 
 			// get m/z and intensity values
@@ -146,9 +144,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 					}
 				}
 
-
 			}
-
 
 			// add the data points
 			for (int i = 0; i < topPeaks.length; i++) {
@@ -161,8 +157,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
 				NeutralLossDataPoint newPoint = new NeutralLossDataPoint(
 						scanDataPoints[peakIndex].getMZ(),
-						scan.getScanNumber(), scan.getParentScanNumber(), scan
-								.getPrecursorMZ(), scan.getPrecursorCharge(),
+						scan.getScanNumber(), scan.getParentScanNumber(),
+						scan.getPrecursorMZ(), scan.getPrecursorCharge(),
 						scan.getRetentionTime());
 
 				dataSeries.get(0).add(newPoint);
@@ -171,42 +167,39 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 
 			processedScans++;
 
-		
 		}
 
-		setStatus( TaskStatus.FINISHED );
 		fireDatasetChanged();
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
 	public void updateOnRangeDataPoints(String rangeType) {
-		
+
 		NeutralLossPlot plot = visualizer.getPlot();
 		Range prRange = plot.getHighlightedPrecursorRange();
 		Range nlRange = plot.getHighlightedNeutralLossRange();
-		
-		//Set type of search
+
+		// Set type of search
 		int level = NEUTRALLOSS_LEVEL;
-        if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
-        	level = PRECURSOR_LEVEL;
-        
-        // Clean previous selection
-        dataSeries.get(level).clear();
-		
-		
+		if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+			level = PRECURSOR_LEVEL;
+
+		// Clean previous selection
+		dataSeries.get(level).clear();
+
 		NeutralLossDataPoint point;
 		boolean b = false;
-		for (int i=0; i<dataSeries.get(RAW_LEVEL).size(); i++){
+		for (int i = 0; i < dataSeries.get(RAW_LEVEL).size(); i++) {
 			point = dataSeries.get(RAW_LEVEL).get(i);
-			//Verify if the point is on range
-	        if (level == PRECURSOR_LEVEL)
-	        	b = prRange.contains(point.getPrecursorMass());
-	        else
-	        	b = nlRange.contains(point.getNeutralLoss());
-	        if (b)
+			// Verify if the point is on range
+			if (level == PRECURSOR_LEVEL)
+				b = prRange.contains(point.getPrecursorMass());
+			else
+				b = nlRange.contains(point.getNeutralLoss());
+			if (b)
 				dataSeries.get(level).add(point);
 		}
-		
 
 		fireDatasetChanged();
 	}
@@ -222,7 +215,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	 * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
 	 */
 	public Comparable getSeriesKey(int series) {
-		return rawDataFile.toString();
+		return series;
 	}
 
 	/**
@@ -237,14 +230,13 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	 */
 	public Number getX(int series, int item) {
 		NeutralLossDataPoint point = dataSeries.get(series).get(item);
-		if (xAxisType == NeutralLossParameters.xAxisPrecursor){
+		if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
 			int charge = point.getPrecursorCharge();
 			if (charge == 0)
 				charge = 1;
 			double mz = point.getPrecursorMass();
 			return (mz * charge);
-		}
-		else
+		} else
 			return point.getRetentionTime();
 
 	}
@@ -290,7 +282,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	}
 
 	public void cancel() {
-		setStatus( TaskStatus.CANCELED );
+		setStatus(TaskStatus.CANCELED);
 	}
 
 	public String getErrorMessage() {
@@ -319,10 +311,11 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	/**
 	 * Adds a TaskListener to this Task
 	 * 
-	 * @param t The TaskListener to add
+	 * @param t
+	 *            The TaskListener to add
 	 */
-	public void addTaskListener( TaskListener t ) {
-		this.taskListeners.add( t );
+	public void addTaskListener(TaskListener t) {
+		this.taskListeners.add(t);
 	}
 
 	/**
@@ -330,30 +323,28 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task, XYToolTipGen
 	 * 
 	 * @return An array containing the TaskListeners
 	 */
-	public TaskListener[] getTaskListeners( ) {
-		return this.taskListeners.toArray( new TaskListener[ this.taskListeners.size( )]);
+	public TaskListener[] getTaskListeners() {
+		return this.taskListeners.toArray(new TaskListener[this.taskListeners
+				.size()]);
 	}
 
-	private void fireTaskEvent( ) {
-		TaskEvent event = new TaskEvent( this );
-		for( TaskListener t : this.taskListeners ) {
-			t.statusChanged( event );
+	private void fireTaskEvent() {
+		TaskEvent event = new TaskEvent(this);
+		for (TaskListener t : this.taskListeners) {
+			t.statusChanged(event);
 		}
 	}
 
 	/**
 	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
 	 */
-	public void setStatus( TaskStatus newStatus ) {
+	public void setStatus(TaskStatus newStatus) {
 		this.status = newStatus;
-		this.fireTaskEvent( );
+		this.fireTaskEvent();
 	}
 
-	public boolean isCanceled( ) {
+	public boolean isCanceled() {
 		return status == TaskStatus.CANCELED;
 	}
 
-	public boolean isFinished( ) {
-		return status == TaskStatus.FINISHED;
-	}
 }

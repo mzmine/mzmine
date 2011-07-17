@@ -22,7 +22,6 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -37,18 +36,17 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.TreeModel;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.desktop.MZmineMenu;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.TextUtils;
 
@@ -57,7 +55,7 @@ import net.sf.mzmine.util.TextUtils;
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-		WindowListener, ProjectListener {
+		WindowListener {
 
 	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html";
 
@@ -125,11 +123,20 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	}
 
 	public void displayMessage(String title, String msg, int type) {
-		String wrappedMsg = TextUtils.wrapText(msg, 80);
+
+		assert msg != null;
+		
+		// If the message does not contain newline characters, wrap it automatically
+		String wrappedMsg;
+		if (msg.contains("\n"))
+			wrappedMsg = msg;
+		else
+			wrappedMsg = TextUtils.wrapText(msg, 80);
+
 		JOptionPane.showMessageDialog(this, wrappedMsg, title, type);
 	}
 
-	public void addMenuItem(MZmineMenu parentMenu, JMenuItem newItem) {
+	public void addMenuItem(MZmineModuleCategory parentMenu, JMenuItem newItem) {
 		menuBar.addMenuItem(parentMenu, newItem);
 	}
 
@@ -186,11 +193,9 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 		updateTitle();
 
-		MZmineCore.getProjectManager().addProjectListener(this);
-
 	}
 
-	void updateTitle() {
+	public void updateTitle() {
 		String projectName = MZmineCore.getCurrentProject().toString();
 		setTitle("MZmine " + MZmineCore.getMZmineVersion() + ": " + projectName);
 	}
@@ -200,18 +205,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	 */
 	public JFrame getMainFrame() {
 		return this;
-	}
-
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#addMenuItem(net.sf.mzmine.desktop.Desktop.BatchStepCategory,
-	 *      java.lang.String, java.awt.event.ActionListener, java.lang.String,
-	 *      int, boolean, boolean)
-	 */
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			String toolTip, int mnemonic, boolean setAccelerator,
-			ActionListener listener, String actionCommand) {
-		return menuBar.addMenuItem(parentMenu, text, toolTip, mnemonic,
-				setAccelerator, listener, actionCommand);
 	}
 
 	/**
@@ -235,26 +228,11 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		return null;
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public void setParameters(ParameterSet parameterValues) {
-	}
-
-	public void projectModified(ProjectEvent event) {
-		// Modify the GUI in the event dispatching thread
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				updateTitle();
-			}
-		});
-	}
-
 	public void displayException(Exception e) {
 		displayErrorMessage(ExceptionUtils.exceptionToString(e));
 	}
 
-	MainPanel getMainPanel() {
+	public MainPanel getMainPanel() {
 		return mainPanel;
 	}
 
@@ -276,6 +254,18 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		hs.setHomeID(aboutHelpID);
 
 		hb.setDisplayed(true);
+	}
+
+	@Override
+	public void addProjectTreeListener(TreeModelListener listener) {
+		TreeModel model = getMainPanel().getProjectTree().getModel();
+		model.addTreeModelListener(listener);
+	}
+
+	@Override
+	public void removeProjectTreeListener(TreeModelListener listener) {
+		TreeModel model = getMainPanel().getProjectTree().getModel();
+		model.removeTreeModelListener(listener);
 	}
 
 }

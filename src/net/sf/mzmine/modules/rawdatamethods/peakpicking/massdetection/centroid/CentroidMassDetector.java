@@ -22,20 +22,21 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid;
 import java.util.ArrayList;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 
 public class CentroidMassDetector implements MassDetector {
 
-	private ParameterSet parameters;
+	private ParameterSet moduleParameters;
 
 	public CentroidMassDetector() {
-		parameters = new CentroidMassDetectorParameters(this);
+		moduleParameters = new CentroidMassDetectorParameters();
 	}
 
-	public MzPeak[] getMassValues(Scan scan) {
+	public MzPeak[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
 				CentroidMassDetectorParameters.noiseLevel).getDouble();
@@ -50,15 +51,13 @@ public class CentroidMassDetector implements MassDetector {
 			// Is intensity above the noise level?
 			if (dataPoints[j].getIntensity() >= noiseLevel) {
 				// Yes, then mark this index as mzPeak
-				mzPeaks.add(new MzPeak(dataPoints[j]));
+				mzPeaks.add(new SimpleMzPeak(dataPoints[j]));
 			}
 		}
 		return mzPeaks.toArray(new MzPeak[0]);
 	}
 
-	public ParameterSet getParameters() {
-		return parameters;
-	}
+
 
 	public String toString() {
 		return "Centroid";
@@ -66,7 +65,7 @@ public class CentroidMassDetector implements MassDetector {
 
 	@Override
 	public ParameterSet getParameterSet() {
-		return parameters;
+		return moduleParameters;
 	}
 
 }

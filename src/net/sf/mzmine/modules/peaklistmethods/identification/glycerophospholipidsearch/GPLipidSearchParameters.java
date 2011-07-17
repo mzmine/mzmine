@@ -16,19 +16,23 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class GPLipidSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final MultiChoiceParameter<GPLipidType> lipidTypes = new MultiChoiceParameter<GPLipidType>(
 			"Type of lipids", "Selection of glycerophospholipis to consider",
@@ -59,8 +63,8 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 			IonizationType.values());
 
 	public GPLipidSearchParameters() {
-		super(new UserParameter[] { lipidTypes, minChainLength, maxChainLength,
-				maxDoubleBonds, mzTolerance, ionizationMethod });
+		super(new Parameter[] { peakLists, lipidTypes, minChainLength,
+				maxChainLength, maxDoubleBonds, mzTolerance, ionizationMethod });
 	}
 
 }

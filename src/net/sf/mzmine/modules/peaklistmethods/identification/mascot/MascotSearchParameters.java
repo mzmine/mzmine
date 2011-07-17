@@ -21,16 +21,19 @@ package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class MascotSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter urlAddress = new StringParameter(
 			"Mascot Server address, http://",
 			"URL address where the Mascot Server is installed", "127.0.0.1");
 
 	public MascotSearchParameters() {
-		super(new Parameter[] { urlAddress });
+		super(new Parameter[] { peakLists, urlAddress });
 	}
 
 }

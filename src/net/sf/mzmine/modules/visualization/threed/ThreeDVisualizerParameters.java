@@ -20,22 +20,29 @@
 package net.sf.mzmine.modules.visualization.threed;
 
 import java.text.NumberFormat;
+import java.util.Hashtable;
 
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RawDataFileUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 3D visualizer parameter set
  */
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
-	public static final ComboParameter<Integer> msLevel = new ComboParameter<Integer>(
-			"MS level", "MS level of plotted scans",
-			new Integer[0]);
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+
+	public static final MSLevelParameter msLevel = new MSLevelParameter();
 
 	public static final RangeParameter retentionTimeRange = new RangeParameter(
 			"Retention time", "Retention time (X axis) range",
@@ -54,8 +61,23 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
 			NumberFormat.getIntegerInstance());
 
 	public ThreeDVisualizerParameters() {
-		super(new UserParameter[] { msLevel, retentionTimeRange, rtResolution,
-				mzRange, mzResolution });
+		super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
+				rtResolution, mzRange, mzResolution });
 	}
 
+	public ExitCode showSetupDialog() {
+		Hashtable<UserParameter, Object> autoValues = null;
+		RawDataFile selectedFiles[] = getParameter(
+				ThreeDVisualizerParameters.dataFiles).getValue();
+		if ((selectedFiles != null) && (selectedFiles.length > 0)) {
+			autoValues = new Hashtable<UserParameter, Object>();
+			autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
+			Range rtRange = RawDataFileUtils.findTotalRTRange(selectedFiles, 1);
+			Range mzRange = RawDataFileUtils.findTotalMZRange(selectedFiles, 1);
+			autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
+					rtRange);
+			autoValues.put(ThreeDVisualizerParameters.mzRange, mzRange);
+		}
+		return super.showSetupDialog(autoValues);
+	}
 }

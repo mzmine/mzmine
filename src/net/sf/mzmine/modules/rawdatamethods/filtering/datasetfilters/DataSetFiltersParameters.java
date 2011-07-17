@@ -20,15 +20,18 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper.CropFilter;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DataSetFiltersParameters extends SimpleParameterSet {
 
 	public static final RawDataSetFilter rawDataFilters[] = { new CropFilter() };
+
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final StringParameter suffix = new StringParameter("Suffix",
 			"This string is added to filename as suffix", "filtered");
@@ -41,7 +44,7 @@ public class DataSetFiltersParameters extends SimpleParameterSet {
 			"If checked, original file will be removed and only filtered version remains");
 
 	public DataSetFiltersParameters() {
-		super(new UserParameter[] { suffix, filter, autoRemove });
+		super(new Parameter[] { dataFiles, suffix, filter, autoRemove });
 	}
 
 }

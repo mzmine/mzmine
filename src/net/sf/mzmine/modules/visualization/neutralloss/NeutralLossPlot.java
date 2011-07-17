@@ -102,7 +102,7 @@ class NeutralLossPlot extends ChartPanel {
 
         // set the X axis (retention time) properties
         NumberAxis xAxis;
-        if (xAxisType == NeutralLossParameters.xAxisPrecursor) {
+        if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
             xAxis = new NumberAxis("Precursor mass");
             xAxis.setNumberFormatOverride(mzFormat);
         } else {

@@ -22,11 +22,14 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.msms;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 
 public class MsMsPeakPickerParameters extends SimpleParameterSet {
+
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final NumberParameter mzWindow = new NumberParameter(
 			"m/z window", "m/z window for peak search",
@@ -40,7 +43,7 @@ public class MsMsPeakPickerParameters extends SimpleParameterSet {
 			NumberFormat.getIntegerInstance(), 1);
 
 	public MsMsPeakPickerParameters() {
-		super(new UserParameter[] { mzWindow, rtWindow, msLevel });
+		super(new Parameter[] { dataFiles, mzWindow, rtWindow, msLevel });
 	}
 
 }

@@ -21,14 +21,17 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class ShapeModelerParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final ComboParameter<ShapeModel> shapeModelerType = new ComboParameter<ShapeModel>(
 			"Shape model", "This value defines the type of shape model",
@@ -48,8 +51,8 @@ public class ShapeModelerParameters extends SimpleParameterSet {
 			"If checked, original peak list will be removed and only resolved version remains");
 
 	public ShapeModelerParameters() {
-		super(new UserParameter[] { suffix, massResolution, shapeModelerType,
-				autoRemove });
+		super(new Parameter[] { peakLists, suffix, massResolution,
+				shapeModelerType, autoRemove });
 	}
 
 }

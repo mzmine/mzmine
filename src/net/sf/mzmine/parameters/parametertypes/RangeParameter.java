@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.text.NumberFormat;
+import java.util.Collection;
 
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.Range;
@@ -124,6 +125,15 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 		newElement = parentDocument.createElement("max");
 		newElement.setTextContent(String.valueOf(value.getMax()));
 		xmlElement.appendChild(newElement);
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

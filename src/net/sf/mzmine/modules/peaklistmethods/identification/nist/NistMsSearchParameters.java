@@ -23,66 +23,67 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
-
-import java.text.NumberFormat;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 /**
  * Holds NIST MS Search parameters.
- *
+ * 
  * @author $Author: cpudney $
  * @version $Revision: 2369 $
  */
-public class NistMsSearchParameters
-        extends SimpleParameterSet {
+public class NistMsSearchParameters extends SimpleParameterSet {
 
-    /**
-     * Ionization method.
-     */
-    public static final ComboParameter<IonizationType> IONIZATION_METHOD =
-            new ComboParameter<IonizationType>("Ionization method",
-                                               "Type of ion used to calculate the neutral mass",
-                                               IonizationType.values());
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    /**
-     * Spectrum RT width.
-     */
-    public static final NumberParameter SPECTRUM_RT_WIDTH =
-            new NumberParameter("Spectrum RT tolerance",
-                                "When forming a search spectrum for a given peak, include all other detected peaks whose RT is within the specified tolerance of the given peak",
-                                MZmineCore.getRTFormat(),
-                                3.0);
-    // TODO min=0.0
+	/**
+	 * Ionization method.
+	 */
+	public static final ComboParameter<IonizationType> IONIZATION_METHOD = new ComboParameter<IonizationType>(
+			"Ionization method",
+			"Type of ion used to calculate the neutral mass",
+			IonizationType.values());
 
-    /**
-     * Match factor cut-off.
-     */
-    public static final NumberParameter MIN_MATCH_FACTOR =
-            new NumberParameter("Min. match factor",
-                                "Search hits with match factors below this value are ignored.",
-                                NumberFormat.getNumberInstance(),
-                                800);
-    // TODO min=0, max=1000
+	/**
+	 * Spectrum RT width.
+	 */
+	public static final NumberParameter SPECTRUM_RT_WIDTH = new NumberParameter(
+			"Spectrum RT tolerance",
+			"When forming a search spectrum for a given peak, include all other detected peaks whose RT is within the specified tolerance of the given peak",
+			MZmineCore.getRTFormat(), 3.0);
+	// TODO min=0.0
 
-    /**
-     * Match factor cut-off.
-     */
-    public static final NumberParameter MIN_REVERSE_MATCH_FACTOR =
-            new NumberParameter("Min. reverse match factor",
-                                "Search hits with reverse match factors below this value are ignored.",
-                                NumberFormat.getNumberInstance(),
-                                800);
-    // TODO min=0, max=1000
+	/**
+	 * Match factor cut-off.
+	 */
+	public static final NumberParameter MIN_MATCH_FACTOR = new NumberParameter(
+			"Min. match factor",
+			"Search hits with match factors below this value are ignored.",
+			NumberFormat.getNumberInstance(), 800);
+	// TODO min=0, max=1000
 
-    /**
-     * Construct the parameter set.
-     */
-    public NistMsSearchParameters() {
-        super(new Parameter[]{IONIZATION_METHOD, SPECTRUM_RT_WIDTH, MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR});
-    }
+	/**
+	 * Match factor cut-off.
+	 */
+	public static final NumberParameter MIN_REVERSE_MATCH_FACTOR = new NumberParameter(
+			"Min. reverse match factor",
+			"Search hits with reverse match factors below this value are ignored.",
+			NumberFormat.getNumberInstance(), 800);
+
+	// TODO min=0, max=1000
+
+	/**
+	 * Construct the parameter set.
+	 */
+	public NistMsSearchParameters() {
+		super(new Parameter[] { peakLists, IONIZATION_METHOD,
+				SPECTRUM_RT_WIDTH, MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR });
+	}
 }

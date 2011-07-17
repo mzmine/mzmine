@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import net.sf.mzmine.parameters.ParameterSet;
+
 import org.jfree.chart.labels.XYZToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYZDataset;
@@ -33,7 +35,7 @@ public class ProjectionPlotToolTipGenerator implements XYZToolTipGenerator {
 
 	private LabelMode labelMode;
 
-	ProjectionPlotToolTipGenerator(ProjectionPlotParameters parameters) {
+	ProjectionPlotToolTipGenerator(ParameterSet parameters) {
                 try{
                         coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();

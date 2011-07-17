@@ -19,13 +19,16 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import java.util.ArrayList;
+
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.MzPeaksDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
@@ -36,19 +39,25 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 public class MassDetectorSetupDialog extends
 		ParameterSetupDialogWithScanPreview {
 
-	// Mass Detector;
 	private MassDetector massDetector;
+	private ParameterSet parameters;
 
 	/**
 	 * @param parameters
 	 * @param massDetectorTypeNumber
 	 */
-	public MassDetectorSetupDialog(MassDetector massDetector) {
+	public MassDetectorSetupDialog(Class massDetectorClass,
+			ParameterSet parameters, String helpID) {
 
-		super(massDetector.getParameterSet(), null);
+		super(parameters, helpID);
 
-		this.massDetector = massDetector;
+		this.parameters = parameters;
 
+		for (MassDetector detector : MassDetectionParameters.massDetectors) {
+			if (detector.getClass().equals(massDetectorClass)) {
+				this.massDetector = detector;
+			}
+		}
 	}
 
 	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
@@ -63,14 +72,21 @@ public class MassDetectorSetupDialog extends
 			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
 		}
 
-		MzPeak[] mzValues = massDetector.getMassValues(previewScan);
+		spectrumPlot.removeAllDataSets();
+		spectrumPlot.addDataSet(spectraDataSet,
+				SpectraVisualizerWindow.scanColor, false);
+
+		// If there is some illegal value, do not load the preview but just exit
+		ArrayList<String> errorMessages = new ArrayList<String>();
+		boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+		if (!paramsOK)
+			return;
+
+		MzPeak[] mzValues = massDetector.getMassValues(previewScan, parameters);
 
 		MzPeaksDataSet peaksDataSet = new MzPeaksDataSet("Detected peaks",
 				mzValues);
 
-		spectrumPlot.removeAllDataSets();
-		spectrumPlot.addDataSet(spectraDataSet,
-				SpectraVisualizerWindow.scanColor, false);
 		spectrumPlot.addDataSet(peaksDataSet,
 				SpectraVisualizerWindow.peaksColor, false);
 

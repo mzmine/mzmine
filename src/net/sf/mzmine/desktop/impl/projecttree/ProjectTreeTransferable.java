@@ -24,53 +24,27 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import javax.swing.tree.TreePath;
 
 /**
  * Drag and drop transfer handler for project JTree
  */
 class ProjectTreeTransferable implements Transferable {
 
-	private DataFlavor transferFlavor;
-	private Object transferObject;
-
-	ProjectTreeTransferable(RawDataFile rawDataFiles[]) {
-		this.transferObject = rawDataFiles;
-		try {
-			this.transferFlavor = new DataFlavor(
-					DataFlavor.javaJVMLocalObjectMimeType + ";class=\""
-							+ RawDataFile[].class.getName() + "\"");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
-	ProjectTreeTransferable(PeakList peakLists[]) {
-		this.transferObject = peakLists;
-		try {
-			this.transferFlavor = new DataFlavor(
-					DataFlavor.javaJVMLocalObjectMimeType + ";class=\""
-							+ PeakList[].class.getName() + "\"");
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-
+	public static final DataFlavor transerFlavor = new DataFlavor(
+			TreePath[].class, "TreePath[]");
+	
 	public Object getTransferData(DataFlavor flavor)
 			throws UnsupportedFlavorException, IOException {
-		if (!flavor.equals(transferFlavor)) {
-			throw (new UnsupportedFlavorException(flavor));
-		}
-		return transferObject;
+		return null;
 	}
 
 	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { transferFlavor };
+		return new DataFlavor[] { transerFlavor };
 	}
 
 	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return (flavor.equals(transferFlavor));
+		return (flavor.equals(transerFlavor));
 	}
 
 }

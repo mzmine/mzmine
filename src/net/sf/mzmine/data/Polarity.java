@@ -21,9 +21,7 @@ package net.sf.mzmine.data;
 
 public enum Polarity {
 
-	Positive(+1), 
-	Negative(-1),
-	Neutral(0);
+	Positive(+1), Negative(-1), Neutral(0);
 
 	private final int sign;
 

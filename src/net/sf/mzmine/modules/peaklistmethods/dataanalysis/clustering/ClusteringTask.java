@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import figs.treeVisualization.TreeViewJ;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,18 +35,22 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotDataset;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotParameters;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotWindow;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
 import net.sf.mzmine.util.PeakMeasurementType;
+
 import org.jfree.data.xy.AbstractXYDataset;
+
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SparseInstance;
+import figs.treeVisualization.TreeViewJ;
 
 public class ClusteringTask extends AbstractXYDataset implements
         ProjectionPlotDataset {
@@ -56,7 +59,7 @@ public class ClusteringTask extends AbstractXYDataset implements
         private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
         private double[] component1Coords;
         private double[] component2Coords;
-        private ClusteringParameters parameters;
+        private ParameterSet parameters;
         private RawDataFile[] selectedRawDataFiles;
         private PeakListRow[] selectedRows;
         private int[] groupsForSelectedRawDataFiles, groupsForSelectedVariables;
@@ -73,12 +76,12 @@ public class ClusteringTask extends AbstractXYDataset implements
         private Instances dataset;
         private int progress;
 
-        public ClusteringTask(ClusteringParameters parameters, RawDataFile[] selectedRawDataFiles, PeakListRow[] selectedRows) {
+        public ClusteringTask(ParameterSet parameters) {
 
                 this.parameters = parameters;
 
-                this.selectedRawDataFiles = selectedRawDataFiles;
-                this.selectedRows = selectedRows;
+                this.selectedRawDataFiles = parameters.getParameter(ProjectionPlotParameters.dataFiles).getValue();
+                this.selectedRows = parameters.getParameter(ProjectionPlotParameters.rows).getValue();
                 clusteringAlgorithm = parameters.getParameter(ClusteringParameters.clusteringAlgorithm).getValue();
                 typeOfData = parameters.getParameter(ClusteringParameters.typeOfData).getValue();
 
@@ -295,10 +298,10 @@ public class ClusteringTask extends AbstractXYDataset implements
         private double[][] createMatrix(boolean isForSamples) {
                 // Generate matrix of raw data (input to CDA)
                 boolean useArea = true;
-                if (parameters.getParameter(ClusteringParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA) {
+                if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.AREA) {
                         useArea = true;
                 }
-                if (parameters.getParameter(ClusteringParameters.peakMeasurementType).getValue() == PeakMeasurementType.HEIGHT) {
+                if (parameters.getParameter(ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.HEIGHT) {
                         useArea = false;
                 }
                 double[][] rawData;

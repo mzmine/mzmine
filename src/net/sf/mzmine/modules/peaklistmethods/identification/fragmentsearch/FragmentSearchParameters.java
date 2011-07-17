@@ -16,18 +16,22 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 
 public class FragmentSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
@@ -46,8 +50,8 @@ public class FragmentSearchParameters extends SimpleParameterSet {
 			MZmineCore.getIntensityFormat());
 
 	public FragmentSearchParameters() {
-		super(new UserParameter[] { rtTolerance, ms2mzTolerance, maxFragmentHeight,
-				minMS2peakHeight });
+		super(new Parameter[] { peakLists, rtTolerance, ms2mzTolerance,
+				maxFragmentHeight, minMS2peakHeight });
 	}
 
 }

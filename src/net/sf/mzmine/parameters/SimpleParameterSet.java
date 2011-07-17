@@ -19,12 +19,15 @@
 
 package net.sf.mzmine.parameters;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 import org.w3c.dom.Document;
@@ -42,14 +45,10 @@ public class SimpleParameterSet implements ParameterSet {
 	private static final String parameterElement = "parameter";
 	private static final String nameAttribute = "name";
 
-	private Parameter parameters[];
+	private Parameter<?> parameters[];
 
 	public SimpleParameterSet(Parameter parameters[]) {
-		// Create a copy rather than reference
-		this.parameters = new Parameter[parameters.length];
-		for (int i = 0; i < parameters.length; i++) {
-			this.parameters[i] = parameters[i].clone();
-		}
+		this.parameters = parameters;
 	}
 
 	public Parameter[] getParameters() {
@@ -90,14 +89,23 @@ public class SimpleParameterSet implements ParameterSet {
 	 * Represent method's parameters and their values in human-readable format
 	 */
 	public String toString() {
+
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < parameters.length; i++) {
-			if (!(parameters[i] instanceof UserParameter))
+
+			Parameter param = parameters[i];
+			Object value = param.getValue();
+
+			if (value == null)
 				continue;
-			UserParameter up = (UserParameter) parameters[i];
-			s.append(up.getName());
+
+			s.append(param.getName());
 			s.append(": ");
-			s.append(up.getValue());
+			if (value.getClass().isArray()) {
+				s.append(Arrays.toString((Object[]) value));
+			} else {
+				s.append(value.toString());
+			}
 			if (i < parameters.length - 1)
 				s.append(", ");
 		}
@@ -108,12 +116,26 @@ public class SimpleParameterSet implements ParameterSet {
 	 * Make a deep copy
 	 */
 	public ParameterSet clone() {
+
+		// Make a deep copy of the parameters
 		Parameter newParameters[] = new Parameter[parameters.length];
 		for (int i = 0; i < parameters.length; i++) {
 			newParameters[i] = parameters[i].clone();
 		}
-		SimpleParameterSet copy = new SimpleParameterSet(newParameters);
-		return copy;
+
+		try {
+			// Do not make a new instance of SimpleParameterSet, but instead
+			// clone the runtime class of this instance - runtime type may be
+			// inherited class. This is important in order to keep the proper
+			// behavior of showSetupDialog() method for cloned classes
+
+			SimpleParameterSet newSet = this.getClass().newInstance();
+			newSet.parameters = newParameters;
+			return newSet;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,16 +150,26 @@ public class SimpleParameterSet implements ParameterSet {
 
 	@Override
 	public ExitCode showSetupDialog() {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(this);
+		return showSetupDialog(null);
+	}
+
+	protected ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
+		String helpID = GUIUtils.generateHelpID(this);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(this,
+				autoValues, helpID);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
 
 	@Override
-	public ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
-		ParameterSetupDialog dialog = new ParameterSetupDialog(this, autoValues);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
+	public boolean checkParameterValues(Collection<String> errorMessages) {
+		boolean allParametersOK = true;
+		for (Parameter<?> p : parameters) {
+			boolean pOK = p.checkValue(errorMessages);
+			if (!pOK)
+				allParametersOK = false;
+		}
+		return allParametersOK;
 	}
 
 }

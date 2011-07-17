@@ -20,13 +20,18 @@
 package net.sf.mzmine.modules.visualization.neutralloss;
 
 import java.text.NumberFormat;
+import java.util.Hashtable;
 
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class NeutralLossParameters extends SimpleParameterSet {
 
@@ -34,6 +39,8 @@ public class NeutralLossParameters extends SimpleParameterSet {
 	public static final String xAxisRT = "Retention time";
 
 	public static final String[] xAxisTypes = { xAxisPrecursor, xAxisRT };
+
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final ComboParameter<String> xAxisType = new ComboParameter<String>(
 			"X axis", "X axis type", xAxisTypes);
@@ -51,8 +58,26 @@ public class NeutralLossParameters extends SimpleParameterSet {
 			NumberFormat.getIntegerInstance());
 
 	public NeutralLossParameters() {
-		super(new UserParameter[] { xAxisType, retentionTimeRange, mzRange,
-				numOfFragments });
+		super(new Parameter[] { dataFiles, xAxisType, retentionTimeRange,
+				mzRange, numOfFragments });
+	}
+
+	public ExitCode showSetupDialog() {
+
+		RawDataFile selectedFiles[] = getParameter(
+				NeutralLossParameters.dataFiles).getValue();
+
+		if ((selectedFiles == null) || (selectedFiles.length == 0))
+			return super.showSetupDialog();
+
+		Hashtable<UserParameter, Object> autoValues = new Hashtable<UserParameter, Object>();
+
+		autoValues.put(NeutralLossParameters.retentionTimeRange,
+				selectedFiles[0].getDataRTRange(2));
+		autoValues.put(NeutralLossParameters.mzRange,
+				selectedFiles[0].getDataMZRange(1));
+
+		return super.showSetupDialog(autoValues);
 	}
 
 }

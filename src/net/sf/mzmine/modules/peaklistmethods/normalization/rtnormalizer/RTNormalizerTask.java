@@ -54,10 +54,10 @@ class RTNormalizerTask extends AbstractTask {
 	private boolean removeOriginal;
 	private ParameterSet parameters;
 
-	public RTNormalizerTask(PeakList[] peakLists,
-			ParameterSet parameters) {
+	public RTNormalizerTask(ParameterSet parameters) {
 
-		this.originalPeakLists = peakLists;
+		this.originalPeakLists = parameters.getParameter(
+				RTNormalizerParameters.peakLists).getValue();
 		this.parameters = parameters;
 
 		suffix = parameters.getParameter(RTNormalizerParameters.suffix)

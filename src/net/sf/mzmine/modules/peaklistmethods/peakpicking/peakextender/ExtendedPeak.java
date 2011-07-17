@@ -6,12 +6,13 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.Range;
@@ -170,7 +171,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 		height = Double.MIN_VALUE;
 		for (int i = 0; i < allScanNumbers.length; i++) {
 
-			MzPeak mzPeak = (MzPeak) dataPointsMap.get(allScanNumbers[i]);
+			MzPeak mzPeak = (SimpleMzPeak) dataPointsMap.get(allScanNumbers[i]);
 
 			// Replace the MzPeak instance with an instance of SimpleDataPoint,
 			// to reduce the memory usage. After we finish this extended peak, we

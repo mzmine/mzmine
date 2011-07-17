@@ -20,11 +20,10 @@
 package net.sf.mzmine.desktop;
 
 import java.awt.Color;
-import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenuItem;
+import javax.swing.event.TreeModelListener;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
@@ -43,20 +42,7 @@ public interface Desktop extends MZmineModule {
      */
     public JFrame getMainFrame();
 
-    /**
-     * Creates a new menu item in the main application menu.
-     * 
-     * @param parentMenu MZmineMenu where to create the new item
-     * @param text Item text
-     * @param toolTip Item's tooltip
-     * @param mnemonic Item's keyboard shortcut
-     * @param listener ActionListener to receive the new menu item's events
-     * @param actionCommand Action command for action listener or null
-     * @return Newly created JMenuItem
-     */
-    public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-            String toolTip, int mnemonic, boolean setAccelerator,
-            ActionListener listener, String actionCommand);
+
 
     /**
      * Adds a new internal frame (JInternalFrame) to the desktop pane
@@ -143,5 +129,9 @@ public interface Desktop extends MZmineModule {
      * @return Array of selected peak lists
      */
     public PeakList[] getSelectedPeakLists();
+    
+    public void addProjectTreeListener(TreeModelListener listener);
+    
+    public void removeProjectTreeListener(TreeModelListener listener);
 
 }

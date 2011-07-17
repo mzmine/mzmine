@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.ElementalHeuristicParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.RDBERestrictionParameters;
@@ -30,17 +28,12 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 
 public class FormulaPredictionParameters extends SimpleParameterSet {
 
 	public static final NeutralMassParameter neutralMass = new NeutralMassParameter(
 			"Neutral mass", "Original neutral mass");
-
-	public static final NumberParameter numOfResults = new NumberParameter(
-			"Number of results", "Maximum number of results to display",
-			NumberFormat.getIntegerInstance());
 
 	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
@@ -66,7 +59,7 @@ public class FormulaPredictionParameters extends SimpleParameterSet {
 			"MS/MS filter", "Check MS/MS data", new MSMSScoreParameters());
 
 	public FormulaPredictionParameters() {
-		super(new Parameter[] { neutralMass, numOfResults, mzTolerance,
+		super(new Parameter[] { neutralMass, mzTolerance,
 				elements, elementalRatios, rdbeRestrictions, isotopeFilter,
 				msmsFilter });
 	}

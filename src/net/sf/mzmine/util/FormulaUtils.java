@@ -19,9 +19,10 @@
 
 package net.sf.mzmine.util;
 
-import net.sf.mzmine.data.Polarity;
+import net.sf.mzmine.data.IonizationType;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
@@ -59,10 +60,44 @@ public class FormulaUtils {
 	}
 
 	/**
-	 * Modifies the formula according to polarity - for negative, remove one
-	 * hydrogen; for positive, add one hydrogen
+	 * Modifies the formula according to the ionization type
 	 */
-	public static String ionizeFormula(String formula, Polarity polarity,
+	public static IMolecularFormula ionizeFormula(
+			IMolecularFormula formulaObject, IonizationType ionType, int charge) {
+
+		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+
+		IMolecularFormula newFormulaObject = new MolecularFormula();
+
+		IMolecularFormula adductObject = MolecularFormulaManipulator
+				.getMolecularFormula(ionType.getAdduct(), builder);
+
+		int sign = 1;
+		if (ionType.toString().startsWith("-"))
+			sign = -1;
+
+		for (IIsotope formulaIsotope : formulaObject.isotopes()) {
+			int count = formulaObject.getIsotopeCount(formulaIsotope);
+			for (IIsotope adductIsotope : adductObject.isotopes()) {
+				if (formulaIsotope.getSymbol()
+						.equals(adductIsotope.getSymbol())) {
+					int adductCount = adductObject
+							.getIsotopeCount(adductIsotope);
+					count += sign * adductCount * charge;
+				}
+			}
+			if (count > 0)
+				newFormulaObject.addIsotope(formulaIsotope, count);
+		}
+
+		return newFormulaObject;
+
+	}
+
+	/**
+	 * Modifies the formula according to the ionization type
+	 */
+	public static String ionizeFormula(String formula, IonizationType ionType,
 			int charge) {
 
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
@@ -70,20 +105,11 @@ public class FormulaUtils {
 		IMolecularFormula formulaObject = MolecularFormulaManipulator
 				.getMolecularFormula(formula, builder);
 
-		for (IIsotope isotope : formulaObject.isotopes()) {
-			if (isotope.getSymbol().equals("H")) {
-				int currentHydrogen = formulaObject.getIsotopeCount(isotope);
-				formulaObject.removeIsotope(isotope);
-				int newHydrogen = currentHydrogen
-						+ (polarity.getSign() * charge);
-				if (newHydrogen > 0)
-					formulaObject.addIsotope(isotope, newHydrogen);
-				break;
-			}
-		}
+		IMolecularFormula adjustedFormulaObject = ionizeFormula(formulaObject,
+				ionType, charge);
 
 		String newFormula = MolecularFormulaManipulator
-				.getString(formulaObject);
+				.getString(adjustedFormulaObject);
 
 		return newFormula;
 

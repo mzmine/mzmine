@@ -25,6 +25,7 @@ import java.util.EventObject;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.PeakList;
@@ -33,7 +34,6 @@ import net.sf.mzmine.data.RawDataFile;
 class ProjectTreeEditor extends DefaultCellEditor {
 
 	private JTree projectTree;
-	private Object editedObject;
 
 	ProjectTreeEditor(JTree projectTree) {
 		super(new JTextField());
@@ -44,11 +44,13 @@ class ProjectTreeEditor extends DefaultCellEditor {
 	public boolean isCellEditable(EventObject e) {
 		if (e instanceof MouseEvent) {
 			MouseEvent me = (MouseEvent) e;
-			TreePath clickedPath = projectTree.getPathForLocation(me.getX(), me
-					.getY());
+			TreePath clickedPath = projectTree.getPathForLocation(me.getX(),
+					me.getY());
 			if (clickedPath == null)
 				return false;
-			editedObject = clickedPath.getLastPathComponent();
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) clickedPath
+					.getLastPathComponent();
+			Object editedObject = node.getUserObject();
 			return ((editedObject instanceof RawDataFile) || (editedObject instanceof PeakList));
 		}
 		return true;

@@ -19,14 +19,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.linear;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "normalized");
@@ -44,8 +47,8 @@ public class LinearNormalizerParameters extends SimpleParameterSet {
 			"If checked, original peak list will be removed and only normalized version remains");
 
 	public LinearNormalizerParameters() {
-		super(new UserParameter[] { suffix, normalizationType, peakMeasurementType,
-				autoRemove });
+		super(new Parameter[] { peakLists, suffix, normalizationType,
+				peakMeasurementType, autoRemove });
 	}
 
 }

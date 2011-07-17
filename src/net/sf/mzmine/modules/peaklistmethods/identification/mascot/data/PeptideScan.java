@@ -24,6 +24,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
@@ -387,6 +388,30 @@ public class PeptideScan implements Scan {
 
 	public Peptide[] getAlterPeptides() {
 		return alterPeptides;
+		
+	}
+
+	@Override
+	public MassList[] getMassLists() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public MassList getMassList(String name) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addMassList(MassList massList) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeMassList(MassList massList) {
+		// TODO Auto-generated method stub
 		
 	}
 

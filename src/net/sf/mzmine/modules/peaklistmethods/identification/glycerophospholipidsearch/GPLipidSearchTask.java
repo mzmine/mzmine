@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
 import java.util.logging.Logger;
@@ -27,8 +28,6 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -50,8 +49,7 @@ public class GPLipidSearchTask extends AbstractTask {
 	 * @param parameters
 	 * @param peakList
 	 */
-	public GPLipidSearchTask(ParameterSet parameters,
-			PeakList peakList) {
+	public GPLipidSearchTask(ParameterSet parameters, PeakList peakList) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
@@ -152,11 +150,6 @@ public class GPLipidSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of glycerophospholipids", parameters));
 
-		// Notify the project manager that peaklist contents have changed
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished glycerophospholipid search in " + peakList);
@@ -184,6 +177,10 @@ public class GPLipidSearchTask extends AbstractTask {
 
 			if (Math.abs(lipidIonMass - rows[rowIndex].getAverageMZ()) <= mzTolerance) {
 				rows[rowIndex].addPeakIdentity(lipid, false);
+
+				// Notify the GUI about the change in the project
+				MZmineCore.getCurrentProject().notifyObjectChanged(
+						rows[rowIndex], false);
 			}
 
 		}

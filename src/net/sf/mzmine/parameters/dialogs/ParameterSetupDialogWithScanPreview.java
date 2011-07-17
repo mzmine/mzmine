@@ -73,21 +73,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	public ParameterSetupDialogWithScanPreview(ParameterSet parameters,
 			String helpFile) {
 
-		super(parameters, helpFile);
-
-		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
-
-		if (dataFiles.length != 0) {
-
-			RawDataFile selectedFiles[] = MZmineCore.getDesktop()
-					.getSelectedDataFiles();
-
-			if (selectedFiles.length > 0)
-				previewDataFile = selectedFiles[0];
-			else
-				previewDataFile = dataFiles[0];
-
-		}
+		super(parameters, null, helpFile);
 
 	}
 
@@ -136,7 +122,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 			int ind = comboDataFileName.getSelectedIndex();
 			if (ind >= 0) {
 				previewDataFile = dataFiles[ind];
-				int scanNumbers[] = previewDataFile.getScanNumbers(1);
+				int scanNumbers[] = previewDataFile.getScanNumbers();
 				Integer scanNumbersObj[] = CollectionUtils
 						.toIntegerArray(scanNumbers);
 				ComboBoxModel model = new DefaultComboBoxModel(scanNumbersObj);
@@ -182,26 +168,22 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	}
 
 	protected void parametersChanged() {
-		
+
 		// Update preview as parameters have changed
-		if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
+		if ((comboScanNumber == null) || (!previewCheckBox.isSelected()))
 			return;
-		
+
 		Integer scanNumber = (Integer) comboScanNumber.getSelectedItem();
 		if (scanNumber == null)
 			return;
 		Scan currentScan = previewDataFile.getScan(scanNumber);
 
-		try {
-			updateParameterSetFromComponents();
-		} catch (Exception e) {
-			e.printStackTrace();
-			// if there is some illegal value, do not load the preview but just
-			// exit
-			return;
-		}
+		updateParameterSetFromComponents();
+
 		loadPreview(spectrumPlot, currentScan);
+
 		updateTitle(currentScan);
+
 	}
 
 	/**
@@ -213,6 +195,19 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	protected void addDialogComponents() {
 
 		super.addDialogComponents();
+
+		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+
+		if (dataFiles.length == 0)
+			return;
+
+		RawDataFile selectedFiles[] = MZmineCore.getDesktop()
+				.getSelectedDataFiles();
+
+		if (selectedFiles.length > 0)
+			previewDataFile = selectedFiles[0];
+		else
+			previewDataFile = dataFiles[0];
 
 		previewCheckBox = new JCheckBox("Show preview");
 		previewCheckBox.addActionListener(this);
@@ -236,41 +231,37 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		JPanel pnlFlds = new JPanel();
 		pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
 		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		if (previewDataFile != null) {
-			comboDataFileName = new JComboBox(dataFiles);
-			comboDataFileName.setSelectedItem(previewDataFile);
-			comboDataFileName.addActionListener(this);
 
-			int scanNumbers[] = previewDataFile.getScanNumbers(1);
-			Integer scanNumbersObj[] = CollectionUtils
-					.toIntegerArray(scanNumbers);
+		comboDataFileName = new JComboBox(dataFiles);
+		// comboDataFileName.setSelectedItem(previewDataFile);
+		comboDataFileName.addActionListener(this);
 
-			comboScanNumber = new JComboBox(scanNumbersObj);
-			comboScanNumber.setSelectedIndex(0);
-			comboScanNumber.addActionListener(this);
+		int scanNumbers[] = previewDataFile.getScanNumbers();
+		Integer scanNumbersObj[] = CollectionUtils.toIntegerArray(scanNumbers);
 
-			pnlFlds.add(comboDataFileName);
-			pnlFlds.add(Box.createVerticalStrut(10));
+		comboScanNumber = new JComboBox(scanNumbersObj);
+		comboScanNumber.setSelectedIndex(0);
+		comboScanNumber.addActionListener(this);
 
-			// --> Elements of pnlScanArrows
+		pnlFlds.add(comboDataFileName);
+		pnlFlds.add(Box.createVerticalStrut(10));
 
-			JPanel pnlScanArrows = new JPanel();
-			pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows,
-					BoxLayout.X_AXIS));
-			String leftArrow = new String(new char[] { '\u2190' });
-			GUIUtils.addButton(pnlScanArrows, leftArrow, null, this,
-					"PREVIOUS_SCAN");
+		// --> Elements of pnlScanArrows
 
-			pnlScanArrows.add(Box.createHorizontalStrut(5));
-			pnlScanArrows.add(comboScanNumber);
-			pnlScanArrows.add(Box.createHorizontalStrut(5));
+		JPanel pnlScanArrows = new JPanel();
+		pnlScanArrows.setLayout(new BoxLayout(pnlScanArrows, BoxLayout.X_AXIS));
+		String leftArrow = new String(new char[] { '\u2190' });
+		GUIUtils.addButton(pnlScanArrows, leftArrow, null, this,
+				"PREVIOUS_SCAN");
 
-			String rightArrow = new String(new char[] { '\u2192' });
-			GUIUtils.addButton(pnlScanArrows, rightArrow, null, this,
-					"NEXT_SCAN");
+		pnlScanArrows.add(Box.createHorizontalStrut(5));
+		pnlScanArrows.add(comboScanNumber);
+		pnlScanArrows.add(Box.createHorizontalStrut(5));
 
-			pnlFlds.add(pnlScanArrows);
-		}
+		String rightArrow = new String(new char[] { '\u2192' });
+		GUIUtils.addButton(pnlScanArrows, rightArrow, null, this, "NEXT_SCAN");
+
+		pnlFlds.add(pnlScanArrows);
 
 		// Put all together
 		pnlPreviewFields = new JPanel(new BorderLayout());

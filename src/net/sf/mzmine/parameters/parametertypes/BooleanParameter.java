@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import javax.swing.JCheckBox;
 
 import net.sf.mzmine.parameters.UserParameter;
@@ -107,6 +109,15 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
 		if (value == null)
 			return;
 		xmlElement.setTextContent(value.toString());
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

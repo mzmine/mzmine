@@ -21,10 +21,15 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Vector;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.xml.rpc.ServiceException;
+
+import metlinapi.MetaboliteRequest;
+import metlinapi.MetlinPortType;
+import metlinapi.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
@@ -34,6 +39,8 @@ import net.sf.mzmine.util.Range;
 
 public class MetLinGateway implements DBGateway {
 
+	private static final String adduct[] = { "M" }; 
+	
 	public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
 	public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
 	public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
@@ -46,29 +53,26 @@ public class MetLinGateway implements DBGateway {
 
 		Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		String queryAddress = metLinSearchAddress + "mass_min="
-				+ toleranceRange.getMin() + "&mass_max="
-				+ toleranceRange.getMax();
-
-		URL queryURL = new URL(queryAddress);
-
-		// Submit the query
-		String queryResult = InetUtils.retrieveData(queryURL);
-
-		Vector<String> results = new Vector<String>();
-
-		// Find IDs in the HTML data
-		Pattern pat = Pattern
-				.compile("\"metabo_info.php\\?molid=([0-9]+)\">\\1");
-		Matcher matcher = pat.matcher(queryResult);
-		while (matcher.find()) {
-			String MID = matcher.group(1);
-			results.add(MID);
-			if (results.size() == numOfResults)
-				break;
+		MetlinServiceLocator locator = new MetlinServiceLocator();
+		MetlinPortType serv;
+		try {
+			serv = locator.getMetlinPort();
+		} catch (ServiceException e) {
+			throw (new IOException(e));
 		}
+		
+		// Search mass as float[]
+		float[] searchMass = new float[] { (float) toleranceRange.getAverage() };
+		
+		Float searchTolerance = (float) toleranceRange.getSize() / 2;
 
-		return results.toArray(new String[0]);
+		MetaboliteRequest requestParameters = new MetaboliteRequest(searchMass, adduct, searchTolerance, "Da");
+		
+		String[] results = serv.metaboliteSearch(requestParameters);
+		
+		System.out.println(results.length + Arrays.toString(results) + " " + results[0]);
+		return adduct;
+		
 
 	}
 

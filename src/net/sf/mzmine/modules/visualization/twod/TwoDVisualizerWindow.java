@@ -25,8 +25,8 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -74,7 +74,15 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 		// bottom panel
 		bottomPanel.rebuildPeakListSelector();
 
+		MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
+		
 		pack();
+
+	}
+	
+	public void dispose() {
+		super.dispose();
+		MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
 	}
 
 	void updateTitle() {
@@ -136,15 +144,6 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 			}
 		}
 
-		if (command.equals("PEAKS_VIEW_TEXTFIELD")) {
-
-			PeakList selectedPeakList = bottomPanel.getPeaksInThreshold();
-			if (selectedPeakList == null) {
-				return;
-			}
-
-			twoDPlot.loadPeakList(selectedPeakList);
-		}
 	}
 
 

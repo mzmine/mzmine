@@ -21,12 +21,13 @@ package net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper;
 
 import java.text.NumberFormat;
 
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -37,6 +38,8 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 
 	public static final String[] representativeIsotopeValues = {
 			ChooseTopIntensity, ChooseLowestMZ };
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "deisotoped");
@@ -67,9 +70,19 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 			"If checked, original peaklist will be removed and only deisotoped version remains");
 
 	public IsotopeGrouperParameters() {
-		super(new UserParameter[] { suffix, mzTolerance, rtTolerance,
+		super(new Parameter[] { peakLists, suffix, mzTolerance, rtTolerance,
 				monotonicShape, maximumCharge, representativeIsotope,
 				autoRemove });
 	}
 
+	/*
+	 		for (PeakList peaklist : peakLists) {
+			if (peaklist.getNumberOfRawDataFiles() > 1) {
+				desktop.displayErrorMessage("Peak list "
+						+ peaklist
+						+ " cannot be deisotoped, because it contains more than one data file");
+				return;
+			}
+		}
+	 */
 }

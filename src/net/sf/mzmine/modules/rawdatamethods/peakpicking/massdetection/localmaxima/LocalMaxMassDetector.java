@@ -24,7 +24,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -34,19 +34,19 @@ import net.sf.mzmine.parameters.ParameterSet;
 public class LocalMaxMassDetector implements MassDetector {
 
 	// Parameter value
-	private ParameterSet parameters;
+	private ParameterSet moduleParameters;
 
 	public LocalMaxMassDetector() {
-		parameters = new LocalMaxMassDetectorParameters();
+		moduleParameters = new LocalMaxMassDetectorParameters();
 	}
 
-	public MzPeak[] getMassValues(Scan scan) {
+	public SimpleMzPeak[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
 				LocalMaxMassDetectorParameters.noiseLevel).getDouble();
 
 		// List of found mz peaks
-		ArrayList<MzPeak> mzPeaks = new ArrayList<MzPeak>();
+		ArrayList<SimpleMzPeak> mzPeaks = new ArrayList<SimpleMzPeak>();
 
 		DataPoint dataPoints[] = scan.getDataPoints();
 
@@ -80,7 +80,7 @@ public class LocalMaxMassDetector implements MassDetector {
 				ascending = false;
 				continue;
 			}
-			
+
 			assert currentMzPeakTop != null;
 
 			// Check for the end of the peak
@@ -88,7 +88,7 @@ public class LocalMaxMassDetector implements MassDetector {
 
 				// Add the m/z peak if it is above the noise level
 				if (currentMzPeakTop.getIntensity() > noiseLevel) {
-					MzPeak newMzPeak = new MzPeak(currentMzPeakTop,
+					SimpleMzPeak newMzPeak = new SimpleMzPeak(currentMzPeakTop,
 							currentMzPeakDataPoints.toArray(new DataPoint[0]));
 					mzPeaks.add(newMzPeak);
 				}
@@ -100,7 +100,7 @@ public class LocalMaxMassDetector implements MassDetector {
 			}
 
 		}
-		return mzPeaks.toArray(new MzPeak[0]);
+		return mzPeaks.toArray(new SimpleMzPeak[0]);
 	}
 
 	public String toString() {
@@ -108,7 +108,7 @@ public class LocalMaxMassDetector implements MassDetector {
 	}
 
 	public ParameterSet getParameterSet() {
-		return parameters;
+		return moduleParameters;
 	}
 
 }

@@ -23,10 +23,11 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline.
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch.MinimumSearchPeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetector;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SavitzkyGolayPeakDetector;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DeconvolutionParameters extends SimpleParameterSet {
@@ -34,6 +35,8 @@ public class DeconvolutionParameters extends SimpleParameterSet {
 	private static final PeakResolver peakResolvers[] = {
 			new BaselinePeakDetector(), new NoiseAmplitudePeakDetector(),
 			new SavitzkyGolayPeakDetector(), new MinimumSearchPeakDetector() };
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter("Suffix",
 			"This string is added to peak list name as suffix", "deconvoluted");
@@ -46,7 +49,17 @@ public class DeconvolutionParameters extends SimpleParameterSet {
 			"If checked, original peak list will be removed and only deconvoluted version remains");
 
 	public DeconvolutionParameters() {
-		super(new UserParameter[] { suffix, peakResolver, autoRemove });
+		super(new Parameter[] { peakLists, suffix, peakResolver, autoRemove });
 	}
 
+	/*
+	 	PeakList peakLists[] = parameters.getParameter(
+				DeconvolutionParameters.peakLists).getValue();
+		for (int i = 0; i < peakLists.length; i++) {
+			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
+				desktop.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
+				return;
+			}
+		}
+	 */
 }

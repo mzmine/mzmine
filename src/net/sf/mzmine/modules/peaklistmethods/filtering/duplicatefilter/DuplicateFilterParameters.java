@@ -19,14 +19,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "filtered");
@@ -46,8 +49,8 @@ public class DuplicateFilterParameters extends SimpleParameterSet {
 			"If checked, original peaklist will be removed and only deisotoped version remains");
 
 	public DuplicateFilterParameters() {
-		super(new UserParameter[] { suffix, mzDifferenceMax, rtDifferenceMax,
-				requireSameIdentification, autoRemove, });
+		super(new Parameter[] { peakLists, suffix, mzDifferenceMax,
+				rtDifferenceMax, requireSameIdentification, autoRemove, });
 	}
 
 }

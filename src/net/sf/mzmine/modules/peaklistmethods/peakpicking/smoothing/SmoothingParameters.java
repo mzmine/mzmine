@@ -27,43 +27,47 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * Defines smoothing task parameters.
- *
+ * 
  * @author $Author$
  * @version $Revision$
  */
 public class SmoothingParameters extends SimpleParameterSet {
 
-    /**
-     * Raw data file suffix.
-     */
-    public static final StringParameter SUFFIX =
-            new StringParameter("Filename suffix", "Suffix to be appended to peak-list file name", "smoothed");
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-    /**
-     * Filter width.
-     */
-    public static final ComboParameter<Integer> FILTER_WIDTH =
-            new ComboParameter<Integer>("Filter width",
-                                        "Number of data point covered by the smoothing filter",
-                                        new Integer[]{5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25},
-                                        5);
+	/**
+	 * Raw data file suffix.
+	 */
+	public static final StringParameter SUFFIX = new StringParameter(
+			"Filename suffix", "Suffix to be appended to peak-list file name",
+			"smoothed");
 
-    /**
-     * Remove original data file.
-     */
-    public static final BooleanParameter REMOVE_ORIGINAL =
-            new BooleanParameter("Remove original peak list",
-                                 "If checked, the source peak list will be replaced by the smoothed version",
-                                 true);
+	/**
+	 * Filter width.
+	 */
+	public static final ComboParameter<Integer> FILTER_WIDTH = new ComboParameter<Integer>(
+			"Filter width",
+			"Number of data point covered by the smoothing filter",
+			new Integer[] { 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25 }, 5);
 
-    /**
-     * Create the parameter set.
-     */
-    public SmoothingParameters() {
-        super(new Parameter[]{SUFFIX, FILTER_WIDTH, REMOVE_ORIGINAL});
-    }
+	/**
+	 * Remove original data file.
+	 */
+	public static final BooleanParameter REMOVE_ORIGINAL = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, the source peak list will be replaced by the smoothed version",
+			true);
+
+	/**
+	 * Create the parameter set.
+	 */
+	public SmoothingParameters() {
+		super(new Parameter[] { peakLists, SUFFIX, FILTER_WIDTH,
+				REMOVE_ORIGINAL });
+	}
 }

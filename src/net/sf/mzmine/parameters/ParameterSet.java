@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.parameters;
 
-import java.util.Map;
+import java.util.Collection;
 
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -41,6 +41,8 @@ public interface ParameterSet {
 
 	public void saveValuesToXML(Element element);
 
+	public boolean checkParameterValues(Collection<String> errorMessages);
+	
 	public ParameterSet clone();
 
 	/**
@@ -49,7 +51,5 @@ public interface ParameterSet {
 	public String toString();
 
 	public ExitCode showSetupDialog();
-
-	public ExitCode showSetupDialog(Map<UserParameter, Object> autoValues);
 
 }

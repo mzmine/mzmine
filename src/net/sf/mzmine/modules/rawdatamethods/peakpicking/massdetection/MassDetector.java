@@ -19,9 +19,10 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
  * 
@@ -31,6 +32,6 @@ public interface MassDetector extends MZmineModule {
 	/**
 	 * Returns mass and intensity values detected in given scan
 	 */
-	public MzPeak[] getMassValues(Scan scan);
+	public MzPeak[] getMassValues(Scan scan, ParameterSet parameters);
 
 }

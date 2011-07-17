@@ -31,13 +31,12 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 public class ResultFormula {
 
 	private final IMolecularFormula cdkFormula;
-	private Double isotopeScore, msmsScore;
-	private double rdbeValue;
+	private Double rdbeValue, isotopeScore, msmsScore;
 	private IsotopePattern predictedIsotopePattern;
 	private Map<DataPoint, String> msmsAnnotation;
 
 	ResultFormula(MolecularFormula cdkFormula,
-			IsotopePattern predictedIsotopePattern, double rdbeValue,
+			IsotopePattern predictedIsotopePattern, Double rdbeValue,
 			Double isotopeScore, Double msmsScore,
 			Map<DataPoint, String> msmsAnnotation) {
 
@@ -50,7 +49,7 @@ public class ResultFormula {
 
 	}
 	
-	public double getRDBE() {
+	public Double getRDBE() {
 		return rdbeValue;
 	}
 

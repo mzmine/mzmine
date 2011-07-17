@@ -36,6 +36,7 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 import org.w3c.dom.Element;
@@ -48,7 +49,9 @@ import be.proteomics.lims.util.http.forms.inputs.TextFieldInput;
 
 public class MascotParameters extends SimpleParameterSet {
 
-	ArrayList<UserParameter> para = new ArrayList<UserParameter>();
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
+
+	ArrayList<Parameter> para = new ArrayList<Parameter>();
 	HTTPForm iForm = null;
 
 	private String serverName = "127.0.0.1";
@@ -58,6 +61,8 @@ public class MascotParameters extends SimpleParameterSet {
 			IOException {
 		
 		super(new Parameter[0]);
+		
+		para.add(peakLists);
 
 		URL url = new URL(getSearchMaskUrlString());
 		URLConnection lConn = url.openConnection();
@@ -166,7 +171,7 @@ public class MascotParameters extends SimpleParameterSet {
 
 	public synchronized String getSubmissionString(File file, int charge) {
 
-		for (UserParameter p : para) {
+		/*for (Parameter p : para) {
 			Object value = p.getValue();
 
 			if (value.getClass().isArray()) {
@@ -192,6 +197,8 @@ public class MascotParameters extends SimpleParameterSet {
 		}
 
 		return iForm.getSubmissionString();
+		*/
+		return null;
 	}
 
 	@Override
@@ -217,7 +224,6 @@ public class MascotParameters extends SimpleParameterSet {
 	public void saveValuesToXML(Element element) {
 		// ignore
 	}
-
 
 	public ParameterSet clone() {
 		return this;

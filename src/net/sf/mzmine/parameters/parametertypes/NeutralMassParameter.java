@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -61,7 +63,6 @@ public class NeutralMassParameter implements
 
 	@Override
 	public NeutralMassComponent createEditingComponent() {
-
 		return new NeutralMassComponent();
 	}
 
@@ -147,4 +148,12 @@ public class NeutralMassParameter implements
 		xmlElement.setTextContent(ionMass.toString());
 	}
 
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
+	}
 }

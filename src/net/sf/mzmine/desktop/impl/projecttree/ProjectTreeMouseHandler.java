@@ -19,27 +19,32 @@
 
 package net.sf.mzmine.desktop.impl.projecttree;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JPopupMenu;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizer;
-import net.sf.mzmine.modules.visualization.peaklist.PeakListTableVisualizer;
-import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizer;
-import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizer;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
+import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
+import net.sf.mzmine.modules.visualization.peaklist.PeakListTableModule;
+import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
+import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
+import net.sf.mzmine.modules.visualization.spectra.datasets.MassListDataSet;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
+import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -50,7 +55,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
 	private ProjectTree tree;
 	private JPopupMenu dataFilePopupMenu, peakListPopupMenu, scanPopupMenu,
-			peakListRowPopupMenu;
+			massListPopupMenu, peakListRowPopupMenu;
 
 	/**
 	 * Constructor
@@ -73,6 +78,17 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		scanPopupMenu = new JPopupMenu();
 
 		GUIUtils.addMenuItem(scanPopupMenu, "Show scan", this, "SHOW_SCAN");
+
+		massListPopupMenu = new JPopupMenu();
+
+		GUIUtils.addMenuItem(massListPopupMenu, "Show mass list", this,
+				"SHOW_MASSLIST");
+
+		GUIUtils.addMenuItem(massListPopupMenu, "Remove mass list", this,
+				"REMOVE_MASSLIST");
+		GUIUtils.addMenuItem(massListPopupMenu,
+				"Remove all mass lists with this name", this,
+				"REMOVE_ALL_MASSLISTS");
 
 		peakListPopupMenu = new JPopupMenu();
 
@@ -101,31 +117,30 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		if (command.equals("SHOW_TIC")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			TICVisualizer.showNewTICVisualizerWindow(selectedFiles);
+			TICVisualizerModule.setupNewTICVisualizer(selectedFiles);
 		}
 
 		if (command.equals("SHOW_SPECTRUM")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
 			for (RawDataFile file : selectedFiles) {
-				SpectraVisualizer.showSpectrumVisualizerDialog(file);
+				SpectraVisualizerModule.setupNewSpectrumVisualizer(file);
 			}
 		}
 
 		if (command.equals("SHOW_2D")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			for (RawDataFile file : selectedFiles) {
-				TwoDVisualizer.show2DVisualizerSetupDialog(file);				
-			}
+			if (selectedFiles.length == 0) return;
+			TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFiles[0]);
+			
 		}
 
 		if (command.equals("SHOW_3D")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			for (RawDataFile file : selectedFiles) {
-				ThreeDVisualizer.show3DVisualizerSetupDialog(file);
-			}
+			if (selectedFiles.length == 0) return;
+				ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
 		}
 
 		if (command.equals("REMOVE_FILE")) {
@@ -140,8 +155,49 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		if (command.equals("SHOW_SCAN")) {
 			Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
 			for (Scan scan : selectedScans) {
-				SpectraVisualizer.showNewSpectrumWindow(scan.getDataFile(),
-						scan.getScanNumber());
+				SpectraVisualizerModule.showNewSpectrumWindow(
+						scan.getDataFile(), scan.getScanNumber());
+			}
+		}
+
+		if (command.equals("SHOW_MASSLIST")) {
+			MassList selectedMassLists[] = tree
+					.getSelectedObjects(MassList.class);
+			for (MassList massList : selectedMassLists) {
+				Scan scan = massList.getScan();
+				SpectraVisualizerWindow window = SpectraVisualizerModule
+						.showNewSpectrumWindow(scan.getDataFile(),
+								scan.getScanNumber());
+				MassListDataSet dataset = new MassListDataSet(massList);
+				window.addDataSet(dataset, Color.red);
+			}
+		}
+
+		if (command.equals("REMOVE_MASSLIST")) {
+			MassList selectedMassLists[] = tree
+					.getSelectedObjects(MassList.class);
+			for (MassList massList : selectedMassLists) {
+				Scan scan = massList.getScan();
+				scan.removeMassList(massList);
+			}
+		}
+
+		if (command.equals("REMOVE_ALL_MASSLISTS")) {
+			MassList selectedMassLists[] = tree
+					.getSelectedObjects(MassList.class);
+			for (MassList massList : selectedMassLists) {
+				String massListName = massList.getName();
+				RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
+						.getDataFiles();
+				for (RawDataFile dataFile : dataFiles) {
+					int scanNumbers[] = dataFile.getScanNumbers();
+					for (int scanNum : scanNumbers) {
+						Scan scan = dataFile.getScan(scanNum);
+						MassList ml = scan.getMassList(massListName);
+						if (ml != null)
+							scan.removeMassList(ml);
+					}
+				}
 			}
 		}
 
@@ -151,8 +207,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			PeakList[] selectedPeakLists = tree
 					.getSelectedObjects(PeakList.class);
 			for (PeakList peakList : selectedPeakLists) {
-				PeakListTableVisualizer
-						.showNewPeakListVisualizerWindow(peakList);
+				PeakListTableModule.showNewPeakListVisualizerWindow(peakList);
 			}
 		}
 
@@ -160,7 +215,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			PeakList[] selectedPeakLists = tree
 					.getSelectedObjects(PeakList.class);
 			for (PeakList peakList : selectedPeakLists) {
-				InfoVisualizer.showNewPeakListInfo(peakList);
+				InfoVisualizerModule.showNewPeakListInfo(peakList);
 			}
 		}
 
@@ -168,7 +223,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			PeakList[] selectedPeakLists = tree
 					.getSelectedObjects(PeakList.class);
 			for (PeakList peakList : selectedPeakLists) {
-				ScatterPlotVisualizer.showNewScatterPlotWindow(peakList);
+				ScatterPlotVisualizerModule.showNewScatterPlotWindow(peakList);
 			}
 		}
 
@@ -185,7 +240,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			PeakListRow[] selectedRows = tree
 					.getSelectedObjects(PeakListRow.class);
 			for (PeakListRow row : selectedRows) {
-				PeakSummaryVisualizer.showNewPeakSummaryWindow(row);
+				PeakSummaryVisualizerModule.showNewPeakSummaryWindow(row);
 			}
 		}
 
@@ -207,15 +262,20 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	private void handlePopupTriggerEvent(MouseEvent e) {
+
 		TreePath clickedPath = tree.getPathForLocation(e.getX(), e.getY());
-		Object clickedObject = null;
-		if (clickedPath != null)
-			clickedObject = clickedPath.getLastPathComponent();
+		if (clickedPath == null)
+			return;
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) clickedPath
+				.getLastPathComponent();
+		Object clickedObject = node.getUserObject();
 
 		if (clickedObject instanceof RawDataFile)
 			dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
 		if (clickedObject instanceof Scan)
 			scanPopupMenu.show(e.getComponent(), e.getX(), e.getY());
+		if (clickedObject instanceof MassList)
+			massListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
 		if (clickedObject instanceof PeakList)
 			peakListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
 		if (clickedObject instanceof PeakListRow)
@@ -224,30 +284,42 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
 	private void handleDoubleClickEvent(MouseEvent e) {
 		TreePath clickedPath = tree.getPathForLocation(e.getX(), e.getY());
-		Object clickedObject = null;
-		if (clickedPath != null)
-			clickedObject = clickedPath.getLastPathComponent();
+		if (clickedPath == null)
+			return;
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) clickedPath
+				.getLastPathComponent();
+		Object clickedObject = node.getUserObject();
 
 		if (clickedObject instanceof RawDataFile) {
 			RawDataFile clickedFile = (RawDataFile) clickedObject;
-			TICVisualizer.showNewTICVisualizerWindow(clickedFile);
+			TICVisualizerModule.setupNewTICVisualizer(clickedFile);
 		}
 
 		if (clickedObject instanceof PeakList) {
 			PeakList clickedPeakList = (PeakList) clickedObject;
-			PeakListTableVisualizer
+			PeakListTableModule
 					.showNewPeakListVisualizerWindow(clickedPeakList);
 		}
 
 		if (clickedObject instanceof Scan) {
 			Scan clickedScan = (Scan) clickedObject;
-			SpectraVisualizer.showNewSpectrumWindow(clickedScan.getDataFile(),
-					clickedScan.getScanNumber());
+			SpectraVisualizerModule.showNewSpectrumWindow(
+					clickedScan.getDataFile(), clickedScan.getScanNumber());
+		}
+
+		if (clickedObject instanceof MassList) {
+			MassList clickedMassList = (MassList) clickedObject;
+			Scan clickedScan = clickedMassList.getScan();
+			SpectraVisualizerWindow window = SpectraVisualizerModule
+					.showNewSpectrumWindow(clickedScan.getDataFile(),
+							clickedScan.getScanNumber());
+			MassListDataSet dataset = new MassListDataSet(clickedMassList);
+			window.addDataSet(dataset, Color.red);
 		}
 
 		if (clickedObject instanceof PeakListRow) {
 			PeakListRow clickedPeak = (PeakListRow) clickedObject;
-			PeakSummaryVisualizer.showNewPeakSummaryWindow(clickedPeak);
+			PeakSummaryVisualizerModule.showNewPeakSummaryWindow(clickedPeak);
 		}
 
 	}

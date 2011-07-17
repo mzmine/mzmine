@@ -25,6 +25,7 @@ import java.util.Vector;
 
 import javax.swing.DropMode;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.TreePath;
 
@@ -33,15 +34,10 @@ import javax.swing.tree.TreePath;
  */
 public class ProjectTree extends JTree {
 
-	private ProjectTreeModel treeModel;
-
 	/**
 	 * Constructor
 	 */
 	public ProjectTree() {
-
-		treeModel = new ProjectTreeModel(this);
-		setModel(treeModel);
 
 		ProjectTreeRenderer renderer = new ProjectTreeRenderer();
 		setCellRenderer(renderer);
@@ -57,7 +53,7 @@ public class ProjectTree extends JTree {
 		setToggleClickCount(-1);
 
 		// Activate drag&drop
-		ProjectTreeDnDHandler dndHandler = new ProjectTreeDnDHandler(treeModel);
+		ProjectTreeDnDHandler dndHandler = new ProjectTreeDnDHandler();
 		setTransferHandler(dndHandler);
 		setDropMode(DropMode.INSERT);
 		setDragEnabled(true);
@@ -66,17 +62,8 @@ public class ProjectTree extends JTree {
 		ProjectTreeMouseHandler popupHandler = new ProjectTreeMouseHandler(this);
 		addMouseListener(popupHandler);
 
-		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
-				ProjectTreeModel.dataFilesItem }));
-		expandPath(new TreePath(new Object[] { treeModel.getRoot(),
-				ProjectTreeModel.peakListsItem }));
-
 	}
-
-	public ProjectTreeModel getModel() {
-		return treeModel;
-	}
-
+	
 	@SuppressWarnings("unchecked")
 	public <T> T[] getSelectedObjects(Class<T> objectClass) {
 		Vector<T> selectedObjects = new Vector<T>();
@@ -95,7 +82,8 @@ public class ProjectTree extends JTree {
 
 		for (int row : selectedRows) {
 			TreePath path = getPathForRow(row);
-			Object selectedObject = path.getLastPathComponent();
+			DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+			Object selectedObject = selectedNode.getUserObject();
 			if (objectClass.isInstance(selectedObject))
 				selectedObjects.add((T) selectedObject);
 		}

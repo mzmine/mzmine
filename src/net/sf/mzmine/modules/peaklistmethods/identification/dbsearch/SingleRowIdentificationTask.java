@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
@@ -52,7 +51,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	private MZTolerance mzTolerance;
 	private int charge;
 	private int numOfResults;
-	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private IonizationType ionType;
 	private boolean isotopeFilter = false;
@@ -66,10 +64,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	 * @param peakListRow
 	 * @param peak
 	 */
-	SingleRowIdentificationTask(ParameterSet parameters, PeakList peakList,
-			PeakListRow peakListRow) {
+	SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
 
-		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 
 		db = parameters.getParameter(OnlineDBSearchParameters.database)
@@ -131,8 +127,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
 			Desktop desktop = MZmineCore.getDesktop();
 			NumberFormat massFormater = MZmineCore.getMZFormat();
 
-			ResultWindow window = new ResultWindow(peakList, peakListRow,
-					searchedMass, this);
+			ResultWindow window = new ResultWindow(peakListRow, searchedMass,
+					this);
 			window.setTitle("Searching for "
 					+ massFormater.format(searchedMass) + " amu");
 			desktop.addInternalFrame(window);
@@ -162,11 +158,9 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 				if (formula != null) {
 
-					// First modify the formula according to polarity - for
-					// negative, remove one hydrogen; for positive, add one
-					// hydrogen
+					// First modify the formula according to the ionization
 					String adjustedFormula = FormulaUtils.ionizeFormula(
-							formula, ionType.getPolarity(), charge);
+							formula, ionType, charge);
 
 					logger.finest("Calculating isotope pattern for compound formula "
 							+ formula + " adjusted to " + adjustedFormula);
@@ -195,7 +189,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 							continue;
 						}
 					}
-					
+
 				}
 
 				// Add compound to the list of possible candidate and

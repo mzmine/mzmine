@@ -23,23 +23,35 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
 
-import net.sf.mzmine.desktop.MZmineMenu;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineModuleCategory;
+import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.project.parameterssetup.ProjectParametersSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * This class represents the main menu of MZmine desktop
  */
 public class MainMenu extends JMenuBar implements ActionListener {
+
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private JMenu projectMenu, rawDataMenu, peakListMenu, visualizationMenu,
 			helpMenu, rawDataFilteringMenu, peakDetectionMenu, gapFillingMenu,
@@ -49,12 +61,14 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	private WindowsMenu windowsMenu;
 
-	private JMenuItem projectSampleParameters, 
-			projectPreferences, projectSaveParameters, projectLoadParameters,
-			projectExit, showAbout;
+	private JMenuItem projectSampleParameters, projectPreferences,
+			projectSaveParameters, projectLoadParameters, projectExit,
+			showAbout;
 
 	private int projectIOMenuIndex = 0, projectMenuIndex = 1,
 			rawDataMenuIndex = 0, visualizationMenuIndex = 0;
+
+	private Map<JMenuItem, MZmineProcessingModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineProcessingModule>();
 
 	MainMenu() {
 
@@ -180,12 +194,13 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		helpMenu.setMnemonic(KeyEvent.VK_H);
 		this.add(helpMenu);
 
-		showAbout = addMenuItem(MZmineMenu.HELPSYSTEM, "About MZmine 2 ...",
-				"About MZmine 2...", KeyEvent.VK_A, false, this, null);
+		showAbout = new JMenuItem("About MZmine 2 ...");
+		showAbout.addActionListener(this);
+		addMenuItem(MZmineModuleCategory.HELPSYSTEM, showAbout);
 
 	}
 
-	public synchronized void addMenuItem(MZmineMenu parentMenu,
+	public synchronized void addMenuItem(MZmineModuleCategory parentMenu,
 			JMenuItem newItem) {
 		switch (parentMenu) {
 		case PROJECTIO:
@@ -247,25 +262,17 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		}
 	}
 
-	public JMenuItem addMenuItem(MZmineMenu parentMenu, String text,
-			String toolTip, int mnemonic, boolean setAccelerator,
-			ActionListener listener, String actionCommand) {
+	public void addMenuItemForModule(MZmineProcessingModule module) {
 
-		JMenuItem newItem = new JMenuItem(text);
-		if (listener != null)
-			newItem.addActionListener(listener);
-		if (actionCommand != null)
-			newItem.setActionCommand(actionCommand);
-		if (toolTip != null)
-			newItem.setToolTipText(toolTip);
-		if (mnemonic > 0) {
-			newItem.setMnemonic(mnemonic);
-			if (setAccelerator)
-				newItem.setAccelerator(KeyStroke.getKeyStroke(mnemonic,
-						ActionEvent.CTRL_MASK));
-		}
+		MZmineModuleCategory parentMenu = module.getModuleCategory();
+		String menuItemText = module.toString();
+
+		JMenuItem newItem = new JMenuItem(menuItemText);
+		newItem.addActionListener(this);
+
+		moduleMenuItems.put(newItem, module);
+
 		addMenuItem(parentMenu, newItem);
-		return newItem;
 
 	}
 
@@ -275,6 +282,40 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 
 		Object src = e.getSource();
+
+		MZmineProcessingModule module = moduleMenuItems.get(src);
+		if (module != null) {
+			RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
+			PeakList selectedPeakLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
+			
+			ParameterSet moduleParameters = module.getParameterSet();
+			
+			if (moduleParameters == null) {
+				logger.finest("Starting module " + module + " with no parameters");
+				module.runModule(null);
+				return;
+			}
+			
+			for (Parameter p : moduleParameters.getParameters()) {
+				if (p instanceof RawDataFilesParameter) {
+					RawDataFilesParameter rdp = (RawDataFilesParameter) p;
+					rdp.setValue(selectedFiles);
+				}
+				if (p instanceof PeakListsParameter) {
+					PeakListsParameter plp = (PeakListsParameter) p;
+					plp.setValue(selectedPeakLists);
+				}
+			}
+			
+			logger.finest("Setting parameters for module " + module);
+			ExitCode exitCode = moduleParameters.showSetupDialog();
+			if (exitCode == ExitCode.OK) {
+				ParameterSet parametersCopy = moduleParameters.clone();
+				logger.finest("Starting module " + module + " with parameters " + parametersCopy);
+				module.runModule(parametersCopy);
+			}
+			return;
+		}
 
 		if (src == projectExit) {
 			MZmineCore.exitMZmine();

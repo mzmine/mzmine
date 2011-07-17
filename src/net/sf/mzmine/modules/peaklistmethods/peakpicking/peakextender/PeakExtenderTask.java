@@ -29,11 +29,11 @@ import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
@@ -201,7 +201,7 @@ public class PeakExtenderTask extends AbstractTask {
 			if (dataPoint.getIntensity() < minimumHeight)
 				break;
 
-			newPeak.addMzPeak(scanNumber, new MzPeak(dataPoint));
+			newPeak.addMzPeak(scanNumber, new SimpleMzPeak(dataPoint));
 			if (dataPoint.getIntensity() > maxHeight)
 				maxHeight = dataPoint.getIntensity();
 
@@ -211,7 +211,7 @@ public class PeakExtenderTask extends AbstractTask {
 
 		// Add original dataPoint
 		newPeak.addMzPeak(originScanNumber,
-				new MzPeak(oldPeak.getDataPoint(originScanNumber)));
+				new SimpleMzPeak(oldPeak.getDataPoint(originScanNumber)));
 
 		// Look to the right
 		scanNumber = originScanNumber;
@@ -237,7 +237,7 @@ public class PeakExtenderTask extends AbstractTask {
 			if (dataPoint.getIntensity() < minimumHeight)
 				break;
 
-			newPeak.addMzPeak(scanNumber, new MzPeak(dataPoint));
+			newPeak.addMzPeak(scanNumber, new SimpleMzPeak(dataPoint));
 			if (dataPoint.getIntensity() > maxHeight)
 				maxHeight = dataPoint.getIntensity();
 

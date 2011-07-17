@@ -23,60 +23,66 @@ import java.io.File;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Logger;
+
+import net.sf.mzmine.main.MZmineCore;
 
 public class HelpImpl {
 
-    private MZmineHelpSet hs;
+	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-    public HelpImpl() {
-        try {
+	private MZmineHelpSet hs;
 
-            // Construct help
-            boolean test = false;
+	public HelpImpl() {
+		try {
 
-            File file = new File(System.getProperty("user.dir")
-                    + File.separator + "MZmine2.jar");
+			// Construct help
+			boolean test = false;
 
-            if (!file.exists()) {
-                file = new File(System.getProperty("user.dir") + File.separator
-                        + "dist" + File.separator + "MZmine2.jar");
-                test = true;
-            }
+			File file = new File(System.getProperty("user.dir")
+					+ File.separator + "MZmine2.jar");
 
-            if (!file.exists()) {
-                return;
-            }
+			if (!file.exists()) {
+				file = new File(System.getProperty("user.dir") + File.separator
+						+ "dist" + File.separator + "MZmine2.jar");
+				test = true;
+			}
 
-            MZmineHelpMap helpMap = new MZmineHelpMap(test);
+			if (!file.exists()) {
+				logger.warning("Could not load help files from " + file);
+				return;
+			}
 
-            JarFile jarFile = new JarFile(file);
-            Enumeration<JarEntry> e = jarFile.entries();
-            while (e.hasMoreElements()) {
-                JarEntry entry = e.nextElement();
-                String name = entry.getName();
-                if ((name.endsWith("htm")) || (name.endsWith("html"))) {
-                    helpMap.setTarget(name);
-                }
-            }
+			MZmineHelpMap helpMap = new MZmineHelpMap(test);
 
-            helpMap.setTargetImage("topic.png");
+			JarFile jarFile = new JarFile(file);
+			Enumeration<JarEntry> e = jarFile.entries();
+			while (e.hasMoreElements()) {
+				JarEntry entry = e.nextElement();
+				String name = entry.getName();
+				if ((name.endsWith("htm")) || (name.endsWith("html"))) {
+					helpMap.setTarget(name);
+				}
+			}
 
-            hs = new MZmineHelpSet();
-            hs.setLocalMap(helpMap);
+			helpMap.setTargetImage("topic.png");
 
-            MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
-                    "Table Of Contents", helpMap, file);
+			hs = new MZmineHelpSet();
+			hs.setLocalMap(helpMap);
 
-            hs.setTitle("MZmine 2 - LC/MS Toolbox");
-            hs.addTOCView(myTOC);
+			MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
+					"Table Of Contents", helpMap, file);
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+			hs.setTitle("MZmine 2");
+			hs.addTOCView(myTOC);
 
-    public MZmineHelpSet getHelpSet() {
-        return hs;
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public MZmineHelpSet getHelpSet() {
+		return hs;
+	}
 
 }

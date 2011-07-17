@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -122,5 +124,14 @@ public class OptionalModuleParameter implements
 		if (value != null)
 			xmlElement.setAttribute("selected", value.toString());
 		embeddedParameters.saveValuesToXML(xmlElement);
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 }

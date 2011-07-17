@@ -19,12 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.custom;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.OrderParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -32,6 +33,8 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
  * 
  */
 public class CustomDBSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final FileNameParameter dataBaseFile = new FileNameParameter(
 			"Database file",
@@ -54,8 +57,8 @@ public class CustomDBSearchParameters extends SimpleParameterSet {
 	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
 	public CustomDBSearchParameters() {
-		super(new UserParameter[] { dataBaseFile, fieldSeparator, fieldOrder,
-				ignoreFirstLine, mzTolerance, rtTolerance });
+		super(new Parameter[] { peakLists, dataBaseFile, fieldSeparator,
+				fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance });
 	}
 
 }

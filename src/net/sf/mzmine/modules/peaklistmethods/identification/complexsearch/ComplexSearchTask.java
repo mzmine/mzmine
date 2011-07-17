@@ -29,8 +29,6 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -53,8 +51,7 @@ public class ComplexSearchTask extends AbstractTask {
 	 * @param parameters
 	 * @param peakList
 	 */
-	public ComplexSearchTask(ParameterSet parameters,
-			PeakList peakList) {
+	public ComplexSearchTask(ParameterSet parameters, PeakList peakList) {
 
 		this.peakList = peakList;
 		this.parameters = parameters;
@@ -140,11 +137,6 @@ public class ComplexSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of complexes", parameters));
 
-		// Notify the project manager that peaklist contents have changed
-		ProjectEvent newEvent = new ProjectEvent(
-				ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-		MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished complexes search in " + peakList);
@@ -197,6 +189,9 @@ public class ComplexSearchTask extends AbstractTask {
 		ComplexIdentity newIdentity = new ComplexIdentity(complexRow, row1,
 				row2);
 		complexRow.addPeakIdentity(newIdentity, false);
+
+		// Notify the GUI about the change in the project
+		MZmineCore.getCurrentProject().notifyObjectChanged(complexRow, false);
 	}
 
 	public Object[] getCreatedObjects() {

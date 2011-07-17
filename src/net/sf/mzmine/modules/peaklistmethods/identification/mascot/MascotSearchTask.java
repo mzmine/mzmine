@@ -32,12 +32,13 @@ import java.net.URLConnection;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import be.proteomics.mascotdatfile.util.mascot.MascotDatfile;
@@ -111,7 +112,8 @@ public class MascotSearchTask extends AbstractTask {
 
 		if (!scan.isCentroided()) {
 			LocalMaxMassDetector detector = new LocalMaxMassDetector();
-			MzPeak[] peaks = detector.getMassValues(scan);
+			ParameterSet params = detector.getParameterSet();
+			MzPeak[] peaks = detector.getMassValues(scan, params);
 			for (int i = 0; i < peaks.length; i++) {
 				writer.println(peaks[i].getMZ() + "\t"
 						+ peaks[i].getIntensity());

@@ -24,7 +24,7 @@ import java.util.TreeSet;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.chromatogrambuilder.MzPeak;
+import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
@@ -33,36 +33,39 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
-	private ParameterSet parameters;
+	private ParameterSet moduleParameters;
 
 	public ExactMassDetector() {
-		parameters = new ExactMassDetectorParameters();
+		moduleParameters = new ExactMassDetectorParameters();
 	}
 
 	/**
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
 	 */
-	public MzPeak[] getMassValues(Scan scan) {
+	public SimpleMzPeak[] getMassValues(Scan scan, ParameterSet parameters) {
+
+		double noiseLevel = parameters.getParameter(
+				ExactMassDetectorParameters.noiseLevel).getDouble();
 
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
-		TreeSet<MzPeak> mzPeaks = new TreeSet<MzPeak>(new DataPointSorter(
+		TreeSet<SimpleMzPeak> mzPeaks = new TreeSet<SimpleMzPeak>(new DataPointSorter(
 				SortingProperty.MZ, SortingDirection.Ascending));
 
 		// Create a tree set of candidate mzPeaks sorted by intensity in
 		// descending order.
-		TreeSet<MzPeak> candidatePeaks = new TreeSet<MzPeak>(
+		TreeSet<SimpleMzPeak> candidatePeaks = new TreeSet<SimpleMzPeak>(
 				new DataPointSorter(SortingProperty.Intensity,
 						SortingDirection.Descending));
 
 		// First get all candidate peaks (local maximum)
-		getLocalMaxima(scan, candidatePeaks);
+		getLocalMaxima(scan, candidatePeaks, noiseLevel);
 
 		// We calculate the exact mass for each peak,
 		// starting with biggest intensity peak and so on
 		while (candidatePeaks.size() > 0) {
 
 			// Always take the biggest (intensity) peak
-			MzPeak currentCandidate = candidatePeaks.first();
+			SimpleMzPeak currentCandidate = candidatePeaks.first();
 
 			// Calculate the exact mass and update value in current candidate
 			// (MzPeak)
@@ -77,7 +80,7 @@ public class ExactMassDetector implements MassDetector {
 		}
 
 		// Return an array of detected MzPeaks sorted by MZ
-		return mzPeaks.toArray(new MzPeak[0]);
+		return mzPeaks.toArray(new SimpleMzPeak[0]);
 
 	}
 
@@ -89,10 +92,8 @@ public class ExactMassDetector implements MassDetector {
 	 * @param scan
 	 * @return
 	 */
-	private void getLocalMaxima(Scan scan, TreeSet<MzPeak> candidatePeaks) {
+	private void getLocalMaxima(Scan scan, TreeSet<SimpleMzPeak> candidatePeaks, double noiseLevel) {
 
-		double noiseLevel = parameters.getParameter(
-				ExactMassDetectorParameters.noiseLevel).getDouble();
 
 		DataPoint[] scanDataPoints = scan.getDataPoints();
 		if (scanDataPoints.length == 0)
@@ -133,7 +134,7 @@ public class ExactMassDetector implements MassDetector {
 
 					DataPoint[] rawDataPoints = rangeDataPoints
 							.toArray(new DataPoint[0]);
-					candidatePeaks.add(new MzPeak(localMaximum, rawDataPoints));
+					candidatePeaks.add(new SimpleMzPeak(localMaximum, rawDataPoints));
 				}
 
 				// Reset and start with new peak
@@ -152,7 +153,7 @@ public class ExactMassDetector implements MassDetector {
 	 * @param ExactMassDataPoint
 	 * @return double
 	 */
-	private double calculateExactMass(MzPeak currentCandidate) {
+	private double calculateExactMass(SimpleMzPeak currentCandidate) {
 
 		/*
 		 * According with the FWHM concept, the exact mass of this peak is the
@@ -242,7 +243,7 @@ public class ExactMassDetector implements MassDetector {
 	}
 
 	public ParameterSet getParameterSet() {
-		return parameters;
+		return moduleParameters;
 	}
 
 }

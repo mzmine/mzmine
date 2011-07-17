@@ -19,17 +19,16 @@
 
 package net.sf.mzmine.desktop.impl.projecttree;
 
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.MZmineProject;
 
@@ -38,13 +37,10 @@ import net.sf.mzmine.project.MZmineProject;
  */
 class ProjectTreeDnDHandler extends TransferHandler {
 
-	private ProjectTreeModel projectTreeModel;
-
-	public ProjectTreeDnDHandler(ProjectTreeModel projectTreeModel) {
-		this.projectTreeModel = projectTreeModel;
-	}
-
 	public boolean canImport(TransferSupport info) {
+
+		ProjectTree projectTree = (ProjectTree) info.getComponent();
+		ProjectTreeModel treeModel = (ProjectTreeModel) projectTree.getModel();
 
 		// Get location where we are dropping
 		JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
@@ -56,36 +52,29 @@ class ProjectTreeDnDHandler extends TransferHandler {
 
 		// Get the path of the item where we are dropping
 		TreePath dropPath = dl.getPath();
-		Object dropTargetObject = dropPath.getLastPathComponent();
+		DefaultMutableTreeNode droppedLocationNode = (DefaultMutableTreeNode) dropPath
+				.getLastPathComponent();
+		Object dropTargetObject = droppedLocationNode.getUserObject();
 
-		DataFlavor flavors[] = info.getDataFlavors();
-		if (flavors.length < 1)
-			return false;
-		Class<?> transferClass = flavors[0].getRepresentationClass();
+		// If the target is "Raw data files" item, accept the drop
+		if (dropTargetObject == ProjectTreeModel.dataFilesNodeName)
+			return true;
 
-		// Check if we are transferring raw data files
-		if (RawDataFile[].class.equals(transferClass)) {
-			// If the target is "Raw data files" item, accept the drop
-			if (dropTargetObject == ProjectTreeModel.dataFilesItem)
-				return true;
-			// If the target is last item AFTER "Raw data files" item, accept
-			// the drop
-			if ((dropTargetObject == projectTreeModel.getRoot())
-					&& (dl.getChildIndex() == 1))
-				return true;
-		}
+		// If the target is last item AFTER "Raw data files" item, accept
+		// the drop
+		if ((droppedLocationNode == treeModel.getRoot())
+				&& (dl.getChildIndex() == 1))
+			return true;
 
-		// Check if we are transferring peak lists
-		if (PeakList[].class.equals(transferClass)) {
-			// If the target is "Peak lists" item, accept the drop
-			if (dropTargetObject == ProjectTreeModel.peakListsItem)
-				return true;
-			// If the target is last item AFTER "Peak lists" item, accept the
-			// drop
-			if ((dropTargetObject == projectTreeModel.getRoot())
-					&& (dl.getChildIndex() == 2))
-				return true;
-		}
+		// If the target is "Peak lists" item, accept the drop
+		if (dropTargetObject == ProjectTreeModel.peakListsNodeName)
+			return true;
+
+		// If the target is last item AFTER "Peak lists" item, accept the
+		// drop
+		if ((droppedLocationNode == treeModel.getRoot())
+				&& (dl.getChildIndex() == 2))
+			return true;
 
 		return false;
 	}
@@ -96,38 +85,96 @@ class ProjectTreeDnDHandler extends TransferHandler {
 			return false;
 		}
 
-		Desktop desktop = MZmineCore.getDesktop();
-		MZmineProject project = MZmineCore.getCurrentProject();
-		
-		JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
+		ProjectTree projectTree = (ProjectTree) info.getComponent();
+		ProjectTreeModel treeModel = (ProjectTreeModel) projectTree.getModel();
 
-		Object droppedLocationObject = dl.getPath().getLastPathComponent();
+		MZmineProject project = MZmineCore.getCurrentProject();
+
+		JTree.DropLocation dl = (JTree.DropLocation) info.getDropLocation();
+		TreePath dropPath = dl.getPath();
+		DefaultMutableTreeNode droppedLocationNode = (DefaultMutableTreeNode) dropPath
+				.getLastPathComponent();
+
+		Object droppedLocationObject = droppedLocationNode.getUserObject();
 		int childIndex = dl.getChildIndex();
-		
+
+		TreePath transferedPaths[] = projectTree.getSelectionPaths();
+
 		// Check if the drop target is among the project data files
-		if (droppedLocationObject == ProjectTreeModel.dataFilesItem) {
-			RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
-			project.moveDataFiles(selectedFiles, childIndex);
+		if (droppedLocationObject == ProjectTreeModel.dataFilesNodeName) {
+
+			for (TreePath path : transferedPaths) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+						.getLastPathComponent();
+				int currentIndex = node.getParent().getIndex(node);
+				Object transferObject = node.getUserObject();
+				if (transferObject instanceof RawDataFile) {
+					treeModel.removeNodeFromParent(node);
+
+					if (childIndex > currentIndex)
+						childIndex--;
+					treeModel.insertNodeInto(node, droppedLocationNode,
+							childIndex);
+
+					childIndex++;
+
+				}
+			}
+
 		}
 
 		// Check if the drop target is AFTER the data files (last position)
 		if ((droppedLocationObject == project) && (childIndex == 1)) {
 			int numOfFiles = project.getDataFiles().length;
-			RawDataFile selectedFiles[] = desktop.getSelectedDataFiles();
-			project.moveDataFiles(selectedFiles, numOfFiles);
+			DefaultMutableTreeNode filesNode = (DefaultMutableTreeNode) droppedLocationNode
+					.getChildAt(0);
+
+			for (TreePath path : transferedPaths) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+						.getLastPathComponent();
+				Object transferObject = node.getUserObject();
+				if (transferObject instanceof RawDataFile) {
+					treeModel.removeNodeFromParent(node);
+					treeModel.insertNodeInto(node, filesNode, numOfFiles - 1);
+				}
+			}
+
 		}
-		
+
 		// Check if the drop target is among the project peak lists
-		if (droppedLocationObject == ProjectTreeModel.peakListsItem) {
-			PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
-			project.movePeakLists(selectedPeakLists, childIndex);
+		if (droppedLocationObject == ProjectTreeModel.peakListsNodeName) {
+			for (TreePath path : transferedPaths) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+						.getLastPathComponent();
+				int currentIndex = node.getParent().getIndex(node);
+				Object transferObject = node.getUserObject();
+				if (childIndex > currentIndex)
+					childIndex--;
+				if (transferObject instanceof PeakList) {
+					treeModel.removeNodeFromParent(node);
+					treeModel.insertNodeInto(node, droppedLocationNode,
+							childIndex);
+					childIndex++;
+				}
+			}
 		}
 
 		// Check if the drop target is AFTER the peak lists (last position)
 		if ((droppedLocationObject == project) && (childIndex == 2)) {
+			DefaultMutableTreeNode peakListsNode = (DefaultMutableTreeNode) droppedLocationNode
+					.getChildAt(1);
+
 			int numOfPeakLists = project.getPeakLists().length;
-			PeakList selectedPeakLists[] = desktop.getSelectedPeakLists();
-			project.movePeakLists(selectedPeakLists, numOfPeakLists);
+			for (TreePath path : transferedPaths) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+						.getLastPathComponent();
+				Object transferObject = node.getUserObject();
+				if (transferObject instanceof PeakList) {
+					treeModel.removeNodeFromParent(node);
+					treeModel.insertNodeInto(node, peakListsNode,
+							numOfPeakLists - 1);
+				}
+			}
 		}
 
 		return true;
@@ -139,31 +186,7 @@ class ProjectTreeDnDHandler extends TransferHandler {
 	}
 
 	protected Transferable createTransferable(JComponent c) {
-
-		ProjectTree tree = (ProjectTree) c;
-
-		// Get selected items in the list
-		RawDataFile selectedDataFiles[] = tree
-				.getSelectedObjects(RawDataFile.class);
-		PeakList selectedPeakLists[] = tree.getSelectedObjects(PeakList.class);
-
-		// If nothing is selected, we have nothing to transfer
-		if ((selectedDataFiles.length == 0) && (selectedPeakLists.length == 0))
-			return null;
-
-		// If both raw data and peaklists are selected, we cannot transfer both
-		if ((selectedDataFiles.length > 0) && (selectedPeakLists.length > 0))
-			return null;
-
-		ProjectTreeTransferable transferable;
-
-		if (selectedDataFiles.length > 0) {
-			transferable = new ProjectTreeTransferable(selectedDataFiles);
-		} else {
-			transferable = new ProjectTreeTransferable(selectedPeakLists);
-		}
-
-		return transferable;
+		return new ProjectTreeTransferable();
 	}
 
 }

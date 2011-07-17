@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.util.Range;
 
@@ -136,5 +138,14 @@ public class HistogramRangeParameter implements
 		xmlElement.appendChild(newElement);
 
 		xmlElement.setAttribute("selected", selectedType.name());
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}		
+		return true;
 	}
 }

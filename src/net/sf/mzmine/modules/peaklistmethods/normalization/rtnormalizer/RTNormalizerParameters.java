@@ -20,16 +20,20 @@
 package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * 
  */
 public class RTNormalizerParameters extends SimpleParameterSet {
+
+	// TODO: define that minimum number of peak lists is 2
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "normalized");
@@ -53,8 +57,8 @@ public class RTNormalizerParameters extends SimpleParameterSet {
 			"If checked, original peak list will be removed and only normalized version remains");
 
 	public RTNormalizerParameters() {
-		super(new UserParameter[] { suffix, MZTolerance, RTTolerance, minHeight,
-				autoRemove });
+		super(new Parameter[] { peakLists, suffix, MZTolerance, RTTolerance,
+				minHeight, autoRemove });
 	}
 
 }

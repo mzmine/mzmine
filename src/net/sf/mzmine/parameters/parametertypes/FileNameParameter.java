@@ -20,6 +20,7 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.io.File;
+import java.util.Collection;
 
 import org.w3c.dom.Element;
 
@@ -112,4 +113,14 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 			return;
 		xmlElement.setTextContent(value.getPath());
 	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
+	}
+	
 }

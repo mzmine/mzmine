@@ -53,9 +53,11 @@ import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
@@ -70,96 +72,21 @@ import org.xml.sax.SAXException;
 import de.schlichtherle.io.FileOutputStream;
 
 /**
- * This interface represents MZmine core modules - I/O, task controller and GUI.
+ * MZmine main class
  */
 public class MZmineCore implements Runnable {
 
 	public static final File CONFIG_FILE = new File("conf/config.xml");
-	public static final File DEFAULT_CONFIG_FILE = new File(
-			"conf/config-default.xml");
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-	protected static MZminePreferences preferences;
+	private static MZminePreferences preferences;
 
-	protected static TaskController taskController;
-	protected static Desktop desktop;
-	protected static ProjectManagerImpl projectManager;
-	protected static MZmineModule[] initializedModules;
-	protected static HelpImpl help;
-
-	/**
-	 * Returns a reference to local task controller.
-	 * 
-	 * @return TaskController reference
-	 */
-	public static TaskController getTaskController() {
-		return taskController;
-	}
-
-	/**
-	 * Returns a reference to Desktop.
-	 */
-	public static Desktop getDesktop() {
-		return desktop;
-	}
-
-	/**
-     * 
-     */
-	public static ProjectManager getProjectManager() {
-		return projectManager;
-	}
-
-	/**
-     * 
-     */
-	public static MZmineProject getCurrentProject() {
-		return projectManager.getCurrentProject();
-	}
-
-	/**
-	 * Returns an array of all initialized MZmine modules
-	 * 
-	 * @return Array of all initialized MZmine modules
-	 */
-	public static MZmineModule[] getAllModules() {
-		return initializedModules;
-	}
-
-	/**
-	 * 
-	 * 
-	 * @return
-	 */
-	public static HelpImpl getHelpImpl() {
-		return help;
-	}
-
-	/**
-	 * Saves configuration and exits the application.
-	 * 
-	 */
-	public static ExitCode exitMZmine() {
-
-		// If we have GUI, ask if use really wants to quit
-		int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
-				.getMainFrame().getContentPane(),
-				"Are you sure you want to exit?", "Exiting...",
-				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-
-		if (selectedValue != JOptionPane.YES_OPTION)
-			return ExitCode.CANCEL;
-
-		desktop.getMainFrame().dispose();
-
-		logger.info("Exiting MZmine");
-
-		System.exit(0);
-		
-		return ExitCode.OK;
-
-	}
+	private static TaskControllerImpl taskController;
+	private static MainWindow desktop;
+	private static ProjectManagerImpl projectManager;
+	private static MZmineModule[] initializedModules;
+	private static HelpImpl help;
 
 	/**
 	 * Main method
@@ -175,16 +102,14 @@ public class MZmineCore implements Runnable {
 	 */
 	public void run() {
 
-		logger.info("Starting MZmine 2");
+		logger.info("Starting MZmine " + getMZmineVersion());
 
 		logger.fine("Checking for old temporary files...");
 
 		try {
 
-			// Get the temporary directory
+			// Find all temporary files with the mask mzmine*.scans
 			File tempDir = new File(System.getProperty("java.io.tmpdir"));
-
-			// Find all files with the mask mzmine*.scans
 			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
 					return name.matches("mzmine.*\\.scans");
@@ -217,93 +142,55 @@ public class MZmineCore implements Runnable {
 					"Error while checking for old temporary files", e);
 		}
 
-		logger.fine("Loading configuration..");
-
-		File configFileToLoad = CONFIG_FILE;
-		if (!CONFIG_FILE.canRead())
-			configFileToLoad = DEFAULT_CONFIG_FILE;
-		if (!configFileToLoad.canRead()) {
-			logger.log(Level.SEVERE, "Cannot read default configuration file "
-					+ DEFAULT_CONFIG_FILE);
-			System.exit(1);
-		}
-
-		Document configuration = null;
-		NodeList modulesItems = null;
-
-		try {
-			DocumentBuilderFactory dbFactory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-			configuration = dBuilder.parse(configFileToLoad);
-
-			XPathFactory factory = XPathFactory.newInstance();
-			XPath xpath = factory.newXPath();
-
-			XPathExpression expr = xpath.compile("//modules/module");
-			modulesItems = (NodeList) expr.evaluate(configuration,
-					XPathConstants.NODESET);
-
-		} catch (Exception e) {
-
-			logger.log(Level.SEVERE, "Error parsing the configuration file "
-					+ configFileToLoad + ", loading default configuration", e);
-			System.exit(1);
-			return;
-		}
-
 		logger.fine("Loading core classes..");
 
 		// create instance of preferences
 		preferences = new MZminePreferences();
 
 		// create instances of core modules
-
-		// load configuration from XML
-		MZmineCore.taskController = new TaskControllerImpl();
+		taskController = new TaskControllerImpl();
 		projectManager = new ProjectManagerImpl();
-		MZmineCore.desktop = new MainWindow();
+		desktop = new MainWindow();
 		help = new HelpImpl();
 
 		logger.fine("Initializing core classes..");
 
-		// First initialize project manager, because desktop needs to
-		// register project listener
 		projectManager.initModule();
+		desktop.initModule();
+		taskController.initModule();
 
-		// Second, initialize desktop, because task controller needs to add
-		// TaskProgressWindow to the desktop
-		((MainWindow) desktop).initModule();
-
-		// Last, initialize task controller
-		((TaskControllerImpl) taskController).initModule();
+		// Activate project - bind it to the desktop's project tree
+		MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
+				.getCurrentProject();
+		currentProject.activateProject();
 
 		logger.fine("Loading modules");
 
 		Vector<MZmineModule> moduleSet = new Vector<MZmineModule>();
 
-		for (int i = 0; i < modulesItems.getLength(); i++) {
-			Element modElement = (Element) modulesItems.item(i);
-
-			String className = modElement.getAttribute("class");
+		for (Class<?> moduleClass : MZmineModulesList.MODULES) {
 
 			try {
 
-				logger.finest("Loading module " + className);
-
-				// load the module class
-				Class moduleClass = Class.forName(className);
+				logger.finest("Loading module " + moduleClass.getName());
 
 				// create instance and init module
 				MZmineModule moduleInstance = (MZmineModule) moduleClass
 						.newInstance();
 
+				// add desktop menu icon
+				if (moduleInstance instanceof MZmineProcessingModule) {
+					desktop.getMainMenu().addMenuItemForModule(
+							(MZmineProcessingModule) moduleInstance);
+				}
+
 				// add to the module set
 				moduleSet.add(moduleInstance);
 
 			} catch (Throwable e) {
-				logger.log(Level.SEVERE, "Could not load module " + className,
-						e);
+				logger.log(Level.SEVERE,
+						"Could not load module " + moduleClass, e);
+				e.printStackTrace();
 				continue;
 			}
 
@@ -311,10 +198,12 @@ public class MZmineCore implements Runnable {
 
 		MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
 
-		try {
-			loadConfiguration(configFileToLoad);
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (CONFIG_FILE.canRead()) {
+			try {
+				loadConfiguration(CONFIG_FILE);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		// register shutdown hook
@@ -323,7 +212,7 @@ public class MZmineCore implements Runnable {
 
 		// show the GUI
 		logger.info("Showing main window");
-		((MainWindow) desktop).setVisible(true);
+		desktop.setVisible(true);
 
 		// show the welcome message
 		desktop.setStatusBarText("Welcome to MZmine 2!");
@@ -425,6 +314,79 @@ public class MZmineCore implements Runnable {
 		}
 
 		logger.info("Loaded configuration from file " + file);
+	}
+
+	/**
+	 * Returns a reference to local task controller.
+	 * 
+	 * @return TaskController reference
+	 */
+	public static TaskController getTaskController() {
+		return taskController;
+	}
+
+	/**
+	 * Returns a reference to Desktop.
+	 */
+	public static Desktop getDesktop() {
+		return desktop;
+	}
+
+	/**
+     * 
+     */
+	public static ProjectManager getProjectManager() {
+		return projectManager;
+	}
+
+	/**
+     * 
+     */
+	public static MZmineProject getCurrentProject() {
+		return projectManager.getCurrentProject();
+	}
+
+	/**
+	 * Returns an array of all initialized MZmine modules
+	 * 
+	 * @return Array of all initialized MZmine modules
+	 */
+	public static MZmineModule[] getAllModules() {
+		return initializedModules;
+	}
+
+	/**
+	 * 
+	 * 
+	 * @return
+	 */
+	public static HelpImpl getHelpImpl() {
+		return help;
+	}
+
+	/**
+	 * Saves configuration and exits the application.
+	 * 
+	 */
+	public static ExitCode exitMZmine() {
+
+		// If we have GUI, ask if use really wants to quit
+		int selectedValue = JOptionPane.showInternalConfirmDialog(desktop
+				.getMainFrame().getContentPane(),
+				"Are you sure you want to exit?", "Exiting...",
+				JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+
+		if (selectedValue != JOptionPane.YES_OPTION)
+			return ExitCode.CANCEL;
+
+		desktop.getMainFrame().dispose();
+
+		logger.info("Exiting MZmine");
+
+		System.exit(0);
+
+		return ExitCode.OK;
+
 	}
 
 	// Number formatting functions

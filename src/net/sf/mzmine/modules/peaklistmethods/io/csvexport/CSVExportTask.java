@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 class CSVExportTask extends AbstractTask {
 
 	private PeakList peakList;
-	private int processedRows, totalRows;
+	private int processedRows = 0, totalRows = 0;
 
 	// parameter values
 	private File fileName;
@@ -43,22 +44,23 @@ class CSVExportTask extends AbstractTask {
 	private String[] identityElements;
 	private ExportRowDataFileElement[] dataFileElements;
 
-	CSVExportTask(PeakList peakList, ParameterSet parameters) {
+	CSVExportTask(ParameterSet parameters) {
 
-		this.peakList = peakList;
+		this.peakList = parameters.getParameter(CSVExportParameters.peakList)
+				.getValue()[0];
 
-		fileName = parameters.getParameter(CSVExporterParameters.filename)
+		fileName = parameters.getParameter(CSVExportParameters.filename)
 				.getValue();
 		fieldSeparator = parameters.getParameter(
-				CSVExporterParameters.fieldSeparator).getValue();
+				CSVExportParameters.fieldSeparator).getValue();
 
 		commonElements = parameters.getParameter(
-				CSVExporterParameters.exportCommonItems).getValue();
+				CSVExportParameters.exportCommonItems).getValue();
 
 		identityElements = parameters.getParameter(
-				CSVExporterParameters.exportIdentityItems).getValue();
+				CSVExportParameters.exportIdentityItems).getValue();
 		dataFileElements = parameters.getParameter(
-				CSVExporterParameters.exportDataFileItems).getValue();
+				CSVExportParameters.exportDataFileItems).getValue();
 
 	}
 
@@ -87,6 +89,23 @@ class CSVExportTask extends AbstractTask {
 
 		// Get number of rows
 		totalRows = peakList.getNumberOfRows();
+
+		exportPeakList(peakList, writer);
+
+		// Close file
+		try {
+			writer.close();
+		} catch (Exception e) {
+			setStatus(TaskStatus.ERROR);
+			errorMessage = "Could not close file " + fileName;
+			return;
+		}
+
+		setStatus(TaskStatus.FINISHED);
+
+	}
+
+	private void exportPeakList(PeakList peakList, FileWriter writer) {
 
 		RawDataFile rawDataFiles[] = peakList.getRawDataFiles();
 
@@ -246,20 +265,7 @@ class CSVExportTask extends AbstractTask {
 			}
 
 			processedRows++;
-
 		}
-
-		// Close file
-		try {
-			writer.close();
-		} catch (Exception e) {
-			setStatus(TaskStatus.ERROR);
-			errorMessage = "Could not close file " + fileName;
-			return;
-		}
-
-		setStatus(TaskStatus.FINISHED);
-
 	}
 
 	public Object[] getCreatedObjects() {

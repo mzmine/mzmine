@@ -19,20 +19,13 @@
 
 package net.sf.mzmine.project;
 
-
 /**
  * Project manager
  */
 public interface ProjectManager {
 
 	public MZmineProject getCurrentProject();
-	
+
 	public void setCurrentProject(MZmineProject newProject);
-
-	public void addProjectListener(ProjectListener listener);
-
-	public void removeProjectListener(ProjectListener listener);
-    
-    public void fireProjectListeners(ProjectEvent event);
 
 }

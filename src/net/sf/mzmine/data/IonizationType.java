@@ -20,7 +20,7 @@
 package net.sf.mzmine.data;
 
 public enum IonizationType {
-	
+
 	NO_IONIZATION("No ionization", "", 0, Polarity.Neutral),
 	POSITIVE_HYDROGEN("+H⁺", "H", 1.00728, Polarity.Positive),
 	NEGATIVE_HYDROGEN("-H⁺", "H", -1.00728, Polarity.Negative),
@@ -34,11 +34,11 @@ public enum IonizationType {
 	private final Polarity polarity;
 	private final double addedMass;
 
-	IonizationType(String name, String element, double addedMass,
+	IonizationType(String name, String adductFormula, double addedMass,
 			Polarity polarity) {
 
 		this.name = name;
-		this.adductFormula = element;
+		this.adductFormula = adductFormula;
 		this.addedMass = addedMass;
 		this.polarity = polarity;
 	}

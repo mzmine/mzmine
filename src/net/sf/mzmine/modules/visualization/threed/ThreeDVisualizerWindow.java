@@ -116,14 +116,31 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 		add(threeDPlot, BorderLayout.CENTER);
 
 		updateTitle();
-		pack();
 
 		Task updateTask = new ThreeDSamplingTask(dataFile, scanNumbers,
 				rtRange, mzRange, rtResolution, mzResolution, display,
 				bottomPanel);
 
 		MZmineCore.getTaskController().addTask(updateTask, TaskPriority.HIGH);
+		
+		MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
+		
+		pack();
 
+	}
+	
+	public void dispose() {
+		super.dispose();
+		MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
+		
+		// Cleanup display
+		if (display != null) {
+			try {
+				display.destroy();
+			} catch (Exception e) {
+				// ignore
+			}
+		}
 	}
 
 	void updateTitle() {
@@ -156,13 +173,13 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 			// scale depending on wheel rotation direction
 			double scale = (rot < 0 ? 1.03 : 0.97);
 
-		/*	double[] mult = MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0,
+			double[] mult = MouseBehaviorJ3D.static_make_matrix(0.0, 0.0, 0.0,
 					scale, 0.0, 0.0, 0.0);
 
 			double newMatrix[] = MouseBehaviorJ3D.static_multiply_matrix(mult,
 					pControlMatrix);
 
-			pControl.setMatrix(newMatrix);*/
+			pControl.setMatrix(newMatrix);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -204,24 +221,6 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
 			display.toggleShowingPeaks();
 		}
 
-	}
-
-	/**
-	 * Dispose this window
-	 */
-	public void dispose() {
-
-		// Cleanup display
-		if (display != null) {
-			try {
-				display.destroy();
-			} catch (Exception e) {
-				// ignore
-			}
-		}
-
-		// When this window is closed, we need to remove the project listener.
-		MZmineCore.getProjectManager().removeProjectListener(bottomPanel);
 	}
 
 }

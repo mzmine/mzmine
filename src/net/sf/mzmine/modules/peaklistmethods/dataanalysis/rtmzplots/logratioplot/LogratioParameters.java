@@ -20,13 +20,16 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 
 public class LogratioParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final MultiChoiceParameter<RawDataFile> groupOneFiles = new MultiChoiceParameter<RawDataFile>(
 			"Group one", "Samples in group one", new RawDataFile[0]);
@@ -40,7 +43,7 @@ public class LogratioParameters extends SimpleParameterSet {
 			PeakMeasurementType.values());
 
 	public LogratioParameters() {
-		super(new UserParameter[] { groupOneFiles, groupTwoFiles,
+		super(new Parameter[] { peakLists, groupOneFiles, groupTwoFiles,
 				measurementType });
 	}
 

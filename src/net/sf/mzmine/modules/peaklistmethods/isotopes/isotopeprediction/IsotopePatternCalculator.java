@@ -27,6 +27,7 @@ import net.sf.mzmine.data.IsotopePatternStatus;
 import net.sf.mzmine.data.Polarity;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleIsotopePattern;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -214,10 +215,15 @@ public class IsotopePatternCalculator implements MZmineModule {
 		double minAbundance = parameters.getParameter(
 				IsotopePatternCalculatorParameters.minAbundance).getDouble();
 
-		IsotopePattern predictedPattern = calculateIsotopePattern(formula,
-				minAbundance, charge, polarity);
+		try {
+			IsotopePattern predictedPattern = calculateIsotopePattern(formula,
+					minAbundance, charge, polarity);
+			return predictedPattern;
+		} catch (Exception e) {
+			MZmineCore.getDesktop().displayException(e);
+		}
 
-		return predictedPattern;
+		return null;
 
 	}
 }

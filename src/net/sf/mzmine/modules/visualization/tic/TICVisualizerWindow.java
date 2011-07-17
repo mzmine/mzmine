@@ -34,7 +34,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -271,7 +271,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 		if (command.equals("SHOW_SPECTRUM")) {
 			CursorPosition pos = getCursorPosition();
 			if (pos != null) {
-				SpectraVisualizer.showNewSpectrumWindow(pos.getDataFile(),
+				SpectraVisualizerModule.showNewSpectrumWindow(pos.getDataFile(),
 						pos.getScanNumber());
 			}
 		}

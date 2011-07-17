@@ -13,156 +13,128 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
 package net.sf.mzmine.desktop.impl.projecttree;
 
-import java.util.Vector;
+import java.util.Enumeration;
 
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
-import javax.swing.tree.TreeModel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeNode;
 import net.sf.mzmine.project.MZmineProject;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectListener;
 
-public class ProjectTreeModel implements TreeModel, ProjectListener {
+/**
+ * Project tree model implementation
+ */
+public class ProjectTreeModel extends DefaultTreeModel {
 
-	static final String dataFilesItem = "Raw data files",
-			peakListsItem = "Peak lists";
+	public static final String dataFilesNodeName = "Raw data files";
+	public static final String peakListsNodeName = "Peak lists";
 
-	private Vector<TreeModelListener> listeners = new Vector<TreeModelListener>();
+	private final ProjectTreeNode dataFilesNode = new ProjectTreeNode(
+			dataFilesNodeName);
 
-	private ProjectTree projectTree;
+	private final ProjectTreeNode peakListsNode = new ProjectTreeNode(
+			peakListsNodeName);
 
-	ProjectTreeModel(ProjectTree projectTree) {
-		this.projectTree = projectTree;
-		MZmineCore.getProjectManager().addProjectListener(this);
+	private DefaultMutableTreeNode rootNode;
+
+	public ProjectTreeModel(MZmineProject project) {
+
+		super(new DefaultMutableTreeNode(project));
+
+		rootNode = (DefaultMutableTreeNode) super.getRoot();
+
+		insertNodeInto(dataFilesNode, rootNode, 0);
+		insertNodeInto(peakListsNode, rootNode, 1);
+
 	}
 
-	public Object getChild(Object parent, int num) {
-		if (parent instanceof MZmineProject) {
-			if (num == 0)
-				return dataFilesItem;
-			else
-				return peakListsItem;
+	public synchronized void addObject(Object object) {
+
+		if (object instanceof PeakList) {
+			PeakList peakList = (PeakList) object;
+			int childCount = getChildCount(peakListsNode);
+			DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
+					peakList);
+			insertNodeInto(newPeakListNode, peakListsNode, childCount);
+
+			PeakListRow rows[] = peakList.getRows();
+			for (int i = 0; i < rows.length; i++) {
+				MutableTreeNode rowNode = new DefaultMutableTreeNode(rows[i]);
+				insertNodeInto(rowNode, newPeakListNode, i);
+			}
+
 		}
-		if (parent == dataFilesItem) {
-			RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
-					.getDataFiles();
-			// We have to check the size of the array, because the item may have
-			// been removed by another thread between calling getChildCount()
-			// and getChild()
-			if (num > dataFiles.length - 1)
-				return "";
-			return dataFiles[num];
+
+		if (object instanceof RawDataFile) {
+			RawDataFile dataFile = (RawDataFile) object;
+			int childCount = getChildCount(dataFilesNode);
+			DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
+					dataFile);
+			insertNodeInto(newDataFileNode, dataFilesNode, childCount);
+
+			int scanNumbers[] = dataFile.getScanNumbers();
+			for (int i = 0; i < scanNumbers.length; i++) {
+				Scan scan = dataFile.getScan(scanNumbers[i]);
+				MutableTreeNode scanNode = new DefaultMutableTreeNode(scan);
+				insertNodeInto(scanNode, newDataFileNode, i);
+			}
+			return;
 		}
-		if (parent == peakListsItem) {
-			PeakList peakLists[] = MZmineCore.getCurrentProject()
-					.getPeakLists();
-			// Check size (see above)
-			if (num > peakLists.length - 1)
-				return "";
-			return peakLists[num];
-		}
-		if (parent instanceof PeakList) {
-			return ((PeakList) parent).getRow(num);
-		}
-		if (parent instanceof RawDataFile) {
-			RawDataFile parentFile = (RawDataFile) parent;
-			int scanNumbers[] = parentFile.getScanNumbers();
-			// Check size (see above)
-			if (num > scanNumbers.length - 1)
-				return "";
-			return parentFile.getScan(scanNumbers[num]);
-		}
-		throw (new IllegalArgumentException("Unknown parent " + parent));
+
 	}
 
-	public int getChildCount(Object parent) {
+	public synchronized void removeObject(Object object) {
 
-		if (parent instanceof MZmineProject)
-			return 2;
-		if (parent == dataFilesItem) {
-			return MZmineCore.getCurrentProject().getDataFiles().length;
-		}
-		if (parent == peakListsItem) {
-			return MZmineCore.getCurrentProject().getPeakLists().length;
-		}
-		if (parent instanceof PeakList) {
-			return ((PeakList) parent).getNumberOfRows();
-		}
-		if (parent instanceof RawDataFile) {
-			return ((RawDataFile) parent).getNumOfScans();
+		Enumeration nodes = rootNode.breadthFirstEnumeration();
+		while (nodes.hasMoreElements()) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+					.nextElement();
+			if (node.getUserObject() == object) {
+				removeNodeFromParent(node);
+				return;
+			}
 		}
 
-		throw (new IllegalArgumentException("Unknown parent " + parent));
 	}
 
-	public int getIndexOfChild(Object parent, Object child) {
-		if (parent instanceof MZmineProject) {
-			if (child == dataFilesItem)
-				return 0;
-			else
-				return 1;
+	public synchronized PeakList[] getPeakLists() {
+		int childrenCount = getChildCount(peakListsNode);
+		PeakList result[] = new PeakList[childrenCount];
+		for (int j = 0; j < childrenCount; j++) {
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(
+					peakListsNode, j);
+			result[j] = (PeakList) child.getUserObject();
 		}
-		if (parent == dataFilesItem) {
-			RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
-					.getDataFiles();
-			for (int i = 0; i < dataFiles.length; i++)
-				if (dataFiles[i] == child)
-					return i;
-		}
-		if (parent == peakListsItem) {
-			PeakList peakLists[] = MZmineCore.getCurrentProject()
-					.getPeakLists();
-			for (int i = 0; i < peakLists.length; i++)
-				if (peakLists[i] == child)
-					return i;
-		}
-		if (parent instanceof PeakList) {
-			PeakListRow rows[] = ((PeakList) parent).getRows();
-			for (int i = 0; i < rows.length; i++)
-				if (rows[i] == child)
-					return i;
-		}
-		if (parent instanceof RawDataFile) {
-			int scanNumbers[] = ((RawDataFile) parent).getScanNumbers();
-			int num = ((Scan) child).getScanNumber();
-			for (int i = 0; i < scanNumbers.length; i++)
-				if (scanNumbers[i] == num)
-					return i;
-		}
-		throw (new IllegalArgumentException("Unknown parent " + parent));
+		return result;
 	}
 
-	public Object getRoot() {
-		return MZmineCore.getCurrentProject();
-	}
-
-	public boolean isLeaf(Object element) {
-		return ((element instanceof PeakListRow) || (element instanceof Scan));
-	}
-
-	public void addTreeModelListener(TreeModelListener l) {
-		listeners.add(l);
-	}
-
-	public void removeTreeModelListener(TreeModelListener l) {
-		listeners.remove(l);
+	public synchronized RawDataFile[] getDataFiles() {
+		int childrenCount = getChildCount(dataFilesNode);
+		RawDataFile result[] = new RawDataFile[childrenCount];
+		for (int j = 0; j < childrenCount; j++) {
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(
+					dataFilesNode, j);
+			result[j] = (RawDataFile) child.getUserObject();
+		}
+		return result;
 	}
 
 	public void valueForPathChanged(TreePath path, Object value) {
-		Object object = path.getLastPathComponent();
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) path
+				.getLastPathComponent();
+		Object object = node.getUserObject();
 		String newName = (String) value;
 		if (object instanceof RawDataFile) {
 			RawDataFile df = (RawDataFile) object;
@@ -174,115 +146,24 @@ public class ProjectTreeModel implements TreeModel, ProjectListener {
 		}
 	}
 
-	/**
-	 * ProjectListener implementation - we have to reflect the changes of the
-	 * project by updating the tree model.
-	 */
-	public void projectModified(final ProjectEvent projectEvent) {
-
-		TreeModelEvent treeEvent;
-		TreePath modifiedPath;
-
-		// Create a new tree event depending on the type of project event
-		switch (projectEvent.getType()) {
-
-		case ALL_CHANGED:
-			modifiedPath = new TreePath(getRoot());
-			treeEvent = new TreeModelEvent(this, modifiedPath);
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(treeEvent);
+	public void notifyObjectChanged(Object object, boolean structureChanged) {
+		Enumeration nodes = rootNode.breadthFirstEnumeration();
+		while (nodes.hasMoreElements()) {
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+					.nextElement();
+			if (node.getUserObject() == object) {
+				if (structureChanged)
+					nodeStructureChanged(node);
+				else
+					nodeChanged(node);
+				return;
 			}
-			projectTree.expandPath(new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.dataFilesItem }));
-			projectTree.expandPath(new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.peakListsItem }));
-
-			break;
-
-		case PROJECT_NAME_CHANGED:
-			modifiedPath = new TreePath(getRoot());
-			treeEvent = new TreeModelEvent(this, modifiedPath);
-			for (TreeModelListener l : listeners) {
-				l.treeNodesChanged(treeEvent);
-			}
-			break;
-
-		case DATAFILE_ADDED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.dataFilesItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath,
-					new int[] { projectEvent.getIndex() },
-					new Object[] { projectEvent.getDataFile() });
-			for (TreeModelListener l : listeners) {
-				l.treeNodesInserted(treeEvent);
-			}
-			break;
-
-		case DATAFILE_REMOVED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.dataFilesItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath,
-					new int[] { projectEvent.getIndex() },
-					new Object[] { projectEvent.getDataFile() });
-			for (TreeModelListener l : listeners) {
-				l.treeNodesRemoved(treeEvent);
-			}
-			break;
-
-		case DATAFILES_REORDERED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.dataFilesItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath);
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(treeEvent);
-			}
-			break;
-
-		case PEAKLIST_ADDED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.peakListsItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath,
-					new int[] { projectEvent.getIndex() },
-					new Object[] { projectEvent.getPeakList() });
-
-			for (TreeModelListener l : listeners) {
-				l.treeNodesInserted(treeEvent);
-			}
-			break;
-
-		case PEAKLIST_REMOVED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.peakListsItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath,
-					new int[] { projectEvent.getIndex() },
-					new Object[] { projectEvent.getPeakList() });
-
-			for (TreeModelListener l : listeners) {
-				l.treeNodesRemoved(treeEvent);
-			}
-			break;
-
-		case PEAKLISTS_REORDERED:
-			modifiedPath = new TreePath(new Object[] { getRoot(),
-					ProjectTreeModel.peakListsItem });
-			treeEvent = new TreeModelEvent(this, modifiedPath);
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(treeEvent);
-			}
-			break;
-
-		case PEAKLIST_CONTENTS_CHANGED:
-			modifiedPath = new TreePath(
-					new Object[] { getRoot(), ProjectTreeModel.peakListsItem,
-							projectEvent.getPeakList() });
-			treeEvent = new TreeModelEvent(this, modifiedPath);
-			for (TreeModelListener l : listeners) {
-				l.treeStructureChanged(treeEvent);
-			}
-			break;
-
 		}
 
+	}
+
+	public DefaultMutableTreeNode getRoot() {
+		return rootNode;
 	}
 
 }

@@ -87,14 +87,15 @@ public interface MZmineProject {
 	 * previous value is replaced.
 	 * 
 	 */
-	public void setParameterValue(UserParameter parameter, RawDataFile rawDataFile,
-			Object value);
+	public void setParameterValue(UserParameter parameter,
+			RawDataFile rawDataFile, Object value);
 
 	/**
 	 * Returns experimental parameter's value corresponding to a RawDataFile.
 	 * 
 	 */
-	public Object getParameterValue(UserParameter parameter, RawDataFile rawDataFile);
+	public Object getParameterValue(UserParameter parameter,
+			RawDataFile rawDataFile);
 
 	/**
 	 * Adds a new RawDataFile to the project.
@@ -105,12 +106,6 @@ public interface MZmineProject {
 	 * Removes a RawDataFile from the project.
 	 */
 	public void removeFile(RawDataFile file);
-
-	/**
-	 * Moves the position of given RawDataFiles to a new position (movePosition)
-	 * in the project. Positions are indexed starting from 0.
-	 */
-	public void moveDataFiles(RawDataFile[] movedFiles, int movePosition);
 
 	/**
 	 * Returns all RawDataFiles of the project.
@@ -129,12 +124,6 @@ public interface MZmineProject {
 	public void removePeakList(PeakList peaklist);
 
 	/**
-	 * Moves the position of given PeakLists to a new position (movePosition)
-	 * in the project. Positions are indexed starting from 0.
-	 */
-	public void movePeakLists(PeakList[] movedPeakLists, int movePosition);
-
-	/**
 	 * Returns all peak lists of the project
 	 */
 	public PeakList[] getPeakLists();
@@ -143,5 +132,7 @@ public interface MZmineProject {
 	 * Returns all peak lists which contain given data file
 	 */
 	public PeakList[] getPeakLists(RawDataFile file);
+
+	public void notifyObjectChanged(Object object, boolean structureChanged);
 
 }

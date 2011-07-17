@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -67,7 +68,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	private String helpID;
 
 	// Parameters and their representation in the dialog
-	private ParameterSet parameterSet;
+	protected ParameterSet parameterSet;
 	private Map<String, JComponent> parametersAndComponents;
 	private Map<UserParameter, Object> autoValues;
 
@@ -83,28 +84,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	 * to the unused cells of the grid.
 	 */
 	protected GridBagPanel mainPanel;
-
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(ParameterSet parameters) {
-		this(parameters, null, null);
-	}
-
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(ParameterSet parameters, String helpID) {
-		this(parameters, null, helpID);
-	}
-
-	/**
-	 * Constructor
-	 */
-	public ParameterSetupDialog(ParameterSet parameters,
-			Map<UserParameter, Object> autoValues) {
-		this(parameters, autoValues, null);
-	}
 
 	/**
 	 * Constructor
@@ -196,13 +175,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 
 			mainPanel.add(comp, 1, rowCounter, 1, 1, 1, verticalWeight,
 					GridBagConstraints.VERTICAL);
-			// comp.setBorder(BorderFactory.createLineBorder(Color.green));
-
-			/*
-			 * String unitStr = p.getUnits(); if (unitStr != null) { JLabel
-			 * unitLabel = new JLabel(unitStr); mainPanel.add(unitLabel, 2,
-			 * rowCounter); }
-			 */
 
 			rowCounter++;
 
@@ -303,11 +275,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 			UserParameter up = (UserParameter) p;
 			JComponent component = parametersAndComponents.get(p.getName());
 			up.setValueFromComponent(component);
-
-			if (up.getValue() == null) {
-				throw new IllegalArgumentException(
-						"Please set value for parameter " + p.getName());
-			}
 		}
 	}
 
@@ -322,10 +289,19 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	public void closeDialog(ExitCode exitCode) {
 		if (exitCode == ExitCode.OK) {
 			// commit the changes to the parameter set
-			try {
-				updateParameterSetFromComponents();
-			} catch (Exception invalidValueException) {
-				MZmineCore.getDesktop().displayException(invalidValueException);
+			updateParameterSetFromComponents();
+
+			ArrayList<String> messages = new ArrayList<String>();
+			boolean allParametersOK = parameterSet.checkParameterValues(messages);
+			
+			if (!allParametersOK) {
+				StringBuilder message = new StringBuilder(
+						"Please check the parameter settings:\n\n");
+				for (String m : messages) {
+					message.append(m);
+					message.append("\n");
+				}
+				MZmineCore.getDesktop().displayMessage(message.toString());
 				return;
 			}
 		}

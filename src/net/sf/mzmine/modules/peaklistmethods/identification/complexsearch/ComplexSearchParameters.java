@@ -23,12 +23,15 @@ import java.text.NumberFormat;
 
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class ComplexSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
 			"Ionization method",
@@ -51,7 +54,7 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 			NumberFormat.getPercentInstance());
 
 	public ComplexSearchParameters() {
-		super(new UserParameter[] { ionizationMethod, rtTolerance, mzTolerance,
+		super(new Parameter[] { peakLists, ionizationMethod, rtTolerance, mzTolerance,
 				maxComplexHeight });
 	}
 

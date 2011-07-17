@@ -52,12 +52,12 @@ import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
+import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.Range;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
@@ -370,13 +370,12 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				return;
 
 			if (visualizerType.equals("Chromatogram")) {
-				TICVisualizer.showNewTICVisualizerWindow(dataFiles,
-						selectedPeaks, selectedPeaks, 1, PlotType.BASEPEAK,
-						rtRange, mzRange);
+				TICVisualizerModule.showNewTICVisualizerWindow(dataFiles,
+						selectedPeaks, 1, PlotType.BASEPEAK, rtRange, mzRange);
 				return;
 			} else if (visualizerType.equals("Mass spectrum")) {
 				for (int i = 0; i < selectedPeaks.length; i++)
-					SpectraVisualizer.showNewSpectrumWindow(dataFiles[i],
+					SpectraVisualizerModule.showNewSpectrumWindow(dataFiles[i],
 							selectedPeaks[i].getRepresentativeScanNumber());
 			} else if (visualizerType.equals("Peak in 2D")) {
 				for (int i = 0; i < selectedPeaks.length; i++) {
@@ -391,8 +390,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 					Range localMZRange = new Range(Math.max(0,
 							peakMZRange.getMin() - peakMZRange.getSize()),
 							peakMZRange.getMax() + peakMZRange.getSize());
-					TwoDVisualizer.show2DVisualizerSetupDialog(dataFiles[i],
-							localMZRange, localRTRange);
+					TwoDVisualizerModule.show2DVisualizerSetupDialog(
+							dataFiles[i], localMZRange, localRTRange);
 				}
 			} else if (visualizerType.equals("Peak in 3D")) {
 				for (int i = 0; i < selectedPeaks.length; i++) {
@@ -407,16 +406,16 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 					Range localMZRange = new Range(Math.max(0,
 							peakMZRange.getMin() - peakMZRange.getSize()),
 							peakMZRange.getMax() + peakMZRange.getSize());
-					ThreeDVisualizer.show3DVisualizerSetupDialog(dataFiles[i],
-							localMZRange, localRTRange);
+					ThreeDVisualizerModule.setupNew3DVisualizer(
+							dataFiles[i], localMZRange, localRTRange);
 				}
 			} else if (visualizerType.equals("MS/MS")) {
 				for (int i = 0; i < selectedPeaks.length; i++) {
 					int scanNumber = selectedPeaks[i]
 							.getMostIntenseFragmentScanNumber();
 					if (scanNumber > 0) {
-						SpectraVisualizer.showNewSpectrumWindow(dataFiles[i],
-								scanNumber);
+						SpectraVisualizerModule.showNewSpectrumWindow(
+								dataFiles[i], scanNumber);
 					} else {
 						MZmineCore.getDesktop().displayMessage(
 								"There is no fragment for the mass "
@@ -432,7 +431,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 					IsotopePattern ip = selectedPeaks[i].getIsotopePattern();
 					if (ip == null)
 						return;
-					SpectraVisualizer
+					SpectraVisualizerModule
 							.showNewSpectrumWindow(
 									dataFiles[i],
 									selectedPeaks[i]
@@ -450,8 +449,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 				return;
 			ChromatographicPeak selectedPeak = listElementModel
 					.getElementAt(indexRow);
-			ManualPeakPicker
-					.runManualDetection(selectedPeak.getDataFile(), row);
+			ManualPeakPickerModule.runManualDetection(
+					selectedPeak.getDataFile(), row);
 
 			return;
 		}

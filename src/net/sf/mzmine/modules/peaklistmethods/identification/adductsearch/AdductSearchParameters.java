@@ -22,12 +22,15 @@ package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 import java.text.NumberFormat;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class AdductSearchParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final NumberParameter rtTolerance = new NumberParameter(
 			"RT tolerance",
@@ -55,8 +58,8 @@ public class AdductSearchParameters extends SimpleParameterSet {
 			NumberFormat.getPercentInstance());
 
 	public AdductSearchParameters() {
-		super(new UserParameter[] { rtTolerance, adducts, customAdductValue,
-				mzTolerance, maxAdductHeight });
+		super(new Parameter[] { peakLists, rtTolerance, adducts,
+				customAdductValue, mzTolerance, maxAdductHeight });
 	}
 
 }

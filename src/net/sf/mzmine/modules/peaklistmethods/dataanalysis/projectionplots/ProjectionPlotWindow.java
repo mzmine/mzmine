@@ -26,6 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -36,7 +37,7 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 	private ProjectionPlotPanel plot;
 
 	public ProjectionPlotWindow(PeakList peakList,
-			ProjectionPlotDataset dataset, ProjectionPlotParameters parameters) {
+			ProjectionPlotDataset dataset, ParameterSet parameters) {
 		super(null, true, true, true, true);
 
 		toolbar = new ProjectionPlotToolbar(this);

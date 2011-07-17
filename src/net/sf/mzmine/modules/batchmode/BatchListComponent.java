@@ -20,27 +20,28 @@
 package net.sf.mzmine.modules.batchmode;
 
 import java.awt.event.MouseEvent;
-import java.util.Vector;
 
 import javax.swing.JList;
+import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.parameters.ParameterSet;
 
 public class BatchListComponent extends JList {
 
-    BatchListComponent(Vector<BatchStepWrapper> batchSteps) {
-        super(batchSteps);
-    }
+	BatchListComponent() {
+		setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	}
 
-    public String getToolTipText(MouseEvent e) {
+	public String getToolTipText(MouseEvent e) {
 
-        int index = locationToIndex(e.getPoint());
-        if (index > -1) {
-            ParameterSet parameters = ((BatchStepWrapper) getModel().getElementAt(
-                    index)).getParameters();
-            return parameters.toString().replace(", ", "\n");
-        }
-        return null;
-    }
+		int index = locationToIndex(e.getPoint());
+		if (index > -1) {
+			BatchStepWrapper batchStep = (BatchStepWrapper) getModel()
+					.getElementAt(index);
+			ParameterSet parameters = batchStep.getParameters();
+			return parameters.toString().replace(", ", "\n");
+		}
+		return null;
+	}
 
 }

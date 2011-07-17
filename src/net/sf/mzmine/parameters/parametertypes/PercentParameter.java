@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
@@ -108,4 +110,12 @@ public class PercentParameter implements
 		xmlElement.setTextContent(value.toString());
 	}
 
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
+	}
 }

@@ -20,14 +20,12 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
@@ -37,14 +35,12 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener {
 
-	private Desktop desktop;
 	private RTMZToolbar toolbar;
 	private RTMZPlot plot;
 	
-	public RTMZAnalyzerWindow(Desktop desktop, AbstractXYZDataset dataset, PeakList peakList, InterpolatingLookupPaintScale paintScale) {
+	public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList, InterpolatingLookupPaintScale paintScale) {
 		super(null, true, true, true, true);
-		
-		this.desktop = desktop;
+	
 		
         toolbar = new RTMZToolbar(this);
         add(toolbar, BorderLayout.EAST);
@@ -59,8 +55,6 @@ public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener
         
         pack();
 
-        desktop.addInternalFrame(this);
-		
 	}
 	
 	public void actionPerformed(ActionEvent event) {
@@ -73,7 +67,7 @@ public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener
         }
         
         if (command.equals("SETUP_COLORS")) {
-        	InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog((Frame)desktop, plot.getPaintScale());
+        	InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog(plot.getPaintScale());
             colorDialog.setVisible(true);
             	
         	if (colorDialog.getExitCode()==ExitCode.OK)

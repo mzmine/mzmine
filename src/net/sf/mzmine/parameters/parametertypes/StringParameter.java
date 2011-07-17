@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Collection;
+
 import javax.swing.JTextField;
 
 import net.sf.mzmine.parameters.UserParameter;
@@ -101,6 +103,15 @@ public class StringParameter implements UserParameter<String, JTextField> {
 		if (value == null)
 			return;
 		xmlElement.setTextContent(value);
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if ((value == null) || (value.trim().length() == 0)) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

@@ -19,13 +19,15 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
+import java.util.Collection;
+
 import net.sf.mzmine.parameters.Parameter;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class PeakThresholdParameter implements Parameter {
+public class PeakThresholdParameter implements Parameter<Object> {
 
 	private PeakThresholdMode mode = PeakThresholdMode.ALL_PEAKS;
 	private double intensityThreshold;
@@ -104,6 +106,20 @@ public class PeakThresholdParameter implements Parameter {
 	@Override
 	public PeakThresholdParameter clone() {
 		return this;
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		return true;
+	}
+
+	@Override
+	public Object getValue() {
+		return null;
+	}
+
+	@Override
+	public void setValue(Object newValue) {
 	}
 
 }

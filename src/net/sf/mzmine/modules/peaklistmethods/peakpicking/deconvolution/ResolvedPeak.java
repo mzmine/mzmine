@@ -79,7 +79,7 @@ public class ResolvedPeak implements ChromatographicPeak {
 
 		// Make an array of scan numbers of this peak
 		scanNumbers = new int[regionEnd - regionStart + 1];
-		System.arraycopy(dataFile.getScanNumbers(1), regionStart, scanNumbers,
+		System.arraycopy(chromatogram.getScanNumbers(), regionStart, scanNumbers,
 				0, regionEnd - regionStart + 1);
 
 		dataPointMZValues = new double[regionEnd - regionStart + 1];

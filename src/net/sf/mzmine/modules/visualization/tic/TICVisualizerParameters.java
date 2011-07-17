@@ -19,24 +19,26 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import java.util.Hashtable;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RawDataFileUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class TICVisualizerParameters extends SimpleParameterSet {
 
-	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-			"Raw data files",
-			"List of raw data files to display in TIC visualizer",
-			new RawDataFile[0]);
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-	public static final ComboParameter<Integer> msLevel = new ComboParameter<Integer>(
-			"MS level", "MS level of plotted scans", new Integer[0]);
+	public static final MSLevelParameter msLevel = new MSLevelParameter();
 
 	public static final ComboParameter<PlotType> plotType = new ComboParameter<PlotType>(
 			"Plot type",
@@ -52,13 +54,25 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 			"Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
 			MZmineCore.getMZFormat());
 
-	public static final MultiChoiceParameter<ChromatographicPeak> selectionPeaks = new MultiChoiceParameter<ChromatographicPeak>(
-			"Selected peaks", "List of peaks to display in TIC visualizer",
-			new ChromatographicPeak[0]);
-
 	public TICVisualizerParameters() {
-		super(new UserParameter[] { dataFiles, msLevel, plotType,
-				retentionTimeRange, mzRange, selectionPeaks });
+		super(new Parameter[] { dataFiles, msLevel, plotType,
+				retentionTimeRange, mzRange });
+
+	}
+
+	public ExitCode showSetupDialog() {
+		Hashtable<UserParameter, Object> autoValues = null;
+		RawDataFile selectedFiles[] = getParameter(
+				TICVisualizerParameters.dataFiles).getValue();
+		if ((selectedFiles != null) && (selectedFiles.length > 0)) {
+			autoValues = new Hashtable<UserParameter, Object>();
+			autoValues.put(TICVisualizerParameters.msLevel, 1);
+			Range rtRange = RawDataFileUtils.findTotalRTRange(selectedFiles, 1);
+			Range mzRange = RawDataFileUtils.findTotalMZRange(selectedFiles, 1);
+			autoValues.put(TICVisualizerParameters.retentionTimeRange, rtRange);
+			autoValues.put(TICVisualizerParameters.mzRange, mzRange);
+		}
+		return super.showSetupDialog(autoValues);
 	}
 
 }

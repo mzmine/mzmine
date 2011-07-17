@@ -46,15 +46,12 @@ import javax.swing.table.TableRowSorter;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
@@ -63,20 +60,17 @@ import net.sf.mzmine.util.components.PercentageCellRenderer;
 public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	private ResultTableModel listElementModel;
-	private PeakList peakList;
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private Task searchTask;
 	private String title;
 
-	public ResultWindow(String title, PeakList peakList,
-			PeakListRow peakListRow, double searchedMass, int charge,
-			Task searchTask) {
+	public ResultWindow(String title, PeakListRow peakListRow,
+			double searchedMass, int charge, Task searchTask) {
 
 		super(title, true, true, true, true);
 
 		this.title = title;
-		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 		this.searchTask = searchTask;
 
@@ -156,10 +150,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 					formula.getFormulaAsString());
 			peakListRow.addPeakIdentity(newIdentity, false);
 
-			// Notify the tree that peak list has changed
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-			MZmineCore.getProjectManager().fireProjectListeners(newEvent);
+			// Notify the GUI about the change in the project
+			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
+					false);
 
 			dispose();
 		}
@@ -185,7 +178,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null,
+			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
 					peak.getIsotopePattern(), predictedPattern);
 
 		}
@@ -200,7 +193,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			if (msmsScanNumber < 1)
 				return;
 
-			SpectraVisualizerWindow msmsPlot = SpectraVisualizer
+			SpectraVisualizerWindow msmsPlot = SpectraVisualizerModule
 					.showNewSpectrumWindow(dataFile, msmsScanNumber);
 
 			if (msmsPlot == null)

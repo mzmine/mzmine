@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -29,18 +30,21 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
  * Spectra visualizer's bottom panel
  */
-class SpectraBottomPanel extends JPanel implements ProjectListener {
+class SpectraBottomPanel extends JPanel implements TreeModelListener {
+
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// Get arrow characters by their UTF16 code
 	public static final String leftArrow = new String(new char[] { '\u2190' });
@@ -114,7 +118,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 		showButton.setFont(smallFont);
 
 		bottomPanel.add(Box.createHorizontalGlue());
-
+		
 	}
 
 	JComboBox getMSMSSelector() {
@@ -138,13 +142,15 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 	 * Reloads peak lists from the project to the selector combo box
 	 */
 	void rebuildPeakListSelector() {
+
+		logger.finest("Rebuilding the peak list selector");
 		
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
 				.getPeakLists(dataFile);
 		peakListSelector.setEnabled(false);
-		peakListSelector.removeActionListener(masterFrame);		
+		peakListSelector.removeActionListener(masterFrame);
 		peakListSelector.removeAllItems();
 
 		// Add all peak lists in reverse order (last added peak list will be
@@ -156,7 +162,7 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 		// If there is any peak list, make a selection
 		if (currentPeakLists.length > 0) {
 			peakListSelector.setEnabled(true);
-			peakListSelector.addActionListener(masterFrame);		
+			peakListSelector.addActionListener(masterFrame);
 			if (selectedPeakList != null)
 				peakListSelector.setSelectedItem(selectedPeakList);
 			else
@@ -164,8 +170,36 @@ class SpectraBottomPanel extends JPanel implements ProjectListener {
 		}
 	}
 
-	public void projectModified(ProjectEvent event) {
-		rebuildPeakListSelector();
+	@Override
+	public void treeNodesChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesInserted(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesRemoved(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeStructureChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
 	}
 
 }

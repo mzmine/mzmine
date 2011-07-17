@@ -186,7 +186,7 @@ class TwoDPlot extends ChartPanel {
 
 		PeakDataSet peaksDataSet = new PeakDataSet(rawDataFile, peakList,
 				rtRange, mzRange);
-
+		
 		plot.setDataset(1, peaksDataSet);
 		plot.setRenderer(1, peakDataRenderer);
 	}

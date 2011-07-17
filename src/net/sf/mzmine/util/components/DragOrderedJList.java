@@ -35,8 +35,7 @@ public class DragOrderedJList extends JList {
 
 	private int dragFrom;
 
-	public DragOrderedJList(DefaultListModel model) {
-		super(model);
+	public DragOrderedJList() {
 
 		// add mouse button pressed listener
 		addMouseListener(new MouseAdapter() {

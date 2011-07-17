@@ -50,6 +50,7 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.data.xy.XYDataset;
 
 /**
  * Spectrum visualizer using JFreeChart library
@@ -98,12 +99,16 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 		bottomPanel = new SpectraBottomPanel(this, dataFile);
 		add(bottomPanel, BorderLayout.SOUTH);
-
-		// Add project listener
-		MZmineCore.getProjectManager().addProjectListener(bottomPanel);
-
+		
+		MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
+		
 		pack();
 
+	}
+	
+	public void dispose() {
+		super.dispose();
+		MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
 	}
 
 	public void loadRawData(Scan scan) {
@@ -375,7 +380,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 					commaIndex);
 			int selectedScan = Integer.valueOf(selectedScanString);
 
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, selectedScan);
+			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, selectedScan);
 		}
 
 		if (command.equals("TOGGLE_PLOT_MODE")) {
@@ -470,6 +475,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
 	public SpectraPlot getSpectrumPlot() {
 		return spectrumPlot;
+	}
+	
+	public void addDataSet(XYDataset dataset, Color color) {
+		spectrumPlot.addDataSet(dataset, color, true);
 	}
 
 }

@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em.EMClusterer;
@@ -23,26 +24,34 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.farthestfir
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical.HierarClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.simplekmeans.SimpleKMeansClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotParameters;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
-public class ClusteringParameters extends ProjectionPlotParameters {
+public class ClusteringParameters extends SimpleParameterSet {
 
-        private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[]{
-                new EMClusterer(), new FarthestFirstClusterer(),
-                new SimpleKMeansClusterer(), new HierarClusterer()};
-        public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm = new ModuleComboParameter<ClusteringAlgorithm>(
-                "Clustering algorithm",
-                "Select the algorithm you want to use for clustering", algorithms);
-        public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
-                "Type of data",
-                "Specify the type of data used for the clustering: samples or variables",
-                ClusteringDataType.values());
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-        public ClusteringParameters() {
-                super(new UserParameter[]{ProjectionPlotParameters.peakMeasurementType,
-                                clusteringAlgorithm,
-                                typeOfData});
-        }
+	private static ClusteringAlgorithm algorithms[] = new ClusteringAlgorithm[] {
+			new EMClusterer(), new FarthestFirstClusterer(),
+			new SimpleKMeansClusterer(), new HierarClusterer() };
+
+	public static final ModuleComboParameter<ClusteringAlgorithm> clusteringAlgorithm = new ModuleComboParameter<ClusteringAlgorithm>(
+			"Clustering algorithm",
+			"Select the algorithm you want to use for clustering", algorithms);
+
+	public static final ComboParameter<ClusteringDataType> typeOfData = new ComboParameter<ClusteringDataType>(
+			"Type of data",
+			"Specify the type of data used for the clustering: samples or variables",
+			ClusteringDataType.values());
+
+	public ClusteringParameters() {
+		super(new Parameter[] { peakLists,
+				ProjectionPlotParameters.peakMeasurementType,
+				ProjectionPlotParameters.dataFiles,
+				ProjectionPlotParameters.rows,
+				clusteringAlgorithm, typeOfData });
+	}
 }

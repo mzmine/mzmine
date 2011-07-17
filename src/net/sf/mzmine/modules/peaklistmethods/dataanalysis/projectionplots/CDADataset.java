@@ -31,6 +31,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskEvent;
@@ -49,7 +50,7 @@ public class CDADataset extends AbstractXYDataset implements
 	private double[] component1Coords;
 	private double[] component2Coords;
 
-	private ProjectionPlotParameters parameters;
+	private ParameterSet parameters;
 	private PeakList peakList;
 
 	private ColoringType coloringType;
@@ -70,9 +71,9 @@ public class CDADataset extends AbstractXYDataset implements
 
 	private ProjectionStatus projectionStatus;
 
-	public CDADataset(PeakList peakList, ProjectionPlotParameters parameters) {
+	public CDADataset(ParameterSet parameters) {
 
-		this.peakList = peakList;
+		this.peakList = parameters.getParameter(ProjectionPlotParameters.peakLists).getValue()[0];
 		this.parameters = parameters;
 
 		this.xAxisDimension = parameters.getParameter(

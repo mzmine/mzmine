@@ -22,6 +22,7 @@ package net.sf.mzmine.desktop.preferences;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Point;
+import java.util.Collection;
 
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
@@ -34,7 +35,7 @@ import org.w3c.dom.NodeList;
 /**
  * Proxy server settings
  */
-public class WindowStateParameter implements Parameter {
+public class WindowStateParameter implements Parameter<Object> {
 
 	@Override
 	public String getName() {
@@ -115,6 +116,23 @@ public class WindowStateParameter implements Parameter {
 		xmlElement.appendChild(sizeElement);
 		sizeElement.setTextContent(mainWindowWidth + ":" + mainWindowHeight);
 
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		return true;
+	}
+
+	@Override
+	public Object getValue() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setValue(Object newValue) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

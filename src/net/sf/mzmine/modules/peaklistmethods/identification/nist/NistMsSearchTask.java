@@ -23,21 +23,36 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
-import net.sf.mzmine.data.*;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
-import net.sf.mzmine.taskcontrol.AbstractTask;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.AbstractTask;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 
 /**
  * Performs NIST MS Search.
@@ -49,7 +64,7 @@ public class NistMsSearchTask
         extends AbstractTask {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(NistMsSearch.class.getName());
+    private static final Logger LOG = Logger.getLogger(NistMsSearchModule.class.getName());
 
     // The locator file names.
     private static final String PRIMARY_LOCATOR_FILE_NAME = "AUTOIMP.MSD";
@@ -222,9 +237,8 @@ public class NistMsSearchTask
                                     false);
                         }
 
-                        // Notify the tree that peak list has changed
-                        MZmineCore.getProjectManager().fireProjectListeners(
-                                new ProjectEvent(ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList));
+                        // Notify the GUI about the change in the project
+                		MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
 
                     }
                     progress++;

@@ -28,10 +28,11 @@ import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.Range;
-
-import org.jfree.chart.axis.ValueAxis;
 
 /**
  * Neutral loss visualizer using JFreeChart library
@@ -47,7 +48,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 	private RawDataFile dataFile;
 
 	public NeutralLossVisualizerWindow(RawDataFile dataFile,
-			NeutralLossParameters parameters) {
+			ParameterSet parameters) {
 
 		super(dataFile.toString(), true, true, true, true);
 
@@ -64,8 +65,8 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 		int numOfFragments = parameters.getParameter(
 				NeutralLossParameters.numOfFragments).getInt();
 
-		Object xAxisType = parameters
-				.getParameter(NeutralLossParameters.xAxisType);
+		Object xAxisType = parameters.getParameter(
+				NeutralLossParameters.xAxisType).getValue();
 
 		// Set window components
 		dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
@@ -77,13 +78,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 		toolBar = new NeutralLossToolBar(this);
 		add(toolBar, BorderLayout.EAST);
 
-		// Set range for Y axis
-		ValueAxis yAxis = neutralLossPlot.getXYPlot().getDomainAxis();
-
-		if (xAxisType == NeutralLossParameters.xAxisRT)
-			yAxis.setRange(rtRange.getMin(), rtRange.getMax());
-		else
-			yAxis.setRange(mzRange.getMin(), mzRange.getMax());
+		MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
 		updateTitle();
 
@@ -128,7 +123,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 		if (command.equals("SHOW_SPECTRUM")) {
 			NeutralLossDataPoint pos = getCursorPosition();
 			if (pos != null) {
-				SpectraVisualizer.showNewSpectrumWindow(dataFile,
+				SpectraVisualizerModule.showNewSpectrumWindow(dataFile,
 						pos.getScanNumber());
 			}
 		}

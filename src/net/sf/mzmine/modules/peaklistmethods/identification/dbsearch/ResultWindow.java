@@ -42,15 +42,12 @@ import javax.swing.table.TableRowSorter;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -60,17 +57,16 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	private ResultTableModel listElementModel;
 	private JButton btnAdd, btnViewer, btnIsotopeViewer, btnBrowser;
-	private PeakList peakList;
+
 	private PeakListRow peakListRow;
 	private JTable IDList;
 	private Task searchTask;
 
-	public ResultWindow(PeakList peakList, PeakListRow peakListRow,
-			double searchedMass, Task searchTask) {
+	public ResultWindow(PeakListRow peakListRow, double searchedMass,
+			Task searchTask) {
 
 		super(null, true, true, true, true);
 
-		this.peakList = peakList;
 		this.peakListRow = peakListRow;
 		this.searchTask = searchTask;
 
@@ -88,10 +84,10 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		IDList.setModel(listElementModel);
 		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		IDList.getTableHeader().setReorderingAllowed(false);
-		
-		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(listElementModel);
-		IDList.setRowSorter(sorter);
 
+		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
+				listElementModel);
+		IDList.setRowSorter(sorter);
 
 		JScrollPane listScroller = new JScrollPane(IDList);
 		listScroller.setPreferredSize(new Dimension(350, 100));
@@ -148,10 +144,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
 					false);
 
-			// Notify the tree that peak list has changed
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-			MZmineCore.getProjectManager().fireProjectListeners(newEvent);
+			// Notify the GUI about the change in the project
+			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
+					false);
 
 			dispose();
 		}
@@ -201,7 +196,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizer.showNewSpectrumWindow(dataFile, scanNumber, null,
+			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
 					peak.getIsotopePattern(), predictedPattern);
 
 		}

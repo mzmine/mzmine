@@ -20,13 +20,16 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 
 public class CVParameters extends SimpleParameterSet {
+
+	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
 	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
 			"Group one", "Samples in group one", new RawDataFile[0]);
@@ -37,7 +40,7 @@ public class CVParameters extends SimpleParameterSet {
 			PeakMeasurementType.values());
 
 	public CVParameters() {
-		super(new UserParameter[] { dataFiles, measurementType });
+		super(new Parameter[] { peakLists, dataFiles, measurementType });
 	}
 
 }

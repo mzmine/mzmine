@@ -35,8 +35,6 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.Isotop
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -142,11 +140,6 @@ public class PeakListIdentificationTask extends AbstractTask {
 				// Retrieve results for each row
 				retrieveIdentification(row);
 
-				// Notify the tree that peak list has changed
-				ProjectEvent newEvent = new ProjectEvent(
-						ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-				MZmineCore.getProjectManager().fireProjectListeners(newEvent);
-
 				finishedItems++;
 
 			}
@@ -197,10 +190,9 @@ public class PeakListIdentificationTask extends AbstractTask {
 			if (isotopeFilter && (rowIsotopePattern != null)
 					&& (formula != null)) {
 
-				// First modify the formula according to polarity - for
-				// negative, remove one hydrogen; for positive, add one hydrogen
+				// First modify the formula according to ionization
 				String adjustedFormula = FormulaUtils.ionizeFormula(formula,
-						ionType.getPolarity(), charge);
+						ionType, charge);
 
 				logger.finest("Calculating isotope pattern for compound formula "
 						+ formula + " adjusted to " + adjustedFormula);
@@ -221,6 +213,9 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 			// Add the retrieved identity to the peak list row
 			row.addPeakIdentity(compound, false);
+
+			// Notify the GUI about the change in the project
+			MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
 
 		}
 	}

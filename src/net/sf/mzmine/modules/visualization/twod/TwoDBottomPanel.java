@@ -26,6 +26,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.Vector;
+import java.util.logging.Logger;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -33,16 +34,17 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
 
+import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectListener;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.Range;
@@ -52,9 +54,10 @@ import net.sf.mzmine.util.SortingProperty;
 /**
  * 2D visualizer's bottom panel
  */
-class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener {
+class TwoDBottomPanel extends JPanel implements TreeModelListener,
+		ActionListener {
 
-	// TODO: peak list threshold does not work
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
@@ -117,8 +120,6 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 
 		add(Box.createHorizontalStrut(10));
 
-		MZmineCore.getProjectManager().addProjectListener(this);
-
 		add(Box.createHorizontalGlue());
 
 	}
@@ -157,11 +158,16 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 	PeakList getIntensityThresholdPeakList(double intensity) {
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
+		if (selectedPeakList == null)
+			return null;
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
 				selectedPeakList.getRawDataFiles());
 
 		for (PeakListRow peakRow : selectedPeakList.getRows()) {
-			if (peakRow.getDataPointMaxIntensity() > intensity) {
+			ChromatographicPeak peak = peakRow.getPeak(dataFile);
+			if (peak == null)
+				continue;
+			if (peak.getRawDataPointsIntensityRange().getMax() > intensity) {
 				newList.addRow(peakRow);
 			}
 		}
@@ -176,6 +182,8 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
+		if (selectedPeakList == null)
+			return null;
 		SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
 				selectedPeakList.getRawDataFiles());
 
@@ -222,6 +230,9 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 	 * Reloads peak lists from the project to the selector combo box
 	 */
 	void rebuildPeakListSelector() {
+
+		logger.finest("Rebuilding the peak list selector");
+
 		PeakList selectedPeakList = (PeakList) peakListSelector
 				.getSelectedItem();
 		PeakList currentPeakLists[] = MZmineCore.getCurrentProject()
@@ -233,18 +244,6 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 		if (selectedPeakList != null)
 			peakListSelector.setSelectedItem(selectedPeakList);
 
-	}
-
-	/**
-	 * ProjectListener implementaion
-	 */
-	public void projectModified(ProjectEvent event) {
-		// Modify the GUI in the event dispatching thread
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				rebuildPeakListSelector();
-			}
-		});
 	}
 
 	@Override
@@ -265,6 +264,7 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 				break;
 			case ALL_PEAKS:
 				peakTextField.setEnabled(false);
+				break;
 			case TOP_PEAKS:
 			case TOP_PEAKS_AREA:
 				peakTextField.setText(String.valueOf(thresholdSettings
@@ -276,6 +276,60 @@ class TwoDBottomPanel extends JPanel implements ProjectListener, ActionListener 
 			thresholdSettings.setMode(mode);
 
 		}
+
+		if (src == peakTextField) {
+			PeakThresholdMode mode = (PeakThresholdMode) this.thresholdCombo
+					.getSelectedItem();
+			String value = peakTextField.getText();
+			switch (mode) {
+			case ABOVE_INTENSITY_PEAKS:
+				double topInt = Double.parseDouble(value);
+				thresholdSettings.setIntensityThreshold(topInt);
+				break;
+			case TOP_PEAKS:
+			case TOP_PEAKS_AREA:
+				int topPeaks = Integer.parseInt(value);
+				thresholdSettings.setTopPeaksThreshold(topPeaks);
+				break;
+			}
+		}
+
+		PeakList selectedPeakList = getPeaksInThreshold();
+		if (selectedPeakList != null)
+			masterFrame.getPlot().loadPeakList(selectedPeakList);
+
+	}
+
+	@Override
+	public void treeNodesChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesInserted(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeNodesRemoved(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
+	}
+
+	@Override
+	public void treeStructureChanged(TreeModelEvent event) {
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) event
+				.getTreePath().getLastPathComponent();
+		if (node.getUserObject() instanceof PeakList)
+			rebuildPeakListSelector();
 	}
 
 }

@@ -19,12 +19,18 @@
 
 package net.sf.mzmine.modules.batchmode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -43,16 +49,19 @@ public class BatchTask extends AbstractTask {
 	private RawDataFile dataFiles[];
 	private PeakList peakLists[];
 
-	BatchTask(BatchQueue queue, RawDataFile dataFiles[], PeakList peakLists[]) {
-		this.queue = queue;
-		this.dataFiles = dataFiles;
-		this.peakLists = peakLists;
+	BatchTask(ParameterSet parameters) {
+		this.queue = parameters.getParameter(BatchModeParameters.batchQueue)
+				.getValue();
+		this.dataFiles = parameters.getParameter(BatchModeParameters.dataFiles)
+				.getValue();
+		this.peakLists = parameters.getParameter(BatchModeParameters.peakLists)
+				.getValue();
 		totalSteps = queue.size();
 	}
 
 	public void run() {
 
-		setStatus( TaskStatus.PROCESSING );
+		setStatus(TaskStatus.PROCESSING);
 		logger.info("Starting a batch of " + totalSteps + " steps");
 
 		for (int i = 0; i < totalSteps; i++) {
@@ -61,15 +70,14 @@ public class BatchTask extends AbstractTask {
 			processedSteps++;
 
 			// If we are canceled or ran into error, stop here
-			if ( isCanceled( )
-					|| ( getStatus( ) == TaskStatus.ERROR )) {
+			if (isCanceled() || (getStatus() == TaskStatus.ERROR)) {
 				return;
 			}
 
 		}
 
 		logger.info("Finished a batch of " + totalSteps + " steps");
-		setStatus( TaskStatus.FINISHED );
+		setStatus(TaskStatus.FINISHED);
 
 	}
 
@@ -77,11 +85,32 @@ public class BatchTask extends AbstractTask {
 
 		// Run next step of the batch
 		BatchStepWrapper currentStep = queue.get(stepNumber);
-		BatchStep method = currentStep.getMethod();
+		MZmineProcessingModule method = currentStep.getMethod();
 		ParameterSet batchStepParameters = currentStep.getParameters();
 
-		Task[] currentStepTasks = method.runModule(dataFiles, peakLists,
-				batchStepParameters);
+		// Update dataFiles and peakLists in the batchStepParameters
+		for (Parameter p : batchStepParameters.getParameters()) {
+			if (p instanceof RawDataFilesParameter) {
+				RawDataFilesParameter rdp = (RawDataFilesParameter) p;
+				rdp.setValue(dataFiles);
+			}
+			if (p instanceof PeakListsParameter) {
+				PeakListsParameter plp = (PeakListsParameter) p;
+				plp.setValue(peakLists);
+			}
+		}
+
+		// Check if the parameter settings are valid
+		ArrayList<String> messages = new ArrayList<String>();
+		boolean paramsCheck = batchStepParameters
+				.checkParameterValues(messages);
+		if (!paramsCheck) {
+			setStatus(TaskStatus.ERROR);
+			errorMessage = "Invalid parameter settings for module " + method
+					+ ": " + Arrays.toString(messages.toArray());
+		}
+
+		Task[] currentStepTasks = method.runModule(batchStepParameters);
 
 		// If current step didn't produce any tasks, continue with next step
 		if ((currentStepTasks == null) || (currentStepTasks.length == 0))
@@ -92,7 +121,7 @@ public class BatchTask extends AbstractTask {
 		while (!allTasksFinished) {
 
 			// If we canceled the batch, cancel all running tasks
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				for (Task stepTask : currentStepTasks)
 					stepTask.cancel();
 				return;
@@ -111,7 +140,7 @@ public class BatchTask extends AbstractTask {
 
 				// If there was an error, we have to stop the whole batch
 				if (stepStatus == TaskStatus.ERROR) {
-					setStatus( TaskStatus.ERROR );
+					setStatus(TaskStatus.ERROR);
 					errorMessage = stepTask.getErrorMessage();
 					return;
 				}
@@ -119,7 +148,7 @@ public class BatchTask extends AbstractTask {
 				// If user canceled any of the tasks, we have to cancel the
 				// whole batch
 				if (stepStatus == TaskStatus.CANCELED) {
-					setStatus( TaskStatus.CANCELED );
+					setStatus(TaskStatus.CANCELED);
 					for (Task t : currentStepTasks)
 						t.cancel();
 					return;

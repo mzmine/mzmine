@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import javax.swing.JComboBox;
 
@@ -132,6 +133,12 @@ public class ColoringTypeParameter implements
 			xmlElement.setTextContent(value.toString());
 		}
 
+	}
+
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

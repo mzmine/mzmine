@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.util.CollectionUtils;
@@ -325,5 +326,26 @@ public class SimpleScan implements Scan {
 
 	public RawDataFile getDataFile() {
 		return dataFile;
+	}
+
+	@Override
+	public synchronized void addMassList(MassList massList) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public synchronized void removeMassList(MassList massList) {
+
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public MassList[] getMassLists() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public MassList getMassList(String name) {
+		throw new UnsupportedOperationException();
 	}
 }

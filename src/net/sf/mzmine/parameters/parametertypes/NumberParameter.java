@@ -21,6 +21,7 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
 import java.text.NumberFormat;
+import java.util.Collection;
 
 import javax.swing.JFormattedTextField;
 
@@ -136,6 +137,15 @@ public class NumberParameter implements UserParameter<Number, JFormattedTextFiel
 	@Override
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
+		return true;
 	}
 
 }

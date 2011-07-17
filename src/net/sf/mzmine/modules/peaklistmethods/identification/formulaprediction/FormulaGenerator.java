@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
@@ -33,33 +34,70 @@ import org.openscience.cdk.formula.MolecularFormula;
  * MassToFormulaTool, but we cannot use MassToFormulaTool because it does not
  * provide any way how to track progress - see getFinishedPercentage()
  * 
+ * TODO: explain the function of iterator
+ * 
  */
 public class FormulaGenerator {
 
-	private Range massRange;
+	// We will try maximum 10^15 combinations (10^15 still fits into long)
+	private static final BigInteger maximumToCalculate = BigInteger.TEN.pow(15);
+
+	// Let's use two doubles instead of Range, to avoid unnecessary method calls
+	private double minMass, maxMass;
+
 	private ElementRule elementRules[];
-	private long testedCombinations, totalNumberOfCombinations;
-	private int currentCounts[];
+	private double elementMasses[];
 
-	public FormulaGenerator(Range massRange, ElementRule elementRules[]) {
+	private long testedCombinations = 0, totalNumberOfCombinations = 0;
 
-		this.massRange = massRange;
-		this.elementRules = elementRules;
+	private int currentCounts[], minCounts[], maxCounts[];
+	private double currentMass;
 
-		// Sort the elements by mass in descending order
-		Arrays.sort(elementRules, new ElementRuleSorterByMass());
+	private boolean canceled = false;
 
-		// Calculate total number of combinations
-		totalNumberOfCombinations = 1;
-		for (ElementRule rule : elementRules)
-			totalNumberOfCombinations *= rule.getMaxCount()
-					- rule.getMinCount() + 1;
+	public FormulaGenerator(Range massRange, ElementRule selectedElements[]) {
 
-		// Prepare counters for elements, start at the minimal count
+		// Sort the elements by mass in ascending order. That greatly speeds up
+		// the search.
+		this.elementRules = selectedElements;
+		Arrays.sort(this.elementRules, new ElementRuleSorterByMass());
+
+		// Copy the values for efficiency
+		elementMasses = new double[elementRules.length];
 		currentCounts = new int[elementRules.length];
+		minCounts = new int[elementRules.length];
+		maxCounts = new int[elementRules.length];
 		for (int i = 0; i < elementRules.length; i++) {
+			elementMasses[i] = elementRules[i].getMass();
 			currentCounts[i] = elementRules[i].getMinCount();
+			minCounts[i] = elementRules[i].getMinCount();
+			maxCounts[i] = elementRules[i].getMaxCount();
+			currentMass += elementRules[i].getMinCount()
+					* elementRules[i].getMass();
 		}
+		this.minMass = massRange.getMin();
+		this.maxMass = massRange.getMax();
+
+		testedCombinations = 0;
+
+		// Calculate total number of combinations. It may be very large, even
+		// larger then the long type, so we use BigInteger type
+		BigInteger totalCount = BigInteger.valueOf(1);
+		for (ElementRule rule : elementRules) {
+			BigInteger factor = BigInteger.valueOf(rule.getMaxCount()
+					- rule.getMinCount() + 1);
+			totalCount = totalCount.multiply(factor);
+		}
+
+		// Check if the total number of combinations is too big.
+		if (totalCount.compareTo(maximumToCalculate) > 0)
+			throw new IllegalArgumentException(
+					"The total number of combinations is too big ("
+							+ totalCount
+							+ "). Please reduce the element counts.");
+
+		// Convert the total combinations to long
+		totalNumberOfCombinations = totalCount.longValue();
 
 	}
 
@@ -69,40 +107,24 @@ public class FormulaGenerator {
 	public MolecularFormula getNextFormula() {
 
 		// Main cycle iterating through element counters
-		mainCycle: while (testedCombinations < totalNumberOfCombinations) {
-
-			// Calculate the mass of current element counts
-			double mass = 0;
-			for (int i = 0; i < elementRules.length; i++) {
-				mass += elementRules[i].getMass() * currentCounts[i];
-			}
-
-			if (massRange.contains(mass)) {
-
-				MolecularFormula cdkFormula = generateCDKFormula();
-
-				increaseCounter(0);
-				testedCombinations++;
-
-				return cdkFormula;
-
-			}
+		mainCycle: while (!canceled) {
 
 			// Heuristics: if we are over the mass, it is meaningless to add
 			// more atoms, so let's jump directly to the maximum count
-			if (mass > massRange.getMax()) {
+			if (currentMass > maxMass) {
 				for (int i = 0; i < currentCounts.length; i++) {
-					if (currentCounts[i] > elementRules[i].getMinCount()) {
+					if (currentCounts[i] > minCounts[i]) {
 
-						long skippedCombinations = (elementRules[i]
-								.getMaxCount() - currentCounts[i]) + 1;
+						long skippedCombinations = (maxCounts[i] - currentCounts[i]) + 1;
 						for (int j = 0; j < i; j++) {
-							skippedCombinations *= elementRules[j]
-									.getMaxCount()
-									- elementRules[j].getMinCount() + 1;
+							skippedCombinations *= maxCounts[j] - minCounts[j]
+									+ 1;
 						}
 						testedCombinations += skippedCombinations;
-						currentCounts[i] = elementRules[i].getMaxCount();
+						currentMass += elementMasses[i]
+								* (maxCounts[i] - currentCounts[i]);
+						currentCounts[i] = maxCounts[i];
+
 						increaseCounter(i);
 						continue mainCycle;
 					}
@@ -110,9 +132,15 @@ public class FormulaGenerator {
 
 			}
 
-			testedCombinations++;
+			if (currentMass >= minMass) {
+				MolecularFormula cdkFormula = generateCDKFormula();
+				testedCombinations++;
+				increaseCounter(0);
+				return cdkFormula;
+			}
 
-			// Increase the count of the most heavy element
+			// Increase the counter
+			testedCombinations++;
 			increaseCounter(0);
 
 		}
@@ -124,15 +152,21 @@ public class FormulaGenerator {
 
 	private void increaseCounter(int position) {
 
-		currentCounts[position]++;
+		if (currentCounts[position] == maxCounts[position]) {
 
-		// check the validity of the counts
-		for (int i = position; i < currentCounts.length - 1; i++) {
-			if (currentCounts[i] > elementRules[i].getMaxCount()) {
-				currentCounts[i] = elementRules[i].getMinCount();
-				currentCounts[i + 1]++;
-				break;
+			currentMass -= elementMasses[position]
+					* (currentCounts[position] - minCounts[position]);
+
+			currentCounts[position] = minCounts[position];
+
+			if (position < elementMasses.length - 1) {
+				increaseCounter(position + 1);
+			} else {
+				canceled = true;
 			}
+		} else {
+			currentCounts[position]++;
+			currentMass += elementMasses[position];
 		}
 
 	}
@@ -155,7 +189,11 @@ public class FormulaGenerator {
 	public double getFinishedPercentage() {
 		if (totalNumberOfCombinations == 0)
 			return 0;
-		return ((double) testedCombinations) / totalNumberOfCombinations;
+		return (double) testedCombinations / (double) totalNumberOfCombinations;
+	}
+
+	public void cancel() {
+		this.canceled = true;
 	}
 
 }

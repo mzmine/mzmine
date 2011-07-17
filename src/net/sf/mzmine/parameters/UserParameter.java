@@ -25,7 +25,7 @@ import javax.swing.JComponent;
  * Parameter interface, represents parameters or variables used in the project
  */
 public interface UserParameter<ValueType, EditorComponent extends JComponent>
-		extends Parameter {
+		extends Parameter<ValueType> {
 
 	/**
 	 * 
@@ -35,15 +35,9 @@ public interface UserParameter<ValueType, EditorComponent extends JComponent>
 
 	public EditorComponent createEditingComponent();
 
-	public ValueType getValue();
-
-	public void setValue(ValueType newValue);
-
 	public void setValueFromComponent(EditorComponent component);
 
 	public void setValueToComponent(EditorComponent component,
 			ValueType newValue);
-
-
 
 }

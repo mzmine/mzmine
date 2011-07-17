@@ -23,7 +23,6 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -38,23 +37,21 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearch;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPrediction;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPicker;
-import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlot;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
+import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
+import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
-import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizer;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizer;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizer;
+import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizer;
-import net.sf.mzmine.modules.visualization.twod.TwoDVisualizer;
-import net.sf.mzmine.project.ProjectEvent;
-import net.sf.mzmine.project.ProjectEvent.ProjectEventType;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
+import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 
@@ -70,15 +67,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 	private JMenu showMenu, searchMenu;
 	private JMenuItem deleteRowsItem, addNewRowItem, plotRowsItem,
-			showSpectrumItem, showXICItem, showMSMSItem,
+			showSpectrumItem, showXICItem, showXICSetupItem, showMSMSItem,
 			showIsotopePatternItem, show2DItem, show3DItem, dbSearchItem,
 			formulaItem, manuallyDefineItem, showPeakRowSummaryItem;
 
 	private RawDataFile clickedDataFile;
 	private PeakListRow clickedPeakListRow;
 	private PeakListRow[] allClickedPeakListRows;
-
-	public static final NumberFormat massFormater = MZmineCore.getMZFormat();
 
 	public PeakListTablePopupMenu(PeakListTableWindow window,
 			PeakListTable table, PeakListTableColumnModel columnModel,
@@ -91,7 +86,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		showMenu = new JMenu("Show...");
 		this.add(showMenu);
 
-		showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram", this);
+		showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram (quick)",
+				this);
+		showXICSetupItem = GUIUtils.addMenuItem(showMenu,
+				"Chromatogram (dialog)", this);
 		showSpectrumItem = GUIUtils
 				.addMenuItem(showMenu, "Mass spectrum", this);
 		show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
@@ -105,12 +103,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		searchMenu = new JMenu("Search...");
 		this.add(searchMenu);
 
-		if (OnlineDBSearch.getInstance() != null) {
+		if (OnlineDBSearchModule.getInstance() != null) {
 			dbSearchItem = GUIUtils.addMenuItem(searchMenu,
 					"Search online database", this);
 		}
 
-		if (FormulaPrediction.getInstance() != null) {
+		if (FormulaPredictionModule.getInstance() != null) {
 			formulaItem = GUIUtils.addMenuItem(searchMenu,
 					"Predict molecular formula", this);
 		}
@@ -241,10 +239,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			}
 			originalModel.fireTableDataChanged();
 
-			// Notify the project manager that peaklist contents have changed
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-			MZmineCore.getProjectManager().fireProjectListeners(newEvent);
+			// Notify the GUI that peaklist contents have changed
+			MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
 
 		}
 
@@ -258,33 +254,69 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 						.convertRowIndexToModel(selectedTableRows[i]);
 				selectedRows[i] = peakList.getRow(unsortedIndex);
 			}
-			IntensityPlot.showIntensityPlot(peakList, selectedRows);
+			IntensityPlotModule.showIntensityPlot(peakList, selectedRows);
 		}
 
 		if (src == showXICItem) {
 
 			Range rtRange = null, mzRange = null;
 			Vector<ChromatographicPeak> selectedPeaks = new Vector<ChromatographicPeak>();
-			Vector<ChromatographicPeak> dataFilePeaks = new Vector<ChromatographicPeak>();
-			ChromatographicPeak[] peaks, preSelectedPeaks;
-			RawDataFile selectedDataFiles[] = peakList.getRawDataFiles();
-			if (clickedDataFile != null)
-				selectedDataFiles = new RawDataFile[] { clickedDataFile };
 
-			// Check if we clicked on a raw data file XIC, or combined XIC
+			if (allClickedPeakListRows.length == 0)
+				return;
+			
+			RawDataFile selectedDataFiles[] = new RawDataFile[1];
+			selectedDataFiles[0] = clickedDataFile;
+			if (selectedDataFiles[0] == null)
+				selectedDataFiles[0] = allClickedPeakListRows[0].getBestPeak()
+						.getDataFile();
+
+			rtRange = selectedDataFiles[0].getDataRTRange(1);
+
 			for (PeakListRow row : allClickedPeakListRows) {
 
-				for (RawDataFile dataFile : row.getRawDataFiles()) {
-					if (rtRange == null)
-						rtRange = dataFile.getDataRTRange(1);
-					else
-						rtRange.extendRange(dataFile.getDataRTRange(1));
-				}
+				ChromatographicPeak peak = row.getPeak(selectedDataFiles[0]);
+				if (peak == null)
+					continue;
+
+				selectedPeaks.add(peak);
+
+				if (mzRange == null)
+					mzRange = peak.getRawDataPointsMZRange();
+				else
+					mzRange.extendRange(peak.getRawDataPointsMZRange());
+
+			}
+
+			ChromatographicPeak peaks[] = selectedPeaks
+					.toArray(new ChromatographicPeak[0]);
+
+			TICVisualizerModule.showNewTICVisualizerWindow(selectedDataFiles,
+					peaks, 1, PlotType.BASEPEAK, rtRange, mzRange);
+
+			return;
+
+		}
+
+		if (src == showXICSetupItem) {
+
+			Range rtRange = null, mzRange = null;
+
+			if (allClickedPeakListRows.length == 0)
+				return;
+			
+			RawDataFile selectedDataFiles[] = new RawDataFile[1];
+			selectedDataFiles[0] = clickedDataFile;
+			if (selectedDataFiles[0] == null)
+				selectedDataFiles[0] = allClickedPeakListRows[0].getBestPeak()
+						.getDataFile();
+
+			rtRange = selectedDataFiles[0].getDataRTRange(1);
+
+			for (PeakListRow row : allClickedPeakListRows) {
+
 				for (ChromatographicPeak peak : row.getPeaks()) {
-					selectedPeaks.add(peak);
-					if (clickedDataFile != null)
-						if (clickedDataFile == peak.getDataFile())
-							dataFilePeaks.add(peak);
+
 					if (mzRange == null)
 						mzRange = peak.getRawDataPointsMZRange();
 					else
@@ -292,17 +324,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				}
 			}
 
-			peaks = selectedPeaks.toArray(new ChromatographicPeak[0]);
-
-			if (clickedDataFile != null)
-				preSelectedPeaks = dataFilePeaks
-						.toArray(new ChromatographicPeak[0]);
-			else
-				preSelectedPeaks = peaks;
-
-			TICVisualizer.showNewTICVisualizerWindow(selectedDataFiles, peaks,
-					preSelectedPeaks, 1, PlotType.BASEPEAK,
-					rtRange, mzRange);
+			TICVisualizerModule.setupNewTICVisualizer(selectedDataFiles, 
+					1, PlotType.BASEPEAK, rtRange, mzRange);
 
 			return;
 
@@ -329,8 +352,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
 					- peakMZRange.getSize()), peakMZRange.getMax()
 					+ peakMZRange.getSize());
-			TwoDVisualizer.show2DVisualizerSetupDialog(showPeak.getDataFile(),
-					mzRange, rtRange);
+			TwoDVisualizerModule.show2DVisualizerSetupDialog(
+					showPeak.getDataFile(), mzRange, rtRange);
 
 		}
 
@@ -355,13 +378,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
 					- peakMZRange.getSize()), peakMZRange.getMax()
 					+ peakMZRange.getSize());
-			ThreeDVisualizer.show3DVisualizerSetupDialog(
+			ThreeDVisualizerModule.setupNew3DVisualizer(
 					showPeak.getDataFile(), mzRange, rtRange);
 
 		}
 
 		if (src == manuallyDefineItem) {
-			ManualPeakPicker.runManualDetection(clickedDataFile,
+			ManualPeakPickerModule.runManualDetection(clickedDataFile,
 					clickedPeakListRow);
 		}
 
@@ -377,7 +400,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			if (showPeak == null)
 				return;
 
-			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
+			SpectraVisualizerModule.showNewSpectrumWindow(
+					showPeak.getDataFile(),
 					showPeak.getRepresentativeScanNumber(), showPeak);
 		}
 
@@ -395,12 +419,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 			int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
 			if (scanNumber > 0) {
-				SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
-						scanNumber);
+				SpectraVisualizerModule.showNewSpectrumWindow(
+						showPeak.getDataFile(), scanNumber);
 			} else {
 				MZmineCore.getDesktop().displayMessage(
 						"There is no fragment for "
-								+ massFormater.format(showPeak.getMZ())
+								+ MZmineCore.getMZFormat().format(showPeak.getMZ())
 								+ " m/z in the current raw data.");
 				return;
 			}
@@ -419,20 +443,21 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			if ((showPeak == null) || (showPeak.getIsotopePattern() == null))
 				return;
 
-			SpectraVisualizer.showNewSpectrumWindow(showPeak.getDataFile(),
+			SpectraVisualizerModule.showNewSpectrumWindow(
+					showPeak.getDataFile(),
 					showPeak.getRepresentativeScanNumber(),
 					showPeak.getIsotopePattern());
 
 		}
 
 		if (src == formulaItem) {
-			FormulaPrediction.showSingleRowIdentificationDialog(peakList,
-					clickedPeakListRow);
+			FormulaPredictionModule
+					.showSingleRowIdentificationDialog(clickedPeakListRow);
 		}
 
 		if (src == dbSearchItem) {
-			OnlineDBSearch.showSingleRowIdentificationDialog(peakList,
-					clickedPeakListRow);
+			OnlineDBSearchModule
+					.showSingleRowIdentificationDialog(clickedPeakListRow);
 		}
 
 		if (src == addNewRowItem) {
@@ -450,18 +475,17 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			PeakListTableModel tableModel = (PeakListTableModel) table
 					.getModel();
 			tableModel.fireTableDataChanged();
-			ManualPeakPicker.runManualDetection(peakList.getRawDataFiles(),
-					newRow);
+			ManualPeakPickerModule.runManualDetection(
+					peakList.getRawDataFiles(), newRow);
 
-			// Notify the project manager that peaklist contents have changed
-			ProjectEvent newEvent = new ProjectEvent(
-					ProjectEventType.PEAKLIST_CONTENTS_CHANGED, peakList);
-			MZmineCore.getProjectManager().fireProjectListeners(newEvent);
+			// Notify the GUI that peaklist contents have changed
+			MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
 
 		}
 
 		if (src == showPeakRowSummaryItem) {
-			PeakSummaryVisualizer.showNewPeakSummaryWindow(clickedPeakListRow);
+			PeakSummaryVisualizerModule
+					.showNewPeakSummaryWindow(clickedPeakListRow);
 		}
 
 	}
