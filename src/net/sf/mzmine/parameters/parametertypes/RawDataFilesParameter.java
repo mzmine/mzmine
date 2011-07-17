@@ -66,7 +66,7 @@ public class RawDataFilesParameter implements Parameter<RawDataFile[]> {
 
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
-		/* does not work in batch mode! if (value == null) {
+		if (value == null) {
 			errorMessages.add("No raw data file is selected");
 			return false;
 		}
@@ -79,7 +79,7 @@ public class RawDataFilesParameter implements Parameter<RawDataFile[]> {
 			errorMessages.add("Maximum " + maxCount
 					+ " raw data files may be selected");
 			return false;
-		}*/
+		}
 		return true;
 	}
 

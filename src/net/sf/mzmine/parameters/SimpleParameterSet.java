@@ -165,6 +165,10 @@ public class SimpleParameterSet implements ParameterSet {
 	public boolean checkParameterValues(Collection<String> errorMessages) {
 		boolean allParametersOK = true;
 		for (Parameter<?> p : parameters) {
+			// Only check UserParameter instances, because other parameters
+			// cannot be influenced by the dialog
+			if (!(p instanceof UserParameter))
+				continue;
 			boolean pOK = p.checkValue(errorMessages);
 			if (!pOK)
 				allParametersOK = false;

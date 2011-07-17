@@ -65,20 +65,15 @@ public class PeakListsParameter implements Parameter<PeakList[]> {
 
 	@Override
 	public void loadValueFromXML(Element xmlElement) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void saveValueToXML(Element xmlElement) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
-		/* does not work in batch mode 
-		 if (value == null) {
+		if (value == null) {
 			errorMessages.add("No peak list is selected");
 			return false;
 		}
@@ -91,7 +86,7 @@ public class PeakListsParameter implements Parameter<PeakList[]> {
 			errorMessages.add("Maximum " + maxCount
 					+ " peak lists may be selected");
 			return false;
-		}*/
+		}
 		return true;
 	}
 

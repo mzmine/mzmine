@@ -24,6 +24,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Hashtable;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -285,33 +286,55 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 		MZmineProcessingModule module = moduleMenuItems.get(src);
 		if (module != null) {
-			RawDataFile selectedFiles[] = MZmineCore.getDesktop().getSelectedDataFiles();
-			PeakList selectedPeakLists[] = MZmineCore.getDesktop().getSelectedPeakLists();
-			
+			RawDataFile selectedFiles[] = MZmineCore.getDesktop()
+					.getSelectedDataFiles();
+			PeakList selectedPeakLists[] = MZmineCore.getDesktop()
+					.getSelectedPeakLists();
+
 			ParameterSet moduleParameters = module.getParameterSet();
-			
+
 			if (moduleParameters == null) {
-				logger.finest("Starting module " + module + " with no parameters");
+				logger.finest("Starting module " + module
+						+ " with no parameters");
 				module.runModule(null);
 				return;
 			}
-			
+
+			boolean allParametersOK = true;
+			LinkedList<String> errorMessages = new LinkedList<String>();
 			for (Parameter p : moduleParameters.getParameters()) {
 				if (p instanceof RawDataFilesParameter) {
 					RawDataFilesParameter rdp = (RawDataFilesParameter) p;
 					rdp.setValue(selectedFiles);
+					boolean checkOK = rdp.checkValue(errorMessages);
+					if (!checkOK)
+						allParametersOK = false;
 				}
 				if (p instanceof PeakListsParameter) {
 					PeakListsParameter plp = (PeakListsParameter) p;
 					plp.setValue(selectedPeakLists);
+					boolean checkOK = plp.checkValue(errorMessages);
+					if (!checkOK)
+						allParametersOK = false;
 				}
 			}
-			
+
+			if (!allParametersOK) {
+				StringBuilder message = new StringBuilder();
+				for (String m : errorMessages) {
+					message.append(m);
+					message.append("\n");
+				}
+				MZmineCore.getDesktop().displayMessage(message.toString());
+				return;
+			}
+
 			logger.finest("Setting parameters for module " + module);
 			ExitCode exitCode = moduleParameters.showSetupDialog();
 			if (exitCode == ExitCode.OK) {
 				ParameterSet parametersCopy = moduleParameters.clone();
-				logger.finest("Starting module " + module + " with parameters " + parametersCopy);
+				logger.finest("Starting module " + module + " with parameters "
+						+ parametersCopy);
 				module.runModule(parametersCopy);
 			}
 			return;
