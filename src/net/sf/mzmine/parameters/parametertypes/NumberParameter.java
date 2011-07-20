@@ -19,133 +19,189 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.Dimension;
-import java.text.NumberFormat;
-import java.util.Collection;
-
-import javax.swing.JFormattedTextField;
-
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Element;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Collection;
 
 /**
  * Simple Parameter implementation
- * 
- * 
  */
 public class NumberParameter implements UserParameter<Number, JFormattedTextField> {
 
-	private String name, description;
-	private Number value;
-	private NumberFormat format;
+    // Text field width.
+    private static final int WIDTH = 200;
 
-	public NumberParameter(String name, String description) {
-		this(name, description, NumberFormat.getNumberInstance(), null);
-	}
+    private Number value;
+    private final String name;
+    private final String description;
+    private final Double minimum;
+    private final Double maximum;
+    private final NumberFormat format;
 
-	public NumberParameter(String name, String description, NumberFormat format) {
-		this(name, description, format, null);
-	}
+    public NumberParameter(final String name, final String description) {
+        this(name, description, NumberFormat.getNumberInstance(), null, null, null);
+    }
 
-	public NumberParameter(String name, String description,
-			NumberFormat format, Number defaultValue) {
-		this.name = name;
-		this.description = description;
-		this.value = defaultValue;
-		this.format = format;
-	}
+    public NumberParameter(final String name, final String description, final NumberFormat format) {
+        this(name, description, format, null, null, null);
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
+    public NumberParameter(final String name,
+                           final String description,
+                           final NumberFormat format,
+                           final Number defaultValue) {
+        this(name, description, format, defaultValue, null, null);
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    public NumberParameter(final String name,
+                           final String description,
+                           final NumberFormat format,
+                           final Number defaultValue,
+                           final Number min,
+                           final Number max) {
+        this.name = name;
+        this.description = description;
+        this.format = format;
+        value = defaultValue;
+        minimum = min == null ? null : min.doubleValue();
+        maximum = max == null ? null : max.doubleValue();
+    }
 
-	@Override
-	public JFormattedTextField createEditingComponent() {
-		JFormattedTextField textField = new JFormattedTextField(format);
-		textField.setPreferredSize(new Dimension(200, textField.getPreferredSize().height));
-		return textField;
-	}
+    /**
+     * @see Parameter#getName()
+     */
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public void setValueFromComponent(JFormattedTextField component) {
-		value = (Number) component.getValue();
-	}
+    /**
+     * @see UserParameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+        return description;
+    }
 
-	@Override
-	public void setValue(Number value) {
-		this.value = value;
-	}
+    @Override
+    public JFormattedTextField createEditingComponent() {
+        final JFormattedTextField textField = new JFormattedTextField(format);
+        textField.setPreferredSize(new Dimension(WIDTH, textField.getPreferredSize().height));
 
-	@Override
-	public NumberParameter clone() {
-		NumberParameter copy = new NumberParameter(name, description, format);
-		copy.setValue(this.getValue());
-		return copy;
-	}
+        // Add an input verifier if any bounds are specified.
+        if (minimum != null || maximum != null) {
+            textField.setInputVerifier(new MinMaxVerifier());
+        }
 
-	@Override
-	public void setValueToComponent(JFormattedTextField component,
-			Number newValue) {
-		component.setValue(newValue);
-	}
+        return textField;
+    }
 
-	@Override
-	public Number getValue() {
-		return value;
-	}
+    @Override
+    public void setValueFromComponent(final JFormattedTextField component) {
+        value = (Number) component.getValue();
+    }
 
-	public Double getDouble() {
-		if (value == null)
-			return null;
-		return value.doubleValue();
-	}
+    @Override
+    public void setValue(final Number newValue) {
+        value = newValue;
+    }
 
-	public Integer getInt() {
-		if (value == null)
-			return null;
-		return value.intValue();
-	}
+    @Override
+    public NumberParameter clone() {
+        return new NumberParameter(name, description, format, value, minimum, maximum);
+    }
 
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		String numString = xmlElement.getTextContent();
-		if (numString.length() == 0)
-			return;
-		this.value = Double.parseDouble(numString);
-	}
+    @Override
+    public void setValueToComponent(final JFormattedTextField component,
+                                    final Number newValue) {
+        component.setValue(newValue);
+    }
 
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value.toString());
-	}
-	
-	@Override
-	public String toString() {
-		return name;
-	}
-	
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if (value == null) {
-			errorMessages.add(name + " is not set");
-			return false;
-		}
-		return true;
-	}
+    @Override
+    public Number getValue() {
+        return value;
+    }
 
+    public Double getDouble() {
+        return value == null ? null : value.doubleValue();
+    }
+
+    public Integer getInt() {
+        return value == null ? null : value.intValue();
+    }
+
+    @Override
+    public void loadValueFromXML(final Element xmlElement) {
+        final String numString = xmlElement.getTextContent();
+        if (numString.length() > 0) {
+            value = Double.parseDouble(numString);
+        }
+    }
+
+    @Override
+    public void saveValueToXML(final Element xmlElement) {
+        if (value != null) {
+            xmlElement.setTextContent(value.toString());
+        }
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public boolean checkValue(final Collection<String> errorMessages) {
+        boolean check = true;
+        if (value == null) {
+            errorMessages.add(name + " is not set");
+            check = false;
+        }
+        if (!checkBounds(value)) {
+            errorMessages.add(name + " lies outside its bound: (" + minimum + " ... " + maximum + ')');
+            check = false;
+        }
+        return check;
+    }
+
+    private boolean checkBounds(final Number parse) {
+        final double number = parse.doubleValue();
+        return (minimum == null || number >= minimum) &&
+               (maximum == null || number <= maximum);
+    }
+
+    /**
+     * Input verifier used when minimum or maximum bounds are defined.
+     */
+    private class MinMaxVerifier extends InputVerifier {
+
+        @Override public boolean shouldYieldFocus(final JComponent input) {
+            final boolean yield = super.shouldYieldFocus(input);
+            if (!yield) {
+                // Beep, reset value and highlight.
+                Toolkit.getDefaultToolkit().beep();
+                ((JFormattedTextField) input).setValue(value);
+                ((JTextComponent) input).selectAll();
+            }
+            return yield;
+        }
+
+        @Override public boolean verify(final JComponent input) {
+            boolean verified = false;
+            try {
+                verified = checkBounds(format.parse(((JTextComponent) input).getText()));
+            }
+            catch (final ParseException e) {
+                // not a number.
+            }
+            return verified;
+        }
+    }
 }
