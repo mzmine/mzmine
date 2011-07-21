@@ -312,7 +312,10 @@ public class BaselineCorrectionTask extends AbstractTask {
 
             // Normalize the baseline w.r.t. chromatogram (TIC).
             for (int scanIndex = 0; scanIndex < numScans; scanIndex++) {
-                baseChrom[binIndex][scanIndex] = baseline[scanIndex] / baseChrom[binIndex][scanIndex];
+                double bc = baseChrom[binIndex][scanIndex];
+                if (bc != 0.0) {
+                    baseChrom[binIndex][scanIndex] = baseline[scanIndex] / bc;
+                }
             }
             progress++;
         }
