@@ -85,4 +85,8 @@ public class ProjectCloseModule implements MZmineProcessingModule {
 		return MZmineModuleCategory.PROJECTIO;
 	}
 
+	public String toString() {
+		return MODULE_NAME;
+	}
+
 }

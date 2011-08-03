@@ -22,25 +22,18 @@ package net.sf.mzmine.modules.peaklistmethods.io.xmlimport;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.GUIUtils;
 
 public class XMLImportModule implements MZmineProcessingModule {
 
-	final String helpID = GUIUtils.generateHelpID(XMLExportModule.class);
-
 	public static final String MODULE_NAME = "Import from XML file";
 
-	private XMLImportParameters parameters= new XMLImportParameters();
-
+	private XMLImportParameters parameters = new XMLImportParameters();
 
 	public ParameterSet getParameterSet() {
 		return parameters;
 	}
-
-
 
 	public Task[] runModule(ParameterSet parameters) {
 

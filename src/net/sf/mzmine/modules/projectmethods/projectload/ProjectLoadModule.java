@@ -24,10 +24,8 @@ import java.io.File;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.GUIUtils;
 
 /**
  * This class implements BatchStep interface, so project loading can be
@@ -36,14 +34,11 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class ProjectLoadModule implements MZmineProcessingModule {
 
-	final String helpID = GUIUtils.generateHelpID(ProjectSaveModule.class);
-
 	public static final String MODULE_NAME = "Open project";
 
 	private static ProjectLoadModule myInstance;
 
 	private ProjectLoaderParameters parameters = new ProjectLoaderParameters();
-
 
 	public ProjectLoadModule() {
 		myInstance = this;
@@ -60,8 +55,6 @@ public class ProjectLoadModule implements MZmineProcessingModule {
 		MZmineCore.getTaskController().addTasks(tasksArray);
 		return tasksArray;
 	}
-
-
 
 	public ParameterSet getParameterSet() {
 		return parameters;

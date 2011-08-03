@@ -23,16 +23,12 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 
  */
 public class FormulaPredictionModule implements MZmineModule {
-
-	final static String helpID = GUIUtils
-			.generateHelpID(FormulaPredictionModule.class);
 
 	public static final String MODULE_NAME = "Formula prediction";
 

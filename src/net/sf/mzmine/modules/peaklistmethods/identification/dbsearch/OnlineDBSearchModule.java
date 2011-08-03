@@ -26,15 +26,12 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 
  */
 public class OnlineDBSearchModule implements MZmineProcessingModule {
-
-	final static String helpID = GUIUtils.generateHelpID(OnlineDBSearchModule.class);
 
 	public static final String MODULE_NAME = "Online database search";
 

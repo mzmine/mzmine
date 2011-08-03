@@ -56,6 +56,7 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.Deconvolu
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender.PeakExtenderModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.ShapeModelerModule;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing.SmoothingModule;
+import net.sf.mzmine.modules.projectmethods.projectclose.ProjectCloseModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveAsModule;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSaveModule;
@@ -88,6 +89,7 @@ public class MZmineModulesList {
 			ProjectLoadModule.class,
 			ProjectSaveModule.class,
 			ProjectSaveAsModule.class,
+			ProjectCloseModule.class,
 
 			// Batch mode
 			BatchModeModule.class, // TODO
