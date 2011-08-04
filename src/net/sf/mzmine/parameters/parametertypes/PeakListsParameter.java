@@ -38,6 +38,10 @@ public class PeakListsParameter implements Parameter<PeakList[]> {
 		this(1, Integer.MAX_VALUE);
 	}
 
+	public PeakListsParameter(int minCount) {
+		this(minCount, Integer.MAX_VALUE);
+	}
+
 	public PeakListsParameter(int minCount, int maxCount) {
 		this.minCount = minCount;
 		this.maxCount = maxCount;

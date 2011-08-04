@@ -21,15 +21,11 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-/**
- * @see
- */
 class DataSetFilteringTask extends AbstractTask {
 
 	private RawDataFile[] dataFiles;
@@ -40,7 +36,7 @@ class DataSetFilteringTask extends AbstractTask {
 
 	// Raw Data Filter
 	private RawDataSetFilter rawDataFilter;
-	private SimplePeakList newPeakList;
+	private RawDataFile filteredRawDataFile;
 
 	/**
 	 * @param dataFiles
@@ -90,15 +86,14 @@ class DataSetFilteringTask extends AbstractTask {
 			for (RawDataFile dataFile : dataFiles) {
 				RawDataFileWriter rawDataFileWriter = MZmineCore
 						.createNewFile(dataFile.getName() + " " + suffix);
-				RawDataFile newDataFiles = rawDataFilter.filterDatafile(
-						dataFile, rawDataFileWriter);
-				if (newDataFiles != null) {
-					MZmineCore.getCurrentProject().addFile(newDataFiles);
+				filteredRawDataFile = rawDataFilter.filterDatafile(dataFile,
+						rawDataFileWriter);
+				if (filteredRawDataFile != null) {
+					MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
 
 					// Remove the original file if requested
 					if (removeOriginal) {
 						MZmineCore.getCurrentProject().removeFile(dataFile);
-
 					}
 				}
 			}
@@ -114,6 +109,8 @@ class DataSetFilteringTask extends AbstractTask {
 	}
 
 	public Object[] getCreatedObjects() {
-		return new Object[] { newPeakList };
+		if (filteredRawDataFile == null)
+			return null;
+		return new Object[] { filteredRawDataFile };
 	}
 }

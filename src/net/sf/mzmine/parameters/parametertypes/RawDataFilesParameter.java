@@ -38,6 +38,10 @@ public class RawDataFilesParameter implements Parameter<RawDataFile[]> {
 		this(1, Integer.MAX_VALUE);
 	}
 
+	public RawDataFilesParameter(int minCount) {
+		this(minCount, Integer.MAX_VALUE);
+	}
+
 	public RawDataFilesParameter(int minCount, int maxCount) {
 		this.minCount = minCount;
 		this.maxCount = maxCount;

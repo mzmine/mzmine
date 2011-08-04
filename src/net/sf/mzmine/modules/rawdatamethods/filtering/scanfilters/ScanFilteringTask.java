@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.io.IOException;
@@ -24,18 +25,15 @@ import java.util.logging.Logger;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-/**
- * @see
- */
 class ScanFilteringTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
+
 	private RawDataFile dataFile, filteredRawDataFile;
 
 	// scan counter
@@ -48,7 +46,6 @@ class ScanFilteringTask extends AbstractTask {
 
 	// Raw Data Filter
 	private ScanFilter rawDataFilter;
-	private SimplePeakList newPeakList;
 
 	/**
 	 * @param dataFile
@@ -151,6 +148,8 @@ class ScanFilteringTask extends AbstractTask {
 	}
 
 	public Object[] getCreatedObjects() {
-		return new Object[] { newPeakList };
+		if (filteredRawDataFile == null)
+			return null;
+		return new Object[] { filteredRawDataFile };
 	}
 }
