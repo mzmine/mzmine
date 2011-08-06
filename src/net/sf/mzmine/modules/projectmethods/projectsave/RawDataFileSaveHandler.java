@@ -32,9 +32,13 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
+import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
@@ -121,7 +125,7 @@ class RawDataFileSaveHandler {
 	 * @throws java.lang.Exception
 	 */
 	void saveRawDataInformation(RawDataFile rawDataFile, TransformerHandler hd)
-			throws SAXException {
+			throws SAXException, IOException {
 
 		AttributesImpl atts = new AttributesImpl();
 
@@ -167,7 +171,7 @@ class RawDataFileSaveHandler {
 	 * @param element
 	 */
 	private void fillScanElement(Scan scan, TransformerHandler hd)
-			throws SAXException {
+			throws SAXException, IOException {
 		// <SCAN_ID>
 		AttributesImpl atts = new AttributesImpl();
 		hd.startElement("", "", RawDataElementName.SCAN_ID.getElementName(),
@@ -259,6 +263,48 @@ class RawDataFileSaveHandler {
 					RawDataElementName.QUANTITY_FRAGMENT_SCAN.getElementName());
 
 		}
+
+		// <MASS_LIST>
+		MassList massLists[] = scan.getMassLists();
+		for (MassList massList : massLists) {
+			atts.addAttribute("", "", RawDataElementName.NAME.getElementName(),
+					"CDATA", massList.getName());
+			hd.startElement("", "",
+					RawDataElementName.MASS_LIST.getElementName(), atts);
+			atts.clear();
+			fillMassListElement(massList, hd);
+			hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
+
+		}
+	}
+
+	/**
+	 * Create the part of the XML document related to a mass list
+	 * 
+	 */
+	private void fillMassListElement(MassList massList, TransformerHandler hd)
+			throws SAXException, IOException {
+		AttributesImpl atts = new AttributesImpl();
+
+		MzPeak mzPeaks[] = massList.getMzPeaks();
+		for (MzPeak mzPeak : mzPeaks) {
+
+			atts.addAttribute("", "", RawDataElementName.MZ.getElementName(),
+					"CDATA", String.valueOf(mzPeak.getMZ()));
+			atts.addAttribute("", "",
+					RawDataElementName.INTENSITY.getElementName(), "CDATA",
+					String.valueOf(mzPeak.getIntensity()));
+			hd.startElement("", "",
+					RawDataElementName.MZ_PEAK.getElementName(), atts);
+			atts.clear();
+
+			DataPoint dataPoints[] = mzPeak.getRawDataPoints();
+			char encodedDataPoints[] = ScanUtils
+					.encodeDataPointsBase64(dataPoints);
+			hd.characters(encodedDataPoints, 0, encodedDataPoints.length);
+			hd.endElement("", "", RawDataElementName.MZ_PEAK.getElementName());
+		}
+
 	}
 
 	/**

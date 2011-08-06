@@ -42,6 +42,8 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.PeakListOpe
 import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.RawDataFileOpenHandler_1_97;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.PeakListOpenHandler_2_3;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.RawDataFileOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -114,7 +116,7 @@ public class ProjectOpeningTask extends AbstractTask {
 		try {
 
 			logger.info("Started opening project " + openFile);
-			setStatus( TaskStatus.PROCESSING );
+			setStatus(TaskStatus.PROCESSING);
 
 			// Create a new project
 			newProject = new MZmineProjectImpl();
@@ -127,7 +129,7 @@ public class ProjectOpeningTask extends AbstractTask {
 			currentStage++;
 			loadVersion(zipFile);
 			loadConfiguration(zipFile);
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				zipFile.close();
 				return;
 			}
@@ -135,7 +137,7 @@ public class ProjectOpeningTask extends AbstractTask {
 			// Stage 2 - load raw data files
 			currentStage++;
 			loadRawDataFiles(zipFile);
-			if ( isCanceled( )) {
+			if (isCanceled()) {
 				zipFile.close();
 				return;
 			}
@@ -149,7 +151,7 @@ public class ProjectOpeningTask extends AbstractTask {
 			zipFile.close();
 
 			// Final check for cancel
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			// Close all open frames related to previous project
@@ -167,16 +169,16 @@ public class ProjectOpeningTask extends AbstractTask {
 
 			logger.info("Finished opening project " + openFile);
 
-			setStatus( TaskStatus.FINISHED );
+			setStatus(TaskStatus.FINISHED);
 
 		} catch (Throwable e) {
 
 			// If project opening was canceled, parser was stopped by a
 			// SAXException which can be safely ignored
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
-			setStatus( TaskStatus.ERROR );
+			setStatus(TaskStatus.ERROR);
 			errorMessage = "Failed opening project: "
 					+ ExceptionUtils.exceptionToString(e);
 		}
@@ -189,7 +191,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
 		logger.info("Canceling opening of project " + openFile);
 
-		setStatus( TaskStatus.CANCELED );
+		setStatus(TaskStatus.CANCELED);
 
 		if (rawDataFileOpenHandler != null)
 			rawDataFileOpenHandler.cancel();
@@ -254,10 +256,17 @@ public class ProjectOpeningTask extends AbstractTask {
 			return;
 		}
 
-		// Check if the project version is at least 1.97
+		// Check if the project version is 1.97 to 1.98
 		if ((projectVersionNumber >= 1.97) && (projectVersionNumber < 2.0)) {
 			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
-			peakListOpenHandler= new PeakListOpenHandler_1_97(dataFilesIDMap);
+			peakListOpenHandler = new PeakListOpenHandler_1_97(dataFilesIDMap);
+			return;
+		}
+
+		// Check if the project version is 2.0 to 2.2
+		if ((projectVersionNumber >= 2.0) && (projectVersionNumber < 2.3)) {
+			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
+			peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
 			return;
 		}
 
@@ -272,8 +281,8 @@ public class ProjectOpeningTask extends AbstractTask {
 		}
 
 		// Default opening handler
-		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
-		peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
+		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
+		peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
 
 	}
 
@@ -322,7 +331,7 @@ public class ProjectOpeningTask extends AbstractTask {
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
@@ -359,7 +368,7 @@ public class ProjectOpeningTask extends AbstractTask {
 		while (zipEntries.hasMoreElements()) {
 
 			// Canceled
-			if ( isCanceled( ))
+			if (isCanceled())
 				return;
 
 			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
@@ -372,9 +381,9 @@ public class ProjectOpeningTask extends AbstractTask {
 				currentLoadedObjectName = fileMatcher.group(2);
 
 				InputStream peakListStream = zipFile.getInputStream(entry);
-				
-				PeakList newPeakList = peakListOpenHandler.readPeakList(
-						peakListStream);
+
+				PeakList newPeakList = peakListOpenHandler
+						.readPeakList(peakListStream);
 
 				newProject.addPeakList(newPeakList);
 			}

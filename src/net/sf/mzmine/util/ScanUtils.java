@@ -19,6 +19,11 @@
 
 package net.sf.mzmine.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +31,10 @@ import java.util.Arrays;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
+
+import org.jfree.xml.util.Base64;
 
 /**
  * Scan related utilities
@@ -238,7 +246,7 @@ public class ScanUtils {
 		}
 
 		assert noOfEntries != null;
-		
+
 		// calculate the AVG
 		if (binningType.equals(BinningType.AVG)) {
 			for (int binIndex = 0; binIndex < binValues.length; binIndex++) {
@@ -493,6 +501,56 @@ public class ScanUtils {
 		}
 
 		return topDP;
+	}
+
+	public static char[] encodeDataPointsBase64(DataPoint dataPoints[])
+			throws IOException {
+
+		// make a data output stream
+		ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+		DataOutputStream peakStream = new DataOutputStream(byteStream);
+
+		for (int i = 0; i < dataPoints.length; i++) {
+
+			peakStream.writeDouble(dataPoints[i].getMZ());
+			peakStream.writeDouble(dataPoints[i].getIntensity());
+
+		}
+
+		byte peakBytes[] = byteStream.toByteArray();
+
+		char encodedData[] = Base64.encode(peakBytes);
+
+		return encodedData;
+
+	}
+
+	public static DataPoint[] decodeDataPointsBase64(char encodedData[])
+			throws IOException {
+
+		byte[] peakBytes = Base64.decode(encodedData);
+
+		// each double is 8 bytes and we need one for m/z and one for intensity
+		int dpCount = peakBytes.length / 2 / 8;
+
+		// make a data input stream
+		ByteArrayInputStream byteStream = new ByteArrayInputStream(peakBytes);
+		DataInputStream peakStream = new DataInputStream(byteStream);
+
+		DataPoint dataPoints[] = new DataPoint[dpCount];
+
+		for (int i = 0; i < dataPoints.length; i++) {
+
+			double mz = peakStream.readDouble();
+			double intensity = peakStream.readDouble();
+
+			// Copy m/z and intensity data
+			dataPoints[i] = new SimpleDataPoint(mz, intensity);
+
+		}
+
+		return dataPoints;
+
 	}
 
 }
