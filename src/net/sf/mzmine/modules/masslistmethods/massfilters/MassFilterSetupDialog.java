@@ -79,7 +79,7 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
 		ScanDataSet scanDataSet = new ScanDataSet(previewScan);
 
-		DataPoint mzValues[] = massList.getMzPeaks();
+		DataPoint mzValues[] = massList.getDataPoints();
 		DataPoint remainingMzValues[] = massFilter.filterMassValues(mzValues, parameters);
 
 		Vector<DataPoint> removedPeaks = new Vector<DataPoint>();

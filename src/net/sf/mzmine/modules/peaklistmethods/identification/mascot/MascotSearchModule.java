@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -35,12 +33,12 @@ public class MascotSearchModule implements MZmineProcessingModule {
 
 	public static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    // private Logger logger = Logger.getLogger(this.getClass().getName());
     
     
     private MascotSearchParameters parameters= new MascotSearchParameters();
 	
-    private ParameterSet mascotParameters;
+    // private ParameterSet mascotParameters;
 
 	/**
 	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()

@@ -125,7 +125,7 @@ public class MassFilteringTask extends AbstractTask {
 				return;
 			}
 
-			DataPoint mzPeaks[] = massList.getMzPeaks();
+			DataPoint mzPeaks[] = massList.getDataPoints();
 
 			DataPoint newMzPeaks[] = massFilter.filterMassValues(mzPeaks,
 					massFilter.getParameterSet());

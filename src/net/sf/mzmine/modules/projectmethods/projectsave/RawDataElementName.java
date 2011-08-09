@@ -37,11 +37,7 @@ enum RawDataElementName {
 	RETENTION_TIME("rt"),
 	CENTROIDED ("centroid"),
 	QUANTITY_DATAPOINTS ("num_dp"),
-	MASS_LIST("mass_list"),
-	MZ_PEAK("mz_peak"),
-	DATA_POINT("data_point"),
-	MZ("mz"),
-	INTENSITY("intensity");
+	MASS_LIST("mass_list");
 
 	private String elementName;
 

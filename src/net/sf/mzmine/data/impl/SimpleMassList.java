@@ -47,14 +47,18 @@ public class SimpleMassList implements MassList {
 	public Scan getScan() {
 		return scan;
 	}
+	
+	public void setScan(Scan scan) {
+		this.scan = scan;
+	}
 
 	@Override
-	public DataPoint[] getMzPeaks() {
+	public DataPoint[] getDataPoints() {
 		return mzPeaks;
 	}
 
 	@Override
-	public void setMzPeaks(DataPoint mzPeaks[]) {
+	public void setDataPoints(DataPoint mzPeaks[]) {
 		this.mzPeaks = mzPeaks;
 	}
 

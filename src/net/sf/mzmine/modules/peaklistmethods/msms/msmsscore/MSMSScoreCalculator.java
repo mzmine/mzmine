@@ -56,7 +56,7 @@ public class MSMSScoreCalculator {
 		if (massList == null)
 			return null;
 
-		DataPoint msmsIons[] = massList.getMzPeaks();
+		DataPoint msmsIons[] = massList.getDataPoints();
 
 		if (msmsIons == null) {
 			throw new IllegalArgumentException("Mass list " + massList

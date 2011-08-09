@@ -23,17 +23,21 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.impl.SimpleMassList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.project.impl.StorableScan;
+import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.Attributes;
@@ -65,6 +69,7 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 	private int storageFileOffset;
 	private int fragmentCount;
 	private StreamCopy copyMachine;
+	private ArrayList<SimpleMassList> massLists;
 
 	private boolean canceled = false;
 
@@ -81,13 +86,14 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 	public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
 			ZipEntry xmlEntry) throws IOException,
 			ParserConfigurationException, SAXException {
-		
+
 		stepNumber = 0;
 		numberOfScans = 0;
 		parsedScans = 0;
 		storageFileOffset = 0;
-		
+
 		charBuffer = new StringBuffer();
+		massLists = new ArrayList<SimpleMassList>();
 
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
@@ -95,7 +101,6 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 
 		rawDataFileWriter = (RawDataFileImpl) MZmineCore.createNewFile(null);
 
-		
 		File scanFile = rawDataFileWriter.getScanFile();
 
 		InputStream scanInputStream = zipFile.getInputStream(scansEntry);
@@ -169,6 +174,13 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 				fragmentCount = 0;
 			}
 		}
+
+		if (qName.equals(RawDataElementName_2_3.MASS_LIST.getElementName())) {
+			String name = attrs.getValue(RawDataElementName_2_3.NAME
+					.getElementName());
+			SimpleMassList newML = new SimpleMassList(name, null, null);
+			massLists.add(newML);
+		}
 	}
 
 	/**
@@ -235,12 +247,31 @@ public class RawDataFileOpenHandler_2_3 extends DefaultHandler implements
 					.parseInt(getTextOfElement());
 		}
 
+		if (qName.equals(RawDataElementName_2_3.MASS_LIST.getElementName())) {
+			char encodedDataPoints[] = getTextOfElement().toCharArray();
+			try {
+				DataPoint dataPoints[] = ScanUtils
+						.decodeDataPointsBase64(encodedDataPoints);
+				SimpleMassList newML = massLists.get(massLists.size() - 1);
+				newML.setDataPoints(dataPoints);
+			} catch (IOException e) {
+				throw new SAXException(e);
+			}
+
+		}
+
 		if (qName.equals(RawDataElementName_2_3.SCAN.getElementName())) {
 
 			StorableScan storableScan = new StorableScan(rawDataFileWriter,
 					storageFileOffset, dataPointsNumber, scanNumber, msLevel,
 					retentionTime, parentScan, precursorMZ, precursorCharge,
 					fragmentScan, centroided);
+
+			for (SimpleMassList newML : massLists) {
+				newML.setScan(storableScan);
+				storableScan.addMassList(newML);
+			}
+			massLists.clear();
 
 			try {
 				rawDataFileWriter.addScan(storableScan);

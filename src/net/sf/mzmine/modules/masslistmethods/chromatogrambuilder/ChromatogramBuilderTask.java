@@ -133,7 +133,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 				return;
 			}
 
-			DataPoint mzValues[] = massList.getMzPeaks();
+			DataPoint mzValues[] = massList.getDataPoints();
 
 			if (mzValues == null) {
 				setStatus(TaskStatus.ERROR);

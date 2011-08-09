@@ -271,24 +271,12 @@ class RawDataFileSaveHandler {
 			hd.startElement("", "",
 					RawDataElementName.MASS_LIST.getElementName(), atts);
 			atts.clear();
-			fillMassListElement(massList, hd);
+			DataPoint mzPeaks[] = massList.getDataPoints();
+			char encodedDataPoints[] = ScanUtils.encodeDataPointsBase64(mzPeaks);
+			hd.characters(encodedDataPoints, 0, encodedDataPoints.length);
 			hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
 
 		}
-	}
-
-	/**
-	 * Create the part of the XML document related to a mass list
-	 * 
-	 */
-	private void fillMassListElement(MassList massList, TransformerHandler hd)
-			throws SAXException, IOException {
-
-		DataPoint mzPeaks[] = massList.getMzPeaks();
-		char encodedDataPoints[] = ScanUtils.encodeDataPointsBase64(mzPeaks);
-		hd.characters(encodedDataPoints, 0, encodedDataPoints.length);
-		hd.endElement("", "", RawDataElementName.MZ_PEAK.getElementName());
-
 	}
 
 	/**
