@@ -32,15 +32,14 @@ import metlinapi.MetlinPortType;
 import metlinapi.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
 public class MetLinGateway implements DBGateway {
 
-	private static final String adduct[] = { "M" }; 
-	
+	private static final String adduct[] = { "M" };
+
 	public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
 	public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
 	public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
@@ -60,19 +59,20 @@ public class MetLinGateway implements DBGateway {
 		} catch (ServiceException e) {
 			throw (new IOException(e));
 		}
-		
+
 		// Search mass as float[]
 		float[] searchMass = new float[] { (float) toleranceRange.getAverage() };
-		
+
 		Float searchTolerance = (float) toleranceRange.getSize() / 2;
 
-		MetaboliteRequest requestParameters = new MetaboliteRequest(searchMass, adduct, searchTolerance, "Da");
-		
+		MetaboliteRequest requestParameters = new MetaboliteRequest(searchMass,
+				adduct, searchTolerance, "Da");
+
 		String[] results = serv.metaboliteSearch(requestParameters);
-		
-		System.out.println(results.length + Arrays.toString(results) + " " + results[0]);
+
+		System.out.println(results.length + Arrays.toString(results) + " "
+				+ results[0]);
 		return adduct;
-		
 
 	}
 
@@ -120,9 +120,10 @@ public class MetLinGateway implements DBGateway {
 					"Could not parse compound name for compound " + ID));
 		}
 
-		DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
-				compoundName, compoundFormula, entryURL, structure2DURL,
-				structure3DURL);
+		DBCompound newCompound = new DBCompound(
+				// OnlineDatabase.METLIN,
+				null, ID, compoundName, compoundFormula, entryURL,
+				structure2DURL, structure3DURL);
 
 		return newCompound;
 
