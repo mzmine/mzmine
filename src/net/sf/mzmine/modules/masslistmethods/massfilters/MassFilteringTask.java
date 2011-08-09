@@ -108,8 +108,24 @@ public class MassFilteringTask extends AbstractTask {
 		scanNumbers = dataFile.getScanNumbers();
 		totalScans = scanNumbers.length;
 
-		// Create new peak list
+		// Check if we have at least one scan with a mass list of given name
+		boolean haveMassList = false;
+		for (int i = 0; i < totalScans; i++) {
+			Scan scan = dataFile.getScan(scanNumbers[i]);
+			MassList massList = scan.getMassList(massListName);
+			if (massList != null) {
+				haveMassList = true;
+				break;
+			}
+		}
+		if (!haveMassList) {
+			setStatus(TaskStatus.ERROR);
+			this.errorMessage = dataFile.getName()
+					+ " has no mass list called '" + massListName + "'";
+			return;
+		}
 
+		// Process all scans
 		for (int i = 0; i < totalScans; i++) {
 
 			if (isCanceled())
@@ -118,12 +134,10 @@ public class MassFilteringTask extends AbstractTask {
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 
 			MassList massList = scan.getMassList(massListName);
-			
-			if (massList == null) {
-				setStatus(TaskStatus.ERROR);
-				this.errorMessage = dataFile.getName()  + " scan #" + scanNumbers[i] + " does not have mass list called '" + massListName + "'";
-				return;
-			}
+
+			// Skip those scans which do not have a mass list of given name
+			if (massList == null)
+				continue;
 
 			DataPoint mzPeaks[] = massList.getDataPoints();
 

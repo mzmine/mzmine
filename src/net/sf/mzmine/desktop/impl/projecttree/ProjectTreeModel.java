@@ -26,6 +26,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -89,6 +90,29 @@ public class ProjectTreeModel extends DefaultTreeModel {
 				Scan scan = dataFile.getScan(scanNumbers[i]);
 				MutableTreeNode scanNode = new DefaultMutableTreeNode(scan);
 				insertNodeInto(scanNode, newDataFileNode, i);
+
+				MassList massLists[] = scan.getMassLists();
+				for (MassList massList : massLists)
+					addObject(massList);
+			}
+			return;
+		}
+
+		if (object instanceof MassList) {
+			Scan scan = ((MassList) object).getScan();
+			ProjectTreeNode root = dataFilesNode;
+			Enumeration nodes = root.breadthFirstEnumeration();
+			while (nodes.hasMoreElements()) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+						.nextElement();
+
+				if (node.getUserObject() == scan) {
+					DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+							object);
+					int index = node.getChildCount();
+					insertNodeInto(newNode, node, index);
+					break;
+				}
 			}
 			return;
 		}

@@ -23,11 +23,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
-
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
@@ -329,19 +327,11 @@ public class StorableScan implements Scan {
 		// Add the mass list to the tree model
 		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
 				.getCurrentProject();
-		ProjectTreeModel treeModel = project.getTreeModel();
-		DefaultMutableTreeNode root = treeModel.getRoot();
-		Enumeration nodes = root.breadthFirstEnumeration();
-		while (nodes.hasMoreElements()) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-					.nextElement();
-			if (node.getUserObject() == this) {
-				DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-						massList);
-				int index = massLists.size() - 1;
-				treeModel.insertNodeInto(newNode, node, index);
-				break;
-			}
+
+		// Check if we are adding to the current project
+		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
+			ProjectTreeModel treeModel = project.getTreeModel();
+			treeModel.addObject(massList);
 		}
 
 	}
@@ -349,22 +339,17 @@ public class StorableScan implements Scan {
 	@Override
 	public synchronized void removeMassList(MassList massList) {
 
+		// Remove the mass list
 		massLists.remove(massList);
 
 		// Add the mass list to the tree model
 		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
 				.getCurrentProject();
-		ProjectTreeModel treeModel = project.getTreeModel();
 
-		DefaultMutableTreeNode root = treeModel.getRoot();
-		Enumeration nodes = root.breadthFirstEnumeration();
-		while (nodes.hasMoreElements()) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-					.nextElement();
-			if (node.getUserObject() == massList) {
-				treeModel.removeNodeFromParent(node);
-				break;
-			}
+		// Check if we are adding to the current project
+		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
+			ProjectTreeModel treeModel = project.getTreeModel();
+			treeModel.removeObject(massList);
 		}
 
 	}
