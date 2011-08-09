@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMassList;
@@ -113,7 +113,7 @@ public class MassDetectionTask extends AbstractTask {
 
 			if (scanMSLevel == msLevel) {
 
-				MzPeak mzPeaks[] = massDetector.getMassValues(scan,
+				DataPoint mzPeaks[] = massDetector.getMassValues(scan,
 						massDetector.getParameterSet());
 
 				SimpleMassList newMassList = new SimpleMassList(name, scan,

@@ -6,12 +6,10 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -38,13 +36,14 @@ public class ExtendedPeak implements ChromatographicPeak {
 	// Keep track of last added data point
 	private DataPoint lastMzPeak;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
 	private int charge = 0;
-	
-	//Array of scan numbers
+
+	// Array of scan numbers
 	private int[] scanNumbers;
-	
+
 	/**
 	 * Initializes this ExtendedPeak
 	 */
@@ -54,11 +53,11 @@ public class ExtendedPeak implements ChromatographicPeak {
 	}
 
 	/**
-	 * This method adds a MzPeak to this ExtendedPeak. 
+	 * This method adds a MzPeak to this ExtendedPeak.
 	 * 
 	 * @param mzValue
 	 */
-	public void addMzPeak(int scanNumber, MzPeak mzValue) {
+	public void addMzPeak(int scanNumber, DataPoint mzValue) {
 		dataPointsMap.put(scanNumber, mzValue);
 	}
 
@@ -101,8 +100,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 	public int getMostIntenseFragmentScanNumber() {
 		return fragmentScan;
 	}
-	
-	
+
 	/**
 	 * Overwrite the scan number of fragment scan
 	 * 
@@ -143,7 +141,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 	public RawDataFile getDataFile() {
 		return dataFile;
 	}
-	
+
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
@@ -159,7 +157,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 		Arrays.sort(allScanNumbers);
 
 		scanNumbers = allScanNumbers;
-		
+
 		// Calculate median m/z
 		double allMzValues[] = new double[allScanNumbers.length];
 		for (int i = 0; i < allScanNumbers.length; i++) {
@@ -171,10 +169,11 @@ public class ExtendedPeak implements ChromatographicPeak {
 		height = Double.MIN_VALUE;
 		for (int i = 0; i < allScanNumbers.length; i++) {
 
-			MzPeak mzPeak = (SimpleMzPeak) dataPointsMap.get(allScanNumbers[i]);
+			DataPoint mzPeak = dataPointsMap.get(allScanNumbers[i]);
 
 			// Replace the MzPeak instance with an instance of SimpleDataPoint,
-			// to reduce the memory usage. After we finish this extended peak, we
+			// to reduce the memory usage. After we finish this extended peak,
+			// we
 			// don't need the additional data provided by the MzPeak
 			SimpleDataPoint newDataPoint = new SimpleDataPoint(mzPeak);
 			dataPointsMap.put(allScanNumbers[i], newDataPoint);
@@ -182,10 +181,9 @@ public class ExtendedPeak implements ChromatographicPeak {
 			if (i == 0) {
 				rawDataPointsIntensityRange = new Range(mzPeak.getIntensity());
 				rawDataPointsMZRange = new Range(mzPeak.getMZ());
-			}
-			for (DataPoint dp : mzPeak.getRawDataPoints()) {
-				rawDataPointsIntensityRange.extendRange(dp.getIntensity());
-				rawDataPointsMZRange.extendRange(dp.getMZ());
+			} else {
+				rawDataPointsIntensityRange.extendRange(mzPeak.getIntensity());
+				rawDataPointsMZRange.extendRange(mzPeak.getMZ());
 			}
 
 			if (height < mzPeak.getIntensity()) {
@@ -211,9 +209,9 @@ public class ExtendedPeak implements ChromatographicPeak {
 		}
 
 		// Update fragment scan
-		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, dataFile
-				.getDataRTRange(1), rawDataPointsMZRange);
-		
+		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
+				dataFile.getDataRTRange(1), rawDataPointsMZRange);
+
 		if (fragmentScan > 0) {
 			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
 			int precursorCharge = fragmentScanObject.getPrecursorCharge();
@@ -230,6 +228,5 @@ public class ExtendedPeak implements ChromatographicPeak {
 	public void setCharge(int charge) {
 		this.charge = charge;
 	}
-
 
 }

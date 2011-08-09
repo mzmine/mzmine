@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimplePeakList;
@@ -133,7 +133,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 				return;
 			}
 
-			MzPeak[] mzValues = massList.getMzPeaks();
+			DataPoint mzValues[] = massList.getMzPeaks();
 
 			if (mzValues == null) {
 				setStatus(TaskStatus.ERROR);

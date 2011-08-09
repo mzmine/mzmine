@@ -56,12 +56,11 @@ public class MascotParameters extends SimpleParameterSet {
 
 	private String serverName = "127.0.0.1";
 
-	@SuppressWarnings("unchecked")
 	public MascotParameters(String serverName) throws MalformedURLException,
 			IOException {
-		
+
 		super(new Parameter[0]);
-		
+
 		para.add(peakLists);
 
 		URL url = new URL(getSearchMaskUrlString());
@@ -171,33 +170,23 @@ public class MascotParameters extends SimpleParameterSet {
 
 	public synchronized String getSubmissionString(File file, int charge) {
 
-		/*for (Parameter p : para) {
-			Object value = p.getValue();
-
-			if (value.getClass().isArray()) {
-				Object[] vals = (Object[]) value;
-				StringBuffer buffer = new StringBuffer();
-				int leng = (vals.length > 9) ? 9 : vals.length;
-				for (int j = 0; j < leng; j++) {
-					buffer.append(vals[j].toString());
-					if (j < leng - 1) {
-						buffer.append(",");
-					}
-				}
-				iForm.getInputByName(p.getDescription()).setValue(
-						buffer.toString());
-			} else {
-				iForm.getInputByName(p.getDescription()).setValue(
-						value.toString());
-			}
-		}
-		iForm.getInputByName("FILE").setValue(file.getAbsolutePath());
-		if (charge != 0) {
-			iForm.getInputByName("CHARGE").setValue(Integer.toString(charge));
-		}
-
-		return iForm.getSubmissionString();
-		*/
+		/*
+		 * for (Parameter p : para) { Object value = p.getValue();
+		 * 
+		 * if (value.getClass().isArray()) { Object[] vals = (Object[]) value;
+		 * StringBuffer buffer = new StringBuffer(); int leng = (vals.length >
+		 * 9) ? 9 : vals.length; for (int j = 0; j < leng; j++) {
+		 * buffer.append(vals[j].toString()); if (j < leng - 1) {
+		 * buffer.append(","); } }
+		 * iForm.getInputByName(p.getDescription()).setValue(
+		 * buffer.toString()); } else {
+		 * iForm.getInputByName(p.getDescription()).setValue( value.toString());
+		 * } } iForm.getInputByName("FILE").setValue(file.getAbsolutePath()); if
+		 * (charge != 0) {
+		 * iForm.getInputByName("CHARGE").setValue(Integer.toString(charge)); }
+		 * 
+		 * return iForm.getSubmissionString();
+		 */
 		return null;
 	}
 
@@ -210,7 +199,8 @@ public class MascotParameters extends SimpleParameterSet {
 	@Override
 	public <T extends Parameter> T getParameter(T parameter) {
 		for (Parameter p : para) {
-			if (p.getName().equals(parameter.getName())) return (T) p;
+			if (p.getName().equals(parameter.getName()))
+				return (T) p;
 		}
 		return null;
 	}

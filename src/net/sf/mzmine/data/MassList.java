@@ -29,8 +29,8 @@ public interface MassList {
 
 	public Scan getScan();
 
-	public MzPeak[] getMzPeaks();
+	public DataPoint[] getMzPeaks();
 
-	public void setMzPeaks(MzPeak mzPeaks[]);
+	public void setMzPeaks(DataPoint mzPeaks[]);
 
 }

@@ -25,7 +25,6 @@ import java.util.Vector;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
@@ -45,7 +44,7 @@ public class WaveletMassDetector implements MassDetector {
 	// Parameter value
 	private int scaleLevel;
 	private double waveletWindow, noiseLevel;
-	private TreeSet<SimpleMzPeak> mzPeaks;
+	private TreeSet<DataPoint> mzPeaks;
 
 	/**
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -59,7 +58,7 @@ public class WaveletMassDetector implements MassDetector {
 		moduleParameters = new WaveletMassDetectorParameters();
 	}
 
-	public SimpleMzPeak[] getMassValues(Scan scan, ParameterSet parameters) {
+	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 		noiseLevel = parameters.getParameter(
 				WaveletMassDetectorParameters.noiseLevel).getDouble();
 		scaleLevel = parameters.getParameter(
@@ -68,14 +67,14 @@ public class WaveletMassDetector implements MassDetector {
 				WaveletMassDetectorParameters.waveletWindow).getDouble();
 
 		DataPoint[] originalDataPoints = scan.getDataPoints();
-		mzPeaks = new TreeSet<SimpleMzPeak>(new DataPointSorter(SortingProperty.MZ,
+		mzPeaks = new TreeSet<DataPoint>(new DataPointSorter(SortingProperty.MZ,
 				SortingDirection.Ascending));
 
 		DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
 
 		getMzPeaks(originalDataPoints, waveletDataPoints);
 
-		return mzPeaks.toArray(new SimpleMzPeak[0]);
+		return mzPeaks.toArray(new DataPoint[0]);
 	}
 
 	/**
@@ -199,8 +198,7 @@ public class WaveletMassDetector implements MassDetector {
 						originalDataPoints[peakMaxInd].getMZ(),
 						calcAproxIntensity(rawDataPoints));
 
-				mzPeaks.add(new SimpleMzPeak(peakDataPoint, rawDataPoints
-						.toArray(new DataPoint[0])));
+				mzPeaks.add(peakDataPoint);
 
 			}
 			rawDataPoints.clear();

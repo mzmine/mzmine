@@ -20,11 +20,9 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima;
 
 import java.util.ArrayList;
-import java.util.Vector;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -40,18 +38,17 @@ public class LocalMaxMassDetector implements MassDetector {
 		moduleParameters = new LocalMaxMassDetectorParameters();
 	}
 
-	public SimpleMzPeak[] getMassValues(Scan scan, ParameterSet parameters) {
+	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
 				LocalMaxMassDetectorParameters.noiseLevel).getDouble();
 
 		// List of found mz peaks
-		ArrayList<SimpleMzPeak> mzPeaks = new ArrayList<SimpleMzPeak>();
+		ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
 
 		DataPoint dataPoints[] = scan.getDataPoints();
 
 		// All data points of current m/z peak
-		Vector<DataPoint> currentMzPeakDataPoints = new Vector<DataPoint>();
 
 		// Top data point of current m/z peak
 		DataPoint currentMzPeakTop = null;
@@ -71,9 +68,6 @@ public class LocalMaxMassDetector implements MassDetector {
 			if (currentIsZero)
 				continue;
 
-			// Add current (non-zero) data point to the current m/z peak
-			currentMzPeakDataPoints.add(dataPoints[i]);
-
 			// Check for local maximum
 			if (ascending && (!nextIsBigger)) {
 				currentMzPeakTop = dataPoints[i];
@@ -88,19 +82,16 @@ public class LocalMaxMassDetector implements MassDetector {
 
 				// Add the m/z peak if it is above the noise level
 				if (currentMzPeakTop.getIntensity() > noiseLevel) {
-					SimpleMzPeak newMzPeak = new SimpleMzPeak(currentMzPeakTop,
-							currentMzPeakDataPoints.toArray(new DataPoint[0]));
-					mzPeaks.add(newMzPeak);
+					mzPeaks.add(currentMzPeakTop);
 				}
 
 				// Reset and start with new peak
 				ascending = true;
-				currentMzPeakDataPoints.clear();
 
 			}
 
 		}
-		return mzPeaks.toArray(new SimpleMzPeak[0]);
+		return mzPeaks.toArray(new DataPoint[0]);
 	}
 
 	public String toString() {

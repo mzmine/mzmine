@@ -25,7 +25,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.masslistmethods.massfilters.MassFilter;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -45,7 +45,8 @@ public class ShoulderPeaksFilter implements MassFilter {
 		moduleParameters = new ShoulderPeaksFilterParameters();
 	}
 
-	public MzPeak[] filterMassValues(MzPeak[] mzPeaks, ParameterSet parameters) {
+	public DataPoint[] filterMassValues(DataPoint[] mzPeaks,
+			ParameterSet parameters) {
 
 		int resolution = parameters.getParameter(
 				ShoulderPeaksFilterParameters.resolution).getInt();
@@ -68,12 +69,13 @@ public class ShoulderPeaksFilter implements MassFilter {
 			return mzPeaks;
 
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
-		TreeSet<MzPeak> finalMZPeaks = new TreeSet<MzPeak>(new DataPointSorter(
-				SortingProperty.MZ, SortingDirection.Ascending));
+		TreeSet<DataPoint> finalMZPeaks = new TreeSet<DataPoint>(
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		// Create a tree set of candidate mzPeaks sorted by intensity in
 		// descending order.
-		TreeSet<MzPeak> candidatePeaks = new TreeSet<MzPeak>(
+		TreeSet<DataPoint> candidatePeaks = new TreeSet<DataPoint>(
 				new DataPointSorter(SortingProperty.Intensity,
 						SortingDirection.Descending));
 		candidatePeaks.addAll(Arrays.asList(mzPeaks));
@@ -81,7 +83,7 @@ public class ShoulderPeaksFilter implements MassFilter {
 		while (candidatePeaks.size() > 0) {
 
 			// Always take the biggest (intensity) peak
-			MzPeak currentCandidate = candidatePeaks.first();
+			DataPoint currentCandidate = candidatePeaks.first();
 
 			// Add this candidate to the final tree set sorted by MZ and remove
 			// from tree set sorted by intensity
@@ -95,7 +97,7 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 		}
 
-		return finalMZPeaks.toArray(new MzPeak[0]);
+		return finalMZPeaks.toArray(new DataPoint[0]);
 	}
 
 	public String toString() {
@@ -114,8 +116,8 @@ public class ShoulderPeaksFilter implements MassFilter {
 	 * that are under the curve of the modeled peak.
 	 * 
 	 */
-	private void removeLateralPeaks(MzPeak currentCandidate,
-			TreeSet<MzPeak> candidates, PeakModel peakModel, int resolution) {
+	private void removeLateralPeaks(DataPoint currentCandidate,
+			TreeSet<DataPoint> candidates, PeakModel peakModel, int resolution) {
 
 		// We set our peak model with same position(m/z), height(intensity) and
 		// resolution of the current peak
@@ -124,10 +126,10 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 		// We search over all peak candidates and remove all of them that are
 		// under the curve defined by our peak model
-		Iterator<MzPeak> candidatesIterator = candidates.iterator();
+		Iterator<DataPoint> candidatesIterator = candidates.iterator();
 		while (candidatesIterator.hasNext()) {
 
-			MzPeak lateralCandidate = candidatesIterator.next();
+			DataPoint lateralCandidate = candidatesIterator.next();
 
 			// Condition in x domain (m/z)
 			if ((lateralCandidate.getIntensity() < peakModel

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.masslistmethods.massfilters;
 
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -31,6 +31,6 @@ public interface MassFilter extends MZmineModule {
 	/**
 	 * Performs filtering of detected mass values
 	 */
-	public MzPeak[] filterMassValues(MzPeak mzPeaks[], ParameterSet parameters);
+	public DataPoint[] filterMassValues(DataPoint mzPeaks[], ParameterSet parameters);
 
 }

@@ -32,7 +32,6 @@ import java.net.URLConnection;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -113,7 +112,7 @@ public class MascotSearchTask extends AbstractTask {
 		if (!scan.isCentroided()) {
 			LocalMaxMassDetector detector = new LocalMaxMassDetector();
 			ParameterSet params = detector.getParameterSet();
-			MzPeak[] peaks = detector.getMassValues(scan, params);
+			DataPoint[] peaks = detector.getMassValues(scan, params);
 			for (int i = 0; i < peaks.length; i++) {
 				writer.println(peaks[i].getMZ() + "\t"
 						+ peaks[i].getIntensity());

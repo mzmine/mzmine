@@ -26,12 +26,9 @@ import java.util.Vector;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.PeakStatus;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleMzPeak;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -90,7 +87,7 @@ public class Chromatogram implements ChromatographicPeak {
 	 * 
 	 * @param mzValue
 	 */
-	public void addMzPeak(int scanNumber, MzPeak mzValue) {
+	public void addMzPeak(int scanNumber, DataPoint mzValue) {
 		dataPointsMap.put(scanNumber, mzValue);
 		lastMzPeak = mzValue;
 		buildingSegment.add(scanNumber);
@@ -193,21 +190,20 @@ public class Chromatogram implements ChromatographicPeak {
 		height = Double.MIN_VALUE;
 		for (int i = 0; i < allScanNumbers.length; i++) {
 
-			SimpleMzPeak mzPeak = (SimpleMzPeak) dataPointsMap.get(allScanNumbers[i]);
+			DataPoint mzPeak = dataPointsMap.get(allScanNumbers[i]);
 
 			// Replace the MzPeak instance with an instance of SimpleDataPoint,
 			// to reduce the memory usage. After we finish this Chromatogram, we
 			// don't need the additional data provided by the MzPeak
-			SimpleDataPoint newDataPoint = new SimpleDataPoint(mzPeak);
-			dataPointsMap.put(allScanNumbers[i], newDataPoint);
+
+			dataPointsMap.put(allScanNumbers[i], mzPeak);
 
 			if (i == 0) {
 				rawDataPointsIntensityRange = new Range(mzPeak.getIntensity());
 				rawDataPointsMZRange = new Range(mzPeak.getMZ());
-			}
-			for (DataPoint dp : mzPeak.getRawDataPoints()) {
-				rawDataPointsIntensityRange.extendRange(dp.getIntensity());
-				rawDataPointsMZRange.extendRange(dp.getMZ());
+			} else {
+				rawDataPointsIntensityRange.extendRange(mzPeak.getIntensity());
+				rawDataPointsMZRange.extendRange(mzPeak.getMZ());
 			}
 
 			if (height < mzPeak.getIntensity()) {
@@ -233,8 +229,8 @@ public class Chromatogram implements ChromatographicPeak {
 		}
 
 		// Update fragment scan
-		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, dataFile
-				.getDataRTRange(1), rawDataPointsMZRange);
+		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
+				dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
 		if (fragmentScan > 0) {
 			Scan fragmentScanObject = dataFile.getScan(fragmentScan);

@@ -17,18 +17,17 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass;
 
 import java.text.Format;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
  * This class represent an m/z peak within a spectrum
  */
-public class SimpleMzPeak implements MzPeak {
+public class ExactMzDataPoint implements DataPoint {
 
 	private double mz, intensity;
 	private DataPoint[] rawDataPoints;
@@ -39,7 +38,7 @@ public class SimpleMzPeak implements MzPeak {
 	 * 
 	 * @param dataPoint
 	 */
-	public SimpleMzPeak(DataPoint dataPoint) {
+	public ExactMzDataPoint(DataPoint dataPoint) {
 		this(dataPoint.getMZ(), dataPoint.getIntensity(),
 				new DataPoint[] { dataPoint });
 	}
@@ -52,7 +51,7 @@ public class SimpleMzPeak implements MzPeak {
 	 * @param dataPoint
 	 * @param rawDataPoints
 	 */
-	public SimpleMzPeak(DataPoint dp, DataPoint[] rawDataPoints) {
+	public ExactMzDataPoint(DataPoint dp, DataPoint[] rawDataPoints) {
 		this(dp.getMZ(), dp.getIntensity(), rawDataPoints);
 	}
 
@@ -63,7 +62,8 @@ public class SimpleMzPeak implements MzPeak {
 	 * @param dataPoint
 	 * @param rawDataPoints
 	 */
-	public SimpleMzPeak(double mz, double intensity, DataPoint[] rawDataPoints) {
+	public ExactMzDataPoint(double mz, double intensity,
+			DataPoint[] rawDataPoints) {
 		this.mz = mz;
 		this.intensity = intensity;
 		this.rawDataPoints = rawDataPoints;
@@ -97,18 +97,18 @@ public class SimpleMzPeak implements MzPeak {
 	public DataPoint[] getRawDataPoints() {
 		return rawDataPoints;
 	}
-	
+
 	public boolean equals(Object obj) {
 		if (!(obj instanceof DataPoint))
 			return false;
 		DataPoint dp = (DataPoint) obj;
 		return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
 	}
-	
+
 	public int hashCode() {
 		return (int) (this.mz + this.intensity);
 	}
-	
+
 	public String toString() {
 		Format mzFormat = MZmineCore.getMZFormat();
 		Format intensityFormat = MZmineCore.getIntensityFormat();

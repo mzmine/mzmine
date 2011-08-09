@@ -61,13 +61,12 @@ public class CollectionUtils {
 	/**
 	 * Change the type of array of Objects to an array of objects of type
 	 * newClass.
-	 * 	
- */
-	@SuppressWarnings("unchecked")
+	 * 
+	 */
 	public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
 		ArrayList<T> newArray = new ArrayList<T>();
-		
+
 		for (int i = 0; i < array.length; i++) {
 			// Only add those objects that can be cast to the new class
 			if (newClass.isInstance(array[i])) {
@@ -76,7 +75,7 @@ public class CollectionUtils {
 		}
 
 		return newArray.toArray((T[]) Array.newInstance(newClass, 0));
-	}	 	
+	}
 
 	/**
 	 * Returns an array of doubles consisting of the elements of the specified

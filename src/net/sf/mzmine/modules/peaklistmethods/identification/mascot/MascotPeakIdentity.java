@@ -37,7 +37,7 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 	public static final String PROPERTY_MODIFICATIONS = "Modifications";
 
 	private PeptideHit peptide;
-	
+
 	public MascotPeakIdentity() {
 		super();
 	}
@@ -45,10 +45,9 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 	/**
 	 * This class implements PeakIdentity and wrap the information of the
 	 * peptide assigned to the chromatographic peak.
-	 *
+	 * 
 	 * @param peptide
 	 */
-	@SuppressWarnings("unchecked")
 	public MascotPeakIdentity(PeptideHit peptide) {
 
 		this.peptide = peptide;
@@ -68,8 +67,8 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 		HashMap<Integer, String> varMods = new HashMap<Integer, String>();
 		for (int i = 0; i < mods.length; i++) {
 			if (mods[i] != null) {
-				String modString = mods[i].getType() + " (" + mods[i].getLocation()
-					+ ")";
+				String modString = mods[i].getType() + " ("
+						+ mods[i].getLocation() + ")";
 				varMods.put(mods[i].getModificationID(), modString);
 			}
 		}
@@ -88,8 +87,8 @@ public class MascotPeakIdentity extends SimplePeakIdentity {
 		setPropertyValue(PROPERTY_MASS, String.valueOf(peptide.getPeptideMr()));
 		setPropertyValue(PROPERTY_DELTA, String.valueOf(peptide.getDeltaMass()));
 		setPropertyValue(PROPERTY_SCORE, String.valueOf(peptide.getIonsScore()));
-		setPropertyValue(PROPERTY_MISSES, String.valueOf(peptide
-				.getMissedCleavages()));
+		setPropertyValue(PROPERTY_MISSES,
+				String.valueOf(peptide.getMissedCleavages()));
 		setPropertyValue(PROPERTY_MODIFICATIONS, modSeqString);
 
 	}

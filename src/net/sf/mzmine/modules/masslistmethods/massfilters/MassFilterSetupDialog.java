@@ -23,13 +23,13 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Vector;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.modules.visualization.spectra.datasets.MzPeaksDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
@@ -79,17 +79,17 @@ public class MassFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
 		ScanDataSet scanDataSet = new ScanDataSet(previewScan);
 
-		MzPeak mzValues[] = massList.getMzPeaks();
-		MzPeak remainingMzValues[] = massFilter.filterMassValues(mzValues, parameters);
+		DataPoint mzValues[] = massList.getMzPeaks();
+		DataPoint remainingMzValues[] = massFilter.filterMassValues(mzValues, parameters);
 
-		Vector<MzPeak> removedPeaks = new Vector<MzPeak>();
+		Vector<DataPoint> removedPeaks = new Vector<DataPoint>();
 		removedPeaks.addAll(Arrays.asList(mzValues));
 		removedPeaks.removeAll(Arrays.asList(remainingMzValues));
-		MzPeak removedMzValues[] = removedPeaks.toArray(new MzPeak[0]);
+		DataPoint removedMzValues[] = removedPeaks.toArray(new DataPoint[0]);
 
-		MzPeaksDataSet removedPeaksDataSet = new MzPeaksDataSet(
+		DataPointsDataSet removedPeaksDataSet = new DataPointsDataSet(
 				"Removed peaks", removedMzValues);
-		MzPeaksDataSet remainingPeaksDataSet = new MzPeaksDataSet(
+		DataPointsDataSet remainingPeaksDataSet = new DataPointsDataSet(
 				"Remaining peaks", remainingMzValues);
 
 		spectrumPlot.removeAllDataSets();

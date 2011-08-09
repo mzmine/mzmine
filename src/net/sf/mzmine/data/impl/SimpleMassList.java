@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.data.impl;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.Scan;
 
 /**
@@ -30,9 +30,9 @@ public class SimpleMassList implements MassList {
 
 	private String name;
 	private Scan scan;
-	private MzPeak mzPeaks[];
+	private DataPoint mzPeaks[];
 
-	public SimpleMassList(String name, Scan scan, MzPeak mzPeaks[]) {
+	public SimpleMassList(String name, Scan scan, DataPoint mzPeaks[]) {
 		this.name = name;
 		this.scan = scan;
 		this.mzPeaks = mzPeaks;
@@ -49,12 +49,12 @@ public class SimpleMassList implements MassList {
 	}
 
 	@Override
-	public MzPeak[] getMzPeaks() {
+	public DataPoint[] getMzPeaks() {
 		return mzPeaks;
 	}
 
 	@Override
-	public void setMzPeaks(MzPeak[] mzPeaks) {
+	public void setMzPeaks(DataPoint mzPeaks[]) {
 		this.mzPeaks = mzPeaks;
 	}
 

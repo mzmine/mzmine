@@ -198,7 +198,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		peaksInfoList.setDefaultRenderer(Object.class,
 				new PeakSummaryTableCellRenderer());
 
-		int countLines = 0, colorIndex = 0;
+		int colorIndex = 0;
 		Color peakColor;
 
 		for (ChromatographicPeak peak : peaks) {
@@ -206,7 +206,6 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			if (peak != null) {
 				peakColor = CombinedXICComponent.plotColors[colorIndex];
 				listElementModel.addElement(peak, peakColor);
-				countLines++;
 			}
 			colorIndex = (colorIndex + 1)
 					% CombinedXICComponent.plotColors.length;

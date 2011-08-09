@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -27,13 +27,13 @@ import org.jfree.data.xy.IntervalXYDataset;
 /**
  * Data set for MzPeaks, used in peak detection preview
  */
-public class MzPeaksDataSet extends AbstractXYDataset implements
+public class DataPointsDataSet extends AbstractXYDataset implements
 		IntervalXYDataset {
 
-	private MzPeak mzPeaks[];
+	private DataPoint mzPeaks[];
 	private String label;
 
-	public MzPeaksDataSet(String label, MzPeak mzPeaks[]) {
+	public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
 		this.label = label;
 		this.mzPeaks = mzPeaks;
 	}

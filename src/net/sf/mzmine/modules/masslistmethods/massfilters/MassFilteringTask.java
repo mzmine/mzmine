@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.masslistmethods.massfilters;
 
 import java.util.logging.Logger;
 
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleMassList;
@@ -125,9 +125,9 @@ public class MassFilteringTask extends AbstractTask {
 				return;
 			}
 
-			MzPeak mzPeaks[] = massList.getMzPeaks();
+			DataPoint mzPeaks[] = massList.getMzPeaks();
 
-			MzPeak newMzPeaks[] = massFilter.filterMassValues(mzPeaks,
+			DataPoint newMzPeaks[] = massFilter.filterMassValues(mzPeaks,
 					massFilter.getParameterSet());
 
 			SimpleMassList newMassList = new SimpleMassList(massListName + " "

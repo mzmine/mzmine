@@ -108,7 +108,6 @@ public class MultiChoiceParameter<ValueType> implements
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public void setValueFromComponent(MultiChoiceComponent component) {
 		Object componentValue[] = component.getValue();
 		Class<ValueType> arrayType = (Class<ValueType>) this.choices.getClass()
@@ -124,7 +123,6 @@ public class MultiChoiceParameter<ValueType> implements
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public void loadValueFromXML(Element xmlElement) {
 		NodeList items = xmlElement.getElementsByTagName("item");
 		ArrayList<ValueType> newValues = new ArrayList<ValueType>();

@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.MzPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -56,7 +55,8 @@ public class HighestDataPointConnector {
 
 	}
 
-	public void addScan(RawDataFile dataFile, int scanNumber, MzPeak[] mzValues) {
+	public void addScan(RawDataFile dataFile, int scanNumber,
+			DataPoint mzValues[]) {
 
 		// Sort m/z peaks by descending intensity
 		Arrays.sort(mzValues, new DataPointSorter(SortingProperty.Intensity,
@@ -66,7 +66,7 @@ public class HighestDataPointConnector {
 		connectedChromatograms = new HashSet<Chromatogram>();
 
 		// TODO: these two nested cycles should be optimized for speed
-		for (MzPeak mzPeak : mzValues) {
+		for (DataPoint mzPeak : mzValues) {
 
 			// Search for best chromatogram, which has highest last data point
 			Chromatogram bestChromatogram = null;

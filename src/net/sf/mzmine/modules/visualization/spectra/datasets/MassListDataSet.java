@@ -24,7 +24,7 @@ import net.sf.mzmine.data.MassList;
 /**
  * Data set for MassList
  */
-public class MassListDataSet extends MzPeaksDataSet {
+public class MassListDataSet extends DataPointsDataSet {
 
 	public MassListDataSet(MassList massList) {
 		super("Mass list " + massList.getName(), massList.getMzPeaks());

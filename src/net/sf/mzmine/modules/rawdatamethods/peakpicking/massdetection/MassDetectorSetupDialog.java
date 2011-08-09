@@ -21,12 +21,12 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.MzPeak;
+import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
-import net.sf.mzmine.modules.visualization.spectra.datasets.MzPeaksDataSet;
+import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
@@ -82,9 +82,9 @@ public class MassDetectorSetupDialog extends
 		if (!paramsOK)
 			return;
 
-		MzPeak[] mzValues = massDetector.getMassValues(previewScan, parameters);
+		DataPoint[] mzValues = massDetector.getMassValues(previewScan, parameters);
 
-		MzPeaksDataSet peaksDataSet = new MzPeaksDataSet("Detected peaks",
+		DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks",
 				mzValues);
 
 		spectrumPlot.addDataSet(peaksDataSet,
