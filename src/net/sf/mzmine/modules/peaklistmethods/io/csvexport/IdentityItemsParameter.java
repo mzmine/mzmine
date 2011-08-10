@@ -84,4 +84,12 @@ public class IdentityItemsParameter extends MultiChoiceParameter<String> {
 		return super.createEditingComponent();
 	}
 
+	@Override
+	public IdentityItemsParameter clone() {
+		IdentityItemsParameter copy = new IdentityItemsParameter();
+		copy.setChoices(this.getChoices());
+		copy.setValue(this.getValue());
+		return copy;
+	}
+
 }
