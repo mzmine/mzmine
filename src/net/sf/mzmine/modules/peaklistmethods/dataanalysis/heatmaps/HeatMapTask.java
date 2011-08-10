@@ -71,9 +71,9 @@ public class HeatMapTask extends AbstractTask {
 
                 if (parameterName != null) {
                         if (plegend) {
-                                newPeakList = this.GroupingDataset(peakList, parameterName, referenceGroup);
+                                newPeakList = groupingDataset(peakList, parameterName, referenceGroup);
                         } else {
-                                newPeakList = this.modifySimpleDataset(peakList, parameterName, referenceGroup);
+                                newPeakList = modifySimpleDataset(peakList, parameterName, referenceGroup);
                         }
 
                         if (newPeakList.length == 0 || newPeakList[0].length == 0) {
@@ -118,6 +118,7 @@ public class HeatMapTask extends AbstractTask {
                                 }
 
                                 try {
+
                                         if (outputFile.equals("png")) {
                                                 if ((height / columnMargin) < 5) {
                                                         errorMessage = "Figure margins too large.";
@@ -126,7 +127,10 @@ public class HeatMapTask extends AbstractTask {
                                         }
 
                                         rEngine.eval("dataset<- matrix(\"\",nrow =" + newPeakList[0].length + ",ncol=" + newPeakList.length + ")");
-                                        rEngine.eval("stars<- matrix(\"\",nrow =" + newPeakList[0].length + ",ncol=" + newPeakList.length + ")");
+
+                                        if (plegend) {
+                                                rEngine.eval("stars<- matrix(\"\",nrow =" + newPeakList[0].length + ",ncol=" + newPeakList.length + ")");
+                                        }
 
                                         // assing the values to the matrix
                                         for (int row = 0; row < newPeakList[0].length; row++) {
@@ -165,6 +169,7 @@ public class HeatMapTask extends AbstractTask {
                                         long columns = rEngine.rniPutStringArray(colNames);
                                         rEngine.rniAssign("colNames", columns, 0);
                                         rEngine.eval("colnames(dataset)<-colNames");
+
                                         this.finishedPercentage = 0.3f;
 
                                         // Remove the rows with too many NA's. The distances between rows can't be calculated if the rows don't have
@@ -172,11 +177,13 @@ public class HeatMapTask extends AbstractTask {
                                         rEngine.eval(" d <- as.matrix(dist(dataset))");
                                         rEngine.eval("d[upper.tri(d)] <- 0");
                                         rEngine.eval("dataset <- dataset[-na.action(na.omit(d)),]");
+
                                         this.finishedPercentage = 0.7f;
 
                                         String marginParameter = "margins = c(" + columnMargin + "," + rowMargin + ")";
                                         rEngine.eval("br<-c(seq(from=min(dataset,na.rm=T),to=0,length.out=256),seq(from=0,to=max(dataset,na.rm=T),length.out=256))", false);
 
+                                        // Possible output file types
                                         if (outputType.contains("pdf")) {
 
                                                 rEngine.eval("pdf(\"" + outputFile + "\", height=" + height + ", width=" + width + ")");
@@ -196,6 +203,7 @@ public class HeatMapTask extends AbstractTask {
 
                                                 rEngine.eval("png(\"" + outputFile + "\", height=" + height + ", width=" + width + ")");
                                         }
+
                                         if (plegend) {
 
                                                 rEngine.eval("heatmap.2(dataset," + marginParameter + ", trace=\"none\", col=bluered(length(br)-1), breaks=br, cellnote=stars, notecol=\"black\", notecex=" + starSize + ", na.color=\"grey\")", false);
@@ -206,6 +214,7 @@ public class HeatMapTask extends AbstractTask {
 
                                         rEngine.eval("dev.off()", false);
                                         this.finishedPercentage = 1.0f;
+                                        
                                 } catch (Throwable t) {
 
                                         throw new IllegalStateException("R error during the heat map creation", t);
@@ -285,7 +294,7 @@ public class HeatMapTask extends AbstractTask {
                 }
 
 
-                // data files that should be in the heat map
+                // Data files that should be in the heat map
                 List<RawDataFile> shownDataFiles = null;
                 if (rcontrol) {
                         shownDataFiles = allDataFiles;
@@ -393,7 +402,7 @@ public class HeatMapTask extends AbstractTask {
                 }
         }
 
-        private double[][] GroupingDataset(PeakList peakList, ParameterType parameterName, String referenceGroup) {
+        private double[][] groupingDataset(PeakList peakList, ParameterType parameterName, String referenceGroup) {
                 // Collect all data files
                 Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
                 DescriptiveStatistics meanControlStats = new DescriptiveStatistics();
