@@ -83,6 +83,11 @@ public class StringParameter implements UserParameter<String, JTextField> {
 		return copy;
 	}
 
+    @Override
+    public String toString() {
+        return name;
+    }
+    
 	@Override
 	public void setValueFromComponent(JTextField component) {
 		value = component.getText();

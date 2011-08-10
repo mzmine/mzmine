@@ -193,8 +193,8 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	 * @param dataFile
 	 * @param value
 	 */
-	protected void setParameterValue(UserParameter parameter, String dataFileName,
-			Object value) {
+	protected void setParameterValue(UserParameter parameter,
+			String dataFileName, Object value) {
 		// Find index for data file
 		int dataFileIndex = 0;
 		while (dataFileIndex < dataFiles.length) {
@@ -216,35 +216,28 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	private boolean validateParameterValues() {
 		// Create new parameters and set values
 		for (int columnIndex = 0; columnIndex < parameterValues.keySet().size(); columnIndex++) {
-			/*UserParameter parameter = tablemodelParameterValues
+			UserParameter parameter = tablemodelParameterValues
 					.getParameter(columnIndex + 1);
 
-			
-			 * TODO: if (parameter.getType() == ParameterType.DOUBLE) { Double
-			 * minValue = null; Double maxValue = null; if
-			 * (parameter.getMinimumValue() != null) minValue = (Double)
-			 * (parameter.getMinimumValue()); if (parameter.getMaximumValue() !=
-			 * null) maxValue = (Double) (parameter.getMaximumValue());
-			 * 
-			 * for (int dataFileIndex = 0; dataFileIndex < dataFiles.length;
-			 * dataFileIndex++) { Object objValue =
-			 * tablemodelParameterValues.getValueAt( dataFileIndex, columnIndex
-			 * + 1); Double value = null; if (objValue instanceof Double) value
-			 * = (Double) objValue; if (objValue instanceof String) { try {
-			 * value = Double.parseDouble((String) objValue); } catch
-			 * (NumberFormatException ex) { desktop
-			 * .displayErrorMessage("Incorrect value (" + (String) objValue +
-			 * ") for parameter " + parameter.getName() + " in data file " +
-			 * dataFiles[dataFileIndex] .toString() + "."); return false; } } if
-			 * ((minValue != null) && (minValue > value)) {
-			 * desktop.displayErrorMessage("Too small value (" + value +
-			 * ") for parameter " + parameter.getName() + " in data file " +
-			 * dataFiles[dataFileIndex].toString() + "."); return false; } if
-			 * ((maxValue != null) && (maxValue < value)) {
-			 * desktop.displayErrorMessage("Too big value (" + value +
-			 * ") for parameter " + parameter.getName() + " in data file " +
-			 * dataFiles[dataFileIndex].toString() + "."); return false; } } }
-			 */
+			if (parameter instanceof NumberParameter) {
+
+				for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
+					Object objValue = tablemodelParameterValues.getValueAt(
+							dataFileIndex, columnIndex + 1);
+					if (objValue instanceof String) {
+						try {
+							Double.parseDouble((String) objValue);
+						} catch (NumberFormatException ex) {
+							desktop.displayErrorMessage("Incorrect value ("
+									+ objValue + ") for parameter "
+									+ parameter.getName() + " in data file "
+									+ dataFiles[dataFileIndex].toString() + ".");
+							return false;
+						}
+					}
+				}
+			}
+
 		}
 
 		return true;

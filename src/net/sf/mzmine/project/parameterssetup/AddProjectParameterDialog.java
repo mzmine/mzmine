@@ -21,7 +21,6 @@ package net.sf.mzmine.project.parameterssetup;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -31,7 +30,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -56,24 +54,13 @@ public class AddProjectParameterDialog extends JDialog implements
 	private JPanel panelName;
 	private JLabel labelName;
 	private JTextField fieldName;
-	private JPanel panelFields;
 	private ButtonGroup buttongroupType;
 	private JRadioButton radiobuttonNumerical;
 	private JRadioButton radiobuttonFreeText;
 	private JRadioButton radiobuttonCategorical;
 	private JPanel panelNumericalAndFreeText;
 	private JPanel panelNumerical;
-	private JPanel panelNumericalFields;
-	private JLabel labelNumericalMinValue;
-	private JFormattedTextField fieldNumericalMinValue;
-	private JLabel labelNumericalDefaultValue;
-	private JFormattedTextField fieldNumericalDefaultValue;
-	private JLabel labelNumericalMaxValue;
-	private JFormattedTextField fieldNumericalMaxValue;
 	private JPanel panelFreeText;
-	private JPanel panelFreeTextFields;
-	private JLabel labelFreeTextDefaultValue;
-	private JTextField fieldFreeTextDefaultValue;
 	private JPanel panelCategorical;
 	private JPanel panelCategoricalFields;
 	private JScrollPane scrollCategories;
@@ -89,8 +76,7 @@ public class AddProjectParameterDialog extends JDialog implements
 
 	private DefaultListModel categories;
 
-	public AddProjectParameterDialog(
-			ProjectParametersSetupDialog mainDialog) {
+	public AddProjectParameterDialog(ProjectParametersSetupDialog mainDialog) {
 
 		super(mainDialog, true);
 
@@ -102,8 +88,6 @@ public class AddProjectParameterDialog extends JDialog implements
 		initComponents();
 
 		radiobuttonNumerical.setSelected(true);
-		switchNumericalFields(true);
-		switchFreeTextFields(false);
 		switchCategoricalFields(false);
 
 		pack();
@@ -137,54 +121,19 @@ public class AddProjectParameterDialog extends JDialog implements
 		buttongroupType.add(radiobuttonCategorical);
 
 		// Fields for different types of parameters
-		panelFields = new JPanel(new GridLayout(1, 2));
-
 		panelNumericalAndFreeText = new JPanel(new BorderLayout());
 
 		// Min, default and max for numerical
 		panelNumerical = new JPanel(new BorderLayout());
 
-		panelNumericalFields = new JPanel(new GridLayout(3, 2, 5, 2));
-		labelNumericalMinValue = new JLabel("Minimum value");
-		fieldNumericalMinValue = new JFormattedTextField(NumberFormat
-				.getNumberInstance());
-		labelNumericalDefaultValue = new JLabel("Default value");
-		fieldNumericalDefaultValue = new JFormattedTextField(NumberFormat
-				.getNumberInstance());
-		labelNumericalMaxValue = new JLabel("Maximum value");
-		fieldNumericalMaxValue = new JFormattedTextField(NumberFormat
-				.getNumberInstance());
-		panelNumericalFields.add(labelNumericalMinValue);
-		panelNumericalFields.add(fieldNumericalMinValue);
-		panelNumericalFields.add(labelNumericalDefaultValue);
-		panelNumericalFields.add(fieldNumericalDefaultValue);
-		panelNumericalFields.add(labelNumericalMaxValue);
-		panelNumericalFields.add(fieldNumericalMaxValue);
-		panelNumericalFields.setBorder(BorderFactory.createEmptyBorder(5, 5, 5,
-				5));
-
 		panelNumerical.add(radiobuttonNumerical, BorderLayout.NORTH);
-		panelNumerical.add(panelNumericalFields, BorderLayout.CENTER);
 		panelNumerical.setBorder(BorderFactory.createEtchedBorder());
 
 		panelFreeText = new JPanel(new BorderLayout());
 		panelFreeText.setPreferredSize(panelNumerical.getPreferredSize());
 		panelFreeText.setBorder(BorderFactory.createEtchedBorder());
 
-		panelFreeTextFields = new JPanel(new GridLayout(3, 2, 5, 2));
-		labelFreeTextDefaultValue = new JLabel("Default value");
-		fieldFreeTextDefaultValue = new JTextField();
-		panelFreeTextFields.add(labelFreeTextDefaultValue);
-		panelFreeTextFields.add(fieldFreeTextDefaultValue);
-		panelFreeTextFields.add(new JPanel());
-		panelFreeTextFields.add(new JPanel());
-		panelFreeTextFields.add(new JPanel());
-		panelFreeTextFields.add(new JPanel());
-		panelFreeTextFields.setBorder(BorderFactory.createEmptyBorder(5, 5, 5,
-				5));
-
 		panelFreeText.add(radiobuttonFreeText, BorderLayout.NORTH);
-		panelFreeText.add(panelFreeTextFields, BorderLayout.CENTER);
 
 		panelNumericalAndFreeText.add(panelNumerical, BorderLayout.NORTH);
 		panelNumericalAndFreeText.add(panelFreeText, BorderLayout.SOUTH);
@@ -212,11 +161,11 @@ public class AddProjectParameterDialog extends JDialog implements
 		panelCategorical.add(panelCategoricalFields, BorderLayout.CENTER);
 		panelCategorical.setBorder(BorderFactory.createEtchedBorder());
 
-		panelFields.add(panelNumericalAndFreeText);
-		panelFields.add(panelCategorical);
+		panelNumericalAndFreeText.add(panelCategorical, BorderLayout.CENTER);
 
 		panelParameterInformation.add(panelName, BorderLayout.NORTH);
-		panelParameterInformation.add(panelFields, BorderLayout.CENTER);
+		panelParameterInformation.add(panelNumericalAndFreeText,
+				BorderLayout.CENTER);
 
 		panelAddCancelButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		buttonAddParameter = new JButton("Add parameter");
@@ -237,24 +186,10 @@ public class AddProjectParameterDialog extends JDialog implements
 
 	}
 
-	private void switchNumericalFields(boolean enabled) {
-		labelNumericalMinValue.setEnabled(enabled);
-		fieldNumericalMinValue.setEnabled(enabled);
-		labelNumericalDefaultValue.setEnabled(enabled);
-		fieldNumericalDefaultValue.setEnabled(enabled);
-		labelNumericalMaxValue.setEnabled(enabled);
-		fieldNumericalMaxValue.setEnabled(enabled);
-	}
-
 	private void switchCategoricalFields(boolean enabled) {
 		listCategories.setEnabled(enabled);
 		buttonAddCategory.setEnabled(enabled);
 		buttonRemoveCategory.setEnabled(enabled);
-	}
-
-	private void switchFreeTextFields(boolean enabled) {
-		labelFreeTextDefaultValue.setEnabled(enabled);
-		fieldFreeTextDefaultValue.setEnabled(enabled);
 	}
 
 	public void actionPerformed(ActionEvent actionEvent) {
@@ -265,8 +200,7 @@ public class AddProjectParameterDialog extends JDialog implements
 
 		if (src == buttonAddParameter) {
 			if (fieldName.getText().length() == 0) {
-				desktop
-						.displayErrorMessage("Give a name for the parameter first.");
+				desktop.displayErrorMessage("Give a name for the parameter first.");
 				return;
 			}
 			String paramName = fieldName.getText();
@@ -275,29 +209,18 @@ public class AddProjectParameterDialog extends JDialog implements
 
 			if (radiobuttonNumerical.isSelected()) {
 
-				Double defaultValue = 0.0;
-				if (fieldNumericalDefaultValue.getValue() != null) {
-					defaultValue = ((Number) fieldNumericalDefaultValue
-							.getValue()).doubleValue();
-				}
-
 				parameter = new NumberParameter(paramName, null,
-						NumberFormat.getNumberInstance(), defaultValue);
+						NumberFormat.getNumberInstance());
 			}
 
 			if (radiobuttonFreeText.isSelected()) {
-				String defaultValue = "";
-				if (fieldFreeTextDefaultValue.getText() != null)
-					defaultValue = fieldFreeTextDefaultValue.getText();
-				parameter = new StringParameter(paramName, null,
-						defaultValue);
+				parameter = new StringParameter(paramName, null);
 			}
 
 			if (radiobuttonCategorical.isSelected()) {
 				String[] possibleValues = new String[categories.size()];
 				if (possibleValues.length == 0) {
-					desktop
-							.displayErrorMessage("Give at least a single parameter value.");
+					desktop.displayErrorMessage("Give at least a single parameter value.");
 					return;
 				}
 				for (int valueIndex = 0; valueIndex < categories.size(); valueIndex++)
@@ -318,20 +241,10 @@ public class AddProjectParameterDialog extends JDialog implements
 
 		if ((src == radiobuttonNumerical) || (src == radiobuttonCategorical)
 				|| (src == radiobuttonFreeText)) {
-			if (radiobuttonNumerical.isSelected()) {
-				switchNumericalFields(true);
-				switchCategoricalFields(false);
-				switchFreeTextFields(false);
-			}
-			if (radiobuttonFreeText.isSelected()) {
-				switchNumericalFields(false);
-				switchCategoricalFields(false);
-				switchFreeTextFields(true);
-			}
 			if (radiobuttonCategorical.isSelected()) {
-				switchNumericalFields(false);
 				switchCategoricalFields(true);
-				switchFreeTextFields(false);
+			} else {
+				switchCategoricalFields(false);
 			}
 		}
 

@@ -45,7 +45,7 @@ public class MZmineProjectImpl implements MZmineProject {
 	private Hashtable<UserParameter, Hashtable<RawDataFile, Object>> projectParametersAndValues;
 
 	private ProjectTreeModel treeModel;
-	
+
 	private File projectFile;
 
 	public MZmineProjectImpl() {
@@ -56,17 +56,20 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public void activateProject() {
-		
+
 		Runnable swingThreadCode = new Runnable() {
 			public void run() {
 				MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-				ProjectTree projectTree = mainWindow.getMainPanel().getProjectTree();
+				ProjectTree projectTree = mainWindow.getMainPanel()
+						.getProjectTree();
 				projectTree.setModel(treeModel);
-				
-				// Expand the rows Raw data files and Peak lists items by default
+
+				// Expand the rows Raw data files and Peak lists items by
+				// default
 				int childCount = treeModel.getChildCount(treeModel.getRoot());
 				for (int i = 0; i < childCount; i++) {
-					TreeNode node = (TreeNode) treeModel.getChild(treeModel.getRoot(), i);
+					TreeNode node = (TreeNode) treeModel.getChild(
+							treeModel.getRoot(), i);
 					TreeNode pathToRoot[] = treeModel.getPathToRoot(node);
 					TreePath path = new TreePath(pathToRoot);
 					projectTree.expandPath(path);
@@ -74,9 +77,9 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		};
 		SwingUtilities.invokeLater(swingThreadCode);
-		
+
 	}
-	
+
 	public void addParameter(UserParameter parameter) {
 		if (projectParametersAndValues.containsKey(parameter))
 			return;
@@ -95,25 +98,31 @@ public class MZmineProjectImpl implements MZmineProject {
 	}
 
 	public UserParameter[] getParameters() {
-		return projectParametersAndValues.keySet().toArray(new UserParameter[0]);
+		return projectParametersAndValues.keySet()
+				.toArray(new UserParameter[0]);
 	}
 
-	public void setParameterValue(UserParameter parameter, RawDataFile rawDataFile,
-			Object value) {
+	public void setParameterValue(UserParameter parameter,
+			RawDataFile rawDataFile, Object value) {
 		if (!(hasParameter(parameter)))
 			addParameter(parameter);
 		Hashtable<RawDataFile, Object> parameterValues = projectParametersAndValues
 				.get(parameter);
-		parameterValues.put(rawDataFile, value);
+		if (value == null)
+			parameterValues.remove(rawDataFile);
+		else
+			parameterValues.put(rawDataFile, value);
 	}
 
-	public Object getParameterValue(UserParameter parameter, RawDataFile rawDataFile) {
+	public Object getParameterValue(UserParameter parameter,
+			RawDataFile rawDataFile) {
 		if (!(hasParameter(parameter)))
 			return null;
 		Object value = projectParametersAndValues.get(parameter).get(
 				rawDataFile);
-		/*if (value == null)
-			return parameter.getDefaultValue();*/
+		/*
+		 * if (value == null) return parameter.getDefaultValue();
+		 */
 		return value;
 	}
 
@@ -154,7 +163,7 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		};
 		SwingUtilities.invokeLater(swingThreadCode);
-		
+
 	}
 
 	public void removePeakList(final PeakList peakList) {
@@ -199,7 +208,7 @@ public class MZmineProjectImpl implements MZmineProject {
 		}
 		return projectName;
 	}
-	
+
 	@Override
 	public void notifyObjectChanged(Object object, boolean structureChanged) {
 		treeModel.notifyObjectChanged(object, structureChanged);

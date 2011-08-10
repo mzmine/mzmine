@@ -44,6 +44,7 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpen
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.PeakListOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.RawDataFileOpenHandler_2_3;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.UserParameterOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -66,6 +67,7 @@ public class ProjectOpeningTask extends AbstractTask {
 
 	private RawDataFileOpenHandler rawDataFileOpenHandler;
 	private PeakListOpenHandler peakListOpenHandler;
+	private UserParameterOpenHandler userParameterOpenHandler;
 
 	private int currentStage;
 	private String currentLoadedObjectName;
@@ -102,6 +104,10 @@ public class ProjectOpeningTask extends AbstractTask {
 				return 0;
 			return peakListOpenHandler.getProgress();
 		case 4:
+			if (userParameterOpenHandler == null)
+				return 0;
+			return userParameterOpenHandler.getProgress();
+		case 5:
 			return 1;
 		default:
 			return 0;
@@ -145,8 +151,20 @@ public class ProjectOpeningTask extends AbstractTask {
 			// Stage 3 - load peak lists
 			currentStage++;
 			loadPeakLists(zipFile);
+			if (isCanceled()) {
+				zipFile.close();
+				return;
+			}
 
-			// Stage 4 - finish and close the project ZIP file
+			// Stage 4 - load user parameters
+			currentStage++;
+			loadUserParameters(zipFile);
+			if (isCanceled()) {
+				zipFile.close();
+				return;
+			}
+
+			// Stage 5 - finish and close the project ZIP file
 			currentStage++;
 			zipFile.close();
 
@@ -283,6 +301,8 @@ public class ProjectOpeningTask extends AbstractTask {
 		// Default opening handler
 		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
 		peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
+		userParameterOpenHandler = new UserParameterOpenHandler_2_3(newProject,
+				dataFilesIDMap);
 
 	}
 
@@ -389,6 +409,26 @@ public class ProjectOpeningTask extends AbstractTask {
 			}
 
 		}
+
+	}
+
+	private void loadUserParameters(ZipFile zipFile) throws IOException,
+			ParserConfigurationException, SAXException, InstantiationException,
+			IllegalAccessException {
+
+		// Older versions of MZmine had no parameter saving
+		if (userParameterOpenHandler == null)
+			return;
+
+		logger.info("Loading user parameters");
+
+		ZipEntry entry = zipFile.getEntry("User parameters.xml");
+
+		currentLoadedObjectName = "User parameters";
+
+		InputStream userParamStream = zipFile.getInputStream(entry);
+
+		userParameterOpenHandler.readUserParameters(userParamStream);
 
 	}
 

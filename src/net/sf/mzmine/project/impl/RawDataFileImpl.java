@@ -79,7 +79,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
 		// bug #4171239. We will try to remove the temporary files in a
-		// shutdown hook registered in MZmineClient class
+		// shutdown hook registered in MZmineCore class
 		scanFile.deleteOnExit();
 		scanDataFile = new RandomAccessFile(scanFile, "rw");
 

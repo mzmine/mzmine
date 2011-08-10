@@ -59,6 +59,7 @@ public class ProjectSavingTask extends AbstractTask {
 
 	private RawDataFileSaveHandler rawDataFileSaveHandler;
 	private PeakListSaveHandler peakListSaveHandler;
+	private UserParameterSaveHandler userParameterSaveHandler;
 
 	private int currentStage;
 	private String currentSavedObjectName;
@@ -95,6 +96,10 @@ public class ProjectSavingTask extends AbstractTask {
 				return 0;
 			return peakListSaveHandler.getProgress();
 		case 4:
+			if (userParameterSaveHandler == null)
+				return 0;
+			return userParameterSaveHandler.getProgress();
+		case 5:
 			return 1;
 		default:
 			return 0;
@@ -115,6 +120,9 @@ public class ProjectSavingTask extends AbstractTask {
 
 		if (peakListSaveHandler != null)
 			peakListSaveHandler.cancel();
+		
+		if (userParameterSaveHandler != null)
+			userParameterSaveHandler.cancel();
 
 	}
 
@@ -170,7 +178,16 @@ public class ProjectSavingTask extends AbstractTask {
 				return;
 			}
 
-			// Stage 4 - finish and close the temporary ZIP file
+			// Stage 4 - save user parameters
+			currentStage++;
+			saveUserParameters(zipStream);
+			if (isCanceled()) {
+				zipStream.close();
+				tempFile.delete();
+				return;
+			}
+
+			// Stage 5 - finish and close the temporary ZIP file
 			currentStage++;
 			currentSavedObjectName = null;
 			zipStream.close();
@@ -314,6 +331,30 @@ public class ProjectSavingTask extends AbstractTask {
 			currentSavedObjectName = peakLists[i].getName();
 			peakListSaveHandler.savePeakList(peakLists[i]);
 		}
+	}
+
+	/**
+	 * Save the peak lists
+	 * 
+	 * @throws SAXException
+	 * @throws TransformerConfigurationException
+	 */
+	private void saveUserParameters(ZipOutputStream zipStream)
+			throws IOException, TransformerConfigurationException, SAXException {
+
+		if (isCanceled())
+			return;
+
+		logger.info("Saving user parameters");
+
+		zipStream.putNextEntry(new ZipEntry("User parameters.xml"));
+
+		userParameterSaveHandler = new UserParameterSaveHandler(zipStream,
+				savedProject, dataFilesIDMap);
+
+		currentSavedObjectName = "User parameters";
+		userParameterSaveHandler.saveParameters();
+
 	}
 
 	public Object[] getCreatedObjects() {
