@@ -423,6 +423,9 @@ public class ProjectOpeningTask extends AbstractTask {
 		logger.info("Loading user parameters");
 
 		ZipEntry entry = zipFile.getEntry("User parameters.xml");
+		
+		// If there are no parameters, just ignore
+		if (entry == null) return;
 
 		currentLoadedObjectName = "User parameters";
 

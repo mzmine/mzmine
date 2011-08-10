@@ -65,6 +65,10 @@ public class FormulaUtils {
 	public static IMolecularFormula ionizeFormula(
 			IMolecularFormula formulaObject, IonizationType ionType, int charge) {
 
+		// No ionization must be treated special
+		if (ionType == IonizationType.NO_IONIZATION)
+			return formulaObject;
+
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
 		IMolecularFormula newFormulaObject = new MolecularFormula();
@@ -99,6 +103,10 @@ public class FormulaUtils {
 	 */
 	public static String ionizeFormula(String formula, IonizationType ionType,
 			int charge) {
+
+		// No ionization must be treated special
+		if (ionType == IonizationType.NO_IONIZATION)
+			return formula;
 
 		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
