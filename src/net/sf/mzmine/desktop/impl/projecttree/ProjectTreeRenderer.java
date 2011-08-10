@@ -36,16 +36,22 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.util.RawDataFileUtils;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
-	private static final Icon projectIcon = new ImageIcon("icons/projecticon.png");
+	private static final Icon projectIcon = new ImageIcon(
+			"icons/projecticon.png");
 	private static final Icon dataFileIcon = new ImageIcon("icons/xicicon.png");
-	private static final Icon spectrumIcon = new ImageIcon("icons/spectrumicon.png");
-	private static final Icon peakListIcon = new ImageIcon("icons/peaklisticon.png");
-	private 	static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
+	private static final Icon spectrumIcon = new ImageIcon(
+			"icons/spectrumicon.png");
+	private static final Icon peakListsIcon = new ImageIcon(
+			"icons/peaklistsicon.png");
+	private static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
 	private static final Icon listIcon = new ImageIcon("icons/listicon.png");
-	
+	private static final Icon fileIcon = new ImageIcon("icons/fileicon.png");
+	private static final Icon fileWithMassListIcon = new ImageIcon("icons/filewithmasslisticon.png");
+
 	static final Font bigFont = new Font("SansSerif", Font.PLAIN, 12);
 	static final Font smallerFont = new Font("SansSerif", Font.PLAIN, 11);
 	static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -78,11 +84,18 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
 		if (embeddedObject == ProjectTreeModel.peakListsNodeName) {
 			label.setFont(bigFont);
-			label.setIcon(peakListIcon);
+			label.setIcon(peakListsIcon);
 		}
 
 		if (embeddedObject instanceof RawDataFile) {
 			label.setFont(smallerFont);
+
+			boolean hasMassList = RawDataFileUtils
+					.hasMassList((RawDataFile) embeddedObject);
+			if (hasMassList)
+				label.setIcon(fileWithMassListIcon);
+			else
+				label.setIcon(fileIcon);
 		}
 
 		if (embeddedObject instanceof Scan) {
@@ -99,7 +112,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 					label.setForeground(Color.blue);
 			}
 		}
-		
+
 		if (embeddedObject instanceof MassList) {
 			label.setIcon(listIcon);
 			label.setFont(smallFont);
@@ -107,7 +120,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 
 		if (embeddedObject instanceof PeakList) {
 			PeakList p = (PeakList) embeddedObject;
-			label.setIcon(null);
+			label.setIcon(listIcon);
 			if (p.getNumberOfRawDataFiles() > 1) {
 				label.setFont(smallerFont.deriveFont(Font.BOLD));
 			} else {
@@ -128,7 +141,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 			}
 
 		}
-		
+
 		return label;
 	}
 
