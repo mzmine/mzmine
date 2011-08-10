@@ -169,7 +169,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 						.showNewSpectrumWindow(scan.getDataFile(),
 								scan.getScanNumber());
 				MassListDataSet dataset = new MassListDataSet(massList);
-				window.addDataSet(dataset, Color.red);
+				window.addDataSet(dataset, Color.green);
 			}
 		}
 
@@ -314,7 +314,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 					.showNewSpectrumWindow(clickedScan.getDataFile(),
 							clickedScan.getScanNumber());
 			MassListDataSet dataset = new MassListDataSet(clickedMassList);
-			window.addDataSet(dataset, Color.red);
+			window.addDataSet(dataset, Color.green);
 		}
 
 		if (clickedObject instanceof PeakListRow) {
