@@ -20,8 +20,10 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.logging.Logger;
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -40,6 +42,7 @@ import org.rosuda.JRI.Rengine;
 
 public class HeatMapTask extends AbstractTask {
 
+        private Logger logger = Logger.getLogger(this.getClass().getName());
         private String outputType;
         private boolean log, rcontrol, scale, plegend, area, onlyIdentified;
         private int height, width, columnMargin, rowMargin, starSize;
@@ -48,13 +51,18 @@ public class HeatMapTask extends AbstractTask {
         private String[] rowNames, colNames;
         private String[][] pValueMatrix;
         private double finishedPercentage = 0.0f;
+        private ParameterType parameterName;
+        private String referenceGroup;
+        private PeakList peakList;
 
         public HeatMapTask(PeakList peakList, ParameterSet parameters) {
+                this.peakList = peakList;
 
+                // Parameters
                 outputFile = parameters.getParameter(HeatMapParameters.fileName).getValue();
                 outputType = parameters.getParameter(HeatMapParameters.fileTypeSelection).getValue();
-                ParameterType parameterName = parameters.getParameter(HeatMapParameters.selectionData).getValue();
-                String referenceGroup = parameters.getParameter(HeatMapParameters.referenceGroup).getValue();
+                parameterName = parameters.getParameter(HeatMapParameters.selectionData).getValue();
+                referenceGroup = parameters.getParameter(HeatMapParameters.referenceGroup).getValue();
                 area = parameters.getParameter(HeatMapParameters.usePeakArea).getValue();
                 onlyIdentified = parameters.getParameter(HeatMapParameters.useIdenfiedRows).getValue();
 
@@ -68,19 +76,6 @@ public class HeatMapTask extends AbstractTask {
                 columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getInt();
                 rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getInt();
                 starSize = parameters.getParameter(HeatMapParameters.star).getInt();
-
-                if (parameterName != null) {
-                        if (plegend) {
-                                newPeakList = groupingDataset(peakList, parameterName, referenceGroup);
-                        } else {
-                                newPeakList = modifySimpleDataset(peakList, parameterName, referenceGroup);
-                        }
-
-                        if (newPeakList.length == 0 || newPeakList[0].length == 0) {
-                                errorMessage = "The data for heat map is empty.";
-                                setStatus(TaskStatus.ERROR);
-                        }
-                }
 
         }
 
@@ -99,6 +94,30 @@ public class HeatMapTask extends AbstractTask {
         public void run() {
                 try {
                         setStatus(TaskStatus.PROCESSING);
+
+                        logger.info("Heat map plot");
+
+                        if (parameterName.getParameter() != null) {
+                                if (plegend) {
+                                        newPeakList = groupingDataset(peakList, parameterName, referenceGroup);
+                                } else {
+                                        newPeakList = modifySimpleDataset(peakList, parameterName, referenceGroup);
+                                }
+                        } else {
+                                setStatus(TaskStatus.ERROR);
+
+                                errorMessage = "Sample parameters have to be defined.";
+                                return;
+                        }
+
+
+                        if (newPeakList.length == 0 || newPeakList[0].length == 0) {
+                                setStatus(TaskStatus.ERROR);
+
+                                errorMessage = "The data for heat map is empty.";
+                                return;
+                        }
+
                         final Rengine rEngine;
                         try {
                                 rEngine = RUtilities.getREngine();
@@ -107,7 +126,8 @@ public class HeatMapTask extends AbstractTask {
                                 throw new IllegalStateException(
                                         "Heat map requires R but it couldn't be loaded (" + t.getMessage() + ')');
                         }
-                        this.finishedPercentage = 0.1f;
+
+                        finishedPercentage = 0.3f;
 
                         synchronized (RUtilities.R_SEMAPHORE) {
 
@@ -119,10 +139,12 @@ public class HeatMapTask extends AbstractTask {
 
                                 try {
 
-                                        if (outputFile.equals("png")) {
-                                                if ((height / columnMargin) < 5) {
-                                                        errorMessage = "Figure margins too large.";
+                                        if (outputType.contains("png")) {
+                                                if (height  < 500 || width < 500) {
                                                         setStatus(TaskStatus.ERROR);
+
+                                                        errorMessage = "Figure margins are too large compared with the height and width.";
+                                                        return;
                                                 }
                                         }
 
@@ -156,7 +178,7 @@ public class HeatMapTask extends AbstractTask {
                                                         }
                                                 }
                                         }
-                                        this.finishedPercentage = 0.2f;
+                                        finishedPercentage = 0.4f;
 
                                         rEngine.eval("dataset <- apply(dataset, 2, as.numeric)");
 
@@ -170,7 +192,7 @@ public class HeatMapTask extends AbstractTask {
                                         rEngine.rniAssign("colNames", columns, 0);
                                         rEngine.eval("colnames(dataset)<-colNames");
 
-                                        this.finishedPercentage = 0.3f;
+                                        finishedPercentage = 0.5f;
 
                                         // Remove the rows with too many NA's. The distances between rows can't be calculated if the rows don't have
                                         // at least one sample in common.
@@ -178,7 +200,7 @@ public class HeatMapTask extends AbstractTask {
                                         rEngine.eval("d[upper.tri(d)] <- 0");
                                         rEngine.eval("dataset <- dataset[-na.action(na.omit(d)),]");
 
-                                        this.finishedPercentage = 0.7f;
+                                        finishedPercentage = 0.8f;
 
                                         String marginParameter = "margins = c(" + columnMargin + "," + rowMargin + ")";
                                         rEngine.eval("br<-c(seq(from=min(dataset,na.rm=T),to=0,length.out=256),seq(from=0,to=max(dataset,na.rm=T),length.out=256))", false);
@@ -213,8 +235,8 @@ public class HeatMapTask extends AbstractTask {
                                         }
 
                                         rEngine.eval("dev.off()", false);
-                                        this.finishedPercentage = 1.0f;
-                                        
+                                        finishedPercentage = 1.0f;
+
                                 } catch (Throwable t) {
 
                                         throw new IllegalStateException("R error during the heat map creation", t);
@@ -226,7 +248,7 @@ public class HeatMapTask extends AbstractTask {
                 } catch (Exception e) {
                         setStatus(TaskStatus.ERROR);
 
-                        errorMessage = e.toString();
+                        errorMessage = "R error during the heat map creation";
                         return;
                 }
         }

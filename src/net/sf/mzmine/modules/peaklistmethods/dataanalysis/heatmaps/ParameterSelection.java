@@ -142,7 +142,10 @@ public class ParameterSelection implements
 
         @Override
         public boolean checkValue(Collection<String> errorMessages) {
-                // TODO Auto-generated method stub
+                if (value == null) {
+                        errorMessages.add(name + " is not set");
+                        return false;
+                }
                 return true;
         }
 }
