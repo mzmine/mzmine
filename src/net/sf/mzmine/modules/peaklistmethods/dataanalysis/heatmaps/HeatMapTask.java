@@ -99,9 +99,9 @@ public class HeatMapTask extends AbstractTask {
 
                         if (parameterName.getParameter() != null) {
                                 if (plegend) {
-                                        newPeakList = groupingDataset(peakList, parameterName, referenceGroup);
+                                        newPeakList = groupingDataset(parameterName, referenceGroup);
                                 } else {
-                                        newPeakList = modifySimpleDataset(peakList, parameterName, referenceGroup);
+                                        newPeakList = modifySimpleDataset(parameterName, referenceGroup);
                                 }
                         } else {
                                 setStatus(TaskStatus.ERROR);
@@ -140,10 +140,10 @@ public class HeatMapTask extends AbstractTask {
                                 try {
 
                                         if (outputType.contains("png")) {
-                                                if (height  < 500 || width < 500) {
-                                                        setStatus(TaskStatus.ERROR);
+                                                if (height < 500 || width < 500) {
 
-                                                        errorMessage = "Figure margins are too large compared with the height and width.";
+                                                        setStatus(TaskStatus.ERROR);
+                                                        errorMessage = "Figure height or width is too small. Minimun height and width is 500.";
                                                         return;
                                                 }
                                         }
@@ -253,7 +253,7 @@ public class HeatMapTask extends AbstractTask {
                 }
         }
 
-        private double[][] modifySimpleDataset(PeakList peakList, ParameterType parameterName, String referenceGroup) {
+        private double[][] modifySimpleDataset(ParameterType parameterName, String referenceGroup) {
 
                 // Collect all data files
                 Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
@@ -324,9 +324,10 @@ public class HeatMapTask extends AbstractTask {
                         shownDataFiles = nonReferenceDataFiles;
                 }
 
-                for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                for (int row = 0, rowIndex = 0; row < peakList.getNumberOfRows(); row++) {
                         PeakListRow rowPeak = peakList.getRow(row);
                         if (!onlyIdentified || (onlyIdentified && rowPeak.getPeakIdentities().length > 0)) {
+
                                 // Average area or height of the reference group
                                 double referenceAverage = 0;
                                 int referencePeakCount = 0;
@@ -368,8 +369,9 @@ public class HeatMapTask extends AbstractTask {
                                                 }
                                         }
 
-                                        dataMatrix[column][row] = value;
+                                        dataMatrix[column][rowIndex] = value;
                                 }
+                                rowIndex++;
                         }
                 }
 
@@ -386,14 +388,14 @@ public class HeatMapTask extends AbstractTask {
 
                         colNames[column] = shownDataFiles.get(column).getName();
                 }
-                for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                for (int row = 0, rowIndex = 0; row < peakList.getNumberOfRows(); row++) {
                         if (!onlyIdentified || (onlyIdentified && peakList.getRow(row).getPeakIdentities().length > 0)) {
                                 if (peakList.getRow(row).getPeakIdentities() != null && peakList.getRow(row).getPeakIdentities().length > 0) {
 
-                                        rowNames[row] = peakList.getRow(row).getPeakIdentities()[0].getName();
+                                        rowNames[rowIndex++] = peakList.getRow(row).getPreferredPeakIdentity().getName();
                                 } else {
 
-                                        rowNames[row] = "Unknown";
+                                        rowNames[rowIndex++] = "Unknown";
                                 }
                         }
                 }
@@ -424,7 +426,7 @@ public class HeatMapTask extends AbstractTask {
                 }
         }
 
-        private double[][] groupingDataset(PeakList peakList, ParameterType parameterName, String referenceGroup) {
+        private double[][] groupingDataset(ParameterType parameterName, String referenceGroup) {
                 // Collect all data files
                 Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
                 DescriptiveStatistics meanControlStats = new DescriptiveStatistics();
@@ -490,7 +492,7 @@ public class HeatMapTask extends AbstractTask {
                 List<RawDataFile> shownDataFiles = nonReferenceDataFiles;
 
 
-                for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                for (int row = 0, rowIndex = 0; row < peakList.getNumberOfRows(); row++) {
                         PeakListRow rowPeak = peakList.getRow(row);
                         if (!onlyIdentified || (onlyIdentified && rowPeak.getPeakIdentities().length > 0)) {
                                 // Average area or height of the reference group
@@ -543,18 +545,19 @@ public class HeatMapTask extends AbstractTask {
 
                                                 double value = meanGroupStats.getMean() / meanControlStats.getMean();
                                                 if (meanGroupStats.getN() > 1 && meanControlStats.getN() > 1) {
-                                                        pValueMatrix[columnIndex][row] = this.getPvalue(meanGroupStats, meanControlStats);
+                                                        pValueMatrix[columnIndex][rowIndex] = this.getPvalue(meanGroupStats, meanControlStats);
                                                 } else {
-                                                        pValueMatrix[columnIndex][row] = "";
+                                                        pValueMatrix[columnIndex][rowIndex] = "";
                                                 }
 
                                                 if (log) {
 
                                                         value = Math.log(value);
                                                 }
-                                                dataMatrix[columnIndex++][row] = value;
+                                                dataMatrix[columnIndex++][rowIndex] = value;
                                         }
                                 }
+                                rowIndex++;
                         }
                 }
 
@@ -575,14 +578,14 @@ public class HeatMapTask extends AbstractTask {
                                 colNames[columnIndex++] = group;
                         }
                 }
-                for (int row = 0; row < peakList.getNumberOfRows(); row++) {
+                for (int row = 0, rowIndex = 0; row < peakList.getNumberOfRows(); row++) {
                         if (!onlyIdentified || (onlyIdentified && peakList.getRow(row).getPeakIdentities().length > 0)) {
                                 if (peakList.getRow(row).getPeakIdentities() != null && peakList.getRow(row).getPeakIdentities().length > 0) {
 
-                                        rowNames[row] = peakList.getRow(row).getPeakIdentities()[0].getName();
+                                        rowNames[rowIndex++] = peakList.getRow(row).getPreferredPeakIdentity().getName();
                                 } else {
 
-                                        rowNames[row] = "Unknown";
+                                        rowNames[rowIndex++] = "Unknown";
                                 }
                         }
                 }
