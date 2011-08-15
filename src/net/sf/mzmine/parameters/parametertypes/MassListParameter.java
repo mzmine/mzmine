@@ -66,8 +66,8 @@ public class MassListParameter implements UserParameter<String, MassListComponen
 	}
 
 	@Override
-	public StringParameter clone() {
-		StringParameter copy = new StringParameter(name, description);
+	public MassListParameter clone() {
+		MassListParameter copy = new MassListParameter();
 		copy.setValue(this.getValue());
 		return copy;
 	}
