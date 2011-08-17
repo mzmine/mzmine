@@ -40,14 +40,8 @@ import net.sf.mzmine.util.MathUtils;
  */
 public class SavitzkyGolayPeakDetector implements PeakResolver {
 
-	private ParameterSet parameters;
-
-	private double minimumPeakHeight, minimumPeakDuration,
-			derivativeThresholdLevel;
-
-	public SavitzkyGolayPeakDetector() {
-		parameters = new SavitzkyGolayPeakDetectorParameters(this);
-	}
+	private ParameterSet parameters = new SavitzkyGolayPeakDetectorParameters(
+			this);
 
 	public String toString() {
 		return "Savitzky-Golay";
@@ -56,13 +50,13 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-		minimumPeakDuration = parameters.getParameter(
+		double minimumPeakDuration = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.minimumPeakDuration)
 				.getDouble();
-		minimumPeakHeight = parameters.getParameter(
+		double minimumPeakHeight = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.minimumPeakHeight)
 				.getDouble();
-		derivativeThresholdLevel = parameters.getParameter(
+		double derivativeThresholdLevel = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel)
 				.getDouble();
 

@@ -28,37 +28,26 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedP
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
- * This class implements a simple peak builder. This takes all collected MzPeaks
- * in one chromatogram and try to find all possible peaks. This detection
- * follows the concept of baseline in a chromatogram to set a peak (threshold
- * level).
+ * This class implements a simple peak deconvolution algorithm. Continuous peaks
+ * above a given baseline threshold level are detected.
  * 
  */
 public class BaselinePeakDetector implements PeakResolver {
 
-	private ParameterSet parameters;
+	private ParameterSet parameters = new BaselinePeakDetectorParameters(this);
 
-	private double minimumPeakHeight, minimumPeakDuration, baselineLevel;
-
-	public BaselinePeakDetector() {
-		parameters = new BaselinePeakDetectorParameters(this);
-	}
-	
 	public String toString() {
 		return "Baseline cut-off";
 	}
 
-	/**
-     * 
-     */
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-		minimumPeakHeight = parameters.getParameter(
+		double minimumPeakHeight = parameters.getParameter(
 				BaselinePeakDetectorParameters.minimumPeakHeight).getDouble();
-		minimumPeakDuration = parameters.getParameter(
+		double minimumPeakDuration = parameters.getParameter(
 				BaselinePeakDetectorParameters.minimumPeakDuration).getDouble();
-		baselineLevel = parameters.getParameter(
+		double baselineLevel = parameters.getParameter(
 				BaselinePeakDetectorParameters.baselineLevel).getDouble();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();

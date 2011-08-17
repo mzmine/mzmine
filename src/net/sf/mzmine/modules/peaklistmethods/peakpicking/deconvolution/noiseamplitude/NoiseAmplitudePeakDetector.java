@@ -34,15 +34,8 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 public class NoiseAmplitudePeakDetector implements PeakResolver {
 
-	private ParameterSet parameters;
-
-	private double amplitudeOfNoise;
-	private double minimumPeakHeight, minimumPeakDuration;
-
-	public NoiseAmplitudePeakDetector() {
-		parameters = new NoiseAmplitudePeakDetectorParameters(this);
-
-	}
+	private ParameterSet parameters = new NoiseAmplitudePeakDetectorParameters(
+			this);
 
 	public String toString() {
 		return "Noise amplitude";
@@ -51,13 +44,13 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
-		minimumPeakDuration = parameters.getParameter(
+		double minimumPeakDuration = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.minimumPeakDuration)
 				.getDouble();
-		minimumPeakHeight = parameters.getParameter(
+		double minimumPeakHeight = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.minimumPeakHeight)
 				.getDouble();
-		amplitudeOfNoise = parameters.getParameter(
+		double amplitudeOfNoise = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise)
 				.getDouble();
 
@@ -70,7 +63,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
 		for (int i = 0; i < scanNumbers.length; i++) {
 
-			addNewIntensity(intensities[i], binsFrequency);
+			addNewIntensity(intensities[i], binsFrequency, amplitudeOfNoise);
 			if (intensities[i] > maxIntensity)
 				maxIntensity = intensities[i];
 			avgChromatoIntensities += intensities[i];
@@ -80,12 +73,12 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 		avgChromatoIntensities /= scanNumbers.length;
 
 		// If the current chromatogram has characteristics of background or just
-		// noise
-		// return an empty array.
+		// noise, return an empty array.
 		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
 			return resolvedPeaks.toArray(new ResolvedPeak[0]);
 
-		double noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity);
+		double noiseThreshold = getNoiseThreshold(binsFrequency, maxIntensity,
+				amplitudeOfNoise);
 
 		boolean activePeak = false;
 		// Index of starting region of the current peak
@@ -125,7 +118,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 	 * @param binsFrequency
 	 */
 	public void addNewIntensity(double intensity,
-			TreeMap<Integer, Integer> binsFrequency) {
+			TreeMap<Integer, Integer> binsFrequency, double amplitudeOfNoise) {
 		int frequencyValue = 1;
 		int numberOfBin;
 		if (intensity < amplitudeOfNoise)
@@ -151,7 +144,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 	 * @return
 	 */
 	public double getNoiseThreshold(TreeMap<Integer, Integer> binsFrequency,
-			double maxIntensity) {
+			double maxIntensity, double amplitudeOfNoise) {
 
 		int numberOfBin = 0;
 		int maxFrequency = 0;

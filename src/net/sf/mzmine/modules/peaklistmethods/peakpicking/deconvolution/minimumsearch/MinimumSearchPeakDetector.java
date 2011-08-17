@@ -35,14 +35,8 @@ import net.sf.mzmine.util.Range;
  */
 public class MinimumSearchPeakDetector implements PeakResolver {
 
-	private ParameterSet parameters;
-
-	private double chromatographicThreshold, searchRTRange, minRelativeHeight,
-			minAbsoluteHeight, minRatio;
-
-	public MinimumSearchPeakDetector() {
-		parameters = new MinimumSearchPeakDetectorParameters(this);
-	}
+	private ParameterSet parameters = new MinimumSearchPeakDetectorParameters(
+			this);
 
 	public String toString() {
 		return "Local minimum search";
@@ -53,19 +47,19 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int[] scanNumbers, double[] retentionTimes, double[] intensities) {
 
-		chromatographicThreshold = parameters
+		double chromatographicThreshold = parameters
 				.getParameter(
 						MinimumSearchPeakDetectorParameters.chromatographicThresholdLevel)
 				.getValue();
-		searchRTRange = parameters.getParameter(
+		double searchRTRange = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.searchRTRange).getDouble();
-		minRelativeHeight = parameters.getParameter(
+		double minRelativeHeight = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.minRelativeHeight)
 				.getValue();
-		minAbsoluteHeight = parameters.getParameter(
+		double minAbsoluteHeight = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.minAbsoluteHeight)
 				.getDouble();
-		minRatio = parameters.getParameter(
+		double minRatio = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.minRatio).getDouble();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
@@ -121,8 +115,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 			while ((currentPeakStart < scanNumbers.length - 1)
 					&& (intensities[currentPeakStart] == 0))
 				currentPeakStart++;
-			while ((currentPeakEnd > 1)
-					&& (intensities[currentPeakEnd] == 0))
+			while ((currentPeakEnd > 1) && (intensities[currentPeakEnd] == 0))
 				currentPeakEnd--;
 
 			// Stop if we reached the end of the chromatogram

@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -52,7 +52,7 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 	}
 
 	public BaselinePeakDetectorParameters(PeakResolver peakResolver) {
-		super(new UserParameter[] { minimumPeakHeight, minimumPeakDuration,
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
 				baselineLevel });
 		this.peakResolver = peakResolver;
 	}
