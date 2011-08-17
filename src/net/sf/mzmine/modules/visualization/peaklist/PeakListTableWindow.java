@@ -94,7 +94,6 @@ public class PeakListTableWindow extends JInternalFrame implements
 						.getColumnModel();
 				cm.createColumns();
 
-				// TODO PeakListTableVisualizer.getInstance().setParameterSet(parameters);
 			}
 		}
 

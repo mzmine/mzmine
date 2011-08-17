@@ -19,36 +19,19 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.taskcontrol.Task;
 
-public class PeakListTableModule implements MZmineProcessingModule {
+public class PeakListTableModule implements MZmineModule {
 
 	private ParameterSet parameters = new PeakListTableParameters();
 
 	private static PeakListTableModule myInstance;
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
 	public PeakListTableModule() {
 		myInstance = this;
-	}
-
-	public static PeakListTableModule getInstance() {
-		return myInstance;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "Peak list table visualizer";
 	}
 
 	/**
@@ -59,40 +42,9 @@ public class PeakListTableModule implements MZmineProcessingModule {
 	}
 
 	public static void showNewPeakListVisualizerWindow(PeakList peakList) {
-		ParameterSet parametersCopy = myInstance.getParameterSet().clone();
 		PeakListTableWindow window = new PeakListTableWindow(peakList,
-				parametersCopy);
+				myInstance.parameters);
 		MZmineCore.getDesktop().addInternalFrame(window);
-	}
-
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-
-		PeakList peakLists[] = parameters.getParameter(
-				PeakListTableParameters.peakLists).getValue();
-
-		if ((peakLists == null) || (peakLists.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select a peak list");
-			return null;
-		}
-
-		for (PeakList peakList : peakLists) {
-
-			logger.finest("Showing a new peak list table view");
-
-			PeakListTableWindow alignmentResultView = new PeakListTableWindow(
-					peakList, parameters.clone());
-
-			MZmineCore.getDesktop().addInternalFrame(alignmentResultView);
-
-		}
-		return null;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
 	}
 
 }

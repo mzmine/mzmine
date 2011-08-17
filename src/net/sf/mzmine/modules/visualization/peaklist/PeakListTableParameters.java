@@ -28,7 +28,6 @@ import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class PeakListTableParameters extends SimpleParameterSet {
 
@@ -52,10 +51,6 @@ public class PeakListTableParameters extends SimpleParameterSet {
 	public PeakListTableParameters() {
 		super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
 				rowHeight, peakShapeNormalization });
-	}
-	
-	public ExitCode showSetupDialog() {
-		return ExitCode.OK;
 	}
 
 }

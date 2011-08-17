@@ -28,29 +28,27 @@ import javax.swing.JToolBar;
 
 import net.sf.mzmine.util.GUIUtils;
 
-/**
- * 
- */
 class PeakListTableToolBar extends JToolBar {
 
-    static final Icon propertiesIcon = new ImageIcon("icons/propertiesicon.png");
-    static final Icon printIcon = new ImageIcon("icons/printicon.png");
+	private static final Icon propertiesIcon = new ImageIcon(
+			"icons/propertiesicon.png");
+	private static final Icon printIcon = new ImageIcon("icons/printicon.png");
 
-    PeakListTableToolBar(PeakListTableWindow masterFrame) {
+	PeakListTableToolBar(PeakListTableWindow masterFrame) {
 
-        super(JToolBar.VERTICAL);
+		super(JToolBar.VERTICAL);
 
-        setFloatable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+		setFloatable(false);
+		setMargin(new Insets(5, 5, 5, 5));
+		setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
-                "PROPERTIES", "Set table properties");
+		GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
+				"PROPERTIES", "Set table properties");
 
-        addSeparator();
+		addSeparator();
 
-        GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT", "Print");
+		GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT", "Print");
 
-    }
+	}
 
 }
