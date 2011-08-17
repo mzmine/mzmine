@@ -50,7 +50,8 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 	private static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
 	private static final Icon listIcon = new ImageIcon("icons/listicon.png");
 	private static final Icon fileIcon = new ImageIcon("icons/fileicon.png");
-	private static final Icon fileWithMassListIcon = new ImageIcon("icons/filewithmasslisticon.png");
+	private static final Icon fileWithMassListIcon = new ImageIcon(
+			"icons/filewithmasslisticon.png");
 
 	static final Font bigFont = new Font("SansSerif", Font.PLAIN, 12);
 	static final Font smallerFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -91,7 +92,7 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 			label.setFont(smallerFont);
 
 			boolean hasMassList = RawDataFileUtils
-					.hasMassList((RawDataFile) embeddedObject);
+					.hasMassLists((RawDataFile) embeddedObject);
 			if (hasMassList)
 				label.setIcon(fileWithMassListIcon);
 			else

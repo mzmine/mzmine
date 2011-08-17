@@ -32,11 +32,7 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class ExactMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters;
-
-	public ExactMassDetector() {
-		moduleParameters = new ExactMassDetectorParameters();
-	}
+	private ParameterSet moduleParameters = new ExactMassDetectorParameters();
 
 	/**
 	 * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)

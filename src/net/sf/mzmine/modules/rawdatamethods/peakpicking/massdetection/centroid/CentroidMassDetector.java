@@ -28,11 +28,7 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class CentroidMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters;
-
-	public CentroidMassDetector() {
-		moduleParameters = new CentroidMassDetectorParameters();
-	}
+	private ParameterSet moduleParameters = new CentroidMassDetectorParameters();
 
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 

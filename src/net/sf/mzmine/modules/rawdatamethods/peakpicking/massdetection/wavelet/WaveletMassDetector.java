@@ -39,12 +39,7 @@ import net.sf.mzmine.util.SortingProperty;
  */
 public class WaveletMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters;
-
-	// Parameter value
-	private int scaleLevel;
-	private double waveletWindow, noiseLevel;
-	private TreeSet<DataPoint> mzPeaks;
+	private ParameterSet moduleParameters = new WaveletMassDetectorParameters();
 
 	/**
 	 * Parameters of the wavelet, NPOINTS is the number of wavelet values to use
@@ -54,27 +49,23 @@ public class WaveletMassDetector implements MassDetector {
 	private static final int WAVELET_ESL = -5;
 	private static final int WAVELET_ESR = 5;
 
-	public WaveletMassDetector() {
-		moduleParameters = new WaveletMassDetectorParameters();
-	}
-
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
-		noiseLevel = parameters.getParameter(
+		double noiseLevel = parameters.getParameter(
 				WaveletMassDetectorParameters.noiseLevel).getDouble();
-		scaleLevel = parameters.getParameter(
+		int scaleLevel = parameters.getParameter(
 				WaveletMassDetectorParameters.scaleLevel).getInt();
-		waveletWindow = parameters.getParameter(
+		double waveletWindow = parameters.getParameter(
 				WaveletMassDetectorParameters.waveletWindow).getDouble();
 
-		DataPoint[] originalDataPoints = scan.getDataPoints();
-		mzPeaks = new TreeSet<DataPoint>(new DataPointSorter(SortingProperty.MZ,
-				SortingDirection.Ascending));
+		DataPoint originalDataPoints[] = scan.getDataPoints();
 
-		DataPoint[] waveletDataPoints = performCWT(originalDataPoints);
+		DataPoint waveletDataPoints[] = performCWT(originalDataPoints,
+				waveletWindow, scaleLevel);
 
-		getMzPeaks(originalDataPoints, waveletDataPoints);
+		DataPoint mzPeaks[] = getMzPeaks(noiseLevel, originalDataPoints,
+				waveletDataPoints);
 
-		return mzPeaks.toArray(new DataPoint[0]);
+		return mzPeaks;
 	}
 
 	/**
@@ -82,7 +73,8 @@ public class WaveletMassDetector implements MassDetector {
 	 * 
 	 * @param dataPoints
 	 */
-	private SimpleDataPoint[] performCWT(DataPoint[] dataPoints) {
+	private SimpleDataPoint[] performCWT(DataPoint[] dataPoints,
+			double waveletWindow, int scaleLevel) {
 		int length = dataPoints.length;
 		SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
 		double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
@@ -157,8 +149,12 @@ public class WaveletMassDetector implements MassDetector {
 	/**
 	 * This function searches for maximums from wavelet data points
 	 */
-	private void getMzPeaks(DataPoint[] originalDataPoints,
-			DataPoint[] waveletDataPoints) {
+	private DataPoint[] getMzPeaks(double noiseLevel,
+			DataPoint[] originalDataPoints, DataPoint[] waveletDataPoints) {
+
+		TreeSet<DataPoint> mzPeaks = new TreeSet<DataPoint>(
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		Vector<DataPoint> rawDataPoints = new Vector<DataPoint>();
 		int peakMaxInd = 0;
@@ -203,6 +199,8 @@ public class WaveletMassDetector implements MassDetector {
 			}
 			rawDataPoints.clear();
 		}
+
+		return mzPeaks.toArray(new DataPoint[0]);
 
 	}
 

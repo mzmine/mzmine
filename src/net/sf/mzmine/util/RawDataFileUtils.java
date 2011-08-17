@@ -74,13 +74,17 @@ public class RawDataFileUtils {
 		return msLevelsArray;
 	}
 
-	public static boolean hasMassList(RawDataFile dataFile) {
-		for (int scanNum : dataFile.getScanNumbers()) {
+	/**
+	 * Returns true if the given data file has mass lists for all MS1 scans
+	 * 
+	 */
+	public static boolean hasMassLists(RawDataFile dataFile) {
+		for (int scanNum : dataFile.getScanNumbers(1)) {
 			Scan scan = dataFile.getScan(scanNum);
-			if (scan.getMassLists().length > 0)
-				return true;
+			if (scan.getMassLists().length == 0)
+				return false;
 		}
-		return false;
+		return true;
 	}
 
 }

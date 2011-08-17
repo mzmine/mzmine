@@ -37,19 +37,15 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private ParameterSet moduleParameters;
-
-	private PeakModel peakModel;
-
-	public ShoulderPeaksFilter() {
-		moduleParameters = new ShoulderPeaksFilterParameters();
-	}
+	private ParameterSet moduleParameters = new ShoulderPeaksFilterParameters();
 
 	public DataPoint[] filterMassValues(DataPoint[] mzPeaks,
 			ParameterSet parameters) {
 
 		int resolution = parameters.getParameter(
 				ShoulderPeaksFilterParameters.resolution).getInt();
+
+		PeakModel peakModel = null;
 
 		// Try to create an instance of the peak model
 		try {
@@ -60,7 +56,7 @@ public class ShoulderPeaksFilter implements MassFilter {
 			Class modelClass = type.getModelClass();
 			peakModel = (PeakModel) modelClass.newInstance();
 		} catch (Exception e) {
-			logger.log(Level.WARNING,
+			logger.log(Level.SEVERE,
 					"Could not create instance of peak model class", e);
 		}
 

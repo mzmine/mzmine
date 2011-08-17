@@ -32,40 +32,35 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class RecursiveMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters;
-
-	// Parameter values
-	private double minimumMZPeakWidth, maximumMZPeakWidth, noiseLevel;
-	private TreeSet<DataPoint> mzPeaks;
-	private DataPoint[] dataPoints;
-
-	public RecursiveMassDetector() {
-		moduleParameters = new RecursiveMassDetectorParameters();
-	}
+	private ParameterSet moduleParameters = new RecursiveMassDetectorParameters();
 
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
-		noiseLevel = parameters.getParameter(
+		double noiseLevel = parameters.getParameter(
 				RecursiveMassDetectorParameters.noiseLevel).getDouble();
-		minimumMZPeakWidth = parameters.getParameter(
+		double minimumMZPeakWidth = parameters.getParameter(
 				RecursiveMassDetectorParameters.minimumMZPeakWidth).getDouble();
-		maximumMZPeakWidth = parameters.getParameter(
+		double maximumMZPeakWidth = parameters.getParameter(
 				RecursiveMassDetectorParameters.maximumMZPeakWidth).getDouble();
 
-		dataPoints = scan.getDataPoints();
-		mzPeaks = new TreeSet<DataPoint>(new DataPointSorter(
-				SortingProperty.MZ, SortingDirection.Ascending));
+		DataPoint dataPoints[] = scan.getDataPoints();
+		TreeSet<DataPoint> mzPeaks = new TreeSet<DataPoint>(
+				new DataPointSorter(SortingProperty.MZ,
+						SortingDirection.Ascending));
 
 		// Find MzPeaks
-		recursiveThreshold(1, dataPoints.length - 1, noiseLevel, 0);
+		recursiveThreshold(mzPeaks, dataPoints, 1, dataPoints.length - 1,
+				noiseLevel, minimumMZPeakWidth, maximumMZPeakWidth, 0);
 		return mzPeaks.toArray(new DataPoint[0]);
 	}
 
 	/**
 	 * This function searches for maxima from given part of a spectrum
 	 */
-	private int recursiveThreshold(int startInd, int stopInd,
-			double curentNoiseLevel, int recuLevel) {
+	private int recursiveThreshold(TreeSet<DataPoint> mzPeaks,
+			DataPoint dataPoints[], int startInd, int stopInd,
+			double curentNoiseLevel, double minimumMZPeakWidth,
+			double maximumMZPeakWidth, int recuLevel) {
 
 		// logger.finest(" Level of recursion " + recuLevel);
 
@@ -136,8 +131,9 @@ public class RecursiveMassDetector implements MassDetector {
 			// peak of the right size
 			if (peakWidthMZ > maximumMZPeakWidth) {
 				if (localMinimum < Double.MAX_VALUE) {
-					ind = recursiveThreshold(peakStartInd, peakStopInd,
-							localMinimum, recuLevel + 1);
+					ind = recursiveThreshold(mzPeaks, dataPoints, peakStartInd,
+							peakStopInd, localMinimum, minimumMZPeakWidth,
+							maximumMZPeakWidth, recuLevel + 1);
 				}
 
 			}
