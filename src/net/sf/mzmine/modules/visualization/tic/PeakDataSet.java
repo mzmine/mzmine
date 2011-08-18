@@ -32,50 +32,59 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class PeakDataSet extends AbstractXYDataset {
 
-    private ChromatographicPeak peak;
-    private double retentionTimes[], intensities[];
+	private ChromatographicPeak peak;
+	private double retentionTimes[], intensities[], mzValues[];
 
-    public PeakDataSet(ChromatographicPeak peak) {
+	public PeakDataSet(ChromatographicPeak peak) {
 
-        this.peak = peak;
+		this.peak = peak;
 
-        int scanNumbers[] = peak.getScanNumbers();
-        RawDataFile dataFile = peak.getDataFile();
+		int scanNumbers[] = peak.getScanNumbers();
+		RawDataFile dataFile = peak.getDataFile();
 
-        retentionTimes = new double[scanNumbers.length];
-        intensities = new double[scanNumbers.length];
+		retentionTimes = new double[scanNumbers.length];
+		intensities = new double[scanNumbers.length];
+		mzValues = new double[scanNumbers.length];
 
-        for (int i = 0; i < scanNumbers.length; i++) {
-            Scan scan = dataFile.getScan(scanNumbers[i]);
-            DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
-            retentionTimes[i] = scan.getRetentionTime();
-            if (dataPoint == null)
-                intensities[i] = 0;
-            else
-                intensities[i] = dataPoint.getIntensity();
-        }
+		for (int i = 0; i < scanNumbers.length; i++) {
+			Scan scan = dataFile.getScan(scanNumbers[i]);
+			DataPoint dataPoint = peak.getDataPoint(scanNumbers[i]);
+
+			retentionTimes[i] = scan.getRetentionTime();
+			if (dataPoint == null) {
+				mzValues[i] = 0;
+				intensities[i] = 0;
+			} else {
+				mzValues[i] = dataPoint.getMZ();
+				intensities[i] = dataPoint.getIntensity();
+			}
+
+		}
+	}
+
+	@Override
+	public int getSeriesCount() {
+		return 1;
+	}
+
+	@Override
+	public Comparable getSeriesKey(int series) {
+		return peak.toString();
+	}
+
+	public int getItemCount(int series) {
+		return retentionTimes.length;
+	}
+
+	public Number getX(int series, int item) {
+		return retentionTimes[item];
+	}
+
+	public Number getY(int series, int item) {
+		return intensities[item];
+	}
+
+	double getMZ(int series, int item) {
+    	return mzValues[item]; 
     }
-
-    @Override
-    public int getSeriesCount() {
-        return 1;
-    }
-
-    @Override
-    public Comparable getSeriesKey(int series) {
-        return peak.toString();
-    }
-
-    public int getItemCount(int series) {
-        return retentionTimes.length;
-    }
-
-    public Number getX(int series, int item) {
-        return retentionTimes[item];
-    }
-
-    public Number getY(int series, int item) {
-        return intensities[item];
-    }
-
 }

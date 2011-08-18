@@ -31,38 +31,47 @@ import org.jfree.data.xy.XYDataset;
  */
 class TICToolTipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat rtFormat = MZmineCore.getRTFormat();
-    private NumberFormat mzFormat = MZmineCore.getMZFormat();
-    private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+	private NumberFormat rtFormat = MZmineCore.getRTFormat();
+	private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
 
-    /**
-     * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
-     *      int, int)
-     */
-    public String generateToolTip(XYDataset dataset, int series, int item) {
+	/**
+	 * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
+	 *      int, int)
+	 */
+	public String generateToolTip(XYDataset dataset, int series, int item) {
 
-        String toolTip;
+		String toolTip;
 
-        double rtValue = dataset.getXValue(series, item);
-        double intValue = dataset.getYValue(series, item);
+		double rtValue = dataset.getXValue(series, item);
+		double intValue = dataset.getYValue(series, item);
 
-        if (dataset instanceof TICDataSet) {
+		if (dataset instanceof TICDataSet) {
 
-            TICDataSet ticDataSet = (TICDataSet) dataset;
+			TICDataSet ticDataSet = (TICDataSet) dataset;
 
-            double mzValue = ticDataSet.getZValue(series, item);
-            int scanNumber = ticDataSet.getScanNumber(series, item);
+			double mzValue = ticDataSet.getZValue(series, item);
+			int scanNumber = ticDataSet.getScanNumber(series, item);
 
-            toolTip = "Scan #" + scanNumber + "\nRetention time: "
-                    + rtFormat.format(rtValue) + "\nBase peak m/z: "
-                    + mzFormat.format(mzValue) + "\nIntensity: "
-                    + intensityFormat.format(intValue);
-        } else {
-            toolTip = "Retention time: " + rtFormat.format(rtValue)
-                    + "\nIntensity: " + intensityFormat.format(intValue);
-        }
+			toolTip = "Scan #" + scanNumber + "\nRetention time: "
+					+ rtFormat.format(rtValue) + "\nBase peak m/z: "
+					+ mzFormat.format(mzValue) + "\nIntensity: "
+					+ intensityFormat.format(intValue);
+		} else if (dataset instanceof PeakDataSet) {
 
-        return toolTip;
-    }
+			PeakDataSet peakDataSet = (PeakDataSet) dataset;
+
+			double mzValue = peakDataSet.getMZ(series, item);
+
+			toolTip = "Retention time: " + rtFormat.format(rtValue) + "\nm/z: "
+					+ mzFormat.format(mzValue) + "\nIntensity: "
+					+ intensityFormat.format(intValue);
+		} else {
+			toolTip = "Retention time: " + rtFormat.format(rtValue)
+					+ "\nIntensity: " + intensityFormat.format(intValue);
+		}
+
+		return toolTip;
+	}
 
 }
