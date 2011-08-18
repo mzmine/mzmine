@@ -48,7 +48,8 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 	private static final Icon peakListsIcon = new ImageIcon(
 			"icons/peaklistsicon.png");
 	private static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
-	private static final Icon listIcon = new ImageIcon("icons/listicon.png");
+	private static final Icon peakListIcon = new ImageIcon("icons/peaklisticon_single.png");
+	private static final Icon alignedPeaklistIcon = new ImageIcon("icons/peaklisticon_aligned.png");
 	private static final Icon fileIcon = new ImageIcon("icons/fileicon.png");
 	private static final Icon fileWithMassListIcon = new ImageIcon(
 			"icons/filewithmasslisticon.png");
@@ -115,17 +116,18 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 		}
 
 		if (embeddedObject instanceof MassList) {
-			label.setIcon(listIcon);
+			label.setIcon(peakListIcon);
 			label.setFont(smallFont);
 		}
 
 		if (embeddedObject instanceof PeakList) {
 			PeakList p = (PeakList) embeddedObject;
-			label.setIcon(listIcon);
 			if (p.getNumberOfRawDataFiles() > 1) {
 				label.setFont(smallerFont.deriveFont(Font.BOLD));
+				label.setIcon(alignedPeaklistIcon);
 			} else {
 				label.setFont(smallerFont);
+				label.setIcon(peakListIcon);
 			}
 		}
 
