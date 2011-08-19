@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
@@ -41,15 +39,13 @@ public class JoinAlignerParameters extends SimpleParameterSet {
 
 	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final NumberParameter MZWeight = new NumberParameter(
-			"Weight for m/z", "Score for perfectly matching m/z values",
-			NumberFormat.getNumberInstance());
+	public static final DoubleParameter MZWeight = new DoubleParameter(
+			"Weight for m/z", "Score for perfectly matching m/z values");
 
 	public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-	public static final NumberParameter RTWeight = new NumberParameter(
-			"Weight for RT", "Score for perfectly matching RT values",
-			NumberFormat.getNumberInstance());
+	public static final DoubleParameter RTWeight = new DoubleParameter(
+			"Weight for RT", "Score for perfectly matching RT values");
 
 	public static final BooleanParameter SameChargeRequired = new BooleanParameter(
 			"Require same charge state",

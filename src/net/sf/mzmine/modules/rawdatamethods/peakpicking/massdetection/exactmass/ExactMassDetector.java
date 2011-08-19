@@ -40,7 +40,7 @@ public class ExactMassDetector implements MassDetector {
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
-				ExactMassDetectorParameters.noiseLevel).getDouble();
+				ExactMassDetectorParameters.noiseLevel).getValue();
 
 		// Create a tree set of detected mzPeaks sorted by MZ in ascending order
 		TreeSet<ExactMzDataPoint> mzPeaks = new TreeSet<ExactMzDataPoint>(

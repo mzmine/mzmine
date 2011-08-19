@@ -56,18 +56,18 @@ public class AdductSearchTask extends AbstractTask {
 		this.parameters = parameters;
 
 		rtTolerance = parameters.getParameter(
-				AdductSearchParameters.rtTolerance).getDouble();
+				AdductSearchParameters.rtTolerance).getValue();
 		mzTolerance = parameters.getParameter(
-				AdductSearchParameters.mzTolerance).getDouble();
+				AdductSearchParameters.mzTolerance).getValue();
 
 		selectedAdducts = parameters.getParameter(
 				AdductSearchParameters.adducts).getValue();
 
 		customMassDifference = parameters.getParameter(
-				AdductSearchParameters.customAdductValue).getDouble();
+				AdductSearchParameters.customAdductValue).getValue();
 
 		maxAdductHeight = parameters.getParameter(
-				AdductSearchParameters.maxAdductHeight).getDouble();
+				AdductSearchParameters.maxAdductHeight).getValue();
 
 	}
 

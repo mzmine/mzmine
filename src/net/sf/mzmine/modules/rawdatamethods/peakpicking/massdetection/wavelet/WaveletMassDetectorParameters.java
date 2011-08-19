@@ -19,36 +19,31 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberParameter noiseLevel = new NumberParameter(
+	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
-			"Intensities less than this value are interpreted as noise",
-			MZmineCore.getIntensityFormat());
+			"Intensities less than this value are interpreted as noise");
 
-	public static final NumberParameter scaleLevel = new NumberParameter(
+	public static final IntegerParameter scaleLevel = new IntegerParameter(
 			"Scale level",
-			"Number of wavelet'scale (coeficients) to use in m/z peak detection",
-			DecimalFormat.getIntegerInstance());
+			"Number of wavelet'scale (coeficients) to use in m/z peak detection");
 
-	public static final NumberParameter waveletWindow = new NumberParameter(
+	public static final PercentParameter waveletWindow = new PercentParameter(
 			"Wavelet window size (%)",
-			"Size in % of wavelet window to apply in m/z peak detection",
-			NumberFormat.getPercentInstance());
+			"Size in % of wavelet window to apply in m/z peak detection");
 
 	public WaveletMassDetectorParameters() {
-		super(new UserParameter[] { noiseLevel, scaleLevel, waveletWindow });
+		super(new Parameter[] { noiseLevel, scaleLevel, waveletWindow });
 	}
 
 	public ExitCode showSetupDialog() {

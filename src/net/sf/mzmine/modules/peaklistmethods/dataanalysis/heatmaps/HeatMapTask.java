@@ -16,14 +16,15 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
@@ -35,6 +36,7 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.inference.TTestImpl;
@@ -71,11 +73,11 @@ public class HeatMapTask extends AbstractTask {
                 rcontrol = parameters.getParameter(HeatMapParameters.showControlSamples).getValue();
                 plegend = parameters.getParameter(HeatMapParameters.plegend).getValue();
 
-                height = parameters.getParameter(HeatMapParameters.height).getInt();
-                width = parameters.getParameter(HeatMapParameters.width).getInt();
-                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getInt();
-                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getInt();
-                starSize = parameters.getParameter(HeatMapParameters.star).getInt();
+                height = parameters.getParameter(HeatMapParameters.height).getValue();
+                width = parameters.getParameter(HeatMapParameters.width).getValue();
+                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getValue();
+                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getValue();
+                starSize = parameters.getParameter(HeatMapParameters.star).getValue();
 
         }
 

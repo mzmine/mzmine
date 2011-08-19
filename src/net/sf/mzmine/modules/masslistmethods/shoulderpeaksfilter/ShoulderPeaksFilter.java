@@ -17,33 +17,26 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter;
+package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.modules.masslistmethods.massfilters.MassFilter;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
-public class ShoulderPeaksFilter implements MassFilter {
+public class ShoulderPeaksFilter {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private ParameterSet moduleParameters = new ShoulderPeaksFilterParameters();
-
-	public DataPoint[] filterMassValues(DataPoint[] mzPeaks,
+	public static DataPoint[] filterMassValues(DataPoint[] mzPeaks,
 			ParameterSet parameters) {
 
-		int resolution = parameters.getParameter(
-				ShoulderPeaksFilterParameters.resolution).getInt();
+		double resolution = parameters.getParameter(
+				ShoulderPeaksFilterParameters.resolution).getValue();
 
 		PeakModel peakModel = null;
 
@@ -56,8 +49,7 @@ public class ShoulderPeaksFilter implements MassFilter {
 			Class modelClass = type.getModelClass();
 			peakModel = (PeakModel) modelClass.newInstance();
 		} catch (Exception e) {
-			logger.log(Level.SEVERE,
-					"Could not create instance of peak model class", e);
+			e.printStackTrace();
 		}
 
 		// If peakModel is null, just don't do any filtering
@@ -96,10 +88,6 @@ public class ShoulderPeaksFilter implements MassFilter {
 		return finalMZPeaks.toArray(new DataPoint[0]);
 	}
 
-	public String toString() {
-		return "FTML shoulder peaks filter";
-	}
-
 	/**
 	 * This function remove peaks encountered in the lateral of a main peak
 	 * (currentCandidate) that are considered as garbage, for example FTMS
@@ -112,8 +100,8 @@ public class ShoulderPeaksFilter implements MassFilter {
 	 * that are under the curve of the modeled peak.
 	 * 
 	 */
-	private void removeLateralPeaks(DataPoint currentCandidate,
-			TreeSet<DataPoint> candidates, PeakModel peakModel, int resolution) {
+	private static void removeLateralPeaks(DataPoint currentCandidate,
+			TreeSet<DataPoint> candidates, PeakModel peakModel, double resolution) {
 
 		// We set our peak model with same position(m/z), height(intensity) and
 		// resolution of the current peak
@@ -136,8 +124,4 @@ public class ShoulderPeaksFilter implements MassFilter {
 
 	}
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return moduleParameters;
-	}
 }

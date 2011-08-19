@@ -257,7 +257,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 			double minPredictedAbundance = isotopeParameters.getParameter(
 					IsotopePatternCalculatorParameters.minAbundance)
-					.getDouble();
+					.getValue();
 
 			predictedIsotopePattern = IsotopePatternCalculator
 					.calculateIsotopePattern(adjustedFormula,

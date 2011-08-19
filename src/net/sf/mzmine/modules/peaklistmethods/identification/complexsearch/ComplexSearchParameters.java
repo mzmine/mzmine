@@ -19,15 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 
 public class ComplexSearchParameters extends SimpleParameterSet {
 
@@ -38,24 +36,21 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 			"Type of ion used to calculate the neutral mass",
 			IonizationType.values());
 
-	public static final NumberParameter rtTolerance = new NumberParameter(
+	public static final DoubleParameter rtTolerance = new DoubleParameter(
 			"RT tolerance",
-			"Maximum allowed retention retention time difference to set the relationship between peaks",
-			MZmineCore.getRTFormat());
+			"Maximum allowed retention retention time difference to set the relationship between peaks");
 
-	public static final NumberParameter mzTolerance = new NumberParameter(
+	public static final DoubleParameter mzTolerance = new DoubleParameter(
 			"m/z tolerance",
-			"Tolerance value of the m/z difference between peaks",
-			MZmineCore.getMZFormat());
+			"Tolerance value of the m/z difference between peaks");
 
-	public static final NumberParameter maxComplexHeight = new NumberParameter(
+	public static final PercentParameter maxComplexHeight = new PercentParameter(
 			"Max complex peak height",
-			"Maximum height of the recognized complex peak, relative to the highest of component peaks",
-			NumberFormat.getPercentInstance());
+			"Maximum height of the recognized complex peak, relative to the highest of component peaks");
 
 	public ComplexSearchParameters() {
-		super(new Parameter[] { peakLists, ionizationMethod, rtTolerance, mzTolerance,
-				maxComplexHeight });
+		super(new Parameter[] { peakLists, ionizationMethod, rtTolerance,
+				mzTolerance, maxComplexHeight });
 	}
 
 }

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.masslistmethods.massfilters;
+package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
 import java.util.logging.Logger;
 
@@ -33,7 +33,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 /**
  *
  */
-public class MassFilteringTask extends AbstractTask {
+public class ShoulderPeaksFilterTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private RawDataFile dataFile;
@@ -45,33 +45,24 @@ public class MassFilteringTask extends AbstractTask {
 	// User parameters
 	private String massListName, suffix;
 	private boolean autoRemove;
-
-	private MassFilter massFilter;
+	private ParameterSet parameters;
 
 	/**
 	 * @param dataFile
 	 * @param parameters
 	 */
-	public MassFilteringTask(RawDataFile dataFile, ParameterSet parameters) {
+	public ShoulderPeaksFilterTask(RawDataFile dataFile, ParameterSet parameters) {
 
 		this.dataFile = dataFile;
+		this.parameters = parameters;
 
-		this.massFilter = parameters.getParameter(
-				MassFilteringParameters.massFilter).getValue();
+		this.massListName = parameters.getParameter(
+				ShoulderPeaksFilterParameters.massList).getValue();
 
-		/*
-		 * This is a hack, because we are looking directly into
-		 * ShoulderPeaksFilterParameters. In fact the massList parameter should
-		 * be placed in MassFilteringParameters class, but then the previews
-		 * would not work.
-		 */
-		this.massListName = massFilter.getParameterSet()
-				.getParameter(MassFilteringParameters.massList).getValue();
-
-		this.suffix = parameters.getParameter(MassFilteringParameters.suffix)
-				.getValue();
+		this.suffix = parameters.getParameter(
+				ShoulderPeaksFilterParameters.suffix).getValue();
 		this.autoRemove = parameters.getParameter(
-				MassFilteringParameters.autoRemove).getValue();
+				ShoulderPeaksFilterParameters.autoRemove).getValue();
 
 	}
 
@@ -79,7 +70,7 @@ public class MassFilteringTask extends AbstractTask {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		return "Filtering masses in " + dataFile;
+		return "Filtering shoulder peaks in " + dataFile;
 	}
 
 	/**
@@ -136,13 +127,15 @@ public class MassFilteringTask extends AbstractTask {
 			MassList massList = scan.getMassList(massListName);
 
 			// Skip those scans which do not have a mass list of given name
-			if (massList == null)
+			if (massList == null) {
+				processedScans++;
 				continue;
+			}
 
 			DataPoint mzPeaks[] = massList.getDataPoints();
 
-			DataPoint newMzPeaks[] = massFilter.filterMassValues(mzPeaks,
-					massFilter.getParameterSet());
+			DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(
+					mzPeaks, parameters);
 
 			SimpleMassList newMassList = new SimpleMassList(massListName + " "
 					+ suffix, scan, newMzPeaks);
@@ -158,7 +151,7 @@ public class MassFilteringTask extends AbstractTask {
 
 		setStatus(TaskStatus.FINISHED);
 
-		logger.info("Finished " + massFilter + " on " + dataFile);
+		logger.info("Finished shoulder peaks filter on " + dataFile);
 
 	}
 

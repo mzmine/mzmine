@@ -19,19 +19,17 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class MeanFilterParameters extends SimpleParameterSet {
 
-	public static final NumberParameter oneSidedWindowLength = new NumberParameter(
-			"Window length", "One-sided length of the smoothing window",
-			MZmineCore.getMZFormat());
+	public static final DoubleParameter oneSidedWindowLength = new DoubleParameter(
+			"Window length", "One-sided length of the smoothing window");
 
 	private ScanFilter scanFilter;
 

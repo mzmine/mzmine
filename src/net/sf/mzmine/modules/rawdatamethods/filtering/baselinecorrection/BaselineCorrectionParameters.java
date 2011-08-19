@@ -23,12 +23,14 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
-
-import java.text.NumberFormat;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
  * Holds baseline correction module parameters.
@@ -58,19 +60,17 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     /**
      * Smoothing factor.
      */
-    public static final NumberParameter SMOOTHING = new NumberParameter(
+    public static final DoubleParameter SMOOTHING = new DoubleParameter(
             "Smoothing",
             "The smoothing factor (>= 0), generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
-            NumberFormat.getNumberInstance(),
             1.0e7, 0.0, null);
 
     /**
      * Asymmetry.
      */
-    public static final NumberParameter ASYMMETRY = new NumberParameter(
+    public static final DoubleParameter ASYMMETRY = new DoubleParameter(
             "Asymmetry",
             "The weight (0 <= p <= 1) for points above the trend line, whereas 1-p is the weight for points below it.  Naturally, p should be small for estimating baselines.",
-            NumberFormat.getNumberInstance(),
             0.001,
             0.0,
             1.0);
@@ -86,10 +86,9 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
     /**
      * M/Z bin width.
      */
-    public static final NumberParameter MZ_BIN_WIDTH = new NumberParameter(
+    public static final DoubleParameter MZ_BIN_WIDTH = new DoubleParameter(
             "m/z bin width",
             "The m/z bin size (>= 0.001) to use when the \"" + USE_MZ_BINS.getName() + "\" option is enabled.",
-            MZmineCore.getMZFormat(),
             1.0, 0.001, null);
 
     /**

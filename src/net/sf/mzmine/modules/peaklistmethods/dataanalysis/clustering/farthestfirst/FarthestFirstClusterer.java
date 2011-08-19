@@ -54,7 +54,7 @@ public class FarthestFirstClusterer implements ClusteringAlgorithm {
                 String[] options = new String[2];
                 Clusterer clusterer = new FarthestFirst();
 
-                int numberOfGroups = parameters.getParameter(FarthestFirstClustererParameters.numberOfGroups).getInt();
+                int numberOfGroups = parameters.getParameter(FarthestFirstClustererParameters.numberOfGroups).getValue();
                 options[0] = "-N";
                 options[1] = String.valueOf(numberOfGroups);
 

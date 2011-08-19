@@ -19,13 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -40,11 +38,10 @@ public class ShapeModelerParameters extends SimpleParameterSet {
 	public static final StringParameter suffix = new StringParameter("Suffix",
 			"This string is added to filename as suffix", "shaped peaks");
 
-	public static final NumberParameter massResolution = new NumberParameter(
+	public static final DoubleParameter massResolution = new DoubleParameter(
 			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
-					+ " Peak width is taken as the full width at half maximum intensity (FWHM).",
-			NumberFormat.getIntegerInstance());
+					+ " Peak width is taken as the full width at half maximum intensity (FWHM).");
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peak list",

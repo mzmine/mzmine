@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.visualization.neutralloss;
 
-import java.text.NumberFormat;
 import java.util.Hashtable;
 
 import net.sf.mzmine.data.RawDataFile;
@@ -28,7 +27,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -53,9 +52,8 @@ public class NeutralLossParameters extends SimpleParameterSet {
 			"Precursor m/z", "Range of precursor m/z values",
 			MZmineCore.getMZFormat());
 
-	public static final NumberParameter numOfFragments = new NumberParameter(
-			"Fragments", "Number of most intense fragments",
-			NumberFormat.getIntegerInstance());
+	public static final IntegerParameter numOfFragments = new IntegerParameter(
+			"Fragments", "Number of most intense fragments");
 
 	public NeutralLossParameters() {
 		super(new Parameter[] { dataFiles, xAxisType, retentionTimeRange,

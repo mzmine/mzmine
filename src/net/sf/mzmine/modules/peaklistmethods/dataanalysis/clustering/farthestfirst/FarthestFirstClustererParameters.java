@@ -19,13 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.farthestfirst;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class FarthestFirstClustererParameters extends SimpleParameterSet {
 
@@ -34,10 +32,10 @@ public class FarthestFirstClustererParameters extends SimpleParameterSet {
 			"Select the kind of visualization for the clustering result",
 			VisualizationType.values());
 
-	public static final NumberParameter numberOfGroups = new NumberParameter(
+	public static final IntegerParameter numberOfGroups = new IntegerParameter(
 			"Number of clusters to generate",
 			"Specify the number of clusters to generate.",
-			NumberFormat.getIntegerInstance(), 3);
+			3);
 
 	public FarthestFirstClustererParameters() {
 		super(new Parameter[] { visualization, numberOfGroups });

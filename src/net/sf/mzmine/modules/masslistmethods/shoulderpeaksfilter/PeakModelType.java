@@ -17,11 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter;
+package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
-import net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter.peakmodels.ExtendedLorentzianPeak;
-import net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter.peakmodels.GaussPeak;
-import net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter.peakmodels.LorentzianPeak;
+import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakmodels.ExtendedLorentzianPeak;
+import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakmodels.GaussPeak;
+import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakmodels.LorentzianPeak;
 
 public enum PeakModelType {
 

@@ -69,9 +69,9 @@ public class ChromatogramBuilderTask extends AbstractTask {
 		this.mzTolerance = parameters.getParameter(
 				ChromatogramBuilderParameters.mzTolerance).getValue();
 		this.minimumTimeSpan = parameters.getParameter(
-				ChromatogramBuilderParameters.minimumTimeSpan).getDouble();
+				ChromatogramBuilderParameters.minimumTimeSpan).getValue();
 		this.minimumHeight = parameters.getParameter(
-				ChromatogramBuilderParameters.minimumHeight).getDouble();
+				ChromatogramBuilderParameters.minimumHeight).getValue();
 
 		this.suffix = parameters.getParameter(
 				ChromatogramBuilderParameters.suffix).getValue();

@@ -62,7 +62,7 @@ class PeakFinderTask extends AbstractTask {
 		suffix = parameters.getParameter(PeakFinderParameters.suffix)
 				.getValue();
 		intTolerance = parameters.getParameter(
-				PeakFinderParameters.intTolerance).getDouble();
+				PeakFinderParameters.intTolerance).getValue();
 		mzTolerance = parameters.getParameter(PeakFinderParameters.MZTolerance)
 				.getValue();
 		rtTolerance = parameters.getParameter(PeakFinderParameters.RTTolerance)

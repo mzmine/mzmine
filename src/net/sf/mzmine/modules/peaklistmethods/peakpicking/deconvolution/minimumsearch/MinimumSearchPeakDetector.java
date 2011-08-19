@@ -54,15 +54,15 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 						MinimumSearchPeakDetectorParameters.chromatographicThresholdLevel)
 				.getValue();
 		double searchRTRange = parameters.getParameter(
-				MinimumSearchPeakDetectorParameters.searchRTRange).getDouble();
+				MinimumSearchPeakDetectorParameters.searchRTRange).getValue();
 		double minRelativeHeight = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.minRelativeHeight)
 				.getValue();
 		double minAbsoluteHeight = parameters.getParameter(
 				MinimumSearchPeakDetectorParameters.minAbsoluteHeight)
-				.getDouble();
+				.getValue();
 		double minRatio = parameters.getParameter(
-				MinimumSearchPeakDetectorParameters.minRatio).getDouble();
+				MinimumSearchPeakDetectorParameters.minRatio).getValue();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 

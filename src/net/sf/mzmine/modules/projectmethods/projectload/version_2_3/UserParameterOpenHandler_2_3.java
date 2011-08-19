@@ -33,7 +33,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.projectmethods.projectload.UserParameterOpenHandler;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.project.MZmineProject;
 
@@ -125,8 +125,8 @@ public class UserParameterOpenHandler_2_3 extends DefaultHandler implements
 			String type = attrs.getValue(UserParameterElementName_2_3.TYPE
 					.getElementName());
 
-			if (type.equals(NumberParameter.class.getSimpleName())) {
-				currentParameter = new NumberParameter(name, null);
+			if (type.equals(DoubleParameter.class.getSimpleName())) {
+				currentParameter = new DoubleParameter(name, null);
 			} else if (type.equals(StringParameter.class.getSimpleName())) {
 				currentParameter = new StringParameter(name, null);
 			} else if (type.equals(ComboParameter.class.getSimpleName())) {
@@ -174,7 +174,7 @@ public class UserParameterOpenHandler_2_3 extends DefaultHandler implements
 			RawDataFile currentDataFile = dataFilesIDMap.get(currentDataFileID);
 			String valueString = getTextOfElement();
 			Object value;
-			if (currentParameter instanceof NumberParameter) {
+			if (currentParameter instanceof DoubleParameter) {
 				value = new Double(valueString);
 			} else
 				value = valueString;

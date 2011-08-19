@@ -98,7 +98,7 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 		addMouseListener(new PopupListener(popupMenu));
 
 		int rowHeight = parameters.getParameter(
-				PeakListTableParameters.rowHeight).getInt();
+				PeakListTableParameters.rowHeight).getValue();
 		setRowHeight(rowHeight);
 
 		ttm = new ComponentToolTipManager();

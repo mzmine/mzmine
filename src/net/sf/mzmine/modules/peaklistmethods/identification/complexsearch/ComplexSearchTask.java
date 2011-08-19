@@ -59,11 +59,11 @@ public class ComplexSearchTask extends AbstractTask {
 		ionType = parameters.getParameter(
 				ComplexSearchParameters.ionizationMethod).getValue();
 		rtTolerance = parameters.getParameter(
-				ComplexSearchParameters.rtTolerance).getDouble();
+				ComplexSearchParameters.rtTolerance).getValue();
 		mzTolerance = parameters.getParameter(
-				ComplexSearchParameters.mzTolerance).getDouble();
+				ComplexSearchParameters.mzTolerance).getValue();
 		maxComplexHeight = parameters.getParameter(
-				ComplexSearchParameters.maxComplexHeight).getDouble();
+				ComplexSearchParameters.maxComplexHeight).getValue();
 
 	}
 

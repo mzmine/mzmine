@@ -38,7 +38,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**
@@ -212,7 +212,7 @@ public class ProjectParametersImporter {
 					}
 				}
 				if (isAllNumeric) {
-					parameters.add(new NumberParameter(
+					parameters.add(new DoubleParameter(
 							name, null));
 					continue;
 				}
@@ -322,7 +322,7 @@ public class ProjectParametersImporter {
 					String parameterValue = st.nextToken();
 					UserParameter parameter = parameters[parameterIndex];
 
-					if (parameter instanceof NumberParameter)
+					if (parameter instanceof DoubleParameter)
 						mainDialog.setParameterValue(parameter, fileName,
 								Double.parseDouble(parameterValue));
 					else

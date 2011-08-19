@@ -44,11 +44,11 @@ public class BaselinePeakDetector implements PeakResolver {
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
 		double minimumPeakHeight = parameters.getParameter(
-				BaselinePeakDetectorParameters.minimumPeakHeight).getDouble();
+				BaselinePeakDetectorParameters.minimumPeakHeight).getValue();
 		double minimumPeakDuration = parameters.getParameter(
-				BaselinePeakDetectorParameters.minimumPeakDuration).getDouble();
+				BaselinePeakDetectorParameters.minimumPeakDuration).getValue();
 		double baselineLevel = parameters.getParameter(
-				BaselinePeakDetectorParameters.baselineLevel).getDouble();
+				BaselinePeakDetectorParameters.baselineLevel).getValue();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 

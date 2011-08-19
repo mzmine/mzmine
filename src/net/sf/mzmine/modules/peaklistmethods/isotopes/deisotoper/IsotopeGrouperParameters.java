@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -52,10 +50,9 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 			"Monotonic shape",
 			"If true, then monotonically decreasing height of isotope pattern is required");
 
-	public static final NumberParameter maximumCharge = new NumberParameter(
+	public static final IntegerParameter maximumCharge = new IntegerParameter(
 			"Maximum charge",
-			"Maximum charge to consider for detecting the isotope patterns",
-			NumberFormat.getIntegerInstance());
+			"Maximum charge to consider for detecting the isotope patterns");
 
 	public static final ComboParameter<String> representativeIsotope = new ComboParameter<String>(
 			"Representative isotope",
@@ -76,13 +73,10 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 	}
 
 	/*
-	 		for (PeakList peaklist : peakLists) {
-			if (peaklist.getNumberOfRawDataFiles() > 1) {
-				desktop.displayErrorMessage("Peak list "
-						+ peaklist
-						+ " cannot be deisotoped, because it contains more than one data file");
-				return;
-			}
-		}
+	 * for (PeakList peaklist : peakLists) { if
+	 * (peaklist.getNumberOfRawDataFiles() > 1) {
+	 * desktop.displayErrorMessage("Peak list " + peaklist +
+	 * " cannot be deisotoped, because it contains more than one data file");
+	 * return; } }
 	 */
 }

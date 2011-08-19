@@ -51,11 +51,11 @@ public class WaveletMassDetector implements MassDetector {
 
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 		double noiseLevel = parameters.getParameter(
-				WaveletMassDetectorParameters.noiseLevel).getDouble();
+				WaveletMassDetectorParameters.noiseLevel).getValue();
 		int scaleLevel = parameters.getParameter(
-				WaveletMassDetectorParameters.scaleLevel).getInt();
+				WaveletMassDetectorParameters.scaleLevel).getValue();
 		double waveletWindow = parameters.getParameter(
-				WaveletMassDetectorParameters.waveletWindow).getDouble();
+				WaveletMassDetectorParameters.waveletWindow).getValue();
 
 		DataPoint originalDataPoints[] = scan.getDataPoints();
 

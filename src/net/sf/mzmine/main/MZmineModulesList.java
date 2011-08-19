@@ -21,17 +21,17 @@ package net.sf.mzmine.main;
 
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
-import net.sf.mzmine.modules.masslistmethods.massfilters.MassFilteringModule;
+import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.PathAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps.HeatMapModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.CDAPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.PCAPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.SammonsPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVPlotModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot.LogratioPlotModule;
-import net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps.HeatMapModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter.DuplicateFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinderModule;
@@ -98,7 +98,7 @@ public class MZmineModulesList {
 			// Raw data methods
 			RawDataImportModule.class,
 			MassDetectionModule.class,
-			MassFilteringModule.class,
+			ShoulderPeaksFilterModule.class,
 			ChromatogramBuilderModule.class,
 			ManualPeakPickerModule.class,
 			MsMsPeakPickerModule.class,

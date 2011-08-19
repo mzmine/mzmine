@@ -13,33 +13,27 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.masslistmethods.massfilters;
+package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
-import net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter.ShoulderPeaksFilter;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
-import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
-public class MassFilteringParameters extends SimpleParameterSet {
+public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-	// This parameter will be used in the sub-modules. We need this parameter to
-	// provide previews.
 	public static final MassListParameter massList = new MassListParameter();
-
-	public static final MassFilter massFilters[] = { new ShoulderPeaksFilter() };
-
-	public static final ModuleComboParameter<MassFilter> massFilter = new ModuleComboParameter<MassFilter>(
-			"Mass filter", "Mass filter", massFilters);
 
 	public static final StringParameter suffix = new StringParameter("Suffix",
 			"This string is added to name as suffix", "filtered");
@@ -48,8 +42,27 @@ public class MassFilteringParameters extends SimpleParameterSet {
 			"Remove original mass list",
 			"If checked, original mass list will be removed and only filtered version remains");
 
-	public MassFilteringParameters() {
-		super(new Parameter[] { dataFiles, massFilter, suffix, autoRemove });
+	public static final DoubleParameter resolution = new DoubleParameter(
+			"Mass resolution",
+			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
+					+ " Peak width is taken as the full width at half maximum intensity (FWHM).");
+
+	public static final ComboParameter<PeakModelType> peakModel = new ComboParameter<PeakModelType>(
+			"Peak model function",
+			"Peaks under the curve of this peak model are removed",
+			PeakModelType.values());
+
+	public ShoulderPeaksFilterParameters() {
+		super(new Parameter[] { dataFiles, massList, resolution, peakModel,
+				suffix, autoRemove });
+
+	}
+
+	public ExitCode showSetupDialog() {
+		ShoulderPeaksFilterSetupDialog dialog = new ShoulderPeaksFilterSetupDialog(
+				this);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
 	}
 
 }

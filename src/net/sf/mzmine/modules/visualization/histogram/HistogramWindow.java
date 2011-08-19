@@ -49,7 +49,7 @@ public class HistogramWindow extends JInternalFrame {
         RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();
 
         HistogramDataType dataType = parameters.getParameter(HistogramParameters.dataRange).getType();
-        int numOfBins =  parameters.getParameter(HistogramParameters.numOfBins).getInt();
+        int numOfBins =  parameters.getParameter(HistogramParameters.numOfBins).getValue();
         Range range = parameters.getParameter(HistogramParameters.dataRange).getValue();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);

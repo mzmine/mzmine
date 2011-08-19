@@ -23,7 +23,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -42,7 +41,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class AddProjectParameterDialog extends JDialog implements
@@ -209,8 +208,7 @@ public class AddProjectParameterDialog extends JDialog implements
 
 			if (radiobuttonNumerical.isSelected()) {
 
-				parameter = new NumberParameter(paramName, null,
-						NumberFormat.getNumberInstance());
+				parameter = new DoubleParameter(paramName, null);
 			}
 
 			if (radiobuttonFreeText.isSelected()) {

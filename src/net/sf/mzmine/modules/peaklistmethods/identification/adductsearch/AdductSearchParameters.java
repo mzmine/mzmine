@@ -19,43 +19,36 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class AdductSearchParameters extends SimpleParameterSet {
 
 	public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final NumberParameter rtTolerance = new NumberParameter(
+	public static final DoubleParameter rtTolerance = new DoubleParameter(
 			"RT tolerance",
-			"Maximum allowed difference of retention time to set a relationship between peaks",
-			MZmineCore.getRTFormat());
+			"Maximum allowed difference of retention time to set a relationship between peaks");
 
 	public static final MultiChoiceParameter<AdductType> adducts = new MultiChoiceParameter<AdductType>(
 			"Adducts",
 			"List of adducts, each one refers a specific distance in m/z axis between related peaks",
 			AdductType.values());
 
-	public static final NumberParameter customAdductValue = new NumberParameter(
+	public static final DoubleParameter customAdductValue = new DoubleParameter(
 			"Custom adduct value",
-			"Mass value (m/z difference) for custom adduct",
-			MZmineCore.getMZFormat());
+			"Mass value (m/z difference) for custom adduct");
 
-	public static final NumberParameter mzTolerance = new NumberParameter(
+	public static final DoubleParameter mzTolerance = new DoubleParameter(
 			"m/z tolerance",
-			"Tolerance value of the m/z difference between peaks",
-			MZmineCore.getMZFormat());
+			"Tolerance value of the m/z difference between peaks");
 
-	public static final NumberParameter maxAdductHeight = new NumberParameter(
+	public static final DoubleParameter maxAdductHeight = new DoubleParameter(
 			"Max adduct peak height",
-			"Maximum height of the recognized adduct peak, relative to the main peak",
-			NumberFormat.getPercentInstance());
+			"Maximum height of the recognized adduct peak, relative to the main peak");
 
 	public AdductSearchParameters() {
 		super(new Parameter[] { peakLists, rtTolerance, adducts,

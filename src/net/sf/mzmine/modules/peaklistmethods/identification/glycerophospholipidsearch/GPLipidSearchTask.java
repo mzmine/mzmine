@@ -28,8 +28,10 @@ import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.Range;
 
 public class GPLipidSearchTask extends AbstractTask {
 
@@ -40,7 +42,7 @@ public class GPLipidSearchTask extends AbstractTask {
 
 	private GPLipidType[] selectedLipids;
 	private int minChainLength, maxChainLength, maxDoubleBonds;
-	private double mzTolerance;
+	private MZTolerance mzTolerance;
 	private IonizationType ionizationType;
 
 	private ParameterSet parameters;
@@ -55,13 +57,13 @@ public class GPLipidSearchTask extends AbstractTask {
 		this.parameters = parameters;
 
 		minChainLength = parameters.getParameter(
-				GPLipidSearchParameters.minChainLength).getInt();
+				GPLipidSearchParameters.minChainLength).getValue();
 		maxChainLength = parameters.getParameter(
-				GPLipidSearchParameters.maxChainLength).getInt();
+				GPLipidSearchParameters.maxChainLength).getValue();
 		maxDoubleBonds = parameters.getParameter(
-				GPLipidSearchParameters.maxDoubleBonds).getInt();
+				GPLipidSearchParameters.maxDoubleBonds).getValue();
 		mzTolerance = parameters.getParameter(
-				GPLipidSearchParameters.mzTolerance).getDouble();
+				GPLipidSearchParameters.mzTolerance).getValue();
 		selectedLipids = parameters.getParameter(
 				GPLipidSearchParameters.lipidTypes).getValue();
 		ionizationType = parameters.getParameter(
@@ -175,7 +177,10 @@ public class GPLipidSearchTask extends AbstractTask {
 			if (isCanceled())
 				return;
 
-			if (Math.abs(lipidIonMass - rows[rowIndex].getAverageMZ()) <= mzTolerance) {
+			Range mzTolRange = mzTolerance.getToleranceRange(rows[rowIndex]
+					.getAverageMZ());
+
+			if (mzTolRange.contains(lipidIonMass)) {
 				rows[rowIndex].addPeakIdentity(lipid, false);
 
 				// Notify the GUI about the change in the project

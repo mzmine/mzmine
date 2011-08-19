@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.parameters.dialogs;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
@@ -37,6 +36,9 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -59,7 +61,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener,
-		PropertyChangeListener {
+		DocumentListener {
 
 	// public static final int TEXTFIELD_COLUMNS = 10;
 
@@ -149,9 +151,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 			if (value != null)
 				up.setValueToComponent(comp, value);
 
-			// This only applies to text boxes, but we can add it to all
-			// components
-			comp.addPropertyChangeListener("value", this);
+			// Add listeners so we are notified about any change in the values
+			addListenersToComponent(comp);
 
 			// By calling this we make sure the components will never be resized
 			// smaller than their optimal size
@@ -259,10 +260,6 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 		return exitCode;
 	}
 
-	public void propertyChange(PropertyChangeEvent event) {
-		parametersChanged();
-	}
-
 	protected JComponent getComponentForParameter(Parameter p) {
 		return parametersAndComponents.get(p.getName());
 	}
@@ -292,8 +289,9 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 			updateParameterSetFromComponents();
 
 			ArrayList<String> messages = new ArrayList<String>();
-			boolean allParametersOK = parameterSet.checkParameterValues(messages);
-			
+			boolean allParametersOK = parameterSet
+					.checkParameterValues(messages);
+
 			if (!allParametersOK) {
 				StringBuilder message = new StringBuilder(
 						"Please check the parameter settings:\n\n");
@@ -317,6 +315,45 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	 */
 	protected void parametersChanged() {
 
+	}
+
+	private void addListenersToComponent(JComponent comp) {
+		if (comp instanceof JTextComponent) {
+			JTextComponent textComp = (JTextComponent) comp;
+			textComp.getDocument().addDocumentListener(this);
+		}
+		if (comp instanceof JComboBox) {
+			JComboBox comboComp = (JComboBox) comp;
+			comboComp.addActionListener(this);
+		}
+		if (comp instanceof JCheckBox) {
+			JCheckBox checkComp = (JCheckBox) comp;
+			checkComp.addActionListener(this);
+		}
+		if (comp instanceof JPanel) {
+			JPanel panelComp = (JPanel) comp;
+			for (int i = 0; i < panelComp.getComponentCount(); i++) {
+				Component child = panelComp.getComponent(i);
+				if (!(child instanceof JComponent))
+					continue;
+				addListenersToComponent((JComponent) child);
+			}
+		}
+	}
+
+	@Override
+	public void changedUpdate(DocumentEvent event) {
+		parametersChanged();
+	}
+
+	@Override
+	public void insertUpdate(DocumentEvent event) {
+		parametersChanged();
+	}
+
+	@Override
+	public void removeUpdate(DocumentEvent event) {
+		parametersChanged();
 	}
 
 }

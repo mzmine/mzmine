@@ -52,12 +52,12 @@ public class MsMsPeakPickingTask extends AbstractTask {
 			MsMsPeakPickerParameters parameters) {
 		this.dataFile = dataFile;
 		binSize = parameters.getParameter(MsMsPeakPickerParameters.mzWindow)
-				.getDouble();
+				.getValue();
 		binTime = parameters.getParameter(MsMsPeakPickerParameters.rtWindow)
-				.getDouble();
+				.getValue();
 
 		msLevel = parameters.getParameter(MsMsPeakPickerParameters.msLevel)
-				.getInt();
+				.getValue();
 		newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks",
 				dataFile);
 	}

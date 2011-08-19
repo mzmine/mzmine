@@ -19,20 +19,18 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class CentroidMassDetectorParameters extends SimpleParameterSet {
 
-	public static final NumberParameter noiseLevel = new NumberParameter(
+	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
-			"Intensities less than this value are interpreted as noise",
-			MZmineCore.getIntensityFormat());
+			"Intensities less than this value are interpreted as noise");
 
 	public CentroidMassDetectorParameters() {
 		super(new UserParameter[] { noiseLevel });

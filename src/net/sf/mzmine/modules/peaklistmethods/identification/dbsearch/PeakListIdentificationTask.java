@@ -83,7 +83,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 		mzTolerance = parameters.getParameter(
 				OnlineDBSearchParameters.mzTolerance).getValue();
 		numOfResults = parameters.getParameter(
-				OnlineDBSearchParameters.numOfResults).getInt();
+				OnlineDBSearchParameters.numOfResults).getValue();
 		isotopeFilter = parameters.getParameter(
 				OnlineDBSearchParameters.isotopeFilter).getValue();
 		isotopeFilterParameters = parameters.getParameter(

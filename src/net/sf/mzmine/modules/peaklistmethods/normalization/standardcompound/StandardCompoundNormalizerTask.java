@@ -69,7 +69,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 				StandardCompoundNormalizerParameters.peakMeasurementType)
 				.getValue();
 		MZvsRTBalance = parameters.getParameter(
-				StandardCompoundNormalizerParameters.MZvsRTBalance).getDouble();
+				StandardCompoundNormalizerParameters.MZvsRTBalance).getValue();
 		removeOriginal = parameters.getParameter(
 				StandardCompoundNormalizerParameters.autoRemove).getValue();
 		standardRows = parameters.getParameter(

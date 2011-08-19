@@ -25,7 +25,7 @@ import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
@@ -48,7 +48,7 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 			"Peak measurement type", "Measure peaks using ",
 			PeakMeasurementType.values());
 
-	public static final NumberParameter MZvsRTBalance = new NumberParameter(
+	public static final DoubleParameter MZvsRTBalance = new DoubleParameter(
 			"m/z vs RT balance",
 			"Used in distance measuring as multiplier of m/z difference");
 

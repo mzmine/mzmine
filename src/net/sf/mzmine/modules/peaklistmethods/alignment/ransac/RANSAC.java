@@ -54,11 +54,11 @@ public class RANSAC {
 
         public RANSAC(ParameterSet parameters) {
 
-                this.numRatePoints = parameters.getParameter(RansacAlignerParameters.NMinPoints).getDouble();
+                this.numRatePoints = parameters.getParameter(RansacAlignerParameters.NMinPoints).getValue();
 
-                this.t = parameters.getParameter(RansacAlignerParameters.Margin).getDouble();
+                this.t = parameters.getParameter(RansacAlignerParameters.Margin).getValue();
 
-                this.k = parameters.getParameter(RansacAlignerParameters.Iterations).getInt();
+                this.k = parameters.getParameter(RansacAlignerParameters.Iterations).getValue();
 
                 this.Linear = parameters.getParameter(RansacAlignerParameters.Linear).getValue();
 

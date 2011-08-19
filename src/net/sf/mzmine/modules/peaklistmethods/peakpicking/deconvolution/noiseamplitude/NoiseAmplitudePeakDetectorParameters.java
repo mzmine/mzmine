@@ -19,37 +19,34 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 
 	private PeakResolver peakResolver;
-	
-	public static final NumberParameter minimumPeakHeight = new NumberParameter(
-			"Min peak height", "Minimum acceptable peak height",
-			MZmineCore.getIntensityFormat());
 
-	public static final NumberParameter minimumPeakDuration = new NumberParameter(
-			"Min peak duration", "Minimum acceptable peak duration",
-			MZmineCore.getRTFormat());
+	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
+			"Min peak height", "Minimum acceptable peak height");
 
-	public static final NumberParameter amplitudeOfNoise = new NumberParameter(
+	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
+			"Min peak duration", "Minimum acceptable peak duration");
+
+	public static final DoubleParameter amplitudeOfNoise = new DoubleParameter(
 			"Amplitude of noise",
-			"This vaue corresponds to the amplitude of noise present all the time in the signal",
-			MZmineCore.getIntensityFormat());
+			"This vaue corresponds to the amplitude of noise present all the time in the signal");
 
 	public ExitCode showSetupDialog() {
-		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(peakResolver);
+		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+				peakResolver);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
-	
+
 	public NoiseAmplitudePeakDetectorParameters(PeakResolver peakResolver) {
 		super(new UserParameter[] { minimumPeakHeight, minimumPeakDuration,
 				amplitudeOfNoise });

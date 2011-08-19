@@ -19,14 +19,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -37,33 +37,25 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 	public static final StringParameter peakListName = new StringParameter(
 			"Peak list name", "Peak list name", "Aligned peak list");
 
-	public static final NumberParameter MZTolerance = new NumberParameter(
-			"m/z tolerance", "Maximum allowed M/Z difference",
-			MZmineCore.getMZFormat());
+	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final NumberParameter RTToleranceValueAbs = new NumberParameter(
+	public static final RTToleranceParameter RTToleranceBefore = new RTToleranceParameter();
+
+	public static final RTToleranceParameter RTToleranceAfter = new RTToleranceParameter(
 			"RT tolerance after correction",
-			"Maximum allowed absolute RT difference after the algorithm correction for the retention time",
-			MZmineCore.getRTFormat());
+			"Maximum allowed absolute RT difference after the algorithm correction for the retention time");
 
-	public static final NumberParameter RTTolerance = new NumberParameter(
-			"RT tolerance", "Maximum allowed absolute RT difference",
-			MZmineCore.getRTFormat());
-
-	public static final NumberParameter Iterations = new NumberParameter(
+	public static final IntegerParameter Iterations = new IntegerParameter(
 			"RANSAC Iterations",
-			"Maximum number of iterations allowed in the algorithm",
-			NumberFormat.getIntegerInstance());
+			"Maximum number of iterations allowed in the algorithm");
 
-	public static final NumberParameter NMinPoints = new NumberParameter(
+	public static final DoubleParameter NMinPoints = new DoubleParameter(
 			"Minimun Number of Points",
-			"Minimum number of aligned peaks required to fit the model",
-			NumberFormat.getPercentInstance());
+			"Minimum number of aligned peaks required to fit the model");
 
-	public static final NumberParameter Margin = new NumberParameter(
+	public static final DoubleParameter Margin = new DoubleParameter(
 			"Threshold value",
-			"Threshold value for determining when a data point fits a model",
-			MZmineCore.getRTFormat());
+			"Threshold value for determining when a data point fits a model");
 
 	public static final BooleanParameter Linear = new BooleanParameter(
 			"Linear model", "Switch between polynomial model or lineal model");
@@ -81,7 +73,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
 	public RansacAlignerParameters() {
 		super(new Parameter[] { peakLists, peakListName, MZTolerance,
-				RTToleranceValueAbs, RTTolerance, Iterations, NMinPoints,
+				RTToleranceBefore, RTToleranceAfter, Iterations, NMinPoints,
 				Margin, Linear, SameChargeRequired });
 	}
 }

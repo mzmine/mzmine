@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.Polarity;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
@@ -34,18 +32,16 @@ public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 	public static final StringParameter formula = new StringParameter(
 			"Chemical formula", "empirical formula of a chemical compound");
 
-	public static final NumberParameter charge = new NumberParameter("Charge",
-			"Charge of the molecule", NumberFormat.getIntegerInstance());
+	public static final IntegerParameter charge = new IntegerParameter("Charge",
+			"Charge of the molecule", 1);
 
 	public static final ComboParameter<Polarity> polarity = new ComboParameter<Polarity>(
 			"Polarity", "Set positive or negative the charge of the molecule ",
 			Polarity.values());
 
-	// We do not use NumberFormat.getPercentInstance() for this parameter,
-	// because it only shows integers
-	public static final NumberParameter minAbundance = new NumberParameter(
+	public static final PercentParameter minAbundance = new PercentParameter(
 			"Minimum abundance", "Minimum abundance of the predicted isotopes",
-			new DecimalFormat("0.000%"), 0.001);
+			0.001);
 
 	public IsotopePatternCalculatorParameters() {
 		super(new UserParameter[] { formula, charge, polarity, minAbundance });

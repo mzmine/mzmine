@@ -19,15 +19,13 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -42,9 +40,9 @@ public class HistogramParameters extends SimpleParameterSet {
 
 	public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();
 
-	public static final NumberParameter numOfBins = new NumberParameter(
+	public static final IntegerParameter numOfBins = new IntegerParameter(
 			"Number of bins", "The plot is divides into this number of bins",
-			NumberFormat.getIntegerInstance());
+			10);
 
 	public HistogramParameters() {
 		super(new Parameter[] { peakList, dataFiles, dataRange, numOfBins });

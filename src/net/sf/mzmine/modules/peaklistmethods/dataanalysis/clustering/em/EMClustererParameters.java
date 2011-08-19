@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em;
 
-import java.text.NumberFormat;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class EMClustererParameters extends SimpleParameterSet {
 
@@ -33,10 +32,10 @@ public class EMClustererParameters extends SimpleParameterSet {
 			"Select the kind of visualization for the clustering result",
 			VisualizationType.values());
 
-        public static final NumberParameter numberOfIterations = new NumberParameter(
+	public static final IntegerParameter numberOfIterations = new IntegerParameter(
 			"Number of iterantions",
 			"Specify the number of iterations to terminate if EM has not converged.",
-			NumberFormat.getIntegerInstance(), 3);
+			3);
 
 	public EMClustererParameters() {
 		super(new Parameter[] { numberOfIterations, visualization });

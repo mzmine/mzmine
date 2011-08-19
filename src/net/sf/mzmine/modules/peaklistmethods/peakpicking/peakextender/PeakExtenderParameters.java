@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -37,9 +36,8 @@ public class PeakExtenderParameters extends SimpleParameterSet {
 
 	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final NumberParameter minimumHeight = new NumberParameter(
-			"Min height", "Minimum allowed intensity for succesive scans",
-			MZmineCore.getIntensityFormat());
+	public static final DoubleParameter minimumHeight = new DoubleParameter(
+			"Min height", "Minimum allowed intensity for succesive scans");
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peaklist",

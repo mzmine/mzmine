@@ -143,9 +143,9 @@ public class NistMsSearchTask
 
         // Parameters.
         ionType = params.getParameter(NistMsSearchParameters.IONIZATION_METHOD).getValue();
-        minMatchFactor = params.getParameter(NistMsSearchParameters.MIN_MATCH_FACTOR).getInt();
-        minReverseMatchFactor = params.getParameter(NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR).getInt();
-        rtWindow = params.getParameter(NistMsSearchParameters.SPECTRUM_RT_WIDTH).getDouble();
+        minMatchFactor = params.getParameter(NistMsSearchParameters.MIN_MATCH_FACTOR).getValue();
+        minReverseMatchFactor = params.getParameter(NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR).getValue();
+        rtWindow = params.getParameter(NistMsSearchParameters.SPECTRUM_RT_WIDTH).getValue();
     }
 
     @Override

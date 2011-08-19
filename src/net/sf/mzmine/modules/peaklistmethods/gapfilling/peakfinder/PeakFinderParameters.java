@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -37,10 +35,9 @@ public class PeakFinderParameters extends SimpleParameterSet {
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
-	public static final NumberParameter intTolerance = new NumberParameter(
+	public static final PercentParameter intTolerance = new PercentParameter(
 			"Intensity tolerance",
-			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction",
-			NumberFormat.getPercentInstance());
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
 
 	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 

@@ -85,7 +85,7 @@ class JoinAlignerTask extends AbstractTask {
 				.getParameter(JoinAlignerParameters.RTTolerance).getValue();
 
 		rtWeight = parameters.getParameter(JoinAlignerParameters.RTWeight)
-				.getDouble();
+				.getValue();
 
 		sameChargeRequired = parameters.getParameter(
 				JoinAlignerParameters.SameChargeRequired).getValue();

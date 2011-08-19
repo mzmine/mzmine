@@ -68,9 +68,9 @@ public class FragmentSearchTask extends AbstractTask {
 		ms2mzTolerance = parameters.getParameter(
 				FragmentSearchParameters.ms2mzTolerance).getValue();
 		maxFragmentHeight = parameters.getParameter(
-				FragmentSearchParameters.maxFragmentHeight).getDouble();
+				FragmentSearchParameters.maxFragmentHeight).getValue();
 		minMS2peakHeight = parameters.getParameter(
-				FragmentSearchParameters.minMS2peakHeight).getDouble();
+				FragmentSearchParameters.minMS2peakHeight).getValue();
 
 	}
 

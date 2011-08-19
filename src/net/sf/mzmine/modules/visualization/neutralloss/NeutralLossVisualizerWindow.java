@@ -63,7 +63,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 		Range mzRange = parameters.getParameter(NeutralLossParameters.mzRange)
 				.getValue();
 		int numOfFragments = parameters.getParameter(
-				NeutralLossParameters.numOfFragments).getInt();
+				NeutralLossParameters.numOfFragments).getValue();
 
 		Object xAxisType = parameters.getParameter(
 				NeutralLossParameters.xAxisType).getValue();

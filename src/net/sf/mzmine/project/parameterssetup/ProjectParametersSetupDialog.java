@@ -41,7 +41,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -219,7 +219,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 			UserParameter parameter = tablemodelParameterValues
 					.getParameter(columnIndex + 1);
 
-			if (parameter instanceof NumberParameter) {
+			if (parameter instanceof DoubleParameter) {
 
 				for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
 					Object objValue = tablemodelParameterValues.getValueAt(
@@ -270,7 +270,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 				Object value = tablemodelParameterValues.getValueAt(
 						dataFileIndex, columnIndex + 1);
-				if (parameter instanceof NumberParameter) {
+				if (parameter instanceof DoubleParameter) {
 					Double doubleValue = null;
 					if (value instanceof Double)
 						doubleValue = (Double) value;

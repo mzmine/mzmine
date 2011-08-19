@@ -100,9 +100,9 @@ public class ThreeDVisualizerModule implements MZmineProcessingModule {
 		Range mzRange = myInstance.parameters.getParameter(
 				ThreeDVisualizerParameters.mzRange).getValue();
 		int rtRes = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.rtResolution).getInt();
+				ThreeDVisualizerParameters.rtResolution).getValue();
 		int mzRes = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.mzResolution).getInt();
+				ThreeDVisualizerParameters.mzResolution).getValue();
 
 		try {
 			ThreeDVisualizerWindow newWindow = new ThreeDVisualizerWindow(

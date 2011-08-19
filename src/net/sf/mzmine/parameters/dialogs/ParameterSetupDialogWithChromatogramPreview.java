@@ -22,8 +22,6 @@ package net.sf.mzmine.parameters.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
@@ -49,7 +47,7 @@ import net.sf.mzmine.util.Range;
  * used to preview how the selected raw data filters work.
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends
-		ParameterSetupDialog implements ActionListener, PropertyChangeListener {
+		ParameterSetupDialog {
 
 	private RawDataFile[] dataFiles;
 	private RawDataFile previewDataFile;
@@ -152,17 +150,17 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	protected void parametersChanged() {
 		// Update preview as parameters have changed
-		if ((previewCheckBox == null) || (! previewCheckBox.isSelected()))
+		if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
 			return;
-		
+
 		Range rtRange = rtRangeBox.getValue();
 		Range mzRange = mzRangeBox.getValue();
 		updateParameterSetFromComponents();
-		
+
 		loadPreview(ticPlot, previewDataFile, rtRange, mzRange);
-		
+
 		updateTitle();
-		
+
 	}
 
 	/**
@@ -176,10 +174,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		previewCheckBox.addActionListener(this);
 		previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
 
-		mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1,
-				3, 1);
-		mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2,
-				3, 1);
+		mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1, 3, 1);
+		mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1);
 
 		// Elements of pnlLab
 		JPanel pnlLab = new JPanel();
@@ -224,8 +220,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		ticPlot.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		ticPlot.setMinimumSize(new Dimension(400, 300));
 
-		mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3,
-				3, 1, 0, 0);
+		mainPanel.add(pnlPreviewFields, 0, getNumberOfParameters() + 3, 3, 1,
+				0, 0);
 
 		updateMinimumSize();
 		pack();

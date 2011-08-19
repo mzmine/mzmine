@@ -19,15 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class GPLipidSearchParameters extends SimpleParameterSet {
@@ -38,24 +36,19 @@ public class GPLipidSearchParameters extends SimpleParameterSet {
 			"Type of lipids", "Selection of glycerophospholipis to consider",
 			GPLipidType.values());
 
-	public static final NumberParameter minChainLength = new NumberParameter(
+	public static final IntegerParameter minChainLength = new IntegerParameter(
 			"Minimum fatty acid length",
-			"Minimum length of the fatty acid chain",
-			NumberFormat.getIntegerInstance());
+			"Minimum length of the fatty acid chain");
 
-	public static final NumberParameter maxChainLength = new NumberParameter(
+	public static final IntegerParameter maxChainLength = new IntegerParameter(
 			"Maximum fatty acid length",
-			"Maximum length of the fatty acid chain",
-			NumberFormat.getIntegerInstance());
+			"Maximum length of the fatty acid chain");
 
-	public static final NumberParameter maxDoubleBonds = new NumberParameter(
+	public static final IntegerParameter maxDoubleBonds = new IntegerParameter(
 			"Maximum number of double bonds",
-			"Maximum number of double bonds in one fatty acid chain",
-			NumberFormat.getIntegerInstance());
+			"Maximum number of double bonds in one fatty acid chain");
 
-	public static final NumberParameter mzTolerance = new NumberParameter(
-			"m/z tolerance", "Maximum allowed m/z difference",
-			MZmineCore.getMZFormat());
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
 	public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
 			"Ionization method",

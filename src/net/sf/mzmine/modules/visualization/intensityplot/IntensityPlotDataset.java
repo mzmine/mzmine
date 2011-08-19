@@ -30,7 +30,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -78,7 +78,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 
 			// if we have a numerical axis, we don't want the values to be
 			// sorted by the data file order, but rather numerically
-			if (xAxisParameter instanceof NumberParameter) {
+			if (xAxisParameter instanceof DoubleParameter) {
 				Arrays.sort(xValues);
 			}
 		}

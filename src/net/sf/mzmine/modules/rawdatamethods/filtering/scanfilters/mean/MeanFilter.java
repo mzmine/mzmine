@@ -38,7 +38,7 @@ public class MeanFilter implements ScanFilter {
 	public Scan filterScan(Scan sc) {
 
 		double windowLength = parameters.getParameter(
-				MeanFilterParameters.oneSidedWindowLength).getDouble();
+				MeanFilterParameters.oneSidedWindowLength).getValue();
 
 		if (sc.getMSLevel() != 1) {
 			return sc;

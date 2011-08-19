@@ -92,9 +92,9 @@ public class BaselineCorrectionTask extends AbstractTask {
         // Get parameters.
         suffix = parameters.getParameter(BaselineCorrectionParameters.SUFFIX).getValue();
         removeOriginal = parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
-        smoothing = parameters.getParameter(BaselineCorrectionParameters.SMOOTHING).getDouble();
-        asymmetry = parameters.getParameter(BaselineCorrectionParameters.ASYMMETRY).getDouble();
-        binWidth = parameters.getParameter(BaselineCorrectionParameters.MZ_BIN_WIDTH).getDouble();
+        smoothing = parameters.getParameter(BaselineCorrectionParameters.SMOOTHING).getValue();
+        asymmetry = parameters.getParameter(BaselineCorrectionParameters.ASYMMETRY).getValue();
+        binWidth = parameters.getParameter(BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
         useBins = parameters.getParameter(BaselineCorrectionParameters.USE_MZ_BINS).getValue();
         msLevel = parameters.getParameter(BaselineCorrectionParameters.MS_LEVEL).getValue();
         chromatogramType = parameters.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();

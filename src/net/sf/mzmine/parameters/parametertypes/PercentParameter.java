@@ -37,10 +37,16 @@ public class PercentParameter implements
 	private Double value;
 
 	public PercentParameter(String name, String description) {
-		this.name = name;
-		this.description = description;
+		this(name, description, null);
 	}
 
+	public PercentParameter(final String name, final String description,
+			final Double defaultValue) {
+		this.name = name;
+		this.description = description;
+		this.value = defaultValue;
+	}
+	
 	/**
 	 * @see net.sf.mzmine.data.Parameter#getName()
 	 */

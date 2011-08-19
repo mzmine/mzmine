@@ -97,7 +97,7 @@ class IsotopeGrouperTask extends AbstractTask {
 		monotonicShape = parameters.getParameter(
 				IsotopeGrouperParameters.monotonicShape).getValue();
 		maximumCharge = parameters.getParameter(
-				IsotopeGrouperParameters.maximumCharge).getInt();
+				IsotopeGrouperParameters.maximumCharge).getValue();
 		chooseMostIntense = (parameters.getParameter(
 				IsotopeGrouperParameters.representativeIsotope).getValue() == IsotopeGrouperParameters.ChooseTopIntensity);
 		removeOriginal = parameters.getParameter(

@@ -72,7 +72,7 @@ public class PeakExtenderTask extends AbstractTask {
 		mzTolerance = parameters.getParameter(
 				PeakExtenderParameters.mzTolerance).getValue();
 		minimumHeight = parameters.getParameter(
-				PeakExtenderParameters.minimumHeight).getDouble();
+				PeakExtenderParameters.minimumHeight).getValue();
 		removeOriginal = parameters.getParameter(
 				PeakExtenderParameters.autoRemove).getValue();
 	}

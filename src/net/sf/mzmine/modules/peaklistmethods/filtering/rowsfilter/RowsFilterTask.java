@@ -59,9 +59,9 @@ class RowsFilterTask extends AbstractTask {
 		suffix = parameters.getParameter(RowsFilterParameters.suffix)
 				.getValue();
 		minPresent = parameters.getParameter(RowsFilterParameters.minPeaks)
-				.getInt();
+				.getValue();
 		minIsotopePatternSize = parameters.getParameter(
-				RowsFilterParameters.minIsotopePatternSize).getInt();
+				RowsFilterParameters.minIsotopePatternSize).getValue();
 		mzRange = parameters.getParameter(RowsFilterParameters.mzRange)
 				.getValue();
 		rtRange = parameters.getParameter(RowsFilterParameters.rtRange)

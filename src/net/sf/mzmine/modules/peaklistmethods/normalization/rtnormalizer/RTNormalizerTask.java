@@ -63,11 +63,11 @@ class RTNormalizerTask extends AbstractTask {
 		suffix = parameters.getParameter(RTNormalizerParameters.suffix)
 				.getValue();
 		mzTolerance = parameters.getParameter(
-				RTNormalizerParameters.MZTolerance).getDouble();
+				RTNormalizerParameters.MZTolerance).getValue();
 		rtTolerance = parameters.getParameter(
-				RTNormalizerParameters.RTTolerance).getDouble();
+				RTNormalizerParameters.RTTolerance).getValue();
 		minHeight = parameters.getParameter(RTNormalizerParameters.minHeight)
-				.getDouble();
+				.getValue();
 		removeOriginal = parameters.getParameter(
 				RTNormalizerParameters.autoRemove).getValue();
 

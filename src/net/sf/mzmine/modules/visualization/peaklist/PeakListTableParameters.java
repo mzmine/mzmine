@@ -19,14 +19,12 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
 import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
@@ -41,8 +39,8 @@ public class PeakListTableParameters extends SimpleParameterSet {
 			"Data file columns", "Visible common columns",
 			DataFileColumnType.values());
 
-	public static final NumberParameter rowHeight = new NumberParameter(
-			"Row height", "Row height", NumberFormat.getIntegerInstance(), 30);
+	public static final IntegerParameter rowHeight = new IntegerParameter(
+			"Row height", "Row height", 30);
 
 	public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization = new ComboParameter<PeakShapeNormalization>(
 			"Peak shape normalization", "Peak shape normalization",

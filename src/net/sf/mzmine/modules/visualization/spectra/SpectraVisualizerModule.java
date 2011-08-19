@@ -139,7 +139,7 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 		}
 
 		int scanNumber = parameters.getParameter(
-				SpectraVisualizerParameters.scanNumber).getInt();
+				SpectraVisualizerParameters.scanNumber).getValue();
 
 		showNewSpectrumWindow(dataFiles[0], scanNumber);
 

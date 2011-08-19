@@ -46,13 +46,13 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
 		double minimumPeakDuration = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.minimumPeakDuration)
-				.getDouble();
+				.getValue();
 		double minimumPeakHeight = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.minimumPeakHeight)
-				.getDouble();
+				.getValue();
 		double amplitudeOfNoise = parameters.getParameter(
 				NoiseAmplitudePeakDetectorParameters.amplitudeOfNoise)
-				.getDouble();
+				.getValue();
 
 		Vector<ResolvedPeak> resolvedPeaks = new Vector<ResolvedPeak>();
 

@@ -37,11 +37,11 @@ public class RecursiveMassDetector implements MassDetector {
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
-				RecursiveMassDetectorParameters.noiseLevel).getDouble();
+				RecursiveMassDetectorParameters.noiseLevel).getValue();
 		double minimumMZPeakWidth = parameters.getParameter(
-				RecursiveMassDetectorParameters.minimumMZPeakWidth).getDouble();
+				RecursiveMassDetectorParameters.minimumMZPeakWidth).getValue();
 		double maximumMZPeakWidth = parameters.getParameter(
-				RecursiveMassDetectorParameters.maximumMZPeakWidth).getDouble();
+				RecursiveMassDetectorParameters.maximumMZPeakWidth).getValue();
 
 		DataPoint dataPoints[] = scan.getDataPoints();
 		TreeSet<DataPoint> mzPeaks = new TreeSet<DataPoint>(

@@ -36,7 +36,7 @@ public class LocalMaxMassDetector implements MassDetector {
 	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
-				LocalMaxMassDetectorParameters.noiseLevel).getDouble();
+				LocalMaxMassDetectorParameters.noiseLevel).getValue();
 
 		// List of found mz peaks
 		ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();

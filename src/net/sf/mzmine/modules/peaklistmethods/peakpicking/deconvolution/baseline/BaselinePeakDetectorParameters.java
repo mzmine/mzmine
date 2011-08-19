@@ -19,30 +19,26 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
 	private PeakResolver peakResolver;
 
-	public static final NumberParameter minimumPeakHeight = new NumberParameter(
-			"Min peak height", "Minimum acceptable peak height",
-			MZmineCore.getIntensityFormat());
+	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
+			"Min peak height", "Minimum acceptable peak height");
 
-	public static final NumberParameter minimumPeakDuration = new NumberParameter(
-			"Min peak duration", "Minimum acceptable peak duration",
-			MZmineCore.getRTFormat());
+	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
+			"Min peak duration", "Minimum acceptable peak duration");
 
-	public static final NumberParameter baselineLevel = new NumberParameter(
+	public static final DoubleParameter baselineLevel = new DoubleParameter(
 			"Baseline level",
-			"All data points over this level are considered to form a peak",
-			MZmineCore.getIntensityFormat());
+			"All data points over this level are considered to form a peak");
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(

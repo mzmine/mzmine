@@ -19,11 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -32,25 +31,21 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
  */
 public class RTNormalizerParameters extends SimpleParameterSet {
 
-	// TODO: define that minimum number of peak lists is 2
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+	public static final PeakListsParameter peakLists = new PeakListsParameter(2);
 
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
-	public static final NumberParameter MZTolerance = new NumberParameter(
-			"m/z tolerance", "Maximum allowed m/z difference",
-			MZmineCore.getMZFormat());
+	public static final DoubleParameter MZTolerance = new DoubleParameter(
+			"m/z tolerance", "Maximum allowed m/z difference");
 
-	public static final NumberParameter RTTolerance = new NumberParameter(
+	public static final DoubleParameter RTTolerance = new DoubleParameter(
 			"Retention time tolerance",
-			"Maximum allowed retention time difference",
-			MZmineCore.getRTFormat());
+			"Maximum allowed retention time difference");
 
-	public static final NumberParameter minHeight = new NumberParameter(
+	public static final DoubleParameter minHeight = new DoubleParameter(
 			"Minimum standard intensity",
-			"Minimum height of a peak to be selected as normalization standard",
-			MZmineCore.getIntensityFormat());
+			"Minimum height of a peak to be selected as normalization standard");
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peak list",

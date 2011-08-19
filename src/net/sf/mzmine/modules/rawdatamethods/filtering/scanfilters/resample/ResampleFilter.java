@@ -39,7 +39,7 @@ public class ResampleFilter implements ScanFilter {
 	public Scan filterScan(Scan scan) {
 
 		double binSize = parameters.getParameter(
-				ResampleFilterParameters.binSize).getDouble();
+				ResampleFilterParameters.binSize).getValue();
 
 		Range mzRange = scan.getMZRange();
 		int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange

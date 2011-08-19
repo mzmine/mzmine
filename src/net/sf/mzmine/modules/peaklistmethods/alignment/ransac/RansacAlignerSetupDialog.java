@@ -42,6 +42,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -226,21 +228,16 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		for (PeakListRow row : peakListX.getRows()) {
 
 			// Calculate limits for a row with which the row can be aligned
-			double mzTolerance = parameters.getParameter(
-					RansacAlignerParameters.MZTolerance).getDouble();
-			double rtToleranceValueAbs = parameters.getParameter(
-					RansacAlignerParameters.RTTolerance).getDouble();
-			double mzMin = row.getAverageMZ() - mzTolerance;
-			double mzMax = row.getAverageMZ() + mzTolerance;
-			double rtMin, rtMax;
-			double rtToleranceValue = rtToleranceValueAbs;
-			rtMin = row.getAverageRT() - rtToleranceValue;
-			rtMax = row.getAverageRT() + rtToleranceValue;
+			MZTolerance mzTolerance = parameters.getParameter(
+					RansacAlignerParameters.MZTolerance).getValue();
+			RTTolerance rtTolerance = parameters.getParameter(
+					RansacAlignerParameters.RTToleranceBefore).getValue();
+			Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+			Range rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
 			// Get all rows of the aligned peaklist within parameter limits
 			PeakListRow candidateRows[] = peakListY
-					.getRowsInsideScanAndMZRange(new Range(rtMin, rtMax),
-							new Range(mzMin, mzMax));
+					.getRowsInsideScanAndMZRange(rtRange, mzRange);
 
 			for (PeakListRow candidateRow : candidateRows) {
 				if (file == null || file2 == null) {

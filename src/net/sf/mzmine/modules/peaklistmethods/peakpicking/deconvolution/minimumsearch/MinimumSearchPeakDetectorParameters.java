@@ -19,14 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch;
 
-import java.text.NumberFormat;
-
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -38,24 +35,21 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 			"Chromatographic threshold",
 			"Find such intensity that given percentage of the chromatogram data points is below, and ignore all data points below that intensity");
 
-	public static final NumberParameter searchRTRange = new NumberParameter(
+	public static final DoubleParameter searchRTRange = new DoubleParameter(
 			"Search minimum in RT range",
-			"If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
-			MZmineCore.getRTFormat());
+			"If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks");
 
 	public static final PercentParameter minRelativeHeight = new PercentParameter(
 			"Minimum relative height",
 			"Minimum height of a peak relative to the chromatogram top data point");
 
-	public static final NumberParameter minAbsoluteHeight = new NumberParameter(
+	public static final DoubleParameter minAbsoluteHeight = new DoubleParameter(
 			"Minimum absolute height",
-			"Minimum absolute height of a peak to be recognized",
-			MZmineCore.getIntensityFormat());
+			"Minimum absolute height of a peak to be recognized");
 
-	public static final NumberParameter minRatio = new NumberParameter(
+	public static final DoubleParameter minRatio = new DoubleParameter(
 			"Min ratio of peak top/edge",
-			"Minimum ratio between peak's top intensity and side (lowest) data points",
-			NumberFormat.getNumberInstance());
+			"Minimum ratio between peak's top intensity and side (lowest) data points");
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(

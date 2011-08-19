@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.masslistmethods.massfilters.shoulderpeaksfilter.peakmodels;
+package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakmodels;
 
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.util.Range;

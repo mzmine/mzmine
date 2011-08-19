@@ -209,11 +209,11 @@ public class IsotopePatternCalculator implements MZmineModule {
 		String formula = parameters.getParameter(
 				IsotopePatternCalculatorParameters.formula).getValue();
 		int charge = parameters.getParameter(
-				IsotopePatternCalculatorParameters.charge).getInt();
+				IsotopePatternCalculatorParameters.charge).getValue();
 		Polarity polarity = parameters.getParameter(
 				IsotopePatternCalculatorParameters.polarity).getValue();
 		double minAbundance = parameters.getParameter(
-				IsotopePatternCalculatorParameters.minAbundance).getDouble();
+				IsotopePatternCalculatorParameters.minAbundance).getValue();
 
 		try {
 			IsotopePattern predictedPattern = calculateIsotopePattern(formula,

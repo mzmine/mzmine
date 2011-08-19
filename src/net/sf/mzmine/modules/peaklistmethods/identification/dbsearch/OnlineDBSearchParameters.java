@@ -19,15 +19,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
@@ -41,9 +39,8 @@ public class OnlineDBSearchParameters extends SimpleParameterSet {
 	public static final NeutralMassParameter neutralMass = new NeutralMassParameter(
 			"Neutral mass", "Value to use in the search query");
 
-	public static final NumberParameter numOfResults = new NumberParameter(
-			"Number of results", "Maximum number of results to display",
-			NumberFormat.getIntegerInstance(), 100);
+	public static final IntegerParameter numOfResults = new IntegerParameter(
+			"Number of results", "Maximum number of results to display", 100);
 
 	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 

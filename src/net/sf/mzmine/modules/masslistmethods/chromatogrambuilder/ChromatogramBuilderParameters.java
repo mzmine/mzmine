@@ -19,12 +19,11 @@
 
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -34,14 +33,12 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
 	public static final MassListParameter massList = new MassListParameter();
 
-	public static final NumberParameter minimumTimeSpan = new NumberParameter(
+	public static final DoubleParameter minimumTimeSpan = new DoubleParameter(
 			"Min time span",
-			"Minimum acceptable time span of connected string of m/z peaks",
-			MZmineCore.getRTFormat());
+			"Minimum acceptable time span of connected string of m/z peaks");
 
-	public static final NumberParameter minimumHeight = new NumberParameter(
-			"Min height", "Minimum top intensity of the chromatogram",
-			MZmineCore.getIntensityFormat());
+	public static final DoubleParameter minimumHeight = new DoubleParameter(
+			"Min height", "Minimum top intensity of the chromatogram");
 
 	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
 			"m/z tolerance",

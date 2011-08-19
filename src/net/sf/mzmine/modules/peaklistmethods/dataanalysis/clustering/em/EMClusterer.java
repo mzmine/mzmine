@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em;
 
 import java.util.ArrayList;
@@ -45,7 +46,7 @@ public class EMClusterer implements ClusteringAlgorithm {
                 String[] options = new String[2];
                 Clusterer clusterer = new EM();
 
-                int numberOfIterations = parameters.getParameter(EMClustererParameters.numberOfIterations).getInt();
+                int numberOfIterations = parameters.getParameter(EMClustererParameters.numberOfIterations).getValue();
                 options[0] = "-I";
                 options[1] = String.valueOf(numberOfIterations);
 

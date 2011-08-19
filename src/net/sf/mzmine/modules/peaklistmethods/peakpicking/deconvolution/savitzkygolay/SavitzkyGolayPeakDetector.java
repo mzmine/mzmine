@@ -52,13 +52,13 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
 		double minimumPeakDuration = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.minimumPeakDuration)
-				.getDouble();
+				.getValue();
 		double minimumPeakHeight = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.minimumPeakHeight)
-				.getDouble();
+				.getValue();
 		double derivativeThresholdLevel = parameters.getParameter(
 				SavitzkyGolayPeakDetectorParameters.derivativeThresholdLevel)
-				.getDouble();
+				.getValue();
 
 		Vector<ChromatographicPeak> resolvedPeaks = new Vector<ChromatographicPeak>();
 

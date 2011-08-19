@@ -19,13 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
-import java.text.NumberFormat;
-
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -37,15 +35,13 @@ public class RowsFilterParameters extends SimpleParameterSet {
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "filtered");
 
-	public static final NumberParameter minPeaks = new NumberParameter(
+	public static final IntegerParameter minPeaks = new IntegerParameter(
 			"Minimum peaks in a row",
-			"Minimum number of peak detections required to select a row",
-			NumberFormat.getIntegerInstance());
+			"Minimum number of peak detections required to select a row");
 
-	public static final NumberParameter minIsotopePatternSize = new NumberParameter(
+	public static final IntegerParameter minIsotopePatternSize = new IntegerParameter(
 			"Minimum peaks in an isotope pattern",
-			"Minimum number of peaks required in an isotope pattern",
-			NumberFormat.getIntegerInstance());
+			"Minimum number of peaks required in an isotope pattern");
 
 	public static final RangeParameter mzRange = new RangeParameter(
 			"m/z range", "Range of allowed m/z values",

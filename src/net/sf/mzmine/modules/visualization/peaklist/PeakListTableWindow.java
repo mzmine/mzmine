@@ -87,7 +87,7 @@ public class PeakListTableWindow extends JInternalFrame implements
 			ExitCode exitCode = parameters.showSetupDialog();
 			if (exitCode == ExitCode.OK) {
 				int rowHeight = parameters.getParameter(
-						PeakListTableParameters.rowHeight).getInt();
+						PeakListTableParameters.rowHeight).getValue();
 				table.setRowHeight(rowHeight);
 
 				PeakListTableColumnModel cm = (PeakListTableColumnModel) table

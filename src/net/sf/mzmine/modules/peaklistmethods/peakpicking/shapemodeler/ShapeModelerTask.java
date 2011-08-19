@@ -70,7 +70,7 @@ class ShapeModelerTask extends AbstractTask {
 		removeOriginal = parameters.getParameter(
 				ShapeModelerParameters.autoRemove).getValue();
 		resolution = parameters.getParameter(
-				ShapeModelerParameters.massResolution).getInt();
+				ShapeModelerParameters.massResolution).getValue();
 
 	}
 

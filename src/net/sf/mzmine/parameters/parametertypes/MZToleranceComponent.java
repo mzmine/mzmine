@@ -20,11 +20,10 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.BorderLayout;
-import java.text.NumberFormat;
 
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  */
@@ -32,15 +31,14 @@ public class MZToleranceComponent extends JPanel {
 
 	private static final String toleranceTypes[] = { "m/z", "ppm" };
 
-	private JFormattedTextField toleranceField;
+	private JTextField toleranceField;
 	private JComboBox toleranceType;
 
 	public MZToleranceComponent() {
 
 		super(new BorderLayout());
 
-		toleranceField = new JFormattedTextField(
-				NumberFormat.getNumberInstance());
+		toleranceField = new JTextField();
 		toleranceField.setColumns(6);
 		add(toleranceField, BorderLayout.CENTER);
 
@@ -54,20 +52,21 @@ public class MZToleranceComponent extends JPanel {
 			toleranceType.setSelectedIndex(0);
 		else
 			toleranceType.setSelectedIndex(1);
-		toleranceField.setValue(value.getTolerance());
+		toleranceField.setText(String.valueOf(value.getTolerance()));
 
 	}
 
 	public MZTolerance getValue() {
 
-		int index = toleranceType.getSelectedIndex();
-
-		Number tol = (Number) toleranceField.getValue();
-		if (tol == null)
+		try {
+			int index = toleranceType.getSelectedIndex();
+			double tol = Double.parseDouble(toleranceField.getText());
+			MZTolerance value = new MZTolerance(index <= 0, tol);
+			return value;
+		} catch (NumberFormatException e) {
 			return null;
+		}
 
-		MZTolerance value = new MZTolerance(index <= 0, tol.doubleValue());
-		return value;
 	}
 
 }

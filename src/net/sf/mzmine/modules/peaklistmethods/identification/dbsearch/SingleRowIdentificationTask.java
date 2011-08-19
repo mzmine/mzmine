@@ -82,7 +82,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 		mzTolerance = parameters.getParameter(
 				OnlineDBSearchParameters.mzTolerance).getValue();
 		numOfResults = parameters.getParameter(
-				OnlineDBSearchParameters.numOfResults).getInt();
+				OnlineDBSearchParameters.numOfResults).getValue();
 
 		ionType = parameters.getParameter(OnlineDBSearchParameters.neutralMass)
 				.getIonType();
