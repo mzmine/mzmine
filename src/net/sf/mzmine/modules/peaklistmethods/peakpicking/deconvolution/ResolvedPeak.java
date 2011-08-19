@@ -79,8 +79,16 @@ public class ResolvedPeak implements ChromatographicPeak {
 
 		// Make an array of scan numbers of this peak
 		scanNumbers = new int[regionEnd - regionStart + 1];
-		System.arraycopy(chromatogram.getScanNumbers(), regionStart,
-				scanNumbers, 0, regionEnd - regionStart + 1);
+
+		// Note that we cannot use chromatogram.getScanNumbers() here, because
+		// the chromatogram may already have been deconvoluted -> scan numbers
+		// would be a subset of all scans. The regionStart and regionEnd indexes
+		// refer to all MS1 scans, therefore we use datafile.getScanNumbers(1)
+		int chromatogramScanNumbers[] = chromatogram.getDataFile()
+				.getScanNumbers(1);
+
+		System.arraycopy(chromatogramScanNumbers, regionStart, scanNumbers, 0,
+				regionEnd - regionStart + 1);
 
 		dataPointMZValues = new double[regionEnd - regionStart + 1];
 		dataPointIntensityValues = new double[regionEnd - regionStart + 1];
