@@ -104,5 +104,10 @@ public class RTToleranceComponent extends JPanel implements ActionListener {
 			}
 		}
 	}
+	
+	@Override
+	public void setToolTipText(String toolTip) {
+		toleranceField.setToolTipText(toolTip);
+	}
 
 }

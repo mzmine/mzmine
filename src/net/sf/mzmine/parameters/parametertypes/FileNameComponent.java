@@ -84,5 +84,10 @@ public class FileNameComponent extends JPanel implements ActionListener {
 			txtFilename.setText(selectedPath);
 		}
 	}
+	
+	@Override
+	public void setToolTipText(String toolTip) {
+		txtFilename.setToolTipText(toolTip);
+	}
 
 }

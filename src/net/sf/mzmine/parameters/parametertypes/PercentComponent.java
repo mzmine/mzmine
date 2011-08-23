@@ -53,5 +53,10 @@ public class PercentComponent extends JPanel {
 			return null;
 		}
 	}
+	
+	@Override
+	public void setToolTipText(String toolTip) {
+		percentField.setToolTipText(toolTip);
+	}
 
 }

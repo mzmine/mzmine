@@ -24,14 +24,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
 
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.components.GridBagPanel;
 
 /**
@@ -42,20 +40,20 @@ public class NeutralMassComponent extends GridBagPanel implements
 	private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
 
 	private JComboBox ionTypeCombo;
-	private JFormattedTextField ionMassField, chargeField, neutralMassField;
+	private JTextField ionMassField, chargeField, neutralMassField;
 
 	public NeutralMassComponent() {
 
 		add(new JLabel("m/z:"), 0, 0);
 
-		ionMassField = new JFormattedTextField(MZmineCore.getMZFormat());
+		ionMassField = new JTextField();
 		ionMassField.addPropertyChangeListener("value", this);
 		ionMassField.setColumns(8);
 		add(ionMassField, 1, 0);
 
 		add(new JLabel("Charge:"), 2, 0);
 
-		chargeField = new JFormattedTextField(NumberFormat.getIntegerInstance());
+		chargeField = new JTextField();
 		chargeField.addPropertyChangeListener("value", this);
 		chargeField.setColumns(2);
 		add(chargeField, 3, 0);
@@ -67,7 +65,7 @@ public class NeutralMassComponent extends GridBagPanel implements
 
 		add(new JLabel("Calculated mass:"), 0, 2, 2, 1);
 
-		neutralMassField = new JFormattedTextField(MZmineCore.getMZFormat());
+		neutralMassField = new JTextField();
 		neutralMassField.setColumns(8);
 		neutralMassField.setBackground(BACKGROUND_COLOR);
 		neutralMassField.setEditable(false);
@@ -76,12 +74,12 @@ public class NeutralMassComponent extends GridBagPanel implements
 	}
 
 	public void setIonMass(double ionMass) {
-		ionMassField.setValue(ionMass);
+		ionMassField.setText(String.valueOf(ionMass));
 		updateNeutralMass();
 	}
 
 	public void setCharge(int charge) {
-		chargeField.setValue(charge);
+		chargeField.setText(String.valueOf(charge));
 		updateNeutralMass();
 	}
 
@@ -91,24 +89,33 @@ public class NeutralMassComponent extends GridBagPanel implements
 	}
 
 	public Double getValue() {
-		Number val = (Number) neutralMassField.getValue();
-		if (val == null)
+		String stringValue = neutralMassField.getText();
+		try {
+			double doubleValue = Double.parseDouble(stringValue);
+			return doubleValue;
+		} catch (NumberFormatException e) {
 			return null;
-		return val.doubleValue();
+		}
 	}
 
 	public Double getIonMass() {
-		Number val = (Number) ionMassField.getValue();
-		if (val == null)
+		String stringValue = ionMassField.getText();
+		try {
+			double doubleValue = Double.parseDouble(stringValue);
+			return doubleValue;
+		} catch (NumberFormatException e) {
 			return null;
-		return val.doubleValue();
+		}
 	}
 
 	public Integer getCharge() {
-		Number val = (Number) chargeField.getValue();
-		if (val == null)
+		String stringValue = chargeField.getText();
+		try {
+			int intValue = Integer.parseInt(stringValue);
+			return intValue;
+		} catch (NumberFormatException e) {
 			return null;
-		return val.intValue();
+		}
 	}
 
 	public IonizationType getIonType() {
@@ -127,21 +134,25 @@ public class NeutralMassComponent extends GridBagPanel implements
 
 	private void updateNeutralMass() {
 
-		Number charge = (Number) chargeField.getValue();
+		Integer charge = getCharge();
 		if (charge == null)
 			return;
 
-		Number ionMass = (Number) ionMassField.getValue();
+		Double ionMass = getIonMass();
 		if (ionMass == null)
 			return;
 
-		IonizationType ionType = (IonizationType) ionTypeCombo
-				.getSelectedItem();
+		IonizationType ionType = getIonType();
 
 		double neutral = (ionMass.doubleValue() - ionType.getAddedMass())
 				* charge.intValue();
 
-		neutralMassField.setValue(neutral);
+		neutralMassField.setText(String.valueOf(neutral));
+	}
+
+	@Override
+	public void setToolTipText(String toolTip) {
+		ionMassField.setToolTipText(toolTip);
 	}
 
 }

@@ -90,4 +90,8 @@ public class ModuleComboComponent extends JPanel implements ActionListener {
 
 	}
 
+	@Override
+	public void setToolTipText(String toolTip) {
+		comboBox.setToolTipText(toolTip);
+	}
 }

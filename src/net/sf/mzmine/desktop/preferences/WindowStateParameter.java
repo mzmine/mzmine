@@ -125,14 +125,11 @@ public class WindowStateParameter implements Parameter<Object> {
 
 	@Override
 	public Object getValue() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void setValue(Object newValue) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

@@ -34,8 +34,6 @@ import org.openscience.cdk.formula.MolecularFormula;
  * MassToFormulaTool, but we cannot use MassToFormulaTool because it does not
  * provide any way how to track progress - see getFinishedPercentage()
  * 
- * TODO: explain the function of iterator
- * 
  */
 public class FormulaGenerator {
 

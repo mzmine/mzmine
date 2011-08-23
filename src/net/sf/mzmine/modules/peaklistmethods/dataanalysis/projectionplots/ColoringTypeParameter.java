@@ -137,8 +137,7 @@ public class ColoringTypeParameter implements
 
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 }

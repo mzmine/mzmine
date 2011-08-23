@@ -106,5 +106,10 @@ public class MassListComponent extends JPanel implements ActionListener {
 		}
 
 	}
+	
+	@Override
+	public void setToolTipText(String toolTip) {
+		nameField.setToolTipText(toolTip);
+	}
 
 }

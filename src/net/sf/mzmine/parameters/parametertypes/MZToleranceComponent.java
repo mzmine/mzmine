@@ -68,5 +68,10 @@ public class MZToleranceComponent extends JPanel {
 		}
 
 	}
+	
+	@Override
+	public void setToolTipText(String toolTip) {
+		toleranceField.setToolTipText(toolTip);
+	}
 
 }

@@ -49,8 +49,6 @@ import net.sf.mzmine.util.components.GridBagPanel;
 import net.sf.mzmine.util.components.HelpButton;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-// TODO: tooltips?
-
 /**
  * This class represents the parameter setup dialog to set the values of
  * SimpleParameterSet. Each Parameter is represented by a component. The
@@ -62,8 +60,6 @@ import net.sf.mzmine.util.dialogs.ExitCode;
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener,
 		DocumentListener {
-
-	// public static final int TEXTFIELD_COLUMNS = 10;
 
 	private ExitCode exitCode = ExitCode.UNKNOWN;
 
@@ -145,6 +141,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 			UserParameter up = (UserParameter) p;
 
 			JComponent comp = up.createEditingComponent();
+			comp.setToolTipText(up.getDescription());
 
 			// Set the initial value
 			Object value = up.getValue();

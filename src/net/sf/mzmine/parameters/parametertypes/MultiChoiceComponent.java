@@ -159,4 +159,10 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
 
 	}
 
+	@Override
+	public void setToolTipText(String toolTip) {
+		for (JCheckBox box : checkBoxes)
+			box.setToolTipText(toolTip);
+	}
+
 }

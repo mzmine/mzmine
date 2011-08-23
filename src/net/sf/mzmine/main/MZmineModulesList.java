@@ -93,7 +93,7 @@ public class MZmineModulesList {
 			ProjectCloseModule.class,
 
 			// Batch mode
-			BatchModeModule.class, // TODO
+			BatchModeModule.class,
 
 			// Raw data methods
 			RawDataImportModule.class,

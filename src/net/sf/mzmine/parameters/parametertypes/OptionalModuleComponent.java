@@ -78,4 +78,8 @@ public class OptionalModuleComponent extends JPanel implements ActionListener {
 
 	}
 
+	@Override
+	public void setToolTipText(String toolTip) {
+		checkBox.setToolTipText(toolTip);
+	}
 }

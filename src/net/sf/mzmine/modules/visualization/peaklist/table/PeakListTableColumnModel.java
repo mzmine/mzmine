@@ -293,9 +293,6 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 
 		}
 
-		// Save the widths as global settings
-		// TODO PeakListTableVisualizer.getInstance().setParameterSet(parameters);
-
 	}
 
 	public TableColumn getColumnByModelIndex(int modelIndex) {
