@@ -47,9 +47,13 @@ public class PeakFinderParameters extends SimpleParameterSet {
 			"RT correction",
 			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
 
-	public PeakFinderParameters() {
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, the original peak list will be removed");
+
+		public PeakFinderParameters() {
 		super(new Parameter[] { peakLists, suffix, intTolerance, MZTolerance,
-				RTTolerance, RTCorrection });
+				RTTolerance, RTCorrection, autoRemove });
 	}
 
 }

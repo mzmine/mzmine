@@ -26,7 +26,6 @@ package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 import java.io.File;
 
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -42,12 +41,12 @@ import net.sf.mzmine.taskcontrol.Task;
 public class NistMsSearchModule implements MZmineProcessingModule {
 
 	// System property holding the path to the executable.
-	private static final String NIST_MS_SEARCH_PATH_PROPERTY = "nist.ms.search.path";
+	static final String NIST_MS_SEARCH_PATH_PROPERTY = "nist.ms.search.path";
 
 	// NIST MS Search home directory and executable.
-	private static final String NIST_MS_SEARCH_DIR = System
+	static final String NIST_MS_SEARCH_DIR = System
 			.getProperty(NIST_MS_SEARCH_PATH_PROPERTY);
-	private static final File NIST_MS_SEARCH_EXE = NIST_MS_SEARCH_DIR == null ? null
+	static final File NIST_MS_SEARCH_EXE = NIST_MS_SEARCH_DIR == null ? null
 			: new File(NIST_MS_SEARCH_DIR, "nistms$.exe");
 
 	// Command-line arguments passed to executable.
@@ -61,7 +60,6 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
 	@Override
 	public ParameterSet getParameterSet() {
-
 		return parameterSet;
 	}
 
@@ -70,7 +68,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 
 		PeakList peakLists[] = parameters.getParameter(
 				NistMsSearchParameters.peakLists).getValue();
-
+		
 		// Construct the command string.
 		final String searchCommand = NIST_MS_SEARCH_EXE.getAbsolutePath() + ' '
 				+ COMMAND_LINE_ARGS;
@@ -98,62 +96,6 @@ public class NistMsSearchModule implements MZmineProcessingModule {
 	@Override
 	public String toString() {
 		return MODULE_NAME;
-	}
-
-	/**
-	 * Checks before running module - display error messages.
-	 * 
-	 * @param peakLists
-	 *            the peak lists.
-	 * @return true/false if checks are passed/failed.
-	 */
-	private static boolean isReadyToRun(final PeakList[] peakLists) {
-
-		final Desktop desktop = MZmineCore.getDesktop();
-		boolean ok = true;
-		if (!isWindows()) {
-
-			// Unsupported OS.
-			desktop.displayErrorMessage(MODULE_NAME
-					+ ": Operating System Not Supported",
-					"NIST MS Search is only supported on the Windows operating system.");
-
-		} else if (NIST_MS_SEARCH_DIR == null) {
-
-			// Property not defined.
-			desktop.displayErrorMessage(MODULE_NAME + ": Property Not Set",
-					"The " + NIST_MS_SEARCH_PATH_PROPERTY
-							+ " system property is not set.");
-
-		} else if (!NIST_MS_SEARCH_EXE.exists()) {
-
-			// Executable missing.
-			desktop.displayErrorMessage(
-					MODULE_NAME + ": Executable Not Found",
-					NIST_MS_SEARCH_EXE
-							+ " not found.  Please set the "
-							+ NIST_MS_SEARCH_PATH_PROPERTY
-							+ " system property to the full path of the directory containing the NIST MS Search executable.");
-
-		} else if (peakLists == null || peakLists.length == 0) {
-
-			desktop.displayErrorMessage(
-					MODULE_NAME + ": No Peak-List Selected",
-					"Please select at least one peak-list");
-			ok = false;
-		}
-		return ok;
-	}
-
-	/**
-	 * Is this a Windows OS?
-	 * 
-	 * @return true/false if the os.name property does/doesn't contain
-	 *         "Windows".
-	 */
-	private static boolean isWindows() {
-
-		return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
 	}
 
 }

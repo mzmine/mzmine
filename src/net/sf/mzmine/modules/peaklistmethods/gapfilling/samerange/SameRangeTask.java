@@ -34,6 +34,7 @@ import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -47,6 +48,8 @@ class SameRangeTask extends AbstractTask {
 	private PeakList peakList, processedPeakList;
 
 	private String suffix;
+	private MZTolerance mzTolerance;
+	private boolean removeOriginal;
 
 	private int processedRows, totalRows;
 
@@ -58,6 +61,10 @@ class SameRangeTask extends AbstractTask {
 		this.parameters = parameters;
 
 		suffix = parameters.getParameter(SameRangeParameters.suffix).getValue();
+		mzTolerance = parameters.getParameter(SameRangeParameters.mzTolerance)
+				.getValue();
+		removeOriginal = parameters
+				.getParameter(SameRangeParameters.autoRemove).getValue();
 
 	}
 
@@ -131,6 +138,10 @@ class SameRangeTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling using RT and m/z range", parameters));
 
+		// Remove the original peaklist if requested
+		if (removeOriginal)
+			currentProject.removePeakList(peakList);
+
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished gap-filling " + peakList);
@@ -156,8 +167,10 @@ class SameRangeTask extends AbstractTask {
 				rtRange.extendRange(peak.getRawDataPointsRTRange());
 			}
 		}
-		
+
 		assert mzRange != null;
+
+		Range mzRangeWithTol = new Range(mzTolerance.getToleranceRange(mzRange));
 
 		// Get scan numbers
 		int[] scanNumbers = column.getScanNumbers(1, rtRange);
@@ -173,7 +186,7 @@ class SameRangeTask extends AbstractTask {
 			Scan scan = column.getScan(scanNumber);
 
 			// Find most intense m/z peak
-			DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+			DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRangeWithTol);
 
 			if (basePeak != null) {
 				if (basePeak.getIntensity() > 0)
@@ -181,7 +194,7 @@ class SameRangeTask extends AbstractTask {
 				newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 			} else {
 				DataPoint fakeDataPoint = new SimpleDataPoint(
-						mzRange.getAverage(), 0);
+						mzRangeWithTol.getAverage(), 0);
 				newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 			}
 

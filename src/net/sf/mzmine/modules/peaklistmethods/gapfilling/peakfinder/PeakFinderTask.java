@@ -51,7 +51,7 @@ class PeakFinderTask extends AbstractTask {
 	private boolean rtCorrection;
 	private ParameterSet parameters;
 	private int processedScans, totalScans;
-	private boolean MASTERLIST = true;
+	private boolean MASTERLIST = true, removeOriginal;
 	private int masterSample = 0;
 
 	PeakFinderTask(PeakList peakList, ParameterSet parameters) {
@@ -69,6 +69,8 @@ class PeakFinderTask extends AbstractTask {
 				.getValue();
 		rtCorrection = parameters.getParameter(
 				PeakFinderParameters.RTCorrection).getValue();
+		removeOriginal = parameters.getParameter(
+				PeakFinderParameters.autoRemove).getValue();
 	}
 
 	public void run() {
@@ -199,6 +201,10 @@ class PeakFinderTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling ", parameters));
 
+		// Remove the original peaklist if requested
+		if (removeOriginal)
+			currentProject.removePeakList(peakList);
+		
 		logger.info("Finished gap-filling on " + peakList);
 		setStatus(TaskStatus.FINISHED);
 

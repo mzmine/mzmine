@@ -50,6 +50,15 @@ public class MZTolerance {
 				+ absoluteTolerance);
 	}
 
+	public Range getToleranceRange(Range mzRange) {
+		double absoluteMinTolerance = isAbsolute ? tolerance : (mzRange
+				.getMin() / 1000000 * tolerance);
+		double absoluteMaxTolerance = isAbsolute ? tolerance : (mzRange
+				.getMax() / 1000000 * tolerance);
+		return new Range(mzRange.getMin() - absoluteMinTolerance,
+				mzRange.getMax() + absoluteMaxTolerance);
+	}
+
 	public boolean checkWithinTolerance(double mz1, double mz2) {
 		Range toleranceRange = getToleranceRange(mz1);
 		return toleranceRange.contains(mz2);

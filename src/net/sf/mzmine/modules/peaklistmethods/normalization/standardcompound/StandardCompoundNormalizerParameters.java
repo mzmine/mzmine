@@ -53,9 +53,8 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 			"Used in distance measuring as multiplier of m/z difference");
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
-
 			"Remove original peak list",
-			"If checked, original peak list will be removed and only normalized version remains");
+			"If checked, the original peak list will be removed");
 
 	public static final MultiChoiceParameter<PeakListRow> standardCompounds = new MultiChoiceParameter<PeakListRow>(
 			"Standard compounds",

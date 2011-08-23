@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -31,8 +33,14 @@ public class SameRangeParameters extends SimpleParameterSet {
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
+	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original peak list",
+			"If checked, the original peak list will be removed");
+
 	public SameRangeParameters() {
-		super(new Parameter[] { peakLists, suffix });
+		super(new Parameter[] { peakLists, suffix, mzTolerance, autoRemove });
 	}
 
 }

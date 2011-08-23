@@ -72,11 +72,4 @@ public class IsotopeGrouperParameters extends SimpleParameterSet {
 				autoRemove });
 	}
 
-	/*
-	 * for (PeakList peaklist : peakLists) { if
-	 * (peaklist.getNumberOfRawDataFiles() > 1) {
-	 * desktop.displayErrorMessage("Peak list " + peaklist +
-	 * " cannot be deisotoped, because it contains more than one data file");
-	 * return; } }
-	 */
 }
