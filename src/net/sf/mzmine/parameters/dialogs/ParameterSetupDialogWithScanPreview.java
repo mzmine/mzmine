@@ -135,10 +135,11 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		if (src == previewCheckBox) {
 			if (previewCheckBox.isSelected()) {
 				// Set the height of the preview to 200 cells, so it will span
-				// the whole verical length of the dialog (buttons are at row no
-				// 100). Also, we set the weight to 10, so the preview component
-				// will consume most of the extra available space.
-				mainPanel.add(spectrumPlot, 3, 0, 1, 200, 10, 10);
+				// the whole vertical length of the dialog (buttons are at row
+				// no 100). Also, we set the weight to 10, so the preview
+				// component will consume most of the extra available space.
+				mainPanel.add(spectrumPlot, 3, 0, 1, 200, 10, 10,
+						GridBagConstraints.BOTH);
 				pnlPreviewFields.setVisible(true);
 				updateMinimumSize();
 				pack();
