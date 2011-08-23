@@ -154,7 +154,7 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 	@Override
 	public boolean checkValue(final Collection<String> errorMessages) {
 		if (value == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
 		}
 		if (!checkBounds(value)) {
