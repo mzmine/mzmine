@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
-import java.text.NumberFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
