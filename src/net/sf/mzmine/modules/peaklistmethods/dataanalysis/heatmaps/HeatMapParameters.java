@@ -38,10 +38,7 @@ public class HeatMapParameters extends SimpleParameterSet {
                 "Output file type", "Output file type",
                 fileTypes, fileTypes[0]);
         public static final ParameterSelection selectionData = new ParameterSelection();
-        public static final ReferenceGroupSelection referenceGroup = new ReferenceGroupSelection();
-        /*public static final StringParameter referenceGroup = new StringParameter(
-                "Group of reference", "Name of the group that will be used as a reference from the sample parameters.",
-                "");*/
+        public static final ReferenceGroupSelection referenceGroup = new ReferenceGroupSelection();       
         public static final BooleanParameter useIdenfiedRows = new BooleanParameter(
                 "Only identified rows",
                 "Plot only identified rows.", false);

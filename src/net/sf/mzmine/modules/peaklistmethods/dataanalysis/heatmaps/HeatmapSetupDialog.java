@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,7 +30,7 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.project.MZmineProject;
 
-public class HeatmapSetupDialog extends ParameterSetupDialog implements ActionListener {
+public class HeatmapSetupDialog extends ParameterSetupDialog{
 
         private JComboBox comp, comp2;
 
@@ -45,16 +44,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog implements ActionLi
                         setValues((ParameterType) this.comp2.getSelectedItem());
                 }
         }
-
-        @Override
-        public void actionPerformed(ActionEvent event) {
-                super.actionPerformed(event);
-                Object src = event.getSource();
-                if (src == comp2) {
-                        // setValues((ParameterType) this.comp2.getSelectedItem());
-                }
-        }
-
+       
         @Override
         public void parametersChanged() {
                 setValues((ParameterType) this.comp2.getSelectedItem());
