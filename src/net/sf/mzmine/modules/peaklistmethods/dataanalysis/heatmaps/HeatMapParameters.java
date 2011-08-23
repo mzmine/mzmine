@@ -16,7 +16,6 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
 import java.text.NumberFormat;
@@ -25,7 +24,7 @@ import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
-import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class HeatMapParameters extends SimpleParameterSet {
@@ -38,7 +37,7 @@ public class HeatMapParameters extends SimpleParameterSet {
                 "Output file type", "Output file type",
                 fileTypes, fileTypes[0]);
         public static final ParameterSelection selectionData = new ParameterSelection();
-        public static final ReferenceGroupSelection referenceGroup = new ReferenceGroupSelection();       
+        public static final ReferenceGroupSelection referenceGroup = new ReferenceGroupSelection();
         public static final BooleanParameter useIdenfiedRows = new BooleanParameter(
                 "Only identified rows",
                 "Plot only identified rows.", false);
@@ -54,33 +53,33 @@ public class HeatMapParameters extends SimpleParameterSet {
         public static final BooleanParameter plegend = new BooleanParameter(
                 "P-value legend",
                 "Adds the p-value legend", true);
-        public static final NumberParameter star = new NumberParameter(
+        public static final IntegerParameter star = new IntegerParameter(
                 "Size p-value legend",
-                "Size of the p-value legend", NumberFormat.getIntegerInstance(), 5);
+                "Size of the p-value legend", 5);
         public static final BooleanParameter showControlSamples = new BooleanParameter(
                 "Show control samples",
                 "Shows control samples if this option is selected", true);
-        public static final NumberParameter height = new NumberParameter(
+        public static final IntegerParameter height = new IntegerParameter(
                 "Height",
-                "Height", NumberFormat.getIntegerInstance(), 10);
-        public static final NumberParameter width = new NumberParameter(
+                "Height", 10);
+        public static final IntegerParameter width = new IntegerParameter(
                 "Width",
-                "Width", NumberFormat.getIntegerInstance(), 10);
-        public static final NumberParameter columnMargin = new NumberParameter(
+                "Width", 10);
+        public static final IntegerParameter columnMargin = new IntegerParameter(
                 "Column margin",
-                "Column margin", NumberFormat.getIntegerInstance(), 10);
-        public static final NumberParameter rowMargin = new NumberParameter(
+                "Column margin", 10);
+        public static final IntegerParameter rowMargin = new IntegerParameter(
                 "Row margin",
-                "Row margin", NumberFormat.getIntegerInstance(), 10);
+                "Row margin", 10);
 
         public HeatMapParameters() {
-                super(new Parameter[]{fileName, fileTypeSelection, selectionData, referenceGroup, useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width, columnMargin, rowMargin});              
+                super(new Parameter[]{fileName, fileTypeSelection, selectionData, referenceGroup, useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width, columnMargin, rowMargin});
         }
 
         @Override
         public ExitCode showSetupDialog() {
-		HeatmapSetupDialog dialog = new HeatmapSetupDialog(this);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+                HeatmapSetupDialog dialog = new HeatmapSetupDialog(this);
+                dialog.setVisible(true);
+                return dialog.getExitCode();
+        }
 }

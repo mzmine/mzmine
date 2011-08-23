@@ -74,11 +74,11 @@ public class HeatMapTask extends AbstractTask {
                 rcontrol = parameters.getParameter(HeatMapParameters.showControlSamples).getValue();
                 plegend = parameters.getParameter(HeatMapParameters.plegend).getValue();
 
-                height = parameters.getParameter(HeatMapParameters.height).getInt();
-                width = parameters.getParameter(HeatMapParameters.width).getInt();
-                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getInt();
-                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getInt();
-                starSize = parameters.getParameter(HeatMapParameters.star).getInt();
+                height = parameters.getParameter(HeatMapParameters.height).getValue();
+                width = parameters.getParameter(HeatMapParameters.width).getValue();
+                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getValue();
+                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getValue();
+                starSize = parameters.getParameter(HeatMapParameters.star).getValue();
 
         }
 
