@@ -77,6 +77,7 @@ public class HeatMapParameters extends SimpleParameterSet {
                 super(new Parameter[]{fileName, fileTypeSelection, selectionData, referenceGroup, useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width, columnMargin, rowMargin});              
         }
 
+        @Override
         public ExitCode showSetupDialog() {
 		HeatmapSetupDialog dialog = new HeatmapSetupDialog(this);
 		dialog.setVisible(true);

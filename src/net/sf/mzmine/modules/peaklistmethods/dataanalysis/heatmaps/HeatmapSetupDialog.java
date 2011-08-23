@@ -18,7 +18,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
@@ -76,7 +75,6 @@ public class HeatmapSetupDialog extends ParameterSetupDialog{
                         comp.addItem(choice);
                 }
                 this.updateParameterSetFromComponents();
-                this.repaint();
         }
 
         private boolean contains(String paramValue, ArrayList<ParameterType> choicesList) {

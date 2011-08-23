@@ -30,12 +30,11 @@ public class ReferenceGroupSelection implements
         UserParameter<ParameterType, JComboBox> {
 
         private String name, description;
-        private ParameterType value, parameterName;      
+        private ParameterType value;      
 
         public ReferenceGroupSelection() {
                 this.name = "Group of reference";
-                this.description = "Name of the group that will be used as a reference from the sample parameters";        
-
+                this.description = "Name of the group that will be used as a reference from the sample parameters"; 
         }
         
 
