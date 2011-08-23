@@ -19,21 +19,19 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.text.NumberFormat;
-
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 /**
  */
 public class PercentComponent extends JPanel {
 
-	private JFormattedTextField percentField;
+	private JTextField percentField;
 
 	public PercentComponent() {
 
-		percentField = new JFormattedTextField(NumberFormat.getNumberInstance());
+		percentField = new JTextField();
 		percentField.setColumns(4);
 		add(percentField);
 
@@ -42,14 +40,18 @@ public class PercentComponent extends JPanel {
 	}
 
 	public void setValue(double value) {
-		percentField.setValue(value * 100);
+		String stringValue = String.valueOf(value * 100);
+		percentField.setText(stringValue);
 	}
 
 	public Double getValue() {
-		Number value = (Number) percentField.getValue();
-		if (value == null)
+		String stringValue = percentField.getText();
+		try {
+			double doubleValue = Double.parseDouble(stringValue) / 100;
+			return doubleValue;
+		} catch (NumberFormatException e) {
 			return null;
-		return value.doubleValue() / 100;
+		}
 	}
 
 }
