@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
@@ -54,7 +55,7 @@ public class HeatMapTask extends AbstractTask {
         private String[][] pValueMatrix;
         private double finishedPercentage = 0.0f;
         private ParameterType parameterName;
-        private String referenceGroup;
+        private ParameterType referenceGroup;
         private PeakList peakList;
 
         public HeatMapTask(PeakList peakList, ParameterSet parameters) {
@@ -73,11 +74,11 @@ public class HeatMapTask extends AbstractTask {
                 rcontrol = parameters.getParameter(HeatMapParameters.showControlSamples).getValue();
                 plegend = parameters.getParameter(HeatMapParameters.plegend).getValue();
 
-                height = parameters.getParameter(HeatMapParameters.height).getValue();
-                width = parameters.getParameter(HeatMapParameters.width).getValue();
-                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getValue();
-                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getValue();
-                starSize = parameters.getParameter(HeatMapParameters.star).getValue();
+                height = parameters.getParameter(HeatMapParameters.height).getInt();
+                width = parameters.getParameter(HeatMapParameters.width).getInt();
+                columnMargin = parameters.getParameter(HeatMapParameters.columnMargin).getInt();
+                rowMargin = parameters.getParameter(HeatMapParameters.rowMargin).getInt();
+                starSize = parameters.getParameter(HeatMapParameters.star).getInt();
 
         }
 
@@ -98,17 +99,20 @@ public class HeatMapTask extends AbstractTask {
                         setStatus(TaskStatus.PROCESSING);
 
                         logger.info("Heat map plot");
-
-                        if (parameterName.getParameter() != null) {
+                       
+                        if (parameterName.getParameter() != null && !referenceGroup.toString().isEmpty()) {
                                 if (plegend) {
-                                        newPeakList = groupingDataset(parameterName, referenceGroup);
+                                        newPeakList = groupingDataset(parameterName, referenceGroup.toString());
                                 } else {
-                                        newPeakList = modifySimpleDataset(parameterName, referenceGroup);
+                                        newPeakList = modifySimpleDataset(parameterName, referenceGroup.toString());
                                 }
                         } else {
                                 setStatus(TaskStatus.ERROR);
-
-                                errorMessage = "Sample parameters have to be defined.";
+                                if (parameterName.getParameter() == null) {
+                                        errorMessage = "Sample parameters have to be defined.";
+                                } else if (referenceGroup.toString().isEmpty()) {
+                                        errorMessage = "Reference group has to be defined.";
+                                }
                                 return;
                         }
 
@@ -135,8 +139,8 @@ public class HeatMapTask extends AbstractTask {
 
                                 // Load gplots library
                                 if (rEngine.eval("require(gplots)").asBool().isFALSE()) {
-
-                                        throw new IllegalStateException("The \"gplots\" R package couldn't be loaded - is it installed in R?");
+                                        setStatus(TaskStatus.ERROR);
+                                        errorMessage = "The \"gplots\" R package couldn't be loaded - is it installed in R?";
                                 }
 
                                 try {
@@ -259,21 +263,7 @@ public class HeatMapTask extends AbstractTask {
 
                 // Collect all data files
                 Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-
-
-                for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-
-                        // Each data file can only have one column in aligned peak list
-                        if (allDataFiles.contains(dataFile)) {
-
-                                setStatus(TaskStatus.ERROR);
-                                errorMessage = "Cannot run alignment, because file "
-                                        + dataFile + " is present in multiple peak lists";
-                                return null;
-                        }
-
-                        allDataFiles.add(dataFile);
-                }
+                allDataFiles.addAll(Arrays.asList(peakList.getRawDataFiles()));
 
 
                 // Determine the reference group and non reference group (the rest of the samples) for raw data files
@@ -433,20 +423,7 @@ public class HeatMapTask extends AbstractTask {
                 Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
                 DescriptiveStatistics meanControlStats = new DescriptiveStatistics();
                 DescriptiveStatistics meanGroupStats = new DescriptiveStatistics();
-
-                for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-
-                        // Each data file can only have one column in aligned peak list
-                        if (allDataFiles.contains(dataFile)) {
-
-                                setStatus(TaskStatus.ERROR);
-                                errorMessage = "Cannot run alignment, because file "
-                                        + dataFile + " is present in multiple peak lists";
-                                return null;
-                        }
-
-                        allDataFiles.add(dataFile);
-                }
+                allDataFiles.addAll(Arrays.asList(peakList.getRawDataFiles()));
 
                 // Determine the reference group and non reference group (the rest of the samples) for raw data files
                 List<RawDataFile> referenceDataFiles = new ArrayList<RawDataFile>();

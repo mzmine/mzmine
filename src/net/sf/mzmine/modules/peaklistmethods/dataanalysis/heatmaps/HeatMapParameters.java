@@ -19,13 +19,14 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
+import java.text.NumberFormat;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.NumberParameter;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class HeatMapParameters extends SimpleParameterSet {
 
@@ -37,9 +38,10 @@ public class HeatMapParameters extends SimpleParameterSet {
                 "Output file type", "Output file type",
                 fileTypes, fileTypes[0]);
         public static final ParameterSelection selectionData = new ParameterSelection();
-        public static final StringParameter referenceGroup = new StringParameter(
-                "Group of reference", "Name of the group that will be used as a reference from the sample parametes.",
-                "");
+        public static final ReferenceGroupSelection referenceGroup = new ReferenceGroupSelection();
+        /*public static final StringParameter referenceGroup = new StringParameter(
+                "Group of reference", "Name of the group that will be used as a reference from the sample parameters.",
+                "");*/
         public static final BooleanParameter useIdenfiedRows = new BooleanParameter(
                 "Only identified rows",
                 "Plot only identified rows.", false);
@@ -55,26 +57,32 @@ public class HeatMapParameters extends SimpleParameterSet {
         public static final BooleanParameter plegend = new BooleanParameter(
                 "P-value legend",
                 "Adds the p-value legend", true);
-        public static final IntegerParameter star = new IntegerParameter(
+        public static final NumberParameter star = new NumberParameter(
                 "Size p-value legend",
-                "Size of the p-value legend", 5);
+                "Size of the p-value legend", NumberFormat.getIntegerInstance(), 5);
         public static final BooleanParameter showControlSamples = new BooleanParameter(
                 "Show control samples",
                 "Shows control samples if this option is selected", true);
-        public static final IntegerParameter height = new IntegerParameter(
+        public static final NumberParameter height = new NumberParameter(
                 "Height",
-                "Height", 10);
-        public static final IntegerParameter width = new IntegerParameter(
+                "Height", NumberFormat.getIntegerInstance(), 10);
+        public static final NumberParameter width = new NumberParameter(
                 "Width",
-                "Width", 10);
-        public static final IntegerParameter columnMargin = new IntegerParameter(
+                "Width", NumberFormat.getIntegerInstance(), 10);
+        public static final NumberParameter columnMargin = new NumberParameter(
                 "Column margin",
-                "Column margin", 10);
-        public static final IntegerParameter rowMargin = new IntegerParameter(
+                "Column margin", NumberFormat.getIntegerInstance(), 10);
+        public static final NumberParameter rowMargin = new NumberParameter(
                 "Row margin",
-                "Row margin", 10);
+                "Row margin", NumberFormat.getIntegerInstance(), 10);
 
         public HeatMapParameters() {
-                super(new Parameter[]{fileName, fileTypeSelection, selectionData, referenceGroup, useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width, columnMargin, rowMargin});
+                super(new Parameter[]{fileName, fileTypeSelection, selectionData, referenceGroup, useIdenfiedRows, usePeakArea, scale, log, showControlSamples, plegend, star, height, width, columnMargin, rowMargin});              
         }
+
+        public ExitCode showSetupDialog() {
+		HeatmapSetupDialog dialog = new HeatmapSetupDialog(this);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
 }
