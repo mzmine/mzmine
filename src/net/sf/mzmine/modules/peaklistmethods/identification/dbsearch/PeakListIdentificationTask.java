@@ -71,7 +71,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 		this.peakList = peakList;
 
-		db = parameters.getParameter(OnlineDBSearchParameters.database)
+		db = parameters
+				.getParameter(SingleRowIdentificationParameters.database)
 				.getValue();
 
 		try {
@@ -81,15 +82,16 @@ public class PeakListIdentificationTask extends AbstractTask {
 		}
 
 		mzTolerance = parameters.getParameter(
-				OnlineDBSearchParameters.mzTolerance).getValue();
+				SingleRowIdentificationParameters.mzTolerance).getValue();
 		numOfResults = parameters.getParameter(
-				OnlineDBSearchParameters.numOfResults).getValue();
+				SingleRowIdentificationParameters.numOfResults).getValue();
 		isotopeFilter = parameters.getParameter(
-				OnlineDBSearchParameters.isotopeFilter).getValue();
+				SingleRowIdentificationParameters.isotopeFilter).getValue();
 		isotopeFilterParameters = parameters.getParameter(
-				OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
-		this.ionType = parameters.getParameter(
-				OnlineDBSearchParameters.neutralMass).getIonType();
+				SingleRowIdentificationParameters.isotopeFilter)
+				.getEmbeddedParameters();
+		ionType = parameters.getParameter(
+				PeakListIdentificationParameters.ionizationType).getValue();
 
 	}
 
@@ -164,7 +166,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 		int charge = bestPeak.getCharge();
 
-		if (charge == 0)
+		if (charge <= 0)
 			charge = 1;
 
 		IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();

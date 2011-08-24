@@ -125,12 +125,15 @@ public class OptionalModuleParameter implements
 			xmlElement.setAttribute("selected", value.toString());
 		embeddedParameters.saveValuesToXML(xmlElement);
 	}
-	
+
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
+		}
+		if (value == true) {
+			return embeddedParameters.checkUserParameterValues(errorMessages);
 		}
 		return true;
 	}

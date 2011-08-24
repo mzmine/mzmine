@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 import org.w3c.dom.Document;
@@ -154,21 +153,30 @@ public class SimpleParameterSet implements ParameterSet {
 	}
 
 	protected ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
-		String helpID = GUIUtils.generateHelpID(this);
-		ParameterSetupDialog dialog = new ParameterSetupDialog(this,
-				autoValues, helpID);
+		ParameterSetupDialog dialog = new ParameterSetupDialog(this, autoValues);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}
 
 	@Override
-	public boolean checkParameterValues(Collection<String> errorMessages) {
+	public boolean checkUserParameterValues(Collection<String> errorMessages) {
 		boolean allParametersOK = true;
 		for (Parameter<?> p : parameters) {
 			// Only check UserParameter instances, because other parameters
 			// cannot be influenced by the dialog
 			if (!(p instanceof UserParameter))
 				continue;
+			boolean pOK = p.checkValue(errorMessages);
+			if (!pOK)
+				allParametersOK = false;
+		}
+		return allParametersOK;
+	}
+
+	@Override
+	public boolean checkAllParameterValues(Collection<String> errorMessages) {
+		boolean allParametersOK = true;
+		for (Parameter<?> p : parameters) {
 			boolean pOK = p.checkValue(errorMessages);
 			if (!pOK)
 				allParametersOK = false;

@@ -43,7 +43,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 	 */
 	public ScanFilterSetupDialog(ScanFilter rawDataFilter) {
 
-		super(rawDataFilter.getParameterSet(), null);
+		super(rawDataFilter.getParameterSet());
 
 		this.rawDataFilter = rawDataFilter;
 	}

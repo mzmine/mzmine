@@ -65,8 +65,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 			"If checked, only rows having same charge state can be aligned");
 
 	public ExitCode showSetupDialog() {
-		RansacAlignerSetupDialog dialog = new RansacAlignerSetupDialog(this,
-				null);
+		RansacAlignerSetupDialog dialog = new RansacAlignerSetupDialog(this);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

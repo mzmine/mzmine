@@ -63,8 +63,11 @@ public class IntensityPlotFrame extends JInternalFrame {
 	private IntensityPlotDataset dataset;
 	private JFreeChart chart;
 
-	public IntensityPlotFrame(PeakList peakList, ParameterSet parameters) {
+	public IntensityPlotFrame(ParameterSet parameters) {
 		super("", true, true, true, true);
+
+		PeakList peakList = parameters.getParameter(
+				IntensityPlotParameters.peakList).getValue()[0];
 
 		String title = "Intensity plot [" + peakList + "]";
 		String xAxisLabel = parameters

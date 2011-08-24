@@ -87,7 +87,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	 * Constructor
 	 */
 	public ParameterSetupDialog(ParameterSet parameters,
-			Map<UserParameter, Object> autoValues, String helpID) {
+			Map<UserParameter, Object> autoValues) {
 
 		// Make dialog modal
 		super(MZmineCore.getDesktop().getMainFrame(), "Please set parameters",
@@ -95,7 +95,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 
 		this.parameterSet = parameters;
 		this.autoValues = autoValues;
-		this.helpID = helpID;
+		this.helpID = GUIUtils.generateHelpID(parameters);
 
 		parametersAndComponents = new Hashtable<String, JComponent>();
 
@@ -287,7 +287,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 
 			ArrayList<String> messages = new ArrayList<String>();
 			boolean allParametersOK = parameterSet
-					.checkParameterValues(messages);
+					.checkUserParameterValues(messages);
 
 			if (!allParametersOK) {
 				StringBuilder message = new StringBuilder(

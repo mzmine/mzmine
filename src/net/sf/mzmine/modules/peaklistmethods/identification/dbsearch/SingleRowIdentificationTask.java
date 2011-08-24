@@ -68,7 +68,7 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 		this.peakListRow = peakListRow;
 
-		db = parameters.getParameter(OnlineDBSearchParameters.database)
+		db = parameters.getParameter(SingleRowIdentificationParameters.database)
 				.getValue();
 
 		try {
@@ -78,19 +78,19 @@ public class SingleRowIdentificationTask extends AbstractTask {
 		}
 
 		searchedMass = parameters.getParameter(
-				OnlineDBSearchParameters.neutralMass).getValue();
+				SingleRowIdentificationParameters.neutralMass).getValue();
 		mzTolerance = parameters.getParameter(
-				OnlineDBSearchParameters.mzTolerance).getValue();
+				SingleRowIdentificationParameters.mzTolerance).getValue();
 		numOfResults = parameters.getParameter(
-				OnlineDBSearchParameters.numOfResults).getValue();
+				SingleRowIdentificationParameters.numOfResults).getValue();
 
-		ionType = parameters.getParameter(OnlineDBSearchParameters.neutralMass)
+		ionType = parameters.getParameter(SingleRowIdentificationParameters.neutralMass)
 				.getIonType();
 
 		isotopeFilter = parameters.getParameter(
-				OnlineDBSearchParameters.isotopeFilter).getValue();
+				SingleRowIdentificationParameters.isotopeFilter).getValue();
 		isotopeFilterParameters = parameters.getParameter(
-				OnlineDBSearchParameters.isotopeFilter).getEmbeddedParameters();
+				SingleRowIdentificationParameters.isotopeFilter).getEmbeddedParameters();
 
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)

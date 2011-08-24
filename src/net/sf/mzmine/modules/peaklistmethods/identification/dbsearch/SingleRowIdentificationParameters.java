@@ -27,11 +27,8 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
-public class OnlineDBSearchParameters extends SimpleParameterSet {
-
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
 	public static final ComboParameter<OnlineDatabase> database = new ComboParameter<OnlineDatabase>(
 			"Database", "Database to search", OnlineDatabase.values());
@@ -49,8 +46,8 @@ public class OnlineDBSearchParameters extends SimpleParameterSet {
 			"Search only for compounds with a isotope pattern similar",
 			new IsotopePatternScoreParameters());
 
-	public OnlineDBSearchParameters() {
-		super(new Parameter[] { peakLists, database, neutralMass, numOfResults,
+	public SingleRowIdentificationParameters() {
+		super(new Parameter[] { database, neutralMass, numOfResults,
 				mzTolerance, isotopeFilter });
 	}
 

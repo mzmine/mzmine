@@ -19,16 +19,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 
@@ -64,7 +66,20 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 	public StandardCompoundNormalizerParameters() {
 		super(new Parameter[] { peakList, suffix, standardUsageType, peakMeasurementType,
 				MZvsRTBalance, standardCompounds, autoRemove });
-
+	}
+	
+	@Override
+	public ExitCode showSetupDialog() {
+	
+		PeakList selectedPeakList[] = getParameter(peakList).getValue();
+		if (selectedPeakList.length == 1) {
+			PeakListRow rows[] = selectedPeakList[0].getRows();
+			getParameter(standardCompounds).setChoices(rows);
+		} else {
+			getParameter(standardCompounds).setChoices(new PeakListRow[0]);
+		}
+		
+		return super.showSetupDialog();
 	}
 
 }

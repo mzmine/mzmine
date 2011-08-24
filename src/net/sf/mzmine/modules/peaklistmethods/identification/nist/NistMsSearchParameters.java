@@ -84,9 +84,9 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 	}
 
 	@Override
-	public boolean checkParameterValues(Collection<String> errorMessages) {
+	public boolean checkUserParameterValues(Collection<String> errorMessages) {
 
-		boolean result = super.checkParameterValues(errorMessages);
+		boolean result = super.checkUserParameterValues(errorMessages);
 
 		// Unsupported OS
 		if (!isWindows()) {

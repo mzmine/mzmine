@@ -23,7 +23,6 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetect
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
@@ -37,9 +36,8 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 	}
 
 	public ExitCode showSetupDialog() {
-		String helpID = GUIUtils.generateHelpID(this);
 		MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-				LocalMaxMassDetector.class, this, helpID);
+				LocalMaxMassDetector.class, this);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

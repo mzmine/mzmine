@@ -51,7 +51,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 	 * @param massFilterTypeNumber
 	 */
 	public ShoulderPeaksFilterSetupDialog(ParameterSet parameters) {
-		super(parameters, null);
+		super(parameters);
 		this.parameters = parameters;
 	}
 
@@ -79,7 +79,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 		
 		// If the parameters are not complete, exit
 		ArrayList<String> errors = new ArrayList<String>();
-		boolean paramsOK = parameters.checkParameterValues(errors);
+		boolean paramsOK = parameters.checkUserParameterValues(errors);
 		if (! paramsOK) return;
 		
 		// Get mass list

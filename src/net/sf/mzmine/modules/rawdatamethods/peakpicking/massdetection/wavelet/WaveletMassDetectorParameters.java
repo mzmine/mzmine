@@ -25,7 +25,6 @@ import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
-import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
@@ -47,9 +46,8 @@ public class WaveletMassDetectorParameters extends SimpleParameterSet {
 	}
 
 	public ExitCode showSetupDialog() {
-		String helpID = GUIUtils.generateHelpID(this);
 		MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-				WaveletMassDetector.class, this, helpID);
+				WaveletMassDetector.class, this);
 		dialog.setVisible(true);
 		return dialog.getExitCode();
 	}

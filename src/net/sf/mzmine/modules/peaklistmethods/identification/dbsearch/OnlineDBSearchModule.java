@@ -35,7 +35,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 
 	public static final String MODULE_NAME = "Online database search";
 
-	private ParameterSet parameters = new OnlineDBSearchParameters();
+	private ParameterSet parameters = new PeakListIdentificationParameters();
 
 	private static OnlineDBSearchModule myInstance;
 
@@ -54,24 +54,23 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 		return myInstance;
 	}
 
-
 	public MZmineModuleCategory getModuleCategory() {
 		return MZmineModuleCategory.IDENTIFICATION;
 	}
 
-
 	public static void showSingleRowIdentificationDialog(PeakListRow row) {
 
-		ParameterSet parameters = myInstance.getParameterSet();
+		ParameterSet parameters = new SingleRowIdentificationParameters();
 
 		double mzValue = row.getAverageMZ();
-		parameters.getParameter(OnlineDBSearchParameters.neutralMass)
+		parameters.getParameter(SingleRowIdentificationParameters.neutralMass)
 				.setIonMass(mzValue);
 
 		int charge = row.getBestPeak().getCharge();
 		if (charge > 0) {
-			parameters.getParameter(OnlineDBSearchParameters.neutralMass)
-					.setCharge(charge);
+			parameters.getParameter(
+					SingleRowIdentificationParameters.neutralMass).setCharge(
+					charge);
 		}
 
 		ExitCode exitCode = parameters.showSetupDialog();
@@ -81,7 +80,6 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 		SingleRowIdentificationTask newTask = new SingleRowIdentificationTask(
 				parameters.clone(), row);
 
-		// execute the sequence
 		MZmineCore.getTaskController().addTask(newTask);
 
 	}
@@ -92,10 +90,10 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
 	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
 	 */
-	public Task[] runModule(
-			ParameterSet parameters) {
-		
-		PeakList peakLists[] = parameters.getParameter(OnlineDBSearchParameters.peakLists).getValue();
+	public Task[] runModule(ParameterSet parameters) {
+
+		PeakList peakLists[] = parameters.getParameter(
+				PeakListIdentificationParameters.peakLists).getValue();
 
 		// prepare a new sequence of tasks
 		Task tasks[] = new PeakListIdentificationTask[peakLists.length];

@@ -162,7 +162,7 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
 			return false;
 		}
 		ParameterSet moduleParameters = value.getParameterSet();
-		return moduleParameters.checkParameterValues(errorMessages);
+		return moduleParameters.checkUserParameterValues(errorMessages);
 	}
 
 }

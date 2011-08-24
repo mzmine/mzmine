@@ -66,9 +66,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	 * @param parameters
 	 * @param massDetectorTypeNumber
 	 */
-	public RansacAlignerSetupDialog(RansacAlignerParameters parameters,
-			String helpID) {
-		super(parameters, null, helpID);
+	public RansacAlignerSetupDialog(RansacAlignerParameters parameters) {
+		super(parameters, null);
 		this.parameters = parameters;
 		addComponents();
 	}

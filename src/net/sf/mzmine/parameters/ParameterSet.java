@@ -41,7 +41,9 @@ public interface ParameterSet {
 
 	public void saveValuesToXML(Element element);
 
-	public boolean checkParameterValues(Collection<String> errorMessages);
+	public boolean checkUserParameterValues(Collection<String> errorMessages);
+
+	public boolean checkAllParameterValues(Collection<String> errorMessages);
 	
 	public ParameterSet clone();
 

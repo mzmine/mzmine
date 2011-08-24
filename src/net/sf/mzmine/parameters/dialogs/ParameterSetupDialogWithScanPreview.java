@@ -70,11 +70,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	 * @param parameters
 	 * @param massDetectorTypeNumber
 	 */
-	public ParameterSetupDialogWithScanPreview(ParameterSet parameters,
-			String helpFile) {
-
-		super(parameters, null, helpFile);
-
+	public ParameterSetupDialogWithScanPreview(ParameterSet parameters) {
+		super(parameters, null);
 	}
 
 	/**

@@ -62,10 +62,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	// XYPlot
 	private TICPlot ticPlot;
 
-	public ParameterSetupDialogWithChromatogramPreview(ParameterSet parameters,
-			String helpFile) {
+	public ParameterSetupDialogWithChromatogramPreview(ParameterSet parameters) {
 
-		super(parameters, null, helpFile);
+		super(parameters, null);
 
 		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 

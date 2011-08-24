@@ -19,69 +19,27 @@
 
 package net.sf.mzmine.modules.visualization.intensityplot;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.MZmineModuleCategory;
+import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * Peak intensity plot module
  */
-public class IntensityPlotModule implements MZmineModule, ActionListener {
+public class IntensityPlotModule implements MZmineProcessingModule {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-
-	private Desktop desktop;
-
-	private IntensityPlotParameters parameters;
+	private IntensityPlotParameters parameters = new IntensityPlotParameters();
 
 	private static IntensityPlotModule myInstance;
 
 	public IntensityPlotModule() {
-
-		this.desktop = MZmineCore.getDesktop();
-
-		parameters = new IntensityPlotParameters();
-
 		myInstance = this;
-
-	}
-
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent e) {
-
-		PeakList selectedAlignedPeakLists[] = desktop.getSelectedPeakLists();
-		if (selectedAlignedPeakLists.length != 1) {
-			desktop.displayErrorMessage("Please select a single aligned peaklist");
-			return;
-		}
-
-		if (selectedAlignedPeakLists[0].getNumberOfRows() == 0) {
-			desktop.displayErrorMessage("Selected alignment result is empty");
-			return;
-		}
-
-		logger.finest("Showing intensity plot setup dialog");
-
-		ExitCode exitCode = parameters.showSetupDialog();
-
-		if (exitCode == ExitCode.OK) {
-			logger.info("Opening new intensity plot");
-			IntensityPlotFrame newFrame = new IntensityPlotFrame(
-					selectedAlignedPeakLists[0], parameters.clone());
-			desktop.addInternalFrame(newFrame);
-		}
-
 	}
 
 	/**
@@ -99,6 +57,9 @@ public class IntensityPlotModule implements MZmineModule, ActionListener {
 	}
 
 	public static void showIntensityPlot(PeakList peakList, PeakListRow rows[]) {
+
+		myInstance.parameters.getParameter(IntensityPlotParameters.peakList)
+				.setValue(new PeakList[] { peakList });
 
 		myInstance.parameters.getParameter(IntensityPlotParameters.dataFiles)
 				.setChoices(peakList.getRawDataFiles());
@@ -125,13 +86,22 @@ public class IntensityPlotModule implements MZmineModule, ActionListener {
 
 		ExitCode exitCode = myInstance.parameters.showSetupDialog();
 
-		if (exitCode == ExitCode.OK) {
-			// myInstance.setParameters(newParameters);
-			Desktop desktop = MZmineCore.getDesktop();
-			IntensityPlotFrame newFrame = new IntensityPlotFrame(peakList,
-					myInstance.parameters.clone());
-			desktop.addInternalFrame(newFrame);
-		}
+		if (exitCode == ExitCode.OK)
+			myInstance.runModule(myInstance.parameters.clone());
+
+	}
+
+	@Override
+	public Task[] runModule(ParameterSet parameters) {
+
+		IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
+		MZmineCore.getDesktop().addInternalFrame(newFrame);
+		return null;
+	}
+
+	@Override
+	public MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
 	}
 
 }

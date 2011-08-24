@@ -35,7 +35,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog{
 
         public HeatmapSetupDialog(HeatMapParameters parameters) {
 
-                super(parameters, null, null);
+                super(parameters, null);
                 comp = (JComboBox) this.getComponentForParameter(parameters.getParameter(HeatMapParameters.referenceGroup));
                 comp2 = (JComboBox) this.getComponentForParameter(parameters.getParameter(HeatMapParameters.selectionData));
                 comp2.addActionListener(this);

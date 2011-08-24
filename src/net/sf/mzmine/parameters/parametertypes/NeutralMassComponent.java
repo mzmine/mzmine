@@ -22,20 +22,21 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.components.GridBagPanel;
 
 /**
  */
 public class NeutralMassComponent extends GridBagPanel implements
-		PropertyChangeListener, ActionListener {
+		DocumentListener, ActionListener {
 
 	private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
 
@@ -47,14 +48,14 @@ public class NeutralMassComponent extends GridBagPanel implements
 		add(new JLabel("m/z:"), 0, 0);
 
 		ionMassField = new JTextField();
-		ionMassField.addPropertyChangeListener("value", this);
+		ionMassField.getDocument().addDocumentListener(this);
 		ionMassField.setColumns(8);
 		add(ionMassField, 1, 0);
 
 		add(new JLabel("Charge:"), 2, 0);
 
 		chargeField = new JTextField();
-		chargeField.addPropertyChangeListener("value", this);
+		chargeField.getDocument().addDocumentListener(this);
 		chargeField.setColumns(2);
 		add(chargeField, 3, 0);
 
@@ -74,7 +75,7 @@ public class NeutralMassComponent extends GridBagPanel implements
 	}
 
 	public void setIonMass(double ionMass) {
-		ionMassField.setText(String.valueOf(ionMass));
+		ionMassField.setText(MZmineCore.getMZFormat().format(ionMass));
 		updateNeutralMass();
 	}
 
@@ -127,11 +128,6 @@ public class NeutralMassComponent extends GridBagPanel implements
 		updateNeutralMass();
 	}
 
-	@Override
-	public void propertyChange(PropertyChangeEvent e) {
-		updateNeutralMass();
-	}
-
 	private void updateNeutralMass() {
 
 		Integer charge = getCharge();
@@ -147,12 +143,26 @@ public class NeutralMassComponent extends GridBagPanel implements
 		double neutral = (ionMass.doubleValue() - ionType.getAddedMass())
 				* charge.intValue();
 
-		neutralMassField.setText(String.valueOf(neutral));
+		neutralMassField.setText(MZmineCore.getMZFormat().format(neutral));
+	}
+
+	@Override
+	public void changedUpdate(DocumentEvent e) {
+		updateNeutralMass();
+	}
+
+	@Override
+	public void insertUpdate(DocumentEvent e) {
+		updateNeutralMass();
+	}
+
+	@Override
+	public void removeUpdate(DocumentEvent e) {
+		updateNeutralMass();
 	}
 
 	@Override
 	public void setToolTipText(String toolTip) {
 		ionMassField.setToolTipText(toolTip);
 	}
-
 }

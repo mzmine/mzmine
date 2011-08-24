@@ -47,9 +47,9 @@ public class MassDetectorSetupDialog extends
 	 * @param massDetectorTypeNumber
 	 */
 	public MassDetectorSetupDialog(Class massDetectorClass,
-			ParameterSet parameters, String helpID) {
+			ParameterSet parameters) {
 
-		super(parameters, helpID);
+		super(parameters);
 
 		this.parameters = parameters;
 
@@ -78,7 +78,7 @@ public class MassDetectorSetupDialog extends
 
 		// If there is some illegal value, do not load the preview but just exit
 		ArrayList<String> errorMessages = new ArrayList<String>();
-		boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+		boolean paramsOK = parameterSet.checkUserParameterValues(errorMessages);
 		if (!paramsOK)
 			return;
 

@@ -45,7 +45,7 @@ public class DataSetFilterSetupDialog extends
 	 */
 	public DataSetFilterSetupDialog(RawDataSetFilter rawDataFilter) {
 
-		super(rawDataFilter.getParameterSet(), null);
+		super(rawDataFilter.getParameterSet());
 
 		this.rawDataFilter = rawDataFilter;
 

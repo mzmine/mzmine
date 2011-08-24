@@ -23,7 +23,6 @@ import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.modules.masslistmethods.chromatogrambuilder.ChromatogramBuilderModule;
 import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.ShoulderPeaksFilterModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.join.JoinAlignerModule;
-import net.sf.mzmine.modules.peaklistmethods.alignment.path.PathAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.alignment.ransac.RansacAlignerModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps.HeatMapModule;
@@ -43,7 +42,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSea
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearchModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.mascot.MascotSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
@@ -109,7 +107,7 @@ public class MZmineModulesList {
 			// Alignment
 			JoinAlignerModule.class,
 			RansacAlignerModule.class,
-			PathAlignerModule.class,
+			// PathAlignerModule.class,
 
 			// I/O
 			CSVExportModule.class,
@@ -146,15 +144,16 @@ public class MZmineModulesList {
 			CDAPlotModule.class,
 			SammonsPlotModule.class,
 			ClusteringModule.class,
-                        HeatMapModule.class,
+			HeatMapModule.class,
 
 			// Identification
-			CustomDBSearchModule.class, FormulaPredictionModule.class,
+			CustomDBSearchModule.class,
+			FormulaPredictionModule.class,
 			FragmentSearchModule.class,
 			AdductSearchModule.class,
 			ComplexSearchModule.class,
 			OnlineDBSearchModule.class,
-			MascotSearchModule.class,
+			// MascotSearchModule.class,
 			GPLipidSearchModule.class,
 			NistMsSearchModule.class,
 

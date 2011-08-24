@@ -77,7 +77,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 	 */
 	public PeakResolverSetupDialog(PeakResolver peakResolver) {
 
-		super(peakResolver.getParameterSet(), null, null);
+		super(peakResolver.getParameterSet(), null);
 
 		this.peakResolver = peakResolver;
 
@@ -159,7 +159,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
 		// If there is some illegal value, do not load the preview but just exit
 		ArrayList<String> errorMessages = new ArrayList<String>();
-		boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+		boolean paramsOK = parameterSet.checkUserParameterValues(errorMessages);
 		if (!paramsOK)
 			return;
 

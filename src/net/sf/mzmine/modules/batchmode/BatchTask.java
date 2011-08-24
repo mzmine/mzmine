@@ -103,7 +103,7 @@ public class BatchTask extends AbstractTask {
 		// Check if the parameter settings are valid
 		ArrayList<String> messages = new ArrayList<String>();
 		boolean paramsCheck = batchStepParameters
-				.checkParameterValues(messages);
+				.checkAllParameterValues(messages);
 		if (!paramsCheck) {
 			setStatus(TaskStatus.ERROR);
 			errorMessage = "Invalid parameter settings for module " + method
