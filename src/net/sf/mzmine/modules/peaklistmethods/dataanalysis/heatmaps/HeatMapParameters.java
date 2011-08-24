@@ -57,7 +57,7 @@ public class HeatMapParameters extends SimpleParameterSet {
 
 	public static final BooleanParameter scale = new BooleanParameter(
 			"Scaling",
-			"Scaling the data with the standard deviation of each colum.", true);
+			"Scaling the data with the standard deviation of each column.", true);
 
 	public static final BooleanParameter log = new BooleanParameter("Log",
 			"Log scaling of the data", true);
