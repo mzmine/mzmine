@@ -32,13 +32,11 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
-/**
- * 
- */
 public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakList = new PeakListsParameter(1,1);
-			
+	public static final PeakListsParameter peakList = new PeakListsParameter(1,
+			1);
+
 	public static final StringParameter suffix = new StringParameter(
 			"Name suffix", "Suffix to be added to peak list name", "normalized");
 
@@ -64,21 +62,25 @@ public class StandardCompoundNormalizerParameters extends SimpleParameterSet {
 			new PeakListRow[0]);
 
 	public StandardCompoundNormalizerParameters() {
-		super(new Parameter[] { peakList, suffix, standardUsageType, peakMeasurementType,
-				MZvsRTBalance, standardCompounds, autoRemove });
+		super(new Parameter[] { peakList, suffix, standardUsageType,
+				peakMeasurementType, MZvsRTBalance, standardCompounds,
+				autoRemove });
 	}
-	
+
 	@Override
 	public ExitCode showSetupDialog() {
-	
+
 		PeakList selectedPeakList[] = getParameter(peakList).getValue();
+		PeakListRow rowChoices[];
 		if (selectedPeakList.length == 1) {
-			PeakListRow rows[] = selectedPeakList[0].getRows();
-			getParameter(standardCompounds).setChoices(rows);
+			rowChoices = selectedPeakList[0].getRows();
 		} else {
-			getParameter(standardCompounds).setChoices(new PeakListRow[0]);
+			rowChoices = new PeakListRow[0];
 		}
-		
+
+		getParameter(StandardCompoundNormalizerParameters.standardCompounds)
+				.setChoices(rowChoices);
+
 		return super.showSetupDialog();
 	}
 

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.parameters.Parameter;
@@ -27,6 +28,7 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ProjectionPlotParameters extends SimpleParameterSet {
 
@@ -58,6 +60,32 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 	public ProjectionPlotParameters() {
 		super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
 				peakMeasurementType, xAxisComponent, yAxisComponent });
+	}
+	
+	@Override
+	public ExitCode showSetupDialog() {
+
+		PeakList selectedPeakList[] = getParameter(peakLists).getValue();
+
+		RawDataFile dataFileChoices[];
+		if (selectedPeakList.length == 1) {
+			dataFileChoices = selectedPeakList[0].getRawDataFiles();
+		} else {
+			dataFileChoices = new RawDataFile[0];
+		}
+
+		PeakListRow rowChoices[];
+		if (selectedPeakList.length == 1) {
+			rowChoices = selectedPeakList[0].getRows();
+		} else {
+			rowChoices = new PeakListRow[0];
+		}
+
+		getParameter(ProjectionPlotParameters.dataFiles).setChoices(
+				dataFileChoices);
+		getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
+
+		return super.showSetupDialog();
 	}
 
 }

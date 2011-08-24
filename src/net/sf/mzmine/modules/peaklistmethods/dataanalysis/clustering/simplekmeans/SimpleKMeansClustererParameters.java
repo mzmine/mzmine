@@ -28,7 +28,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 public class SimpleKMeansClustererParameters extends SimpleParameterSet {
 
 	public static final ComboParameter<VisualizationType> visualization = new ComboParameter<VisualizationType>(
-			"Select the visualization type",
+			"Visualization type",
 			"Select the kind of visualization for the clustering result",
 			VisualizationType.values());
 
