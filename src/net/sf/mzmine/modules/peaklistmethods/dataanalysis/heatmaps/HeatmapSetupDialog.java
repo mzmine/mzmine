@@ -16,80 +16,72 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Vector;
+
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
-import net.sf.mzmine.data.PeakList;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
-import net.sf.mzmine.project.MZmineProject;
 
 public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-	private JComboBox comp, comp2;
+	private Parameter previousParameterSelection;
 
 	public HeatmapSetupDialog(HeatMapParameters parameters) {
-
 		super(parameters, null);
-		comp = (JComboBox) this.getComponentForParameter(parameters
-				.getParameter(HeatMapParameters.referenceGroup));
-		comp2 = (JComboBox) this.getComponentForParameter(parameters
-				.getParameter(HeatMapParameters.selectionData));
-		comp2.addActionListener(this);
-		if (parameterSet.getParameter(HeatMapParameters.selectionData) != null) {
-			setValues((ParameterType) this.comp2.getSelectedItem());
-		}
+
+		// Call parametersChanged() to rebuild the reference group combo
+		parametersChanged();
+
 	}
 
 	@Override
 	public void parametersChanged() {
-		setValues((ParameterType) this.comp2.getSelectedItem());
-	}
 
-	public final void setValues(ParameterType parameterName) {
-		comp.removeAllItems();
-		ArrayList<ParameterType> choicesList = new ArrayList<ParameterType>();
-		PeakList selectedPeakList = MZmineCore.getDesktop()
-				.getSelectedPeakLists()[0];
-		// Collect all data files
-		Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-		allDataFiles.addAll(Arrays.asList(selectedPeakList.getRawDataFiles()));
+		// Get a reference to the combo boxes
+		JComboBox selDataCombo = (JComboBox) this
+				.getComponentForParameter(HeatMapParameters.selectionData);
+		JComboBox refGroupCombo = (JComboBox) this
+				.getComponentForParameter(HeatMapParameters.referenceGroup);
 
-		MZmineProject project = MZmineCore.getCurrentProject();
-		if (parameterName == null)
-			return;
-		UserParameter selectedParameter = parameterName.getParameter();
-		if (selectedParameter == null)
+		// Get the current value of the "Sample parameter" combo
+		UserParameter currentParameterSelection = (UserParameter) selDataCombo
+				.getSelectedItem();
+		if (currentParameterSelection == null)
 			return;
 
-		for (RawDataFile rawDataFile : allDataFiles) {
+		// If the value has changed, update the "Reference group" combo
+		if (currentParameterSelection != previousParameterSelection) {
+			ArrayList<Object> values = new ArrayList<Object>();
 
-			Object paramValue = project.getParameterValue(selectedParameter,
-					rawDataFile);
-
-			if (!contains((String) paramValue, choicesList)) {
-				choicesList.add(new ParameterType((String) paramValue));
+			// Obtain all possible values
+			for (RawDataFile dataFile : MZmineCore.getCurrentProject()
+					.getDataFiles()) {
+				Object paramValue = MZmineCore.getCurrentProject()
+						.getParameterValue(currentParameterSelection, dataFile);
+				if (paramValue == null)
+					continue;
+				if (!values.contains(paramValue))
+					values.add(paramValue);
 			}
+
+			// Update the parameter and combo model
+			Object newValues[] = values.toArray();
+			super.parameterSet.getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
+			refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
+
+			previousParameterSelection = currentParameterSelection;
 		}
 
-		for (Object choice : choicesList) {
-			comp.addItem(choice);
-		}
 		this.updateParameterSetFromComponents();
+
 	}
 
-	private boolean contains(String paramValue,
-			ArrayList<ParameterType> choicesList) {
-		for (ParameterType choice : choicesList) {
-			if (choice.toString().equals(paramValue)) {
-				return true;
-			}
-		}
-		return false;
-	}
 }

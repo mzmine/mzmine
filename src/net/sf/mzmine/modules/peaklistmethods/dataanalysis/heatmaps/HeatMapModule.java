@@ -16,9 +16,9 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
-import java.util.logging.Logger;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -26,35 +26,31 @@ import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 
-public class HeatMapModule implements MZmineProcessingModule{
+public class HeatMapModule implements MZmineProcessingModule {
 
-        private Logger logger = Logger.getLogger(this.getClass().getName());
-        private HeatMapParameters parameters = new HeatMapParameters();
+	private HeatMapParameters parameters = new HeatMapParameters();
 
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
 
-        public void taskStarted(Task task) {
-                logger.info("Running heat map plot");
-        }          
+	@Override
+	public String toString() {
+		return "Heat map plot";
+	}
 
-        public ParameterSet getParameterSet() {
-                return parameters;
-        }
+	public Task[] runModule(ParameterSet parameters) {
+		PeakList[] selectedDatasets = MZmineCore.getDesktop()
+				.getSelectedPeakLists();
+		HeatMapTask heatMapTask = new HeatMapTask(selectedDatasets[0],
+				parameters);
+		MZmineCore.getTaskController().addTask(heatMapTask);
+		return new Task[] { heatMapTask };
 
-        @Override
-        public String toString() {
-                return "Heat map plot";
-        }
+	}
 
-        public Task[] runModule(ParameterSet parameters) { 
-                PeakList[] selectedDatasets = MZmineCore.getDesktop().getSelectedPeakLists();
-                HeatMapTask heatMapTask = new HeatMapTask(selectedDatasets[0], parameters);
-                MZmineCore.getTaskController().addTask(heatMapTask);
-                return new Task[]{heatMapTask};
+	public MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.DATAANALYSIS;
+	}
 
-        }
-
-        public MZmineModuleCategory getModuleCategory() {
-                return MZmineModuleCategory.DATAANALYSIS;
-        }
-       
 }

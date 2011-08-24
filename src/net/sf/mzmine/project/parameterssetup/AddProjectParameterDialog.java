@@ -249,6 +249,8 @@ public class AddProjectParameterDialog extends JDialog implements
 		if (src == buttonAddCategory) {
 			String inputValue = JOptionPane
 					.showInputDialog("Please input a new value");
+			if ((inputValue == null) || (inputValue.trim().length() == 0))
+				return;
 			if (((DefaultListModel) listCategories.getModel())
 					.contains(inputValue)) {
 				desktop.displayErrorMessage("Value already exists.");

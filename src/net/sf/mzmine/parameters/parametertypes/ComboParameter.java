@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import javax.swing.JComboBox;
@@ -74,12 +75,11 @@ public class ComboParameter<ValueType> implements
 	public ValueType getValue() {
 		return value;
 	}
-	
+
 	public ValueType[] getChoices() {
 		return choices;
 	}
-	
-	
+
 	public void setChoices(ValueType newChoices[]) {
 		this.choices = newChoices;
 	}
@@ -99,9 +99,19 @@ public class ComboParameter<ValueType> implements
 
 	@Override
 	public void setValueFromComponent(JComboBox component) {
+		Object selectedItem = component.getSelectedItem();
+		if (selectedItem == null) {
+			value = null;
+			return;
+		}
+		if (!Arrays.asList(choices).contains(selectedItem)) {
+			throw new IllegalArgumentException("Invalid value for parameter "
+					+ name + ": " + selectedItem);
+		}
 		int index = component.getSelectedIndex();
 		if (index < 0)
 			return;
+
 		value = choices[index];
 	}
 
@@ -129,12 +139,12 @@ public class ComboParameter<ValueType> implements
 			return;
 		xmlElement.setTextContent(value.toString());
 	}
-	
+
 	@Override
 	public String toString() {
 		return name;
 	}
-	
+
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
