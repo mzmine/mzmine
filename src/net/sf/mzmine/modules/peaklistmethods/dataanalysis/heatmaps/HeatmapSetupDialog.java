@@ -26,16 +26,26 @@ import javax.swing.JComboBox;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 
 public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-	private Parameter previousParameterSelection;
+	private JComboBox selDataCombo, refGroupCombo;
+	private UserParameter previousParameterSelection;
 
 	public HeatmapSetupDialog(HeatMapParameters parameters) {
 		super(parameters, null);
+
+		// Get a reference to the combo boxes
+		selDataCombo = (JComboBox) this
+				.getComponentForParameter(HeatMapParameters.selectionData);
+		refGroupCombo = (JComboBox) this
+				.getComponentForParameter(HeatMapParameters.referenceGroup);
+
+		// Save a reference to current "Sample parameter" value
+		previousParameterSelection = (UserParameter) selDataCombo
+				.getSelectedItem();
 
 		// Call parametersChanged() to rebuild the reference group combo
 		parametersChanged();
@@ -44,12 +54,6 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 
 	@Override
 	public void parametersChanged() {
-
-		// Get a reference to the combo boxes
-		JComboBox selDataCombo = (JComboBox) this
-				.getComponentForParameter(HeatMapParameters.selectionData);
-		JComboBox refGroupCombo = (JComboBox) this
-				.getComponentForParameter(HeatMapParameters.referenceGroup);
 
 		// Get the current value of the "Sample parameter" combo
 		UserParameter currentParameterSelection = (UserParameter) selDataCombo
@@ -74,7 +78,8 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 
 			// Update the parameter and combo model
 			Object newValues[] = values.toArray();
-			super.parameterSet.getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
+			super.parameterSet.getParameter(HeatMapParameters.referenceGroup)
+					.setChoices(newValues);
 			refGroupCombo.setModel(new DefaultComboBoxModel(newValues));
 
 			previousParameterSelection = currentParameterSelection;
