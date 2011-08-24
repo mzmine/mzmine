@@ -29,60 +29,67 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.project.MZmineProject;
 
-public class HeatmapSetupDialog extends ParameterSetupDialog{
+public class HeatmapSetupDialog extends ParameterSetupDialog {
 
-        private JComboBox comp, comp2;
+	private JComboBox comp, comp2;
 
-        public HeatmapSetupDialog(HeatMapParameters parameters) {
+	public HeatmapSetupDialog(HeatMapParameters parameters) {
 
-                super(parameters, null);
-                comp = (JComboBox) this.getComponentForParameter(parameters.getParameter(HeatMapParameters.referenceGroup));
-                comp2 = (JComboBox) this.getComponentForParameter(parameters.getParameter(HeatMapParameters.selectionData));
-                comp2.addActionListener(this);
-                if (parameterSet.getParameter(HeatMapParameters.selectionData) != null) {
-                        setValues((ParameterType) this.comp2.getSelectedItem());
-                }
-        }
-       
-        @Override
-        public void parametersChanged() {
-                setValues((ParameterType) this.comp2.getSelectedItem());
-        }
+		super(parameters, null);
+		comp = (JComboBox) this.getComponentForParameter(parameters
+				.getParameter(HeatMapParameters.referenceGroup));
+		comp2 = (JComboBox) this.getComponentForParameter(parameters
+				.getParameter(HeatMapParameters.selectionData));
+		comp2.addActionListener(this);
+		if (parameterSet.getParameter(HeatMapParameters.selectionData) != null) {
+			setValues((ParameterType) this.comp2.getSelectedItem());
+		}
+	}
 
-        public final void setValues(ParameterType parameterName) {
-                comp.removeAllItems();
-                ArrayList<ParameterType> choicesList = new ArrayList<ParameterType>();
-                PeakList selectedPeakList = MZmineCore.getDesktop().getSelectedPeakLists()[0];
-                // Collect all data files
-                Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
-                allDataFiles.addAll(Arrays.asList(selectedPeakList.getRawDataFiles()));
+	@Override
+	public void parametersChanged() {
+		setValues((ParameterType) this.comp2.getSelectedItem());
+	}
 
-                MZmineProject project = MZmineCore.getCurrentProject();
-                if (parameterName != null) {
-                        UserParameter selectedParameter = parameterName.getParameter();
-                        for (RawDataFile rawDataFile : allDataFiles) {
+	public final void setValues(ParameterType parameterName) {
+		comp.removeAllItems();
+		ArrayList<ParameterType> choicesList = new ArrayList<ParameterType>();
+		PeakList selectedPeakList = MZmineCore.getDesktop()
+				.getSelectedPeakLists()[0];
+		// Collect all data files
+		Vector<RawDataFile> allDataFiles = new Vector<RawDataFile>();
+		allDataFiles.addAll(Arrays.asList(selectedPeakList.getRawDataFiles()));
 
-                                Object paramValue = project.getParameterValue(
-                                        selectedParameter, rawDataFile);
+		MZmineProject project = MZmineCore.getCurrentProject();
+		if (parameterName == null)
+			return;
+		UserParameter selectedParameter = parameterName.getParameter();
+		if (selectedParameter == null)
+			return;
 
-                                if (!contains((String) paramValue, choicesList)) {
-                                        choicesList.add(new ParameterType((String) paramValue));
-                                }
-                        }
-                }
+		for (RawDataFile rawDataFile : allDataFiles) {
 
-                for (Object choice : choicesList) {
-                        comp.addItem(choice);
-                }
-                this.updateParameterSetFromComponents();
-        }
+			Object paramValue = project.getParameterValue(selectedParameter,
+					rawDataFile);
 
-        private boolean contains(String paramValue, ArrayList<ParameterType> choicesList) {
-                for (ParameterType choice : choicesList) {
-                        if (choice.toString().equals(paramValue)) {
-                                return true;
-                        }
-                }
-                return false;
-        }
+			if (!contains((String) paramValue, choicesList)) {
+				choicesList.add(new ParameterType((String) paramValue));
+			}
+		}
+
+		for (Object choice : choicesList) {
+			comp.addItem(choice);
+		}
+		this.updateParameterSetFromComponents();
+	}
+
+	private boolean contains(String paramValue,
+			ArrayList<ParameterType> choicesList) {
+		for (ParameterType choice : choicesList) {
+			if (choice.toString().equals(paramValue)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
