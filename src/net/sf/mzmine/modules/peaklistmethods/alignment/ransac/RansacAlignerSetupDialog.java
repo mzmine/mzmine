@@ -21,13 +21,14 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -56,11 +57,10 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
 	// Dialog components
 	private JPanel pnlPlotXY, peakListsPanel;
-	private JCheckBox preview;
+	private JCheckBox previewCheckBox;
 	private AlignmentRansacPlot chart;
 	private JComboBox peakListsComboX, peakListsComboY;
 	private JButton alignmentPreviewButton;
-	private RansacAlignerParameters parameters;
 
 	/**
 	 * @param parameters
@@ -68,8 +68,6 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	 */
 	public RansacAlignerSetupDialog(RansacAlignerParameters parameters) {
 		super(parameters, null);
-		this.parameters = parameters;
-		addComponents();
 	}
 
 	/**
@@ -80,14 +78,14 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		super.actionPerformed(event);
 		Object src = event.getSource();
 
-		if (src == preview) {
-			if (preview.isSelected()) {
+		if (src == previewCheckBox) {
+			if (previewCheckBox.isSelected()) {
 				// Set the height of the preview to 200 cells, so it will span
 				// the whole vertical length of the dialog (buttons are at row
-				// no
-				// 100). Also, we set the weight to 10, so the preview component
-				// will consume most of the extra available space.
-				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
+				// no 100). Also, we set the weight to 10, so the preview
+				// component will consume most of the extra available space.
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10,
+						GridBagConstraints.BOTH);
 				peakListsPanel.setVisible(true);
 				updateMinimumSize();
 				pack();
@@ -101,47 +99,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 			}
 		}
 
-		if (src == alignmentPreviewButton) {
-			PeakList peakListX = (PeakList) peakListsComboX.getSelectedItem();
-			PeakList peakListY = (PeakList) peakListsComboY.getSelectedItem();
-
-			// Select the rawDataFile which has more peaks in each peakList
-			int numPeaks = 0;
-			RawDataFile file = null;
-			RawDataFile file2 = null;
-
-			for (RawDataFile rfile : peakListX.getRawDataFiles()) {
-				if (peakListX.getPeaks(rfile).length > numPeaks) {
-					numPeaks = peakListX.getPeaks(rfile).length;
-					file = rfile;
-				}
-			}
-			numPeaks = 0;
-			for (RawDataFile rfile : peakListY.getRawDataFiles()) {
-				if (peakListY.getPeaks(rfile).length > numPeaks) {
-					numPeaks = peakListY.getPeaks(rfile).length;
-					file2 = rfile;
-				}
-			}
-
-			super.updateParameterSetFromComponents();
-
-			// Ransac Alignment
-			Vector<AlignStructMol> list = this.getVectorAlignment(peakListX,
-					peakListY, file, file2);
-			RANSAC ransac = new RANSAC(parameters);
-			ransac.alignment(list);
-
-			// Plot the result
-			this.chart.removeSeries();
-			this.chart.addSeries(list,
-					peakListX.getName() + " vs " + peakListY.getName(),
-					this.parameters
-							.getParameter(RansacAlignerParameters.Linear)
-							.getValue());
-			this.chart.printAlignmentChart(peakListX.getName() + " RT",
-					peakListY.getName() + " RT");
-
+		if ((src == alignmentPreviewButton)) {
+			updatePreview();
 		}
 
 	}
@@ -151,50 +110,53 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	 * original ParameterSetupDialog.
 	 * 
 	 */
-	private void addComponents() {
+	@Override
+	protected void addDialogComponents() {
 
-		// Elements of pnlpreview
-		JPanel pnlpreview = new JPanel(new BorderLayout());
-		preview = new JCheckBox(" Show preview of RANSAC alignment ");
-		preview.addActionListener(this);
-		preview.setHorizontalAlignment(SwingConstants.CENTER);
-		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-		pnlpreview.add(preview, BorderLayout.CENTER);
-		pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+		super.addDialogComponents();
 
-		pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-		pnlpreview.add(preview, BorderLayout.CENTER);
+		PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+		if (peakLists.length < 2)
+			return;
+
+		PeakList selectedPeakLists[] = MZmineCore.getDesktop()
+				.getSelectedPeakLists();
+
+		// Preview check box
+		previewCheckBox = new JCheckBox("Show preview of RANSAC alignment");
+		previewCheckBox.addActionListener(this);
+		previewCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
+
+		mainPanel.add(new JSeparator(), 0, getNumberOfParameters() + 1, 3, 1,
+				0, 0, GridBagConstraints.HORIZONTAL);
+		mainPanel.add(previewCheckBox, 0, getNumberOfParameters() + 2, 3, 1, 0,
+				0, GridBagConstraints.HORIZONTAL);
 
 		// Panel for the combo boxes with the peak lists
-		peakListsPanel = new JPanel();
-		peakListsPanel.setLayout(new BoxLayout(peakListsPanel,
-				BoxLayout.PAGE_AXIS));
+		JPanel comboPanel = new JPanel(new GridLayout(3, 1));
 
-		JPanel comboPanel = new JPanel();
-		comboPanel.setLayout(new BoxLayout(comboPanel, BoxLayout.PAGE_AXIS));
-		PeakList[] peakLists = MZmineCore.getDesktop().getSelectedPeakLists();
-		peakListsComboX = new JComboBox();
-		peakListsComboY = new JComboBox();
-		for (PeakList peakList : peakLists) {
-			peakListsComboX.addItem(peakList);
-			peakListsComboY.addItem(peakList);
-		}
+		peakListsComboX = new JComboBox(peakLists);
+		peakListsComboX.addActionListener(this);
+		peakListsComboY = new JComboBox(peakLists);
+		peakListsComboY.addActionListener(this);
 		comboPanel.add(peakListsComboX);
 		comboPanel.add(peakListsComboY);
 
-		// Preview button
-		alignmentPreviewButton = new JButton("Preview Alignmnet");
+		alignmentPreviewButton = new JButton("Preview alignment");
 		alignmentPreviewButton.addActionListener(this);
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(alignmentPreviewButton, BorderLayout.CENTER);
+		comboPanel.add(alignmentPreviewButton);
 
+		if (selectedPeakLists.length >= 2) {
+			peakListsComboX.setSelectedItem(selectedPeakLists[0]);
+			peakListsComboY.setSelectedItem(selectedPeakLists[1]);
+		} else {
+			peakListsComboX.setSelectedItem(peakLists[0]);
+			peakListsComboY.setSelectedItem(peakLists[1]);
+		}
+
+		peakListsPanel = new JPanel();
 		peakListsPanel.add(comboPanel);
-		peakListsPanel.add(buttonPanel);
 		peakListsPanel.setVisible(false);
-
-		JPanel pnlVisible = new JPanel(new BorderLayout());
-		pnlVisible.add(pnlpreview, BorderLayout.NORTH);
-		pnlVisible.add(peakListsPanel, BorderLayout.CENTER);
 
 		// Panel for XYPlot
 		pnlPlotXY = new JPanel(new BorderLayout());
@@ -206,7 +168,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		chart = new AlignmentRansacPlot();
 		pnlPlotXY.add(chart, BorderLayout.CENTER);
 
-		mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 3, 1, 0, 0);
+		mainPanel.add(peakListsPanel, 0, getNumberOfParameters() + 3, 3, 1, 0,
+				0, GridBagConstraints.BOTH);
 
 		updateMinimumSize();
 		pack();
@@ -227,9 +190,9 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		for (PeakListRow row : peakListX.getRows()) {
 
 			// Calculate limits for a row with which the row can be aligned
-			MZTolerance mzTolerance = parameters.getParameter(
+			MZTolerance mzTolerance = super.parameterSet.getParameter(
 					RansacAlignerParameters.MZTolerance).getValue();
-			RTTolerance rtTolerance = parameters.getParameter(
+			RTTolerance rtTolerance = super.parameterSet.getParameter(
 					RansacAlignerParameters.RTToleranceBefore).getValue();
 			Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
 			Range rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
@@ -251,4 +214,67 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		}
 		return alignMol;
 	}
+
+	private void updatePreview() {
+
+		PeakList peakListX = (PeakList) peakListsComboX.getSelectedItem();
+		PeakList peakListY = (PeakList) peakListsComboY.getSelectedItem();
+
+		if ((peakListX == null) || (peakListY == null))
+			return;
+
+		// Select the rawDataFile which has more peaks in each peakList
+		int numPeaks = 0;
+		RawDataFile file = null;
+		RawDataFile file2 = null;
+
+		for (RawDataFile rfile : peakListX.getRawDataFiles()) {
+			if (peakListX.getPeaks(rfile).length > numPeaks) {
+				numPeaks = peakListX.getPeaks(rfile).length;
+				file = rfile;
+			}
+		}
+		numPeaks = 0;
+		for (RawDataFile rfile : peakListY.getRawDataFiles()) {
+			if (peakListY.getPeaks(rfile).length > numPeaks) {
+				numPeaks = peakListY.getPeaks(rfile).length;
+				file2 = rfile;
+			}
+		}
+
+		// Update the parameter set from dialog components
+		updateParameterSetFromComponents();
+
+		// Check the parameter values
+		ArrayList<String> errorMessages = new ArrayList<String>();
+		boolean parametersOK = super.parameterSet
+				.checkAllParameterValues(errorMessages);
+		if (!parametersOK) {
+			StringBuilder message = new StringBuilder(
+					"Please check the parameter settings:\n\n");
+			for (String m : errorMessages) {
+				message.append(m);
+				message.append("\n");
+			}
+			MZmineCore.getDesktop().displayMessage(message.toString());
+			return;
+		}
+
+		// Ransac Alignment
+		Vector<AlignStructMol> list = this.getVectorAlignment(peakListX,
+				peakListY, file, file2);
+		RANSAC ransac = new RANSAC(super.parameterSet);
+		ransac.alignment(list);
+
+		// Plot the result
+		this.chart.removeSeries();
+		this.chart.addSeries(list,
+				peakListX.getName() + " vs " + peakListY.getName(),
+				super.parameterSet.getParameter(RansacAlignerParameters.Linear)
+						.getValue());
+		this.chart.printAlignmentChart(peakListX.getName() + " RT",
+				peakListY.getName() + " RT");
+
+	}
+
 }

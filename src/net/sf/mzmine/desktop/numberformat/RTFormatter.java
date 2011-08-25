@@ -139,7 +139,7 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 				return df.parse(str, pos);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			// if the format is wrong, just return null
 		}
 		return null;
 	}

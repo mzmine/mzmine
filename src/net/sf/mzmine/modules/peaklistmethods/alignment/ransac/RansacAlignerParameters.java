@@ -26,6 +26,7 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -39,23 +40,25 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
 	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final RTToleranceParameter RTToleranceBefore = new RTToleranceParameter();
+	public static final RTToleranceParameter RTToleranceBefore = new RTToleranceParameter(
+			"RT tolerance",
+			"This value sets the range, in terms of retention time, to create the model using RANSAC and non-linear regression algorithm. Maximum allowed retention time difference.");
 
 	public static final RTToleranceParameter RTToleranceAfter = new RTToleranceParameter(
 			"RT tolerance after correction",
-			"Maximum allowed absolute RT difference after the algorithm correction for the retention time");
+			"This value sets the range, in terms of retention time, to verify for possible peak rows to be aligned. Maximum allowed retention time difference.");
 
 	public static final IntegerParameter Iterations = new IntegerParameter(
-			"RANSAC Iterations",
-			"Maximum number of iterations allowed in the algorithm");
+			"RANSAC iterations",
+			"Maximum number of iterations allowed in the algorithm to find the right model consistent in all the pairs of aligned peaks. When its value is 0, the number of iterations (k) will be estimate automatically.");
 
-	public static final DoubleParameter NMinPoints = new DoubleParameter(
-			"Minimun Number of Points",
-			"Minimum number of aligned peaks required to fit the model");
+	public static final PercentParameter NMinPoints = new PercentParameter(
+			"Minimum number of points",
+			"% of points required to consider the model valid (d).");
 
 	public static final DoubleParameter Margin = new DoubleParameter(
 			"Threshold value",
-			"Threshold value for determining when a data point fits a model");
+			"Threshold value (seconds) for determining when a data point fits a model (t)");
 
 	public static final BooleanParameter Linear = new BooleanParameter(
 			"Linear model", "Switch between polynomial model or lineal model");

@@ -131,6 +131,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	}
 
 	protected void parametersChanged() {
+
 		// Update preview as parameters have changed
 		if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
 			return;

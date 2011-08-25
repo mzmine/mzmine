@@ -25,11 +25,6 @@ import org.w3c.dom.Element;
 
 import net.sf.mzmine.parameters.UserParameter;
 
-/**
- * Simple Parameter implementation
- * 
- * 
- */
 public class MZToleranceParameter implements
 		UserParameter<MZTolerance, MZToleranceComponent> {
 
@@ -121,7 +116,7 @@ public class MZToleranceParameter implements
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
 		}
 		return true;
