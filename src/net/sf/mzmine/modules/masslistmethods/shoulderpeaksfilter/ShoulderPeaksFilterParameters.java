@@ -35,13 +35,6 @@ public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 
 	public static final MassListParameter massList = new MassListParameter();
 
-	public static final StringParameter suffix = new StringParameter("Suffix",
-			"This string is added to name as suffix", "filtered");
-
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original mass list",
-			"If checked, original mass list will be removed and only filtered version remains");
-
 	public static final DoubleParameter resolution = new DoubleParameter(
 			"Mass resolution",
 			"Mass resolution is the dimensionless ratio of the mass of the peak divided by its width."
@@ -49,8 +42,15 @@ public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 
 	public static final ComboParameter<PeakModelType> peakModel = new ComboParameter<PeakModelType>(
 			"Peak model function",
-			"Peaks under the curve of this peak model are removed",
+			"Peaks under the curve of this peak model will be removed",
 			PeakModelType.values());
+
+	public static final StringParameter suffix = new StringParameter("Suffix",
+			"This string is added to mass list name as a suffix", "filtered");
+
+	public static final BooleanParameter autoRemove = new BooleanParameter(
+			"Remove original mass list",
+			"If checked, original mass list will be removed and only filtered version remains");
 
 	public ShoulderPeaksFilterParameters() {
 		super(new Parameter[] { dataFiles, massList, resolution, peakModel,
