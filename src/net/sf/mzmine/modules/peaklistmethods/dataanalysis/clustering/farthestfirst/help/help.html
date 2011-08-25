@@ -1,6 +1,6 @@
 <html>
         <head>
-                <title>Data analysis - Clustering</title>
+                <title>Data analysis - Clustering - Farthest First</title>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
                 <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
         </head>
@@ -9,15 +9,10 @@
 
                 <h1>Clustering</h1>
 
-                <h2>Description</h2>
+                <h2>Farthest First algorithm for clustering</h2>
+
                 <p>
-                        The goal of clustering is to group a set of observations into subsets (clusters) finding an intrinsic structure in them so that the members of one single cluster share more similarities than the members of distinct clusters. Clustering is the most important method of unsupervised learning, and a common technique for statistical data analysis used in many fields.
-                        There is no absolute "best" criterion which would be independent of the final aim of the clustering. Consequently, it is the user which must supply this criterion, in such a way that the result of the clustering will suit their needs.
-                        <br><br>
-                        The result of the clustering can be visualized using PCA plot of Sammon's projection, and the data can be seen in a table where in the first column are the names of the samples or variables and in the second column the cluster id (a number) for each sample or variable. Visualization of the hierarchical clustering result is implemented based on TreeViewJ software ("Peterson, M.W. and M.E. Colosimo, TreeViewJ: an application for viewing and analysing phylogenetic trees. Source Code Biol Med, 2007. 2(1): p. 7.")
-                </p>
-                <p>
-                        <img src="TreeView.png" name="Tree View">
+                        Farthest first is an algorithm to choose the cluster centers in K-means clustering. It works by placing each cluster centre in turn at the point furthest from the existing cluster centres. This point must lie within the data area. This greatly speeds up the clustering in most cases since less reassignment and adjustment are needed.
                 </p>
 
                 <h4>Method parameters</h4>

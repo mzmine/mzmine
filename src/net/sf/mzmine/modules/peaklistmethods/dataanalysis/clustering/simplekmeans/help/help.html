@@ -1,6 +1,6 @@
 <html>
         <head>
-                <title>Data analysis - Clustering</title>
+                <title>Data analysis - Clustering - Simple K-Means</title>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
                 <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
         </head>
@@ -9,15 +9,10 @@
 
                 <h1>Clustering</h1>
 
-                <h2>Description</h2>
+                <h2>Simple K-Means</h2>
+
                 <p>
-                        The goal of clustering is to group a set of observations into subsets (clusters) finding an intrinsic structure in them so that the members of one single cluster share more similarities than the members of distinct clusters. Clustering is the most important method of unsupervised learning, and a common technique for statistical data analysis used in many fields.
-                        There is no absolute "best" criterion which would be independent of the final aim of the clustering. Consequently, it is the user which must supply this criterion, in such a way that the result of the clustering will suit their needs.
-                        <br><br>
-                        The result of the clustering can be visualized using PCA plot of Sammon's projection, and the data can be seen in a table where in the first column are the names of the samples or variables and in the second column the cluster id (a number) for each sample or variable. Visualization of the hierarchical clustering result is implemented based on TreeViewJ software ("Peterson, M.W. and M.E. Colosimo, TreeViewJ: an application for viewing and analysing phylogenetic trees. Source Code Biol Med, 2007. 2(1): p. 7.")
-                </p>
-                <p>
-                        <img src="TreeView.png" name="Tree View">
+                        The goal of K-means clustering is to determine k clusters in such a way that intra cluster distances are small and inter cluster distances are large; or in other words, every point is assigned to a cluster whose centre is the nearest. K-means clustering works by randomly choosing k-centroids in the first step and then assigning the data points to the clusters in such a way that every point belongs to the cluster with the nearest centroid, and redetermining the cluster centroids by taking the mean of data points in each cluster. The process is continued until the cluster means converge.
                 </p>
 
                 <h4>Method parameters</h4>

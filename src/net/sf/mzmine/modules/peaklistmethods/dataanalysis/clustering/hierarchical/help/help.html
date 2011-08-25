@@ -1,6 +1,6 @@
 <html>
         <head>
-                <title>Data analysis - Clustering</title>
+                <title>Data analysis - Clustering - Hierachical</title>
                 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
                 <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
         </head>
@@ -9,15 +9,9 @@
 
                 <h1>Clustering</h1>
 
-                <h2>Description</h2>
+                <h2>Hierarchical clustering</h2>
                 <p>
-                        The goal of clustering is to group a set of observations into subsets (clusters) finding an intrinsic structure in them so that the members of one single cluster share more similarities than the members of distinct clusters. Clustering is the most important method of unsupervised learning, and a common technique for statistical data analysis used in many fields.
-                        There is no absolute "best" criterion which would be independent of the final aim of the clustering. Consequently, it is the user which must supply this criterion, in such a way that the result of the clustering will suit their needs.
-                        <br><br>
-                        The result of the clustering can be visualized using PCA plot of Sammon's projection, and the data can be seen in a table where in the first column are the names of the samples or variables and in the second column the cluster id (a number) for each sample or variable. Visualization of the hierarchical clustering result is implemented based on TreeViewJ software ("Peterson, M.W. and M.E. Colosimo, TreeViewJ: an application for viewing and analysing phylogenetic trees. Source Code Biol Med, 2007. 2(1): p. 7.")
-                </p>
-                <p>
-                        <img src="TreeView.png" name="Tree View">
+                        Hierarchical clustering builds a hierarchy of clusters. It is either achieved using Agglomerative clustering, in which initially every point belongs to a distinct cluster and the clusters are combined with the nearest clusters iteratively; or by dividing clusters (Divisive) starting from one single cluster containing all data points, until every singe point belongs to a separate cluster. The distances between points maybe determined using e.g. Euclidean, Minkowski or Manhattan distance; and the distances between clustered maybe determined by single linkage (minimum distance between all pairs of points between the clusters), complete linkage (maximum distance between all pairs of points between clusters), and so on. Determining the number of clusters is done by setting a length to "cut" the hierarchical clustering tree, but hierarchical clustering is more commonly used as a tool for visualizing the patterns of neighbourhood.
                 </p>
 
                 <h4>Method parameters</h4>
