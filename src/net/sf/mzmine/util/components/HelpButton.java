@@ -24,12 +24,13 @@ import javax.help.HelpBroker;
 import javax.swing.JButton;
 
 import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
+import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpMap;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
  * This class extends JButton class to implement Help system generated
- * programatically. This class permits to get the help system in a dialog modal
+ * automatically. This class permits to get the help system in a dialog modal
  * window, and assign the HelpSystem Action Listener to this button.
  * 
  * 
@@ -42,31 +43,35 @@ public class HelpButton extends JButton {
 	 * @param helpID
 	 */
 	public HelpButton(String helpID) {
+
 		super("Help");
-		try {
-			
-			HelpImpl helpImp = MZmineCore.getHelpImpl();
-			
-			if (helpImp == null){
-				setVisible(false);
-				return;
-			}
 
-			MZmineHelpSet hs = helpImp.getHelpSet();
-			
-			if (hs == null) {
-				setEnabled(false);
-				return;
-			}
-			
-			HelpBroker hb = hs.createHelpBroker();
-			hs.setHomeID(helpID);
+		HelpImpl helpImp = MZmineCore.getHelpImpl();
 
-			this.addActionListener(new CSH.DisplayHelpFromSource(hb));
-
-		} catch (Exception event) {
-			event.printStackTrace();
+		if (helpImp == null) {
+			setEnabled(false);
+			return;
 		}
+
+		MZmineHelpSet hs = helpImp.getHelpSet();
+
+		if (hs == null) {
+			setEnabled(false);
+			return;
+		}
+
+		MZmineHelpMap map = (MZmineHelpMap) hs.getLocalMap();
+		
+		if (!map.isValidID(helpID, hs)) {
+			setEnabled(false);
+			return;
+		}
+
+		HelpBroker hb = hs.createHelpBroker();
+		hs.setHomeID(helpID);
+
+		this.addActionListener(new CSH.DisplayHelpFromSource(hb));
+
 	}
 
 }

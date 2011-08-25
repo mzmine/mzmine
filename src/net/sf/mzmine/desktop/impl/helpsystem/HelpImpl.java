@@ -20,12 +20,14 @@
 package net.sf.mzmine.desktop.impl.helpsystem;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExceptionUtils;
 
 public class HelpImpl {
 
@@ -34,51 +36,55 @@ public class HelpImpl {
 	private MZmineHelpSet hs;
 
 	public HelpImpl() {
-		try {
 
-			// Construct help
-			boolean test = false;
+		// Construct help
+		boolean test = false;
 
-			File file = new File(System.getProperty("user.dir")
-					+ File.separator + "MZmine2.jar");
+		File file = new File(System.getProperty("user.dir") + File.separator
+				+ "MZmine2.jar");
 
-			if (!file.exists()) {
-				file = new File(System.getProperty("user.dir") + File.separator
-						+ "dist" + File.separator + "MZmine2.jar");
-				test = true;
-			}
-
-			if (!file.exists()) {
-				logger.warning("Could not load help files from " + file);
-				return;
-			}
-
-			MZmineHelpMap helpMap = new MZmineHelpMap(test);
-
-			JarFile jarFile = new JarFile(file);
-			Enumeration<JarEntry> e = jarFile.entries();
-			while (e.hasMoreElements()) {
-				JarEntry entry = e.nextElement();
-				String name = entry.getName();
-				if ((name.endsWith("htm")) || (name.endsWith("html"))) {
-					helpMap.setTarget(name);
-				}
-			}
-
-			helpMap.setTargetImage("topic.png");
-
-			hs = new MZmineHelpSet();
-			hs.setLocalMap(helpMap);
-
-			MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC",
-					"Table Of Contents", helpMap, file);
-
-			hs.setTitle("MZmine 2");
-			hs.addTOCView(myTOC);
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (!file.exists()) {
+			file = new File(System.getProperty("user.dir") + File.separator
+					+ "dist" + File.separator + "MZmine2.jar");
+			test = true;
 		}
+
+		if (!file.exists()) {
+			logger.warning("Could not load help files from " + file);
+			return;
+		}
+
+		MZmineHelpMap helpMap = new MZmineHelpMap(test);
+
+		JarFile jarFile;
+		try {
+			jarFile = new JarFile(file);
+		} catch (IOException e) {
+			logger.warning("Could not load help files from " + file + ": "
+					+ ExceptionUtils.exceptionToString(e));
+			return;
+		}
+
+		Enumeration<JarEntry> e = jarFile.entries();
+		while (e.hasMoreElements()) {
+			JarEntry entry = e.nextElement();
+			String name = entry.getName();
+			if ((name.endsWith("htm")) || (name.endsWith("html"))) {
+				helpMap.setTarget(name);
+			}
+		}
+
+		helpMap.setTargetImage("topic.png");
+
+		hs = new MZmineHelpSet();
+		hs.setLocalMap(helpMap);
+
+		MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents",
+				helpMap, file);
+
+		hs.setTitle("MZmine 2");
+		hs.addTOCView(myTOC);
+
 	}
 
 	public MZmineHelpSet getHelpSet() {
