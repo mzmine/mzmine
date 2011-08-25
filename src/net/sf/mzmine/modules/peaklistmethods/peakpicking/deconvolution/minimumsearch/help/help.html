@@ -1,0 +1,47 @@
+<html>
+	<head>
+		<title>Peak detection - Deconvolution - Local minimum search</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Chromatogram deconvolution</h1>
+
+<h2>Local minimum search</h2>
+
+<p>
+This method is suitable for chromatograms with little noise and nice peak shapes. 
+It searches for local minima in the chromatogram and separates individual peaks at these minimal points.
+Individual peaks are recognized if they fulfill the minimal requirements of height and length.
+The Chromatographic threshold parameter may be used if the chromatogram contains some background noise.
+</p>
+
+
+<h4>Method parameters</h4>
+
+<dl>
+<dt>Chromatographic threshold</dt>
+<dd>Threshold for removing noise. The algorithm finds such intensity that given percentage of the chromatogram data points is below that intensity, and removes all data points below that level</dd>
+ 
+<dt>Search minimum in RT range</dt>
+<dd>If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks</dd>
+
+<dt>Minimum relative height</dt>
+<dd>Minimum height of a peak relative to the chromatogram top data point</dd>
+
+<dt>Minimum absolute height</dt>
+<dd>Minimum absolute height of a peak to be recognized</dd>
+
+<dt>Min ratio of peak top/edge</dt>
+<dd>Minimum ratio between peak's top intensity and side (lowest) data points. This parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.</dd>
+
+</dl>
+
+<p>
+<img src="local_minimum_search.png">
+</p>
+
+</body>
+</html>

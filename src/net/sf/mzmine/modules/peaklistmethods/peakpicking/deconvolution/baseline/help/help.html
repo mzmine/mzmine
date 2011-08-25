@@ -1,0 +1,36 @@
+<html>
+	<head>
+		<title>Peak detection - Deconvolution - Baseline cut-off</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Chromatogram deconvolution</h1>
+
+<h2>Baseline cut-off</h2>
+
+<p>
+This method is very simple and useful to demonstrate the functionality of chromatogram deconvolution.
+First, the algorithm removes the lowest part of the chromatogram below a baseline level specified by the user.
+Remaining peaks which span above the baseline level are recognized if they fulfill the minimal requirements of height and length.
+</p>
+
+<h4>Method parameters</h4>
+
+<dl>
+<dt>Min peak height</dt>
+<dd>Minimum acceptable height (intensity) for a chromatographic peak</dd> 
+<dt>Min peak duration</dt>
+<dd>Minimum acceptable length (time duration) for a chromatographic peak</dd>
+<dt>Baseline level</dt>
+<dd>Level below which all data points of the chromatogram are removed</dd>
+</dl>
+
+<p>
+<img src="baseline_cutoff.png">
+</p>
+
+</body>
+</html>
