@@ -231,7 +231,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		comboDataFileName = new JComboBox(dataFiles);
-		// comboDataFileName.setSelectedItem(previewDataFile);
+		comboDataFileName.setSelectedItem(previewDataFile);
 		comboDataFileName.addActionListener(this);
 
 		int scanNumbers[] = previewDataFile.getScanNumbers();

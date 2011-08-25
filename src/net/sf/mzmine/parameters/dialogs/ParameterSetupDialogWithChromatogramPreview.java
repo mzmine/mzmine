@@ -63,25 +63,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	private TICPlot ticPlot;
 
 	public ParameterSetupDialogWithChromatogramPreview(ParameterSet parameters) {
-
 		super(parameters, null);
-
-		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
-
-		if (dataFiles.length != 0) {
-
-			RawDataFile selectedFiles[] = MZmineCore.getDesktop()
-					.getSelectedDataFiles();
-
-			if (selectedFiles.length > 0)
-				previewDataFile = selectedFiles[0];
-			else
-				previewDataFile = dataFiles[0];
-
-		}
-
-		addExtraComponents();
-
 	}
 
 	/**
@@ -168,7 +150,23 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	 * original ParameterSetupDialog.
 	 * 
 	 */
-	private void addExtraComponents() {
+	@Override
+	protected void addDialogComponents() {
+
+		super.addDialogComponents();
+
+		dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+
+		if (dataFiles.length == 0)
+			return;
+
+		RawDataFile selectedFiles[] = MZmineCore.getDesktop()
+				.getSelectedDataFiles();
+
+		if (selectedFiles.length > 0)
+			previewDataFile = selectedFiles[0];
+		else
+			previewDataFile = dataFiles[0];
 
 		previewCheckBox = new JCheckBox("Show preview");
 		previewCheckBox.addActionListener(this);
@@ -192,22 +190,21 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		JPanel pnlFlds = new JPanel();
 		pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
 		pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		if (previewDataFile != null) {
-			comboDataFileName = new JComboBox(dataFiles);
-			comboDataFileName.setSelectedItem(previewDataFile);
-			comboDataFileName.addActionListener(this);
 
-			rtRangeBox = new RangeComponent(MZmineCore.getRTFormat());
-			rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
+		comboDataFileName = new JComboBox(dataFiles);
+		comboDataFileName.setSelectedItem(previewDataFile);
+		comboDataFileName.addActionListener(this);
 
-			mzRangeBox = new RangeComponent(MZmineCore.getMZFormat());
-			mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
+		rtRangeBox = new RangeComponent(MZmineCore.getRTFormat());
+		rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
 
-			pnlFlds.add(comboDataFileName);
-			pnlFlds.add(Box.createVerticalStrut(10));
-			pnlFlds.add(rtRangeBox);
-			pnlFlds.add(mzRangeBox);
-		}
+		mzRangeBox = new RangeComponent(MZmineCore.getMZFormat());
+		mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
+
+		pnlFlds.add(comboDataFileName);
+		pnlFlds.add(Box.createVerticalStrut(10));
+		pnlFlds.add(rtRangeBox);
+		pnlFlds.add(mzRangeBox);
 
 		// Put all together
 		pnlPreviewFields = new JPanel(new BorderLayout());
