@@ -12,296 +12,48 @@
 <h2>Description</h2>
 
 <p>
-The Chromatogram builder is the main module for peak detection in MZmine 2.
-Its purpose is to create a list of masses which form continuous chromatograms in raw data. 
+The Chromatogram builder takes mass lists generated for each MS scan (see Mass detection) and builds a chromatogram for each mass that can be detected continuously over the scans.
 Later, these chromatograms may be deconvoluted into individual peaks by the Deconvolution module.
 </p>
 
 <p>
-The Chromatogram builder module works in three steps:
-Mass detection, Filtering and Chromatogram construction. 
-The motivation to divide the process into several steps is to allow the users to optimize each step according to the characteristics of their data.
-</p>
-
-<h2>Mass detection</h2>
-
-<p>
-In the Mass detection step, individual ions are detected in each mass spectrum. In other words, each mass spectrum is centroided. Several algorithms are provided for this step.
-The choice of the optimal algorithm depends on the raw data characteristics (mass resolution, mass precision, peak shape).
-</p>
-
-<p>
-In case the raw data is already centroided, only one algorithm (Centroid mass detector) can be used. Other algorithms work only with continuous type data.
-</p>
-
-<h3>Centroid mass detector</h3>
-
-<p>
-This mass detector is suitable for already centroided data. It simply assumes that each signal above given noise level is a detected ion. 
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-<dt>Noise level</dt>
-<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
-</dl>
-
-<p>
-<img src="Centroid_mass_detector_preview.jpg">
-</p>
-
-<h3>Exact mass detector</h3>
-
-<p>
-This mass detector is suitable for high-resolution MS data, such as provided by FTMS instruments.
-It first searches for all local maxima within the spectrum. These form candidate ions. 
-After that, exact mass is determined for each candidate ion using the FWHM paradigm (Full Width at Half Maximum).
-First, the method locates the nearest data points to the peak center at half of the maximum intenstiy (P1, P2, P3, P4).
-With these four points it is possible to calculate two points (cP1, cP2) that define the width of the peak and the exact mass (the center of the width is considered as exact mass).
-</p>
-
-<p>
-<img src="Exact_mass_FWHM.jpg">
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-<dt>Noise level</dt>
-<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
-</dl>
-
-<p>
-<img src="ExactMassPreview.png">
-</p>
-
-
-<h3>Local maxima mass detector</h3>
-
-<p>
-This mass detector represents a very simple method, which detects all local maxima within the spectrum, except those signals below the given noise level.
-The practical usability of this method on real MS data is limited, but it is useful to demonstrate and understand the functionality of mass detection using the preview plot.
-</p>
-
-<h4>Method parameters</h4>
-
-<dl>
-<dt>Noise level</dt>
-<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
-</dl>
-
-<p>
-<img src="Localmaxima_mass_detector_preview.jpg">
-</p>
-
-<h3>Recursive threshold mass detector</h3>
-
-<p>
-This mass detector is suitable for continuous data, which has too much noise for the Exact mass detector to be used, but which shows a consistent width of m/z peaks. 
-The algorithm works in a recursive way.
-Initially, it looks at the whole range of data points. 
-If the m/z width of this range is not within given limits, a minimum data point is found and used to split the range in two parts.
-The same algorithm is then applied recursively on each part. 
-Recursion continues until all m/z ranges which fit into the given width limits are found.
-Final m/z values are determined as local maxima of the identified m/z ranges.
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-<dt>Noise level</dt>
-<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
-
-<dt>Min m/z peak width</dt>
-<dd>Minimum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search and discard peaks which are too small.</dd> 
-
-<dt>Max m/z peak width</dt>
-<dd>Maximum acceptable m/z difference between the first and last data point of an ion signal (m/z width). This parameter is used to determine when to stop the recursive search.</dd>
-</dl>
-
-<p>
-<img src="Recursive_mass_detector_preview.jpg">
-</p>
-
-
-<h3>Wavelet transform mass detector</h3>
-
-<p>
-The Wavelet transform mass detector is particularly suitable for low-resolution and noisy data.
-The method uses the Mexican Hat wavelet model of the continuous wavelet transform CWT) algorithm. 
-The search of mass spectrum peaks is executed in three steps. 
-First, the data point intesity is converted into wavelet domain.
-Next, all local maxima of the calculated wavelet are found. 
-Finally, m/z peaks (ions) are declared in those points, where the wavelet has a local maximum.  
-The m/z peak is formed with the selected data point (mass and intensity) using the wavelet and all surrounding data points. 
-The final m/z value of the ion is calculated as an average of m/z values of surrounding data points weighted by their intensity.
-</p>
-
-<h4>Mathematical model</h4>
-
-<p>
-In mathematics and numerical analysis, the Mexican hat wavelet is the normalized second derivative of a Gaussian function.<br>
-<img src="WaveletFormula.png"><br>
-The parameter <i>t</i> is the intensity of each data point in the curve, and <i>sigma</i> corresponds to the standard deviation.
-</p>
-
-<p>
-<img src="Wavelet_Mex_Hat.png">
-<img src="Wavelet_calculated_form.jpg">
-</p>
-
-<p>
-To simplify the process of wavelet calculation, the original function 
-is transformed into two parts, where <i>Wc</i> is the wavelet coefficient and <i>y</i>
-is the intensity of the wavelet at certain point. In the following formula, "t" is the
-<i>Wavelet window size(%)</i> parameter.
-</p>
-
-<p>
-<img src="Wavelet_coefficients_calculation.jpg">
-<img src="Wavelet_intensities_calculation.jpg">
-</p>
-
-<p>
-The limits, where the Mexican Hat wavelet is evaluated, are from -5 until 5 (ESL, ESR)
- and the incremental step used in this range is the result of divide the width of ESL 
- to ESR range by 60,000. The number of coefficients used to calculated the wavelet intensity 
- depends on the <i>Scale level</i> parameter.
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-<dt>Noise level</dt>
-<dd>The minimum intensity level for a data point to be considered part of a chromatogram. All data points below this intensity level are ignored.</dd>
-
-<dt>Scale level</dt>
-<dd>This value is the scale factor that either dilates or compresses the wavelet signal. 
-When the scale factor is relatively low, the signal is more contracted which in turn 
-results in a more detailed resulting graph and as a consequence more noisy peaks are detected.
- On the other hand, when the scale factor is high, the signal is stretched out which means that
- the resulting graph will be presented in less detail resulting in a smoothed signal.</dd>
- 
-<dt>Wavelet window size (%)</dt>
-<dd>This value is the size of the window used to calculated the wavelet signal. 
-When the size of the window is small, more noisy peaks can be detected.
- The proper setting of this parameter may help to avoid the undesired noise
- peaks.<br><br>
- 
-Wavelet window size at 10%:<br>
-<img src="Wavelet_window_size10.jpg"><br>
-
-Wavelet window size at 100%:<br>
-<img src="Wavelet_window_size100.jpg"><br>
-</dd>
-
-</dl>
-
-<p>
-<img src="Wavelet_mass_detector_preview.jpg">
-</p>
-
-<h2>Filtering</h2>
-
-<p>
-Filtering is an optional operation which may reduce the amount of false chromatograms by removing those m/z signals which can be recognized as noise. The filtering is done on the detected m/z peak lists, raw data is not considered in this step.
-</p>
-
-<h3>FTMS shoulder peaks filter</h3>
-
-<p>
-Raw data obtained from FTMS (Fourier Transform Mass Spectrometer) instruments often contains false signals around high-intensity m/z peaks, called "shoulder peaks".
-These signals are residues of the Fourier Transform function and their intensity is usually below 5% of the main (true) m/z peak.
-The FTMS shoulder peaks filter attempts to remove these false signals. 
-Detected m/z peaks are processed in the order of decreasing intensity.
-A peak model (shape) is built around each m/z peak using given function and resolution, and those m/z peaks which fall below the model are considered to be shoulder peaks and are removed.
-The method offers three peak models.
-</p>
-
-<h4>Method parameters</h4>
-<dl>
-<dt>Mass resolution of the data</dt>
-<dd>Defines the width of the model, which should be equal to the estimated resolution of the peaks in the raw data. Mass resolution is defined according to the following scheme:<br>
-<img src="resolving-power.png"></dd>
-
-<dt>Peak model function</dt>
-<dd>Defines the shape of the model function, as described below.</dd> 
-
-</dl>
-
-<h4>Gaussian peak model</h4>
-
-<p>
-The Gaussian peak model is a characteristic symmetric "bell shape curve" that quickly
- falls off towards plus/minus infinity, described by the following formula.
- <img src="GaussFormula.png">
-</p>
-
-<p>
-The parameter "a" is the height of the curve's peak, "b" is the position of the center of the peak,
- and "c" controls the width of the "bell".
-</p>
-
-<p>
-<img src="GaussPeak.jpg">
-</p>
-
-<h4>Lorentzian peak model</h4>
-
-<p>
-The Lorentzian function (Cauchy-Lorentz distribution) is used for this model.<br>
-<img src="Cauchy_distribution.png">
-</p>
-
-<p>
-The Lorentzian peak model is described by the following formula:<br>
-<img src="LorentzianFormula.png"><br>
-Where "x0" is the location parameter, specifying the location of the peak of the distribution,
- and "y" is the scale parameter which specifies the width of the peak.
-</p>
-
-<p>
-<img src="LorentzianPeak.jpg">
-</p>
-
-<h4>Lorentzian extended peak model</h4>
-
-<p>
-This model uses the same mathematical formula as the Lorentzian peak model, but the lower part of the model (below 5% of the intensity)
-is extended. The width of the peak below 5% intensity is calculated from another Lorentzian peak with 5% of the resolution of the main peak.
-</p>
-
-<p>
-<img src="LorentzianExtended.jpg">
-</p>
-
-<h2>Chromatogram construction</h2>
-
-<p>
-When mass detection and filtering is finished, m/z data points from each scan must be connected together to form chromatograms.
-</p>
-
-<h3>Highest data point</h3>
-
-<p>
-This basic method works by maintaining a pool of chromatograms spanning over consecutive scans. 
-For each processed spectrum, the ion list generated by the mass detector (and filtered, if selected) is processed in the 
-order of decreasing intensity and each m/z peak is connected to the appropriate chromatogram according to
+This algorithm works by maintaining a pool of chromatograms spanning over consecutive scans. 
+Only MS level 1 scans are considered for building the chromatograms.
+For each processed scan, a mass list must be available (see Mass detection for details).
+The mass list is processed in the 
+order of decreasing intensity and each ion is connected to the appropriate chromatogram according to
 the m/z tolerance parameter. 
-When no matching chromatogram is found, a new chromatogram is with the m/z value and added to the pool.
-When a chromatogram is finished (no m/z peak is found to be connected to), its length (time span) and intensity (heihgt) are checked according to user-specified minimal values.
+When no matching chromatogram is found, a new chromatogram is created with the ioin's m/z value and added to the pool.
+When a chromatogram is finished (no m/z peak is found to be connected to), its length (time span) and intensity (height) are checked according to user-specified minimal values.
 Those chromatograms which fit the required parameters are added to the final peak list.
 </p>
 
 <h4>Method parameters</h4>
 <dl>
+
+<dt>Mass list name</dt>
+<dd>Choose a name of the mass lists to be used for building chromatograms. The mass lists must be previously generated for each MS scan by the Mass detector module.</dd>
+
 <dt>Min time span</dt>
-<dd>Minimum time over which the same ion must be connected in order to be recognized as a chromatogram. This parameter should be set by observing the raw data according to the standard length of chromatographic peaks.</dd>
+<dd>Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram. 
+	The optimal value depends on the chromatography system setup. 
+	The best way to set this parameter is by studying the raw data and determining what is the typical time span of chromatographic peaks.</dd>
 
 <dt>Min height</dt>
 <dd>Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.</dd> 
 
 <dt>m/z tolerance</dt>
-<dd>Maximum m/z difference of data points in consecutive scans in order to be connected in the same chromatogram.</dd> 
+<dd>Maximum m/z difference of data points in consecutive scans in order to be connected to the same chromatogram.</dd> 
+
+<dt>Suffix</dt>
+<dd>The resulting chromatogram will be named <i>file name + suffix</i></dd> 
 
 </dl>
+
+<p>
+The resulting chromatograms can be opened in the peak list table visualizer using a double-click:<br>
+<img src="chromatograms.png" border="1">
+</p>
 
 </body>
 </html>
