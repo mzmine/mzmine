@@ -31,14 +31,14 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 	private PeakResolver peakResolver;
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
-			"Min peak height", "Minimum acceptable peak height");
+			"Min peak height", "Minimum acceptable peak height (absolute intensity)");
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration");
+			"Min peak duration", "Minimum acceptable peak duration (min)");
 
 	public static final DoubleParameter baselineLevel = new DoubleParameter(
 			"Baseline level",
-			"All data points over this level are considered to form a peak");
+			"Level below which all data points of the chromatogram are removed (absolute intensity)");
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(

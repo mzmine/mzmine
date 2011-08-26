@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamp
 
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
@@ -31,14 +31,16 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 	private PeakResolver peakResolver;
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
-			"Min peak height", "Minimum acceptable peak height");
+			"Min peak height",
+			"Minimum acceptable height (intensity) for a chromatographic peak");
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration");
+			"Min peak duration",
+			"Minimum acceptable length (time duration) for a chromatographic peak (min)");
 
 	public static final DoubleParameter amplitudeOfNoise = new DoubleParameter(
 			"Amplitude of noise",
-			"This vaue corresponds to the amplitude of noise present all the time in the signal");
+			"This value is the intensity amplitude of the signal in the noise region");
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
@@ -48,7 +50,7 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 	}
 
 	public NoiseAmplitudePeakDetectorParameters(PeakResolver peakResolver) {
-		super(new UserParameter[] { minimumPeakHeight, minimumPeakDuration,
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
 				amplitudeOfNoise });
 		this.peakResolver = peakResolver;
 	}

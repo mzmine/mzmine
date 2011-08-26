@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzky
 
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -32,10 +32,11 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 	private PeakResolver peakResolver;
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
-			"Min peak height", "Minimum acceptable peak height");
+			"Min peak height",
+			"Minimum acceptable peak height (absolute intensity)");
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration");
+			"Min peak duration", "Minimum acceptable peak duration (min)");
 
 	public static final PercentParameter derivativeThresholdLevel = new PercentParameter(
 			"Derivative threshold level",
@@ -49,7 +50,7 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 	}
 
 	public SavitzkyGolayPeakDetectorParameters(PeakResolver peakResolver) {
-		super(new UserParameter[] { minimumPeakHeight, minimumPeakDuration,
+		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
 				derivativeThresholdLevel });
 		this.peakResolver = peakResolver;
 

@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimums
 
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.util.dialogs.ExitCode;
@@ -33,7 +33,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final PercentParameter chromatographicThresholdLevel = new PercentParameter(
 			"Chromatographic threshold",
-			"Find such intensity that given percentage of the chromatogram data points is below, and ignore all data points below that intensity");
+			"Threshold for removing noise. The algorithm finds such intensity that given percentage of the chromatogram data points is below that intensity, and removes all data points below that level.");
 
 	public static final DoubleParameter searchRTRange = new DoubleParameter(
 			"Search minimum in RT range",
@@ -49,7 +49,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minRatio = new DoubleParameter(
 			"Min ratio of peak top/edge",
-			"Minimum ratio between peak's top intensity and side (lowest) data points");
+			"Minimum ratio between peak's top intensity and side (lowest) data points. This parameter helps to reduce detection of false peaks in case the chromatogram is not smooth.");
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
@@ -59,8 +59,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 	}
 
 	public MinimumSearchPeakDetectorParameters(PeakResolver peakResolver) {
-		super(new UserParameter[] { chromatographicThresholdLevel,
-				searchRTRange, minRelativeHeight, minAbsoluteHeight, minRatio });
+		super(new Parameter[] { chromatographicThresholdLevel, searchRTRange,
+				minRelativeHeight, minAbsoluteHeight, minRatio });
 		this.peakResolver = peakResolver;
 	}
 

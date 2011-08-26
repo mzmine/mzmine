@@ -42,24 +42,14 @@ public class DeconvolutionParameters extends SimpleParameterSet {
 			"This string is added to peak list name as suffix", "deconvoluted");
 
 	public static final ModuleComboParameter<PeakResolver> peakResolver = new ModuleComboParameter<PeakResolver>(
-			"Peak recognition", "Peak recognition description", peakResolvers);
+			"Algorithm", "Peak recognition description", peakResolvers);
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peak list",
-			"If checked, original peak list will be removed and only deconvoluted version remains");
+			"If checked, original chromatogram will be removed and only deconvoluted version remains");
 
 	public DeconvolutionParameters() {
 		super(new Parameter[] { peakLists, suffix, peakResolver, autoRemove });
 	}
 
-	/*
-	 	PeakList peakLists[] = parameters.getParameter(
-				DeconvolutionParameters.peakLists).getValue();
-		for (int i = 0; i < peakLists.length; i++) {
-			if (peakLists[i].getNumberOfRawDataFiles() > 1) {
-				desktop.displayErrorMessage("Peak deconvolution can only be performed on peak lists which have a single column");
-				return;
-			}
-		}
-	 */
 }

@@ -86,7 +86,13 @@ class DeconvolutionTask extends AbstractTask {
 
 		setStatus(TaskStatus.PROCESSING);
 
-		logger.info("Started peak recognition on " + originalPeakList);
+		logger.info("Started peak deconvolution on " + originalPeakList);
+
+		if (originalPeakList.getNumberOfRawDataFiles() > 1) {
+			setStatus(TaskStatus.ERROR);
+			errorMessage = "Peak deconvolution can only be performed on peak lists which have a single column";
+			return;
+		}
 
 		PeakResolver peakResolver = parameters.getParameter(
 				DeconvolutionParameters.peakResolver).getValue();
