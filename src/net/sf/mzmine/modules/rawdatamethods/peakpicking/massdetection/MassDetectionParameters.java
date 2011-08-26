@@ -48,12 +48,16 @@ public class MassDetectionParameters extends SimpleParameterSet {
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final ModuleComboParameter<MassDetector> massDetector = new ModuleComboParameter<MassDetector>(
-			"Mass detector", "Mass detector description", massDetectors);
+			"Mass detector",
+			"Algorithm to use for mass detection and its parameters",
+			massDetectors);
 
 	public static final MSLevelParameter msLevel = new MSLevelParameter();
 
 	public static final StringParameter name = new StringParameter(
-			"Mass list name", "Name of the new mass list", "mass list");
+			"Mass list name",
+			"Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.",
+			"masses");
 
 	public MassDetectionParameters() {
 		super(new Parameter[] { dataFiles, massDetector, msLevel, name });
