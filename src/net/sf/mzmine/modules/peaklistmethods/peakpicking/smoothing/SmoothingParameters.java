@@ -60,8 +60,7 @@ public class SmoothingParameters extends SimpleParameterSet {
 	 */
 	public static final BooleanParameter REMOVE_ORIGINAL = new BooleanParameter(
 			"Remove original peak list",
-			"If checked, the source peak list will be replaced by the smoothed version",
-			true);
+			"If checked, the source peak list will be replaced by the smoothed version");
 
 	/**
 	 * Create the parameter set.
