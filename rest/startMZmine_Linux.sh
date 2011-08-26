@@ -27,9 +27,6 @@ export R_LIBS_USER=${HOME}/R/x86_64-pc-linux-gnu-library/2.10
 # Include R shared libraries in LD_LIBRARY_PATH.
 export LD_LIBRARY_PATH=${R_HOME}/lib:${R_HOME}/bin
 
-# The directory holding the JRI JARs (JRI.jar, JRIEngine.jar REngine.jar).
-JRI_CLASS_PATH=${R_LIBS_USER}/rJava/jri
-
 # The directory holding the JRI shared library (libjri.so).
 JRI_LIB_PATH=${R_LIBS_USER}/rJava/jri
 
@@ -41,7 +38,7 @@ JAVA_COMMAND=java
 # It is not necessary to modify the following section
 LOGGING_CONFIG_FILE=conf/logging.properties
 JAVA_PARAMETERS="-XX:+UseParallelGC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Djava.util.logging.config.file=$LOGGING_CONFIG_FILE $USE_64_BIT -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
-CLASS_PATH=MZmine2.jar:${JRI_CLASS_PATH}/JRIEngine.jar:${JRI_CLASS_PATH}/JRI.jar:${JRI_CLASS_PATH}/REngine.jar
+CLASS_PATH=MZmine2.jar
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 # Make sure we are in the correct directory
