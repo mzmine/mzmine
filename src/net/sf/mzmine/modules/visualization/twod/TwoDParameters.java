@@ -52,13 +52,14 @@ public class TwoDParameters extends SimpleParameterSet {
 	public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
 	public TwoDParameters() {
-		super(new Parameter[] { dataFiles, msLevel, retentionTimeRange, mzRange,
-				peakThresholdSettings });
+		super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
+				mzRange, peakThresholdSettings });
 	}
-	
+
 	public ExitCode showSetupDialog() {
- 		Hashtable<UserParameter, Object> autoValues = null;
- 		RawDataFile selectedFiles[] = getParameter(TwoDParameters.dataFiles).getValue();
+		Hashtable<UserParameter, Object> autoValues = null;
+		RawDataFile selectedFiles[] = getParameter(TwoDParameters.dataFiles)
+				.getValue();
 		if ((selectedFiles != null) && (selectedFiles.length > 0)) {
 			autoValues = new Hashtable<UserParameter, Object>();
 			autoValues.put(TwoDParameters.msLevel, 1);

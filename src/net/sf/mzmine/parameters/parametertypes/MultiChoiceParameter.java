@@ -155,7 +155,7 @@ public class MultiChoiceParameter<ValueType> implements
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (values == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
 		}
 		return true;

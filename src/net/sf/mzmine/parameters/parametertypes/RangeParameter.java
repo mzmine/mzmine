@@ -130,7 +130,7 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
 		}
 		return true;

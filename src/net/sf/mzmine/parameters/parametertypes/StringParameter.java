@@ -113,7 +113,7 @@ public class StringParameter implements UserParameter<String, JTextField> {
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if ((value == null) || (value.trim().length() == 0)) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
 		}
 		return true;

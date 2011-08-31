@@ -49,13 +49,13 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
 	public static final IntegerParameter rtResolution = new IntegerParameter(
 			"Retention time resolution",
-			"Number of data points on retention time axis");
+			"Number of data points on retention time axis", 500);
 
 	public static final RangeParameter mzRange = new RangeParameter(
 			"m/z range", "m/z (Y axis) range", MZmineCore.getMZFormat());
 
 	public static final IntegerParameter mzResolution = new IntegerParameter(
-			"m/z resolution", "Number of data points on m/z axis");
+			"m/z resolution", "Number of data points on m/z axis", 500);
 
 	public ThreeDVisualizerParameters() {
 		super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
