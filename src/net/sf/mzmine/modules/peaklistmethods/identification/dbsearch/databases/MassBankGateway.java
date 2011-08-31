@@ -34,23 +34,34 @@ import net.sf.mzmine.util.Range;
 
 public class MassBankGateway implements DBGateway {
 
-	// Unfortunately, we have to list all the instrument types here
-	public static final String massBankSearchAddress = "http://www.massbank.jp/jsp/Result.jsp?type=quick&inst=CE-ESI-TOF-MS&inst=ESI-IT-(MS)n&inst=ESI-IT-MS/MS&inst=ESI-QTOF-MS/MS&inst=ESI-QqQ-MS/MS&inst=ESI-QqTOF-MS/MS&inst=LC-ESI-FT-MS&inst=LC-ESI-IT-MS/MS&inst=LC-ESI-IT-TOF-MS&inst=LC-ESI-Q-MS&inst=LC-ESI-QTOF-MS/MS&inst=LC-ESI-QqQ-MS/MS&inst=LC-ESI-TOF-MS";
+	// Unfortunately, we need to list all the instrument types here
+	private static final String instrumentTypes[] = { "EI-B", "EI-EBEB",
+			"GC-EI-TOF", "CE-ESI-TOF", "ESI-IT-MS/MS", "ESI-QqQ-MS/MS",
+			"ESI-QqTOF-MS/MS", "LC-ESI-IT", "LC-ESI-ITFT", "LC-ESI-ITTOF",
+			"LC-ESI-Q", "LC-ESI-QIT", "LC-ESI-QQ", "LC-ESI-QTOF", "CI-B",
+			"FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B", "MALDI-TOF" };
 
-	public static final String massBankEntryAddress = "http://www.massbank.jp/jsp/FwdRecord.jsp?id=";
+	private static final String massBankSearchAddress = "http://www.massbank.jp/jsp/Result.jsp?type=quick";
+	private static final String massBankEntryAddress = "http://www.massbank.jp/jsp/FwdRecord.jsp?id=";
 
-	/**
-	 */
 	public String[] findCompounds(double mass, MZTolerance mzTolerance,
 			int numOfResults) throws IOException {
 
 		Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		String queryAddress = massBankSearchAddress + "&mz="
-				+ toleranceRange.getAverage() + "&tol="
-				+ (toleranceRange.getSize() / 2);
+		StringBuilder queryAddress = new StringBuilder(massBankSearchAddress);
 
-		URL queryURL = new URL(queryAddress);
+		for (String inst : instrumentTypes) {
+			queryAddress.append("&inst=");
+			queryAddress.append(inst);
+		}
+
+		queryAddress.append("&mz=");
+		queryAddress.append(toleranceRange.getAverage());
+		queryAddress.append("&tol=");
+		queryAddress.append(toleranceRange.getSize() / 2);
+
+		URL queryURL = new URL(queryAddress.toString());
 
 		// Submit the query
 		String queryResult = InetUtils.retrieveData(queryURL);
@@ -59,7 +70,7 @@ public class MassBankGateway implements DBGateway {
 
 		// Find IDs in the HTML data
 		Pattern pat = Pattern
-				.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z]{2}[0-9]{6})&nbsp;");
+				.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z0-9]{8})&nbsp;");
 		Matcher matcher = pat.matcher(queryResult);
 		while (matcher.find()) {
 			String MID = matcher.group(1);
