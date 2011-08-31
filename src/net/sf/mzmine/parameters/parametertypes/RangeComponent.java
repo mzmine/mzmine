@@ -22,10 +22,8 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.awt.GridBagConstraints;
 import java.text.NumberFormat;
 
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.NumberFormatter;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.GridBagPanel;
@@ -34,14 +32,17 @@ import net.sf.mzmine.util.components.GridBagPanel;
  */
 public class RangeComponent extends GridBagPanel {
 
-	private JFormattedTextField minTxtField, maxTxtField;
+	private JTextField minTxtField, maxTxtField;
+	private NumberFormat format;
 
 	public RangeComponent(NumberFormat format) {
 
-		minTxtField = new JFormattedTextField(format);
+		this.format = format;
+		
+		minTxtField = new JTextField();
 		minTxtField.setColumns(8);
 		
-		maxTxtField = new JFormattedTextField(format);
+		maxTxtField = new JTextField();
 		maxTxtField.setColumns(8);
 		
 		add(minTxtField, 0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
@@ -50,23 +51,30 @@ public class RangeComponent extends GridBagPanel {
 	}
 
 	public Range getValue() {
-		Number minValue = (Number) minTxtField.getValue();
-		Number maxValue = (Number) maxTxtField.getValue();
-		if ((minValue == null) || (maxValue == null))
+		String minString = minTxtField.getText();
+		String maxString = maxTxtField.getText();
+		
+		try {
+			Number minValue = format.parse(minString);
+			Number maxValue = format.parse(maxString);
+			
+			if ((minValue == null) || (maxValue == null))
+				return null;
+			return new Range(minValue.doubleValue(), maxValue.doubleValue());
+
+		}
+		catch (Exception e) {
 			return null;
-		return new Range(minValue.doubleValue(), maxValue.doubleValue());
+		}
 	}
 	
 	public void setNumberFormat(NumberFormat format) {
-		DefaultFormatterFactory fact = new DefaultFormatterFactory(
-				new NumberFormatter(format));
-		minTxtField.setFormatterFactory(fact);
-		maxTxtField.setFormatterFactory(fact);
+		this.format = format;
 	}
 
 	public void setValue(Range value) {
-		minTxtField.setValue(value.getMin());
-		maxTxtField.setValue(value.getMax());
+		minTxtField.setText(format.format(value.getMin()));
+		maxTxtField.setText(format.format(value.getMax()));
 	}
 	
 	@Override

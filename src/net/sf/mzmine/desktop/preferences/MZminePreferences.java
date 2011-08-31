@@ -55,7 +55,7 @@ public class MZminePreferences extends SimpleParameterSet {
 	public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();
 
 	public static final OptionalModuleParameter proxySettings = new OptionalModuleParameter(
-			"Use proxy", "Use proxy for internet connection",
+			"Use proxy", "Use proxy for internet connection?",
 			new ProxySettings());
 
 	public static final WindowStateParameter windowState = new WindowStateParameter();

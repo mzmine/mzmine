@@ -25,11 +25,6 @@ import org.w3c.dom.Element;
 
 import net.sf.mzmine.parameters.UserParameter;
 
-/**
- * Simple Parameter implementation
- * 
- * 
- */
 public class RTToleranceParameter implements
 		UserParameter<RTTolerance, RTToleranceComponent> {
 
@@ -117,12 +112,27 @@ public class RTToleranceParameter implements
 		String toleranceNum = String.valueOf(value.getTolerance());
 		xmlElement.setTextContent(toleranceNum);
 	}
-	
+
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
-			errorMessages.add(name + " is not set");
+			errorMessages.add(name + " is not set properly");
 			return false;
+		}
+		if (value.isAbsolute()) {
+			double absoluteTolerance = value.getTolerance();
+			if (absoluteTolerance < 0) {
+				errorMessages.add("Invalid retention time tolerance value.");
+				return false;
+
+			}
+		} else {
+			double relativeTolerance = value.getTolerance();
+			if ((relativeTolerance < 0) || (relativeTolerance > 1)) {
+				errorMessages.add("Invalid retention time tolerance value.");
+				return false;
+
+			}
 		}
 		return true;
 	}

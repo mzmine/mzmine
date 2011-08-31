@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.desktop.preferences;
 
-import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
@@ -35,7 +35,7 @@ public class ProxySettings extends SimpleParameterSet {
 			"Proxy port", "TCP port of proxy server");
 
 	public ProxySettings() {
-		super(new UserParameter[] { proxyAddress, proxyPort });
+		super(new Parameter[] { proxyAddress, proxyPort });
 	}
 
 }

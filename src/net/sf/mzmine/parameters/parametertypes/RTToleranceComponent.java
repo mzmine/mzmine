@@ -20,37 +20,31 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 
 import javax.swing.JComboBox;
-import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
-import javax.swing.text.DefaultFormatterFactory;
-import javax.swing.text.NumberFormatter;
+import javax.swing.JTextField;
 
 import net.sf.mzmine.main.MZmineCore;
 
 /**
  */
-public class RTToleranceComponent extends JPanel implements ActionListener {
+public class RTToleranceComponent extends JPanel {
 
 	private static final String toleranceTypes[] = { "absolute", "relative (%)" };
 
-	private JFormattedTextField toleranceField;
+	private JTextField toleranceField;
 	private JComboBox toleranceType;
 
 	public RTToleranceComponent() {
 
 		super(new BorderLayout());
 
-		toleranceField = new JFormattedTextField(MZmineCore.getRTFormat());
+		toleranceField = new JTextField();
 		toleranceField.setColumns(6);
 		add(toleranceField, BorderLayout.CENTER);
 
 		toleranceType = new JComboBox(toleranceTypes);
-		toleranceType.addActionListener(this);
 		add(toleranceType, BorderLayout.EAST);
 
 	}
@@ -58,16 +52,12 @@ public class RTToleranceComponent extends JPanel implements ActionListener {
 	public void setValue(RTTolerance value) {
 		if (value.isAbsolute()) {
 			toleranceType.setSelectedIndex(0);
-			DefaultFormatterFactory fact = new DefaultFormatterFactory(
-					new NumberFormatter(MZmineCore.getRTFormat()));
-			toleranceField.setFormatterFactory(fact);
-			toleranceField.setValue(value.getTolerance());
+			String valueString = String.valueOf(value.getTolerance());
+			toleranceField.setText(valueString);
 		} else {
 			toleranceType.setSelectedIndex(1);
-			DefaultFormatterFactory fact = new DefaultFormatterFactory(
-					new NumberFormatter(NumberFormat.getNumberInstance()));
-			toleranceField.setFormatterFactory(fact);
-			toleranceField.setValue(value.getTolerance() * 100);
+			String valueString = String.valueOf(value.getTolerance() * 100);
+			toleranceField.setText(valueString);
 		}
 	}
 
@@ -75,36 +65,27 @@ public class RTToleranceComponent extends JPanel implements ActionListener {
 
 		int index = toleranceType.getSelectedIndex();
 
-		Number tol = (Number) toleranceField.getValue();
-		if (tol == null)
-			return null;
+		String valueString = toleranceField.getText();
 
-		double toleranceValue = tol.doubleValue();
-		if (index == 1)
-			toleranceValue /= 100;
-
-		RTTolerance value = new RTTolerance(index <= 0, toleranceValue);
-		return value;
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent event) {
-
-		Object src = event.getSource();
-		if (src == toleranceType) {
-			if (toleranceType.getSelectedIndex() <= 0) {
-				DefaultFormatterFactory fact = new DefaultFormatterFactory(
-						new NumberFormatter(MZmineCore.getRTFormat()));
-				toleranceField.setFormatterFactory(fact);
-			} else {
-				DefaultFormatterFactory fact = new DefaultFormatterFactory(
-						new NumberFormatter(NumberFormat.getNumberInstance()));
-				toleranceField.setFormatterFactory(fact);
-
+		double toleranceDouble;
+		try {
+			if (index == 0) {
+				toleranceDouble = MZmineCore.getRTFormat().parse(valueString).doubleValue();
 			}
+			else {
+				Number toleranceValue = Double.parseDouble(valueString);
+				toleranceDouble = toleranceValue.doubleValue() / 100;
+			}
+		} catch (Exception e) {
+			return null;
 		}
+
+		RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
+
+		return value;
+
 	}
-	
+
 	@Override
 	public void setToolTipText(String toolTip) {
 		toleranceField.setToolTipText(toolTip);

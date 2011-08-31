@@ -85,21 +85,10 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 	 *      java.text.ParsePosition)
 	 */
 	public synchronized Number parse(String str, ParsePosition pos) {
-		try {
-			double result;
-			switch (embeddedNumberFormatterType) {
-			case NumberInMin:
-				DecimalFormat df = (DecimalFormat) embeddedFormatter;
-				result = df.parse(str, pos).doubleValue() * 60;
-				return result;
-			case NumberInSec:
-				df = (DecimalFormat) embeddedFormatter;
-				return df.parse(str, pos);
-			}
-		} catch (Exception e) {
-			// if the format is wrong, just return null
-		}
-		return null;
+		if (embeddedNumberFormatterType == RTFormatterType.NumberInMin)
+			return embeddedFormatter.parse(str, pos).doubleValue() * 60;
+		else
+			return embeddedFormatter.parse(str, pos);
 	}
 
 	/**
