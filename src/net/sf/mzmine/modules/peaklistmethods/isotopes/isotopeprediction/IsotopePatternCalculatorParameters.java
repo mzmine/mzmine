@@ -30,13 +30,13 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 public class IsotopePatternCalculatorParameters extends SimpleParameterSet {
 
 	public static final StringParameter formula = new StringParameter(
-			"Chemical formula", "empirical formula of a chemical compound");
+			"Chemical formula", "Empirical formula of a chemical compound");
 
 	public static final IntegerParameter charge = new IntegerParameter("Charge",
-			"Charge of the molecule", 1);
+			"Charge of the molecule (z for calculating m/z values)", 1);
 
 	public static final ComboParameter<Polarity> polarity = new ComboParameter<Polarity>(
-			"Polarity", "Set positive or negative the charge of the molecule ",
+			"Polarity", "Set positive or negative charge of the molecule. Depending on polarity, electron mass is added or removed.",
 			Polarity.values());
 
 	public static final PercentParameter minAbundance = new PercentParameter(

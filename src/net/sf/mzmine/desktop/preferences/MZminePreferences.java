@@ -21,10 +21,10 @@ package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 
-import net.sf.mzmine.desktop.numberformat.NumberFormatParameter;
-import net.sf.mzmine.desktop.numberformat.RTFormatter;
-import net.sf.mzmine.desktop.numberformat.RTFormatParameter;
-import net.sf.mzmine.desktop.numberformat.RTFormatterType;
+import net.sf.mzmine.desktop.preferences.numberformat.NumberFormatParameter;
+import net.sf.mzmine.desktop.preferences.numberformat.RTFormatParameter;
+import net.sf.mzmine.desktop.preferences.numberformat.RTFormatter;
+import net.sf.mzmine.desktop.preferences.numberformat.RTFormatterType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;

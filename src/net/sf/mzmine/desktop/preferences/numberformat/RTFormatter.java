@@ -17,15 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.numberformat;
+package net.sf.mzmine.desktop.preferences.numberformat;
 
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
-import java.text.Format;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 
 /**
  * NumberFormat extension to provide both number-style and date-style
@@ -35,37 +32,16 @@ import java.util.TimeZone;
 public class RTFormatter extends NumberFormat implements Cloneable {
 
 	private RTFormatterType embeddedNumberFormatterType;
-	private Format embeddedFormatter;
+	private DecimalFormat embeddedFormatter;
 
 	public RTFormatter(RTFormatterType type, String pattern) {
 		setFormat(type, pattern);
 	}
 
 	public void setFormat(RTFormatterType type, String pattern) {
-		
 		assert type != null;
-		
 		this.embeddedNumberFormatterType = type;
-		
-		switch (type) {
-		case Time:
-
-			// We want to avoid the 12-hour format ('h') and use 24-hour format
-			// starting with 0 instead ('H')
-			pattern = pattern.replace('h', 'H');
-
-			SimpleDateFormat sdf = new SimpleDateFormat(pattern);
-			// important for handling low values, otherwise in different Time
-			// zones we may get to negative numbers
-			sdf.setTimeZone(TimeZone.getTimeZone("GMT+0:00"));
-			embeddedFormatter = sdf;
-
-			break;
-		case NumberInMin:
-		case NumberInSec:
-			embeddedFormatter = new DecimalFormat(pattern);
-			break;
-		}
+		this.embeddedFormatter = new DecimalFormat(pattern);
 	}
 
 	public RTFormatterType getType() {
@@ -73,14 +49,7 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 	}
 
 	public String getPattern() {
-		switch (embeddedNumberFormatterType) {
-		case Time:
-			return ((SimpleDateFormat) embeddedFormatter).toPattern();
-		case NumberInMin:
-		case NumberInSec:
-			return ((DecimalFormat) embeddedFormatter).toPattern();
-		}
-		return null;
+		return embeddedFormatter.toPattern();
 	}
 
 	/**
@@ -89,10 +58,6 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 	 */
 	public synchronized StringBuffer format(double arg0, StringBuffer arg1,
 			FieldPosition arg2) {
-
-		// conversion to msec
-		if (embeddedNumberFormatterType == RTFormatterType.Time)
-			arg0 *= 1000;
 
 		// conversion to min
 		if (embeddedNumberFormatterType == RTFormatterType.NumberInMin)
@@ -108,10 +73,6 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 	public synchronized StringBuffer format(long arg0, StringBuffer arg1,
 			FieldPosition arg2) {
 
-		// conversion to msec
-		if (embeddedNumberFormatterType == RTFormatterType.Time)
-			arg0 *= 1000;
-
 		// conversion to min
 		if (embeddedNumberFormatterType == RTFormatterType.NumberInMin)
 			arg0 /= 60;
@@ -125,11 +86,8 @@ public class RTFormatter extends NumberFormat implements Cloneable {
 	 */
 	public synchronized Number parse(String str, ParsePosition pos) {
 		try {
+			double result;
 			switch (embeddedNumberFormatterType) {
-			case Time:
-				SimpleDateFormat sdf = (SimpleDateFormat) embeddedFormatter;
-				double result = ((sdf.parse(str, pos).getTime()) / 1000.0);
-				return result;
 			case NumberInMin:
 				DecimalFormat df = (DecimalFormat) embeddedFormatter;
 				result = df.parse(str, pos).doubleValue() * 60;

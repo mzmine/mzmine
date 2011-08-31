@@ -39,7 +39,7 @@ public class NumOfThreadsParameter implements
 
 	public NumOfThreadsParameter() {
 		this.name = "Number of concurrently running tasks";
-		this.description = "Number of tasks running simultaneously";
+		this.description = "Maximum number of tasks running simultaneously";
 		this.value = Runtime.getRuntime().availableProcessors();
 		this.automatic = true;
 	}

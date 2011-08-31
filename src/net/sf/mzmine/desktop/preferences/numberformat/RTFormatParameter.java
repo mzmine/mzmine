@@ -17,12 +17,9 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.numberformat;
+package net.sf.mzmine.desktop.preferences.numberformat;
 
-import java.text.DecimalFormat;
 import java.util.Collection;
-
-import javax.swing.JTextField;
 
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -33,14 +30,14 @@ import org.w3c.dom.Element;
  * 
  * 
  */
-public class NumberFormatParameter implements
-		UserParameter<DecimalFormat, JTextField> {
+public class RTFormatParameter implements
+		UserParameter<RTFormatter, RTFormatComponent> {
 
 	private String name, description;
-	private DecimalFormat value;
+	private RTFormatter value;
 
-	public NumberFormatParameter(String name, String description,
-			DecimalFormat defaultValue) {
+	public RTFormatParameter(String name, String description,
+			RTFormatter defaultValue) {
 
 		assert defaultValue != null;
 
@@ -66,54 +63,64 @@ public class NumberFormatParameter implements
 	}
 
 	@Override
-	public JTextField createEditingComponent() {
-		JTextField editor = new JTextField();
-		editor.setColumns(8);
-		editor.setText(value.toPattern());
+	public RTFormatComponent createEditingComponent() {
+		RTFormatComponent editor = new RTFormatComponent();
+		if (value != null)
+			editor.setValue(value);
 		return editor;
 	}
 
-	public DecimalFormat getValue() {
+	public RTFormatter getValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(DecimalFormat value) {
+	public void setValue(RTFormatter value) {
 		assert value != null;
 		this.value = value;
 	}
 
 	@Override
-	public NumberFormatParameter clone() {
-		NumberFormatParameter copy = new NumberFormatParameter(name, description,
-				value);
+	public RTFormatParameter clone() {
+		RTFormatParameter copy = new RTFormatParameter(name,
+				description, value);
 		copy.setValue(this.getValue());
 		return copy;
 	}
 
 	@Override
-	public void setValueFromComponent(JTextField component) {
-		value.applyPattern(component.getText());
+	public void setValueFromComponent(RTFormatComponent component) {
+		value.setFormat(component.getType(), component.getPattern());
 	}
 
 	@Override
-	public void setValueToComponent(JTextField component, DecimalFormat newValue) {
-		component.setText(newValue.toPattern());
+	public void setValueToComponent(RTFormatComponent component,
+			RTFormatter newValue) {
+		component.setValue(newValue);
 	}
 
 	@Override
 	public void loadValueFromXML(Element xmlElement) {
+		String attrValue = xmlElement.getAttribute("type");
+		if (attrValue.length() == 0)
+			return;
+		RTFormatterType newType = RTFormatterType.valueOf(attrValue);
 		String newPattern = xmlElement.getTextContent();
-		value.applyPattern(newPattern);
+		value.setFormat(newType, newPattern);
 	}
 
 	@Override
 	public void saveValueToXML(Element xmlElement) {
-		xmlElement.setTextContent(value.toPattern());
+		xmlElement.setAttribute("type", value.getType().name());
+		xmlElement.setTextContent(value.getPattern());
 	}
-
+	
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
+		if (value == null) {
+			errorMessages.add(name + " is not set");
+			return false;
+		}
 		return true;
 	}
 

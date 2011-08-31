@@ -17,13 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.numberformat;
+package net.sf.mzmine.desktop.preferences.numberformat;
 
 public enum RTFormatterType {
 
-	NumberInMin("Number in minutes"), 
-	NumberInSec("Number in seconds"),
-	Time("Time");
+	NumberInMin("Minutes"), 
+	NumberInSec("Seconds");
 	
 	private String type;
 
