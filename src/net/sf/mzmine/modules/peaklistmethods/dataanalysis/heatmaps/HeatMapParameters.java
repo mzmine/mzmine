@@ -83,20 +83,20 @@ public class HeatMapParameters extends SimpleParameterSet {
                 // Update the parameter choices
                 UserParameter newChoices[] = MZmineCore.getCurrentProject().getParameters();
                 getParameter(HeatMapParameters.selectionData).setChoices(newChoices);
-
-                ArrayList<Object> values = new ArrayList<Object>();
-                for (RawDataFile dataFile : MZmineCore.getCurrentProject().getDataFiles()) {
-                        Object paramValue = MZmineCore.getCurrentProject().getParameterValue(newChoices[0], dataFile);
-                        if (paramValue == null) {
-                                continue;
+                if (newChoices.length > 0) {
+                        ArrayList<Object> values = new ArrayList<Object>();
+                        for (RawDataFile dataFile : MZmineCore.getCurrentProject().getDataFiles()) {
+                                Object paramValue = MZmineCore.getCurrentProject().getParameterValue(newChoices[0], dataFile);
+                                if (paramValue == null) {
+                                        continue;
+                                }
+                                if (!values.contains(paramValue)) {
+                                        values.add(paramValue);
+                                }
                         }
-                        if (!values.contains(paramValue)) {
-                                values.add(paramValue);
-                        }
+                        Object newValues[] = values.toArray();
+                        getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
                 }
-                Object newValues[] = values.toArray();
-                getParameter(HeatMapParameters.referenceGroup).setChoices(newValues);
-
                 HeatmapSetupDialog dialog = new HeatmapSetupDialog(this);
                 dialog.setVisible(true);
                 return dialog.getExitCode();
