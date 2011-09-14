@@ -53,12 +53,6 @@ public class CVPlotModule implements MZmineProcessingModule {
 
 		for (PeakList pl : peakLists) {
 
-			/*
-			 * if (pl.getRawDataFiles().length < 2) {
-			 * MZmineCore..displayErrorMessage("Alignment " + pl.toString() +
-			 * " contains less than two data files."); continue; }
-			 */
-
 			// Create dataset & paint scale
 			AbstractXYZDataset dataset = new CVDataset(pl, parameters);
 			InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();

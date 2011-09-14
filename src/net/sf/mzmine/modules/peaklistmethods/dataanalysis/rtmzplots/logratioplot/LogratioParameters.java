@@ -19,23 +19,27 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot;
 
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.util.PeakMeasurementType;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class LogratioParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+	public static final PeakListsParameter peakLists = new PeakListsParameter(
+			1, 1);
 
 	public static final MultiChoiceParameter<RawDataFile> groupOneFiles = new MultiChoiceParameter<RawDataFile>(
-			"Group one", "Samples in group one", new RawDataFile[0]);
+			"Group one", "Samples in group one", new RawDataFile[0], null, 1);
 
 	public static final MultiChoiceParameter<RawDataFile> groupTwoFiles = new MultiChoiceParameter<RawDataFile>(
-			"Group two", "Samples in group two", new RawDataFile[0]);
+			"Group two", "Samples in group two", new RawDataFile[0], null, 1);
 
 	public static final ComboParameter<PeakMeasurementType> measurementType = new ComboParameter<PeakMeasurementType>(
 			"Peak measurement type",
@@ -45,6 +49,25 @@ public class LogratioParameters extends SimpleParameterSet {
 	public LogratioParameters() {
 		super(new Parameter[] { peakLists, groupOneFiles, groupTwoFiles,
 				measurementType });
+	}
+
+	@Override
+	public ExitCode showSetupDialog() {
+
+		PeakList selectedPeakLists[] = getParameter(peakLists).getValue();
+
+		if (selectedPeakLists.length != 1) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Please select a single peak list");
+			return ExitCode.CANCEL;
+		}
+
+		RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+
+		getParameter(groupOneFiles).setChoices(plDataFiles);
+		getParameter(groupTwoFiles).setChoices(plDataFiles);
+
+		return super.showSetupDialog();
 	}
 
 }

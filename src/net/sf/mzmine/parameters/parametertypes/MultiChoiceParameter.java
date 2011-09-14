@@ -39,6 +39,7 @@ public class MultiChoiceParameter<ValueType> implements
 
 	private String name, description;
 	private ValueType choices[], values[];
+	private int minNumber;
 
 	/**
 	 * We need the choices parameter non-null even when the length may be 0. We
@@ -46,11 +47,16 @@ public class MultiChoiceParameter<ValueType> implements
 	 */
 	public MultiChoiceParameter(String name, String description,
 			ValueType choices[]) {
-		this(name, description, choices, null);
+		this(name, description, choices, null, 1);
 	}
 
 	public MultiChoiceParameter(String name, String description,
 			ValueType choices[], ValueType values[]) {
+		this(name, description, choices, values, 1);
+	}
+
+	public MultiChoiceParameter(String name, String description,
+			ValueType choices[], ValueType values[], int minNumber) {
 
 		assert choices != null;
 
@@ -58,6 +64,7 @@ public class MultiChoiceParameter<ValueType> implements
 		this.description = description;
 		this.choices = choices;
 		this.values = values;
+		this.minNumber = minNumber;
 	}
 
 	/**
@@ -156,6 +163,11 @@ public class MultiChoiceParameter<ValueType> implements
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (values == null) {
 			errorMessages.add(name + " is not set properly");
+			return false;
+		}
+		if (values.length < minNumber) {
+			errorMessages.add("At least " + minNumber
+					+ " option(s) must be selected for " + name);
 			return false;
 		}
 		return true;

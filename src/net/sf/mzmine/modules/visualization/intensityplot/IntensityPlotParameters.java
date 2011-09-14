@@ -19,13 +19,21 @@
 
 package net.sf.mzmine.modules.visualization.intensityplot;
 
+import java.util.Arrays;
+
+import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
+import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  */
@@ -51,6 +59,28 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 	public IntensityPlotParameters() {
 		super(new Parameter[] { peakList, dataFiles, xAxisValueSource,
 				yAxisValueSource, selectedRows });
+	}
+	
+	@Override
+	public ExitCode showSetupDialog() {
+		
+		PeakList selectedPeakLists[] = getParameter(peakList).getValue();
+		
+		if (selectedPeakLists.length != 1) {
+			MZmineCore.getDesktop().displayErrorMessage("Please select a single peak list");
+			return ExitCode.CANCEL;
+		}
+		
+		RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
+		PeakListRow plRows[] = selectedPeakLists[0].getRows();
+		Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ, SortingDirection.Ascending));
+		
+		getParameter(dataFiles).setChoices(plDataFiles);
+		getParameter(dataFiles).setValue(plDataFiles);
+		
+		getParameter(selectedRows).setChoices(plRows);
+		
+		return super.showSetupDialog();
 	}
 
 }

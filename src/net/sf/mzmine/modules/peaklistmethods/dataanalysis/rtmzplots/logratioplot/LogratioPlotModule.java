@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplo
 import java.awt.Color;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzerWindow;
@@ -52,12 +53,6 @@ public class LogratioPlotModule implements MZmineProcessingModule {
 
 		for (PeakList pl : peakLists) {
 
-			/*
-			 * if (pl.getRawDataFiles().length < 2) {
-			 * desktop.displayErrorMessage("Alignment " + pl.toString() +
-			 * " contains less than two data files"); continue; }
-			 */
-
 			// Create dataset & paint scale
 			AbstractXYZDataset dataset = new LogratioDataset(pl, parameters);
 			InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
@@ -68,7 +63,7 @@ public class LogratioPlotModule implements MZmineProcessingModule {
 			// Create & show window
 			RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
 					paintScale);
-			window.setVisible(true);
+			MZmineCore.getDesktop().addInternalFrame(window);
 
 		}
 
