@@ -38,6 +38,7 @@ import net.sf.mzmine.util.ScanUtils;
 import ucar.ma2.Array;
 import ucar.ma2.Index;
 import ucar.ma2.IndexIterator;
+import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.Variable;
 
@@ -62,6 +63,10 @@ public class NetCDFReadTask extends AbstractTask {
 
 	private Variable massValueVariable;
 	private Variable intensityValueVariable;
+
+	// Some software produces netcdf files with a scale factor such as 0.05
+	private double massValueScaleFactor = 1;
+	private double intensityValueScaleFactor = 1;
 
 	/**
      * 
@@ -111,7 +116,6 @@ public class NetCDFReadTask extends AbstractTask {
 			finalRawDataFile = newMZmineFile.finishWriting();
 
 		} catch (Throwable e) {
-			// e.printStackTrace();
 			logger.log(Level.SEVERE, "Could not open file " + file.getPath(), e);
 			errorMessage = ExceptionUtils.exceptionToString(e);
 			setStatus(TaskStatus.ERROR);
@@ -152,12 +156,26 @@ public class NetCDFReadTask extends AbstractTask {
 		}
 		assert (massValueVariable.getRank() == 1);
 
+		Attribute massScaleFacAttr = massValueVariable
+				.findAttribute("scale_factor");
+		if (massScaleFacAttr != null) {
+			massValueScaleFactor = massScaleFacAttr.getNumericValue()
+					.doubleValue();
+		}
+
 		intensityValueVariable = inputFile.findVariable("intensity_values");
 		if (intensityValueVariable == null) {
 			logger.severe("Could not find variable intensity_values");
 			throw (new IOException("Could not find variable intensity_values"));
 		}
 		assert (intensityValueVariable.getRank() == 1);
+
+		Attribute intScaleFacAttr = intensityValueVariable
+				.findAttribute("scale_factor");
+		if (intScaleFacAttr != null) {
+			intensityValueScaleFactor = intScaleFacAttr.getNumericValue()
+					.doubleValue();
+		}
 
 		// Read number of scans
 		Variable scanIndexVariable = inputFile.findVariable("scan_index");
@@ -379,7 +397,7 @@ public class NetCDFReadTask extends AbstractTask {
 		scanLength[0] = startAndLength[1];
 
 		// Get retention time of the scan
-		Double retentionTime = scansRetentionTimes.get(new Integer(scanNum));
+		Double retentionTime = scansRetentionTimes.get(scanNum);
 		if (retentionTime == null) {
 			logger.severe("Could not find retention time for scan " + scanNum);
 			throw (new IOException("Could not find retention time for scan "
@@ -411,23 +429,23 @@ public class NetCDFReadTask extends AbstractTask {
 					"Could not read from variables mass_values and/or intensity_values."));
 		}
 
-		double[] massValues = new double[massValueArray.getShape()[0]];
 		Index massValuesIndex = massValueArray.getIndex();
-		for (int j = 0; j < massValues.length; j++) {
-			massValues[j] = massValueArray.getDouble(massValuesIndex.set0(j));
-		}
-
-		double[] intensityValues = new double[intensityValueArray.getShape()[0]];
 		Index intensityValuesIndex = intensityValueArray.getIndex();
-		for (int j = 0; j < intensityValues.length; j++) {
-			intensityValues[j] = intensityValueArray
-					.getDouble(intensityValuesIndex.set0(j));
-		}
 
-		DataPoint completeDataPoints[] = new DataPoint[massValues.length];
-		for (int i = 0; i < massValues.length; i++) {
-			completeDataPoints[i] = new SimpleDataPoint(massValues[i],
-					intensityValues[i]);
+		int arrayLength = massValueArray.getShape()[0];
+
+		DataPoint completeDataPoints[] = new DataPoint[arrayLength];
+
+		for (int j = 0; j < arrayLength; j++) {
+			Index massIndex0 = massValuesIndex.set0(j);
+			Index intensityIndex0 = intensityValuesIndex.set0(j);
+
+			double mz = massValueArray.getDouble(massIndex0)
+					* massValueScaleFactor;
+			double intensity = intensityValueArray.getDouble(intensityIndex0)
+					* intensityValueScaleFactor;
+			completeDataPoints[j] = new SimpleDataPoint(mz, intensity);
+
 		}
 
 		scanNum++;
