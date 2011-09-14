@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
@@ -43,7 +44,8 @@ public class FragmentSearchParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minMS2peakHeight = new DoubleParameter(
 			"Min MS2 peak height",
-			"Minimum absolute intensity of the MS2 fragment peak");
+			"Minimum absolute intensity of the MS2 fragment peak",
+			MZmineCore.getIntensityFormat());
 
 	public FragmentSearchParameters() {
 		super(new Parameter[] { peakLists, rtTolerance, ms2mzTolerance,

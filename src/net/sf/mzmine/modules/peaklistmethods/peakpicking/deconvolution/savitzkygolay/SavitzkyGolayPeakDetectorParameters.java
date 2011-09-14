@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -33,10 +34,12 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
 			"Min peak height",
-			"Minimum acceptable peak height (absolute intensity)");
+			"Minimum acceptable peak height (absolute intensity)",
+			MZmineCore.getIntensityFormat());
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration (min)");
+			"Min peak duration", "Minimum acceptable peak duration",
+			MZmineCore.getRTFormat());
 
 	public static final PercentParameter derivativeThresholdLevel = new PercentParameter(
 			"Derivative threshold level",

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.minimumsearch;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -37,7 +38,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter searchRTRange = new DoubleParameter(
 			"Search minimum in RT range",
-			"If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks");
+			"If a local minimum is minimal in this range of retention time, it will be considered a border between two peaks",
+			MZmineCore.getRTFormat());
 
 	public static final PercentParameter minRelativeHeight = new PercentParameter(
 			"Minimum relative height",
@@ -45,7 +47,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minAbsoluteHeight = new DoubleParameter(
 			"Minimum absolute height",
-			"Minimum absolute height of a peak to be recognized");
+			"Minimum absolute height of a peak to be recognized",
+			MZmineCore.getIntensityFormat());
 
 	public static final DoubleParameter minRatio = new DoubleParameter(
 			"Min ratio of peak top/edge",

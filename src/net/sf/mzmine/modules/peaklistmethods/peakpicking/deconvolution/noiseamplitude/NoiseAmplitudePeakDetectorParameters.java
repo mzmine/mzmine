@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -32,15 +33,18 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
 			"Min peak height",
-			"Minimum acceptable height (intensity) for a chromatographic peak");
+			"Minimum acceptable height (intensity) for a chromatographic peak",
+			MZmineCore.getIntensityFormat());
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
 			"Min peak duration",
-			"Minimum acceptable length (time duration) for a chromatographic peak (min)");
+			"Minimum acceptable length (time duration) for a chromatographic peak (min)",
+			MZmineCore.getRTFormat());
 
 	public static final DoubleParameter amplitudeOfNoise = new DoubleParameter(
 			"Amplitude of noise",
-			"This value is the intensity amplitude of the signal in the noise region");
+			"This value is the intensity amplitude of the signal in the noise region",
+			MZmineCore.getIntensityFormat());
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(

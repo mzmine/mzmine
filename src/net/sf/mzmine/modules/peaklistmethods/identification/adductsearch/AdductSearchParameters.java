@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
@@ -31,7 +32,8 @@ public class AdductSearchParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter rtTolerance = new DoubleParameter(
 			"RT tolerance",
-			"Maximum allowed difference of retention time to set a relationship between peaks");
+			"Maximum allowed difference of retention time to set a relationship between peaks",
+			MZmineCore.getRTFormat());
 
 	public static final MultiChoiceParameter<AdductType> adducts = new MultiChoiceParameter<AdductType>(
 			"Adducts",
@@ -40,15 +42,18 @@ public class AdductSearchParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter customAdductValue = new DoubleParameter(
 			"Custom adduct value",
-			"Mass value (m/z difference) for custom adduct");
+			"Mass value (m/z difference) for custom adduct",
+			MZmineCore.getMZFormat());
 
 	public static final DoubleParameter mzTolerance = new DoubleParameter(
 			"m/z tolerance",
-			"Tolerance value of the m/z difference between peaks");
+			"Tolerance value of the m/z difference between peaks",
+			MZmineCore.getMZFormat());
 
 	public static final DoubleParameter maxAdductHeight = new DoubleParameter(
 			"Max adduct peak height",
-			"Maximum height of the recognized adduct peak, relative to the main peak");
+			"Maximum height of the recognized adduct peak, relative to the main peak",
+			MZmineCore.getIntensityFormat());
 
 	public AdductSearchParameters() {
 		super(new Parameter[] { peakLists, rtTolerance, adducts,

@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
 import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -38,11 +39,13 @@ public class ComplexSearchParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter rtTolerance = new DoubleParameter(
 			"RT tolerance",
-			"Maximum allowed retention retention time difference to set the relationship between peaks");
+			"Maximum allowed retention retention time difference to set the relationship between peaks",
+			MZmineCore.getRTFormat());
 
 	public static final DoubleParameter mzTolerance = new DoubleParameter(
 			"m/z tolerance",
-			"Tolerance value of the m/z difference between peaks");
+			"Tolerance value of the m/z difference between peaks",
+			MZmineCore.getMZFormat());
 
 	public static final PercentParameter maxComplexHeight = new PercentParameter(
 			"Max complex peak height",

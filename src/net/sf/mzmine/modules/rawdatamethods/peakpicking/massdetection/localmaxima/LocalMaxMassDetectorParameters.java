@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
@@ -29,7 +30,8 @@ public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
-			"Intensities less than this value are interpreted as noise.");
+			"Intensities less than this value are interpreted as noise.",
+			MZmineCore.getIntensityFormat());
 
 	public LocalMaxMassDetectorParameters() {
 		super(new UserParameter[] { noiseLevel });

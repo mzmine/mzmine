@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -31,14 +32,18 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 	private PeakResolver peakResolver;
 
 	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
-			"Min peak height", "Minimum acceptable peak height (absolute intensity)");
+			"Min peak height",
+			"Minimum acceptable peak height (absolute intensity)",
+			MZmineCore.getIntensityFormat());
 
 	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration (min)");
+			"Min peak duration", "Minimum acceptable peak duration (min)",
+			MZmineCore.getRTFormat());
 
 	public static final DoubleParameter baselineLevel = new DoubleParameter(
 			"Baseline level",
-			"Level below which all data points of the chromatogram are removed (absolute intensity)");
+			"Level below which all data points of the chromatogram are removed (absolute intensity)",
+			MZmineCore.getIntensityFormat());
 
 	public ExitCode showSetupDialog() {
 		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(

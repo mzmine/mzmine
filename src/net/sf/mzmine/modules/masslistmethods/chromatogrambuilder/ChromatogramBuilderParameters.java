@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
@@ -35,11 +36,15 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter minimumTimeSpan = new DoubleParameter(
 			"Min time span",
-			"Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram.The optimal value depends on the chromatography system setup. The best way to set this parameter is by studying the raw data and determining what is the typical time span of chromatographic peaks.");
+			"Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram. "
+					+ "The optimal value depends on the chromatography system setup. The best way to set this parameter "
+					+ "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
+			MZmineCore.getRTFormat());
 
 	public static final DoubleParameter minimumHeight = new DoubleParameter(
 			"Min height",
-			"Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.");
+			"Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
+			MZmineCore.getIntensityFormat());
 
 	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
 			"m/z tolerance",

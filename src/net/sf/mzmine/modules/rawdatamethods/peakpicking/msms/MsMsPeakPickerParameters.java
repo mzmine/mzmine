@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.msms;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
@@ -30,10 +31,11 @@ public class MsMsPeakPickerParameters extends SimpleParameterSet {
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final DoubleParameter mzWindow = new DoubleParameter(
-			"m/z window", "m/z window for peak search");
+			"m/z window", "m/z window for peak search",
+			MZmineCore.getMZFormat());
 
 	public static final DoubleParameter rtWindow = new DoubleParameter(
-			"Time window", "Time window");
+			"Time window", "Time window", MZmineCore.getRTFormat());
 
 	public static final MSLevelParameter msLevel = new MSLevelParameter();
 

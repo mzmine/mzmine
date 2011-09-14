@@ -21,6 +21,8 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Collection;
 
 import javax.swing.InputVerifier;
@@ -47,6 +49,8 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 	// Text field width.
 	private static final int WIDTH = 200;
 
+	private NumberFormat format;
+	
 	private Double value;
 	private final String name;
 	private final String description;
@@ -54,21 +58,26 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 	private final Double maximum;
 
 	public DoubleParameter(final String name, final String description) {
-		this(name, description, null, null, null);
+		this(name, description, DecimalFormat.getNumberInstance(), null, null, null);
+	}
+	
+	public DoubleParameter(final String name, final String description, NumberFormat format) {
+		this(name, description, format, null, null, null);
 	}
 
-	public DoubleParameter(final String name, final String description,
+	public DoubleParameter(final String name, final String description, NumberFormat format,
 			final Double defaultValue) {
-		this(name, description, defaultValue, null, null);
+		this(name, description, format, defaultValue, null, null);
 	}
 
-	public DoubleParameter(final String name, final String description,
+	public DoubleParameter(final String name, final String description, NumberFormat format,
 			final Double defaultValue, final Double min, final Double max) {
 		this.name = name;
 		this.description = description;
-		value = defaultValue;
-		minimum = min;
-		maximum = max;
+		this.format = format;
+		this.value = defaultValue;
+		this.minimum = min;
+		this.maximum = max;
 	}
 
 	/**
@@ -105,8 +114,8 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 	public void setValueFromComponent(final JTextField component) {
 		String textValue = component.getText();
 		try {
-			value = Double.parseDouble(textValue);
-		} catch (NumberFormatException e) {
+			value = format.parse(textValue).doubleValue();
+		} catch (Exception e) {
 			value = null;
 		}
 	}
@@ -118,13 +127,13 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 
 	@Override
 	public DoubleParameter clone() {
-		return new DoubleParameter(name, description, value, minimum, maximum);
+		return new DoubleParameter(name, description, format, value, minimum, maximum);
 	}
 
 	@Override
 	public void setValueToComponent(final JTextField component,
 			final Double newValue) {
-		component.setText(String.valueOf(newValue));
+		component.setText(format.format(newValue));
 	}
 
 	public Double getValue() {

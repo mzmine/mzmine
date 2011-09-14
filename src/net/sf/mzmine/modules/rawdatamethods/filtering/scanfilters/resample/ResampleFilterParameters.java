@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
 import net.sf.mzmine.parameters.SimpleParameterSet;
@@ -29,7 +30,7 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class ResampleFilterParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter binSize = new DoubleParameter(
-			"m/z bin length", "The length of m/z bin");
+			"m/z bin length", "The length of m/z bin", MZmineCore.getMZFormat());
 
 	private ScanFilter scanFilter;
 
