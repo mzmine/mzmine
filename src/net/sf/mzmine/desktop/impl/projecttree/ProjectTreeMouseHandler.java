@@ -131,23 +131,37 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		if (command.equals("SHOW_2D")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			if (selectedFiles.length == 0) return;
+			if (selectedFiles.length == 0)
+				return;
 			TwoDVisualizerModule.show2DVisualizerSetupDialog(selectedFiles[0]);
-			
+
 		}
 
 		if (command.equals("SHOW_3D")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			if (selectedFiles.length == 0) return;
-				ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
+			if (selectedFiles.length == 0)
+				return;
+			ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
 		}
 
 		if (command.equals("REMOVE_FILE")) {
 			RawDataFile[] selectedFiles = tree
 					.getSelectedObjects(RawDataFile.class);
-			for (RawDataFile file : selectedFiles)
+			PeakList allPeakLists[] = MZmineCore.getCurrentProject()
+					.getPeakLists();
+			for (RawDataFile file : selectedFiles) {
+				for (PeakList peakList : allPeakLists) {
+					if (peakList.hasRawDataFile(file)) {
+						String msg = "Cannot remove file " + file.getName()
+								+ ", because it is present in the peak list "
+								+ peakList.getName();
+						MZmineCore.getDesktop().displayErrorMessage(msg);
+						return;
+					}
+				}
 				MZmineCore.getCurrentProject().removeFile(file);
+			}
 		}
 
 		// Actions for scans

@@ -25,7 +25,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 
@@ -110,7 +109,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 				// the whole vertical length of the dialog (buttons are at row
 				// no 100). Also, we set the weight to 10, so the preview
 				// component will consume most of the extra available space.
-				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10);
+				mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10,
+						GridBagConstraints.BOTH);
 				pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
 				updateMinimumSize();
 				pack();
@@ -252,7 +252,8 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
 		GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 		pnlPlotXY.setBackground(Color.white);
 
-		ticPlot = new TICPlot((ActionListener) this);
+		ticPlot = new TICPlot(this);
+		ticPlot.setMinimumSize(new Dimension(400, 300));
 		pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
 
 		toolBar = new TICToolBar(ticPlot);

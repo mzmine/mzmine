@@ -90,8 +90,8 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 			Map<UserParameter, Object> autoValues) {
 
 		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), "Please set parameters",
-				true);
+		super(MZmineCore.getDesktop().getMainFrame(),
+				"Please set the parameters", true);
 
 		this.parameterSet = parameters;
 		this.autoValues = autoValues;

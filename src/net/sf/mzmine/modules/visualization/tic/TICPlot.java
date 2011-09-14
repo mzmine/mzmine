@@ -124,7 +124,6 @@ public class TICPlot extends ChartPanel {
 	/**
 	 * 
 	 */
-	// public TICPlot(final TICVisualizerWindow visualizer) {
 	public TICPlot(final ActionListener visualizer) {
 
 		super(null, true);
