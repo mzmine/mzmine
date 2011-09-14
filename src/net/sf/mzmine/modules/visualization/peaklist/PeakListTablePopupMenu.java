@@ -23,6 +23,7 @@ import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -140,6 +141,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		int selectedRows[] = table.getSelectedRows();
 		deleteRowsItem.setEnabled(selectedRows.length > 0);
 		plotRowsItem.setEnabled(selectedRows.length > 0);
+		showMenu.setEnabled(selectedRows.length > 0);
+		searchMenu.setEnabled(selectedRows.length > 0);
 
 		// Find the row and column where the user clicked
 		clickedDataFile = null;
@@ -156,7 +159,6 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				allClickedPeakListRows[i] = peakList.getRow(table
 						.convertRowIndexToModel(selectedRows[i]));
 			}
-			showXICItem.setEnabled(selectedRows.length > 0);
 
 			// Enable Show 2D peak plot
 			show2DItem.setEnabled(selectedRows.length == 1);
@@ -264,7 +266,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 			if (allClickedPeakListRows.length == 0)
 				return;
-			
+
 			RawDataFile selectedDataFiles[] = new RawDataFile[1];
 			selectedDataFiles[0] = clickedDataFile;
 			if (selectedDataFiles[0] == null)
@@ -304,18 +306,30 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
 			if (allClickedPeakListRows.length == 0)
 				return;
-			
-			RawDataFile selectedDataFiles[] = new RawDataFile[1];
-			selectedDataFiles[0] = clickedDataFile;
-			if (selectedDataFiles[0] == null)
-				selectedDataFiles[0] = allClickedPeakListRows[0].getBestPeak()
-						.getDataFile();
+
+			RawDataFile selectedDataFiles[];
+			if (clickedDataFile != null) {
+				selectedDataFiles = new RawDataFile[] { clickedDataFile };
+			} else {
+				selectedDataFiles = peakList.getRawDataFiles();
+			}
+
+			RawDataFile allDataFiles[] = MZmineCore.getCurrentProject()
+					.getDataFiles();
 
 			rtRange = selectedDataFiles[0].getDataRTRange(1);
+
+			ArrayList<ChromatographicPeak> allClickedPeaks = new ArrayList<ChromatographicPeak>();
+			ArrayList<ChromatographicPeak> selectedClickedPeaks = new ArrayList<ChromatographicPeak>();
 
 			for (PeakListRow row : allClickedPeakListRows) {
 
 				for (ChromatographicPeak peak : row.getPeaks()) {
+
+					allClickedPeaks.add(peak);
+					if (peak.getDataFile() == clickedDataFile) {
+						selectedClickedPeaks.add(peak);
+					}
 
 					if (mzRange == null)
 						mzRange = peak.getRawDataPointsMZRange();
@@ -324,8 +338,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 				}
 			}
 
-			TICVisualizerModule.setupNewTICVisualizer(selectedDataFiles, 
-					1, PlotType.BASEPEAK, rtRange, mzRange);
+			ChromatographicPeak allPeaks[] = allClickedPeaks
+					.toArray(new ChromatographicPeak[0]);
+			ChromatographicPeak selectedPeaks[] = selectedClickedPeaks
+					.toArray(new ChromatographicPeak[0]);
+
+			TICVisualizerModule.setupNewTICVisualizer(allDataFiles,
+					selectedDataFiles, allPeaks, selectedPeaks, rtRange,
+					mzRange);
 
 			return;
 
@@ -378,8 +398,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			Range mzRange = new Range(Math.max(0, peakMZRange.getMin()
 					- peakMZRange.getSize()), peakMZRange.getMax()
 					+ peakMZRange.getSize());
-			ThreeDVisualizerModule.setupNew3DVisualizer(
-					showPeak.getDataFile(), mzRange, rtRange);
+			ThreeDVisualizerModule.setupNew3DVisualizer(showPeak.getDataFile(),
+					mzRange, rtRange);
 
 		}
 
@@ -424,7 +444,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			} else {
 				MZmineCore.getDesktop().displayMessage(
 						"There is no fragment for "
-								+ MZmineCore.getMZFormat().format(showPeak.getMZ())
+								+ MZmineCore.getMZFormat().format(
+										showPeak.getMZ())
 								+ " m/z in the current raw data.");
 				return;
 			}

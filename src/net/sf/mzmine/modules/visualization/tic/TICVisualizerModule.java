@@ -47,27 +47,23 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 	}
 
 	public static void setupNewTICVisualizer(RawDataFile[] dataFiles) {
-		setupNewTICVisualizer(dataFiles, 1, null, null, null);
+		setupNewTICVisualizer(MZmineCore.getCurrentProject().getDataFiles(),
+				dataFiles, new ChromatographicPeak[0],
+				new ChromatographicPeak[0], null, null);
 	}
 
-	public static void setupNewTICVisualizer(RawDataFile[] dataFiles,
-			int msLevel, PlotType plotType,
-			Range rtRange, Range mzRange) {
+	public static void setupNewTICVisualizer(RawDataFile[] allFiles,
+			RawDataFile[] selectedFiles, ChromatographicPeak allPeaks[],
+			ChromatographicPeak selectedPeaks[], Range rtRange, Range mzRange) {
 
-		assert dataFiles != null;
-
-		myInstance.parameters.getParameter(TICVisualizerParameters.dataFiles)
-				.setValue(dataFiles);
-
-
+		assert allFiles != null;
 
 		myInstance.parameters.getParameter(TICVisualizerParameters.msLevel)
-				.setValue(msLevel);
+				.setValue(1);
 
-		if (plotType != null)
-			myInstance.parameters
-					.getParameter(TICVisualizerParameters.plotType).setValue(
-							plotType);
+		myInstance.parameters.getParameter(TICVisualizerParameters.plotType)
+				.setValue(PlotType.BASEPEAK);
+
 		if (rtRange != null)
 			myInstance.parameters.getParameter(
 					TICVisualizerParameters.retentionTimeRange).setValue(
@@ -76,15 +72,16 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 			myInstance.parameters.getParameter(TICVisualizerParameters.mzRange)
 					.setValue(mzRange);
 
-		ExitCode exitCode = myInstance.parameters.showSetupDialog();
+		ExitCode exitCode = myInstance.parameters.showSetupDialog(allFiles,
+				selectedFiles, allPeaks, selectedPeaks);
 
 		if (exitCode == ExitCode.OK)
 			myInstance.runModule(myInstance.parameters.clone());
 	}
 
 	public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-			ChromatographicPeak selectionPeaks[], int msLevel, PlotType plotType,
-			Range rtRange, Range mzRange) {
+			ChromatographicPeak selectionPeaks[], int msLevel,
+			PlotType plotType, Range rtRange, Range mzRange) {
 
 		TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
 				plotType, msLevel, rtRange, mzRange, selectionPeaks);
@@ -119,13 +116,15 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 				.getParameter(TICVisualizerParameters.mzRange).getValue();
 		PlotType plotType = parameters.getParameter(
 				TICVisualizerParameters.plotType).getValue();
+		ChromatographicPeak selectionPeaks[] = parameters.getParameter(
+				TICVisualizerParameters.peaks).getValue();
 
 		if ((dataFiles == null) || (dataFiles.length == 0)) {
 			MZmineCore.getDesktop().displayErrorMessage(
 					"Please select raw data file(s)");
 			return null;
 		}
-		
+
 		// Add the window to the desktop only if we actually have any raw data
 		// to show
 		boolean weHaveData = false;
@@ -138,7 +137,7 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 		}
 		if (weHaveData) {
 			TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
-					plotType, msLevel, rtRange, mzRange, null);
+					plotType, msLevel, rtRange, mzRange, selectionPeaks);
 			MZmineCore.getDesktop().addInternalFrame(newWindow);
 		} else {
 			MZmineCore.getDesktop().displayErrorMessage(
