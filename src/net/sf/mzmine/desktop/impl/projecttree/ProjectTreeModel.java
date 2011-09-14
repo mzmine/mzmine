@@ -21,6 +21,7 @@ package net.sf.mzmine.desktop.impl.projecttree;
 
 import java.util.Enumeration;
 
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -31,7 +32,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeNode;
 import net.sf.mzmine.project.MZmineProject;
 
 /**
@@ -61,61 +61,70 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 	}
 
-	public synchronized void addObject(Object object) {
+	public synchronized void addObject(final Object object) {
 
-		if (object instanceof PeakList) {
-			PeakList peakList = (PeakList) object;
-			int childCount = getChildCount(peakListsNode);
-			DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
-					peakList);
-			insertNodeInto(newPeakListNode, peakListsNode, childCount);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
 
-			PeakListRow rows[] = peakList.getRows();
-			for (int i = 0; i < rows.length; i++) {
-				MutableTreeNode rowNode = new DefaultMutableTreeNode(rows[i]);
-				insertNodeInto(rowNode, newPeakListNode, i);
-			}
+				if (object instanceof PeakList) {
+					PeakList peakList = (PeakList) object;
 
-		}
+					final int childCount = getChildCount(peakListsNode);
+					final DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
+							peakList);
+					insertNodeInto(newPeakListNode, peakListsNode, childCount);
+					PeakListRow rows[] = peakList.getRows();
+					for (int i = 0; i < rows.length; i++) {
+						MutableTreeNode rowNode = new DefaultMutableTreeNode(
+								rows[i]);
+						insertNodeInto(rowNode, newPeakListNode, i);
+					}
 
-		if (object instanceof RawDataFile) {
-			RawDataFile dataFile = (RawDataFile) object;
-			int childCount = getChildCount(dataFilesNode);
-			DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
-					dataFile);
-			insertNodeInto(newDataFileNode, dataFilesNode, childCount);
-
-			int scanNumbers[] = dataFile.getScanNumbers();
-			for (int i = 0; i < scanNumbers.length; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);
-				MutableTreeNode scanNode = new DefaultMutableTreeNode(scan);
-				insertNodeInto(scanNode, newDataFileNode, i);
-
-				MassList massLists[] = scan.getMassLists();
-				for (MassList massList : massLists)
-					addObject(massList);
-			}
-			return;
-		}
-
-		if (object instanceof MassList) {
-			Scan scan = ((MassList) object).getScan();
-			ProjectTreeNode root = dataFilesNode;
-			Enumeration nodes = root.breadthFirstEnumeration();
-			while (nodes.hasMoreElements()) {
-				DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-						.nextElement();
-
-				if (node.getUserObject() == scan) {
-					DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-							object);
-					int index = node.getChildCount();
-					insertNodeInto(newNode, node, index);
-					break;
 				}
-			}
-			return;
-		}
+
+				if (object instanceof RawDataFile) {
+					RawDataFile dataFile = (RawDataFile) object;
+					final int childCount = getChildCount(dataFilesNode);
+					final DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
+							dataFile);
+
+					insertNodeInto(newDataFileNode, dataFilesNode, childCount);
+
+					int scanNumbers[] = dataFile.getScanNumbers();
+					for (int i = 0; i < scanNumbers.length; i++) {
+						Scan scan = dataFile.getScan(scanNumbers[i]);
+						MutableTreeNode scanNode = new DefaultMutableTreeNode(
+								scan);
+						insertNodeInto(scanNode, newDataFileNode, i);
+
+						MassList massLists[] = scan.getMassLists();
+						for (MassList massList : massLists)
+							addObject(massList);
+					}
+					return;
+				}
+
+				if (object instanceof MassList) {
+					Scan scan = ((MassList) object).getScan();
+					ProjectTreeNode root = dataFilesNode;
+					Enumeration nodes = root.breadthFirstEnumeration();
+					while (nodes.hasMoreElements()) {
+						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+								.nextElement();
+
+						if (node.getUserObject() == scan) {
+							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+									object);
+							final int index = node.getChildCount();
+							insertNodeInto(newNode, node, index);
+							break;
+						}
+					}
+					return;
+				}
+
+			};
+		});
 
 	}
 
@@ -123,10 +132,14 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 		Enumeration nodes = rootNode.breadthFirstEnumeration();
 		while (nodes.hasMoreElements()) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
 					.nextElement();
 			if (node.getUserObject() == object) {
-				removeNodeFromParent(node);
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						removeNodeFromParent(node);
+					};
+				});
 				return;
 			}
 		}
