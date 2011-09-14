@@ -52,15 +52,18 @@ public class MSMSScoreCalculator {
 
 		MassList massList = msmsScan.getMassList(massListName);
 
-		// TODO: handle error better
-		if (massList == null)
-			return null;
+		if (massList == null) {
+			throw new IllegalArgumentException("Scan #"
+					+ msmsScan.getScanNumber()
+					+ " does not have a mass list called '" + massListName
+					+ "'");
+		}
 
 		DataPoint msmsIons[] = massList.getDataPoints();
 
 		if (msmsIons == null) {
 			throw new IllegalArgumentException("Mass list " + massList
-					+ " does not contain data for scan "
+					+ " does not contain data for scan #"
 					+ msmsScan.getScanNumber());
 		}
 		// Sorted by mass in descending order
@@ -89,7 +92,7 @@ public class MSMSScoreCalculator {
 					continue msmsCycle;
 				}
 			}
-			
+
 			// We don't know the charge of the fragment, so we will simply
 			// assume 1
 			double neutralLoss = msmsScan.getPrecursorMZ()

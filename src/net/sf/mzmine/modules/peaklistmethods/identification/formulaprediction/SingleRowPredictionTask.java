@@ -32,6 +32,7 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
@@ -256,8 +257,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 					.getString(adjustedFormulaObject);
 
 			double minPredictedAbundance = isotopeParameters.getParameter(
-					IsotopePatternCalculatorParameters.minAbundance)
-					.getValue();
+					IsotopePatternCalculatorParameters.minAbundance).getValue();
 
 			predictedIsotopePattern = IsotopePatternCalculator
 					.calculateIsotopePattern(adjustedFormula,
@@ -283,9 +283,20 @@ public class SingleRowPredictionTask extends AbstractTask {
 		RawDataFile dataFile = bestPeak.getDataFile();
 		Map<DataPoint, String> msmsAnnotations = null;
 		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-		if ((checkMSMS) && (msmsScanNumber > 0)) {
 
+		if ((checkMSMS) && (msmsScanNumber > 0)) {
 			Scan msmsScan = dataFile.getScan(msmsScanNumber);
+			String massListName = msmsParameters.getParameter(
+					MSMSScoreParameters.massList).getValue();
+			MassList ms2MassList = msmsScan.getMassList(massListName);
+			if (ms2MassList == null) {
+				setStatus(TaskStatus.ERROR);
+				this.errorMessage = "The MS/MS scan #" + msmsScanNumber
+						+ " in file " + dataFile.getName()
+						+ " does not have a mass list called '" + massListName
+						+ "'";
+				return;
+			}
 
 			MSMSScore score = MSMSScoreCalculator.evaluateMSMS(cdkFormula,
 					msmsScan, msmsParameters);

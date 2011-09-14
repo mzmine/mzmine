@@ -33,7 +33,7 @@ public abstract class AbstractTask implements Task {
 	private TaskStatus status = TaskStatus.WAITING;
 	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 	protected String errorMessage = null;
-	
+
 	/**
 	 * Adds a TaskListener to this Task
 	 * 
@@ -72,12 +72,13 @@ public abstract class AbstractTask implements Task {
 	}
 
 	/**
-	 * Convenience method for determining if this task has been canceled
+	 * Convenience method for determining if this task has been canceled. Also
+	 * returns true if the task encountered an error.
 	 * 
-	 * @return true if this event has been canceled
+	 * @return true if this task has been canceled or stopped due to an error
 	 */
 	public final boolean isCanceled() {
-		return status == TaskStatus.CANCELED;
+		return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
 	}
 
 	/**
@@ -111,9 +112,9 @@ public abstract class AbstractTask implements Task {
 	public final TaskStatus getStatus() {
 		return this.status;
 	}
-	
+
 	public Object[] getCreatedObjects() {
 		return null;
 	}
-	
+
 }
