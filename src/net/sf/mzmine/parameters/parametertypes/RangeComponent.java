@@ -80,7 +80,7 @@ public class RangeComponent extends GridBagPanel {
 	@Override
 	public void setToolTipText(String toolTip) {
 		minTxtField.setToolTipText(toolTip);
-		minTxtField.setToolTipText(toolTip);
+		maxTxtField.setToolTipText(toolTip);
 	}
 
 }
