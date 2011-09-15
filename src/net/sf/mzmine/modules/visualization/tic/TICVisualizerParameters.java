@@ -59,7 +59,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 
 	public static final MultiChoiceParameter<ChromatographicPeak> peaks = new MultiChoiceParameter<ChromatographicPeak>(
 			"Peaks", "Please choose peaks to visualize",
-			new ChromatographicPeak[0]);
+			new ChromatographicPeak[0], null, 0);
 
 	public TICVisualizerParameters() {
 		super(new Parameter[] { dataFiles, msLevel, plotType,
