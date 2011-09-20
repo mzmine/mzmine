@@ -98,29 +98,40 @@ public class ProjectTreeModel extends DefaultTreeModel {
 						insertNodeInto(scanNode, newDataFileNode, i);
 
 						MassList massLists[] = scan.getMassLists();
-						for (MassList massList : massLists)
-							addObject(massList);
+						for (int j = 0; j < massLists.length; j++) {
+							MutableTreeNode mlNode = new DefaultMutableTreeNode(
+									massLists[j]);
+							insertNodeInto(mlNode, scanNode, j);
+
+						}
 					}
 					return;
 				}
 
 				if (object instanceof MassList) {
 					Scan scan = ((MassList) object).getScan();
-					ProjectTreeNode root = dataFilesNode;
-					Enumeration nodes = root.breadthFirstEnumeration();
-					while (nodes.hasMoreElements()) {
-						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-								.nextElement();
+					RawDataFile dataFile = scan.getDataFile();
 
-						if (node.getUserObject() == scan) {
-							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-									object);
-							final int index = node.getChildCount();
-							insertNodeInto(newNode, node, index);
-							break;
+					Enumeration nodes = dataFilesNode.children();
+					while (nodes.hasMoreElements()) {
+						final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
+								.nextElement();
+						if (dfNode.getUserObject() == dataFile) {
+							Enumeration scanNodes = dfNode.children();
+							while (scanNodes.hasMoreElements()) {
+								final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
+										.nextElement();
+								if (scNode.getUserObject() == scan) {
+									final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+											object);
+									final int index = scNode.getChildCount();
+									insertNodeInto(newNode, scNode, index);
+									return;
+								}
+							}
+
 						}
 					}
-					return;
 				}
 
 			};
@@ -128,21 +139,69 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 	}
 
-	public synchronized void removeObject(Object object) {
+	public synchronized void removeObject(final Object object) {
 
-		Enumeration nodes = rootNode.breadthFirstEnumeration();
-		while (nodes.hasMoreElements()) {
-			final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-					.nextElement();
-			if (node.getUserObject() == object) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						removeNodeFromParent(node);
-					};
-				});
-				return;
-			}
-		}
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+
+				if (object instanceof PeakList) {
+					Enumeration nodes = peakListsNode.children();
+					while (nodes.hasMoreElements()) {
+						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+								.nextElement();
+						if (node.getUserObject() == object) {
+							removeNodeFromParent(node);
+							return;
+						}
+					}
+				}
+
+				if (object instanceof RawDataFile) {
+					Enumeration nodes = dataFilesNode.children();
+					while (nodes.hasMoreElements()) {
+						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+								.nextElement();
+						if (node.getUserObject() == object) {
+							removeNodeFromParent(node);
+							return;
+						}
+					}
+				}
+
+				if (object instanceof MassList) {
+					Scan scan = ((MassList) object).getScan();
+					RawDataFile dataFile = scan.getDataFile();
+
+					Enumeration nodes = dataFilesNode.children();
+					while (nodes.hasMoreElements()) {
+						final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
+								.nextElement();
+						if (dfNode.getUserObject() == dataFile) {
+							Enumeration scanNodes = dfNode.children();
+							while (scanNodes.hasMoreElements()) {
+								final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
+										.nextElement();
+								if (scNode.getUserObject() == scan) {
+									Enumeration mlNodes = scNode.children();
+									while (mlNodes.hasMoreElements()) {
+										final DefaultMutableTreeNode mlNode = (DefaultMutableTreeNode) mlNodes
+												.nextElement();
+										if (mlNode.getUserObject() == object) {
+											removeNodeFromParent(mlNode);
+											return;
+										}
+									}
+
+								}
+							}
+
+						}
+					}
+
+				}
+
+			};
+		});
 
 	}
 
