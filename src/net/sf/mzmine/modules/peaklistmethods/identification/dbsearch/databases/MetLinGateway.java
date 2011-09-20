@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 
 import javax.xml.rpc.ServiceException;
 
-import metlinapi.MetaboliteRequest;
 import metlinapi.MetlinPortType;
 import metlinapi.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
@@ -61,14 +60,11 @@ public class MetLinGateway implements DBGateway {
 		}
 
 		// Search mass as float[]
-		float[] searchMass = new float[] { (float) toleranceRange.getAverage() };
+		String searchMass[] = new String[] { String.valueOf(toleranceRange.getAverage()) };
 
-		Float searchTolerance = (float) toleranceRange.getSize() / 2;
+		String searchTolerance = String.valueOf(toleranceRange.getSize() / 2);
 
-		MetaboliteRequest requestParameters = new MetaboliteRequest(searchMass,
-				adduct, searchTolerance, "Da");
-
-		String[] results = serv.metaboliteSearch(requestParameters);
+		String[][] results = serv.metaboliteSearch(searchMass, adduct, searchTolerance, "Da");
 
 		System.out.println(results.length + Arrays.toString(results) + " "
 				+ results[0]);
