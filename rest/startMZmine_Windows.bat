@@ -49,4 +49,3 @@ rem This command starts the Java Virtual Machine
 rem If there was an error, give the user chance to see it
 IF ERRORLEVEL 1 pause
 
-
