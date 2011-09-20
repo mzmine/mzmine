@@ -63,31 +63,35 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 	public synchronized void addObject(final Object object) {
 
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
+		if (object instanceof PeakList) {
+			final PeakList peakList = (PeakList) object;
 
-				if (object instanceof PeakList) {
-					PeakList peakList = (PeakList) object;
-
-					final int childCount = getChildCount(peakListsNode);
-					final DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
-							peakList);
+			final int childCount = getChildCount(peakListsNode);
+			final DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
+					peakList);
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
 					insertNodeInto(newPeakListNode, peakListsNode, childCount);
 					PeakListRow rows[] = peakList.getRows();
 					for (int i = 0; i < rows.length; i++) {
-						MutableTreeNode rowNode = new DefaultMutableTreeNode(
+						final MutableTreeNode rowNode = new DefaultMutableTreeNode(
 								rows[i]);
-						insertNodeInto(rowNode, newPeakListNode, i);
+						final int index = i;
+						insertNodeInto(rowNode, newPeakListNode, index);
 					}
-
 				}
+			});
 
-				if (object instanceof RawDataFile) {
-					RawDataFile dataFile = (RawDataFile) object;
-					final int childCount = getChildCount(dataFilesNode);
-					final DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
-							dataFile);
+		}
 
+		if (object instanceof RawDataFile) {
+			final RawDataFile dataFile = (RawDataFile) object;
+			final int childCount = getChildCount(dataFilesNode);
+			final DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
+					dataFile);
+
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
 					insertNodeInto(newDataFileNode, dataFilesNode, childCount);
 
 					int scanNumbers[] = dataFile.getScanNumbers();
@@ -105,103 +109,111 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 						}
 					}
+				}
+			});
+		}
+
+		if (object instanceof MassList) {
+			Scan scan = ((MassList) object).getScan();
+			RawDataFile dataFile = scan.getDataFile();
+
+			Enumeration nodes = dataFilesNode.children();
+			while (nodes.hasMoreElements()) {
+				final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
+						.nextElement();
+				if (dfNode.getUserObject() == dataFile) {
+					Enumeration scanNodes = dfNode.children();
+					while (scanNodes.hasMoreElements()) {
+						final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
+								.nextElement();
+						if (scNode.getUserObject() == scan) {
+							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+									object);
+							final int index = scNode.getChildCount();
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									insertNodeInto(newNode, scNode, index);
+								}
+							});
+							return;
+						}
+					}
+
+				}
+			}
+		}
+
+	}
+
+	public synchronized void removeObject(final Object object) {
+
+		if (object instanceof PeakList) {
+			Enumeration nodes = peakListsNode.children();
+			while (nodes.hasMoreElements()) {
+				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+						.nextElement();
+				if (node.getUserObject() == object) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							removeNodeFromParent(node);
+						}
+					});
 					return;
 				}
+			}
+		}
 
-				if (object instanceof MassList) {
-					Scan scan = ((MassList) object).getScan();
-					RawDataFile dataFile = scan.getDataFile();
+		if (object instanceof RawDataFile) {
+			Enumeration nodes = dataFilesNode.children();
+			while (nodes.hasMoreElements()) {
+				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
+						.nextElement();
+				if (node.getUserObject() == object) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							removeNodeFromParent(node);
+						}
+					});
+					return;
+				}
+			}
+		}
 
-					Enumeration nodes = dataFilesNode.children();
-					while (nodes.hasMoreElements()) {
-						final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
+		if (object instanceof MassList) {
+			Scan scan = ((MassList) object).getScan();
+			RawDataFile dataFile = scan.getDataFile();
+
+			Enumeration nodes = dataFilesNode.children();
+			while (nodes.hasMoreElements()) {
+				final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
+						.nextElement();
+				if (dfNode.getUserObject() == dataFile) {
+					Enumeration scanNodes = dfNode.children();
+					while (scanNodes.hasMoreElements()) {
+						final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
 								.nextElement();
-						if (dfNode.getUserObject() == dataFile) {
-							Enumeration scanNodes = dfNode.children();
-							while (scanNodes.hasMoreElements()) {
-								final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
+						if (scNode.getUserObject() == scan) {
+							Enumeration mlNodes = scNode.children();
+							while (mlNodes.hasMoreElements()) {
+								final DefaultMutableTreeNode mlNode = (DefaultMutableTreeNode) mlNodes
 										.nextElement();
-								if (scNode.getUserObject() == scan) {
-									final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-											object);
-									final int index = scNode.getChildCount();
-									insertNodeInto(newNode, scNode, index);
+								if (mlNode.getUserObject() == object) {
+									SwingUtilities.invokeLater(new Runnable() {
+										public void run() {
+											removeNodeFromParent(mlNode);
+										}
+									});
 									return;
 								}
 							}
 
 						}
 					}
-				}
-
-			};
-		});
-
-	}
-
-	public synchronized void removeObject(final Object object) {
-
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-
-				if (object instanceof PeakList) {
-					Enumeration nodes = peakListsNode.children();
-					while (nodes.hasMoreElements()) {
-						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-								.nextElement();
-						if (node.getUserObject() == object) {
-							removeNodeFromParent(node);
-							return;
-						}
-					}
-				}
-
-				if (object instanceof RawDataFile) {
-					Enumeration nodes = dataFilesNode.children();
-					while (nodes.hasMoreElements()) {
-						final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-								.nextElement();
-						if (node.getUserObject() == object) {
-							removeNodeFromParent(node);
-							return;
-						}
-					}
-				}
-
-				if (object instanceof MassList) {
-					Scan scan = ((MassList) object).getScan();
-					RawDataFile dataFile = scan.getDataFile();
-
-					Enumeration nodes = dataFilesNode.children();
-					while (nodes.hasMoreElements()) {
-						final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
-								.nextElement();
-						if (dfNode.getUserObject() == dataFile) {
-							Enumeration scanNodes = dfNode.children();
-							while (scanNodes.hasMoreElements()) {
-								final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
-										.nextElement();
-								if (scNode.getUserObject() == scan) {
-									Enumeration mlNodes = scNode.children();
-									while (mlNodes.hasMoreElements()) {
-										final DefaultMutableTreeNode mlNode = (DefaultMutableTreeNode) mlNodes
-												.nextElement();
-										if (mlNode.getUserObject() == object) {
-											removeNodeFromParent(mlNode);
-											return;
-										}
-									}
-
-								}
-							}
-
-						}
-					}
 
 				}
+			}
 
-			};
-		});
+		}
 
 	}
 
