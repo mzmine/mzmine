@@ -26,6 +26,6 @@ public class MZmineVersion {
 
 	// The value of MZMINE_VERSION must be all numeric, otherwise it will cause
 	// problems when comparing version values during project opening
-	public static final String MZMINE_VERSION = "2.29";
+	public static final String MZMINE_VERSION = "2.3";
 
 }
