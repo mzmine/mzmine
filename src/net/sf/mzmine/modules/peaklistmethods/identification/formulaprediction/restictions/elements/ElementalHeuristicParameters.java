@@ -17,29 +17,29 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions;
-
-import java.text.NumberFormat;
+package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.elements;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.util.Range;
 
-public class RDBERestrictionParameters extends SimpleParameterSet {
+public class ElementalHeuristicParameters extends SimpleParameterSet {
 
-	public static final RangeParameter rdbeRange = new RangeParameter(
-			"RDBE range",
-			"Range of allowed RDBE (Range or Double Bonds Equivalents) value",
-			NumberFormat.getNumberInstance(), new Range(-1, 40));
+	public static final BooleanParameter checkHC = new BooleanParameter(
+			"H/C ratio", "0.1 <= H/C ratio <= 6", true);
 
-	public static final BooleanParameter rdbeWholeNum = new BooleanParameter(
-			"RDBE must be an integer",
-			"Only integer values are allowed for RDBE", true);
+	public static final BooleanParameter checkNOPS = new BooleanParameter(
+			"NOPS/C ratios",
+			"N/C ratio <= 4, O/C ratio <= 3, P/C ratio <= 2, S/C ratio <= 3",
+			true);
 
-	public RDBERestrictionParameters() {
-		super(new Parameter[] { rdbeRange, rdbeWholeNum });
+	public static final BooleanParameter checkMultiple = new BooleanParameter(
+			"Multiple element counts",
+			"Check for multiple element count restrictions. See help for detailed description of this rule",
+			true);
+
+	public ElementalHeuristicParameters() {
+		super(new Parameter[] { checkHC, checkNOPS, checkMultiple });
 	}
 
 }

@@ -20,8 +20,8 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.ElementalHeuristicParameters;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.RDBERestrictionParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.elements.ElementalHeuristicParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.rdbe.RDBERestrictionParameters;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
 import net.sf.mzmine.parameters.Parameter;

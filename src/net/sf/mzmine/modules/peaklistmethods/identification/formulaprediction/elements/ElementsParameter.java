@@ -106,6 +106,10 @@ public class ElementsParameter implements
 
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
+		if ((value == null) || (value.trim().length() == 0)) {
+			errorMessages.add("Please set the chemical elements");
+			return false;
+		}
 		return true;
 	}
 

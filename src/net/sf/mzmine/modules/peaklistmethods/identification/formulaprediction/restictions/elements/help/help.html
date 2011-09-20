@@ -1,0 +1,39 @@
+<html>
+        <head>
+                <title>Identification - Formula prediction - Elemental heuristics</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Formula prediction - Elemental heuristics</h1>
+
+                <h2>Description</h2>
+
+                <p>
+					This heuristics checks the formula's element counts as defined in Kind and Fiehn, BMC Bioinformatics 2007 (doi:10.1186/1471-2105-8-105).
+                </p>
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>H/C ratio</dt>
+                        <dd>0.1 &lt;= H/C ratio &lt;= 6</dd>
+
+                        <dt>NOPS/C ratios</dt>
+                        <dd>N/C ratio &lt;= 4, O/C ratio &lt;= 3, P/C ratio &lt;= 2, S/C ratio &lt;= 3</dd>
+
+                        <dt>Multiple element counts</dt>
+                        <dd>
+                            if NOPS all &gt; 1 then N&lt; 10, O &lt; 20, P &lt; 4, S &lt; 3<br>
+                            if NOP all &gt; 3 then N &lt; 11, O &lt; 22, P &lt; 6<br>
+                            if OPS all &gt; 1 then O &lt; 14, P &lt; 3, S &lt; 3<br>
+                            if PSN all &gt; 1 then P &lt; 3, S &lt; 3, N &lt; 4<br>
+                            if NOS all &gt; 6 then N &lt; 19 O &lt; 14 S &lt; 8                        
+                        </dd>
+
+                                                
+                </dl>
+
+        </body>
+</html>
