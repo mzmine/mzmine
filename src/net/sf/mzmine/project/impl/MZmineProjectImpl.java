@@ -77,7 +77,10 @@ public class MZmineProjectImpl implements MZmineProject {
 			}
 		};
 		try {
-			SwingUtilities.invokeAndWait(swingThreadCode);
+			if (SwingUtilities.isEventDispatchThread())
+				swingThreadCode.run();
+			else
+				SwingUtilities.invokeAndWait(swingThreadCode);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
