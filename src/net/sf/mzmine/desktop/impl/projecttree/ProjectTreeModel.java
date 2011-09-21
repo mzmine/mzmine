@@ -198,6 +198,10 @@ public class ProjectTreeModel extends DefaultTreeModel {
 								final DefaultMutableTreeNode mlNode = (DefaultMutableTreeNode) mlNodes
 										.nextElement();
 								if (mlNode.getUserObject() == object) {
+									// Note: removing a mass list needs a lot of
+									// cycles to find the actual node. We
+									// perform only the final operation in Swing
+									// thread, to save time.
 									SwingUtilities.invokeLater(new Runnable() {
 										public void run() {
 											removeNodeFromParent(mlNode);
