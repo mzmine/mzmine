@@ -32,6 +32,9 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeModel;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -39,290 +42,300 @@ import net.sf.mzmine.util.Range;
  */
 public class SimplePeakList implements PeakList {
 
-    private String name;
-    private RawDataFile[] dataFiles;
-    private ArrayList<PeakListRow> peakListRows;
-    private double maxDataPointIntensity = 0;
-    private Vector<PeakListAppliedMethod> descriptionOfAppliedTasks;
-    private String dateCreated;
-    private Range mzRange, rtRange;
+	private String name;
+	private RawDataFile[] dataFiles;
+	private ArrayList<PeakListRow> peakListRows;
+	private double maxDataPointIntensity = 0;
+	private Vector<PeakListAppliedMethod> descriptionOfAppliedTasks;
+	private String dateCreated;
+	private Range mzRange, rtRange;
 
-    public static DateFormat dateFormat = new SimpleDateFormat(
-            "yyyy/MM/dd HH:mm:ss");
+	public static DateFormat dateFormat = new SimpleDateFormat(
+			"yyyy/MM/dd HH:mm:ss");
 
-    public SimplePeakList(String name, RawDataFile dataFile) {
-        this(name, new RawDataFile[] { dataFile });
-    }
+	public SimplePeakList(String name, RawDataFile dataFile) {
+		this(name, new RawDataFile[] { dataFile });
+	}
 
-    public SimplePeakList(String name, RawDataFile[] dataFiles) {
-        if ((dataFiles == null) || (dataFiles.length == 0)) {
-            throw (new IllegalArgumentException(
-                    "Cannot create a peak list with no data files"));
-        }
-        this.name = name;
-        this.dataFiles = new RawDataFile[dataFiles.length];
+	public SimplePeakList(String name, RawDataFile[] dataFiles) {
+		if ((dataFiles == null) || (dataFiles.length == 0)) {
+			throw (new IllegalArgumentException(
+					"Cannot create a peak list with no data files"));
+		}
+		this.name = name;
+		this.dataFiles = new RawDataFile[dataFiles.length];
 
-        RawDataFile dataFile;
-        for (int i = 0; i < dataFiles.length; i++) {
-            dataFile = dataFiles[i];
-            this.dataFiles[i] = dataFile;
-        }
-        peakListRows = new ArrayList<PeakListRow>();
-        descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
+		RawDataFile dataFile;
+		for (int i = 0; i < dataFiles.length; i++) {
+			dataFile = dataFiles[i];
+			this.dataFiles[i] = dataFile;
+		}
+		peakListRows = new ArrayList<PeakListRow>();
+		descriptionOfAppliedTasks = new Vector<PeakListAppliedMethod>();
 
-        dateCreated = dateFormat.format(new Date());
+		dateCreated = dateFormat.format(new Date());
 
-    }
+	}
 
-    @Override
-    public String toString() {
-        return name;
-    }
+	@Override
+	public String toString() {
+		return name;
+	}
 
-    /**
-     * Returns number of raw data files participating in the alignment
-     */
-    public int getNumberOfRawDataFiles() {
-        return dataFiles.length;
-    }
+	/**
+	 * Returns number of raw data files participating in the alignment
+	 */
+	public int getNumberOfRawDataFiles() {
+		return dataFiles.length;
+	}
 
-    /**
-     * Returns all raw data files participating in the alignment
-     */
-    public RawDataFile[] getRawDataFiles() {
-        return dataFiles;
-    }
+	/**
+	 * Returns all raw data files participating in the alignment
+	 */
+	public RawDataFile[] getRawDataFiles() {
+		return dataFiles;
+	}
 
-    public RawDataFile getRawDataFile(int position) {
-        return dataFiles[position];
-    }
+	public RawDataFile getRawDataFile(int position) {
+		return dataFiles[position];
+	}
 
-    /**
-     * Returns number of rows in the alignment result
-     */
-    public int getNumberOfRows() {
-        return peakListRows.size();
-    }
+	/**
+	 * Returns number of rows in the alignment result
+	 */
+	public int getNumberOfRows() {
+		return peakListRows.size();
+	}
 
-    /**
-     * Returns the peak of a given raw data file on a give row of the alignment
-     * result
-     * 
-     * @param row Row of the alignment result
-     * @param rawDataFile Raw data file where the peak is detected/estimated
-     */
-    public ChromatographicPeak getPeak(int row, RawDataFile rawDataFile) {
-        return peakListRows.get(row).getPeak(rawDataFile);
-    }
+	/**
+	 * Returns the peak of a given raw data file on a give row of the alignment
+	 * result
+	 * 
+	 * @param row
+	 *            Row of the alignment result
+	 * @param rawDataFile
+	 *            Raw data file where the peak is detected/estimated
+	 */
+	public ChromatographicPeak getPeak(int row, RawDataFile rawDataFile) {
+		return peakListRows.get(row).getPeak(rawDataFile);
+	}
 
-    /**
-     * Returns all peaks for a raw data file
-     */
-    public ChromatographicPeak[] getPeaks(RawDataFile rawDataFile) {
-        Vector<ChromatographicPeak> peakSet = new Vector<ChromatographicPeak>();
-        for (int row = 0; row < getNumberOfRows(); row++) {
-            ChromatographicPeak p = peakListRows.get(row).getPeak(rawDataFile);
-            if (p != null)
-                peakSet.add(p);
-        }
-        return peakSet.toArray(new ChromatographicPeak[0]);
-    }
+	/**
+	 * Returns all peaks for a raw data file
+	 */
+	public ChromatographicPeak[] getPeaks(RawDataFile rawDataFile) {
+		Vector<ChromatographicPeak> peakSet = new Vector<ChromatographicPeak>();
+		for (int row = 0; row < getNumberOfRows(); row++) {
+			ChromatographicPeak p = peakListRows.get(row).getPeak(rawDataFile);
+			if (p != null)
+				peakSet.add(p);
+		}
+		return peakSet.toArray(new ChromatographicPeak[0]);
+	}
 
-    /**
-     * Returns all peaks on one row
-     */
-    public PeakListRow getRow(int row) {
-        return peakListRows.get(row);
-    }
+	/**
+	 * Returns all peaks on one row
+	 */
+	public PeakListRow getRow(int row) {
+		return peakListRows.get(row);
+	}
 
-    public PeakListRow[] getRows() {
-        return peakListRows.toArray(new PeakListRow[0]);
-    }
+	public PeakListRow[] getRows() {
+		return peakListRows.toArray(new PeakListRow[0]);
+	}
 
-    public PeakListRow[] getRowsInsideMZRange(Range mzRange) {
-        return getRowsInsideScanAndMZRange(new Range(Double.MIN_VALUE,
-                Double.MAX_VALUE), mzRange);
-    }
+	public PeakListRow[] getRowsInsideMZRange(Range mzRange) {
+		return getRowsInsideScanAndMZRange(new Range(Double.MIN_VALUE,
+				Double.MAX_VALUE), mzRange);
+	}
 
-    public PeakListRow[] getRowsInsideScanRange(Range rtRange) {
-        return getRowsInsideScanAndMZRange(rtRange, new Range(Double.MIN_VALUE,
-                Double.MAX_VALUE));
-    }
+	public PeakListRow[] getRowsInsideScanRange(Range rtRange) {
+		return getRowsInsideScanAndMZRange(rtRange, new Range(Double.MIN_VALUE,
+				Double.MAX_VALUE));
+	}
 
-    public PeakListRow[] getRowsInsideScanAndMZRange(Range rtRange,
-            Range mzRange) {
-        Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
+	public PeakListRow[] getRowsInsideScanAndMZRange(Range rtRange,
+			Range mzRange) {
+		Vector<PeakListRow> rowsInside = new Vector<PeakListRow>();
 
-        for (PeakListRow row : peakListRows) {
-            if (rtRange.contains(row.getAverageRT())
-                    && mzRange.contains(row.getAverageMZ()))
-                rowsInside.add(row);
-        }
+		for (PeakListRow row : peakListRows) {
+			if (rtRange.contains(row.getAverageRT())
+					&& mzRange.contains(row.getAverageMZ()))
+				rowsInside.add(row);
+		}
 
-        return rowsInside.toArray(new PeakListRow[0]);
-    }
+		return rowsInside.toArray(new PeakListRow[0]);
+	}
 
-    public void addRow(PeakListRow row) {
-        List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
-        for (RawDataFile testFile : row.getRawDataFiles()) {
-            if (!myFiles.contains(testFile))
-                throw (new IllegalArgumentException("Data file " + testFile
-                        + " is not in this peak list"));
-        }
-        peakListRows.add(row);
-        if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
-            maxDataPointIntensity = row.getDataPointMaxIntensity();
-        }
+	public void addRow(PeakListRow row) {
+		List<RawDataFile> myFiles = Arrays.asList(this.getRawDataFiles());
+		for (RawDataFile testFile : row.getRawDataFiles()) {
+			if (!myFiles.contains(testFile))
+				throw (new IllegalArgumentException("Data file " + testFile
+						+ " is not in this peak list"));
+		}
+		peakListRows.add(row);
+		if (row.getDataPointMaxIntensity() > maxDataPointIntensity) {
+			maxDataPointIntensity = row.getDataPointMaxIntensity();
+		}
 
-        if (mzRange == null) {
-            mzRange = new Range(row.getAverageMZ());
-            rtRange = new Range(row.getAverageRT());
-        } else {
-            mzRange.extendRange(row.getAverageMZ());
-            rtRange.extendRange(row.getAverageRT());
-        }
-    }
+		if (mzRange == null) {
+			mzRange = new Range(row.getAverageMZ());
+			rtRange = new Range(row.getAverageRT());
+		} else {
+			mzRange.extendRange(row.getAverageMZ());
+			rtRange.extendRange(row.getAverageRT());
+		}
+	}
 
-    /**
-     * Returns all peaks overlapping with a retention time range
-     * 
-     * @param startRT Start of the retention time range
-     * @param endRT End of the retention time range
-     * @return
-     */
-    public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file,
-            Range rtRange) {
-        return getPeaksInsideScanAndMZRange(file, rtRange, new Range(
-                Double.MIN_VALUE, Double.MAX_VALUE));
-    }
+	/**
+	 * Returns all peaks overlapping with a retention time range
+	 * 
+	 * @param startRT
+	 *            Start of the retention time range
+	 * @param endRT
+	 *            End of the retention time range
+	 * @return
+	 */
+	public ChromatographicPeak[] getPeaksInsideScanRange(RawDataFile file,
+			Range rtRange) {
+		return getPeaksInsideScanAndMZRange(file, rtRange, new Range(
+				Double.MIN_VALUE, Double.MAX_VALUE));
+	}
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(double, double)
-     */
-    public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file,
-            Range mzRange) {
-        return getPeaksInsideScanAndMZRange(file, new Range(Double.MIN_VALUE,
-                Double.MAX_VALUE), mzRange);
-    }
+	/**
+	 * @see net.sf.mzmine.data.PeakList#getPeaksInsideMZRange(double, double)
+	 */
+	public ChromatographicPeak[] getPeaksInsideMZRange(RawDataFile file,
+			Range mzRange) {
+		return getPeaksInsideScanAndMZRange(file, new Range(Double.MIN_VALUE,
+				Double.MAX_VALUE), mzRange);
+	}
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(double,
-     *      double, double, double)
-     */
-    public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file,
-            Range rtRange, Range mzRange) {
-        Vector<ChromatographicPeak> peaksInside = new Vector<ChromatographicPeak>();
+	/**
+	 * @see net.sf.mzmine.data.PeakList#getPeaksInsideScanAndMZRange(double,
+	 *      double, double, double)
+	 */
+	public ChromatographicPeak[] getPeaksInsideScanAndMZRange(RawDataFile file,
+			Range rtRange, Range mzRange) {
+		Vector<ChromatographicPeak> peaksInside = new Vector<ChromatographicPeak>();
 
-        ChromatographicPeak[] peaks = getPeaks(file);
-        for (ChromatographicPeak p : peaks) {
-            if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
-                peaksInside.add(p);
-        }
+		ChromatographicPeak[] peaks = getPeaks(file);
+		for (ChromatographicPeak p : peaks) {
+			if (rtRange.contains(p.getRT()) && mzRange.contains(p.getMZ()))
+				peaksInside.add(p);
+		}
 
-        return peaksInside.toArray(new ChromatographicPeak[0]);
-    }
+		return peaksInside.toArray(new ChromatographicPeak[0]);
+	}
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
-     */
-    public void removeRow(PeakListRow row) {
-        peakListRows.remove(row);
-        updateMaxIntensity();
-    }
+	/**
+	 * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
+	 */
+	public void removeRow(PeakListRow row) {
+		peakListRows.remove(row);
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
-     */
-    public void removeRow(int row) {
-        peakListRows.remove(row);
-        updateMaxIntensity();
-    }
+		// We have to update the project tree model
+		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
+				.getCurrentProject();
+		ProjectTreeModel treeModel = project.getTreeModel();
+		treeModel.removeObject(row);
 
-    private void updateMaxIntensity() {
-        maxDataPointIntensity = 0;
-        mzRange = null;
-        rtRange = null;
-        for (PeakListRow peakListRow : peakListRows) {
-            if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity)
-                maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
+		updateMaxIntensity();
+	}
 
-            if (mzRange == null) {
-                mzRange = new Range(peakListRow.getAverageMZ());
-                rtRange = new Range(peakListRow.getAverageRT());
-            } else {
-                mzRange.extendRange(peakListRow.getAverageMZ());
-                rtRange.extendRange(peakListRow.getAverageRT());
-            }
-        }
-    }
+	/**
+	 * @see net.sf.mzmine.data.PeakList#removeRow(net.sf.mzmine.data.PeakListRow)
+	 */
+	public void removeRow(int rowNum) {
+		removeRow(peakListRows.get(rowNum));
+	}
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#getPeakRowNum(net.sf.mzmine.data.ChromatographicPeak)
-     */
-    public int getPeakRowNum(ChromatographicPeak peak) {
+	private void updateMaxIntensity() {
+		maxDataPointIntensity = 0;
+		mzRange = null;
+		rtRange = null;
+		for (PeakListRow peakListRow : peakListRows) {
+			if (peakListRow.getDataPointMaxIntensity() > maxDataPointIntensity)
+				maxDataPointIntensity = peakListRow.getDataPointMaxIntensity();
 
-        PeakListRow rows[] = getRows();
+			if (mzRange == null) {
+				mzRange = new Range(peakListRow.getAverageMZ());
+				rtRange = new Range(peakListRow.getAverageRT());
+			} else {
+				mzRange.extendRange(peakListRow.getAverageMZ());
+				rtRange.extendRange(peakListRow.getAverageRT());
+			}
+		}
+	}
 
-        for (int i = 0; i < rows.length; i++) {
-            if (rows[i].hasPeak(peak))
-                return i;
-        }
+	/**
+	 * @see net.sf.mzmine.data.PeakList#getPeakRowNum(net.sf.mzmine.data.ChromatographicPeak)
+	 */
+	public int getPeakRowNum(ChromatographicPeak peak) {
 
-        return -1;
-    }
+		PeakListRow rows[] = getRows();
 
-    /**
-     * @see net.sf.mzmine.data.PeakList#getDataPointMaxIntensity()
-     */
-    public double getDataPointMaxIntensity() {
-        return maxDataPointIntensity;
-    }
+		for (int i = 0; i < rows.length; i++) {
+			if (rows[i].hasPeak(peak))
+				return i;
+		}
 
-    public boolean hasRawDataFile(RawDataFile hasFile) {
-        return Arrays.asList(dataFiles).contains(hasFile);
-    }
+		return -1;
+	}
 
-    public PeakListRow getPeakRow(ChromatographicPeak peak) {
-        PeakListRow rows[] = getRows();
+	/**
+	 * @see net.sf.mzmine.data.PeakList#getDataPointMaxIntensity()
+	 */
+	public double getDataPointMaxIntensity() {
+		return maxDataPointIntensity;
+	}
 
-        for (int i = 0; i < rows.length; i++) {
-            if (rows[i].hasPeak(peak))
-                return rows[i];
-        }
+	public boolean hasRawDataFile(RawDataFile hasFile) {
+		return Arrays.asList(dataFiles).contains(hasFile);
+	}
 
-        return null;
-    }
+	public PeakListRow getPeakRow(ChromatographicPeak peak) {
+		PeakListRow rows[] = getRows();
 
-    public String getName() {
-        return name;
-    }
+		for (int i = 0; i < rows.length; i++) {
+			if (rows[i].hasPeak(peak))
+				return rows[i];
+		}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return null;
+	}
 
-    public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod) {
-        descriptionOfAppliedTasks.add(appliedMethod);
-    }
+	public String getName() {
+		return name;
+	}
 
-    public PeakListAppliedMethod[] getAppliedMethods() {
-        return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public String getDateCreated() {
-        return dateCreated;
-    }
+	public void addDescriptionOfAppliedTask(PeakListAppliedMethod appliedMethod) {
+		descriptionOfAppliedTasks.add(appliedMethod);
+	}
 
-    public void setDateCreated(String date) {
-        this.dateCreated = date;
-    }
+	public PeakListAppliedMethod[] getAppliedMethods() {
+		return descriptionOfAppliedTasks.toArray(new PeakListAppliedMethod[0]);
+	}
 
-    public Range getRowsMZRange() {
-        return mzRange;
-    }
+	public String getDateCreated() {
+		return dateCreated;
+	}
 
-    public Range getRowsRTRange() {
-        return rtRange;
-    }
+	public void setDateCreated(String date) {
+		this.dateCreated = date;
+	}
+
+	public Range getRowsMZRange() {
+		return mzRange;
+	}
+
+	public Range getRowsRTRange() {
+		return rtRange;
+	}
 
 }

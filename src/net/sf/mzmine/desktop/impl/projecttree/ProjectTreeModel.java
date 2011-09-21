@@ -20,11 +20,11 @@
 package net.sf.mzmine.desktop.impl.projecttree;
 
 import java.util.Enumeration;
+import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.data.MassList;
@@ -48,6 +48,8 @@ public class ProjectTreeModel extends DefaultTreeModel {
 	private final ProjectTreeNode peakListsNode = new ProjectTreeNode(
 			peakListsNodeName);
 
+	private Hashtable<Object, DefaultMutableTreeNode> treeObjects = new Hashtable<Object, DefaultMutableTreeNode>();
+
 	private DefaultMutableTreeNode rootNode;
 
 	public ProjectTreeModel(MZmineProject project) {
@@ -61,163 +63,100 @@ public class ProjectTreeModel extends DefaultTreeModel {
 
 	}
 
-	public synchronized void addObject(final Object object) {
+	/**
+	 * This method must be called from Swing thread
+	 */
+	public void addObject(final Object object) {
+
+		if (!SwingUtilities.isEventDispatchThread()) {
+			throw new IllegalStateException(
+					"This method must be called from Swing thread");
+		}
+
+		// Create new node
+		final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+				object);
+		treeObjects.put(object, newNode);
 
 		if (object instanceof PeakList) {
+			int childCount = getChildCount(peakListsNode);
+			insertNodeInto(newNode, peakListsNode, childCount);
 			final PeakList peakList = (PeakList) object;
-
-			final int childCount = getChildCount(peakListsNode);
-			final DefaultMutableTreeNode newPeakListNode = new DefaultMutableTreeNode(
-					peakList);
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					insertNodeInto(newPeakListNode, peakListsNode, childCount);
-					PeakListRow rows[] = peakList.getRows();
-					for (int i = 0; i < rows.length; i++) {
-						final MutableTreeNode rowNode = new DefaultMutableTreeNode(
-								rows[i]);
-						final int index = i;
-						insertNodeInto(rowNode, newPeakListNode, index);
-					}
-				}
-			});
-
+			PeakListRow rows[] = peakList.getRows();
+			for (int i = 0; i < rows.length; i++) {
+				DefaultMutableTreeNode rowNode = new DefaultMutableTreeNode(
+						rows[i]);
+				treeObjects.put(rows[i], rowNode);
+				insertNodeInto(rowNode, newNode, i);
+			}
 		}
 
 		if (object instanceof RawDataFile) {
-			final RawDataFile dataFile = (RawDataFile) object;
-			final int childCount = getChildCount(dataFilesNode);
-			final DefaultMutableTreeNode newDataFileNode = new DefaultMutableTreeNode(
-					dataFile);
 
-			SwingUtilities.invokeLater(new Runnable() {
-				public void run() {
-					insertNodeInto(newDataFileNode, dataFilesNode, childCount);
+			int childCount = getChildCount(dataFilesNode);
+			insertNodeInto(newNode, dataFilesNode, childCount);
+			RawDataFile dataFile = (RawDataFile) object;
+			int scanNumbers[] = dataFile.getScanNumbers();
+			for (int i = 0; i < scanNumbers.length; i++) {
+				Scan scan = dataFile.getScan(scanNumbers[i]);
+				DefaultMutableTreeNode scanNode = new DefaultMutableTreeNode(
+						scan);
+				treeObjects.put(scan, scanNode);
+				insertNodeInto(scanNode, newNode, i);
 
-					int scanNumbers[] = dataFile.getScanNumbers();
-					for (int i = 0; i < scanNumbers.length; i++) {
-						Scan scan = dataFile.getScan(scanNumbers[i]);
-						MutableTreeNode scanNode = new DefaultMutableTreeNode(
-								scan);
-						insertNodeInto(scanNode, newDataFileNode, i);
+				MassList massLists[] = scan.getMassLists();
+				for (int j = 0; j < massLists.length; j++) {
+					DefaultMutableTreeNode mlNode = new DefaultMutableTreeNode(
+							massLists[j]);
+					treeObjects.put(massLists[j], mlNode);
+					insertNodeInto(mlNode, scanNode, j);
 
-						MassList massLists[] = scan.getMassLists();
-						for (int j = 0; j < massLists.length; j++) {
-							MutableTreeNode mlNode = new DefaultMutableTreeNode(
-									massLists[j]);
-							insertNodeInto(mlNode, scanNode, j);
-
-						}
-					}
 				}
-			});
+			}
+
 		}
 
 		if (object instanceof MassList) {
 			Scan scan = ((MassList) object).getScan();
-			RawDataFile dataFile = scan.getDataFile();
 
-			Enumeration nodes = dataFilesNode.children();
-			while (nodes.hasMoreElements()) {
-				final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
-						.nextElement();
-				if (dfNode.getUserObject() == dataFile) {
-					Enumeration scanNodes = dfNode.children();
-					while (scanNodes.hasMoreElements()) {
-						final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
-								.nextElement();
-						if (scNode.getUserObject() == scan) {
-							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-									object);
-							final int index = scNode.getChildCount();
-							SwingUtilities.invokeLater(new Runnable() {
-								public void run() {
-									insertNodeInto(newNode, scNode, index);
-								}
-							});
-							return;
-						}
-					}
+			final DefaultMutableTreeNode scNode = treeObjects.get(scan);
+			assert scNode != null;
 
-				}
-			}
+			int index = scNode.getChildCount();
+			insertNodeInto(newNode, scNode, index);
 		}
 
 	}
 
-	public synchronized void removeObject(final Object object) {
+	/**
+	 * This method must be called from Swing thread
+	 */
+	public void removeObject(final Object object) {
 
-		if (object instanceof PeakList) {
-			Enumeration nodes = peakListsNode.children();
-			while (nodes.hasMoreElements()) {
-				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-						.nextElement();
-				if (node.getUserObject() == object) {
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							removeNodeFromParent(node);
-						}
-					});
-					return;
-				}
-			}
+		if (!SwingUtilities.isEventDispatchThread()) {
+			throw new IllegalStateException(
+					"This method must be called from Swing thread");
 		}
 
-		if (object instanceof RawDataFile) {
-			Enumeration nodes = dataFilesNode.children();
-			while (nodes.hasMoreElements()) {
-				final DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
-						.nextElement();
-				if (node.getUserObject() == object) {
-					SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							removeNodeFromParent(node);
-						}
-					});
-					return;
-				}
-			}
+		final DefaultMutableTreeNode node = treeObjects.get(object);
+
+		assert node != null;
+
+		// Remove all children from treeObjects
+		Enumeration e = node.depthFirstEnumeration();
+		while (e.hasMoreElements()) {
+			DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) e
+					.nextElement();
+			Object nodeObject = childNode.getUserObject();
+			treeObjects.remove(nodeObject);
 		}
 
-		if (object instanceof MassList) {
-			Scan scan = ((MassList) object).getScan();
-			RawDataFile dataFile = scan.getDataFile();
+		// Remove the node from the tree, that also remove child
+		// nodes
+		removeNodeFromParent(node);
 
-			Enumeration nodes = dataFilesNode.children();
-			while (nodes.hasMoreElements()) {
-				final DefaultMutableTreeNode dfNode = (DefaultMutableTreeNode) nodes
-						.nextElement();
-				if (dfNode.getUserObject() == dataFile) {
-					Enumeration scanNodes = dfNode.children();
-					while (scanNodes.hasMoreElements()) {
-						final DefaultMutableTreeNode scNode = (DefaultMutableTreeNode) scanNodes
-								.nextElement();
-						if (scNode.getUserObject() == scan) {
-							Enumeration mlNodes = scNode.children();
-							while (mlNodes.hasMoreElements()) {
-								final DefaultMutableTreeNode mlNode = (DefaultMutableTreeNode) mlNodes
-										.nextElement();
-								if (mlNode.getUserObject() == object) {
-									// Note: removing a mass list needs a lot of
-									// cycles to find the actual node. We
-									// perform only the final operation in Swing
-									// thread, to save time.
-									SwingUtilities.invokeLater(new Runnable() {
-										public void run() {
-											removeNodeFromParent(mlNode);
-										}
-									});
-									return;
-								}
-							}
-
-						}
-					}
-
-				}
-			}
-
-		}
+		// Remove the node object from treeObjects
+		treeObjects.remove(object);
 
 	}
 

@@ -76,8 +76,11 @@ public class MZmineProjectImpl implements MZmineProject {
 				}
 			}
 		};
-		SwingUtilities.invokeLater(swingThreadCode);
-
+		try {
+			SwingUtilities.invokeAndWait(swingThreadCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void addParameter(UserParameter parameter) {
@@ -120,31 +123,43 @@ public class MZmineProjectImpl implements MZmineProject {
 			return null;
 		Object value = projectParametersAndValues.get(parameter).get(
 				rawDataFile);
-		/*
-		 * if (value == null) return parameter.getDefaultValue();
-		 */
+
 		return value;
 	}
 
 	public void addFile(final RawDataFile newFile) {
 
-		Runnable swingThreadCode = new Runnable() {
+		Runnable swingCode = new Runnable() {
 			public void run() {
 				treeModel.addObject(newFile);
 			}
 		};
-		SwingUtilities.invokeLater(swingThreadCode);
+		try {
+			if (SwingUtilities.isEventDispatchThread())
+				swingCode.run();
+			else
+				SwingUtilities.invokeAndWait(swingCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
 	public void removeFile(final RawDataFile file) {
 
-		Runnable swingThreadCode = new Runnable() {
+		Runnable swingCode = new Runnable() {
 			public void run() {
 				treeModel.removeObject(file);
 			}
 		};
-		SwingUtilities.invokeLater(swingThreadCode);
+		try {
+			if (SwingUtilities.isEventDispatchThread())
+				swingCode.run();
+			else
+				SwingUtilities.invokeAndWait(swingCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public RawDataFile[] getDataFiles() {
@@ -157,23 +172,36 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void addPeakList(final PeakList peakList) {
 
-		Runnable swingThreadCode = new Runnable() {
+		Runnable swingCode = new Runnable() {
 			public void run() {
 				treeModel.addObject(peakList);
 			}
 		};
-		SwingUtilities.invokeLater(swingThreadCode);
-
+		try {
+			if (SwingUtilities.isEventDispatchThread())
+				swingCode.run();
+			else
+				SwingUtilities.invokeAndWait(swingCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void removePeakList(final PeakList peakList) {
 
-		Runnable swingThreadCode = new Runnable() {
+		Runnable swingCode = new Runnable() {
 			public void run() {
 				treeModel.removeObject(peakList);
 			}
 		};
-		SwingUtilities.invokeLater(swingThreadCode);
+		try {
+			if (SwingUtilities.isEventDispatchThread())
+				swingCode.run();
+			else
+				SwingUtilities.invokeAndWait(swingCode);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public PeakList[] getPeakLists(RawDataFile file) {

@@ -48,8 +48,10 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 	private static final Icon peakListsIcon = new ImageIcon(
 			"icons/peaklistsicon.png");
 	private static final Icon peakIcon = new ImageIcon("icons/peakicon.png");
-	private static final Icon peakListIcon = new ImageIcon("icons/peaklisticon_single.png");
-	private static final Icon alignedPeaklistIcon = new ImageIcon("icons/peaklisticon_aligned.png");
+	private static final Icon peakListIcon = new ImageIcon(
+			"icons/peaklisticon_single.png");
+	private static final Icon alignedPeaklistIcon = new ImageIcon(
+			"icons/peaklisticon_aligned.png");
 	private static final Icon fileIcon = new ImageIcon("icons/fileicon.png");
 	private static final Icon fileWithMassListIcon = new ImageIcon(
 			"icons/filewithmasslisticon.png");

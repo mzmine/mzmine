@@ -29,9 +29,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-/**
- *
- */
 public class MassDetectionTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -97,11 +94,12 @@ public class MassDetectionTask extends AbstractTask {
 
 		setStatus(TaskStatus.PROCESSING);
 
-		logger.info("Started chromatogram builder on " + dataFile);
+		logger.info("Started mass detector on " + dataFile);
 
-		int scanNumbers[] = dataFile.getScanNumbers();
+		int scanNumbers[] = dataFile.getScanNumbers(msLevel);
 		totalScans = scanNumbers.length;
 
+		// Process scans one by one
 		for (int i = 0; i < totalScans; i++) {
 
 			if (isCanceled())
@@ -109,24 +107,16 @@ public class MassDetectionTask extends AbstractTask {
 
 			Scan scan = dataFile.getScan(scanNumbers[i]);
 
-			int scanMSLevel = scan.getMSLevel();
+			DataPoint mzPeaks[] = massDetector.getMassValues(scan,
+					massDetector.getParameterSet());
 
-			if (scanMSLevel == msLevel) {
+			SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
-				DataPoint mzPeaks[] = massDetector.getMassValues(scan,
-						massDetector.getParameterSet());
-
-				SimpleMassList newMassList = new SimpleMassList(name, scan,
-						mzPeaks);
-
-				scan.addMassList(newMassList);
-
-			}
+			// Add new mass list to the scan
+			scan.addMassList(newMassList);
 
 			processedScans++;
 		}
-
-		// Add new mass list to the project
 
 		setStatus(TaskStatus.FINISHED);
 

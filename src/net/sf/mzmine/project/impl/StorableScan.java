@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
@@ -312,7 +314,7 @@ public class StorableScan implements Scan {
 	}
 
 	@Override
-	public synchronized void addMassList(MassList massList) {
+	public synchronized void addMassList(final MassList massList) {
 
 		// Remove all mass lists with same name, if there are any
 		MassList currentMassLists[] = massLists.toArray(new MassList[0]);
@@ -330,14 +332,29 @@ public class StorableScan implements Scan {
 
 		// Check if we are adding to the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-			ProjectTreeModel treeModel = project.getTreeModel();
-			treeModel.addObject(massList);
+			final ProjectTreeModel treeModel = project.getTreeModel();
+			Runnable swingCode = new Runnable() {
+				@Override
+				public void run() {
+					treeModel.addObject(massList);
+				}
+			};
+
+			try {
+				if (SwingUtilities.isEventDispatchThread())
+					swingCode.run();
+				else
+					SwingUtilities.invokeAndWait(swingCode);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
 		}
 
 	}
 
 	@Override
-	public synchronized void removeMassList(MassList massList) {
+	public synchronized void removeMassList(final MassList massList) {
 
 		// Remove the mass list
 		massLists.remove(massList);
@@ -348,8 +365,22 @@ public class StorableScan implements Scan {
 
 		// Check if we are adding to the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-			ProjectTreeModel treeModel = project.getTreeModel();
-			treeModel.removeObject(massList);
+			final ProjectTreeModel treeModel = project.getTreeModel();
+			Runnable swingCode = new Runnable() {
+				@Override
+				public void run() {
+					treeModel.removeObject(massList);
+				}
+			};
+
+			try {
+				if (SwingUtilities.isEventDispatchThread())
+					swingCode.run();
+				else
+					SwingUtilities.invokeAndWait(swingCode);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 	}
