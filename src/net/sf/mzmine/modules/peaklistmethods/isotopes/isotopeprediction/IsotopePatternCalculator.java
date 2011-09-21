@@ -103,10 +103,12 @@ public class IsotopePatternCalculator implements MZmineModule {
 			double mass = isotope.getMass()
 					+ (polarity.getSign() * -1 * charge * ELECTRON_MASS);
 
-			double mz = mass / charge;
+			if (charge != 0)
+				mass /= charge;
+
 			double intensity = isotope.getIntensity();
 
-			dataPoints[i] = new SimpleDataPoint(mz, intensity);
+			dataPoints[i] = new SimpleDataPoint(mass, intensity);
 		}
 
 		String formulaString = MolecularFormulaManipulator

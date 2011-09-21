@@ -30,6 +30,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
+import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -68,7 +69,8 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
 		this.peakListRow = peakListRow;
 
-		db = parameters.getParameter(SingleRowIdentificationParameters.database)
+		db = parameters
+				.getParameter(SingleRowIdentificationParameters.database)
 				.getValue();
 
 		try {
@@ -84,13 +86,16 @@ public class SingleRowIdentificationTask extends AbstractTask {
 		numOfResults = parameters.getParameter(
 				SingleRowIdentificationParameters.numOfResults).getValue();
 
-		ionType = parameters.getParameter(SingleRowIdentificationParameters.neutralMass)
-				.getIonType();
+		ionType = parameters.getParameter(
+				SingleRowIdentificationParameters.neutralMass).getIonType();
+		charge = parameters.getParameter(
+				SingleRowIdentificationParameters.neutralMass).getCharge();
 
 		isotopeFilter = parameters.getParameter(
 				SingleRowIdentificationParameters.isotopeFilter).getValue();
 		isotopeFilterParameters = parameters.getParameter(
-				SingleRowIdentificationParameters.isotopeFilter).getEmbeddedParameters();
+				SingleRowIdentificationParameters.isotopeFilter)
+				.getEmbeddedParameters();
 
 		// If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
@@ -179,12 +184,18 @@ public class SingleRowIdentificationTask extends AbstractTask {
 					if (isotopeFilter && (rawDataIsotopePattern != null)
 							&& (compoundIsotopePattern != null)) {
 
-						boolean isotopeCheck = IsotopePatternScoreCalculator
-								.checkMatch(rawDataIsotopePattern,
+						double score = IsotopePatternScoreCalculator
+								.getSimilarityScore(rawDataIsotopePattern,
 										compoundIsotopePattern,
 										isotopeFilterParameters);
+						compound.setIsotopePatternScore(score);
 
-						if (!isotopeCheck) {
+						double minimumScore = isotopeFilterParameters
+								.getParameter(
+										IsotopePatternScoreParameters.isotopePatternScoreThreshold)
+								.getValue();
+
+						if (score < minimumScore) {
 							finishedItems++;
 							continue;
 						}

@@ -191,7 +191,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			if (predictedPattern == null)
 				return;
-
+			
 			ChromatographicPeak peak = peakListRow.getBestPeak();
 
 			RawDataFile dataFile = peak.getDataFile();
