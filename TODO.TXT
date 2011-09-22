@@ -1,5 +1,42 @@
+BUGS
 
-TODO list for MZmine 2.0 release
+* after saving the project, the window title is not updated
+* title in project tree is changed, but ... sometimes appear
+
+
+Future improvements
+
+
+* optimize speed of isotope generation and score calculation
+
+* Sweeney RationalNumbers search
+
+* Fisher values
+
+* add "how to set this parameter", or parameter guessing
+
+* upgrade to axis2 - KEGG API does not work!
+
+* Visualizers improvement
+	- layers
+	- better title ("Peaklist XX", "Scatter plot XX")
+	- context menu "show in table, show in 2D etc"
+
+* Scatter plot - check the array of peaks for counterparts without signal and set the counterpart signal to e.g. 0.00001. 
+    Perhaps we could label these components differently to indicate the mathematical manipulation.
+
+
+Note: how to make a release of MZmine:
+
+* check version number in MZmineVersion class
+* check adducts encoding in IonizationType class
+* check startMZmine_Windows.bat end of line chars
+
+
+
+OLD TODO LIST
+
+
 
 ***** Core modules *****
 
