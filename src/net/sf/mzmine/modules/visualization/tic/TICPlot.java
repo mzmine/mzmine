@@ -56,7 +56,7 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
- * 
+ *
  */
 public class TICPlot extends ChartPanel {
 
@@ -122,7 +122,7 @@ public class TICPlot extends ChartPanel {
 	private boolean showSpectrumRequest = false;
 
 	/**
-	 * 
+	 *
 	 */
 	public TICPlot(final ActionListener visualizer) {
 
@@ -243,12 +243,12 @@ public class TICPlot extends ChartPanel {
 
 		if (visualizer instanceof TICVisualizerWindow) {
 
-			popupMenu
-					.add(new AddFilePopupMenu((TICVisualizerWindow) visualizer));
-			popupMenu.add(new RemoveFilePopupMenu(
-					(TICVisualizerWindow) visualizer));
-
-			popupMenu.addSeparator();
+            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) visualizer));
+            popupMenu.addSeparator();
+            popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) visualizer));
+            popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) visualizer));
+            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) visualizer));
+            popupMenu.addSeparator();
 
 		}
 
@@ -445,7 +445,7 @@ public class TICPlot extends ChartPanel {
 
 		//XYAreaRenderer newRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
 		PeakTICPlotRenderer newRenderer = new PeakTICPlotRenderer(0.6f);
-		
+
 		Color peakColor = peakColors[numOfPeaks % peakColors.length];
 		newRenderer.setSeriesPaint(0, peakColor);
 		plot.setRenderer(numOfDataSets + numOfPeaks, newRenderer);

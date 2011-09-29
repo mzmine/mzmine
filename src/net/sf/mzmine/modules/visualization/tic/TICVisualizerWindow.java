@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -225,6 +226,26 @@ public class TICVisualizerWindow extends JInternalFrame implements
 				null);
 		ticDataSets.remove(file);
 	}
+
+    /**
+     * Export a file's chromatogram.
+     *
+     * @param file the file.
+     */
+    public void exportChromatogram(RawDataFile file) {
+
+        // Get the data set.
+        final TICDataSet dataSet = ticDataSets.get(file);
+        if (dataSet != null) {
+
+            // Choose an export file.
+            final File exportFile = ExportChromatogramHelper.getExportFile(this);
+            if (exportFile != null) {
+
+                MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));
+            }
+        }
+    }
 
 	/**
 	 * @return current cursor position
