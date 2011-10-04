@@ -36,18 +36,28 @@ import java.io.File;
  */
 public class ExportChromatogramHelper {
 
+    // CSV extension.
+    private static final String CSV_EXTENSION = "csv";
+
+    // Export file chooser.
     private static JFileChooser exportChooser = null;
 
+    /**
+     * Utility class - no public constructor.
+     */
     private ExportChromatogramHelper() {
+
+        // no public access.
     }
 
     /**
      * Prompt the user for the file to export to.
      *
-     * @param parent parent window for dialogs.
+     * @param parent   parent window for dialogs.
+     * @param fileName default name of selected file.
      * @return the selected file (or null if no choice is made).
      */
-    public static File getExportFile(final Component parent) {
+    public static File getExportFile(final Component parent, final String fileName) {
 
         // Create the chooser if necessary.
         if (exportChooser == null) {
@@ -56,29 +66,56 @@ public class ExportChromatogramHelper {
             exportChooser.setApproveButtonMnemonic('E');
             exportChooser.setApproveButtonToolTipText("Export chromatogram to the selected file");
             exportChooser.setDialogTitle("Export Chromatogram");
-            exportChooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated values files", "csv"));
+            exportChooser.addChoosableFileFilter(
+                    new FileNameExtensionFilter("Comma-separated values files", CSV_EXTENSION));
         }
 
-        // Show the file chooser.
-        exportChooser.setSelectedFile(null);
+        // Set default selection.
+        exportChooser.setSelectedFile(applyFileNameExtension(new File(fileName)));
+
+        // Select a file.
         File file = null;
-        if (exportChooser.showDialog(parent, "Export") == JFileChooser.APPROVE_OPTION) {
+        for (boolean done = false; !done; ) {
+            done = true;
+            if (exportChooser.showDialog(parent, "Export") == JFileChooser.APPROVE_OPTION) {
 
-            // Get the selected file.
-            file = exportChooser.getSelectedFile();
+                // Get the selected file.
+                file = applyFileNameExtension(exportChooser.getSelectedFile());
 
-            // Does the file exist.
-            if (file.exists() && JOptionPane.showConfirmDialog(parent,
-                                                               "Do you want to overwrite the file?",
-                                                               "File Exists",
-                                                               JOptionPane.YES_NO_OPTION,
-                                                               JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) {
+                // Does the file exist.
+                if (file.exists() &&
+                    JOptionPane.showConfirmDialog(parent,
+                                                  "Do you want to overwrite the file?",
+                                                  "File Exists",
+                                                  JOptionPane.YES_NO_OPTION,
+                                                  JOptionPane.WARNING_MESSAGE) !=
+                    JOptionPane.YES_OPTION) {
 
-                // Try again.
-                file = getExportFile(parent);
+                    // Ask again.
+                    done = false;
+                }
             }
         }
 
+        return file;
+    }
+
+    /**
+     * Returns the file with the correct extension.
+     *
+     * @param file the file.
+     * @return if the file is not null and doesn't end with the correct extension then a new file with the extension
+     *         appended to the name is returned, otherwise the file is returned unchanged.
+     */
+    private static File applyFileNameExtension(File file) {
+
+        if (file != null) {
+            final String name = file.getName();
+            final String extension = '.' + CSV_EXTENSION;
+            if (!name.toLowerCase().endsWith(extension)) {
+                file = new File(file.getParent(), name + extension);
+            }
+        }
         return file;
     }
 }
