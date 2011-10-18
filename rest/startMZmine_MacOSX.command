@@ -18,7 +18,7 @@ USE_64_BIT=
 TMP_FILE_DIRECTORY=/tmp
 
 # Set R environment variables.
-export R_HOME=/Library/Frameworks/R.framework/Versions/2.13/Resources/
+export R_HOME=/Library/Frameworks/R.framework/Versions/Current/Resources/
 
 # The directory holding the JRI shared library (libjri.jnilib).
 JRI_LIB_PATH=${R_HOME}/library/rJava/jri
