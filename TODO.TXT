@@ -2,10 +2,16 @@ BUGS
 
 * after saving the project, the window title is not updated
 * title in project tree is changed, but ... sometimes appear
+* locales when using some input components (e.g. Neutral mass)
+* mnemonic conflict (Chris)
+* batch queue save
+* support referenceable parameters in mzML
+
 
 
 Future improvements
 
+* mettrack/ metfrag / metfusion
 
 * optimize speed of isotope generation and score calculation
 
@@ -35,7 +41,6 @@ Note: how to make a release of MZmine:
 
 
 OLD TODO LIST
-
 
 
 ***** Core modules *****
