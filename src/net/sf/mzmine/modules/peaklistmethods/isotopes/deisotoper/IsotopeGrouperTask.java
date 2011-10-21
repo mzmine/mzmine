@@ -185,7 +185,7 @@ class IsotopeGrouperTask extends AbstractTask {
 			PeakListRow oldRow = peakList.getPeakRow(aPeak);
 
 			assert bestFitPeaks != null;
-			
+
 			// Verify the number of detected isotopes. If there is only one
 			// isotope, we skip this left the original peak in the peak list.
 			if (bestFitPeaks.size() == 1) {
@@ -338,11 +338,12 @@ class IsotopeGrouperTask extends AbstractTask {
 				// - within tolerances from the expected location (M/Z and RT)
 				// - not already a fitted peak (only necessary to avoid
 				// conflicts when parameters are set too wide)
-				double isotopeMZ = candidatePeakMZ - isotopeDistance * direction
-						* n / (double) charge;
-				
+				double isotopeMZ = candidatePeakMZ - isotopeDistance
+						* direction * n / (double) charge;
+
 				if (mzTolerance.checkWithinTolerance(isotopeMZ, mainMZ)
-						&& rtTolerance.checkWithinTolerance(candidatePeakRT, mainRT)
+						&& rtTolerance.checkWithinTolerance(candidatePeakRT,
+								mainRT)
 						&& (!fittedPeaks.contains(candidatePeak))) {
 					goodCandidates.add(candidatePeak);
 
@@ -350,35 +351,15 @@ class IsotopeGrouperTask extends AbstractTask {
 
 			}
 
-			// If there are some candidates for n:th peak, then select the one
-			// with biggest intensity
-			// We collect all candidates, because we might want to do something
-			// more sophisticated at this step. For example, we might want to
-			// remove all other candidates. However, currently nothing is done
-			// with other candidates.
-			ChromatographicPeak bestCandidate = null;
-			for (ChromatographicPeak candidatePeak : goodCandidates) {
-				if (bestCandidate != null) {
-					if (bestCandidate.getHeight() < candidatePeak.getHeight()) {
-						bestCandidate = candidatePeak;
-					}
-				} else {
-					bestCandidate = candidatePeak;
-				}
+			// Add all good candidates to the isotope pattern (note: in MZmine
+			// 2.3 and older, only the highest candidate was added)
+			if (!goodCandidates.isEmpty()) {
 
-			}
-
-			// If best candidate was found, then assign it to this isotope
-			// pattern
-			if (bestCandidate != null) {
-
-				// Add best candidate to fitted peaks of the pattern
-				fittedPeaks.add(bestCandidate);
-
+				fittedPeaks.addAll(goodCandidates);
+				
 				// n:th peak was found, so let's move on to n+1
 				n++;
 				followingPeakFound = true;
-
 			}
 
 		} while (followingPeakFound);
