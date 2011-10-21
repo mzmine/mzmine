@@ -68,9 +68,6 @@ public class IsotopePatternScoreCalculator {
 		IsotopePattern nip2 = IsotopePatternCalculator
 				.normalizeIsotopePattern(ip2);
 
-		System.out.println("pattern 1: " + Arrays.toString(nip1.getDataPoints()));
-		System.out.println("pattern 2: " + Arrays.toString(nip2.getDataPoints()));
-		
 		// Merge the data points from both isotope patterns into a single array.
 		// Data points from first pattern will have positive intensities, data
 		// points from second pattern will have negative intensities.
