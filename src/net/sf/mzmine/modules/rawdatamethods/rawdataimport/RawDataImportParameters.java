@@ -60,7 +60,7 @@ public class RawDataImportParameters extends SimpleParameterSet {
 		File lastFiles[] = getParameter(fileNames).getValue();
 		if ((lastFiles != null) && (lastFiles.length > 0)) {
 			File currentDir = lastFiles[0].getParentFile();
-			if (currentDir.exists())
+			if ((currentDir != null) && (currentDir.exists()))
 				chooser.setCurrentDirectory(currentDir);
 		}
 
