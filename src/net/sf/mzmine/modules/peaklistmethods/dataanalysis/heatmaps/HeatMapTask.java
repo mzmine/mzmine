@@ -463,11 +463,10 @@ public class HeatMapTask extends AbstractTask {
 
 			Object paramValue = project.getParameterValue(selectedParameter,
 					rawDataFile);
-
-			if (!groups.contains((String) paramValue)) {
-				groups.add((String) paramValue);
+			if (!groups.contains(String.valueOf(paramValue))) {
+				groups.add(String.valueOf(paramValue));
 			}
-			if (paramValue.equals(referenceGroup)) {
+			if (String.valueOf(paramValue).equals(referenceGroup)) {
 
 				referenceDataFiles.add(rawDataFile);
 			} else {
@@ -535,7 +534,7 @@ public class HeatMapTask extends AbstractTask {
 									selectedParameter,
 									shownDataFiles.get(dataColumn));
 							if (rowPeak.getPeak(shownDataFiles.get(dataColumn)) != null
-									&& paramValue.equals(group)) {
+									&& String.valueOf(paramValue).equals(group)) {
 
 								ChromatographicPeak peak = rowPeak
 										.getPeak(shownDataFiles.get(dataColumn));
