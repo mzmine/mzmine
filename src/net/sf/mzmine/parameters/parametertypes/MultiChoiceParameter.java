@@ -114,6 +114,7 @@ public class MultiChoiceParameter<ValueType> implements
 		return copy;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void setValueFromComponent(MultiChoiceComponent component) {
 		Object componentValue[] = component.getValue();
@@ -129,6 +130,7 @@ public class MultiChoiceParameter<ValueType> implements
 		component.setValue(newValue);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void loadValueFromXML(Element xmlElement) {
 		NodeList items = xmlElement.getElementsByTagName("item");

@@ -56,6 +56,7 @@ public class MascotParameters extends SimpleParameterSet {
 
 	private String serverName = "127.0.0.1";
 
+	@SuppressWarnings("unchecked")
 	public MascotParameters(String serverName) throws MalformedURLException,
 			IOException {
 

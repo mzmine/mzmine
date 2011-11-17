@@ -30,6 +30,7 @@ import javax.xml.transform.TransformerConfigurationException;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -211,7 +212,11 @@ public class ProjectSavingTask extends AbstractTask {
 
 			// Update the location of the project
 			savedProject.setProjectFile(saveFile);
-
+			
+			// Update the window title to reflect the new name of the project
+			MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+			mainWindow.updateTitle();
+			
 			logger.info("Finished saving the project to " + saveFile);
 
 			setStatus(TaskStatus.FINISHED);

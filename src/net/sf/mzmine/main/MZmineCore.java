@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -101,6 +102,11 @@ public class MZmineCore implements Runnable {
 	 * @see java.lang.Runnable#run()
 	 */
 	public void run() {
+
+		// In the beginning, set the default locale to English, to avoid
+		// problems with conversion of numbers etc. (e.g. decimal separator may
+		// be . or ,)
+		Locale.setDefault(new Locale("en", "US"));
 
 		logger.info("Starting MZmine " + getMZmineVersion());
 

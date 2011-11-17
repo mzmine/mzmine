@@ -21,8 +21,6 @@ package net.sf.mzmine.project.impl;
 
 import java.io.File;
 
-import net.sf.mzmine.desktop.impl.MainWindow;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import net.sf.mzmine.project.MZmineProject;
@@ -64,9 +62,6 @@ public class ProjectManagerImpl implements ProjectManager {
 
 		// Notify the GUI about project structure change
 		((MZmineProjectImpl) project).activateProject();
-
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		mainWindow.updateTitle();
 
 	}
 

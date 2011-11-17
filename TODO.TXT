@@ -1,6 +1,5 @@
 BUGS
 
-* after saving the project, the window title is not updated
 * title in project tree is changed, but ... sometimes appear
 * locales when using some input components (e.g. Neutral mass)
 * mnemonic conflict (Chris)

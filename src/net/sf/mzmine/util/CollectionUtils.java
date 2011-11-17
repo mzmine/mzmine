@@ -63,6 +63,7 @@ public class CollectionUtils {
 	 * newClass.
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T[] changeArrayType(Object[] array, Class<T> newClass) {
 
 		ArrayList<T> newArray = new ArrayList<T>();
