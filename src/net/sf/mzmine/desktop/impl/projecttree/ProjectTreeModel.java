@@ -198,6 +198,13 @@ public class ProjectTreeModel extends DefaultTreeModel {
 	}
 
 	public void notifyObjectChanged(Object object, boolean structureChanged) {
+		if (rootNode.getUserObject() == object) {
+			if (structureChanged)
+				nodeStructureChanged(rootNode);
+			else
+				nodeChanged(rootNode);
+			return;
+		}
 		Enumeration nodes = rootNode.breadthFirstEnumeration();
 		while (nodes.hasMoreElements()) {
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes

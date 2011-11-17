@@ -228,6 +228,8 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void setProjectFile(File file) {
 		projectFile = file;
+		// Notify the tree model to update the name of the project
+		treeModel.notifyObjectChanged(this, false);
 	}
 
 	public void removeProjectFile() {
