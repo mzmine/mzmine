@@ -23,8 +23,6 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
-import java.util.Collection;
-
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
@@ -34,101 +32,111 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
+import java.util.Collection;
+
 /**
  * Holds NIST MS Search parameters.
- * 
+ *
  * @author $Author: cpudney $
  * @version $Revision: 2369 $
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    /**
+     * Peak lists to operate on.
+     */
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-	/**
-	 * Ionization method.
-	 */
-	public static final ComboParameter<IonizationType> IONIZATION_METHOD = new ComboParameter<IonizationType>(
-			"Ionization method",
-			"Type of ion used to calculate the neutral mass",
-			IonizationType.values());
+    /**
+     * Ionization method.
+     */
+    public static final ComboParameter<IonizationType> IONIZATION_METHOD = new ComboParameter<IonizationType>(
+            "Ionization method",
+            "Type of ion used to calculate the neutral mass",
+            IonizationType.values());
 
-	/**
-	 * Spectrum RT width.
-	 */
-	public static final DoubleParameter SPECTRUM_RT_WIDTH = new DoubleParameter(
-			"Spectrum RT tolerance",
-			"The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak.",
-			MZmineCore.getRTFormat(),
-			3.0, 0.0, null);
+    /**
+     * Spectrum RT width.
+     */
+    public static final DoubleParameter SPECTRUM_RT_WIDTH = new DoubleParameter(
+            "Spectrum RT tolerance",
+            "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak.",
+            MZmineCore.getRTFormat(),
+            3.0,
+            0.0,
+            null);
 
-	/**
-	 * Match factor cut-off.
-	 */
-	public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter(
-			"Min. match factor",
-			"The minimum match factor (0 .. 1000) that search hits must have.",
-			800, 0, 1000);
+    /**
+     * Match factor cut-off.
+     */
+    public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter(
+            "Min. match factor",
+            "The minimum match factor (0 .. 1000) that search hits must have.",
+            800,
+            0,
+            1000);
 
-	/**
-	 * Match factor cut-off.
-	 */
-	public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR = new IntegerParameter(
-			"Min. reverse match factor",
-			"The minimum reverse match factor (0 .. 1000) that search hits must have.",
-			800, 0, 1000);
+    /**
+     * Match factor cut-off.
+     */
+    public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR = new IntegerParameter(
+            "Min. reverse match factor",
+            "The minimum reverse match factor (0 .. 1000) that search hits must have.",
+            800,
+            0,
+            1000);
 
-	/**
-	 * Construct the parameter set.
-	 */
-	public NistMsSearchParameters() {
-		super(new Parameter[] { peakLists, IONIZATION_METHOD,
-				SPECTRUM_RT_WIDTH, MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR });
-	}
+    /**
+     * Construct the parameter set.
+     */
+    public NistMsSearchParameters() {
+        super(new Parameter[]{PEAK_LISTS,
+                              IONIZATION_METHOD,
+                              SPECTRUM_RT_WIDTH,
+                              MIN_MATCH_FACTOR,
+                              MIN_REVERSE_MATCH_FACTOR});
+    }
 
-	@Override
-	public boolean checkUserParameterValues(Collection<String> errorMessages) {
+    @Override
+    public boolean checkUserParameterValues(final Collection<String> errorMessages) {
 
-		boolean result = super.checkUserParameterValues(errorMessages);
+        boolean result = super.checkUserParameterValues(errorMessages);
 
-		// Unsupported OS
-		if (!isWindows()) {
-			errorMessages
-					.add("NIST MS Search is only supported on the Windows operating system.");
-			return false;
-		}
-		;
+        // Unsupported OS
+        if (!isWindows()) {
 
-		// Property not defined
-		if (NistMsSearchModule.NIST_MS_SEARCH_DIR == null) {
-			errorMessages.add("The "
-					+ NistMsSearchModule.NIST_MS_SEARCH_PATH_PROPERTY
-					+ " system property is not set.");
-			result = false;
-		}
+            errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
+            return false;
+        }
 
-		// Executable missing
-		if (!NistMsSearchModule.NIST_MS_SEARCH_EXE.exists()) {
+        // Property not defined
+        if (NistMsSearchUtilities.NIST_MS_SEARCH_DIR == null) {
 
-			errorMessages
-					.add(NistMsSearchModule.NIST_MS_SEARCH_EXE
-							+ " not found.  Please set the "
-							+ NistMsSearchModule.NIST_MS_SEARCH_PATH_PROPERTY
-							+ " system property to the full path of the directory containing the NIST MS Search executable.");
-			result = false;
+            errorMessages.add(
+                    "The " + NistMsSearchUtilities.NIST_MS_SEARCH_PATH_PROPERTY + " system property is not set.");
+            result = false;
+        }
 
-		}
+        // Executable missing
+        if (!NistMsSearchUtilities.NIST_MS_SEARCH_EXE.exists()) {
 
-		return result;
-	}
+            errorMessages.add(
+                    NistMsSearchUtilities.NIST_MS_SEARCH_EXE + " not found.  Please set the "
+                    + NistMsSearchUtilities.NIST_MS_SEARCH_PATH_PROPERTY
+                    + " system property to the full path of the directory containing the NIST MS Search executable.");
+            result = false;
+        }
 
-	/**
-	 * Is this a Windows OS?
-	 * 
-	 * @return true/false if the os.name property does/doesn't contain
-	 *         "Windows".
-	 */
-	private static boolean isWindows() {
-		return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
-	}
+        return result;
+    }
 
+    /**
+     * Is this a Windows OS?
+     *
+     * @return true/false if the os.name property does/doesn't contain "Windows".
+     */
+    private static boolean isWindows() {
+
+        return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
+    }
 }

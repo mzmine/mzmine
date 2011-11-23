@@ -25,7 +25,7 @@
     NIST MS Search accepts spectra as input to its searches. Each spectrum is defined by a list of (mass, intensity)
     pairs. The module forms a search spectrum for each peak in the peak list. For each peak <em>P</em> it finds all
     other detected peaks whose RTs are within a specified tolerance (see <em>Spectrum RT tolerance</em>) of <em>P</em>'s
-    RT.  The peaks' (neutral) mass and intensity value pairs are combined to form a search spectrum for <em>P</em>.
+    RT. The peaks' (neutral) mass and intensity value pairs are combined to form a search spectrum for <em>P</em>.
 </p>
 
 <p>
@@ -34,6 +34,12 @@
     <em>Q</em><sub>2</sub>, <em>Q</em><sub>3</sub>) the aligned peaks' RTs are considered within the tolerance if any
     corresponding pair of peaks (<em>P</em><sub>1</sub>, <em>Q</em><sub>1</sub>), (<em>P</em><sub>2</sub>,
     <em>Q</em><sub>2</sub>) or (<em>P</em><sub>3</sub>, <em>Q</em><sub>3</sub>) have RTs within the specified tolerance.
+</p>
+
+<p>
+    The module can also be run for an individual row of the peak-list table by highlighting the row and then selecting
+    <em>NIST MS Search</em> from the pop-up menu (right mouse-button click). In such cases, the mass spectrum passed to
+    NIST MS Search will consist of a single (mass, intensity) pair for each peak in the row.
 </p>
 
 <h4>Method Parameters</h4>
@@ -46,7 +52,7 @@
 
     <dt>Spectrum RT tolerance</dt>
     <dd>When forming a search spectrum for a given peak, include all other detected peaks whose RT is within the
-        specified tolerance of the given peak
+        specified tolerance of the given peak. Ignored when run on a single peak-list table row.
     </dd>
 
     <dt>Min. match factor</dt>

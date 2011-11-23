@@ -23,36 +23,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.*;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchUtilities.NIST_MS_SEARCH_DIR;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchUtilities.NIST_MS_SEARCH_EXE;
 
 /**
  * Performs NIST MS Search.
@@ -65,6 +51,9 @@ public class NistMsSearchTask
 
     // Logger.
     private static final Logger LOG = Logger.getLogger(NistMsSearchModule.class.getName());
+
+    // Command-line arguments passed to executable.
+    private static final String COMMAND_LINE_ARGS = "/par=2 /instrument";
 
     // The locator file names.
     private static final String PRIMARY_LOCATOR_FILE_NAME = "AUTOIMP.MSD";
@@ -102,16 +91,13 @@ public class NistMsSearchTask
     private static final String CAS_PROPERTY = "CAS number";
     private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
-    // The peak-list to search.
+    // The peak-list and rows to search.
     private final PeakList peakList;
+    private final PeakListRow[] peakListRows;
 
     // Progress counters.
     private int progress;
     private int progressMax;
-
-    // NIST MS Search home directory and command-line.
-    private final String msSearchDir;
-    private final String msSearchCommand;
 
     // Ion type parameter.
     private final IonizationType ionType;
@@ -124,22 +110,29 @@ public class NistMsSearchTask
     /**
      * Create the task.
      *
-     * @param aPeakList     the peak list to search.
-     * @param searchDir     NIST MS Search directory path.
-     * @param searchCommand Command-line string to execute search.
-     * @param params        search parameters.
+     * @param list   the peak list to search.
+     * @param params search parameters.
      */
-    public NistMsSearchTask(final PeakList aPeakList,
-                            final String searchDir,
-                            final String searchCommand,
+    public NistMsSearchTask(final PeakList list,
                             final ParameterSet params) {
 
+        this(list.getRows(), list, params);
+    }
+
+    /**
+     * Create the task.
+     *
+     * @param rows   peak list rows to search.
+     * @param list   the peak list to search.
+     * @param params search parameters.
+     */
+    public NistMsSearchTask(final PeakListRow[] rows, final PeakList list, final ParameterSet params) {
+
         // Initialize.
-        peakList = aPeakList;
+        peakList = list;
+        peakListRows = Arrays.copyOf(rows, rows.length);
         progress = 0;
         progressMax = 0;
-        msSearchDir = searchDir;
-        msSearchCommand = searchCommand;
 
         // Parameters.
         ionType = params.getParameter(NistMsSearchParameters.IONIZATION_METHOD).getValue();
@@ -173,7 +166,7 @@ public class NistMsSearchTask
                     setStatus(TaskStatus.PROCESSING);
 
                     // Configure locator files.
-                    final File locatorFile1 = new File(msSearchDir, PRIMARY_LOCATOR_FILE_NAME);
+                    final File locatorFile1 = new File(NIST_MS_SEARCH_DIR, PRIMARY_LOCATOR_FILE_NAME);
                     locatorFile2 = getSecondLocatorFile(locatorFile1);
                     if (locatorFile2 == null) {
 
@@ -194,14 +187,17 @@ public class NistMsSearchTask
                 final Map<PeakListRow, Set<PeakListRow>> rowHoods = groupContemporaneousRows();
 
                 // Store search results for each neighbourhood - to avoid repeat searches.
-                final int numRows = peakList.getNumberOfRows();
+                final int numRows = peakListRows.length;
                 final Map<Set<PeakListRow>, List<PeakIdentity>> rowIdentities =
                         new HashMap<Set<PeakListRow>, List<PeakIdentity>>(numRows);
+
+                // Search command string.
+                final String command = NIST_MS_SEARCH_EXE.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
                 // Perform searches for each raw data file represented in the peak list.
                 progress = 0;
                 progressMax = numRows;
-                for (final PeakListRow row : peakList.getRows()) {
+                for (final PeakListRow row : peakListRows) {
 
                     // Get the row's neighbours.
                     final Set<PeakListRow> neighbours = rowHoods.get(row);
@@ -218,7 +214,7 @@ public class NistMsSearchTask
                             writeSecondaryLocatorFile(locatorFile2, spectraFile);
 
                             // Run the search.
-                            runNistMsSearch(msSearchCommand);
+                            runNistMsSearch(command);
 
                             // Read the search results file and store the results.
                             rowIdentities.put(neighbours, readSearchResults(row));
@@ -238,7 +234,7 @@ public class NistMsSearchTask
                         }
 
                         // Notify the GUI about the change in the project
-                		MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
+                        MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
 
                     }
                     progress++;
@@ -278,15 +274,14 @@ public class NistMsSearchTask
         // aligned peak lists, i.e. several different peaks with different RTs per row.
 
         // Determine contemporaneity.
-        final PeakListRow[] rows = peakList.getRows();
-        final int numRows = rows.length;
+        final int numRows = peakListRows.length;
         final Map<PeakListRow, Set<PeakListRow>> rowHoods = new HashMap<PeakListRow, Set<PeakListRow>>(numRows);
         for (int i = 0;
              i < numRows;
              i++) {
 
             // Get this row's neighbours list - create it if necessary.
-            final PeakListRow row1 = rows[i];
+            final PeakListRow row1 = peakListRows[i];
             if (!rowHoods.containsKey(row1)) {
                 rowHoods.put(row1, new HashSet<PeakListRow>());
             }
@@ -296,7 +291,7 @@ public class NistMsSearchTask
             for (int j = i + 1; j < numRows; j++) {
 
                 // Are peak rows contemporaneous?
-                final PeakListRow row2 = rows[j];
+                final PeakListRow row2 = peakListRows[j];
                 if (isContemporaneousPair(row1, row2)) {
 
                     // Add rows to each others' neighbours lists.
@@ -349,7 +344,7 @@ public class NistMsSearchTask
 
         // Read the results file.
         final BufferedReader reader =
-                new BufferedReader(new FileReader(new File(msSearchDir, SEARCH_RESULTS_FILE_NAME)));
+                new BufferedReader(new FileReader(new File(NIST_MS_SEARCH_DIR, SEARCH_RESULTS_FILE_NAME)));
         try {
 
             // Read results.
@@ -430,7 +425,7 @@ public class NistMsSearchTask
     private void runNistMsSearch(final String command) throws IOException {
 
         // Remove the results polling file.
-        final File srcReady = new File(msSearchDir, SEARCH_POLL_FILE_NAME);
+        final File srcReady = new File(NIST_MS_SEARCH_DIR, SEARCH_POLL_FILE_NAME);
         if (srcReady.exists() && !srcReady.delete()) {
             throw new IOException(
                     "Couldn't delete the search results polling file " + srcReady + ".  Please delete it manually.");
@@ -523,7 +518,7 @@ public class NistMsSearchTask
      * @return the secondary locator file or null if the primary locator file couldn't be read.
      * @throws IOException if there are i/o problems.
      */
-    private File getSecondLocatorFile(final File primaryLocatorFile) throws IOException {
+    private static File getSecondLocatorFile(final File primaryLocatorFile) throws IOException {
 
         // Check for the primary locator file.
         if (!primaryLocatorFile.exists()) {
@@ -532,7 +527,7 @@ public class NistMsSearchTask
             // Write the primary locator file.
             final BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile));
             try {
-                writer.write(new File(msSearchDir, SECONDARY_LOCATOR_FILE_NAME).getCanonicalPath());
+                writer.write(new File(NIST_MS_SEARCH_DIR, SECONDARY_LOCATOR_FILE_NAME).getCanonicalPath());
                 writer.newLine();
             }
             finally {
