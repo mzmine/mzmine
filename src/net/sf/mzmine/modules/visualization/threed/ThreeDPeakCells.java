@@ -19,105 +19,137 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import java.rmi.RemoteException;
-
 import net.sf.mzmine.data.ChromatographicPeak;
-import visad.CellImpl;
-import visad.ConstantMap;
-import visad.DataReference;
-import visad.DataReferenceImpl;
-import visad.Display;
-import visad.GriddedSet;
-import visad.VisADException;
+import net.sf.mzmine.util.Range;
+import visad.*;
+import visad.bom.PickManipulationRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+
+import java.rmi.RemoteException;
 
 /**
  * This class represents a 3D boxes which are displayed when user shift+clicks
  * on a peak in the 3D view
  */
-class ThreeDPeakCells extends CellImpl {
+public class ThreeDPeakCells extends CellImpl {
 
-    private ThreeDDisplay display;
+    private final DisplayImplJ3D display;
     private ChromatographicPeak[] peaks;
-    private DataReference dataReferences[];
+    private DataReference[] references;
+    private final MathType pointTupleType;
+    private final PickManipulationRendererJ3D picker;
 
-    ThreeDPeakCells(ThreeDDisplay display) {
-        this.display = display;
-    }
+    /**
+     * Create the peak cells.
+     *
+     * @param display3D    the parent display.
+     * @param pointType    the point tuple type.
+     * @param pickRenderer pick renderer.
+     */
+    public ThreeDPeakCells(final DisplayImplJ3D display3D,
+                           final MathType pointType,
+                           final PickManipulationRendererJ3D pickRenderer) {
 
-    synchronized void setPeaks(ChromatographicPeak peaks[]) throws VisADException,
-            RemoteException {
-
-        this.peaks = peaks;
-
-        // First remove all existing data references
-        if (dataReferences != null) {
-            for (DataReference dr : dataReferences) {
-                if (dr != null)
-                    display.removeReference(dr);
-            }
-        }
-
-        // Create new empty array for new data references
-        dataReferences = new DataReference[peaks.length];
-
+        // Initialize.
+        display = display3D;
+        pointTupleType = pointType;
+        picker = pickRenderer;
+        peaks = null;
+        references = null;
     }
 
     /**
-     * @see visad.CellImpl#doAction()
+     * Set the peaks.
+     *
+     * @param thePeaks the peaks.
+     * @throws VisADException  if there are VisAD problems.
+     * @throws RemoteException if there are VisAD problems.
      */
-    synchronized public void doAction() throws VisADException, RemoteException {
+    public void setPeaks(final ChromatographicPeak[] thePeaks) throws VisADException,
+                                                                      RemoteException {
+        synchronized (display) {
 
-        final int index = display.getPickRenderer().getCloseIndex();
+            peaks = thePeaks.clone();
 
-        if (index < 0)
-            return;
+            // First remove all existing data references.
+            if (references != null) {
+                for (final DataReference reference : references) {
+                    if (reference != null) {
+                        display.removeReference(reference);
+                    }
+                }
+            }
 
-        // If we already have peak box displayed, remove it
-        if (dataReferences[index] != null) {
-            display.removeReference(dataReferences[index]);
-            dataReferences[index] = null;
-            return;
+            // Create new empty array for new data references
+            references = new DataReference[peaks.length];
         }
-
-        // Peak box bounds
-        final float rtMin = (float) peaks[index].getRawDataPointsRTRange().getMin();
-        final float rtMax = (float)peaks[index].getRawDataPointsRTRange().getMax();
-        final float mzMin = (float) peaks[index].getRawDataPointsMZRange().getMin();
-        final float mzMax = (float) peaks[index].getRawDataPointsMZRange().getMax();
-        final float heightMin = 0;
-        final float heightMax = (float) peaks[index].getRawDataPointsIntensityRange().getMax();
-
-        // Create the 8 lines (8 x 2 points) that form the peak box
-        float points[][] = new float[][] {
-                { rtMin, rtMax, rtMin, rtMax, rtMin, rtMax, rtMin, rtMax,
-                        rtMin, rtMin, rtMin, rtMin, rtMax, rtMax, rtMax, rtMax, },
-                { mzMin, mzMin, mzMin, mzMin, mzMax, mzMax, mzMax, mzMax,
-                        mzMin, mzMax, mzMin, mzMax, mzMin, mzMax, mzMin, mzMax },
-                { heightMin, heightMin, heightMax, heightMax, heightMax,
-                        heightMax, heightMin, heightMin, heightMin, heightMin,
-                        heightMax, heightMax, heightMax, heightMax, heightMin,
-                        heightMin } };
-
-        // I don't really understand this myself...
-        int manifoldDimension[] = new int[] { 2, 8 };
-
-        // Create a set of data points
-        GriddedSet set = GriddedSet.create(display.getPointTupleType(), points,
-                manifoldDimension);
-
-        // Save the reference
-        dataReferences[index] = new DataReferenceImpl("peakshape");
-        dataReferences[index].setData(set);
-
-        // Color and transparency of peak box
-        ConstantMap[] colorMap = { new ConstantMap(0.8f, Display.Red),
-                new ConstantMap(0.2f, Display.Green),
-                new ConstantMap(0.2f, Display.Blue),
-                new ConstantMap(0.25f, Display.Alpha) };
-
-        // Add the reference to the display
-        display.addReference(dataReferences[index], colorMap);
-
     }
 
+    @Override
+    public void doAction() throws VisADException, RemoteException {
+        synchronized (display) {
+
+            final int index = picker.getCloseIndex();
+
+            if (index >= 0) {
+
+                // Is the peak box already displayed?
+                if (references[index] == null) {
+
+                    // Create the peak box reference.
+                    final DataReferenceImpl reference = new DataReferenceImpl("PeakShape");
+                    reference.setData(createPeakBox(peaks[index]));
+
+                    // Add the reference to the display
+                    display.addReference(reference,
+                                         new ConstantMap[]{new ConstantMap(0.8, Display.Red),
+                                                           new ConstantMap(0.2, Display.Green),
+                                                           new ConstantMap(0.2, Display.Blue),
+                                                           new ConstantMap(0.25, Display.Alpha)});
+
+                    // Save the reference.
+                    references[index] = reference;
+
+                } else {
+
+                    display.removeReference(references[index]);
+                    references[index] = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * Create a peak bounding box.
+     *
+     * @param peak the peak.
+     * @return the bounding box as a gridded set.
+     * @throws VisADException if there are VisAD problems.
+     */
+    private Data createPeakBox(final ChromatographicPeak peak) throws VisADException {
+
+        // Get the extents.
+        final Range rtRange = peak.getRawDataPointsRTRange();
+        final Range mzRange = peak.getRawDataPointsMZRange();
+        final float rtMin = (float) rtRange.getMin();
+        final float rtMax = (float) rtRange.getMax();
+        final float mzMin = (float) mzRange.getMin();
+        final float mzMax = (float) mzRange.getMax();
+        final float heightMin = 1.0F;
+        final float heightMax = (float) peak.getRawDataPointsIntensityRange().getMax();
+
+        // Create the box set.
+        return GriddedSet.create(
+                pointTupleType,
+                new float[][]{
+                        {rtMin, rtMax, rtMin, rtMax, rtMin, rtMax, rtMin, rtMax,
+                         rtMin, rtMin, rtMin, rtMin, rtMax, rtMax, rtMax, rtMax,},
+                        {mzMin, mzMin, mzMin, mzMin, mzMax, mzMax, mzMax, mzMax,
+                         mzMin, mzMax, mzMin, mzMax, mzMin, mzMax, mzMin, mzMax},
+                        {heightMin, heightMin, heightMax, heightMax, heightMax,
+                         heightMax, heightMin, heightMin, heightMin, heightMin,
+                         heightMax, heightMax, heightMax, heightMax, heightMin,
+                         heightMin}},
+                new int[]{2, 8});
+    }
 }

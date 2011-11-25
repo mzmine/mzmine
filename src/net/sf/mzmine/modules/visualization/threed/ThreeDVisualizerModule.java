@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.visualization.threed;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -27,99 +28,112 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
+import visad.VisADException;
+
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 3D visualizer module
  */
 public class ThreeDVisualizerModule implements MZmineProcessingModule {
 
-	private static ThreeDVisualizerModule myInstance;
+    private static final Logger LOG = Logger.getLogger(ThreeDVisualizerModule.class.getName());
 
-	private ThreeDVisualizerParameters parameters = new ThreeDVisualizerParameters();
+    private static ThreeDVisualizerModule myInstance;
 
-	public ThreeDVisualizerModule() {
-		myInstance = this;
-	}
+    private final ThreeDVisualizerParameters parameters = new ThreeDVisualizerParameters();
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "3D visualizer";
-	}
+    public ThreeDVisualizerModule() {
+        myInstance = this;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    public String toString() {
+        return "3D visualizer";
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
+    @Override
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 
-	public static void setupNew3DVisualizer(RawDataFile dataFile) {
-		setupNew3DVisualizer(dataFile, null, null);
-	}
+    public static void setupNew3DVisualizer(final RawDataFile dataFile) {
+        setupNew3DVisualizer(dataFile, null, null);
+    }
 
-	public static void setupNew3DVisualizer(RawDataFile dataFile,
-			Range mzRange, Range rtRange) {
+    public static void setupNew3DVisualizer(final RawDataFile dataFile, final Range mzRange, final Range rtRange) {
 
-		myInstance.parameters
-				.getParameter(ThreeDVisualizerParameters.dataFiles).setValue(
-						new RawDataFile[] { dataFile });
-		myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.retentionTimeRange)
-				.setValue(rtRange);
-		myInstance.parameters.getParameter(ThreeDVisualizerParameters.mzRange)
-				.setValue(mzRange);
+        final ThreeDVisualizerParameters myParameters = myInstance.parameters;
+        myParameters.getParameter(ThreeDVisualizerParameters.dataFiles).setValue(new RawDataFile[]{dataFile});
+        myParameters.getParameter(ThreeDVisualizerParameters.retentionTimeRange).setValue(rtRange);
+        myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(mzRange);
+        if (myParameters.showSetupDialog() == ExitCode.OK) {
+            myInstance.runModule(myParameters.clone());
+        }
+    }
 
-		ExitCode exitCode = myInstance.parameters.showSetupDialog();
+    @Override
+    public Task[] runModule(final ParameterSet parameterSet) {
 
-		if (exitCode == ExitCode.OK)
-			myInstance.runModule(myInstance.parameters.clone());
+        final ThreeDVisualizerParameters myParameters = myInstance.parameters;
+        final RawDataFile[] dataFiles = myParameters.getParameter(ThreeDVisualizerParameters.dataFiles).getValue();
+        final int msLevel = myParameters.getParameter(ThreeDVisualizerParameters.msLevel).getValue();
+        final Range rtRange = myParameters.getParameter(ThreeDVisualizerParameters.retentionTimeRange).getValue();
 
-	}
+        final Desktop desktop = MZmineCore.getDesktop();
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-		RawDataFile dataFiles[] = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.dataFiles).getValue();
+        // Check data files.
+        if (dataFiles == null || dataFiles.length == 0) {
 
-		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select raw data file");
-			return null;
-		}
+            desktop.displayErrorMessage("Please select raw data file");
 
-		int msLevel = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.msLevel).getValue();
-		Range rtRange = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.retentionTimeRange).getValue();
-		Range mzRange = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.mzRange).getValue();
-		int rtRes = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.rtResolution).getValue();
-		int mzRes = myInstance.parameters.getParameter(
-				ThreeDVisualizerParameters.mzResolution).getValue();
+        } else {
 
-		try {
-			ThreeDVisualizerWindow newWindow = new ThreeDVisualizerWindow(
-					dataFiles[0], msLevel, rtRange, rtRes, mzRange, mzRes);
-			MZmineCore.getDesktop().addInternalFrame(newWindow);
-		} catch (Error e) {
-			// Missing Java3D may cause UnsatisfiedLinkError or
-			// NoClassDefFoundError
-			String errMsg = "It seems that Java3D is not installed. Please install Java3D and try again.";
-			MZmineCore.getDesktop().displayErrorMessage(errMsg);
-		}
-		return null;
-	}
+            // Check scan numbers.
+            final RawDataFile dataFile = dataFiles[0];
+            if (dataFile.getScanNumbers(msLevel, rtRange).length == 0) {
 
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-	}
+                desktop.displayErrorMessage(
+                        "No scans found at MS level " + msLevel + " within given retention time range.");
 
+            } else {
+
+                try {
+                    desktop.addInternalFrame(new ThreeDVisualizerWindow(
+                            dataFile,
+                            msLevel,
+                            rtRange,
+                            myParameters.getParameter(ThreeDVisualizerParameters.rtResolution).getValue(),
+                            myParameters.getParameter(ThreeDVisualizerParameters.mzRange).getValue(),
+                            myParameters.getParameter(ThreeDVisualizerParameters.mzResolution).getValue()));
+                }
+                catch (RemoteException e) {
+
+                    final String msg = "Couldn't create 3D plot";
+                    LOG.log(Level.WARNING, msg, e);
+                    desktop.displayErrorMessage(msg);
+                }
+                catch (VisADException e) {
+
+                    final String msg = "Couldn't create 3D plot";
+                    LOG.log(Level.WARNING, msg, e);
+                    desktop.displayErrorMessage(msg);
+                }
+                catch (Error e) {
+
+                    // Missing Java3D may cause UnsatisfiedLinkError or NoClassDefFoundError.
+                    final String msg = "It seems that Java3D is not installed. Please install Java3D and try again.";
+                    LOG.log(Level.WARNING, msg, e);
+                    desktop.displayErrorMessage(msg);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+    }
 }

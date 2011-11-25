@@ -19,446 +19,579 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.event.KeyEvent;
-import java.rmi.RemoteException;
-import java.text.NumberFormat;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import visad.AxisScale;
-import visad.ColorControl;
-import visad.ConstantMap;
-import visad.Data;
-import visad.DataReference;
-import visad.DataReferenceImpl;
-import visad.Display;
-import visad.FieldImpl;
-import visad.FlatField;
-import visad.FunctionType;
-import visad.GraphicsModeControl;
-import visad.Gridded2DSet;
-import visad.MathType;
-import visad.MouseHelper;
-import visad.ProjectionControl;
-import visad.Real;
-import visad.RealTupleType;
-import visad.RealType;
-import visad.ReferenceException;
-import visad.SI;
-import visad.ScalarMap;
-import visad.Set;
-import visad.Text;
-import visad.TextControl;
-import visad.TextType;
-import visad.Tuple;
-import visad.TupleType;
-import visad.VisADException;
+import visad.*;
 import visad.bom.PickManipulationRendererJ3D;
 import visad.java3d.DisplayImplJ3D;
 import visad.java3d.DisplayRendererJ3D;
 import visad.java3d.KeyboardBehaviorJ3D;
 import visad.java3d.MouseBehaviorJ3D;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.rmi.RemoteException;
+import java.text.NumberFormat;
+import java.util.Hashtable;
+import java.util.Iterator;
+
 /**
- * Visad's DisplayImplJ3D modified for our purpose
+ * VisAD's DisplayImplJ3D modified for our purposes.
  */
-class ThreeDDisplay extends DisplayImplJ3D {
+public class ThreeDDisplay extends DisplayImplJ3D {
 
-    private static final Font annotationFont = new Font("SansSerif",
-            Font.PLAIN, 8);
+    // Annotations font.
+    private static final Font ANNOTATION_FONT = new Font("SansSerif", Font.PLAIN, 8);
 
-    // axes aspect ratio X:Y:Z
-    private static final double[] ASPECT_RATIO = new double[] { 1, 0.8, 0.3 };
+    // Axes aspect ratio X:Y:Z.
+    private static final double[] ASPECT_RATIO = {1.0, 0.8, 0.3};
 
-    private RealType retentionTimeType, mzType, intensityType;
+    // Mouse interaction transform.
+    private static final double[] MOUSE_BEHAVIOUR_MATRIX =
+            MouseBehaviorJ3D.static_make_matrix(75.0, 0.0, 0.0,  // rotation: X,Y,Z
+                                                1.0,             // scaling
+                                                0.1, 0.2, 0.0    // translation: X,Y,Z
+            );
 
-    // peak height is for picked peaks, same as intensity, but not
-    // mapped to color
-    private RealType peakHeightType;
+    // color table length.
+    private static final int COLOR_TABLE_LENGTH = 20;
 
-    // [X:Y:Z] tuple for drawing peak box
-    private RealTupleType pointTupleType;
+    // Text scale.
+    private static final double TEXT_SCALE = 0.3;
 
-    // function domain - R^2 (retention time and m/z)
-    private RealTupleType domainTuple;
+    // Peak label offset.
+    private static final double PEAK_LABEL_OFFSET = 0.03;
 
-    // annotation type
-    private TextType annotationType;
+    private final RealTupleType heightTupleType;
 
-    // annotation range
-    private TupleType annotationTupleType;
+    // Function domain - R^2 (retention time and m/z).
+    private final RealTupleType domainTuple;
 
-    // peak area renderer
-    private PickManipulationRendererJ3D pickRenderer;
+    // Annotation type.
+    private final TextType annotationType;
 
-    // peak areas
-    private ThreeDPeakCells cells;
+    // Annotation range.
+    private final TupleType annotationTupleType;
 
-    // functions domain -> range
-    private FunctionType intensityFunction, annotationFunction;
+    // Peak area renderer.
+    private final PickManipulationRendererJ3D pickRenderer;
 
-    private ScalarMap retentionTimeMap, mzMap, intensityMap, heightMap,
-            colorMap, annotationMap, annotationAlphaMap;
+    // Peak areas.
+    private final ThreeDPeakCells cells;
 
-    // data references
-    private DataReference dataReference, peaksReference;
+    // functions domain -> range.
+    private final FunctionType intensityFunction;
+    private final FunctionType annotationFunction;
 
-    // axes
-    private AxisScale retentionTimeAxis, mzAxis, intensityAxis;
+    // Scalar maps.
+    private final ScalarMap retentionTimeMap;
+    private final ScalarMap mzMap;
+    private final ScalarMap intensityMap;
+    private final ScalarMap logIntensityMap;
+    private final ScalarMap heightMap;
+    private final ScalarMap logHeightMap;
+    private final ScalarMap colorMap;
+    private final ScalarMap annotationAlphaMap;
 
+    // Peak color map.
+    private final ConstantMap[] peakColorMap;
+
+    // Data references.
+    private final DataReference dataReference;
+    private final DataReference peaksReference;
+
+    // Intensity statistics.
     private double maxIntensity;
 
+    // Whether to show peaks.
     private boolean peaksShown;
 
-    private ConstantMap[] peakColorMap;
+    // Use log10 scaling.
+    private boolean useLog10Intensity;
 
-    ThreeDDisplay() throws RemoteException, VisADException {
+    /**
+     * Creates the display.
+     *
+     * @throws RemoteException if there are problems creating the display.
+     * @throws VisADException  if there are problems creating the display.
+     */
+    public ThreeDDisplay() throws RemoteException, VisADException {
 
         super("display");
 
-        // Setup data types
-        peakHeightType = RealType.getRealType("Height");
-        retentionTimeType = RealType.getRealType("RT", SI.second);
-        mzType = RealType.getRealType("m/z");
-        intensityType = RealType.getRealType("Intensity");
-        annotationType = TextType.getTextType("Annotation");
-        pointTupleType = new RealTupleType(retentionTimeType, mzType,
-                peakHeightType);
+        // Initialization.
+        maxIntensity = 0.0;
+        useLog10Intensity = false;
+
+        // Domain.
+        final RealType retentionTimeType = RealType.getRealType("RT", SI.second);
+        final RealType mzType = RealType.getRealType("m/z");
         domainTuple = new RealTupleType(retentionTimeType, mzType);
-        annotationTupleType = new TupleType(new MathType[] { peakHeightType,
-                annotationType });
 
-        // Create a function from domain (retention time and m/z) to
-        // intensity
-        intensityFunction = new FunctionType(domainTuple, intensityType);
+        // Intensity types.
+        final RealType intensityType = RealType.getRealType("Intensity");
+        final RealType logIntensityType = RealType.getRealType("LogIntensity", CommonUnit.promiscuous);
+        final RealTupleType intensityRange = new RealTupleType(
+                intensityType, new LogCoordinateSystem(new RealTupleType(logIntensityType)), null);
 
-        // Create a function from domain (retention time and m/z) to text
-        // annotation
+        // Height Types.
+        final RealType heightType = RealType.getRealType("Height");
+        final RealType logHeightType = RealType.getRealType("LogHeight", CommonUnit.promiscuous);
+        heightTupleType = new RealTupleType(
+                heightType, new LogCoordinateSystem(new RealTupleType(logHeightType)), null);
+        annotationType = TextType.getTextType("Annotation");
+        annotationTupleType = new TupleType(new MathType[]{heightTupleType, annotationType});
+
+        // Create a function from domain (retention time and m/z) to intensity.
+        intensityFunction = new FunctionType(domainTuple, intensityRange);
+
+        // Create a function from domain (retention time and m/z) to text annotation.
         annotationFunction = new FunctionType(domainTuple, annotationTupleType);
 
-        // create a DataReference connecting data to display
+        // Create a DataReference connecting data to display.
         dataReference = new DataReferenceImpl("data");
 
-        // create mapping for X,Y,Z axes and color
+        // Create mapping for X,Y,Z axes and color.
         retentionTimeMap = new ScalarMap(retentionTimeType, Display.XAxis);
         mzMap = new ScalarMap(mzType, Display.YAxis);
         intensityMap = new ScalarMap(intensityType, Display.ZAxis);
-        heightMap = new ScalarMap(peakHeightType, Display.ZAxis);
+        logIntensityMap = new ScalarMap(logIntensityType, Display.ZAxis);
+        heightMap = new ScalarMap(heightType, Display.ZAxis);
+        logHeightMap = new ScalarMap(logHeightType, Display.ZAxis);
         colorMap = new ScalarMap(intensityType, Display.RGB);
-        annotationMap = new ScalarMap(annotationType, Display.Text);
-        annotationAlphaMap = new ScalarMap(peakHeightType, Display.Alpha);
+        annotationAlphaMap = new ScalarMap(heightType, Display.Alpha);
+        final ScalarMap annotationMap = new ScalarMap(annotationType, Display.Text);
 
-        // Add maps to display
+        // Add maps to display.
         addMap(retentionTimeMap);
         addMap(mzMap);
-        addMap(intensityMap);
-        addMap(heightMap);
         addMap(colorMap);
         addMap(annotationMap);
         addMap(annotationAlphaMap);
 
-        // Set colors
-		float[][] myColorTable = new float[3][20];
-		myColorTable[0][0] = 1f;
-		myColorTable[1][0] = 1f;
-		for (int i = 0; i < myColorTable[0].length; i++)
-			myColorTable[2][i] = 1f;
+        // Set color map.
+        ((BaseColorControl) colorMap.getControl()).setTable(createColorTable());
 
-		ColorControl colCont = (ColorControl) colorMap.getControl();
-		colCont.setTable(myColorTable);
+        // Set retention time axis properties.
+        configureAxis(retentionTimeMap.getAxisScale(), "Retention Time", MZmineCore.getRTFormat());
 
-        // Get formatters
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+        // Set m/z axis properties: we ignore m/z format because it ends up like 400.00000 anyway
+        configureAxis(mzMap.getAxisScale(), "m/z", MZmineCore.getMZFormat());
 
-        // set retention time axis properties
-        retentionTimeAxis = retentionTimeMap.getAxisScale();
-        retentionTimeAxis.setColor(Color.black);
-        retentionTimeAxis.setTitle("Retention time");
-        retentionTimeAxis.setLabelAllTicks(true);
-        retentionTimeAxis.setNumberFormat(rtFormat);
-        retentionTimeAxis.setFont(annotationFont);
+        // Set intensity axis properties.
+        configureAxis(intensityMap.getAxisScale(), "Intensity", MZmineCore.getIntensityFormat());
 
-        // set m/z axis properties
-        // we ignore mzformat because it ends up like 400.00000 anyway
-        mzAxis = mzMap.getAxisScale();
-        mzAxis.setColor(Color.black);
-        mzAxis.setLabelAllTicks(true);
-        mzAxis.setFont(annotationFont);
-
-        // set intensity axis properties
-        intensityAxis = intensityMap.getAxisScale();
-        intensityAxis.setColor(Color.black);
-        intensityAxis.setLabelAllTicks(true);
-        intensityAxis.setNumberFormat(intensityFormat);
-        intensityAxis.setFont(annotationFont);
+        // Set log axis properties.
+        configureAxis(logIntensityMap.getAxisScale(), "Intensity", MZmineCore.getIntensityFormat());
 
         // height is the same as intensity
-        AxisScale peakHeightAxis = heightMap.getAxisScale();
-        peakHeightAxis.setVisible(false);
+        heightMap.getAxisScale().setVisible(false);
+        logHeightMap.getAxisScale().setVisible(false);
 
-        // get graphics mode control to set axes and textures properties
-        GraphicsModeControl dispGMC = getGraphicsModeControl();
+        // Configure graphics mode control to set axes and textures properties.
+        final GraphicsModeControl graphicsModeControl = getGraphicsModeControl();
+        graphicsModeControl.setScaleEnable(true);
+        graphicsModeControl.setTextureEnable(false);
 
-        // show axis scales
-        dispGMC.setScaleEnable(true);
-
-        // no textures
-        dispGMC.setTextureEnable(false);
-
-        // get display renderer to set colors, box, mouse, keys..
-        DisplayRendererJ3D dRenderer = (DisplayRendererJ3D) getDisplayRenderer();
-
-        // set colors
+        // Configure display renderer to set colors, box, mouse, keys.
+        final DisplayRendererJ3D dRenderer = (DisplayRendererJ3D) getDisplayRenderer();
         dRenderer.setForegroundColor(Color.black);
         dRenderer.setBackgroundColor(Color.white);
-
-        // do not show box around the data
         dRenderer.setBoxOn(false);
-
-        // set the mouse behavior
-        int mouseBehavior[][][] = new int[][][] { { { MouseHelper.ROTATE, // left
-                                                                            // mouse
-                                                                            // button
-                MouseHelper.ZOOM // SHIFT + left mouse button
-                }, { MouseHelper.ROTATE, // CTRL + left mouse button
-                        MouseHelper.ZOOM // CTRL + SHIFT + left mouse button
-                } }, { { MouseHelper.NONE, // middle mouse button
-                MouseHelper.NONE // SHIFT + middle mouse button
-                }, { MouseHelper.NONE, // CTRL + middle mouse button
-                        MouseHelper.NONE // CTRL + SHIFT + middle mouse
-                // button
-                } }, { { MouseHelper.TRANSLATE, // right mouse button
-                MouseHelper.DIRECT // SHIFT + right mouse button
-                }, { MouseHelper.TRANSLATE, // CTRL + right mouse button
-                        MouseHelper.DIRECT // CTRL + SHIFT + right mouse button
-                } } };
         dRenderer.getMouseBehavior().getMouseHelper().setFunctionMap(
-                mouseBehavior);
+                new int[][][]{{{MouseHelper.ROTATE, // left mouse button
+                                MouseHelper.ZOOM // SHIFT + left mouse button
+                               },
+                               {MouseHelper.ROTATE, // CTRL + left mouse button
+                                MouseHelper.ZOOM // CTRL + SHIFT + left mouse button
+                               }},
+                              {{MouseHelper.NONE, // middle mouse button
+                                MouseHelper.NONE // SHIFT + middle mouse button
+                               },
+                               {MouseHelper.NONE, // CTRL + middle mouse button
+                                MouseHelper.NONE // CTRL + SHIFT + middle mouse button
+                               }},
+                              {{MouseHelper.TRANSLATE, // right mouse button
+                                MouseHelper.DIRECT // SHIFT + right mouse button
+                               },
+                               {MouseHelper.TRANSLATE, // CTRL + right mouse button
+                                MouseHelper.DIRECT // CTRL + SHIFT + right mouse button
+                               }}});
 
-        // set the keyboard behavior
-        KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS,
-                KeyEvent.VK_DOWN, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG,
-                KeyEvent.VK_UP, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS,
-                KeyEvent.VK_LEFT, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG,
-                KeyEvent.VK_RIGHT, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS,
-                KeyEvent.VK_PAGE_UP, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG,
-                KeyEvent.VK_PAGE_DOWN, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_IN,
-                KeyEvent.VK_PLUS, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_OUT,
-                KeyEvent.VK_MINUS, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_IN,
-                KeyEvent.VK_ADD, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ZOOM_OUT,
-                KeyEvent.VK_SUBTRACT, 0);
+        // Set the keyboard behavior.
+        final KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS, KeyEvent.VK_DOWN, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG, KeyEvent.VK_UP, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS, KeyEvent.VK_LEFT, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG, KeyEvent.VK_RIGHT, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS, KeyEvent.VK_PAGE_UP, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG, KeyEvent.VK_PAGE_DOWN, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN, KeyEvent.VK_PLUS, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT, KeyEvent.VK_MINUS, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN, KeyEvent.VK_ADD, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT, KeyEvent.VK_SUBTRACT, 0);
         dRenderer.addKeyboardBehavior(keyBehavior);
 
-        // set text control properties
-        TextControl textControl = (TextControl) annotationMap.getControl();
+        // Set text control properties.
+        final TextControl textControl = (TextControl) annotationMap.getControl();
         textControl.setCenter(true);
         textControl.setAutoSize(false);
-        textControl.setScale(0.3);
-        textControl.setFont(annotationFont);
+        textControl.setScale(TEXT_SCALE);
+        textControl.setFont(ANNOTATION_FONT);
 
-        // get projection control to set initial rotation and zooming
-        ProjectionControl projCont = getProjectionControl();
-
-        // set axes aspect ratio
+        // Get projection control to set initial rotation and zooming.
+        final ProjectionControl projCont = getProjectionControl();
         projCont.setAspect(ASPECT_RATIO);
+        projCont.setMatrix(MouseBehaviorJ3D.static_multiply_matrix(MOUSE_BEHAVIOUR_MATRIX, projCont.getMatrix()));
 
-        // get default projection matrix
-        double[] pControlMatrix = projCont.getMatrix();
+        // Color of text annotations.
+        peakColorMap = new ConstantMap[]{new ConstantMap(0.5, Display.Red),
+                                         new ConstantMap(0.0, Display.Green),
+                                         new ConstantMap(0.0, Display.Blue)};
 
-        // prepare rotation and scaling matrix
-        double[] mult = MouseBehaviorJ3D.static_make_matrix(75, 0, 0, // rotation
-                                                                        // X,Y,Z
-                1, // scaling
-                0.1, 0.2, 0 // translation (moving) X,Y,Z
-        );
-
-        // multiply projection matrix
-        pControlMatrix = MouseBehaviorJ3D.static_multiply_matrix(mult,
-                pControlMatrix);
-
-        // set new projection matrix
-        projCont.setMatrix(pControlMatrix);
-
-        // color of text annotations
-        peakColorMap = new ConstantMap[] { new ConstantMap(0.5f, Display.Red),
-                new ConstantMap(0.0f, Display.Green),
-                new ConstantMap(0.0f, Display.Blue) };
-
-        // create a pick renderer, so we can track user clicks
+        // Create a pick renderer, so we can track user clicks.
         pickRenderer = new PickManipulationRendererJ3D();
 
-        // data reference for peaks
+        // Data reference for peaks.
         peaksReference = new DataReferenceImpl("peaks");
         peaksShown = false;
 
-        // peak area cells
-        cells = new ThreeDPeakCells(this);
-
+        // Peak area cells.
+        cells = new ThreeDPeakCells(this, new RealTupleType(retentionTimeType, mzType, heightType), pickRenderer);
     }
 
     /**
-     * Set data points
-     */
-    void setData(double intensityValues[][], Set domainSet, double rtMin,
-            double rtMax, double mzMin, double mzMax, double maxIntensity) {
-
-        try {
-
-            // sampled Intensity values stored in 1D array (FlatField)
-            FlatField intensityValuesFlatField = new FlatField(
-                    intensityFunction, domainSet);
-            intensityValuesFlatField.setSamples(intensityValues, false);
-
-            this.maxIntensity = maxIntensity;
-
-            retentionTimeMap.setRange(rtMin, rtMax);
-            mzMap.setRange(mzMin, mzMax);
-            intensityMap.setRange(0, maxIntensity);
-            heightMap.setRange(0, maxIntensity);
-            colorMap.setRange(0, maxIntensity);
-            annotationAlphaMap.setRange(0, maxIntensity);
-
-            dataReference.setData(intensityValuesFlatField);
-            addReference(dataReference);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    /**
-     * Set picked peaks
-     */
-    void setPeaks(PeakList peakList, ChromatographicPeak peaks[],
-            boolean showCompoundName) {
-
-        try {
-
-            float peaksDomainPoints[][] = new float[2][peaks.length];
-            Data peakValues[] = new Data[peaks.length];
-
-            // set the resolution (number of data points) on m/z axis
-
-            NumberFormat mzFormat = MZmineCore.getMZFormat();
-            for (int i = 0; i < peaks.length; i++) {
-
-                peaksDomainPoints[0][i] = (float) peaks[i].getRT();
-                peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
-
-                Data[] peakData = new Data[2];
-                peakData[0] = new Real(peakHeightType, peaks[i].getRawDataPointsIntensityRange().getMax()
-                        + (maxIntensity * 0.03));
-
-                String peakText;
-
-                PeakListRow row = peakList.getPeakRow(peaks[i]);
-                PeakIdentity id = row.getPreferredPeakIdentity();
-                if (showCompoundName && (id != null))
-                    peakText = id.getName();
-                else
-                    peakText = mzFormat.format(peaks[i].getMZ());
-                peakData[1] = new Text(annotationType, peakText);
-
-                peakValues[i] = new Tuple(annotationTupleType, peakData, false);
-
-            }
-
-            // peak domain points set
-            Set peaksDomainSet = new Gridded2DSet(domainTuple,
-                    peaksDomainPoints, peaks.length);
-
-            // create peak values flat field
-            FieldImpl peakValuesFlatField = new FieldImpl(annotationFunction,
-                    peaksDomainSet);
-            peakValuesFlatField.setSamples(peakValues, false);
-
-            peaksReference.setData(peakValuesFlatField);
-
-            // We have to remove the reference and add it again because the data
-            // have changed
-            if (peaksShown) {
-                cells.removeReference(peaksReference);
-            }
-            try{
-            	cells.addReference(peaksReference);
-            }
-            catch(ReferenceException re){
-            	//do nothing
-            }
-
-            if (!peaksShown) {
-                addReferences(pickRenderer, peaksReference, peakColorMap);
-                peaksShown = true;
-            }
-
-            cells.setPeaks(peaks);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    /**
-     * Toggle whether peaks are annotated or not. Annotation requires setPeaks()
-     * call first.
+     * Gets the data set's maximum intensity.
      *
+     * @return the maximum.
      */
-    void toggleShowingPeaks() {
+    public double getMaxIntensity() {
+        return maxIntensity;
+    }
 
-        try {
-            if (peaksShown) {
-                removeReference(peaksReference);
-                peaksShown = false;
-            } else {
-                addReferences(pickRenderer, peaksReference, peakColorMap);
-                peaksShown = true;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    /**
+     * Set data points.
+     *
+     * @param intensityValues intensity values.
+     * @param domainSet       domain.
+     * @param rtMin           RT minimum.
+     * @param rtMax           RT maximum.
+     * @param mzMin           m/z minimum.
+     * @param mzMax           m/z maximum.
+     * @param intensityMax    intensity maximum.
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void setData(final double[][] intensityValues, final Set domainSet, final double rtMin,
+                        final double rtMax, final double mzMin, final double mzMax, final double intensityMax)
+            throws VisADException, RemoteException {
+
+        // Sampled intensity values stored in 1D array (FlatField).
+        final FlatField flatField = new FlatField(intensityFunction, domainSet);
+        flatField.setSamples(intensityValues, false);
+        dataReference.setData(flatField);
+
+        maxIntensity = intensityMax;
+        retentionTimeMap.setRange(rtMin, rtMax);
+        mzMap.setRange(mzMin, mzMax);
+        addReference(dataReference);
+
+        // Set the scaling mode.
+        setUseLog10Intensity(useLog10Intensity);
+    }
+
+    /**
+     * Set picked peaks.
+     *
+     * @param peakList         peak-list.
+     * @param peaks            peaks.
+     * @param showCompoundName whether to show compound name.
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void setPeaks(final PeakList peakList, final ChromatographicPeak[] peaks,
+                         final boolean showCompoundName) throws RemoteException, VisADException {
+
+        final int peakCount = peaks.length;
+        final float[][] peaksDomainPoints = new float[2][peakCount];
+        final Data[] peakValues = new Data[peakCount];
+
+        // Set the resolution (number of data points) on m/z axis.
+        final NumberFormat mzFormat = MZmineCore.getMZFormat();
+        for (int i = 0; i < peakCount; i++) {
+
+            peaksDomainPoints[0][i] = (float) peaks[i].getRT();
+            peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
+
+            final Data[] peakData = new Data[2];
+            peakData[0] = new RealTuple(
+                    heightTupleType,
+                    new double[]{
+                            peaks[i].getRawDataPointsIntensityRange().getMax() + maxIntensity * PEAK_LABEL_OFFSET});
+
+            final PeakIdentity id = peakList.getPeakRow(peaks[i]).getPreferredPeakIdentity();
+            final String peakText =
+                    showCompoundName && id != null ? id.getName() : mzFormat.format(peaks[i].getMZ());
+            peakData[1] = new Text(annotationType, peakText);
+            peakValues[i] = new Tuple(annotationTupleType, peakData, false);
         }
 
+        // Peak domain points set.
+        final Set peaksDomainSet = new Gridded2DSet(domainTuple, peaksDomainPoints, peakCount);
+
+        // Create peak values flat field.
+        final FieldImpl peakValuesFlatField = new FieldImpl(annotationFunction, peaksDomainSet);
+        peakValuesFlatField.setSamples(peakValues, false);
+
+        peaksReference.setData(peakValuesFlatField);
+
+        // We have to remove the reference and add it again because the data have changed.
+        if (peaksShown) {
+            cells.removeReference(peaksReference);
+        }
+        try {
+            cells.addReference(peaksReference);
+        }
+        catch (ReferenceException re) {
+
+            // ignored.
+        }
+
+        if (!peaksShown) {
+            addReferences(pickRenderer, peaksReference, peakColorMap);
+            peaksShown = true;
+        }
+
+        cells.setPeaks(peaks);
     }
 
-    RealTupleType getPointTupleType() {
-        return pointTupleType;
+    /**
+     * Toggle whether peaks are annotated or not. Annotation requires setPeaks() call first.
+     *
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void toggleShowingPeaks() throws VisADException, RemoteException {
+
+        if (peaksShown) {
+            removeReference(peaksReference);
+            peaksShown = false;
+        } else {
+            addReferences(pickRenderer, peaksReference, peakColorMap);
+            peaksShown = true;
+        }
     }
 
-    PickManipulationRendererJ3D getPickRenderer() {
-        return pickRenderer;
-    }
-
-    RealTupleType getDomainTuple() {
+    public RealTupleType getDomainTuple() {
         return domainTuple;
     }
 
-    void normalizeIntensityAxis(double normalizeValue) {
-    	try {
-			intensityMap.setRange(0, normalizeValue);
-			heightMap.setRange(0, normalizeValue);
-			colorMap.setRange(0, normalizeValue);
-			annotationAlphaMap.setRange(0, normalizeValue);
-			maxIntensity = normalizeValue;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    /**
+     * Gets the annotation color.
+     *
+     * @return the color.
+     */
+    public Color getAnnotationColor() {
+
+        return new Color((float) peakColorMap[0].getConstant(),
+                         (float) peakColorMap[1].getConstant(),
+                         (float) peakColorMap[2].getConstant());
     }
 
+    /**
+     * Sets the annotation color.
+     *
+     * @param clr the new color.
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void setAnnotationColor(final Color clr) throws VisADException, RemoteException {
+
+        final float[] rgb = clr.getRGBColorComponents(null);
+        peakColorMap[0] = new ConstantMap(rgb[0], Display.Red);
+        peakColorMap[1] = new ConstantMap(rgb[1], Display.Green);
+        peakColorMap[2] = new ConstantMap(rgb[2], Display.Blue);
+        if (peaksShown) {
+            removeReference(peaksReference);
+            addReferences(pickRenderer, peaksReference, peakColorMap);
+        }
+    }
+
+    /**
+     * Whether the annotation alpha map is in effect.
+     *
+     * @return true if the annotation map is added to this display, false otherwise.
+     */
+    public boolean getUseAnnotationAlphaMap() {
+        return equals(annotationAlphaMap.getDisplay());
+    }
+
+    /**
+     * Enables/disables the annotation alpha map.
+     *
+     * @param useMap whether to apply the map.
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void setUseAnnotationAlphaMap(final boolean useMap) throws VisADException, RemoteException {
+        if (useMap) {
+            addMap(annotationAlphaMap);
+        } else {
+            safeRemoveMap(annotationAlphaMap);
+        }
+    }
+
+    /**
+     * Is log10 scaling being used?
+     *
+     * @return whether log10 scaling of the intensity is in use.
+     */
+    public boolean getUseLog10Intensity() {
+        return useLog10Intensity;
+    }
+
+    /**
+     * Sets whether to apply log10 scaling to the intensity axis.
+     *
+     * @param useLog10 whether to use log10 scaling.
+     * @throws RemoteException if there are VisAD problems.
+     * @throws VisADException  if there are VisAD problems.
+     */
+    public void setUseLog10Intensity(final boolean useLog10) throws VisADException, RemoteException {
+
+        useLog10Intensity = useLog10;
+
+        // Update maps.
+        if (useLog10Intensity) {
+            safeRemoveMap(intensityMap);
+            safeRemoveMap(heightMap);
+            addMap(logIntensityMap);
+            addMap(logHeightMap);
+        } else {
+            safeRemoveMap(logIntensityMap);
+            safeRemoveMap(logHeightMap);
+            addMap(intensityMap);
+            addMap(heightMap);
+        }
+
+        // Reset range.
+        setIntensityRange(0.0, maxIntensity);
+    }
+
+    /**
+     * Sets the intensity range.
+     *
+     * @param min minimum intensity.
+     * @param max maximum intensity
+     * @throws VisADException  if there are problems with VisAD.
+     * @throws RemoteException if there are problems with VisAD.
+     */
+    public void setIntensityRange(final double min, final double max) throws VisADException, RemoteException {
+
+        // Set range.
+        intensityMap.setRange(min, max);
+        heightMap.setRange(min, max);
+        colorMap.setRange(min, max);
+        annotationAlphaMap.setRange(min, max);
+
+        final double logMin = log10(min);
+        final double logMax = log10(max);
+        logIntensityMap.setRange(logMin, logMax);
+        logHeightMap.setRange(logMin, logMax);
+
+        // Relabel log axes.
+        if (getUseLog10Intensity()) {
+            labelLogAxis();
+        }
+    }
+
+    /**
+     * Label the log axis.
+     *
+     * @throws VisADException if there are problems with VisAD.
+     */
+    private void labelLogAxis() throws VisADException {
+
+        // Get axis scale.
+        final AxisScale scale = logIntensityMap.getAxisScale();
+        final NumberFormat labelFormat = scale.getNumberFormat();
+
+        // Create label table.
+        final int maxLog = (int) Math.ceil(logIntensityMap.getRange()[1]) + 1;
+        final Hashtable<Double, String> labelTable = new Hashtable<Double, String>(maxLog + 1);
+        for (int i = 0;
+             i <= maxLog;
+             i++) {
+
+            // Add label.
+            labelTable.put((double) i, labelFormat.format(StrictMath.pow(10.0, (double) i)));
+        }
+
+        scale.setLabelTable(labelTable);
+    }
+
+    /**
+     * Calculate log10 of a number.
+     *
+     * @param v the number.
+     * @return log10(v) or 0.0 if v <= 0.
+     */
+    private static double log10(final double v) {
+        return v > 0.0 ? StrictMath.log10(v) : 0.0;
+    }
+
+    /**
+     * Removes a map if the display has it.
+     *
+     * @param map the map to remove.
+     * @throws VisADException  if there are VisAD problems.
+     * @throws RemoteException if there are VisAD problems.
+     */
+    private void safeRemoveMap(final ScalarMap map) throws VisADException, RemoteException {
+
+        // Is the map added?
+        boolean hasMap = false;
+        for (Iterator<?> iterator = getMapVector().iterator();
+             !hasMap && iterator.hasNext(); ) {
+            hasMap = map.equals(iterator.next());
+        }
+
+        if (hasMap) {
+            removeMap(map);
+        }
+    }
+
+    /**
+     * Configure an axis.
+     *
+     * @param axis   the axis to configure.
+     * @param title  axis title.
+     * @param format axis number format.
+     */
+    private static void configureAxis(final AxisScale axis, final String title, final NumberFormat format) {
+
+        axis.setColor(Color.black);
+        axis.setTitle(title);
+        axis.setLabelAllTicks(true);
+        axis.setNumberFormat(format);
+        axis.setFont(ANNOTATION_FONT);
+        axis.setSnapToBox(true);
+    }
+
+    /**
+     * Creates the color table.
+     *
+     * @return the new color
+     */
+    private static float[][] createColorTable() {
+        final float[][] table = new float[3][COLOR_TABLE_LENGTH];
+        table[0][0] = 1.0f;
+        table[1][0] = 1.0f;
+        for (int i = 0; i < COLOR_TABLE_LENGTH; i++) {
+            table[2][i] = 1.0f;
+        }
+        return table;
+    }
 }
