@@ -53,7 +53,7 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
 		File currentFile = getParameter(projectFile).getValue();
 		if (currentFile != null) {
 			File currentDir = currentFile.getParentFile();
-			if (currentDir.exists())
+			if ((currentDir != null) && (currentDir.exists()))
 				chooser.setCurrentDirectory(currentDir);
 		}
 
