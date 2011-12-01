@@ -19,20 +19,13 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.util.Collection;
-
-import javax.swing.InputVerifier;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
-import javax.swing.JTextField;
-import javax.swing.text.JTextComponent;
-
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
-
 import org.w3c.dom.Element;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+import java.awt.*;
+import java.util.Collection;
 
 /**
  * Integer parameter. Note that we prefer to use JTextField rather than
@@ -44,160 +37,189 @@ import org.w3c.dom.Element;
  */
 public class IntegerParameter implements UserParameter<Integer, JTextField> {
 
-	// Text field width.
-	private static final int WIDTH = 200;
+    // Text field width.
+    private static final int WIDTH = 200;
 
-	private Integer value;
-	private final String name;
-	private final String description;
-	private final Integer minimum;
-	private final Integer maximum;
+    private Integer value;
+    private final String name;
+    private final String description;
+    private final Integer minimum;
+    private final Integer maximum;
 
-	public IntegerParameter(final String name, final String description) {
-		this(name, description, null, null, null);
-	}
+    public IntegerParameter(final String aName, final String aDescription) {
 
-	public IntegerParameter(final String name, final String description,
-			final Integer defaultValue) {
-		this(name, description, defaultValue, null, null);
-	}
+        this(aName, aDescription, null, null, null);
+    }
 
-	public IntegerParameter(final String name, final String description,
-			final Integer defaultValue, final Integer min, final Integer max) {
-		this.name = name;
-		this.description = description;
-		value = defaultValue;
-		minimum = min;
-		maximum = max;
-	}
+    public IntegerParameter(final String aName, final String aDescription, final Integer defaultValue) {
 
-	/**
-	 * @see Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
+        this(aName, aDescription, defaultValue, null, null);
+    }
 
-	/**
-	 * @see UserParameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    public IntegerParameter(final String aName,
+                            final String aDescription,
+                            final Integer defaultValue,
+                            final Integer min,
+                            final Integer max) {
 
-	@Override
-	public JTextField createEditingComponent() {
-		final JTextField textField = new JTextField();
-		textField.setPreferredSize(new Dimension(WIDTH, textField
-				.getPreferredSize().height));
+        name = aName;
+        description = aDescription;
+        value = defaultValue;
+        minimum = min;
+        maximum = max;
+    }
 
-		// Add an input verifier if any bounds are specified.
-		if (minimum != null || maximum != null) {
-			textField.setInputVerifier(new MinMaxVerifier());
-		}
+    @Override
+    public String getName() {
 
-		return textField;
-	}
+        return name;
+    }
 
-	@Override
-	public void setValueFromComponent(final JTextField component) {
-		String textValue = component.getText();
-		try {
-			value = Integer.parseInt(textValue);
-		} catch (NumberFormatException e) {
-			value = null;
-		}
-	}
+    @Override
+    public String getDescription() {
 
-	@Override
-	public void setValue(final Integer newValue) {
-		value = newValue;
-	}
+        return description;
+    }
 
-	@Override
-	public IntegerParameter clone() {
-		return new IntegerParameter(name, description, value, minimum, maximum);
-	}
+    @Override
+    public JTextField createEditingComponent() {
 
-	@Override
-	public void setValueToComponent(final JTextField component,
-			final Integer newValue) {
-		component.setText(String.valueOf(newValue));
-	}
+        final JTextField textField = new JTextField();
+        textField.setPreferredSize(new Dimension(WIDTH, textField.getPreferredSize().height));
 
-	@Override
-	public Integer getValue() {
-		return value;
-	}
+        // Add an input verifier if any bounds are specified.
+        if (minimum != null || maximum != null) {
 
-	@Override
-	public void loadValueFromXML(final Element xmlElement) {
-		final String numString = xmlElement.getTextContent();
-		if (numString.length() > 0) {
-			value = Integer.parseInt(numString);
-		}
-	}
+            textField.setInputVerifier(new MinMaxVerifier());
+        }
 
-	@Override
-	public void saveValueToXML(final Element xmlElement) {
-		if (value != null) {
-			xmlElement.setTextContent(value.toString());
-		}
-	}
+        return textField;
+    }
 
-	@Override
-	public String toString() {
-		return name;
-	}
+    @Override
+    public void setValueFromComponent(final JTextField component) {
 
-	@Override
-	public boolean checkValue(final Collection<String> errorMessages) {
-		if (value == null) {
-			errorMessages.add(name + " is not set properly");
-			return false;
-		}
-		if (!checkBounds(value)) {
-			errorMessages.add(name + " lies outside its bounds: (" + minimum
-					+ " ... " + maximum + ')');
-			return false;
-		}
-		return true;
-	}
+        final String textValue = component.getText();
+        try {
 
-	private boolean checkBounds(final int number) {
-		return (minimum == null || number >= minimum)
-				&& (maximum == null || number <= maximum);
-	}
+            value = Integer.parseInt(textValue);
+        }
+        catch (NumberFormatException e) {
 
-	/**
-	 * Input verifier used when minimum or maximum bounds are defined.
-	 */
-	private class MinMaxVerifier extends InputVerifier {
+            value = null;
+        }
+    }
 
-		@Override
-		public boolean shouldYieldFocus(final JComponent input) {
-			final boolean yield = super.shouldYieldFocus(input);
-			if (!yield) {
-				// Beep, reset value and highlight.
-				Toolkit.getDefaultToolkit().beep();
-				((JFormattedTextField) input).setValue(value);
-				((JTextComponent) input).selectAll();
-			}
-			return yield;
-		}
+    @Override
+    public void setValue(final Integer newValue) {
 
-		@Override
-		public boolean verify(final JComponent input) {
-			boolean verified = false;
-			try {
-				JTextField textField = (JTextField) input;
-				verified = checkBounds(Integer.parseInt(textField.getText()));
-			} catch (final NumberFormatException e) {
-				// not a number.
-			}
-			return verified;
-		}
-	}
+        value = newValue;
+    }
+
+    @Override
+    public IntegerParameter clone() {
+
+        return new IntegerParameter(name, description, value, minimum, maximum);
+    }
+
+    @Override
+    public void setValueToComponent(final JTextField component,
+                                    final Integer newValue) {
+
+        component.setText(String.valueOf(newValue));
+    }
+
+    @Override
+    public Integer getValue() {
+
+        return value;
+    }
+
+    @Override
+    public void loadValueFromXML(final Element xmlElement) {
+
+        final String numString = xmlElement.getTextContent();
+        if (numString.length() > 0) {
+
+            value = Integer.parseInt(numString);
+        }
+    }
+
+    @Override
+    public void saveValueToXML(final Element xmlElement) {
+
+        if (value != null) {
+
+            xmlElement.setTextContent(value.toString());
+        }
+    }
+
+    @Override
+    public String toString() {
+
+        return name;
+    }
+
+    @Override
+    public boolean checkValue(final Collection<String> errorMessages) {
+
+        final boolean check;
+        if (value == null) {
+
+            errorMessages.add(name + " is not set properly");
+            check = false;
+
+        } else if (!checkBounds(value)) {
+
+            errorMessages.add(name + " lies outside its bounds: (" + minimum + " ... " + maximum + ')');
+            check = false;
+
+        } else {
+
+            check = true;
+        }
+
+        return check;
+    }
+
+    private boolean checkBounds(final int number) {
+
+        return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
+    }
+
+    /**
+     * Input verifier used when minimum or maximum bounds are defined.
+     */
+    private class MinMaxVerifier extends InputVerifier {
+
+        @Override
+        public boolean shouldYieldFocus(final JComponent input) {
+
+            final boolean yield = super.shouldYieldFocus(input);
+            if (!yield) {
+
+                // Beep and highlight.
+                Toolkit.getDefaultToolkit().beep();
+                ((JTextComponent) input).selectAll();
+            }
+
+            return yield;
+        }
+
+        @Override
+        public boolean verify(final JComponent input) {
+
+            boolean verified = false;
+            try {
+
+                verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText()));
+            }
+            catch (final NumberFormatException e) {
+
+                // not a number.
+            }
+
+            return verified;
+        }
+    }
 }
