@@ -19,7 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 
-import net.sf.mzmine.data.*;
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
@@ -141,10 +144,10 @@ public class DuplicateFilterTask extends AbstractTask {
      * @return the filtered peak list.
      */
     private PeakList filterDuplicatePeakListRows(final PeakList origPeakList,
-                                                       final String suffix,
-                                                       final MZTolerance mzTolerance,
-                                                       final RTTolerance rtTolerance,
-                                                       final boolean requireSameId) {
+                                                 final String suffix,
+                                                 final MZTolerance mzTolerance,
+                                                 final RTTolerance rtTolerance,
+                                                 final boolean requireSameId) {
 
         final PeakListRow[] peakListRows = origPeakList.getRows();
         final int rowCount = peakListRows.length;
@@ -197,17 +200,16 @@ public class DuplicateFilterTask extends AbstractTask {
         if (!isCanceled()) {
 
             // Add all remaining rows to a new peak list.
-            int peakID = 1;
-            for (final PeakListRow peakListRow : peakListRows) {
+            for (final PeakListRow row : peakListRows) {
 
-                if (peakListRow != null) {
+                if (row != null) {
 
                     // Copy the peak list row.
-                    final PeakListRow newRow = new SimplePeakListRow(peakID++);
-                    PeakUtils.copyPeakListRowProperties(peakListRow, newRow);
+                    final PeakListRow newRow = new SimplePeakListRow(row.getID());
+                    PeakUtils.copyPeakListRowProperties(row, newRow);
 
                     // Copy the peaks.
-                    for (final ChromatographicPeak peak : peakListRow.getPeaks()) {
+                    for (final ChromatographicPeak peak : row.getPeaks()) {
 
                         final ChromatographicPeak newPeak = new SimpleChromatographicPeak(peak);
                         PeakUtils.copyPeakProperties(peak, newPeak);
