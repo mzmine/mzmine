@@ -137,6 +137,9 @@ public class ComplexSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of complexes", parameters));
 
+		// Repaint the window to reflect the change in the peak list
+		MZmineCore.getDesktop().getMainFrame().repaint();
+		
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished complexes search in " + peakList);

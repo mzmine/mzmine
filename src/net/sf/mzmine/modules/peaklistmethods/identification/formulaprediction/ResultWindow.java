@@ -154,6 +154,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
 					false);
 
+			// Repaint the window to reflect the change in the peak list
+			MZmineCore.getDesktop().getMainFrame().repaint();
+			
 			dispose();
 		}
 

@@ -136,6 +136,9 @@ public class FragmentSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of fragments", parameters));
 
+		// Repaint the window to reflect the change in the peak list
+		MZmineCore.getDesktop().getMainFrame().repaint();
+		
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished fragments search in " + peakList);

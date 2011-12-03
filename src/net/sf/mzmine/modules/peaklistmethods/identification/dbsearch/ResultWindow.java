@@ -131,6 +131,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		String command = e.getActionCommand();
 
 		if (command.equals("ADD")) {
+			
 			int index = IDList.getSelectedRow();
 
 			if (index < 0) {
@@ -147,6 +148,9 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			// Notify the GUI about the change in the project
 			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
 					false);
+			
+			// Repaint the window to reflect the change in the peak list
+			MZmineCore.getDesktop().getMainFrame().repaint();
 
 			dispose();
 		}

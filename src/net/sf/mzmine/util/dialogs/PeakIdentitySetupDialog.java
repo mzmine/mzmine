@@ -180,6 +180,10 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 			peakListRow.addPeakIdentity(compound, true);
 			peakListRow.setComment(note);
 
+			// Notify the GUI about the change in the project
+			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
+					false);
+
 			exitCode = ExitCode.OK;
 			dispose();
 		}

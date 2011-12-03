@@ -247,6 +247,9 @@ public class NistMsSearchTask
                 setStatus(TaskStatus.FINISHED);
                 LOG.info("NIST MS Search completed");
             }
+            
+			// Repaint the window to reflect the change in the peak list
+			MZmineCore.getDesktop().getMainFrame().repaint();
         }
         catch (Throwable t) {
 

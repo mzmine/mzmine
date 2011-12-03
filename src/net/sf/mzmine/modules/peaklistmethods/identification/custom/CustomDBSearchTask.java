@@ -131,6 +131,9 @@ class CustomDBSearchTask extends AbstractTask {
 		peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 				"Peak identification using database " + dataBaseFile,
 				parameters));
+		
+		// Repaint the window to reflect the changes in the peak list
+		MZmineCore.getDesktop().getMainFrame().repaint();
 
 		setStatus(TaskStatus.FINISHED);
 

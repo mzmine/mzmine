@@ -152,6 +152,9 @@ public class GPLipidSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of glycerophospholipids", parameters));
 
+		// Repaint the window to reflect the change in the peak list
+		MZmineCore.getDesktop().getMainFrame().repaint();
+		
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished glycerophospholipid search in " + peakList);

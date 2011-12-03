@@ -131,6 +131,9 @@ public class AdductSearchTask extends AbstractTask {
 				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of adducts", parameters));
 
+		// Repaint the window to reflect the change in the peak list
+		MZmineCore.getDesktop().getMainFrame().repaint();
+		
 		setStatus(TaskStatus.FINISHED);
 
 		logger.info("Finished adducts search in " + peakList);
