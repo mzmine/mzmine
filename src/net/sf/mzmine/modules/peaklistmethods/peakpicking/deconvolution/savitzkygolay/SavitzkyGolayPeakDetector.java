@@ -47,6 +47,10 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		return "Savitzky-Golay";
 	}
 
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
 	public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
 			int scanNumbers[], double retentionTimes[], double intensities[]) {
 
@@ -76,10 +80,9 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		avgChromatoIntensities /= scanNumbers.length;
 
 		// If the current chromatogram has characteristics of background or just
-		// noise
-		// return an empty array.
+		// noise return an empty array.
 		if ((avgChromatoIntensities) > (maxIntensity * 0.5f))
-			return resolvedPeaks.toArray(new ResolvedPeak[0]);
+			return new ResolvedPeak[0];
 
 		double[] chromato2ndDerivative = SGDerivative.calculateDerivative(
 				intensities, false, 12);
@@ -91,14 +94,13 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 				noiseThreshold);
 
 		// Apply final filter of detected peaks, according with setup parameters
-		if (resolvedOriginalPeaks.length != 0) {
-			for (ChromatographicPeak p : resolvedOriginalPeaks) {
-				double pLength = p.getRawDataPointsRTRange().getSize();
-				double pHeight = p.getHeight();
-				if ((pLength >= minimumPeakDuration)
-						&& (pHeight >= minimumPeakHeight)) {
-					resolvedPeaks.add(p);
-				}
+		for (ChromatographicPeak p : resolvedOriginalPeaks) {
+			double pLength = p.getRawDataPointsRTRange().getSize();
+			double pHeight = p.getHeight();
+					
+			if ((pLength >= minimumPeakDuration)
+					&& (pHeight >= minimumPeakHeight)) {
+				resolvedPeaks.add(p);
 			}
 		}
 
@@ -142,11 +144,6 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		int currentPeakEnd = 0;
 
 		/*
-		 * DEBUGGING Chromatogram derivativeChromatogram = new
-		 * Chromatogram(chromatogram.getDataFile());
-		 */
-
-		/*
 		 * Shape analysis of derivative of chromatogram "*" represents the
 		 * original chromatogram shape. "-" represents the shape of
 		 * chromatogram's derivative.
@@ -156,12 +153,6 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 		 */
 
 		for (int i = 1; i < totalNumberPoints; i++) {
-
-			/*
-			 * DEBUGGING derivativeChromatogram.addMzPeak(scanNumbers[i], new
-			 * SimpleMzPeak(new SimpleDataPoint(chromatogram.getMZ(),
-			 * derivativeOfIntensities[i]*100)));
-			 */
 
 			// Changing sign and crossing zero
 			if (((derivativeOfIntensities[i - 1] < 0.0f) && (derivativeOfIntensities[i] > 0.0f))
@@ -225,27 +216,34 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 				crossZero = 0;
 			}
 
+			// If the peak starts in a region with no data points, move the
+			// start to the first available data point
+			while (currentPeakStart < scanNumbers.length - 1) {
+				DataPoint dp = chromatogram
+						.getDataPoint(scanNumbers[currentPeakStart]);
+				if (dp == null)
+					currentPeakStart++;
+				else
+					break;
+			}
+
+			// Scan the peak from the beginning and if we find a missing data
+			// point inside, we have to finish the peak there
+			for (int newEnd = currentPeakStart; newEnd <= currentPeakEnd; newEnd++) {
+				DataPoint dp = chromatogram.getDataPoint(scanNumbers[newEnd]);
+				if (dp == null) {
+					currentPeakEnd = newEnd - 1;
+					break;
+				}
+			}
+
 			// If exists a detected area (difference between indexes) create a
 			// new resolved peak for this region of the chromatogram
 			if ((currentPeakEnd - currentPeakStart > 0) && (!activeFirstPeak)) {
 
-				// We need to check that the chromatogram actually has any data
-				// point in this range
-				boolean weHaveDataPoint = false;
-				for (int test = currentPeakStart; test < currentPeakEnd; test++) {
-					DataPoint dp = chromatogram.getDataPoint(scanNumbers[test]);
-					if (dp != null) {
-						weHaveDataPoint = true;
-						break;
-					}
-				}
-
-				if (!weHaveDataPoint)
-					continue;
-
 				ResolvedPeak newPeak = new ResolvedPeak(chromatogram,
 						currentPeakStart, currentPeakEnd);
-				resolvedPeaks.add((ChromatographicPeak) newPeak);
+				resolvedPeaks.add(newPeak);
 
 				// If exists next overlapped peak, swap the indexes between next
 				// and current, and clean ending index for this new current peak
@@ -272,13 +270,6 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
 		}
 
-		// DEBUGGING
-		// derivativeChromatogram.finishChromatogram();
-		// ChromatographicPeak peak = (ChromatographicPeak)
-		// derivativeChromatogram;
-		// resolvedPeaks.add(peak);
-		// logger.finest("Size of resolved peak array" + resolvedPeaks.size());
-
 		return resolvedPeaks.toArray(new ChromatographicPeak[0]);
 	}
 
@@ -302,10 +293,6 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 				comparativeThresholdLevel);
 
 		return threshold;
-	}
-
-	public ParameterSet getParameterSet() {
-		return parameters;
 	}
 
 }

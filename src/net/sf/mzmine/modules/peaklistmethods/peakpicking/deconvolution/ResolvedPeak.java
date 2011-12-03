@@ -98,8 +98,16 @@ public class ResolvedPeak implements ChromatographicPeak {
 		for (int i = 0; i < scanNumbers.length; i++) {
 
 			DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
-			if (dp == null)
-				continue;
+			if (dp == null) {
+				String error = "Cannot create a resolved peak in a region with missing data points: chromatogram "
+						+ chromatogram
+						+ " scans "
+						+ chromatogramScanNumbers[regionStart]
+						+ "-"
+						+ chromatogramScanNumbers[regionEnd]
+						+ ", missing data point in scan " + scanNumbers[i];
+				throw new IllegalArgumentException(error);
+			}
 
 			dataPointMZValues[i] = dp.getMZ();
 			dataPointIntensityValues[i] = dp.getIntensity();
