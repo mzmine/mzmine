@@ -32,7 +32,7 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class RTToleranceComponent extends JPanel {
 
-        private static final String toleranceTypes[] = {"absolute", "relative (%)"};
+        private static final String toleranceTypes[] = {"absolute (min)", "relative (%)"};
         private JTextField toleranceField;
         private JComboBox toleranceType;
 
