@@ -53,10 +53,78 @@ public class EMGPeakModel implements ChromatographicPeak {
 	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 			rawDataPointsRTRange;
 	private TreeMap<Integer, DataPoint> dataPointsMap;
-	
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
 	private int charge = 0;
+
+	public EMGPeakModel(ChromatographicPeak originalDetectedShape,
+			int[] scanNumbers, double[] intensities, double[] retentionTimes,
+			double resolution) {
+
+		height = originalDetectedShape.getHeight();
+		rt = originalDetectedShape.getRT();
+		mz = originalDetectedShape.getMZ();
+		this.scanNumbers = scanNumbers;
+
+		rawDataFile = originalDetectedShape.getDataFile();
+
+		// Create a copy of the mutable properties
+		rawDataPointsIntensityRange = new Range(
+				originalDetectedShape.getRawDataPointsIntensityRange());
+		rawDataPointsMZRange = new Range(
+				originalDetectedShape.getRawDataPointsMZRange());
+
+		dataPointsMap = new TreeMap<Integer, DataPoint>();
+		status = originalDetectedShape.getPeakStatus();
+
+		// Initialize EMG parameters base on intensities and retention times
+		initializEMGParameters(intensities, retentionTimes, rt, height);
+
+		// Calculate intensity of each point in the shape.
+		double shapeHeight, currentRT, previousRT, previousHeight;
+
+		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
+		double allRetentionTimes[] = new double[allScanNumbers.length];
+		for (int i = 0; i < allScanNumbers.length; i++)
+			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
+					.getRetentionTime();
+
+		previousHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
+				allRetentionTimes[0]);
+		previousRT = allRetentionTimes[0];
+		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
+
+		for (int i = 0; i < allRetentionTimes.length; i++) {
+
+			shapeHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
+					allRetentionTimes[i]);
+			if (shapeHeight > height * 0.01d) {
+				SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
+				dataPointsMap.put(allScanNumbers[i], mzPeak);
+				rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
+			}
+
+			currentRT = allRetentionTimes[i];
+			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
+					/ 2;
+			previousRT = currentRT;
+			previousHeight = shapeHeight;
+		}
+
+		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
+		int i = 0;
+		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
+		while (itr.hasNext()) {
+			int number = itr.next();
+			newScanNumbers[i] = number;
+			i++;
+		}
+
+		this.scanNumbers = newScanNumbers;
+
+	}
 
 	public double getArea() {
 		return area;
@@ -113,76 +181,13 @@ public class EMGPeakModel implements ChromatographicPeak {
 	public String toString() {
 		return "EMG peak " + PeakUtils.peakToString(this);
 	}
-	
+
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
 
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
-	}
-
-	public EMGPeakModel(ChromatographicPeak originalDetectedShape,
-			int[] scanNumbers, double[] intensities, double[] retentionTimes,
-			double resolution) {
-
-		height = originalDetectedShape.getHeight();
-		rt = originalDetectedShape.getRT();
-		mz = originalDetectedShape.getMZ();
-		this.scanNumbers = scanNumbers;
-		rawDataFile = originalDetectedShape.getDataFile();
-		rawDataPointsIntensityRange = originalDetectedShape
-				.getRawDataPointsIntensityRange();
-		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
-		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
-		dataPointsMap = new TreeMap<Integer, DataPoint>();
-		status = originalDetectedShape.getPeakStatus();
-
-		// Initialize EMG parameters base on intensities and retention times
-		initializEMGParameters(intensities, retentionTimes, rt, height);
-
-		// Calculate intensity of each point in the shape.
-		double shapeHeight, currentRT, previousRT, previousHeight;
-
-		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
-		double allRetentionTimes[] = new double[allScanNumbers.length];
-		for (int i = 0; i < allScanNumbers.length; i++)
-			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
-					.getRetentionTime();
-
-		previousHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
-				allRetentionTimes[0]);
-		previousRT = allRetentionTimes[0];
-		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
-
-		for (int i = 0; i < allRetentionTimes.length; i++) {
-
-			shapeHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
-					allRetentionTimes[i]);
-			if (shapeHeight > height * 0.01d) {
-				SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
-				dataPointsMap.put(allScanNumbers[i], mzPeak);
-				rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
-			}
-
-			currentRT = allRetentionTimes[i];
-			area += (currentRT - previousRT) * (shapeHeight + previousHeight)
-					/ 2;
-			previousRT = currentRT;
-			previousHeight = shapeHeight;
-		}
-
-		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
-		int i = 0;
-		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
-		while (itr.hasNext()) {
-			int number = itr.next();
-			newScanNumbers[i] = number;
-			i++;
-		}
-
-		this.scanNumbers = newScanNumbers;
-
 	}
 
 	/**
@@ -227,7 +232,8 @@ public class EMGPeakModel implements ChromatographicPeak {
 		double[] secondDerivative = SGDerivative.calculateDerivative(
 				intensitiesWithZeros, false, 12);
 
-		// Analyze the second derivative values to identify crossing zero points.
+		// Analyze the second derivative values to identify crossing zero
+		// points.
 		// Those positions correspond to inflection points.
 		int crossZero = 0;
 		int inflectionPointLeft = 0;
@@ -268,10 +274,10 @@ public class EMGPeakModel implements ChromatographicPeak {
 		 * The inflection point represents the tangent of the curve. We use the
 		 * secant function to calculate the pendient of the tangent line.
 		 * 
-		 * m = f(x+h) - f(x) / h 
+		 * m = f(x+h) - f(x) / h
 		 * 
 		 * where m is the pendient, f(x) is the intensity in inflection point
-		 * and h is the time between two points defined by secant line. In our 
+		 * and h is the time between two points defined by secant line. In our
 		 * case, the identified peak's rt and height are x+h and f(x+h).
 		 */
 		double mLeft = (maxIntensity - intensities[inflectionPointLeft])
@@ -281,11 +287,11 @@ public class EMGPeakModel implements ChromatographicPeak {
 				/ (retentionTimes[inflectionPointRight] - retentionTime);
 
 		/*
-		 * Then calculate peak's width at base (Wb), using tagent line. Also 
-		 * obtains the value of b and a (b/a = asymmetry factor). Using rect 
+		 * Then calculate peak's width at base (Wb), using tagent line. Also
+		 * obtains the value of b and a (b/a = asymmetry factor). Using rect
 		 * line formula
 		 * 
-		 * 		x2 = [(y2 - Y1) / m] + x1
+		 * x2 = [(y2 - Y1) / m] + x1
 		 * 
 		 * where x2 represents the retention time value at 10% of total peak's
 		 * height (y2).
@@ -328,7 +334,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 		 * so tau is obtained by
 		 * 
 		 * tau = sqrt( variance - sigma)
-		 *	
+		 * 
 		 * where sigma is standard deviation and tau is the time constant of
 		 * exponential function.
 		 */
@@ -349,27 +355,29 @@ public class EMGPeakModel implements ChromatographicPeak {
 		// logger.finest("Value variance= " + variance + " sigma= " + sigma +
 		// " tau= " + tau + " Dp= " + Dp);
 
-		/* The relationship between skewness/excess is directly related to the
+		/*
+		 * The relationship between skewness/excess is directly related to the
 		 * proportion between tau/sigma. So excess can be calculated by
-		 *
+		 * 
 		 * C = [sigma * (Ap)] / tau
-		 *
+		 * 
 		 * where C is the excess value of the EMG model.
 		 */
 		C = (sigma * Ap) / tau;
 
-		/* From the location of peak maximum (peak's retention time) we can
+		/*
+		 * From the location of peak maximum (peak's retention time) we can
 		 * calculate the center of the Gaussian part using
-		 *
+		 * 
 		 * M = tmax - sigma[ (-0.19*(Ap)^2) + 1.16*(Ap) - 0.55 ]
-		 *
+		 * 
 		 * where M is the retention time of the EMG model.
 		 */
 		M = (-0.19d * (Math.pow(Ap, 2))) + (1.16d * (Ap)) - 0.55d;
 		M *= sigma;
 		M += retentionTime;
 
-		// Finally the height to use in the EMG value is approximately 20% 
+		// Finally the height to use in the EMG value is approximately 20%
 		// less than original peak
 		H = maxIntensity * 0.80d;
 

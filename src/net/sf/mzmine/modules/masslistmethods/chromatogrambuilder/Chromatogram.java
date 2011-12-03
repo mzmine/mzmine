@@ -55,7 +55,7 @@ public class Chromatogram implements ChromatographicPeak {
 	private int representativeScan = -1, fragmentScan = -1;
 
 	// Ranges of raw data points
-	private Range rawDataPointsIntensityRange, rawDataPointsMZRange;
+	private Range rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
 
 	// A set of scan numbers of a segment which is currently being connected
 	private Vector<Integer> buildingSegment;
@@ -77,6 +77,10 @@ public class Chromatogram implements ChromatographicPeak {
 	 */
 	public Chromatogram(RawDataFile dataFile) {
 		this.dataFile = dataFile;
+		
+		// Create a copy, not a reference
+		rawDataPointsRTRange = new Range(dataFile.getDataRTRange(1));
+		
 		dataPointsMap = new Hashtable<Integer, DataPoint>();
 		buildingSegment = new Vector<Integer>(128);
 	}
@@ -150,7 +154,7 @@ public class Chromatogram implements ChromatographicPeak {
 	}
 
 	public Range getRawDataPointsRTRange() {
-		return dataFile.getDataRTRange(1);
+		return rawDataPointsRTRange;
 	}
 
 	public int getRepresentativeScanNumber() {

@@ -46,10 +46,11 @@ public class TrianglePeakModel implements ChromatographicPeak {
 			rawDataPointsRTRange;
 	private TreeMap<Integer, DataPoint> dataPointsMap;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
+	// Isotope pattern. Null by default but can be set later by deisotoping
+	// method.
 	private IsotopePattern isotopePattern;
 	private int charge = 0;
-	
+
 	public double getArea() {
 		return area;
 	}
@@ -105,7 +106,7 @@ public class TrianglePeakModel implements ChromatographicPeak {
 	public String toString() {
 		return "Triangle peak " + PeakUtils.peakToString(this);
 	}
-	
+
 	public IsotopePattern getIsotopePattern() {
 		return isotopePattern;
 	}
@@ -123,10 +124,15 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		mz = originalDetectedShape.getMZ();
 		this.scanNumbers = scanNumbers;
 		rawDataFile = originalDetectedShape.getDataFile();
-		rawDataPointsIntensityRange = originalDetectedShape
-				.getRawDataPointsIntensityRange();
-		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
-		rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
+
+		// Create a copy of the mutable properties
+		rawDataPointsIntensityRange = new Range(
+				originalDetectedShape.getRawDataPointsIntensityRange());
+		rawDataPointsMZRange = new Range(
+				originalDetectedShape.getRawDataPointsMZRange());
+		rawDataPointsRTRange = new Range(
+				originalDetectedShape.getRawDataPointsRTRange());
+
 		dataPointsMap = new TreeMap<Integer, DataPoint>();
 		status = originalDetectedShape.getPeakStatus();
 

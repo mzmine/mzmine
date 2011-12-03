@@ -62,7 +62,7 @@ public class ResolvedPeak implements ChromatographicPeak {
 
 	// Isotope pattern. Null by default but can be set later by deisotoping
 	// method.
-	private IsotopePattern isotopePattern;
+	private IsotopePattern isotopePattern = null;
 	private int charge = 0;
 
 	/**
@@ -93,13 +93,6 @@ public class ResolvedPeak implements ChromatographicPeak {
 		dataPointMZValues = new double[regionEnd - regionStart + 1];
 		dataPointIntensityValues = new double[regionEnd - regionStart + 1];
 
-		// We keep the m/z range specified by the chromatogram, instead of
-		// determining it from the m/z data points. The reason is that in
-		// continuous raw data, each m/z peak has a width. That width is
-		// remembered in chromatogram.getRawDataPointsMZRange(), the width of
-		// detected m/z values may be smaller
-		rawDataPointsMZRange = chromatogram.getRawDataPointsMZRange();
-
 		// Set raw data point ranges, height, rt and representative scan
 		height = Double.MIN_VALUE;
 		for (int i = 0; i < scanNumbers.length; i++) {
@@ -115,10 +108,12 @@ public class ResolvedPeak implements ChromatographicPeak {
 				rawDataPointsIntensityRange = new Range(dp.getIntensity());
 				rawDataPointsRTRange = new Range(dataFile.getScan(
 						scanNumbers[i]).getRetentionTime());
+				rawDataPointsMZRange = new Range(dp.getMZ());
 			} else {
 				rawDataPointsRTRange.extendRange(dataFile.getScan(
 						scanNumbers[i]).getRetentionTime());
 				rawDataPointsIntensityRange.extendRange(dp.getIntensity());
+				rawDataPointsMZRange.extendRange(dp.getMZ());
 			}
 
 			if (height < dp.getIntensity()) {

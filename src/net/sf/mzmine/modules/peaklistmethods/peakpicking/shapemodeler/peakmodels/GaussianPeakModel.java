@@ -51,6 +51,73 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	
 	private static double CONST = 2.354820045;
 
+	public GaussianPeakModel(ChromatographicPeak originalDetectedShape,
+			int[] scanNumbers, double[] intensities, double[] retentionTimes,
+			double resolution) {
+	
+		height = originalDetectedShape.getHeight();
+		rt = originalDetectedShape.getRT();
+		mz = originalDetectedShape.getMZ();
+		rawDataFile = originalDetectedShape.getDataFile();
+
+		// Create a copy of the mutable properties
+		rawDataPointsIntensityRange = new Range(
+				originalDetectedShape.getRawDataPointsIntensityRange());
+		rawDataPointsMZRange = new Range(
+				originalDetectedShape.getRawDataPointsMZRange());
+		
+		dataPointsMap = new TreeMap<Integer, DataPoint>();
+		status = originalDetectedShape.getPeakStatus();
+	
+		// FWFM (Full Width at Half Maximum)
+		FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
+				height);
+		// FWHM = MathUtils.calcStd(intensities) * 2.355;
+	
+		partC = FWHM / CONST;
+		part2C2 = 2f * (double) Math.pow(partC, 2);
+	
+		// Calculate intensity of each point in the shape.
+		double shapeHeight, currentRT, previousRT, previousHeight;
+	
+		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
+		double allRetentionTimes[] = new double[allScanNumbers.length];
+		for (int i = 0; i < allScanNumbers.length; i++)
+			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
+					.getRetentionTime();
+	
+		previousHeight = calculateIntensity(allRetentionTimes[0]);
+		previousRT = allRetentionTimes[0];
+		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
+	
+		for (int i = 0; i < allRetentionTimes.length; i++) {
+	
+			currentRT = allRetentionTimes[i];
+			shapeHeight = calculateIntensity(currentRT);
+			if (shapeHeight > height * 0.01d) {
+				SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
+				dataPointsMap.put(allScanNumbers[i], mzPeak);
+				rawDataPointsRTRange.extendRange(currentRT);
+				area += ((currentRT - previousRT) * (shapeHeight + previousHeight)) / 2;
+			}
+	
+			previousRT = currentRT;
+			previousHeight = shapeHeight;
+		}
+	
+		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
+		int i = 0;
+		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
+		while (itr.hasNext()) {
+			int number = itr.next();
+			newScanNumbers[i] = number;
+			i++;
+		}
+	
+		this.scanNumbers = newScanNumbers;
+	
+	}
+
 	public double getArea() {
 		return area;
 	}
@@ -113,69 +180,6 @@ public class GaussianPeakModel implements ChromatographicPeak {
 
 	public void setIsotopePattern(IsotopePattern isotopePattern) {
 		this.isotopePattern = isotopePattern;
-	}
-
-	public GaussianPeakModel(ChromatographicPeak originalDetectedShape,
-			int[] scanNumbers, double[] intensities, double[] retentionTimes,
-			double resolution) {
-
-		height = originalDetectedShape.getHeight();
-		rt = originalDetectedShape.getRT();
-		mz = originalDetectedShape.getMZ();
-		rawDataFile = originalDetectedShape.getDataFile();
-		rawDataPointsIntensityRange = originalDetectedShape
-				.getRawDataPointsIntensityRange();
-		rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
-		dataPointsMap = new TreeMap<Integer, DataPoint>();
-		status = originalDetectedShape.getPeakStatus();
-
-		// FWFM (Full Width at Half Maximum)
-		FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
-				height);
-		// FWHM = MathUtils.calcStd(intensities) * 2.355;
-
-		partC = FWHM / CONST;
-		part2C2 = 2f * (double) Math.pow(partC, 2);
-
-		// Calculate intensity of each point in the shape.
-		double shapeHeight, currentRT, previousRT, previousHeight;
-
-		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
-		double allRetentionTimes[] = new double[allScanNumbers.length];
-		for (int i = 0; i < allScanNumbers.length; i++)
-			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
-					.getRetentionTime();
-
-		previousHeight = calculateIntensity(allRetentionTimes[0]);
-		previousRT = allRetentionTimes[0];
-		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
-
-		for (int i = 0; i < allRetentionTimes.length; i++) {
-
-			currentRT = allRetentionTimes[i];
-			shapeHeight = calculateIntensity(currentRT);
-			if (shapeHeight > height * 0.01d) {
-				SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
-				dataPointsMap.put(allScanNumbers[i], mzPeak);
-				rawDataPointsRTRange.extendRange(currentRT);
-				area += ((currentRT - previousRT) * (shapeHeight + previousHeight)) / 2;
-			}
-
-			previousRT = currentRT;
-			previousHeight = shapeHeight;
-		}
-
-		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
-		int i = 0;
-		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
-		while (itr.hasNext()) {
-			int number = itr.next();
-			newScanNumbers[i] = number;
-			i++;
-		}
-
-		this.scanNumbers = newScanNumbers;
-
 	}
 
 	public double calculateIntensity(double retentionTime) {

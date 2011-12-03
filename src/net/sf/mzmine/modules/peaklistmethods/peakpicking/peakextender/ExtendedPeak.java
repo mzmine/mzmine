@@ -31,7 +31,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 	private int representativeScan = -1, fragmentScan = -1;
 
 	// Ranges of raw data points
-	private Range rawDataPointsIntensityRange, rawDataPointsMZRange;
+	private Range rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
 
 	// Keep track of last added data point
 	private DataPoint lastMzPeak;
@@ -49,6 +49,10 @@ public class ExtendedPeak implements ChromatographicPeak {
 	 */
 	public ExtendedPeak(RawDataFile dataFile) {
 		this.dataFile = dataFile;
+		
+		// Create a copy, not a reference
+		rawDataPointsRTRange = new Range(dataFile.getDataRTRange(1));
+		
 		dataPointsMap = new Hashtable<Integer, DataPoint>();
 	}
 
@@ -127,7 +131,7 @@ public class ExtendedPeak implements ChromatographicPeak {
 	}
 
 	public Range getRawDataPointsRTRange() {
-		return dataFile.getDataRTRange(1);
+		return rawDataPointsRTRange; 
 	}
 
 	public int getRepresentativeScanNumber() {

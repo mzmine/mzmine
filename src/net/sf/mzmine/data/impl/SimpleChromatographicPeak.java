@@ -102,9 +102,10 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 		this.height = p.getHeight();
 		this.area = p.getArea();
 
-		this.rtRange = p.getRawDataPointsRTRange();
-		this.mzRange = p.getRawDataPointsMZRange();
-		this.intensityRange = p.getRawDataPointsIntensityRange();
+		// Create a copy of the mutable properties, not a reference
+		this.rtRange = new Range(p.getRawDataPointsRTRange());
+		this.mzRange = new Range(p.getRawDataPointsMZRange());
+		this.intensityRange = new Range(p.getRawDataPointsIntensityRange());
 
 		this.scanNumbers = p.getScanNumbers();
 
