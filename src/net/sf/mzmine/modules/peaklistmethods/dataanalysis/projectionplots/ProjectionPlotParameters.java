@@ -61,21 +61,22 @@ public class ProjectionPlotParameters extends SimpleParameterSet {
 		super(new Parameter[] { peakLists, dataFiles, rows, coloringType,
 				peakMeasurementType, xAxisComponent, yAxisComponent });
 	}
-	
+
 	@Override
 	public ExitCode showSetupDialog() {
 
 		PeakList selectedPeakList[] = getParameter(peakLists).getValue();
 
 		RawDataFile dataFileChoices[];
-		if (selectedPeakList.length == 1) {
+
+		if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
 			dataFileChoices = selectedPeakList[0].getRawDataFiles();
 		} else {
 			dataFileChoices = new RawDataFile[0];
 		}
 
 		PeakListRow rowChoices[];
-		if (selectedPeakList.length == 1) {
+		if ((selectedPeakList != null) && (selectedPeakList.length == 1)) {
 			rowChoices = selectedPeakList[0].getRows();
 		} else {
 			rowChoices = new PeakListRow[0];
