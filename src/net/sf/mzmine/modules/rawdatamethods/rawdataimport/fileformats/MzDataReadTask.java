@@ -39,7 +39,7 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
-import org.jfree.xml.util.Base64;
+import org.apache.axis.encoding.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -349,8 +349,7 @@ public class MzDataReadTask extends AbstractTask {
 				mzArrayBinaryFlag = false;
 				mzDataPoints = new double[peaksCount];
 
-				byte[] peakBytes = Base64.decode(charBuffer.toString()
-						.toCharArray());
+				byte[] peakBytes = Base64.decode(charBuffer.toString());
 
 				ByteBuffer currentMzBytes = ByteBuffer.wrap(peakBytes);
 
@@ -375,8 +374,8 @@ public class MzDataReadTask extends AbstractTask {
 				intenArrayBinaryFlag = false;
 				intensityDataPoints = new double[peaksCount];
 
-				byte[] peakBytes = Base64.decode(charBuffer.toString()
-						.toCharArray());
+				byte[] peakBytes = Base64.decode(charBuffer.toString());
+				
 				ByteBuffer currentIntensityBytes = ByteBuffer.wrap(peakBytes);
 
 				if (endian.equals("big")) {

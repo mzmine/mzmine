@@ -34,7 +34,7 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
-import org.jfree.xml.util.Base64;
+import org.apache.axis.encoding.Base64;
 
 /**
  * Scan related utilities
@@ -519,7 +519,7 @@ public class ScanUtils {
 
 		byte peakBytes[] = byteStream.toByteArray();
 
-		char encodedData[] = Base64.encode(peakBytes);
+		char encodedData[] = Base64.encode(peakBytes).toCharArray();
 
 		return encodedData;
 
@@ -528,7 +528,7 @@ public class ScanUtils {
 	public static DataPoint[] decodeDataPointsBase64(char encodedData[])
 			throws IOException {
 
-		byte[] peakBytes = Base64.decode(encodedData);
+		byte[] peakBytes = Base64.decode(new String(encodedData));
 
 		// each double is 8 bytes and we need one for m/z and one for intensity
 		int dpCount = peakBytes.length / 2 / 8;

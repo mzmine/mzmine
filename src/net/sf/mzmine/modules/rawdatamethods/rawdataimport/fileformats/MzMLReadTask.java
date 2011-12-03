@@ -44,7 +44,7 @@ import net.sf.mzmine.util.CompressionUtils;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 
-import org.jfree.xml.util.Base64;
+import org.apache.axis.encoding.Base64;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -408,8 +408,7 @@ public class MzMLReadTask extends AbstractTask {
 			// <Binary>
 			if ((qName.equalsIgnoreCase("Binary")) && (spectrumListFlag)) {
 
-				byte[] peakBytes = Base64.decode(charBuffer.toString()
-						.toCharArray());
+				byte[] peakBytes = Base64.decode(charBuffer.toString());
 
 				if (compressFlag) {
 					// Uncompress the bytes
