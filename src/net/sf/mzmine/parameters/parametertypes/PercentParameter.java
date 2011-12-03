@@ -35,16 +35,24 @@ public class PercentParameter implements
 
 	private String name, description;
 	private Double value;
+	private double minValue, maxValue;
 
 	public PercentParameter(String name, String description) {
-		this(name, description, null);
+		this(name, description, null, 0, 1);
 	}
 
 	public PercentParameter(final String name, final String description,
 			final Double defaultValue) {
+		this(name, description, defaultValue, 0, 1);
+	}
+
+	public PercentParameter(final String name, final String description,
+			final Double defaultValue, final double minValue, double maxValue) {
 		this.name = name;
 		this.description = description;
 		this.value = defaultValue;
+		this.minValue = minValue;
+		this.maxValue = maxValue;
 	}
 
 	/**
@@ -124,14 +132,9 @@ public class PercentParameter implements
 			errorMessages.add(name + " is not set");
 			return false;
 		}
-		if (value < 0) {
-			errorMessages.add("Invalid value for " + name
-					+ ": percentage must not be negative");
-			return false;
-		}
-		if (value > 1) {
-			errorMessages.add("Invalid value for " + name
-					+ ": percentage must not exceed 100");
+		if ((value < minValue) || (value > maxValue)) {
+			errorMessages.add(name + " value must be in the range "
+					+ (minValue * 100) + " - " + (maxValue * 100) + "%");
 			return false;
 		}
 		return true;
