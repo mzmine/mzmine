@@ -46,7 +46,7 @@ public class PercentParameter implements
 		this.description = description;
 		this.value = defaultValue;
 	}
-	
+
 	/**
 	 * @see net.sf.mzmine.data.Parameter#getName()
 	 */
@@ -73,8 +73,6 @@ public class PercentParameter implements
 		Double componentValue = component.getValue();
 		if (componentValue == null)
 			return;
-		if ((componentValue < 0) || (componentValue > 100))
-			throw new IllegalArgumentException("Invalid percentage value");
 		this.value = componentValue;
 	}
 
@@ -92,11 +90,15 @@ public class PercentParameter implements
 
 	@Override
 	public void setValueToComponent(PercentComponent component, Double newValue) {
-		if (newValue == null) return;
+		if (newValue == null)
+			return;
 		component.setValue(newValue);
 	}
 
 	@Override
+	/**
+	 * Returns the percentage value in the range 0..1
+	 */
 	public Double getValue() {
 		return value;
 	}
@@ -120,6 +122,16 @@ public class PercentParameter implements
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
 			errorMessages.add(name + " is not set");
+			return false;
+		}
+		if (value < 0) {
+			errorMessages.add("Invalid value for " + name
+					+ ": percentage must not be negative");
+			return false;
+		}
+		if (value > 1) {
+			errorMessages.add("Invalid value for " + name
+					+ ": percentage must not exceed 100");
 			return false;
 		}
 		return true;
