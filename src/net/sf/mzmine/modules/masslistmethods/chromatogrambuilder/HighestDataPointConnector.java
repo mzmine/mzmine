@@ -20,8 +20,9 @@
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -39,10 +40,7 @@ public class HighestDataPointConnector {
 	private double minimumTimeSpan, minimumHeight;
 
 	// Mapping of last data point m/z --> chromatogram
-	private HashSet<Chromatogram> buildingChromatograms;
-
-	// Set of already connected chromatograms in each iteration
-	private HashSet<Chromatogram> connectedChromatograms;
+	private Set<Chromatogram> buildingChromatograms;
 
 	public HighestDataPointConnector(double minimumTimeSpan,
 			double minimumHeight, MZTolerance mzTolerance) {
@@ -51,7 +49,10 @@ public class HighestDataPointConnector {
 		this.minimumHeight = minimumHeight;
 		this.minimumTimeSpan = minimumTimeSpan;
 
-		buildingChromatograms = new HashSet<Chromatogram>();
+		// We use LinkedHashSet to maintain a reproducible ordering. If we use
+		// plain HashSet, the resulting peak list row IDs will have different
+		// order every time the method is invoked.
+		buildingChromatograms = new LinkedHashSet<Chromatogram>();
 
 	}
 
@@ -62,8 +63,8 @@ public class HighestDataPointConnector {
 		Arrays.sort(mzValues, new DataPointSorter(SortingProperty.Intensity,
 				SortingDirection.Descending));
 
-		// Empty the collection of connected chromatograms
-		connectedChromatograms = new HashSet<Chromatogram>();
+		// Set of already connected chromatograms in each iteration
+		Set<Chromatogram> connectedChromatograms = new LinkedHashSet<Chromatogram>();
 
 		// TODO: these two nested cycles should be optimized for speed
 		for (DataPoint mzPeak : mzValues) {
@@ -143,6 +144,7 @@ public class HighestDataPointConnector {
 
 		// Iterate through current chromatograms and remove those which do not
 		// contain any committed segment nor long-enough building segment
+
 		Iterator<Chromatogram> chromIterator = buildingChromatograms.iterator();
 		while (chromIterator.hasNext()) {
 

@@ -147,7 +147,6 @@ public class ChromatogramBuilderTask extends AbstractTask {
 			processedScans++;
 		}
 
-		// peaks = peakBuilder.finishPeaks();
 		chromatograms = massConnector.finishChromatograms();
 
 		for (ChromatographicPeak finishedPeak : chromatograms) {
