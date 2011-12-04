@@ -81,20 +81,26 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 				amplitudeOfNoise);
 
 		boolean activePeak = false;
-		// Index of starting region of the current peak
-		int totalNumberPoints = scanNumbers.length;
-		int currentPeakStart = totalNumberPoints;
 
-		for (int i = 0; i < totalNumberPoints; i++) {
+		// Index of starting region of the current peak
+		int currentPeakStart = 0, currentPeakEnd = 0;
+
+		for (int i = 0; i < scanNumbers.length; i++) {
 			if ((intensities[i] > noiseThreshold) && (!activePeak)) {
 				currentPeakStart = i;
 				activePeak = true;
 			}
 
-			if ((intensities[i] < noiseThreshold) && (activePeak)) {
-				if (i - currentPeakStart > 0) {
+			if ((intensities[i] <= noiseThreshold) && (activePeak)) {
+				currentPeakEnd = i;
+
+				// If the last data point is zero, ignore it
+				if (intensities[currentPeakEnd] == 0)
+					currentPeakEnd--;
+
+				if (currentPeakEnd - currentPeakStart > 0) {
 					ResolvedPeak peak = new ResolvedPeak(chromatogram,
-							currentPeakStart, i);
+							currentPeakStart, currentPeakEnd);
 					double pLength = peak.getRawDataPointsRTRange().getSize();
 					double pHeight = peak.getHeight();
 					if ((pLength >= minimumPeakDuration)
@@ -102,7 +108,6 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 						resolvedPeaks.add(peak);
 					}
 				}
-				currentPeakStart = totalNumberPoints;
 				activePeak = false;
 			}
 		}
