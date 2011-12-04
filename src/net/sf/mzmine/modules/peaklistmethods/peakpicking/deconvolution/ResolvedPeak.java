@@ -68,7 +68,9 @@ public class ResolvedPeak implements ChromatographicPeak {
 	/**
 	 * Initializes this peak using data points from a given chromatogram -
 	 * regionStart marks the index of the first data point (inclusive),
-	 * regionEnd marks the index of the last data point (inclusive)
+	 * regionEnd marks the index of the last data point (inclusive). The
+	 * selected region MUST NOT contain any zero-intensity data points,
+	 * otherwise exception is thrown.
 	 */
 	public ResolvedPeak(ChromatographicPeak chromatogram, int regionStart,
 			int regionEnd) {

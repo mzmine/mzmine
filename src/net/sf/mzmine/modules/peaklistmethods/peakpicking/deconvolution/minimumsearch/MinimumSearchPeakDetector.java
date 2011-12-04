@@ -81,7 +81,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
 			// Find the first non-zero data point
 			if (intensities[currentRegionStart] == 0)
-				continue;
+				continue startSearch;
 
 			double currentRegionHeight = intensities[currentRegionStart];
 
@@ -91,8 +91,10 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 				if (currentRegionHeight < intensities[currentRegionEnd])
 					currentRegionHeight = intensities[currentRegionEnd];
 
-				// If the intensity is 0, we have to stop here
-				if (intensities[currentRegionEnd] == 0) {
+				// If we reached the end, or if the next intensity is 0, we have
+				// to stop here
+				if ((currentRegionEnd == scanNumbers.length - 1)
+						|| (intensities[currentRegionEnd + 1] == 0)) {
 
 					// Find the intensity at the sides (lowest data points)
 					double peakMinLeft = intensities[currentRegionStart];
@@ -125,8 +127,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 						+ searchRTRange);
 
 				// Search if there is lower data point on the left from current
-				// peak
-				// i
+				// peak i
 				int srch = currentRegionEnd - 1;
 				while ((srch > 0)
 						&& (checkRange.contains(retentionTimes[srch]))) {
@@ -150,8 +151,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
 				// If we have reached a minimum which is non-zero, but the peak
 				// shape would not fulfill the ratio condition, continue
-				// searching
-				// for next minimum
+				// searching for next minimum
 				if (currentRegionHeight < peakMinRight * minRatio)
 					continue endSearch;
 
@@ -169,6 +169,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 
 				// Start searching new region
 				currentRegionStart = currentRegionEnd;
+				continue startSearch;
 
 			}
 
