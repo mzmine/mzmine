@@ -37,6 +37,10 @@ import org.w3c.dom.NodeList;
  */
 public class WindowStateParameter implements Parameter<Object> {
 
+	// Flag to indicate that MZmine is starting, after loading the parameter
+	// first time, this flag is changed to false
+	private boolean firstMZmineStartup = true;
+
 	@Override
 	public String getName() {
 		return "MZmine window state";
@@ -59,7 +63,11 @@ public class WindowStateParameter implements Parameter<Object> {
 			String posArray[] = posString.split(":");
 			int posX = Integer.valueOf(posArray[0]);
 			int posY = Integer.valueOf(posArray[1]);
-			mainWindow.setLocation(posX, posY);
+
+			// Only update the window state on startup
+			if (firstMZmineStartup) {
+				mainWindow.setLocation(posX, posY);
+			}
 		}
 
 		// Set window size
@@ -81,9 +89,16 @@ public class WindowStateParameter implements Parameter<Object> {
 			else
 				height = Integer.parseInt(sizeArray[1]);
 
-			mainWindow.setSize(width, height);
-			mainWindow.setExtendedState(newState);
+			// Only update the window state on startup
+			if (firstMZmineStartup) {
+				mainWindow.setSize(width, height);
+				mainWindow.setExtendedState(newState);
+			}
 		}
+
+		// Change to flag to indicate that the next load is not a startup
+		// anymore
+		firstMZmineStartup = false;
 
 	}
 
@@ -117,7 +132,7 @@ public class WindowStateParameter implements Parameter<Object> {
 		sizeElement.setTextContent(mainWindowWidth + ":" + mainWindowHeight);
 
 	}
-	
+
 	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		return true;
