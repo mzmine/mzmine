@@ -199,7 +199,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
         // Add all remaining rows to a new peak list.
         for (int i = 0;
-             i < rowCount;
+             !isCanceled() && i < rowCount;
              i++) {
 
             final PeakListRow row = peakListRows[i];
