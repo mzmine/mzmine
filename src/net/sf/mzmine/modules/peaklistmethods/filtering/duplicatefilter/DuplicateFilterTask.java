@@ -197,28 +197,32 @@ public class DuplicateFilterTask extends AbstractTask {
         // Create the new peak list.
         final PeakList newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
-        if (!isCanceled()) {
+        // Add all remaining rows to a new peak list.
+        for (int i = 0;
+             i < rowCount;
+             i++) {
 
-            // Add all remaining rows to a new peak list.
-            for (final PeakListRow row : peakListRows) {
+            final PeakListRow row = peakListRows[i];
 
-                if (row != null) {
+            if (row != null) {
 
-                    // Copy the peak list row.
-                    final PeakListRow newRow = new SimplePeakListRow(row.getID());
-                    PeakUtils.copyPeakListRowProperties(row, newRow);
+                // Copy the peak list row.
+                final PeakListRow newRow = new SimplePeakListRow(row.getID());
+                PeakUtils.copyPeakListRowProperties(row, newRow);
 
-                    // Copy the peaks.
-                    for (final ChromatographicPeak peak : row.getPeaks()) {
+                // Copy the peaks.
+                for (final ChromatographicPeak peak : row.getPeaks()) {
 
-                        final ChromatographicPeak newPeak = new SimpleChromatographicPeak(peak);
-                        PeakUtils.copyPeakProperties(peak, newPeak);
-                        newRow.addPeak(peak.getDataFile(), newPeak);
-                    }
-
-                    newPeakList.addRow(newRow);
+                    final ChromatographicPeak newPeak = new SimpleChromatographicPeak(peak);
+                    PeakUtils.copyPeakProperties(peak, newPeak);
+                    newRow.addPeak(peak.getDataFile(), newPeak);
                 }
+
+                newPeakList.addRow(newRow);
             }
+        }
+
+        if (!isCanceled()) {
 
             // Load previous applied methods.
             for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
