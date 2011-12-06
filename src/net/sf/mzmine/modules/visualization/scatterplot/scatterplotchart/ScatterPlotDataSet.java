@@ -30,10 +30,9 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 /**
  * 
- * This dataset contains 2 series: first series (index 0) contains all peak list
- * rows which have a peak in the 2 displayed raw data files. Second series
- * (index 1) contains those peak list rows which conform to current search
- * definition (currentSearch).
+ * This data set contains 2 series: first series (index 0) contains all peak
+ * list rows. Second series (index 1) contains those peak list rows which
+ * conform to current search definition (currentSearch).
  * 
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
