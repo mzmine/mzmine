@@ -38,14 +38,17 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
 
-	private PeakList peakList;
 	private PeakListRow displayedRows[], selectedRows[];
 
 	private ScatterPlotAxisSelection axisX, axisY;
 	private SearchDefinition currentSearch;
 
+	// We use this value for zero data points, because zero cannot be plotted in
+	// the log-scale scatter plot
+	private double defaultValue;
+
 	public ScatterPlotDataSet(PeakList peakList) {
-		this.peakList = peakList;
+		this.displayedRows = peakList.getRows();
 	}
 
 	void setDisplayedAxes(ScatterPlotAxisSelection axisX,
@@ -54,22 +57,17 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 		this.axisX = axisX;
 		this.axisY = axisY;
 
-		PeakListRow allRows[] = peakList.getRows();
-		ArrayList<PeakListRow> commonRows = new ArrayList<PeakListRow>();
-
-		for (PeakListRow row : allRows) {
-
-			boolean hasPeakX = axisX.hasValue(row);
-			boolean hasPeakY = axisY.hasValue(row);
-
-			if (hasPeakX && hasPeakY) {
-				commonRows.add(row);
-				continue;
-			}
-
+		// Update the default value to minimum value divided by 2
+		double minValue = Double.MAX_VALUE;
+		for (PeakListRow row : displayedRows) {
+			double valX = axisX.getValue(row);
+			double valY = axisX.getValue(row);
+			if ((valX > 0) && (valX < minValue))
+				minValue = valX;
+			if ((valY > 0) && (valY < minValue))
+				minValue = valY;
 		}
-
-		this.displayedRows = commonRows.toArray(new PeakListRow[0]);
+		this.defaultValue = minValue / 2;
 
 		updateSearchDefinition(currentSearch);
 
@@ -84,12 +82,11 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
 
 	@Override
 	public int getSeriesCount() {
-		if (displayedRows == null)
+		if ((displayedRows == null) || (axisX == null) || (axisY == null))
 			return 0;
-		if (selectedRows.length == 0)
+		if ((selectedRows == null) || (selectedRows.length == 0))
 			return 1;
-		else
-			return 2;
+		return 2;
 	}
 
 	@Override
@@ -111,20 +108,32 @@ public class ScatterPlotDataSet extends AbstractXYDataset {
      * 
      */
 	public Number getX(int series, int item) {
+		double value;
 		if (series == 0)
-			return axisX.getValue(displayedRows[item]);
+			value = axisX.getValue(displayedRows[item]);
 		else
-			return axisX.getValue(selectedRows[item]);
+			value = axisX.getValue(selectedRows[item]);
+		// We must not return zero, because it cannot be plotted
+		if (value > 0)
+			return value;
+		else
+			return defaultValue;
 	}
 
 	/**
      * 
      */
 	public Number getY(int series, int item) {
+		double value;
 		if (series == 0)
-			return axisY.getValue(displayedRows[item]);
+			value = axisY.getValue(displayedRows[item]);
 		else
-			return axisY.getValue(selectedRows[item]);
+			value = axisY.getValue(selectedRows[item]);
+		// We must not return zero, because it cannot be plotted
+		if (value > 0)
+			return value;
+		else
+			return defaultValue;
 	}
 
 	/**

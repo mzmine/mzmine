@@ -45,7 +45,8 @@ public class ScatterPlotAxisSelection {
 		this.file = file;
 	}
 
-	public ScatterPlotAxisSelection(UserParameter parameter, Object parameterValue) {
+	public ScatterPlotAxisSelection(UserParameter parameter,
+			Object parameterValue) {
 		this.parameter = parameter;
 		this.parameterValue = parameterValue;
 	}
@@ -56,28 +57,13 @@ public class ScatterPlotAxisSelection {
 		return parameter.getName() + ": " + parameterValue;
 	}
 
-	public boolean hasValue(PeakListRow row) {
-		if (file != null) {
-			return row.hasPeak(file);
-		}
-		for (RawDataFile dataFile : row.getRawDataFiles()) {
-			Object fileValue = MZmineCore.getCurrentProject()
-					.getParameterValue(parameter, dataFile);
-			if (fileValue == parameterValue) {
-				ChromatographicPeak peak = row.getPeak(dataFile);
-				if ((peak != null) && (peak.getArea() > 0)) {
-					return true;
-				}
-			}
-		}
-		return false;
-
-	}
-
 	public double getValue(PeakListRow row) {
 		if (file != null) {
 			ChromatographicPeak peak = row.getPeak(file);
-			return peak.getArea();
+			if (peak == null)
+				return 0;
+			else
+				return peak.getArea();
 		}
 
 		double totalArea = 0;
@@ -93,6 +79,8 @@ public class ScatterPlotAxisSelection {
 				}
 			}
 		}
+		if (numOfFiles == 0)
+			return 0;
 		totalArea /= numOfFiles;
 		return totalArea;
 
@@ -111,8 +99,9 @@ public class ScatterPlotAxisSelection {
 
 		for (UserParameter parameter : MZmineCore.getCurrentProject()
 				.getParameters()) {
-			if (!(parameter instanceof ComboParameter)) continue;
-			
+			if (!(parameter instanceof ComboParameter))
+				continue;
+
 			Object possibleValues[] = ((ComboParameter) parameter).getChoices();
 			for (Object value : possibleValues) {
 				ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(

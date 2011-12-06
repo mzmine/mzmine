@@ -55,27 +55,8 @@ public class ScatterPlotTopPanel extends JPanel {
 	}
 
 	public void updateNumOfItemsText(PeakList peakList,
-			ScatterPlotDataSet dataSet, ScatterPlotAxisSelection axisX, ScatterPlotAxisSelection axisY,
-			int fold) {
-
-		int presentOnlyX = 0, presentOnlyY = 0;
-
-		for (PeakListRow row : peakList.getRows()) {
-
-			boolean hasPeakX = axisX.hasValue(row);
-			boolean hasPeakY = axisY.hasValue(row);
-
-			if (hasPeakX && !hasPeakY) {
-				presentOnlyX++;
-				continue;
-			}
-
-			if (!hasPeakX && hasPeakY) {
-				presentOnlyY++;
-				continue;
-			}
-
-		}
+			ScatterPlotDataSet dataSet, ScatterPlotAxisSelection axisX,
+			ScatterPlotAxisSelection axisY, int fold) {
 
 		int percentage = 100;
 
@@ -97,9 +78,8 @@ public class ScatterPlotTopPanel extends JPanel {
 
 		percentage = (int) Math.round(ratio * 100);
 
-		String display = "<html><b>" + peakList.getNumberOfRows()
-				+ "</b> total peaks, <b>" + +dataSet.getItemCount(0)
-				+ "</b> displayed, <b>" + percentage + "%</b> within <b>"
+		String display = "<html><b>" + dataSet.getItemCount(0)
+				+ "</b> peaks displayed, <b>" + percentage + "%</b> within <b>"
 				+ fold + "-fold</b> margin";
 
 		// If we have a selection, show it
@@ -123,9 +103,7 @@ public class ScatterPlotTopPanel extends JPanel {
 			display += " (" + percentage + "% of selected)";
 		}
 
-		display += "<br><b>" + presentOnlyX + "</b> peaks only in "
-				+ axisX.toString() + ", <b>" + presentOnlyY
-				+ "</b> peaks only in " + axisY.toString() + "</html>";
+		display += "</html>";
 
 		numOfDisplayedItems.setText(display);
 	}
