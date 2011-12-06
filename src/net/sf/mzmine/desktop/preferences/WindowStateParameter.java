@@ -39,7 +39,7 @@ public class WindowStateParameter implements Parameter<Object> {
 
 	// Flag to indicate that MZmine is starting, after loading the parameter
 	// first time, this flag is changed to false
-	private boolean firstMZmineStartup = true;
+	private static boolean firstMZmineStartup = true;
 
 	@Override
 	public String getName() {
