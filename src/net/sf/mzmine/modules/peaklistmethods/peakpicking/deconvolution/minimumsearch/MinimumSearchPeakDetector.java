@@ -77,10 +77,11 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 		// Current region is a region between two minima, representing a
 		// candidate for a resolved peak
 
-		startSearch: for (int currentRegionStart = 0; currentRegionStart < scanNumbers.length - 1; currentRegionStart++) {
+		startSearch: for (int currentRegionStart = 0; currentRegionStart < scanNumbers.length - 2; currentRegionStart++) {
 
-			// Find the first non-zero data point
-			if (intensities[currentRegionStart] == 0)
+			// Find at least two consecutive non-zero data points
+			if ((intensities[currentRegionStart] == 0)
+					|| (intensities[currentRegionStart + 1] == 0))
 				continue startSearch;
 
 			double currentRegionHeight = intensities[currentRegionStart];
@@ -112,7 +113,10 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 						resolvedPeaks.add(newPeak);
 					}
 
-					currentRegionStart = currentRegionEnd + 1;
+					// Set the next region start to current region end - 1,
+					// beacuse it will be immeadiately increased +1 as we
+					// continue the for-cycle
+					currentRegionStart = currentRegionEnd - 1;
 					continue startSearch;
 				}
 
@@ -167,8 +171,10 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 					resolvedPeaks.add(newPeak);
 				}
 
-				// Start searching new region
-				currentRegionStart = currentRegionEnd;
+				// Set the next region start to current region end - 1, beacuse
+				// it will be immeadiately increased +1 as we continue the
+				// for-cycle
+				currentRegionStart = currentRegionEnd - 1;
 				continue startSearch;
 
 			}
