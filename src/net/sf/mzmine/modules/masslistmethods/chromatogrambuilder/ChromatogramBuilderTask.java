@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -34,6 +35,9 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.PeakSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 /**
  *
@@ -149,6 +153,11 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
 		chromatograms = massConnector.finishChromatograms();
 
+		// Sort the final chromatograms by m/z
+		Arrays.sort(chromatograms, new PeakSorter(SortingProperty.MZ,
+				SortingDirection.Ascending));
+
+		// Add the chromatograms to the new peak list
 		for (ChromatographicPeak finishedPeak : chromatograms) {
 			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 			newPeakID++;
