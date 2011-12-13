@@ -22,47 +22,54 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.parameters.parametertypes.*;
+import net.sf.mzmine.util.Range;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "filtered");
+    public static final StringParameter SUFFIX = new StringParameter(
+            "Name suffix",
+            "Suffix to be added to peak list name",
+            "filtered");
 
-	public static final IntegerParameter minPeaks = new IntegerParameter(
-			"Minimum peaks in a row",
-			"Minimum number of peak detections required to select a row");
+    public static final IntegerParameter MIN_PEAK_COUNT = new IntegerParameter(
+            "Minimum peaks in a row",
+            "Minimum number of peak detections required per row",
+            1, 0, null);
 
-	public static final IntegerParameter minIsotopePatternSize = new IntegerParameter(
-			"Minimum peaks in an isotope pattern",
-			"Minimum number of peaks required in an isotope pattern");
+    public static final IntegerParameter MIN_ISOTOPE_PATTERN_COUNT = new IntegerParameter(
+            "Minimum peaks in an isotope pattern",
+            "Minimum number of peaks required in an isotope pattern");
 
-	public static final RangeParameter mzRange = new RangeParameter(
-			"m/z range", "Range of allowed m/z values",
-			MZmineCore.getMZFormat());
+    public static final RangeParameter MZ_RANGE = new RangeParameter(
+            "m/z range",
+            "Permissible range of (average) m/z values per row",
+            MZmineCore.getMZFormat());
 
-	public static final RangeParameter rtRange = new RangeParameter(
-			"Retention time range", "Maximum average retention time of a row",
-			MZmineCore.getRTFormat());
+    public static final RangeParameter RT_RANGE = new RangeParameter(
+            "Retention time range",
+            "Permissible range of (average) retention times per row",
+            MZmineCore.getRTFormat());
 
-	public static final BooleanParameter identified = new BooleanParameter(
-			"Only identified?", "Select to filter only identified compounds");
+    public static final RangeParameter PEAK_DURATION = new RangeParameter(
+            "Peak duration range",
+            "Permissible range of (average) peak durations per row",
+            MZmineCore.getRTFormat(),
+            new Range(0.0, 600.0));
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove source peak list after filtering",
-			"If checked, original peak list will be removed and only filtered version remains");
+    public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter(
+            "Only identified?",
+            "Select to filter only identified compounds");
 
-	public RowsFilterParameters() {
-		super(
-				new Parameter[] { peakLists, suffix, minPeaks,
-						minIsotopePatternSize, mzRange, rtRange, identified,
-						autoRemove });
-	}
+    public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
+            "Remove source peak list after filtering",
+            "If checked, the original peak list will be removed leaving only the filtered version");
 
+    public RowsFilterParameters() {
+        super(new Parameter[]{
+                PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
+                HAS_IDENTITIES, AUTO_REMOVE});
+    }
 }

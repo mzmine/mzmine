@@ -26,37 +26,34 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
 
-	private PeakResolver peakResolver;
+    public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
+            "Min peak height", "Minimum acceptable peak height (absolute intensity)", MZmineCore.getIntensityFormat());
 
-	public static final DoubleParameter minimumPeakHeight = new DoubleParameter(
-			"Min peak height",
-			"Minimum acceptable peak height (absolute intensity)",
-			MZmineCore.getIntensityFormat());
+    public static final RangeParameter PEAK_DURATION = new RangeParameter(
+            "Peak duration range", "Range of acceptable peak lengths", MZmineCore.getRTFormat(), new Range(0.0, 600.0));
 
-	public static final DoubleParameter minimumPeakDuration = new DoubleParameter(
-			"Min peak duration", "Minimum acceptable peak duration",
-			MZmineCore.getRTFormat());
+    public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL = new PercentParameter(
+            "Derivative threshold level", "Minimum acceptable intensity in the 2nd derivative for peak recognition");
 
-	public static final PercentParameter derivativeThresholdLevel = new PercentParameter(
-			"Derivative threshold level",
-			"Minimum acceptable intensity in the 2nd derivative for peak recognition");
+    private final PeakResolver peakResolver;
 
-	public ExitCode showSetupDialog() {
-		PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
-				peakResolver);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    @Override
+    public ExitCode showSetupDialog() {
 
-	public SavitzkyGolayPeakDetectorParameters(PeakResolver peakResolver) {
-		super(new Parameter[] { minimumPeakHeight, minimumPeakDuration,
-				derivativeThresholdLevel });
-		this.peakResolver = peakResolver;
+        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(peakResolver);
+        dialog.setVisible(true);
+        return dialog.getExitCode();
+    }
 
-	}
+    public SavitzkyGolayPeakDetectorParameters(final PeakResolver resolver) {
 
+        super(new Parameter[]{MIN_PEAK_HEIGHT, PEAK_DURATION, DERIVATIVE_THRESHOLD_LEVEL});
+        peakResolver = resolver;
+    }
 }

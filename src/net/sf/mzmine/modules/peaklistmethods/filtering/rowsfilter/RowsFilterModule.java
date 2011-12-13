@@ -27,44 +27,45 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 
 /**
- * This class implements a filter for alignment results Filter removes rows
- * which have less than defined number of peaks detected
- * 
+ * Implements a filter for alignment results. The filter removes rows that have fewer than a defined number of
+ * peaks detected and other conditions.
  */
 public class RowsFilterModule implements MZmineProcessingModule {
 
-	private RowsFilterParameters parameters = new RowsFilterParameters();
+    private final ParameterSet parameterSet = new RowsFilterParameters();
 
-	public String toString() {
-		return "Peak list rows filter";
-	}
+    public String toString() {
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+        return "Peak list rows filter";
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public ParameterSet getParameterSet() {
 
-		PeakList peakLists[] = parameters.getParameter(
-				RowsFilterParameters.peakLists).getValue();
+        return parameterSet;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new RowsFilterTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new RowsFilterTask(peakLists[i], parameters);
-		}
+    @Override
+    public Task[] runModule(final ParameterSet parameters) {
 
-		MZmineCore.getTaskController().addTasks(tasks);
+        final PeakList[] peakLists = parameters.getParameter(RowsFilterParameters.PEAK_LISTS).getValue();
 
-		return tasks;
+        // Prepare a new group of tasks.
+        final int peakListLen = peakLists.length;
+        final Task[] tasks = new RowsFilterTask[peakListLen];
+        for (int i = 0; i < peakListLen; i++) {
 
-	}
+            tasks[i] = new RowsFilterTask(peakLists[i], parameters);
+        }
 
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTFILTERING;
-	}
+        // Add tasks and return.
+        MZmineCore.getTaskController().addTasks(tasks);
+        return tasks;
+    }
 
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+
+        return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
 }
