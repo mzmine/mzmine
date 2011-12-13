@@ -33,6 +33,7 @@ import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
@@ -45,429 +46,455 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Ellipse2D;
-import java.text.NumberFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- *
+ * TIC plot.
  */
 public class TICPlot extends ChartPanel {
 
-    private JFreeChart chart;
+    // Logger.
+    private static final Logger LOG = Logger.getLogger(TICPlot.class.getName());
 
-    private XYPlot plot;
+    // Zoom factor.
+    private static final double ZOOM_FACTOR = 1.2;
 
-    private static final double zoomCoefficient = 1.2;
+    // Plot colors for plotted files.
+    private static final Color[] PLOT_COLORS = {new Color(0, 0, 192), // blue
+                                                new Color(192, 0, 0), // red
+                                                new Color(0, 192, 0), // green
+                                                Color.magenta, Color.cyan, Color.orange};
 
-    // private TICVisualizerWindow visualizer;
-    private ActionListener visualizer;
-
-    // plot colors for plotted files, circulated by numberOfDataSets
-    private static final Color[] plotColors = {new Color(0, 0, 192), // blue
-                                               new Color(192, 0, 0), // red
-                                               new Color(0, 192, 0), // green
-                                               Color.magenta, Color.cyan, Color.orange};
-
-    private static final Color[] peakColors = {Color.pink, Color.red,
-                                               Color.yellow, Color.blue, Color.lightGray, Color.orange, Color.green};
+    // Peak colours.
+    private static final Color[] PEAK_COLORS = {Color.pink, Color.red,
+                                                Color.yellow, Color.blue, Color.lightGray, Color.orange, Color.green};
 
     // peak labels color
-    private static final Color labelsColor = Color.darkGray;
+    private static final Color LABEL_COLOR = Color.darkGray;
 
     // grid color
-    private static final Color gridColor = Color.lightGray;
+    private static final Color GRID_COLOR = Color.lightGray;
 
-    // crosshair (selection) color
-    private static final Color crossHairColor = Color.gray;
+    // Cross-hair (selection) color.
+    private static final Color CROSS_HAIR_COLOR = Color.gray;
 
-    // crosshair stroke
-    private static final BasicStroke crossHairStroke = new BasicStroke(1,
-                                                                       BasicStroke.CAP_BUTT,
-                                                                       BasicStroke.JOIN_BEVEL,
-                                                                       1.0f,
-                                                                       new float[]{
-                                                                               5, 3},
-                                                                       0);
+    // Cross-hair stroke.
+    private static final Stroke CROSS_HAIR_STROKE =
+            new BasicStroke(1.0F, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{5.0F, 3.0F}, 0.0F);
 
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
-                                                                      5);
+    private static final Shape DATA_POINT_SHAPE = new Ellipse2D.Double(-2.0, -2.0, 5.0, 5.0);
 
-    // titles
-    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
-                                                      11);
-    private TextTitle chartTitle, chartSubTitle;
+    // Fonts.
+    private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 12);
+    private static final Font SUBTITLE_FONT = new Font("SansSerif", Font.PLAIN, 11);
+    private static final Font LEGEND_FONT = new Font("SansSerif", Font.PLAIN, 11);
 
-    // legend
-    private LegendTitle legend;
-    private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
+    // Axis offsets.
+    private static final RectangleInsets AXIS_OFFSET = new RectangleInsets(5.0, 5.0, 5.0, 5.0);
 
-    // renderers
-    private TICPlotRenderer defaultRenderer;
+    // Axis margins.
+    private static final double AXIS_MARGINS = 0.001;
 
-    // datasets counter
-    private int numOfDataSets = 0, numOfPeaks = 0;
+    // Title margin.
+    private static final double TITLE_TOP_MARGIN = 5.0;
+
+    // The plot.
+    private final XYPlot plot;
+
+    // TICVisualizerWindow visualizer.
+    private final ActionListener visualizer;
+
+    // Titles.
+    private final TextTitle chartTitle;
+    private final TextTitle chartSubTitle;
+
+    // Renderer.
+    private final TICPlotRenderer defaultRenderer;
+
+    // Counters.
+    private int numOfDataSets;
+    private int numOfPeaks;
 
     /**
      * Indicates whether we have a request to show spectra visualizer for
-     * selected data point. Since the selection (crosshair) is updated with some
+     * selected data point. Since the selection (cross-hair) is updated with some
      * delay after clicking with mouse, we cannot open the new visualizer
      * immediately. Therefore we place a request and open the visualizer later
      * in chartProgress()
      */
-    private boolean showSpectrumRequest = false;
+    private boolean showSpectrumRequest;
 
-    /**
-     *
-     */
-    public TICPlot(final ActionListener visualizer) {
+    // Label visibility: 0 -> none; 1 -> m/z; 2 -> identities
+    private int labelsVisible;
+    private boolean havePeakLabels;
+
+    public TICPlot(final ActionListener listener) {
 
         super(null, true);
 
-        this.visualizer = visualizer;
+        // Initialize.
+        visualizer = listener;
+        labelsVisible = 1;
+        havePeakLabels = false;
+        numOfDataSets = 0;
+        numOfPeaks = 0;
+        showSpectrumRequest = false;
 
+
+        // Set cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        String yAxisLabel;
-        if (visualizer instanceof TICVisualizerWindow) {
-            if (((TICVisualizerWindow) visualizer).getPlotType() == PlotType.BASEPEAK) {
-                yAxisLabel = "Base peak intensity";
-            } else {
-                yAxisLabel = "Total ion intensity";
-            }
+        // Y-axis label.
+        final String yAxisLabel;
+        if (listener instanceof TICVisualizerWindow) {
+
+            yAxisLabel = ((TICVisualizerWindow) listener).getPlotType() == PlotType.BASEPEAK ?
+                         "Base peak intensity" :
+                         "Total ion intensity";
         } else {
+
             yAxisLabel = "Base peak intensity";
         }
 
-        // initialize the chart by default time series chart from factory
-        chart = ChartFactory.createXYLineChart("", // title
-                                               "Retention time", // x-axis label
-                                               yAxisLabel, // y-axis label
-                                               null, // data set
-                                               PlotOrientation.VERTICAL, // orientation
-                                               true, // create legend?
-                                               true, // generate tooltips?
-                                               false // generate URLs?
+        // Initialize the chart by default time series chart from factory.
+        final JFreeChart chart = ChartFactory.createXYLineChart("", // title
+                                                                "Retention time", // x-axis label
+                                                                yAxisLabel, // y-axis label
+                                                                null, // data set
+                                                                PlotOrientation.VERTICAL, // orientation
+                                                                true, // create legend?
+                                                                true, // generate tooltips?
+                                                                false // generate URLs?
         );
         chart.setBackgroundPaint(Color.white);
         setChart(chart);
 
-        // title
+        // Title.
         chartTitle = chart.getTitle();
-        chartTitle.setFont(titleFont);
-        chartTitle.setMargin(5, 0, 0, 0);
+        chartTitle.setFont(TITLE_FONT);
+        chartTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
 
+        // Subtitle.
         chartSubTitle = new TextTitle();
-        chartSubTitle.setFont(subTitleFont);
-        chartSubTitle.setMargin(5, 0, 0, 0);
+        chartSubTitle.setFont(SUBTITLE_FONT);
+        chartSubTitle.setMargin(TITLE_TOP_MARGIN, 0.0, 0.0, 0.0);
         chart.addSubtitle(chartSubTitle);
 
-        // disable maximum size (we don't want scaling)
+        // Disable maximum size (we don't want scaling).
         setMaximumDrawWidth(Integer.MAX_VALUE);
         setMaximumDrawHeight(Integer.MAX_VALUE);
 
-        // legend constructed by ChartFactory
-        legend = chart.getLegend();
-        legend.setItemFont(legendFont);
+        // Legend constructed by ChartFactory.
+        final LegendTitle legend = chart.getLegend();
+        legend.setItemFont(LEGEND_FONT);
         legend.setFrame(BlockBorder.NONE);
 
-        // set the plot properties
+        // Set the plot properties.
         plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.white);
-        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+        plot.setAxisOffset(AXIS_OFFSET);
         plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        // set grid properties
-        plot.setDomainGridlinePaint(gridColor);
-        plot.setRangeGridlinePaint(gridColor);
+        // Set grid properties.
+        plot.setDomainGridlinePaint(GRID_COLOR);
+        plot.setRangeGridlinePaint(GRID_COLOR);
 
-        // set crosshair (selection) properties
-        if (visualizer instanceof TICVisualizerWindow) {
+        // Set cross-hair (selection) properties.
+        if (listener instanceof TICVisualizerWindow) {
+
             plot.setDomainCrosshairVisible(true);
             plot.setRangeCrosshairVisible(true);
-            plot.setDomainCrosshairPaint(crossHairColor);
-            plot.setRangeCrosshairPaint(crossHairColor);
-            plot.setDomainCrosshairStroke(crossHairStroke);
-            plot.setRangeCrosshairStroke(crossHairStroke);
+            plot.setDomainCrosshairPaint(CROSS_HAIR_COLOR);
+            plot.setRangeCrosshairPaint(CROSS_HAIR_COLOR);
+            plot.setDomainCrosshairStroke(CROSS_HAIR_STROKE);
+            plot.setRangeCrosshairStroke(CROSS_HAIR_STROKE);
         }
 
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+        // Set the x-axis (retention time) properties.
+        final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+        xAxis.setNumberFormatOverride(MZmineCore.getRTFormat());
+        xAxis.setUpperMargin(AXIS_MARGINS);
+        xAxis.setLowerMargin(AXIS_MARGINS);
 
-        // set the X axis (retention time) properties
-        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
-        xAxis.setNumberFormatOverride(rtFormat);
-        xAxis.setUpperMargin(0.001);
-        xAxis.setLowerMargin(0.001);
+        // Set the y-axis (intensity) properties.
+        final NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+        yAxis.setNumberFormatOverride(MZmineCore.getIntensityFormat());
 
-        // set the Y axis (intensity) properties
-        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setNumberFormatOverride(intensityFormat);
-
-        // set default renderer properties
+        // Set default renderer properties.
         defaultRenderer = new TICPlotRenderer();
         defaultRenderer.setBaseShapesFilled(true);
         defaultRenderer.setDrawOutlines(false);
         defaultRenderer.setUseFillPaint(true);
-        defaultRenderer.setBaseItemLabelPaint(labelsColor);
+        defaultRenderer.setBaseItemLabelPaint(LABEL_COLOR);
 
-        // set label generator
-        XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
+        // Set label generator
+        final XYItemLabelGenerator labelGenerator = new TICItemLabelGenerator(this);
         defaultRenderer.setBaseItemLabelGenerator(labelGenerator);
         defaultRenderer.setBaseItemLabelsVisible(true);
 
-        // set toolTipGenerator
-        XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
+        // Set toolTipGenerator
+        final XYToolTipGenerator toolTipGenerator = new TICToolTipGenerator();
         defaultRenderer.setBaseToolTipGenerator(toolTipGenerator);
 
-        // set focusable state to receive key events
+        // Set focus state to receive key events.
         setFocusable(true);
 
-        // register key handlers
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"),
-                                    visualizer, "MOVE_CURSOR_LEFT");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"),
-                                    visualizer, "MOVE_CURSOR_RIGHT");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"),
-                                    visualizer, "SHOW_SPECTRUM");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this,
-                                    "ZOOM_IN");
-        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this,
-                                    "ZOOM_OUT");
+        // Register key handlers.
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("LEFT"), listener, "MOVE_CURSOR_LEFT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("RIGHT"), listener, "MOVE_CURSOR_RIGHT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), listener, "SHOW_SPECTRUM");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
 
-        // add items to popup menu
-        JPopupMenu popupMenu = getPopupMenu();
+        // Add items to popup menu.
+        final JPopupMenu popupMenu = getPopupMenu();
         popupMenu.addSeparator();
 
-        if (visualizer instanceof TICVisualizerWindow) {
+        if (listener instanceof TICVisualizerWindow) {
 
-            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) visualizer));
+            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
             popupMenu.addSeparator();
-            popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) visualizer));
-            popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) visualizer));
-            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) visualizer));
+            popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
+            popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
+            popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
             popupMenu.addSeparator();
-
         }
 
-        GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this,
-                             "SHOW_ANNOTATIONS");
-        GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this,
-                             "SHOW_DATA_POINTS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
+        GUIUtils.addMenuItem(popupMenu, "Toggle showing data points", this, "SHOW_DATA_POINTS");
 
-        if (visualizer instanceof TICVisualizerWindow) {
+        if (listener instanceof TICVisualizerWindow) {
             popupMenu.addSeparator();
-            GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan",
-                                 visualizer, "SHOW_SPECTRUM");
+            GUIUtils.addMenuItem(popupMenu, "Show spectrum of selected scan", listener, "SHOW_SPECTRUM");
         }
 
         popupMenu.addSeparator();
 
         GUIUtils.addMenuItem(popupMenu, "Set axes range", this, "SETUP_AXES");
 
-        if (visualizer instanceof TICVisualizerWindow) {
-            GUIUtils.addMenuItem(popupMenu, "Set same range to all windows",
-                                 this, "SET_SAME_RANGE");
-        }
+        if (listener instanceof TICVisualizerWindow) {
 
+            GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", this, "SET_SAME_RANGE");
+        }
     }
 
-    public void actionPerformed(ActionEvent event) {
+    @Override public void actionPerformed(final ActionEvent event) {
 
         super.actionPerformed(event);
 
-        String command = event.getActionCommand();
+        final String command = event.getActionCommand();
 
-        if (command.equals("SHOW_DATA_POINTS")) {
-            this.switchDataPointsVisible();
+        if ("SHOW_DATA_POINTS".equals(command)) {
+
+            switchDataPointsVisible();
         }
 
-        if (command.equals("SHOW_ANNOTATIONS")) {
-            this.switchItemLabelsVisible();
+        if ("SHOW_ANNOTATIONS".equals(command)) {
+
+            switchItemLabelsVisible();
         }
 
-        if (command.equals("SETUP_AXES")) {
-            AxesSetupDialog dialog = new AxesSetupDialog(this.getXYPlot());
-            dialog.setVisible(true);
+        if ("SETUP_AXES".equals(command)) {
+
+            new AxesSetupDialog(getXYPlot()).setVisible(true);
         }
 
-        if (command.equals("ZOOM_IN")) {
-            this.getXYPlot().getDomainAxis().resizeRange(1 / zoomCoefficient);
+        if ("ZOOM_IN".equals(command)) {
+
+            getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
         }
 
-        if (command.equals("ZOOM_OUT")) {
-            this.getXYPlot().getDomainAxis().resizeRange(zoomCoefficient);
+        if ("ZOOM_OUT".equals(command)) {
+
+            getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
         }
 
-        if (command.equals("SET_SAME_RANGE")) {
+        if ("SET_SAME_RANGE".equals(command)) {
 
-            // Get current axes range
-            NumberAxis xAxis = (NumberAxis) this.getXYPlot().getDomainAxis();
-            NumberAxis yAxis = (NumberAxis) this.getXYPlot().getRangeAxis();
-            double xMin = (double) xAxis.getRange().getLowerBound();
-            double xMax = (double) xAxis.getRange().getUpperBound();
-            double xTick = (double) xAxis.getTickUnit().getSize();
-            double yMin = (double) yAxis.getRange().getLowerBound();
-            double yMax = (double) yAxis.getRange().getUpperBound();
-            double yTick = (double) yAxis.getTickUnit().getSize();
-
-            // Get all frames of my class
-            JInternalFrame frames[] = MZmineCore.getDesktop()
-                    .getInternalFrames();
+            // Get current axes range.
+            final NumberAxis xAxis = (NumberAxis) getXYPlot().getDomainAxis();
+            final NumberAxis yAxis = (NumberAxis) getXYPlot().getRangeAxis();
+            final double xMin = xAxis.getRange().getLowerBound();
+            final double xMax = xAxis.getRange().getUpperBound();
+            final double xTick = xAxis.getTickUnit().getSize();
+            final double yMin = yAxis.getRange().getLowerBound();
+            final double yMax = yAxis.getRange().getUpperBound();
+            final double yTick = yAxis.getTickUnit().getSize();
 
             // Set the range of these frames
-            for (JInternalFrame frame : frames) {
-                if (!(frame instanceof TICVisualizerWindow)) {
-                    continue;
-                }
-                TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;
-                ticFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
-            }
+            for (final JInternalFrame frame : MZmineCore.getDesktop().getInternalFrames()) {
+                if (frame instanceof TICVisualizerWindow) {
 
+                    final TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;
+                    ticFrame.setAxesRange(xMin, xMax, xTick, yMin, yMax, yTick);
+                }
+            }
         }
 
-        if (command.equals("SHOW_SPECTRUM")) {
+        if ("SHOW_SPECTRUM".equals(command)) {
+
             visualizer.actionPerformed(event);
         }
     }
 
-    /**
-     * @see java.awt.event.MouseListener#mouseClicked(java.awt.event.MouseEvent)
-     */
-    public void mouseClicked(MouseEvent event) {
+    @Override public void mouseClicked(final MouseEvent event) {
 
-        // let the parent handle the event (selection etc.)
+        // Let the parent handle the event (selection etc.)
         super.mouseClicked(event);
 
-        // request focus to receive key events
+        // Request focus to receive key events.
         requestFocus();
 
-        // if user double-clicked left button, place a request to open a
-        // spectrum
-        if ((event.getButton() == MouseEvent.BUTTON1)
-            && (event.getClickCount() == 2)) {
+        // If user double-clicked left button, place a request to open a spectrum.
+        if (event.getButton() == MouseEvent.BUTTON1 && event.getClickCount() == 2) {
+
             showSpectrumRequest = true;
         }
-
     }
 
-    /**
-     * @see org.jfree.chart.event.ChartProgressListener#chartProgress(org.jfree.chart.event.ChartProgressEvent)
-     */
-    public void chartProgress(ChartProgressEvent event) {
+    @Override public void chartProgress(final ChartProgressEvent event) {
 
         super.chartProgress(event);
 
         if (event.getType() == ChartProgressEvent.DRAWING_FINISHED) {
 
             if (visualizer instanceof TICVisualizerWindow) {
+
                 ((TICVisualizerWindow) visualizer).updateTitle();
             }
 
             if (showSpectrumRequest) {
+
                 showSpectrumRequest = false;
-                visualizer.actionPerformed(new ActionEvent(event.getSource(),
-                                                           ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
+                visualizer.actionPerformed(
+                        new ActionEvent(event.getSource(), ActionEvent.ACTION_PERFORMED, "SHOW_SPECTRUM"));
             }
         }
-
     }
 
     public void switchItemLabelsVisible() {
 
-        boolean itemLabelsVisible = false;
+        // Switch to next mode.  Include peaks mode only if peak labels are present.
+        labelsVisible = (labelsVisible + 1) % (havePeakLabels ? 3 : 2);
 
-        for (int i = 0; i < plot.getDatasetCount(); i++) {
-            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
-                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
-                        .getRenderer(i);
-                itemLabelsVisible = renderer.isSeriesItemLabelsVisible(0);
-                break;
-            }
+        final int dataSetCount = plot.getDatasetCount();
+        for (int i = 0; i < dataSetCount; i++) {
 
-        }
+            final XYDataset dataSet = plot.getDataset(i);
+            final XYItemRenderer renderer = plot.getRenderer(i);
+            if (dataSet instanceof TICDataSet) {
 
-        for (int i = 0; i < plot.getDatasetCount(); i++) {
-            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
-                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
-                        .getRenderer(i);
-                renderer.setBaseItemLabelsVisible(!itemLabelsVisible);
+                renderer.setBaseItemLabelsVisible(labelsVisible == 1);
+
+            } else if (dataSet instanceof PeakDataSet) {
+
+                renderer.setBaseItemLabelsVisible(labelsVisible == 2);
+
+            } else {
+
+                renderer.setBaseItemLabelsVisible(false);
+
             }
         }
     }
 
     public void switchDataPointsVisible() {
 
-        boolean dataPointsVisible = false;
+        Boolean dataPointsVisible = null;
+        final int count = plot.getDatasetCount();
+        for (int i = 0; i < count; i++) {
 
-        for (int i = 0; i < plot.getDatasetCount(); i++) {
             if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
-                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
-                        .getRenderer(i);
-                dataPointsVisible = renderer.getBaseShapesVisible();
-                break;
-            }
-        }
 
-        for (int i = 0; i < plot.getDatasetCount(); i++) {
-            if (plot.getRenderer(i) instanceof XYLineAndShapeRenderer) {
-                XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot
-                        .getRenderer(i);
-                renderer.setBaseShapesVisible(!dataPointsVisible);
+                final XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) plot.getRenderer(i);
+                if (dataPointsVisible == null) {
+                    dataPointsVisible = !renderer.getBaseShapesVisible();
+                }
+                renderer.setBaseShapesVisible(dataPointsVisible);
             }
         }
     }
 
     public XYPlot getXYPlot() {
+
         return plot;
     }
 
-    synchronized public void addTICDataset(XYDataset newSet) {
-
-        plot.setDataset(numOfDataSets + numOfPeaks, newSet);
-
+    public synchronized void addTICDataset(final XYDataset dataSet) {
         try {
-            TICPlotRenderer newRenderer = (TICPlotRenderer) defaultRenderer.clone();
-            Color rendererColor = plotColors[numOfDataSets % plotColors.length];
-            newRenderer.setSeriesPaint(0, rendererColor);
-            newRenderer.setSeriesFillPaint(0, rendererColor);
-            newRenderer.setSeriesShape(0, dataPointsShape);
-            plot.setRenderer(numOfDataSets + numOfPeaks, newRenderer);
+            final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
+            final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
+            renderer.setSeriesPaint(0, rendererColor);
+            renderer.setSeriesFillPaint(0, rendererColor);
+            renderer.setSeriesShape(0, DATA_POINT_SHAPE);
+            renderer.setBaseItemLabelsVisible(labelsVisible == 1);
+            addDataSetRenderer(dataSet, renderer);
+            numOfDataSets++;
         }
         catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            LOG.log(Level.WARNING, "Unable to clone renderer", e);
         }
-        numOfDataSets++;
-
     }
 
-    synchronized public void addPeakDataset(PeakDataSet newSet) {
+    public synchronized void addPeakDataset(final XYDataset dataSet) {
 
-        plot.setDataset(numOfDataSets + numOfPeaks, newSet);
-
-        //XYAreaRenderer newRenderer = new XYAreaRenderer(XYAreaRenderer.AREA);
-        PeakTICPlotRenderer newRenderer = new PeakTICPlotRenderer(0.6f);
-
-        Color peakColor = peakColors[numOfPeaks % peakColors.length];
-        newRenderer.setSeriesPaint(0, peakColor);
-        plot.setRenderer(numOfDataSets + numOfPeaks, newRenderer);
-
+        final PeakTICPlotRenderer renderer = new PeakTICPlotRenderer();
+        renderer.setBaseToolTipGenerator(new TICToolTipGenerator());
+        renderer.setSeriesPaint(0, PEAK_COLORS[numOfPeaks % PEAK_COLORS.length]);
+        addDataSetRenderer(dataSet, renderer);
         numOfPeaks++;
+    }
 
+    public synchronized void addLabelledPeakDataset(final XYDataset dataSet, final String label) {
+
+        // Add standard peak data set.
+        addPeakDataset(dataSet);
+
+        // Do we have a label?
+        if (label != null && label.length() > 0) {
+
+            // Add peak label renderer and data set.
+            final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, false);
+            renderer.setBaseItemLabelsVisible(labelsVisible == 2);
+            renderer.setBaseItemLabelPaint(LABEL_COLOR);
+            addDataSetRenderer(dataSet, renderer);
+            renderer.setBaseItemLabelGenerator(new XYItemLabelGenerator() {
+
+                @Override
+                public String generateLabel(final XYDataset xyDataSet, final int series, final int item) {
+
+                    return ((PeakDataSet) xyDataSet).isPeak(item) ? label : null;
+                }
+            });
+
+            numOfPeaks++;
+            havePeakLabels = true;
+        }
     }
 
     public void removeAllTICDataSets() {
-        int dataSetCount = plot.getDatasetCount();
+
+        final int dataSetCount = plot.getDatasetCount();
         for (int index = 0; index < dataSetCount; index++) {
+
             plot.setDataset(index, null);
         }
         numOfPeaks = 0;
         numOfDataSets = 0;
     }
 
-    public void setTitle(String titleText, String subTitleText) {
+    public void setTitle(final String titleText, final String subTitleText) {
+
         chartTitle.setText(titleText);
         chartSubTitle.setText(subTitleText);
     }
 
+    private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {
+
+        final int index = numOfDataSets + numOfPeaks;
+        plot.setRenderer(index, renderer);
+        plot.setDataset(index, dataSet);
+    }
 }

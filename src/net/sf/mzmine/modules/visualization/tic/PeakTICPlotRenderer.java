@@ -19,10 +19,6 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import java.awt.AlphaComposite;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -31,33 +27,44 @@ import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
 
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+
 public class PeakTICPlotRenderer extends XYAreaRenderer {
 
-	private float transparency = 1.0f;
+    private static final float OPACITY = 0.6f;
 
-	public PeakTICPlotRenderer(double transparency) {
-		super(XYAreaRenderer.AREA);
-		if ((transparency > 1.0) || (transparency < 0))
-			return;
-		else
-			this.transparency = (float) transparency;
-	}
-	
-	private AlphaComposite makeComposite(double alpha) {
-		int type = AlphaComposite.SRC_OVER;
-		return (AlphaComposite.getInstance(type, (float) alpha));
-	}
+    private static Composite makeComposite(final float alpha) {
 
-	public void drawItem(Graphics2D g2, XYItemRendererState state,
-			Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-			ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-			int series, int item, CrosshairState crosshairState, int pass) {
+        return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+    }
 
-		g2.setComposite(makeComposite(transparency));
+    @Override
+    public void drawItem(final Graphics2D g2,
+                         final XYItemRendererState state,
+                         final Rectangle2D dataArea,
+                         final PlotRenderingInfo info,
+                         final XYPlot plot,
+                         final ValueAxis domainAxis,
+                         final ValueAxis rangeAxis,
+                         final XYDataset dataSet,
+                         final int series,
+                         final int item,
+                         final CrosshairState crosshairState,
+                         final int pass) {
 
-		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-				dataset, series, item, crosshairState, pass);
-
-	}
-
+        g2.setComposite(makeComposite(OPACITY));
+        super.drawItem(g2,
+                       state,
+                       dataArea,
+                       info,
+                       plot,
+                       domainAxis,
+                       rangeAxis,
+                       dataSet,
+                       series,
+                       item,
+                       crosshairState,
+                       pass);
+    }
 }

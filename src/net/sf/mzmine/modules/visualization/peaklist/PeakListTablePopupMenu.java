@@ -42,8 +42,7 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -256,15 +255,19 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
 
         if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
 
-            final RawDataFile[] selectedDataFiles = {
-                    clickedDataFile == null ? allClickedPeakListRows[0].getBestPeak().getDataFile() : clickedDataFile};
+            // Map peaks to their identity labels.
+            Map<ChromatographicPeak, String> labelsMap =
+                    new HashMap<ChromatographicPeak, String>(allClickedPeakListRows.length);
+
+            final RawDataFile selectedDataFile =
+                    clickedDataFile == null ? allClickedPeakListRows[0].getBestPeak().getDataFile() : clickedDataFile;
 
             Range mzRange = null;
             final List<ChromatographicPeak> selectedPeaks =
                     new ArrayList<ChromatographicPeak>(allClickedPeakListRows.length);
             for (final PeakListRow row : allClickedPeakListRows) {
 
-                final ChromatographicPeak peak = row.getPeak(selectedDataFiles[0]);
+                final ChromatographicPeak peak = row.getPeak(selectedDataFile);
                 if (peak != null) {
 
                     selectedPeaks.add(peak);
@@ -274,28 +277,43 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
                     } else {
                         mzRange.extendRange(peak.getRawDataPointsMZRange());
                     }
+
+                    // Label the peak with the row's preferred identity.
+                    PeakIdentity identity = row.getPreferredPeakIdentity();
+                    if (identity != null) {
+                        labelsMap.put(peak, identity.getName());
+                    }
                 }
             }
 
             TICVisualizerModule.showNewTICVisualizerWindow(
-                    selectedDataFiles,
+                    new RawDataFile[]{selectedDataFile},
                     selectedPeaks.toArray(new ChromatographicPeak[selectedPeaks.size()]),
+                    labelsMap,
                     1,
                     PlotType.BASEPEAK,
-                    selectedDataFiles[0].getDataRTRange(1),
+                    selectedDataFile.getDataRTRange(1),
                     mzRange);
         }
 
         if (showXICSetupItem.equals(src) && allClickedPeakListRows.length != 0) {
 
+            // Map peaks to their identity labels.
+            Map<ChromatographicPeak, String> labelsMap =
+                    new HashMap<ChromatographicPeak, String>(allClickedPeakListRows.length);
+
             final RawDataFile[] selectedDataFiles =
                     clickedDataFile == null ? peakList.getRawDataFiles() : new RawDataFile[]{clickedDataFile};
+
             Range mzRange = null;
             final ArrayList<ChromatographicPeak> allClickedPeaks =
                     new ArrayList<ChromatographicPeak>(allClickedPeakListRows.length);
             final ArrayList<ChromatographicPeak> selectedClickedPeaks =
                     new ArrayList<ChromatographicPeak>(allClickedPeakListRows.length);
             for (final PeakListRow row : allClickedPeakListRows) {
+
+                // Label the peak with the row's preferred identity.
+                PeakIdentity identity = row.getPreferredPeakIdentity();
 
                 for (final ChromatographicPeak peak : row.getPeaks()) {
 
@@ -309,6 +327,10 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
                     } else {
                         mzRange.extendRange(peak.getRawDataPointsMZRange());
                     }
+
+                    if (identity != null) {
+                        labelsMap.put(peak, identity.getName());
+                    }
                 }
             }
 
@@ -317,6 +339,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements ActionListener
                     selectedDataFiles,
                     allClickedPeaks.toArray(new ChromatographicPeak[allClickedPeaks.size()]),
                     selectedClickedPeaks.toArray(new ChromatographicPeak[selectedClickedPeaks.size()]),
+                    labelsMap,
                     selectedDataFiles[0].getDataRTRange(1),
                     mzRange);
         }

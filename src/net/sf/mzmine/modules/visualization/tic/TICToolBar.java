@@ -19,53 +19,65 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import java.awt.Color;
-import java.awt.Insets;
-import java.awt.event.ActionListener;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JToolBar;
-
 import net.sf.mzmine.util.GUIUtils;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
+
 /**
- * TIC visualizer's toolbar class
+ * TIC visualizer's toolbar.
  */
 public class TICToolBar extends JToolBar {
 
-    static final Icon showSpectrumIcon = new ImageIcon("icons/spectrumicon.png");
-    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-    static final Icon annotationsIcon = new ImageIcon(
-            "icons/annotationsicon.png");
-    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    // Margins.
+    private static final Insets MARGIN = new Insets(5, 5, 5, 5);
 
-    public TICToolBar(ActionListener masterFrame) {
+    // Icons.
+    private static final Icon SHOW_SPECTRUM_ICON = new ImageIcon("icons/spectrumicon.png");
+    private static final Icon DATA_POINTS_ICON = new ImageIcon("icons/datapointsicon.png");
+    private static final Icon ANNOTATIONS_ICON = new ImageIcon("icons/annotationsicon.png");
+    private static final Icon AXES_ICON = new ImageIcon("icons/axesicon.png");
 
-        super(JToolBar.VERTICAL);
+    public TICToolBar(final ActionListener listener) {
 
+        super(SwingConstants.VERTICAL);
         setFloatable(false);
-        setMargin(new Insets(5, 5, 5, 5));
+        setMargin(MARGIN);
         setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, showSpectrumIcon, masterFrame,
-                "SHOW_SPECTRUM", "Show spectrum of selected scan");
+        GUIUtils.addButton(this,
+                           null,
+                           SHOW_SPECTRUM_ICON,
+                           listener,
+                           "SHOW_SPECTRUM",
+                           "Show spectrum of selected scan");
 
         addSeparator();
 
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "SHOW_DATA_POINTS", "Toggle displaying of data points");
+        GUIUtils.addButton(this,
+                           null,
+                           DATA_POINTS_ICON,
+                           listener,
+                           "SHOW_DATA_POINTS",
+                           "Toggle displaying of data points");
 
         addSeparator();
 
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+        GUIUtils.addButton(this,
+                           null,
+                           ANNOTATIONS_ICON,
+                           listener,
+                           "SHOW_ANNOTATIONS",
+                           "Toggle displaying of peak labels");
 
         addSeparator();
 
-        GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
-                "Setup ranges for axes");
-
+        GUIUtils.addButton(this,
+                           null,
+                           AXES_ICON,
+                           listener,
+                           "SETUP_AXES",
+                           "Setup ranges for axes");
     }
-
 }

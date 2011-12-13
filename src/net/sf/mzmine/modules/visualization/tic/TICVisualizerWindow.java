@@ -38,6 +38,7 @@ import java.io.File;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -63,7 +64,8 @@ public class TICVisualizerWindow extends JInternalFrame implements
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
                                int msLevel, Range rtRange, Range mzRange,
-                               ChromatographicPeak[] peaks) {
+                               ChromatographicPeak[] peaks,
+                               Map<ChromatographicPeak, String> peakLabels) {
 
         super(null, true, true, true, true);
 
@@ -86,9 +88,18 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
         // add all peaks
         if (peaks != null) {
+
             for (ChromatographicPeak peak : peaks) {
-                PeakDataSet peakDataSet = new PeakDataSet(peak);
-                ticPlot.addPeakDataset(peakDataSet);
+
+                if (peakLabels != null && peakLabels.containsKey(peak)) {
+
+                    final String label = peakLabels.get(peak);
+                    ticPlot.addLabelledPeakDataset(new PeakDataSet(peak, label), label);
+
+                } else {
+
+                    ticPlot.addPeakDataset(new PeakDataSet(peak));
+                }
             }
         }
 

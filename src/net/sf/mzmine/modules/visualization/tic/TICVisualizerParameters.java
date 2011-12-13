@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import java.util.Hashtable;
-
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -31,71 +29,133 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.RawDataFileUtils;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TICVisualizerParameters extends SimpleParameterSet {
 
-	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-			"Data files", "Please choose raw data files to plot",
-			new RawDataFile[0]);
+    /**
+     * The data file.
+     */
+    public static final MultiChoiceParameter<RawDataFile> DATA_FILES = new MultiChoiceParameter<RawDataFile>(
+            "Data files",
+            "Please choose raw data files to plot",
+            new RawDataFile[0]);
 
-	public static final MSLevelParameter msLevel = new MSLevelParameter();
+    /**
+     * MS level.
+     */
+    public static final MSLevelParameter MS_LEVEL = new MSLevelParameter();
 
-	public static final ComboParameter<PlotType> plotType = new ComboParameter<PlotType>(
-			"Plot type",
-			"Type of Y value calculation (TIC = sum, base peak = max)",
-			PlotType.values());
+    /**
+     * Type of plot.
+     */
+    public static final ComboParameter<PlotType> PLOT_TYPE = new ComboParameter<PlotType>(
+            "Plot type",
+            "Type of Y value calculation (TIC = sum, base peak = max)",
+            PlotType.values());
 
-	public static final RangeParameter retentionTimeRange = new RangeParameter(
-			"Retention time", "Retention time (X axis) range",
-			MZmineCore.getRTFormat());
+    /**
+     * RT range.
+     */
+    public static final RangeParameter RT_RANGE = new RangeParameter(
+            "Retention time", "Retention time (X axis) range",
+            MZmineCore.getRTFormat());
 
-	public static final RangeParameter mzRange = new RangeParameter(
-			"m/z range",
-			"Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
-			MZmineCore.getMZFormat());
+    /**
+     * m/z range.
+     */
+    public static final RangeParameter MZ_RANGE = new RangeParameter(
+            "m/z range",
+            "Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
+            MZmineCore.getMZFormat());
 
-	public static final MultiChoiceParameter<ChromatographicPeak> peaks = new MultiChoiceParameter<ChromatographicPeak>(
-			"Peaks", "Please choose peaks to visualize",
-			new ChromatographicPeak[0], null, 0);
+    /**
+     * Peaks to display.
+     */
+    public static final MultiChoiceParameter<ChromatographicPeak> PEAKS = new MultiChoiceParameter<ChromatographicPeak>(
+            "Peaks",
+            "Please choose peaks to visualize",
+            new ChromatographicPeak[0],
+            null,
+            0);
 
-	public TICVisualizerParameters() {
-		super(new Parameter[] { dataFiles, msLevel, plotType,
-				retentionTimeRange, mzRange, peaks });
-	}
+    // Maps peaks to their labels - not a user configurable parameter.
+    private Map<ChromatographicPeak, String> peakLabelMap;
 
-	public ExitCode showSetupDialog() {
+    /**
+     * Create the parameter set.
+     */
+    public TICVisualizerParameters() {
 
-		return showSetupDialog(MZmineCore.getCurrentProject().getDataFiles(),
-				MZmineCore.getDesktop().getSelectedDataFiles(),
-				new ChromatographicPeak[0], new ChromatographicPeak[0]);
+        super(new Parameter[]{DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE, MZ_RANGE, PEAKS});
+        peakLabelMap = null;
+    }
 
-	}
+    /**
+     * Gets the peak labels map.
+     *
+     * @return the map.
+     */
+    public Map<ChromatographicPeak, String> getPeakLabelMap() {
 
-	public ExitCode showSetupDialog(RawDataFile allFiles[],
-			RawDataFile selectedFiles[], ChromatographicPeak allPeaks[],
-			ChromatographicPeak selectedPeaks[]) {
+        return peakLabelMap == null ? null : new HashMap<ChromatographicPeak, String>(peakLabelMap);
+    }
 
-		getParameter(TICVisualizerParameters.dataFiles).setChoices(allFiles);
-		getParameter(TICVisualizerParameters.dataFiles).setValue(selectedFiles);
+    /**
+     * Sets the peak labels map.
+     *
+     * @param map the new map.
+     */
+    public void setPeakLabelMap(final Map<ChromatographicPeak, String> map) {
 
-		getParameter(TICVisualizerParameters.peaks).setChoices(allPeaks);
-		getParameter(TICVisualizerParameters.peaks).setValue(selectedPeaks);
+        peakLabelMap = map == null ? null : new HashMap<ChromatographicPeak, String>(map);
+    }
 
-		Hashtable<UserParameter, Object> autoValues = null;
+    /**
+     * Show the setup dialog.
+     *
+     * @return an ExitCode indicating the user's action.
+     */
+    @Override
+    public ExitCode showSetupDialog() {
 
-		if ((selectedFiles != null) && (selectedFiles.length > 0)) {
-			autoValues = new Hashtable<UserParameter, Object>();
-			autoValues.put(TICVisualizerParameters.msLevel, 1);
-			Range rtRange = RawDataFileUtils.findTotalRTRange(selectedFiles, 1);
-			Range mzRange = RawDataFileUtils.findTotalMZRange(selectedFiles, 1);
-			autoValues.put(TICVisualizerParameters.retentionTimeRange, rtRange);
-			autoValues.put(TICVisualizerParameters.mzRange, mzRange);
-		}
+        return showSetupDialog(MZmineCore.getCurrentProject().getDataFiles(),
+                               MZmineCore.getDesktop().getSelectedDataFiles(),
+                               new ChromatographicPeak[0],
+                               new ChromatographicPeak[0]);
+    }
 
-		return super.showSetupDialog(autoValues);
-	}
+    /**
+     * Show the setup dialog.
+     *
+     * @param allFiles      files to choose from.
+     * @param selectedFiles default file selections.
+     * @param allPeaks      peaks to choose from.
+     * @param selectedPeaks default peak selections.
+     * @return an ExitCode indicating the user's action.
+     */
+    public ExitCode showSetupDialog(final RawDataFile[] allFiles,
+                                    final RawDataFile[] selectedFiles, final ChromatographicPeak[] allPeaks,
+                                    final ChromatographicPeak[] selectedPeaks) {
 
+        getParameter(DATA_FILES).setChoices(allFiles);
+        getParameter(DATA_FILES).setValue(selectedFiles);
+        getParameter(PEAKS).setChoices(allPeaks);
+        getParameter(PEAKS).setValue(selectedPeaks);
+
+        Map<UserParameter, Object> autoValues = null;
+        if (selectedFiles != null && selectedFiles.length > 0) {
+
+            autoValues = new HashMap<UserParameter, Object>(3);
+            autoValues.put(MS_LEVEL, 1);
+            autoValues.put(RT_RANGE, RawDataFileUtils.findTotalRTRange(selectedFiles, 1));
+            autoValues.put(MZ_RANGE, RawDataFileUtils.findTotalMZRange(selectedFiles, 1));
+        }
+
+        return showSetupDialog(autoValues);
+    }
 }

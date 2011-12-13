@@ -29,127 +29,145 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.ExitCode;
 
+import java.util.Map;
+
 /**
  * TIC/XIC visualizer using JFreeChart library
  */
 public class TICVisualizerModule implements MZmineProcessingModule {
 
-	private static TICVisualizerModule myInstance;
+    private static TICVisualizerModule myInstance;
 
-	private TICVisualizerParameters parameters = new TICVisualizerParameters();
+    private final TICVisualizerParameters parameters = new TICVisualizerParameters();
 
-	public TICVisualizerModule() {
-		myInstance = this;
-	}
+    public TICVisualizerModule() {
 
-	public static void setupNewTICVisualizer(RawDataFile dataFile) {
-		setupNewTICVisualizer(new RawDataFile[] { dataFile });
-	}
+        myInstance = this;
+    }
 
-	public static void setupNewTICVisualizer(RawDataFile[] dataFiles) {
-		setupNewTICVisualizer(MZmineCore.getCurrentProject().getDataFiles(),
-				dataFiles, new ChromatographicPeak[0],
-				new ChromatographicPeak[0], null, null);
-	}
+    public static void setupNewTICVisualizer(final RawDataFile dataFile) {
 
-	public static void setupNewTICVisualizer(RawDataFile[] allFiles,
-			RawDataFile[] selectedFiles, ChromatographicPeak allPeaks[],
-			ChromatographicPeak selectedPeaks[], Range rtRange, Range mzRange) {
+        setupNewTICVisualizer(new RawDataFile[]{dataFile});
+    }
 
-		assert allFiles != null;
+    public static void setupNewTICVisualizer(final RawDataFile[] dataFiles) {
 
-		myInstance.parameters.getParameter(TICVisualizerParameters.msLevel)
-				.setValue(1);
+        setupNewTICVisualizer(
+                MZmineCore.getCurrentProject().getDataFiles(),
+                dataFiles,
+                new ChromatographicPeak[0],
+                new ChromatographicPeak[0],
+                null,
+                null,
+                null);
+    }
 
-		myInstance.parameters.getParameter(TICVisualizerParameters.plotType)
-				.setValue(PlotType.BASEPEAK);
+    public static void setupNewTICVisualizer(final RawDataFile[] allFiles,
+                                             final RawDataFile[] selectedFiles,
+                                             final ChromatographicPeak[] allPeaks,
+                                             final ChromatographicPeak[] selectedPeaks,
+                                             final Map<ChromatographicPeak, String> peakLabels,
+                                             final Range rtRange, final Range mzRange) {
 
-		if (rtRange != null)
-			myInstance.parameters.getParameter(
-					TICVisualizerParameters.retentionTimeRange).setValue(
-					rtRange);
-		if (mzRange != null)
-			myInstance.parameters.getParameter(TICVisualizerParameters.mzRange)
-					.setValue(mzRange);
+        assert allFiles != null;
 
-		ExitCode exitCode = myInstance.parameters.showSetupDialog(allFiles,
-				selectedFiles, allPeaks, selectedPeaks);
+        final TICVisualizerParameters myParameters = myInstance.getParameterSet();
+        myParameters.getParameter(TICVisualizerParameters.MS_LEVEL).setValue(1);
+        myParameters.getParameter(TICVisualizerParameters.PLOT_TYPE).setValue(PlotType.BASEPEAK);
 
-		if (exitCode == ExitCode.OK)
-			myInstance.runModule(myInstance.parameters.clone());
-	}
+        if (rtRange != null) {
 
-	public static void showNewTICVisualizerWindow(RawDataFile[] dataFiles,
-			ChromatographicPeak selectionPeaks[], int msLevel,
-			PlotType plotType, Range rtRange, Range mzRange) {
+            myParameters.getParameter(TICVisualizerParameters.RT_RANGE).setValue(rtRange);
+        }
 
-		TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
-				plotType, msLevel, rtRange, mzRange, selectionPeaks);
-		MZmineCore.getDesktop().addInternalFrame(newWindow);
+        if (mzRange != null) {
 
-	}
+            myParameters.getParameter(TICVisualizerParameters.MZ_RANGE).setValue(mzRange);
+        }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "TIC/XIC visualizer";
-	}
+        if (myParameters.showSetupDialog(allFiles, selectedFiles, allPeaks, selectedPeaks) == ExitCode.OK) {
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public TICVisualizerParameters getParameterSet() {
-		return parameters;
-	}
+            final TICVisualizerParameters p = (TICVisualizerParameters) myParameters.clone();
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
+            if (peakLabels != null) {
+                p.setPeakLabelMap(peakLabels);
+            }
 
-		RawDataFile dataFiles[] = parameters.getParameter(
-				TICVisualizerParameters.dataFiles).getValue();
-		int msLevel = parameters.getParameter(TICVisualizerParameters.msLevel)
-				.getValue();
-		Range rtRange = parameters.getParameter(
-				TICVisualizerParameters.retentionTimeRange).getValue();
-		Range mzRange = parameters
-				.getParameter(TICVisualizerParameters.mzRange).getValue();
-		PlotType plotType = parameters.getParameter(
-				TICVisualizerParameters.plotType).getValue();
-		ChromatographicPeak selectionPeaks[] = parameters.getParameter(
-				TICVisualizerParameters.peaks).getValue();
+            myInstance.runModule(p);
+        }
+    }
 
-		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select raw data file(s)");
-			return null;
-		}
+    public static void showNewTICVisualizerWindow(final RawDataFile[] dataFiles,
+                                                  final ChromatographicPeak[] selectionPeaks,
+                                                  final Map<ChromatographicPeak, String> peakLabels,
+                                                  final int msLevel,
+                                                  final PlotType plotType,
+                                                  final Range rtRange,
+                                                  final Range mzRange) {
 
-		// Add the window to the desktop only if we actually have any raw data
-		// to show
-		boolean weHaveData = false;
-		for (RawDataFile file : dataFiles) {
-			int scanNumbers[] = file.getScanNumbers(msLevel, rtRange);
-			if (scanNumbers.length > 0) {
-				weHaveData = true;
-				break;
-			}
-		}
-		if (weHaveData) {
-			TICVisualizerWindow newWindow = new TICVisualizerWindow(dataFiles,
-					plotType, msLevel, rtRange, mzRange, selectionPeaks);
-			MZmineCore.getDesktop().addInternalFrame(newWindow);
-		} else {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"No scans found at MS level " + msLevel
-							+ " within given retention time range.");
-		}
-		return null;
-	}
+        MZmineCore.getDesktop().addInternalFrame(
+                new TICVisualizerWindow(dataFiles, plotType, msLevel, rtRange, mzRange, selectionPeaks, peakLabels));
+    }
 
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-	}
+    public String toString() {
+        return "TIC/XIC visualizer";
+    }
 
+    @Override
+    public TICVisualizerParameters getParameterSet() {
+
+        return parameters;
+    }
+
+    @Override
+    public Task[] runModule(final ParameterSet parameterSet) {
+
+        final RawDataFile[] dataFiles = parameterSet.getParameter(TICVisualizerParameters.DATA_FILES).getValue();
+        final int msLevel = parameterSet.getParameter(TICVisualizerParameters.MS_LEVEL).getValue();
+        final Range rtRange = parameterSet.getParameter(TICVisualizerParameters.RT_RANGE).getValue();
+        final Range mzRange = parameterSet.getParameter(TICVisualizerParameters.MZ_RANGE).getValue();
+        final PlotType plotType = parameterSet.getParameter(TICVisualizerParameters.PLOT_TYPE).getValue();
+        final ChromatographicPeak[] selectionPeaks =
+                parameterSet.getParameter(TICVisualizerParameters.PEAKS).getValue();
+
+        if (dataFiles == null || dataFiles.length == 0) {
+
+            MZmineCore.getDesktop().displayErrorMessage("Please select raw data file(s)");
+
+        } else {
+
+            // Add the window to the desktop only if we actually have any raw data to show.
+            boolean weHaveData = false;
+            for (int i = 0, dataFilesLength = dataFiles.length;
+                 !weHaveData && i < dataFilesLength;
+                 i++) {
+
+                weHaveData = dataFiles[i].getScanNumbers(msLevel, rtRange).length > 0;
+            }
+
+            if (weHaveData) {
+
+                MZmineCore.getDesktop().addInternalFrame(new TICVisualizerWindow(
+                        dataFiles,
+                        plotType,
+                        msLevel,
+                        rtRange,
+                        mzRange,
+                        selectionPeaks,
+                        ((TICVisualizerParameters) parameterSet).getPeakLabelMap()));
+
+            } else {
+
+                MZmineCore.getDesktop().displayErrorMessage(
+                        "No scans found at MS level " + msLevel + " within given retention time range.");
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+        return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+    }
 }
