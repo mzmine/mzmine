@@ -44,7 +44,7 @@ public class ScanUtils {
 	/**
 	 * Common utility method to be used as Scan.toString() method in various
 	 * Scan implementations
-	 * 
+	 *
 	 * @param scan
 	 *            Scan to be converted to String
 	 * @return String representation of the scan
@@ -67,7 +67,7 @@ public class ScanUtils {
 
 	/**
 	 * Find a base peak of a given scan in a given m/z range
-	 * 
+	 *
 	 * @param scan
 	 *            Scan to search
 	 * @param mzMin
@@ -90,21 +90,26 @@ public class ScanUtils {
 		return basePeak;
 	}
 
-	public static double calculateTIC(DataPoint dataPoints[], Range mzRange) {
+    /**
+     * Calculate the total ion count of a scan within a given mass range.
+     *
+     * @param scan    the scan.
+     * @param mzRange mass range.
+     * @return the total ion count of the scan within the mass range.
+     */
+    public static double calculateTIC(Scan scan, Range mzRange) {
 
-		double tic = 0;
+        double tic = 0.0;
+        for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
 
-		for (DataPoint dp : dataPoints) {
-			if (mzRange.contains(dp.getMZ()))
-				tic += dp.getIntensity();
-		}
+            tic += dataPoint.getIntensity();
+        }
+        return tic;
+    }
 
-		return tic;
-	}
-
-	/**
+    /**
 	 * Selects data points within given m/z range
-	 * 
+	 *
 	 */
 	public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[],
 			Range mzRange) {
@@ -118,7 +123,7 @@ public class ScanUtils {
 
 	/**
 	 * Selects data points with intensity >= given intensity
-	 * 
+	 *
 	 */
 	public static DataPoint[] selectDataPointsOverIntensity(
 			DataPoint dataPoints[], double minIntensity) {
@@ -130,7 +135,7 @@ public class ScanUtils {
 		return goodPoints.toArray(new DataPoint[0]);
 	}
 
-	/**
+    /**
 	 * Binning modes
 	 */
 	public static enum BinningType {
@@ -140,7 +145,7 @@ public class ScanUtils {
 	/**
 	 * This method bins values on x-axis. Each bin is assigned biggest y-value
 	 * of all values in the same bin.
-	 * 
+	 *
 	 * @param x
 	 *            X-coordinates of the data
 	 * @param y
@@ -310,7 +315,7 @@ public class ScanUtils {
 	/**
 	 * Returns index of m/z value in a given array, which is closest to given
 	 * value, limited by given m/z tolerance. We assume the m/z array is sorted.
-	 * 
+	 *
 	 * @return index of best match, or -1 if no datapoint was found
 	 */
 	public static int findClosestDatapoint(double key, double mzValues[],
@@ -432,7 +437,7 @@ public class ScanUtils {
 	 * one zero data point is required to form a correct border of the peak.
 	 * This function may return the original array (same instance) in case
 	 * nothing was removed. Otherwise, it returns a new array.
-	 * 
+	 *
 	 */
 	public static DataPoint[] removeZeroDataPoints(DataPoint dataPoints[],
 			boolean centroided) {
@@ -488,7 +493,7 @@ public class ScanUtils {
 
 	/**
 	 * Find the highest data point in array
-	 * 
+	 *
 	 */
 	public static DataPoint findTopDataPoint(DataPoint dataPoints[]) {
 

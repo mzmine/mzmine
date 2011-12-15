@@ -276,7 +276,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
                 }
                 CursorPosition pos = new CursorPosition(selectedRT, mz,
                                                         selectedIT, dataSet.getDataFile(),
-                                                        dataSet.getScanNumber(0, index));
+                                                        dataSet.getScanNumber(index));
                 return pos;
             }
         }
