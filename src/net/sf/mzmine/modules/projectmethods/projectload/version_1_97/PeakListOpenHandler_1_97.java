@@ -102,15 +102,15 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 
 		totalRows = 0;
 		parsedRows = 0;
-		
+
 		charBuffer = new StringBuffer();
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();
 		currentPeakListDataFiles = new Vector<RawDataFile>();
 		currentIsotopes = new Vector<DataPoint>();
-		
+
 		buildingPeakList = null;
-		
+
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
@@ -248,7 +248,7 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 		// <RAW_FILE>
 		if (qName.equals(PeakListElementName_1_97.RAWFILE.getElementName())) {
 			rawDataFileID = Integer.parseInt(getTextOfElement());
-			RawDataFile dataFile = dataFilesIDMap.get(rawDataFileID);
+			RawDataFile dataFile = dataFilesIDMap.get(String.valueOf(rawDataFileID));
 			currentPeakListDataFiles.add(dataFile);
 		}
 
@@ -338,7 +338,11 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 
 			DataPoint[] mzPeaks = new DataPoint[numOfMZpeaks];
 			Range peakRTRange = null, peakMZRange = null, peakIntensityRange = null;
-			RawDataFile dataFile = dataFilesIDMap.get(peakColumnID);
+			RawDataFile dataFile = dataFilesIDMap.get(String.valueOf(peakColumnID));
+			if (dataFile == null) {
+				throw new SAXException("Data file " + peakColumnID
+						+ " not found");
+			}
 
 			for (int i = 0; i < numOfMZpeaks; i++) {
 
@@ -396,7 +400,6 @@ public class PeakListOpenHandler_1_97 extends DefaultHandler implements
 
 		// <ROW>
 		if (qName.equals(PeakListElementName_1_97.ROW.getElementName())) {
-
 			buildingPeakList.addRow(buildingRow);
 			buildingRow = null;
 			parsedRows++;
