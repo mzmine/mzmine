@@ -33,6 +33,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePatternStatus;
+import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListAppliedMethod;
 import net.sf.mzmine.data.PeakStatus;
@@ -102,15 +103,15 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 
 		totalRows = 0;
 		parsedRows = 0;
-		
+
 		charBuffer = new StringBuffer();
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();
 		currentPeakListDataFiles = new Vector<RawDataFile>();
 		currentIsotopes = new Vector<DataPoint>();
-		
+
 		buildingPeakList = null;
-		
+
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
@@ -388,6 +389,9 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 		// <PEAK_IDENTITY>
 		if (qName
 				.equals(PeakListElementName_2_0.PEAK_IDENTITY.getElementName())) {
+			String content = getTextOfElement();
+			if (identityProperties.get(PeakIdentity.PROPERTY_NAME) == null)
+				identityProperties.put(PeakIdentity.PROPERTY_NAME, content);
 			SimplePeakIdentity identity = new SimplePeakIdentity(
 					identityProperties);
 			buildingRow.addPeakIdentity(identity, preferred);
