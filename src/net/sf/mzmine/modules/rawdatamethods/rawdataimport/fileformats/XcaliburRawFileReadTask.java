@@ -97,25 +97,26 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 	 */
 	public void run() {
 
-		// Check that we are running on Windows
-		String osName = System.getProperty("os.name").toUpperCase();
-		if (!osName.toUpperCase().contains("WINDOWS")) {
-			setStatus(TaskStatus.ERROR);
-			errorMessage = "Thermo RAW file import only works on Windows";
-			return;
-		}
-
 		setStatus(TaskStatus.PROCESSING);
-		logger.info("Started parsing file " + file);
+		logger.info("Opening file " + file);
 
+		// Check the OS we are running
+		String osName = System.getProperty("os.name").toUpperCase();
+		
 		String rawDumpPath = System.getProperty("user.dir") + File.separator
 				+ "lib" + File.separator + "RAWdump.exe";
+		String cmdLine[];
+		
+		if (osName.toUpperCase().contains("WINDOWS")) {
+			cmdLine = new String[] { rawDumpPath, file.getPath() };
+		} else {
+			cmdLine = new String[] { "wine", rawDumpPath, file.getPath() };
+		}
 
-		String cmdLine[] = { rawDumpPath, file.getPath() };
 		Process dumper = null;
 
 		try {
-
+			
 			// Create a separate process and execute RAWdump.exe
 			dumper = Runtime.getRuntime().exec(cmdLine);
 
