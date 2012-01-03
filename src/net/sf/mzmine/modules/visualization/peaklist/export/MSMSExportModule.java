@@ -1,0 +1,114 @@
+/*
+ * Copyright 2006-2011 The MZmine 2 Development Team
+ * 
+ * This file is part of MZmine 2.
+ * 
+ * MZmine 2 is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 2 of the License, or (at your option) any later
+ * version.
+ * 
+ * MZmine 2 is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+package net.sf.mzmine.modules.visualization.peaklist.export;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.MassList;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.dialogs.ExitCode;
+
+public class MSMSExportModule implements MZmineModule {
+
+	private ParameterSet parameters = new MSMSExportParameters();
+
+	private static MSMSExportModule myInstance;
+
+	public MSMSExportModule() {
+		myInstance = this;
+	}
+
+	/**
+	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
+	 */
+	public ParameterSet getParameterSet() {
+		return parameters;
+	}
+
+	public static void exportMSMS(PeakListRow row) {
+
+		ParameterSet parameters = myInstance.getParameterSet();
+
+		ExitCode exitCode = parameters.showSetupDialog();
+		if (exitCode != ExitCode.OK)
+			return;
+
+		File outputFile = parameters.getParameter(
+				MSMSExportParameters.outputFile).getValue();
+		String massListName = parameters.getParameter(
+				MSMSExportParameters.massList).getValue();
+
+		if ((outputFile == null) || (massListName == null))
+			return;
+
+		// Best peak always exists, because peak list row has at least one peak
+		ChromatographicPeak bestPeak = row.getBestPeak();
+
+		// Get the MS/MS scan number
+		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+		if (msmsScanNumber < 1) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"There is no MS/MS scan for peak " + bestPeak);
+			return;
+		}
+
+		// MS/MS scan must exist, because msmsScanNumber was > 0
+		Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+
+		MassList massList = msmsScan.getMassList(massListName);
+		if (massList == null) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"There is no mass list called " + massListName
+							+ " for MS/MS scan #" + msmsScanNumber + " ("
+							+ bestPeak.getDataFile() + ")");
+			return;
+		}
+
+		DataPoint peaks[] = massList.getDataPoints();
+
+		try {
+			FileWriter fileWriter = new FileWriter(outputFile);
+			BufferedWriter writer = new BufferedWriter(fileWriter);
+
+			for (DataPoint peak : peaks) {
+				writer.write(peak.getMZ() + " " + peak.getIntensity());
+				writer.newLine();
+			}
+
+			writer.close();
+
+		} catch (Exception e) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Error writing to file " + outputFile + ": "
+							+ ExceptionUtils.exceptionToString(e));
+		}
+
+	}
+
+}

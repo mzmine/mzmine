@@ -71,6 +71,8 @@ import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.neutralloss.NeutralLossVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableModule;
+import net.sf.mzmine.modules.visualization.peaklist.export.IsotopePatternExportModule;
+import net.sf.mzmine.modules.visualization.peaklist.export.MSMSExportModule;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
@@ -161,6 +163,7 @@ public class MZmineModulesList {
 			TICVisualizerModule.class, SpectraVisualizerModule.class,
 			TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
 			NeutralLossVisualizerModule.class, PeakListTableModule.class,
+			IsotopePatternExportModule.class, MSMSExportModule.class,
 			ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
 			InfoVisualizerModule.class, IntensityPlotModule.class };
 
