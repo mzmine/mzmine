@@ -27,10 +27,14 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -54,16 +58,18 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.PercentageCellRenderer;
 
 public class ResultWindow extends JInternalFrame implements ActionListener {
 
-	private ResultTableModel listElementModel;
-	private PeakListRow peakListRow;
-	private JTable IDList;
-	private Task searchTask;
-	private String title;
+	private final JTable resultsTable;
+	private final ResultTableModel resultsTableModel;
+	private final TableRowSorter<ResultTableModel> resultsTableSorter;
+	private final PeakListRow peakListRow;
+	private final Task searchTask;
+	private final String title;
 
 	public ResultWindow(String title, PeakListRow peakListRow,
 			double searchedMass, int charge, Task searchTask) {
@@ -83,29 +89,29 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		pnlLabelsAndList.add(new JLabel("List of possible formulas"),
 				BorderLayout.NORTH);
 
-		listElementModel = new ResultTableModel(searchedMass);
-		IDList = new JTable();
-		IDList.setModel(listElementModel);
-		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		IDList.getTableHeader().setReorderingAllowed(false);
+		resultsTableModel = new ResultTableModel(searchedMass);
+		resultsTable = new JTable();
+		resultsTable.setModel(resultsTableModel);
+		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		resultsTable.getTableHeader().setReorderingAllowed(false);
 
-		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
-				listElementModel);
+		resultsTableSorter = new TableRowSorter<ResultTableModel>(
+				resultsTableModel);
 
 		// set descending order by isotope score
-		sorter.toggleSortOrder(3);
-		sorter.toggleSortOrder(3);
+		resultsTableSorter.toggleSortOrder(3);
+		resultsTableSorter.toggleSortOrder(3);
 
-		IDList.setRowSorter(sorter);
+		resultsTable.setRowSorter(resultsTableSorter);
 
-		TableColumnModel columnModel = IDList.getColumnModel();
+		TableColumnModel columnModel = resultsTable.getColumnModel();
 		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
 		renderer.setHorizontalAlignment(SwingConstants.LEFT);
-		IDList.setDefaultRenderer(Double.class, renderer);
+		resultsTable.setDefaultRenderer(Double.class, renderer);
 		columnModel.getColumn(3).setCellRenderer(new PercentageCellRenderer(1));
 		columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer(1));
 
-		JScrollPane listScroller = new JScrollPane(IDList);
+		JScrollPane listScroller = new JScrollPane(resultsTable);
 		listScroller.setPreferredSize(new Dimension(350, 100));
 		listScroller.setAlignmentX(LEFT_ALIGNMENT);
 		JPanel listPanel = new JPanel();
@@ -119,6 +125,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
 		GUIUtils.addButton(pnlButtons, "Copy to clipboard", null, this, "COPY");
+		GUIUtils.addButton(pnlButtons, "Export all", null, this, "EXPORT");
 		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
 				"SHOW_ISOTOPES");
 		GUIUtils.addButton(pnlButtons, "Show MS/MS", null, this, "SHOW_MSMS");
@@ -135,14 +142,63 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 		String command = e.getActionCommand();
 
-		int index = IDList.getSelectedRow();
+		if (command.equals("EXPORT")) {
+
+			// Ask for filename
+			JFileChooser fileChooser = new JFileChooser();
+			fileChooser.setApproveButtonText("Export");
+
+			int result = fileChooser.showSaveDialog(MZmineCore.getDesktop()
+					.getMainFrame());
+			if (result != JFileChooser.APPROVE_OPTION)
+				return;
+			File outputFile = fileChooser.getSelectedFile();
+			try {
+				FileWriter fileWriter = new FileWriter(outputFile);
+				BufferedWriter writer = new BufferedWriter(fileWriter);
+				writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
+				writer.newLine();
+
+				for (int row = 0; row < resultsTable.getRowCount(); row++) {
+					int modelRow = resultsTable.convertRowIndexToModel(row);
+					ResultFormula formula = resultsTableModel
+							.getFormula(modelRow);
+					writer.write(formula.getFormulaAsString());
+					writer.write(",");
+					writer.write(String.valueOf(formula.getExactMass()));
+					writer.write(",");
+					if (formula.getRDBE() != null)
+						writer.write(String.valueOf(formula.getRDBE()));
+					writer.write(",");
+					if (formula.getIsotopeScore() != null)
+						writer.write(String.valueOf(formula.getIsotopeScore()));
+					writer.write(",");
+					if (formula.getMSMSScore() != null)
+						writer.write(String.valueOf(formula.getMSMSScore()));
+					writer.newLine();
+				}
+
+				writer.close();
+
+			} catch (Exception ex) {
+				MZmineCore.getDesktop().displayErrorMessage(
+						"Error writing to file " + outputFile + ": "
+								+ ExceptionUtils.exceptionToString(ex));
+			}
+			return;
+
+		}
+
+		// The following actions require a single row to be selected
+
+		int index = resultsTable.getSelectedRow();
 
 		if (index < 0) {
 			MZmineCore.getDesktop().displayMessage("Please select one result");
 			return;
 		}
-		index = IDList.convertRowIndexToModel(index);
-		ResultFormula formula = listElementModel.getFormula(index);
+		index = resultsTable.convertRowIndexToModel(index);
+		ResultFormula formula = resultsTableModel.getFormula(index);
 
 		if (command.equals("ADD")) {
 
@@ -156,7 +212,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			// Repaint the window to reflect the change in the peak list
 			MZmineCore.getDesktop().getMainFrame().repaint();
-			
+
 			dispose();
 		}
 
@@ -181,8 +237,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
-					peak.getIsotopePattern(), predictedPattern);
+			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
+					null, peak.getIsotopePattern(), predictedPattern);
 
 		}
 
@@ -216,8 +272,8 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		// Update the model in swing thread to avoid exceptions
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				listElementModel.addElement(formula);
-				setTitle(title + ", " + listElementModel.getRowCount()
+				resultsTableModel.addElement(formula);
+				setTitle(title + ", " + resultsTableModel.getRowCount()
 						+ " formulas found");
 			}
 		});
