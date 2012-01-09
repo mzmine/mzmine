@@ -156,7 +156,6 @@ class RawDataFileSaveHandler {
 
 		hd.startElement("", "", RawDataElementName.RAWDATA.getElementName(),
 				atts);
-		atts.clear();
 
 		// <NAME>
 		hd.startElement("", "", RawDataElementName.NAME.getElementName(), atts);
@@ -165,8 +164,11 @@ class RawDataFileSaveHandler {
 		hd.endElement("", "", RawDataElementName.NAME.getElementName());
 
 		// <STORED_DATAPOINTS>
+		atts.addAttribute("", "", RawDataElementName.QUANTITY.getElementName(),
+				"CDATA", String.valueOf(dataPointsOffsets.size()));
 		hd.startElement("", "",
 				RawDataElementName.STORED_DATAPOINTS.getElementName(), atts);
+		atts.clear();
 		for (Integer storageID : dataPointsOffsets.keySet()) {
 			if (canceled)
 				return;
@@ -180,11 +182,11 @@ class RawDataFileSaveHandler {
 					"CDATA", String.valueOf(length));
 			hd.startElement("", "",
 					RawDataElementName.STORED_DATA.getElementName(), atts);
+			atts.clear();
 			hd.characters(String.valueOf(offset).toCharArray(), 0, String
 					.valueOf(offset).length());
 			hd.endElement("", "",
 					RawDataElementName.STORED_DATA.getElementName());
-			atts.clear();
 		}
 
 		hd.endElement("", "",
