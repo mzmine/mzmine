@@ -21,6 +21,7 @@ package net.sf.mzmine.project.impl;
 
 import java.io.File;
 
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import net.sf.mzmine.project.MZmineProject;
@@ -48,8 +49,20 @@ public class ProjectManagerImpl implements ProjectManager {
 	}
 
 	public void setCurrentProject(MZmineProject project) {
+
+		if (project == currentProject)
+			return;
+
+		// Close previous data files
+		if (currentProject != null) {
+			RawDataFile prevDataFiles[] = currentProject.getDataFiles();
+			for (RawDataFile prevDataFile : prevDataFiles) {
+				prevDataFile.close();
+			}
+		}
+
 		this.currentProject = project;
-		
+
 		// This is a hack to keep correct value of last opened directory (this
 		// value was overwritten when configuration file was loaded from the new
 		// project)

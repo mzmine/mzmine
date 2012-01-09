@@ -27,13 +27,16 @@ import java.util.regex.Pattern;
 
 import javax.xml.rpc.ServiceException;
 
-import metlinapi.MetlinPortType;
-import metlinapi.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
+import edu.scripps.metlin.soap.metlin_wsdl.LineInfo;
+import edu.scripps.metlin.soap.metlin_wsdl.MetaboliteSearch;
+import edu.scripps.metlin.soap.metlin_wsdl.MetaboliteSearchResponse;
+import edu.scripps.metlin.soap.metlin_wsdl.MetlinPortType;
+import edu.scripps.metlin.soap.metlin_wsdl.MetlinServiceLocator;
 
 public class MetLinGateway implements DBGateway {
 
@@ -60,14 +63,16 @@ public class MetLinGateway implements DBGateway {
 		}
 
 		// Search mass as float[]
-		String searchMass[] = new String[] { String.valueOf(toleranceRange.getAverage()) };
+		float searchMass[] = new float[] { (float) toleranceRange.getAverage() };
 
-		String searchTolerance = String.valueOf(toleranceRange.getSize() / 2);
+		float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
 
-		String[][] results = serv.metaboliteSearch(searchMass, adduct, searchTolerance, "Da");
-
-		System.out.println(results.length + Arrays.toString(results) + " "
-				+ results[0]);
+		MetaboliteSearch parameters = new MetaboliteSearch(searchMass, adduct, searchTolerance, "Da");
+		MetaboliteSearchResponse results = serv.metaboliteSearch(parameters);
+		LineInfo resultsData[][] = results.getMetaboliteSearchResult();
+		
+		System.out.println(Arrays.toString(resultsData) + " "
+				);
 		return adduct;
 
 	}

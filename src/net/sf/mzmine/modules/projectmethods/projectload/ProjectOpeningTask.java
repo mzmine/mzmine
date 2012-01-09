@@ -44,7 +44,9 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpen
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.PeakListOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.RawDataFileOpenHandler_2_3;
-import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.UserParameterOpenHandler_2_3;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.PeakListOpenHandler_2_5;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.RawDataFileOpenHandler_2_5;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.UserParameterOpenHandler_2_5;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -197,6 +199,7 @@ public class ProjectOpeningTask extends AbstractTask {
 				return;
 
 			setStatus(TaskStatus.ERROR);
+			e.printStackTrace();
 			errorMessage = "Failed opening project: "
 					+ ExceptionUtils.exceptionToString(e);
 		}
@@ -288,6 +291,13 @@ public class ProjectOpeningTask extends AbstractTask {
 			return;
 		}
 
+		// Check if the project version is 2.3 to 2.4
+		if ((projectVersionNumber >= 2.3) && (projectVersionNumber < 2.5)) {
+			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
+			peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
+			return;
+		}
+
 		// Check if project was saved with a newer version
 		if (projectVersionNumber > mzmineVersionNumber) {
 			String warning = "Warning: this project was saved with a newer version of MZmine ("
@@ -299,9 +309,9 @@ public class ProjectOpeningTask extends AbstractTask {
 		}
 
 		// Default opening handler
-		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
-		peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
-		userParameterOpenHandler = new UserParameterOpenHandler_2_3(newProject,
+		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+		peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+		userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject,
 				dataFilesIDMap);
 
 	}
@@ -423,9 +433,10 @@ public class ProjectOpeningTask extends AbstractTask {
 		logger.info("Loading user parameters");
 
 		ZipEntry entry = zipFile.getEntry("User parameters.xml");
-		
+
 		// If there are no parameters, just ignore
-		if (entry == null) return;
+		if (entry == null)
+			return;
 
 		currentLoadedObjectName = "User parameters";
 

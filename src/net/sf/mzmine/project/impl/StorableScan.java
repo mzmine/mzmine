@@ -20,8 +20,6 @@
 package net.sf.mzmine.project.impl;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
@@ -33,7 +31,6 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
@@ -53,23 +50,23 @@ public class StorableScan implements Scan {
 	private double retentionTime;
 	private Range mzRange;
 	private DataPoint basePeak;
-	private double totalIonCurrent;
+	private Double totalIonCurrent;
 	private boolean centroided;
-	private long scanFileOffset;
 	private int numberOfDataPoints;
 	private RawDataFileImpl rawDataFile;
 	private ArrayList<MassList> massLists = new ArrayList<MassList>();
+	private int storageID;
 
 	/**
 	 * Constructor for creating a storable scan from a given scan
 	 */
 	public StorableScan(Scan originalScan, RawDataFileImpl rawDataFile,
-			long scanFileOffset, int numberOfDataPoints) {
+			int numberOfDataPoints, int storageID) {
 
 		// save scan data
 		this.rawDataFile = rawDataFile;
-		this.scanFileOffset = scanFileOffset;
 		this.numberOfDataPoints = numberOfDataPoints;
+		this.storageID = storageID;
 
 		this.scanNumber = originalScan.getScanNumber();
 		this.msLevel = originalScan.getMSLevel();
@@ -85,14 +82,14 @@ public class StorableScan implements Scan {
 
 	}
 
-	public StorableScan(RawDataFileImpl rawDataFile, long scanFileOffset,
+	public StorableScan(RawDataFileImpl rawDataFile, int storageID,
 			int numberOfDataPoints, int scanNumber, int msLevel,
 			double retentionTime, int parentScan, double precursorMZ,
 			int precursorCharge, int fragmentScans[], boolean centroided) {
 
 		this.rawDataFile = rawDataFile;
-		this.scanFileOffset = scanFileOffset;
 		this.numberOfDataPoints = numberOfDataPoints;
+		this.storageID = storageID;
 
 		this.scanNumber = scanNumber;
 		this.msLevel = msLevel;
@@ -102,32 +99,6 @@ public class StorableScan implements Scan {
 		this.precursorCharge = precursorCharge;
 		this.fragmentScans = fragmentScans;
 		this.centroided = centroided;
-
-		mzRange = new Range(0, 0);
-		basePeak = null;
-		totalIonCurrent = 0;
-
-		DataPoint dataPoints[] = getDataPoints();
-
-		// find m/z range and base peak
-		if (dataPoints.length > 0) {
-
-			basePeak = dataPoints[0];
-			mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
-
-			for (DataPoint dp : dataPoints) {
-
-				if (dp.getIntensity() > basePeak.getIntensity())
-					basePeak = dp;
-
-				mzRange.extendRange(dp.getMZ());
-
-				totalIonCurrent += dp.getIntensity();
-
-			}
-
-		}
-
 	}
 
 	/**
@@ -136,22 +107,8 @@ public class StorableScan implements Scan {
 	public DataPoint[] getDataPoints() {
 
 		try {
-
-			ByteBuffer bytes = rawDataFile.readFromFloatBufferFile(
-					scanFileOffset, numberOfDataPoints * 2 * 4);
-
-			FloatBuffer floatBuffer = bytes.asFloatBuffer();
-
-			DataPoint dataPoints[] = new DataPoint[numberOfDataPoints];
-
-			for (int i = 0; i < numberOfDataPoints; i++) {
-				float mz = floatBuffer.get();
-				float intensity = floatBuffer.get();
-				dataPoints[i] = new SimpleDataPoint(mz, intensity);
-			}
-
-			return dataPoints;
-
+			DataPoint result[] = rawDataFile.readDataPoints(storageID);
+			return result;
 		} catch (IOException e) {
 			logger.severe("Could not read data from temporary file "
 					+ e.toString());
@@ -211,6 +168,10 @@ public class StorableScan implements Scan {
 	public RawDataFile getDataFile() {
 		return rawDataFile;
 	}
+	
+	public int getStorageID() {
+		return storageID;
+	}
 
 	/**
 	 * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
@@ -254,10 +215,41 @@ public class StorableScan implements Scan {
 		return retentionTime;
 	}
 
+	private void updateValues() {
+		DataPoint dataPoints[] = getDataPoints();
+
+		// find m/z range and base peak
+		if (dataPoints.length > 0) {
+
+			basePeak = dataPoints[0];
+			mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
+			double tic = 0;
+
+			for (DataPoint dp : dataPoints) {
+
+				if (dp.getIntensity() > basePeak.getIntensity())
+					basePeak = dp;
+
+				mzRange.extendRange(dp.getMZ());
+
+				tic += dp.getIntensity();
+
+			}
+
+			totalIonCurrent = new Double(tic);
+
+		} else {
+			mzRange = new Range(0);
+			totalIonCurrent = new Double(0);
+		}
+	}
+
 	/**
 	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
 	 */
 	public Range getMZRange() {
+		if (mzRange == null)
+			updateValues();
 		return mzRange;
 	}
 
@@ -265,6 +257,8 @@ public class StorableScan implements Scan {
 	 * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
 	 */
 	public DataPoint getBasePeak() {
+		if ((basePeak == null) && (numberOfDataPoints > 0))
+			updateValues();
 		return basePeak;
 	}
 
@@ -306,6 +300,8 @@ public class StorableScan implements Scan {
 	}
 
 	public double getTIC() {
+		if (totalIonCurrent == null)
+			updateValues();
 		return totalIonCurrent;
 	}
 
@@ -323,8 +319,25 @@ public class StorableScan implements Scan {
 				removeMassList(ml);
 		}
 
+		StorableMassList storedMassList;
+		if (massList instanceof StorableMassList) {
+			storedMassList = (StorableMassList) massList;
+		} else {
+			DataPoint massListDataPoints[] = massList.getDataPoints();
+			try {
+				int mlStorageID = rawDataFile
+						.storeDataPoints(massListDataPoints);
+				storedMassList = new StorableMassList(rawDataFile, mlStorageID,
+						massList.getName(), this);
+			} catch (IOException e) {
+				logger.severe("Could not write data to temporary file "
+						+ e.toString());
+				return;
+			}
+		}
+
 		// Add the new mass list
-		massLists.add(massList);
+		massLists.add(storedMassList);
 
 		// Add the mass list to the tree model
 		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
@@ -333,10 +346,11 @@ public class StorableScan implements Scan {
 		// Check if we are adding to the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
 			final ProjectTreeModel treeModel = project.getTreeModel();
+			final MassList newMassList = storedMassList;
 			Runnable swingCode = new Runnable() {
 				@Override
 				public void run() {
-					treeModel.addObject(massList);
+					treeModel.addObject(newMassList);
 				}
 			};
 
@@ -358,12 +372,16 @@ public class StorableScan implements Scan {
 
 		// Remove the mass list
 		massLists.remove(massList);
+		if (massList instanceof StorableMassList) {
+			StorableMassList storableMassList = (StorableMassList) massList;
+			storableMassList.removeStoredData();
+		}
 
-		// Add the mass list to the tree model
+		// Remove from the tree model
 		MZmineProjectImpl project = (MZmineProjectImpl) MZmineCore
 				.getCurrentProject();
 
-		// Check if we are adding to the current project
+		// Check if we are using the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
 			final ProjectTreeModel treeModel = project.getTreeModel();
 			Runnable swingCode = new Runnable() {
@@ -373,14 +391,8 @@ public class StorableScan implements Scan {
 				}
 			};
 
-			try {
-				if (SwingUtilities.isEventDispatchThread())
-					swingCode.run();
-				else
-					SwingUtilities.invokeAndWait(swingCode);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			SwingUtilities.invokeLater(swingCode);
+
 		}
 
 	}

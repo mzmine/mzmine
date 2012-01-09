@@ -17,9 +17,9 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.projectmethods.projectsave;
+package net.sf.mzmine.modules.projectmethods.projectload.version_2_5;
 
-enum RawDataElementName {
+enum RawDataElementName_2_5 {
 
 	RAWDATA ("rawdata"),	
 	NAME ("name"),
@@ -44,7 +44,7 @@ enum RawDataElementName {
 
 	private String elementName;
 
-	private RawDataElementName(String itemName){
+	private RawDataElementName_2_5(String itemName){
 		this.elementName = itemName;
 	}
 

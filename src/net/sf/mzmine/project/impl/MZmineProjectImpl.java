@@ -167,6 +167,10 @@ public class MZmineProjectImpl implements MZmineProject {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		// Close the data file, which also removed the temporary data
+		file.close();
+		
 	}
 
 	public RawDataFile[] getDataFiles() {

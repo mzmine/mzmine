@@ -31,17 +31,28 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 
 /**
- * RawDataFile implementation
+ * RawDataFile implementation. It provides storage of data points for scans and
+ * mass lists using the storeDataPoints() and readDataPoints() methods. The data
+ * points are stored in a temporary file (dataPointsFile) and the structure of
+ * the file is stored in two TreeMaps. The dataPointsOffsets maps storage ID to
+ * the offset in the dataPointsFile. The dataPointsLength maps the storage ID to
+ * the number of data points stored under this ID. When stored data points are
+ * deleted using removeStoredDataPoints(), the dataPointsFile is not modified,
+ * the storage ID is just deleted from the two TreeMaps. When the project is
+ * saved, the contents of the dataPointsFile are consolidated - only data points
+ * referenced by the TreeMaps are saved (see the RawDataFileSaveHandler class).
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
@@ -54,9 +65,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
 	private Hashtable<Integer, int[]> scanNumbersCache;
 
+	private ByteBuffer buffer = ByteBuffer.allocate(20000);
+	private TreeMap<Integer, Long> dataPointsOffsets;
+	private TreeMap<Integer, Integer> dataPointsLengths;
+
 	// Temporary file for scan data storage
-	private File scanFile;
-	private RandomAccessFile scanDataFile;
+	private File dataPointsFileName;
+	private RandomAccessFile dataPointsFile;
 
 	/**
 	 * Scans
@@ -74,39 +89,40 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
 		dataMaxTIC = new Hashtable<Integer, Double>();
 		scans = new Hashtable<Integer, Scan>();
+		dataPointsOffsets = new TreeMap<Integer, Long>();
+		dataPointsLengths = new TreeMap<Integer, Integer>();
 
-		scanFile = File.createTempFile("mzmine", ".scans");
+	}
+
+	public static File createNewDataPointsFile() throws IOException {
+		return File.createTempFile("mzmine", ".scans");
+	}
+
+	public RandomAccessFile getDataPointsFile() {
+		return dataPointsFile;
+	}
+
+	public synchronized void openScanFile(File dataPointsFileName,
+			TreeMap<Integer, Long> dataPointsOffsets,
+			TreeMap<Integer, Integer> dataPointsLengths) throws IOException {
+
+		this.dataPointsFileName = dataPointsFileName;
+		this.dataPointsFile = new RandomAccessFile(dataPointsFileName, "rw");
+
+		this.dataPointsOffsets = dataPointsOffsets;
+		this.dataPointsLengths = dataPointsLengths;
+
+		// Locks the temporary file so it is not removed when another instance
+		// of MZmine is starting. Lock will be automatically released when this
+		// instance of MZmine exits.
+		FileChannel scanFileChannel = dataPointsFile.getChannel();
+		scanFileChannel.lock();
 
 		// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
 		// bug #4171239. We will try to remove the temporary files in a
-		// shutdown hook registered in MZmineCore class
-		scanFile.deleteOnExit();
-		scanDataFile = new RandomAccessFile(scanFile, "rw");
+		// shutdown hook registered in the main.ShutDownHook class
+		dataPointsFileName.deleteOnExit();
 
-		lockFile(scanDataFile);
-
-	}
-
-	public File getScanFile() {
-		return scanFile;
-	}
-
-	public void openScanFile(File scanFile) throws IOException {
-
-		this.scanFile = scanFile;
-		this.scanDataFile = new RandomAccessFile(scanFile, "r");
-		lockFile(scanDataFile);
-
-	}
-
-	/**
-	 * Locks the temporary file so it is not removed when another instance of
-	 * MZmine is starting. Lock will be automatically released when this
-	 * instance of MZmine exits.
-	 */
-	private void lockFile(RandomAccessFile fileToLock) throws IOException {
-		FileChannel scanFileChannel = fileToLock.getChannel();
-		scanFileChannel.lock(0, fileToLock.length(), true);
 	}
 
 	/**
@@ -121,27 +137,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	 */
 	public Scan getScan(int scanNumber) {
 		return scans.get(scanNumber);
-	}
-
-	/**
-	 * Reads data from the temporary scan file
-	 * 
-	 * @param position
-	 *            Position from the beginning of the file, in bytes
-	 * @param size
-	 *            Amount of data to read, in bytes
-	 * @return
-	 * @throws IOException
-	 */
-	synchronized ByteBuffer readFromFloatBufferFile(long position, int size)
-			throws IOException {
-
-		ByteBuffer buffer = ByteBuffer.allocate(size);
-
-		scanDataFile.seek(position);
-		scanDataFile.read(buffer.array(), 0, size);
-
-		return buffer;
 	}
 
 	/**
@@ -292,36 +287,102 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	}
 
-	/**
-     * 
-     */
+	public synchronized int storeDataPoints(DataPoint dataPoints[])
+			throws IOException {
+
+		if (dataPointsFile == null) {
+			File newFile = RawDataFileImpl.createNewDataPointsFile();
+			openScanFile(newFile, new TreeMap<Integer, Long>(),
+					new TreeMap<Integer, Integer>());
+		}
+
+		final long currentOffset = dataPointsFile.length();
+		Integer lastID = dataPointsOffsets.lastKey();
+		if (lastID == null)
+			lastID = 0;
+		final int currentID = lastID + 1;
+		final int numOfDataPoints = dataPoints.length;
+
+		// Convert the dataPoints into a byte array. Each float takes 4 bytes,
+		// so we get the current float offset by dividing the size of the file
+		// by 4
+		final int numOfBytes = numOfDataPoints * 2 * 4;
+
+		if (buffer.capacity() < numOfBytes) {
+			buffer = ByteBuffer.allocate(numOfBytes * 2);
+		} else {
+			buffer.clear();
+		}
+
+		FloatBuffer floatBuffer = buffer.asFloatBuffer();
+		for (DataPoint dp : dataPoints) {
+			floatBuffer.put((float) dp.getMZ());
+			floatBuffer.put((float) dp.getIntensity());
+		}
+
+		dataPointsFile.seek(currentOffset);
+		dataPointsFile.write(buffer.array(), 0, numOfBytes);
+
+		dataPointsOffsets.put(currentID, currentOffset);
+		dataPointsLengths.put(currentID, numOfDataPoints);
+
+		return currentID;
+
+	}
+
+	public synchronized DataPoint[] readDataPoints(int ID) throws IOException {
+
+		final Long currentOffset = dataPointsOffsets.get(ID);
+		final Integer numOfDataPoints = dataPointsLengths.get(ID);
+
+		if ((currentOffset == null) || (numOfDataPoints == null)) {
+			throw new IllegalArgumentException("Unknown storage ID " + ID);
+		}
+
+		final int numOfBytes = numOfDataPoints * 2 * 4;
+
+		if (buffer.capacity() < numOfBytes) {
+			buffer = ByteBuffer.allocate(numOfBytes * 2);
+		} else {
+			buffer.clear();
+		}
+
+		dataPointsFile.seek(currentOffset);
+		dataPointsFile.read(buffer.array(), 0, numOfBytes);
+
+		FloatBuffer floatBuffer = buffer.asFloatBuffer();
+
+		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
+
+		for (int i = 0; i < numOfDataPoints; i++) {
+			float mz = floatBuffer.get();
+			float intensity = floatBuffer.get();
+			dataPoints[i] = new SimpleDataPoint(mz, intensity);
+		}
+
+		return dataPoints;
+
+	}
+
+	public synchronized void removeStoredDataPoints(int ID) throws IOException {
+		dataPointsOffsets.remove(ID);
+		dataPointsLengths.remove(ID);
+	}
+
 	public synchronized void addScan(Scan newScan) throws IOException {
 
 		// When we are loading the project, scan data file is already prepare
-		// and we just need store the references to StorableScans
+		// and we just need store the reference
 		if (newScan instanceof StorableScan) {
 			scans.put(newScan.getScanNumber(), newScan);
 			return;
 		}
 
 		DataPoint dataPoints[] = newScan.getDataPoints();
-
-		// Each float takes 4 bytes, so we get the current float offset by
-		// dividing the size of the file by 4
-		long currentOffset = scanDataFile.length();
-
-		ByteBuffer buffer = ByteBuffer.allocate(dataPoints.length * 2 * 4);
-		FloatBuffer floatBuffer = buffer.asFloatBuffer();
-
-		for (DataPoint dp : dataPoints) {
-			floatBuffer.put((float) dp.getMZ());
-			floatBuffer.put((float) dp.getIntensity());
-		}
-
-		scanDataFile.write(buffer.array());
+		final int storageID = storeDataPoints(dataPoints);
 
 		StorableScan storedScan = new StorableScan(newScan, this,
-				currentOffset, dataPoints.length);
+				dataPoints.length, storageID);
 
 		scans.put(newScan.getScanNumber(), storedScan);
 
@@ -330,16 +391,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	/**
 	 * @see net.sf.mzmine.data.RawDataFileWriter#finishWriting()
 	 */
-	public RawDataFile finishWriting() throws IOException {
-
-		logger.finest("Writing of scans to file " + scanFile + " finished");
-
-		// Close the temporary file and reopen it for read-only
-		scanDataFile.close();
-		openScanFile(scanFile);
-
+	public synchronized RawDataFile finishWriting() throws IOException {
+		logger.finest("Writing of scans to file " + dataPointsFileName
+				+ " finished");
 		return this;
-
 	}
 
 	public Range getDataMZRange() {
@@ -420,12 +475,31 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		return getScanNumbers(msLevel).length;
 	}
 
-	public void close() {
+	public synchronized TreeMap<Integer, Long> getDataPointsOffsets() {
+		return dataPointsOffsets;
+	}
+
+	public synchronized TreeMap<Integer, Integer> getDataPointsLengths() {
+		return dataPointsLengths;
+	}
+
+	public synchronized void setDataPointsOffsets(
+			TreeMap<Integer, Long> dataPointsOffsets) {
+		this.dataPointsOffsets = dataPointsOffsets;
+	}
+
+	public synchronized void setDataPointsLengths(
+			TreeMap<Integer, Integer> dataPointsLengths) {
+		this.dataPointsLengths = dataPointsLengths;
+	}
+
+	public synchronized void close() {
+
 		try {
-			scanDataFile.close();
-			scanFile.delete();
+			dataPointsFile.close();
+			dataPointsFileName.delete();
 		} catch (IOException e) {
-			logger.warning("Could not close file " + scanFile + ": "
+			logger.warning("Could not close file " + dataPointsFileName + ": "
 					+ e.toString());
 		}
 

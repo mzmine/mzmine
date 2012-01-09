@@ -19,10 +19,11 @@
 
 package net.sf.mzmine.modules.projectmethods.projectsave;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import javax.xml.transform.OutputKeys;
@@ -32,12 +33,11 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
-import net.sf.mzmine.util.ScanUtils;
+import net.sf.mzmine.project.impl.StorableMassList;
+import net.sf.mzmine.project.impl.StorableScan;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
@@ -53,15 +53,18 @@ class RawDataFileSaveHandler {
 	private ZipOutputStream zipOutputStream;
 	private StreamCopy copyMachine;
 	private boolean canceled = false;
+	private Map<Integer, Long> dataPointsOffsets;
+	private Map<Integer, Long> consolidatedDataPointsOffsets;
+	private Map<Integer, Integer> dataPointsLengths;
 
 	RawDataFileSaveHandler(ZipOutputStream zipOutputStream) {
 		this.zipOutputStream = zipOutputStream;
 	}
 
 	/**
-	 * Copy the scan file of the raw data file from the temporary folder to the
-	 * zip file. Create an XML file which contains the description of the same
-	 * raw data file an copy it into the same zip file.
+	 * Copy the data points file of the raw data file from the temporary folder
+	 * to the zip file. Create an XML file which contains the description of the
+	 * same raw data file an copy it into the same zip file.
 	 * 
 	 * @param rawDataFile
 	 *            raw data file to be copied
@@ -71,25 +74,48 @@ class RawDataFileSaveHandler {
 	 * @throws TransformerConfigurationException
 	 * @throws SAXException
 	 */
-	void writeRawDataFile(RawDataFile rawDataFile, int number)
+	void writeRawDataFile(RawDataFileImpl rawDataFile, int number)
 			throws IOException, TransformerConfigurationException, SAXException {
 
 		numOfScans = rawDataFile.getNumOfScans();
 		completedScans = 0;
 
-		// step 1 - save scan file
-		logger.info("Saving scan file of: " + rawDataFile.getName());
+		// Get the structure of the data points file
+		dataPointsOffsets = rawDataFile.getDataPointsOffsets();
+		dataPointsLengths = rawDataFile.getDataPointsLengths();
+		consolidatedDataPointsOffsets = new TreeMap<Integer, Long>();
+
+		// step 1 - save data file
+		logger.info("Saving data points of: " + rawDataFile.getName());
 
 		String rawDataSavedName = "Raw data file #" + number + " "
 				+ rawDataFile.getName();
 
 		zipOutputStream.putNextEntry(new ZipEntry(rawDataSavedName + ".scans"));
 
-		File scanFile = ((RawDataFileImpl) rawDataFile).getScanFile();
-		FileInputStream fileStream = new FileInputStream(scanFile);
-		copyMachine = new StreamCopy();
-		copyMachine.copy(fileStream, zipOutputStream, scanFile.length());
-		fileStream.close();
+		// We save only those data points that still have a reference in the
+		// dataPointsOffset table. Some deleted mass lists may still be present
+		// in the data points file, we don't want to copy those.
+		long newOffset = 0;
+		byte buffer[] = new byte[1 << 20];
+		RandomAccessFile dataPointsFile = rawDataFile.getDataPointsFile();
+		for (Integer storageID : dataPointsOffsets.keySet()) {
+
+			if (canceled)
+				return;
+
+			final long offset = dataPointsOffsets.get(storageID);
+			dataPointsFile.seek(offset);
+
+			final int bytes = dataPointsLengths.get(storageID) * 4 * 2;
+			consolidatedDataPointsOffsets.put(storageID, newOffset);
+			if (buffer.length < bytes) {
+				buffer = new byte[bytes * 2];
+			}
+			dataPointsFile.read(buffer, 0, bytes);
+			zipOutputStream.write(buffer, 0, bytes);
+			newOffset += bytes;
+		}
 
 		if (canceled)
 			return;
@@ -123,8 +149,8 @@ class RawDataFileSaveHandler {
 	 * @throws SAXException
 	 * @throws java.lang.Exception
 	 */
-	void saveRawDataInformation(RawDataFile rawDataFile, TransformerHandler hd)
-			throws SAXException, IOException {
+	private void saveRawDataInformation(RawDataFileImpl rawDataFile,
+			TransformerHandler hd) throws SAXException, IOException {
 
 		AttributesImpl atts = new AttributesImpl();
 
@@ -137,6 +163,32 @@ class RawDataFileSaveHandler {
 		hd.characters(rawDataFile.getName().toCharArray(), 0, rawDataFile
 				.getName().length());
 		hd.endElement("", "", RawDataElementName.NAME.getElementName());
+
+		// <STORED_DATAPOINTS>
+		hd.startElement("", "",
+				RawDataElementName.STORED_DATAPOINTS.getElementName(), atts);
+		for (Integer storageID : dataPointsOffsets.keySet()) {
+			if (canceled)
+				return;
+			int length = dataPointsLengths.get(storageID);
+			long offset = consolidatedDataPointsOffsets.get(storageID);
+			atts.addAttribute("", "",
+					RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+					String.valueOf(storageID));
+			atts.addAttribute("", "",
+					RawDataElementName.QUANTITY_DATAPOINTS.getElementName(),
+					"CDATA", String.valueOf(length));
+			hd.startElement("", "",
+					RawDataElementName.STORED_DATA.getElementName(), atts);
+			hd.characters(String.valueOf(offset).toCharArray(), 0, String
+					.valueOf(offset).length());
+			hd.endElement("", "",
+					RawDataElementName.STORED_DATA.getElementName());
+			atts.clear();
+		}
+
+		hd.endElement("", "",
+				RawDataElementName.STORED_DATAPOINTS.getElementName());
 
 		// <QUANTITY>
 		hd.startElement("", "",
@@ -151,11 +203,16 @@ class RawDataFileSaveHandler {
 			if (canceled)
 				return;
 
+			StorableScan scan = (StorableScan) rawDataFile.getScan(scanNumber);
+			int storageID = scan.getStorageID();
+			atts.addAttribute("", "",
+					RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+					String.valueOf(storageID));
 			hd.startElement("", "", RawDataElementName.SCAN.getElementName(),
 					atts);
-			Scan scan = rawDataFile.getScan(scanNumber);
 			fillScanElement(scan, hd);
 			hd.endElement("", "", RawDataElementName.SCAN.getElementName());
+			atts.clear();
 			completedScans++;
 		}
 
@@ -266,14 +323,15 @@ class RawDataFileSaveHandler {
 		// <MASS_LIST>
 		MassList massLists[] = scan.getMassLists();
 		for (MassList massList : massLists) {
+			StorableMassList stMassList = (StorableMassList) massList;
 			atts.addAttribute("", "", RawDataElementName.NAME.getElementName(),
-					"CDATA", massList.getName());
+					"CDATA", stMassList.getName());
+			atts.addAttribute("", "",
+					RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
+					String.valueOf(stMassList.getStorageID()));
 			hd.startElement("", "",
 					RawDataElementName.MASS_LIST.getElementName(), atts);
 			atts.clear();
-			DataPoint mzPeaks[] = massList.getDataPoints();
-			char encodedDataPoints[] = ScanUtils.encodeDataPointsBase64(mzPeaks);
-			hd.characters(encodedDataPoints, 0, encodedDataPoints.length);
 			hd.endElement("", "", RawDataElementName.MASS_LIST.getElementName());
 
 		}
@@ -293,7 +351,7 @@ class RawDataFileSaveHandler {
 
 		if (copyMachine.finished()) {
 
-			// We can estimate that copying the scan file takes ~75% of the time
+			// We can estimate that copying the data file takes ~75% of the time
 			progress = 0.75;
 			if (numOfScans != 0)
 				progress += 0.25 * (double) completedScans / numOfScans;

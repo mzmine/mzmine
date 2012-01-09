@@ -33,6 +33,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -121,7 +122,7 @@ public class ProjectSavingTask extends AbstractTask {
 
 		if (peakListSaveHandler != null)
 			peakListSaveHandler.cancel();
-		
+
 		if (userParameterSaveHandler != null)
 			userParameterSaveHandler.cancel();
 
@@ -212,11 +213,11 @@ public class ProjectSavingTask extends AbstractTask {
 
 			// Update the location of the project
 			savedProject.setProjectFile(saveFile);
-			
+
 			// Update the window title to reflect the new name of the project
 			MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 			mainWindow.updateTitle();
-			
+
 			logger.info("Finished saving the project to " + saveFile);
 
 			setStatus(TaskStatus.FINISHED);
@@ -302,7 +303,8 @@ public class ProjectSavingTask extends AbstractTask {
 				return;
 
 			currentSavedObjectName = rawDataFiles[i].getName();
-			rawDataFileSaveHandler.writeRawDataFile(rawDataFiles[i], i + 1);
+			rawDataFileSaveHandler.writeRawDataFile(
+					(RawDataFileImpl) rawDataFiles[i], i + 1);
 			dataFilesIDMap.put(rawDataFiles[i], String.valueOf(i + 1));
 		}
 	}
