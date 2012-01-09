@@ -297,10 +297,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		}
 
 		final long currentOffset = dataPointsFile.length();
-		Integer lastID = dataPointsOffsets.lastKey();
-		if (lastID == null)
-			lastID = 0;
-		final int currentID = lastID + 1;
+
+		final int currentID;
+		if (!dataPointsOffsets.isEmpty())
+			currentID = dataPointsOffsets.lastKey() + 1;
+		else
+			currentID = 1;
+
 		final int numOfDataPoints = dataPoints.length;
 
 		// Convert the dataPoints into a byte array. Each float takes 4 bytes,
