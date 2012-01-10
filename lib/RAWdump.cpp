@@ -27,7 +27,7 @@
  * 1) setup the compiler environment by running 'vcvars32.bat' in the Visual C++
  *    bin directory 
  *
- * 2) build RAWdump.exe by running 'cl.exe RAWdump.cpp'  
+ * 2) build RAWdump.exe by running 'cl.exe /Zi RAWdump.cpp'  
  *
  */
  
