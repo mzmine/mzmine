@@ -24,8 +24,7 @@ package net.sf.mzmine.main;
  */
 public class MZmineVersion {
 
-	// The value of MZMINE_VERSION must be all numeric, otherwise it will cause
-	// problems when comparing version values during project opening
+	// Version number in the form x.y, or x.y.z
 	public static final String MZMINE_VERSION = "2.5";
 
 }

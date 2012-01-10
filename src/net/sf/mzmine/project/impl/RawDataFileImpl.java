@@ -94,15 +94,27 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	}
 
+	/**
+	 * Create a new temporary data points file
+	 */
 	public static File createNewDataPointsFile() throws IOException {
 		return File.createTempFile("mzmine", ".scans");
 	}
 
+	/**
+	 * Returns the (already opened) data points file. Warning: may return null
+	 * in case no scans have been added yet to this RawDataFileImpl instance
+	 */
 	public RandomAccessFile getDataPointsFile() {
 		return dataPointsFile;
 	}
 
-	public synchronized void openScanFile(File dataPointsFileName,
+	/**
+	 * Opens the given file as a data points file for this RawDataFileImpl
+	 * instance. If the file is not empty, the TreeMaps supplied as parameters
+	 * have to describe the mapping of storage IDs to data points in the file.
+	 */
+	public synchronized void openDataPointsFile(File dataPointsFileName,
 			TreeMap<Integer, Long> dataPointsOffsets,
 			TreeMap<Integer, Integer> dataPointsLengths) throws IOException {
 
@@ -115,8 +127,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		// Locks the temporary file so it is not removed when another instance
 		// of MZmine is starting. Lock will be automatically released when this
 		// instance of MZmine exits.
-		FileChannel scanFileChannel = dataPointsFile.getChannel();
-		scanFileChannel.lock();
+		FileChannel fileChannel = dataPointsFile.getChannel();
+		fileChannel.lock();
 
 		// Unfortunately, deleteOnExit() doesn't work on Windows, see JDK
 		// bug #4171239. We will try to remove the temporary files in a
@@ -292,7 +304,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		if (dataPointsFile == null) {
 			File newFile = RawDataFileImpl.createNewDataPointsFile();
-			openScanFile(newFile, new TreeMap<Integer, Long>(),
+			openDataPointsFile(newFile, new TreeMap<Integer, Long>(),
 					new TreeMap<Integer, Integer>());
 		}
 

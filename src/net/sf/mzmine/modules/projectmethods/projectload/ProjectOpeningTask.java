@@ -238,37 +238,46 @@ public class ProjectOpeningTask extends AbstractTask {
 					"This file is not valid MZmine 2 project. It does not contain version information.");
 		}
 
+		Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+
 		InputStream versionInputStream = zipFile.getInputStream(versionEntry);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				versionInputStream));
-
-		String mzmineVersion = MZmineCore.getMZmineVersion();
-		double mzmineVersionNumber = Double.parseDouble(mzmineVersion);
-
-		String projectVersion = reader.readLine();
+		String projectVersionString = reader.readLine();
 		reader.close();
-		// Strip any extra characters from project version and convert it to
-		// double
-		Pattern p = Pattern.compile("(\\d+\\.\\d+)");
-		Matcher m = p.matcher(projectVersion);
-		m.find();
-		projectVersion = m.group(1);
-		double projectVersionNumber = Double.parseDouble(projectVersion);
+
+		String mzmineVersionString = MZmineCore.getMZmineVersion();
+
+		Matcher m = versionPattern.matcher(mzmineVersionString);
+		if (!m.find()) {
+			throw new IOException("Invalid MZmine version "
+					+ mzmineVersionString);
+		}
+		int mzmineMajorVersion = Integer.valueOf(m.group(1));
+		int mzmineMinorVersion = Integer.valueOf(m.group(2));
+
+		m = versionPattern.matcher(projectVersionString);
+		if (!m.find()) {
+			throw new IOException("Invalid project version "
+					+ projectVersionString);
+		}
+		int projectMajorVersion = Integer.valueOf(m.group(1));
+		int projectMinorVersion = Integer.valueOf(m.group(2));
 
 		// Check if project was saved with an old version
-		if (projectVersionNumber < 1.96) {
+		if ((projectMajorVersion == 1) && (projectMinorVersion < 96)) {
 			throw new IOException(
 					"This project was saved with an old version (MZmine "
-							+ projectVersion
+							+ projectVersionString
 							+ ") and it cannot be opened in MZmine "
-							+ mzmineVersion);
+							+ mzmineVersionString);
 		}
 
 		// Check if the project version is 1.96
-		if (projectVersionNumber == 1.96) {
+		if ((projectMajorVersion == 1) && (projectMinorVersion == 96)) {
 			String warning = "Warning: this project was saved with MZmine "
-					+ projectVersion + ". Opening this project in MZmine "
-					+ mzmineVersion
+					+ projectVersionString
+					+ ". Opening this project in MZmine " + mzmineVersionString
 					+ " may result in errors or loss of information.";
 			MZmineCore.getDesktop().displayMessage(warning);
 			// We can still use 1.97 opening handlers for 1.96 project
@@ -278,32 +287,33 @@ public class ProjectOpeningTask extends AbstractTask {
 		}
 
 		// Check if the project version is 1.97 to 1.98
-		if ((projectVersionNumber >= 1.97) && (projectVersionNumber < 2.0)) {
+		if ((projectMajorVersion == 1) && (projectMinorVersion > 96)) {
 			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
 			peakListOpenHandler = new PeakListOpenHandler_1_97(dataFilesIDMap);
 			return;
 		}
 
 		// Check if the project version is 2.0 to 2.2
-		if ((projectVersionNumber >= 2.0) && (projectVersionNumber < 2.3)) {
+		if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
 			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
 			peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
 			return;
 		}
 
 		// Check if the project version is 2.3 to 2.4
-		if ((projectVersionNumber >= 2.3) && (projectVersionNumber < 2.5)) {
+		if ((projectMajorVersion == 2) && (projectMinorVersion < 5)) {
 			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
 			peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
 			return;
 		}
 
 		// Check if project was saved with a newer version
-		if (projectVersionNumber > mzmineVersionNumber) {
+		if ((projectMajorVersion > mzmineMajorVersion)
+				|| ((projectMajorVersion == mzmineMajorVersion) && (projectMinorVersion > mzmineMinorVersion))) {
 			String warning = "Warning: this project was saved with a newer version of MZmine ("
-					+ projectVersion
+					+ projectVersionString
 					+ "). Opening this project in MZmine "
-					+ mzmineVersion
+					+ mzmineVersionString
 					+ " may result in errors or loss of information.";
 			MZmineCore.getDesktop().displayMessage(warning);
 		}

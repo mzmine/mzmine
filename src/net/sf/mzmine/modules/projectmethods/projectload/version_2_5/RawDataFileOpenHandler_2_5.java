@@ -127,7 +127,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		saxParser.parse(xmlInputStream, this);
 
 		// Adds the raw data file to MZmine
-		newRawDataFile.openScanFile(tempFile, dataPointsOffsets,
+		newRawDataFile.openDataPointsFile(tempFile, dataPointsOffsets,
 				dataPointsLengths);
 		RawDataFile rawDataFile = newRawDataFile.finishWriting();
 		return rawDataFile;
