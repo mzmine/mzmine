@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2011 The MZmine 2 Development Team
+ * Copyright 2006-2012 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,7 +27,7 @@
  * 1) setup the compiler environment by running 'vcvars32.bat' in the Visual C++
  *    bin directory 
  *
- * 2) build RAWdump.exe by running 'cl.exe /Zi RAWdump.cpp'  
+ * 2) build RAWdump.exe by running 'cl.exe RAWdump.cpp'  
  *
  */
  
@@ -255,7 +255,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    CoUninitialize();    
+    /*
+     * There used to be a call to CoUninitialize() here, but I removed it because 
+     * it caused exceptions in some cases. The reason is that IXRawfilePtr destructor
+     * is called automatically upon the exit of the function, and we must not call
+     * CoUnitialize() before that.
+     */ 
     
     return 0;
+
 }
