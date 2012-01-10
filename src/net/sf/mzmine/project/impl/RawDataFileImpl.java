@@ -56,18 +56,19 @@ import net.sf.mzmine.util.Range;
  */
 public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+	private final Logger logger = Logger.getLogger(this.getClass().getName());
 
 	// Name of this raw data file - may be changed by the user
 	private String dataFileName;
 
-	private Hashtable<Integer, Range> dataMZRange, dataRTRange;
-	private Hashtable<Integer, Double> dataMaxBasePeakIntensity, dataMaxTIC;
-	private Hashtable<Integer, int[]> scanNumbersCache;
+	private final Hashtable<Integer, Range> dataMZRange, dataRTRange;
+	private final Hashtable<Integer, Double> dataMaxBasePeakIntensity,
+			dataMaxTIC;
+	private final Hashtable<Integer, int[]> scanNumbersCache;
 
 	private ByteBuffer buffer = ByteBuffer.allocate(20000);
-	private TreeMap<Integer, Long> dataPointsOffsets;
-	private TreeMap<Integer, Integer> dataPointsLengths;
+	private final TreeMap<Integer, Long> dataPointsOffsets;
+	private final TreeMap<Integer, Integer> dataPointsLengths;
 
 	// Temporary file for scan data storage
 	private File dataPointsFileName;
@@ -76,7 +77,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	/**
 	 * Scans
 	 */
-	private Hashtable<Integer, Scan> scans;
+	private final Hashtable<Integer, Scan> scans;
 
 	public RawDataFileImpl(String dataFileName) throws IOException {
 
@@ -114,15 +115,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	 * instance. If the file is not empty, the TreeMaps supplied as parameters
 	 * have to describe the mapping of storage IDs to data points in the file.
 	 */
-	public synchronized void openDataPointsFile(File dataPointsFileName,
-			TreeMap<Integer, Long> dataPointsOffsets,
-			TreeMap<Integer, Integer> dataPointsLengths) throws IOException {
+	public synchronized void openDataPointsFile(File dataPointsFileName)
+			throws IOException {
+
+		if (this.dataPointsFile != null) {
+			throw new IOException(
+					"Cannot open another data points file, because one is already open");
+		}
 
 		this.dataPointsFileName = dataPointsFileName;
 		this.dataPointsFile = new RandomAccessFile(dataPointsFileName, "rw");
-
-		this.dataPointsOffsets = dataPointsOffsets;
-		this.dataPointsLengths = dataPointsLengths;
 
 		// Locks the temporary file so it is not removed when another instance
 		// of MZmine is starting. Lock will be automatically released when this
@@ -304,8 +306,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 		if (dataPointsFile == null) {
 			File newFile = RawDataFileImpl.createNewDataPointsFile();
-			openDataPointsFile(newFile, new TreeMap<Integer, Long>(),
-					new TreeMap<Integer, Integer>());
+			openDataPointsFile(newFile);
 		}
 
 		final long currentOffset = dataPointsFile.length();
@@ -498,18 +499,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		return dataPointsLengths;
 	}
 
-	public synchronized void setDataPointsOffsets(
-			TreeMap<Integer, Long> dataPointsOffsets) {
-		this.dataPointsOffsets = dataPointsOffsets;
-	}
-
-	public synchronized void setDataPointsLengths(
-			TreeMap<Integer, Integer> dataPointsLengths) {
-		this.dataPointsLengths = dataPointsLengths;
-	}
-
 	public synchronized void close() {
-
 		try {
 			dataPointsFile.close();
 			dataPointsFileName.delete();
@@ -517,19 +507,6 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 			logger.warning("Could not close file " + dataPointsFileName + ": "
 					+ e.toString());
 		}
-
-		// Clear the scans array, to the garbage collector can collect it.
-		// It may take time until this RawDataFileImpl instance is
-		// garbage-collected, because there may be references to it from various
-		// lists, parameter sets etc. But we can clean up the memory now,
-		// because the data file is closed.
-		scans = null;
-		scanNumbersCache = null;
-		dataMZRange = null;
-		dataRTRange = null;
-		dataMaxBasePeakIntensity = null;
-		dataMaxTIC = null;
-
 	}
 
 	public String getName() {

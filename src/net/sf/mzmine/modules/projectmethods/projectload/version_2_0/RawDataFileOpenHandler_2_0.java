@@ -63,10 +63,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 	private boolean centroided;
 	private int dataPointsNumber;
 	private int stepNumber;
-	private int storageID;
 	private long storageFileOffset;
-	private TreeMap<Integer, Long> dataPointsOffsets;
-	private TreeMap<Integer, Integer> dataPointsLengths;
 	private int fragmentCount;
 	private StreamCopy copyMachine;
 
@@ -89,11 +86,8 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 		stepNumber = 0;
 		numberOfScans = 0;
 		parsedScans = 0;
-		storageID = 1;
 		storageFileOffset = 0;
-		dataPointsOffsets = new TreeMap<Integer, Long>();
-		dataPointsLengths = new TreeMap<Integer, Integer>();
-		
+
 		charBuffer = new StringBuffer();
 
 		// Writes the scan file into a temporary file
@@ -103,7 +97,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 		newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
 
 		File tempFile = RawDataFileImpl.createNewDataPointsFile();
-		
+
 		InputStream scanInputStream = zipFile.getInputStream(scansEntry);
 		FileOutputStream fileStream = new FileOutputStream(tempFile);
 
@@ -123,7 +117,7 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 		saxParser.parse(xmlInputStream, this);
 
 		// Adds the raw data file to MZmine
-		newRawDataFile.openDataPointsFile(tempFile, dataPointsOffsets, dataPointsLengths);
+		newRawDataFile.openDataPointsFile(tempFile);
 		RawDataFile rawDataFile = newRawDataFile.finishWriting();
 		return rawDataFile;
 
@@ -242,19 +236,27 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 
 		if (qName.equals(RawDataElementName_2_0.SCAN.getElementName())) {
 
-			StorableScan storableScan = new StorableScan(newRawDataFile,
-					storageID, dataPointsNumber, scanNumber, msLevel,
-					retentionTime, parentScan, precursorMZ, precursorCharge,
-					fragmentScan, centroided);
-
 			try {
+				int newStorageID = 1;
+				TreeMap<Integer, Long> dataPointsOffsets = newRawDataFile
+						.getDataPointsOffsets();
+				TreeMap<Integer, Integer> dataPointsLengths = newRawDataFile
+						.getDataPointsLengths();
+				if (!dataPointsOffsets.isEmpty())
+					newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
+
+				StorableScan storableScan = new StorableScan(newRawDataFile,
+						newStorageID, dataPointsNumber, scanNumber, msLevel,
+						retentionTime, parentScan, precursorMZ,
+						precursorCharge, fragmentScan, centroided);
 				newRawDataFile.addScan(storableScan);
-				dataPointsOffsets.put(storageID, storageFileOffset);
-				dataPointsLengths.put(storageID, dataPointsNumber);
+
+				dataPointsOffsets.put(newStorageID, storageFileOffset);
+				dataPointsLengths.put(newStorageID, dataPointsNumber);
+
 			} catch (IOException e) {
 				throw new SAXException(e);
 			}
-			storageID++;
 			storageFileOffset += dataPointsNumber * 4 * 2;
 
 		}

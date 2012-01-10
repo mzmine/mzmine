@@ -66,7 +66,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	private int dataPointsNumber;
 	private int stepNumber;
 	private int fragmentCount;
-	private int storageID;
+	private int currentStorageID;
 	private int storedDataID;
 	private int storedDataNumDP;
 	private TreeMap<Integer, Long> dataPointsOffsets;
@@ -93,9 +93,6 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		stepNumber = 0;
 		numberOfScans = 0;
 		parsedScans = 0;
-		storageID = 0;
-		dataPointsOffsets = new TreeMap<Integer, Long>();
-		dataPointsLengths = new TreeMap<Integer, Integer>();
 
 		charBuffer = new StringBuffer();
 		massLists = new ArrayList<StorableMassList>();
@@ -105,6 +102,8 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 				+ " to the temporary folder");
 
 		newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+		dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
+		dataPointsLengths = newRawDataFile.getDataPointsLengths();
 
 		File tempFile = RawDataFileImpl.createNewDataPointsFile();
 
@@ -127,8 +126,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		saxParser.parse(xmlInputStream, this);
 
 		// Adds the raw data file to MZmine
-		newRawDataFile.openDataPointsFile(tempFile, dataPointsOffsets,
-				dataPointsLengths);
+		newRawDataFile.openDataPointsFile(tempFile);
 		RawDataFile rawDataFile = newRawDataFile.finishWriting();
 		return rawDataFile;
 
@@ -181,7 +179,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		}
 
 		if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
-			storageID = Integer.parseInt(attrs
+			currentStorageID = Integer.parseInt(attrs
 					.getValue(RawDataElementName_2_5.STORAGE_ID
 							.getElementName()));
 		}
@@ -280,7 +278,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 		if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
 			StorableScan storableScan = new StorableScan(newRawDataFile,
-					storageID, dataPointsNumber, scanNumber, msLevel,
+					currentStorageID, dataPointsNumber, scanNumber, msLevel,
 					retentionTime, parentScan, precursorMZ, precursorCharge,
 					fragmentScan, centroided);
 
