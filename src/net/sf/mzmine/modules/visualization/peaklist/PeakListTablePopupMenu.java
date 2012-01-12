@@ -319,21 +319,24 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 					allClickedPeakListRows.length);
 			for (final PeakListRow row : allClickedPeakListRows) {
 
-				final ChromatographicPeak peak = row.getPeak(selectedDataFile);
-				if (peak != null) {
-
-					selectedPeaks.add(peak);
-
+				for (final ChromatographicPeak peak : row.getPeaks()) {
 					if (mzRange == null) {
 						mzRange = peak.getRawDataPointsMZRange();
 					} else {
 						mzRange.extendRange(peak.getRawDataPointsMZRange());
 					}
+				}
+
+				final ChromatographicPeak filePeak = row
+						.getPeak(selectedDataFile);
+				if (filePeak != null) {
+
+					selectedPeaks.add(filePeak);
 
 					// Label the peak with the row's preferred identity.
 					PeakIdentity identity = row.getPreferredPeakIdentity();
 					if (identity != null) {
-						labelsMap.put(peak, identity.getName());
+						labelsMap.put(filePeak, identity.getName());
 					}
 				}
 			}

@@ -69,6 +69,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
         super(null, true, true, true, true);
 
+        assert mzRange != null;
+        assert rtRange != null;
+        
         this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
