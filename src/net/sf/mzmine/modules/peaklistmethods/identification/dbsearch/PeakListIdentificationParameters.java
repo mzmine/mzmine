@@ -34,10 +34,10 @@ public class PeakListIdentificationParameters extends SimpleParameterSet {
 
 	public PeakListIdentificationParameters() {
 		super(new Parameter[] { peakLists,
-				SingleRowIdentificationParameters.database, ionizationType,
-				SingleRowIdentificationParameters.numOfResults,
-				SingleRowIdentificationParameters.mzTolerance,
-				SingleRowIdentificationParameters.isotopeFilter });
+				SingleRowIdentificationParameters.DATABASE, ionizationType,
+				SingleRowIdentificationParameters.MAX_RESULTS,
+				SingleRowIdentificationParameters.MZ_TOLERANCE,
+				SingleRowIdentificationParameters.ISOTOPE_FILTER});
 	}
 
 }

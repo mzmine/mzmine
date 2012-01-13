@@ -22,33 +22,32 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
-import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
-import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.*;
 
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 
-	public static final ComboParameter<OnlineDatabase> database = new ComboParameter<OnlineDatabase>(
-			"Database", "Database to search", OnlineDatabase.values());
+    public static final ModuleComboParameter<OnlineDatabase> DATABASE = new ModuleComboParameter<OnlineDatabase>(
+            "Database",
+            "Database to search",
+            OnlineDatabase.values());
 
-	public static final NeutralMassParameter neutralMass = new NeutralMassParameter(
-			"Neutral mass", "Value to use in the search query");
+    public static final NeutralMassParameter NEUTRAL_MASS = new NeutralMassParameter(
+            "Neutral mass",
+            "Value to use in the search query");
 
-	public static final IntegerParameter numOfResults = new IntegerParameter(
-			"Number of results", "Maximum number of results to display", 100);
+    public static final IntegerParameter MAX_RESULTS = new IntegerParameter(
+            "Number of results",
+            "Maximum number of results to display",
+            100);
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter();
 
-	public static final OptionalModuleParameter isotopeFilter = new OptionalModuleParameter(
-			"Isotope pattern filter",
-			"Search only for compounds with a isotope pattern similar",
-			new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter ISOTOPE_FILTER = new OptionalModuleParameter(
+            "Isotope pattern filter",
+            "Search only for compounds with a isotope pattern similar",
+            new IsotopePatternScoreParameters());
 
-	public SingleRowIdentificationParameters() {
-		super(new Parameter[] { database, neutralMass, numOfResults,
-				mzTolerance, isotopeFilter });
-	}
-
+    public SingleRowIdentificationParameters() {
+        super(new Parameter[]{DATABASE, NEUTRAL_MASS, MAX_RESULTS, MZ_TOLERANCE, ISOTOPE_FILTER});
+    }
 }

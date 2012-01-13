@@ -19,15 +19,11 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.ChemSpiderGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.HMDBGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.KEGGGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
+import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.*;
+import net.sf.mzmine.parameters.ParameterSet;
 
-public enum OnlineDatabase {
+public enum OnlineDatabase implements MZmineModule {
 
     KEGG("KEGG Compound Database", KEGGGateway.class),
     PubChem("PubChem Compound Database", PubChemGateway.class),
@@ -35,14 +31,23 @@ public enum OnlineDatabase {
     METLIN("METLIN Database", MetLinGateway.class),
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
     MASSBANK("MassBank Database", MassBankGateway.class),
-    CHEMSPIDER("ChemSpider Database",ChemSpiderGateway.class);
+    CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class, new ChemSpiderParameters());
 
     private final String dbName;
     private final Class<? extends DBGateway> gatewayClass;
+    private final ParameterSet parameters;
 
-    OnlineDatabase(final String dbName, final Class<? extends DBGateway> gatewayClass) {
-        this.dbName = dbName;
-        this.gatewayClass = gatewayClass;
+    OnlineDatabase(final String name,
+                   final Class<? extends DBGateway> aClass,
+                   final ParameterSet parameterSet) {
+        dbName = name;
+        gatewayClass = aClass;
+        parameters = parameterSet;
+    }
+
+    OnlineDatabase(final String name,
+                   final Class<? extends DBGateway> aClass) {
+        this(name, aClass, null );
     }
 
     public Class<? extends DBGateway> getGatewayClass() {
@@ -53,4 +58,8 @@ public enum OnlineDatabase {
         return dbName;
     }
 
+    @Override
+    public ParameterSet getParameterSet() {
+        return parameters;
+    }
 }

@@ -75,16 +75,16 @@ public class PeakListIdentificationTask extends AbstractTask {
 		currentRow = null;
 
 		db = parameters
-				.getParameter(SingleRowIdentificationParameters.database)
+				.getParameter(SingleRowIdentificationParameters.DATABASE)
 				.getValue();
 		mzTolerance = parameters.getParameter(
-				SingleRowIdentificationParameters.mzTolerance).getValue();
+				SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
 		numOfResults = parameters.getParameter(
-				SingleRowIdentificationParameters.numOfResults).getValue();
+				SingleRowIdentificationParameters.MAX_RESULTS).getValue();
 		isotopeFilter = parameters.getParameter(
-				SingleRowIdentificationParameters.isotopeFilter).getValue();
+				SingleRowIdentificationParameters.ISOTOPE_FILTER).getValue();
 		isotopeFilterParameters = parameters.getParameter(
-				SingleRowIdentificationParameters.isotopeFilter)
+				SingleRowIdentificationParameters.ISOTOPE_FILTER)
 				.getEmbeddedParameters();
 		ionType = parameters.getParameter(
 				PeakListIdentificationParameters.ionizationType).getValue();

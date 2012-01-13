@@ -26,6 +26,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPILocator;
 import com.chemspider.www.MassSpecAPISoap;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.ChemSpiderParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
@@ -51,12 +52,10 @@ public class ChemSpiderGateway implements DBGateway {
     // Logger.
     private static final Logger LOG = Logger.getLogger(ChemSpiderGateway.class.getName());
 
-    // ChemSpider developer token.
-    private static final String TOKEN = "9ca30201-9924-4197-bab5-8fe6a4a37730";
-
     // Compound names.
     private static final String UNKNOWN_NAME = "Unknown name";
-    private static final String ERROR_MESSAGE = "Error fetching compound info (deprecated structure?)";
+    private static final String ERROR_MESSAGE =
+            "Error fetching compound info (possible invalid search token or deprecated structure?)";
 
     // Pattern for chemical structure URLs - replace CSID.
     private static final String STRUCTURE_URL_PATTERN
@@ -96,13 +95,19 @@ public class ChemSpiderGateway implements DBGateway {
 
         final MassSpecAPISoap massSpec = createMassSpecAPI();
 
+        // Get security token.
+        final String token =
+                OnlineDatabase.CHEMSPIDER.getParameterSet().getParameter(ChemSpiderParameters.SECURITY_TOKEN).getValue();
+
         // Fetch compound info.
         ExtendedCompoundInfo info = null;
         try {
-            info = massSpec.getExtendedCompoundInfo(Integer.valueOf(ID), TOKEN);
+            info = massSpec.getExtendedCompoundInfo(Integer.valueOf(ID), token);
         }
         catch (final RemoteException e) {
-            // We need to catch exceptions here - usually from deprecated structures in the ChemSpider database.
+
+            // We need to catch exceptions here - usually from deprecated structures in the ChemSpider database or
+            // invalid security token.
             LOG.log(Level.WARNING, "Failed to fetch compound info for CSID #" + ID, e);
         }
 

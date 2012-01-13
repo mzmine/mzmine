@@ -39,6 +39,8 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.FormulaUtils;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.SingleRowIdentificationParameters.*;
+
 public class SingleRowIdentificationTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -58,46 +60,35 @@ public class SingleRowIdentificationTask extends AbstractTask {
 	private ParameterSet isotopeFilterParameters;
 	private DBGateway gateway;
 
-	/**
-	 * 
-	 * @param parameters
-	 * @param peakList
-	 * @param peakListRow
-	 * @param peak
-	 */
-	SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
+    /**
+     * Create the task.
+     *
+     * @param parameters task parameters.
+     * @param peakListRow peak-list row to identify.
+     */
+	public SingleRowIdentificationTask(ParameterSet parameters, PeakListRow peakListRow) {
 
 		this.peakListRow = peakListRow;
 
-		db = parameters
-				.getParameter(SingleRowIdentificationParameters.database)
-				.getValue();
+        db = parameters.getParameter(DATABASE).getValue();
 
-		try {
+        try {
 			gateway = db.getGatewayClass().newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		searchedMass = parameters.getParameter(
-				SingleRowIdentificationParameters.neutralMass).getValue();
-		mzTolerance = parameters.getParameter(
-				SingleRowIdentificationParameters.mzTolerance).getValue();
-		numOfResults = parameters.getParameter(
-				SingleRowIdentificationParameters.numOfResults).getValue();
+        searchedMass = parameters.getParameter(NEUTRAL_MASS).getValue();
+        mzTolerance = parameters.getParameter(MZ_TOLERANCE).getValue();
+        numOfResults = parameters.getParameter(MAX_RESULTS).getValue();
 
-		ionType = parameters.getParameter(
-				SingleRowIdentificationParameters.neutralMass).getIonType();
-		charge = parameters.getParameter(
-				SingleRowIdentificationParameters.neutralMass).getCharge();
+        ionType = parameters.getParameter(NEUTRAL_MASS).getIonType();
+        charge = parameters.getParameter(NEUTRAL_MASS).getCharge();
 
-		isotopeFilter = parameters.getParameter(
-				SingleRowIdentificationParameters.isotopeFilter).getValue();
-		isotopeFilterParameters = parameters.getParameter(
-				SingleRowIdentificationParameters.isotopeFilter)
-				.getEmbeddedParameters();
+        isotopeFilter = parameters.getParameter(ISOTOPE_FILTER).getValue();
+        isotopeFilterParameters = parameters.getParameter(ISOTOPE_FILTER).getEmbeddedParameters();
 
-		// If there is no isotope pattern, we cannot use the isotope filter
+        // If there is no isotope pattern, we cannot use the isotope filter
 		if (peakListRow.getBestIsotopePattern() == null)
 			isotopeFilter = false;
 
