@@ -21,10 +21,6 @@ package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 
-import net.sf.mzmine.desktop.preferences.numberformat.NumberFormatParameter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatParameter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatterType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -42,10 +38,10 @@ public class MZminePreferences extends SimpleParameterSet {
 			"Format of m/z values. Please check the help file for details.",
 			new DecimalFormat("0.000"));
 
-	public static final RTFormatParameter rtFormat = new RTFormatParameter(
+	public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
 			"Retention time value format",
 			"Format of retention time values. Please check the help file for details.",
-			new RTFormatter(RTFormatterType.NumberInMin, "0.0"));
+			new DecimalFormat("0.0"));
 
 	public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
 			"Intensity format",

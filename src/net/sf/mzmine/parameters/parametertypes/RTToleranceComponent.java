@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.BorderLayout;
@@ -23,75 +24,68 @@ import java.awt.BorderLayout;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatterType;
 
 import net.sf.mzmine.main.MZmineCore;
 
-/**
- */
 public class RTToleranceComponent extends JPanel {
 
-        private static final String toleranceTypes[] = {"absolute (min)", "relative (%)"};
-        private JTextField toleranceField;
-        private JComboBox toleranceType;
+	private static final String toleranceTypes[] = { "absolute", "relative (%)" };
+	private JTextField toleranceField;
+	private JComboBox toleranceType;
 
-        public RTToleranceComponent() {
+	public RTToleranceComponent() {
 
-                super(new BorderLayout());
+		super(new BorderLayout());
 
-                toleranceField = new JTextField();
-                toleranceField.setColumns(6);
-                add(toleranceField, BorderLayout.CENTER);
+		toleranceField = new JTextField();
+		toleranceField.setColumns(6);
+		add(toleranceField, BorderLayout.CENTER);
 
-                toleranceType = new JComboBox(toleranceTypes);
-                add(toleranceType, BorderLayout.EAST);
+		toleranceType = new JComboBox(toleranceTypes);
+		add(toleranceType, BorderLayout.EAST);
 
-        }
+	}
 
-        public void setValue(RTTolerance value) {
-                double tolerance = value.getTolerance();
-                if (((RTFormatter) MZmineCore.getRTFormat()).getType() == RTFormatterType.NumberInMin) {
-                        tolerance = tolerance / 60;
-                }
-                if (value.isAbsolute()) {
-                        toleranceType.setSelectedIndex(0);
-                        String valueString = String.valueOf(tolerance);
-                        toleranceField.setText(valueString);
-                } else {
-                        toleranceType.setSelectedIndex(1);
-                        String valueString = String.valueOf(tolerance * 100);
-                        toleranceField.setText(valueString);
-                }
-        }
+	public void setValue(RTTolerance value) {
+		double tolerance = value.getTolerance();
+		if (value.isAbsolute()) {
+			toleranceType.setSelectedIndex(0);
+			String valueString = String.valueOf(tolerance);
+			toleranceField.setText(valueString);
+		} else {
+			toleranceType.setSelectedIndex(1);
+			String valueString = String.valueOf(tolerance * 100);
+			toleranceField.setText(valueString);
+		}
+	}
 
-        public RTTolerance getValue() {
+	public RTTolerance getValue() {
 
-                int index = toleranceType.getSelectedIndex();
+		int index = toleranceType.getSelectedIndex();
 
-                String valueString = toleranceField.getText();
+		String valueString = toleranceField.getText();
 
-                double toleranceDouble;
-                try {
-                        if (index == 0) {
-                                toleranceDouble = MZmineCore.getRTFormat().parse(valueString).doubleValue();
+		double toleranceDouble;
+		try {
+			if (index == 0) {
+				toleranceDouble = MZmineCore.getRTFormat().parse(valueString)
+						.doubleValue();
+			} else {
+				Number toleranceValue = Double.parseDouble(valueString);
+				toleranceDouble = toleranceValue.doubleValue() / 100;
 			}
-			else {
-                                Number toleranceValue = Double.parseDouble(valueString);
-                                toleranceDouble = toleranceValue.doubleValue() / 100;
-                        }
-                } catch (Exception e) {
-                        return null;
-                }
+		} catch (Exception e) {
+			return null;
+		}
 
-                RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
+		RTTolerance value = new RTTolerance(index <= 0, toleranceDouble);
 
-                return value;
+		return value;
 
-        }
+	}
 
-        @Override
-        public void setToolTipText(String toolTip) {
-                toleranceField.setToolTipText(toolTip);
-        }
+	@Override
+	public void setToolTipText(String toolTip) {
+		toleranceField.setToolTipText(toolTip);
+	}
 }

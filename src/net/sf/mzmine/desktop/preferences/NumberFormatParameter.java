@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.preferences.numberformat;
+package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 import java.util.Collection;
