@@ -21,6 +21,8 @@ package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 
+import org.w3c.dom.Element;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -64,26 +66,36 @@ public class MZminePreferences extends SimpleParameterSet {
 
 		if (retVal == ExitCode.OK) {
 
-			// Update system proxy settings
-			if (getParameter(proxySettings).getValue()) {
-				ParameterSet proxyParams = getParameter(proxySettings)
-						.getEmbeddedParameters();
-				String address = proxyParams.getParameter(
-						ProxySettings.proxyAddress).getValue();
-				String port = proxyParams.getParameter(ProxySettings.proxyPort)
-						.getValue();
-				System.setProperty("http.proxyHost", address);
-				System.setProperty("http.proxyPort", port);
-			} else {
-				System.clearProperty("http.proxyHost");
-				System.clearProperty("http.proxyPort");
-			}
+			// Update proxy settings
+			updateSystemProxySettings();
 
 			// Repaint windows to update number formats
 			MZmineCore.getDesktop().getMainFrame().repaint();
 		}
 
 		return retVal;
+	}
+
+	public void loadValuesFromXML(Element xmlElement) {
+		super.loadValuesFromXML(xmlElement);
+		updateSystemProxySettings();
+	}
+
+	private void updateSystemProxySettings() {
+		// Update system proxy settings
+		if (getParameter(proxySettings).getValue()) {
+			ParameterSet proxyParams = getParameter(proxySettings)
+					.getEmbeddedParameters();
+			String address = proxyParams.getParameter(
+					ProxySettings.proxyAddress).getValue();
+			String port = proxyParams.getParameter(ProxySettings.proxyPort)
+					.getValue();
+			System.setProperty("http.proxyHost", address);
+			System.setProperty("http.proxyPort", port);
+		} else {
+			System.clearProperty("http.proxyHost");
+			System.clearProperty("http.proxyPort");
+		}
 	}
 
 }
