@@ -39,7 +39,7 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TextUtils;
 
-import com.mindprod.ledatastream.LEDataInputStream;
+import com.google.common.io.LittleEndianDataInputStream;
 
 /**
  * This module binds to the XRawfile2.dll library of Xcalibur and reads directly
@@ -247,7 +247,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 				// Because Intel CPU is using little endian natively, we
 				// need to use LEDataInputStream instead of normal Java
 				// DataInputStream, which is big-endian.
-				LEDataInputStream dis = new LEDataInputStream(dumpStream);
+				LittleEndianDataInputStream dis = new LittleEndianDataInputStream(dumpStream);
 				for (int i = 0; i < numOfDataPoints; i++) {
 					double mz = dis.readDouble();
 					double intensity = dis.readDouble();
