@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,13 +49,13 @@ import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.GUIUtils;
 
 public class ResultWindow extends JInternalFrame implements ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private ResultTableModel listElementModel;
-	private JButton btnAdd, btnViewer, btnIsotopeViewer, btnBrowser;
 
 	private PeakListRow peakListRow;
 	private JTable IDList;
@@ -99,24 +98,14 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
 		JPanel pnlButtons = new JPanel();
-		btnAdd = new JButton("Add identity");
-		btnAdd.addActionListener(this);
-		btnAdd.setActionCommand("ADD");
-		btnViewer = new JButton("View structure");
-		btnViewer.addActionListener(this);
-		btnViewer.setActionCommand("VIEWER");
-		btnIsotopeViewer = new JButton("View isotope pattern");
-		btnIsotopeViewer.addActionListener(this);
-		btnIsotopeViewer.setActionCommand("ISOTOPE_VIEWER");
-		btnBrowser = new JButton("Open browser");
-		btnBrowser.addActionListener(this);
-		btnBrowser.setActionCommand("BROWSER");
-
+		pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
 		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		pnlButtons.add(btnAdd);
-		pnlButtons.add(btnViewer);
-		pnlButtons.add(btnIsotopeViewer);
-		pnlButtons.add(btnBrowser);
+
+		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+		GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
+		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
+				"ISOTOPE_VIEWER");
+		GUIUtils.addButton(pnlButtons, "Open browser", null, this, "BROWSER");
 
 		setLayout(new BorderLayout());
 		setSize(500, 200);
@@ -131,7 +120,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		String command = e.getActionCommand();
 
 		if (command.equals("ADD")) {
-			
+
 			int index = IDList.getSelectedRow();
 
 			if (index < 0) {
@@ -148,7 +137,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 			// Notify the GUI about the change in the project
 			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
 					false);
-			
+
 			// Repaint the window to reflect the change in the peak list
 			MZmineCore.getDesktop().getMainFrame().repaint();
 
@@ -195,13 +184,13 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 
 			if (predictedPattern == null)
 				return;
-			
+
 			ChromatographicPeak peak = peakListRow.getBestPeak();
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber, null,
-					peak.getIsotopePattern(), predictedPattern);
+			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
+					null, peak.getIsotopePattern(), predictedPattern);
 
 		}
 

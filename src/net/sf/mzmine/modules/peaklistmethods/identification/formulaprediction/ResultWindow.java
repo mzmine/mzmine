@@ -121,6 +121,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
 		JPanel pnlButtons = new JPanel();
+		pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
 		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
