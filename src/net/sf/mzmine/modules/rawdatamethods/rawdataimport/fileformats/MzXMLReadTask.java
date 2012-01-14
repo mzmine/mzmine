@@ -194,7 +194,7 @@ public class MzXMLReadTask extends AbstractTask {
 					Date currentDate = new Date();
 					Duration dur = dataTypeFactory
 							.newDuration(retentionTimeStr);
-					retentionTime = dur.getTimeInMillis(currentDate) / 1000d;
+					retentionTime = dur.getTimeInMillis(currentDate) / 1000d / 60d;
 				} else {
 					setStatus(TaskStatus.ERROR);
 					errorMessage = "This file does not contain retentionTime for scans";

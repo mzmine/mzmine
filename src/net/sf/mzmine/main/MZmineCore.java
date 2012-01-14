@@ -122,27 +122,29 @@ public class MZmineCore implements Runnable {
 				}
 			});
 
-			for (File remainingTmpFile : remainingTmpFiles) {
+			if (remainingTmpFiles != null)
+				for (File remainingTmpFile : remainingTmpFiles) {
 
-				// Skip files created by someone else
-				if (!remainingTmpFile.canWrite())
-					continue;
+					// Skip files created by someone else
+					if (!remainingTmpFile.canWrite())
+						continue;
 
-				// Try to obtain a lock on the file
-				RandomAccessFile rac = new RandomAccessFile(remainingTmpFile,
-						"rw");
+					// Try to obtain a lock on the file
+					RandomAccessFile rac = new RandomAccessFile(
+							remainingTmpFile, "rw");
 
-				FileLock lock = rac.getChannel().tryLock();
-				rac.close();
+					FileLock lock = rac.getChannel().tryLock();
+					rac.close();
 
-				if (lock != null) {
-					// We locked the file, which means nobody is using it
-					// anymore and it can be removed
-					logger.finest("Removing unused file " + remainingTmpFile);
-					remainingTmpFile.delete();
+					if (lock != null) {
+						// We locked the file, which means nobody is using it
+						// anymore and it can be removed
+						logger.finest("Removing unused file "
+								+ remainingTmpFile);
+						remainingTmpFile.delete();
+					}
+
 				}
-
-			}
 		} catch (IOException e) {
 			logger.log(Level.WARNING,
 					"Error while checking for old temporary files", e);

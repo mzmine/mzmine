@@ -181,8 +181,10 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 					.getElementName());
 			mass = Double.parseDouble(attrs.getValue(PeakListElementName_2_0.MZ
 					.getElementName()));
+			// Before MZmine 2.6 retention time was saved in seconds, but now we
+			// use minutes, so we need to divide by 60
 			rt = Double.parseDouble(attrs.getValue(PeakListElementName_2_0.RT
-					.getElementName()));
+					.getElementName())) / 60d;
 			height = Double.parseDouble(attrs
 					.getValue(PeakListElementName_2_0.HEIGHT.getElementName()));
 			area = Double.parseDouble(attrs

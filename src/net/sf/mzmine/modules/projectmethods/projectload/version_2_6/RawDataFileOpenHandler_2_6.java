@@ -17,12 +17,13 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.projectmethods.projectload.version_1_97;
+package net.sf.mzmine.modules.projectmethods.projectload.version_2_6;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -34,6 +35,7 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.project.impl.StorableMassList;
 import net.sf.mzmine.project.impl.StorableScan;
 import net.sf.mzmine.util.StreamCopy;
 
@@ -44,14 +46,14 @@ import org.xml.sax.helpers.DefaultHandler;
 import de.schlichtherle.util.zip.ZipEntry;
 import de.schlichtherle.util.zip.ZipFile;
 
-public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
+public class RawDataFileOpenHandler_2_6 extends DefaultHandler implements
 		RawDataFileOpenHandler {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private StringBuffer charBuffer;
 	private RawDataFileImpl newRawDataFile;
-	private int numberOfScans, parsedScans;
+	private int numberOfScans = 0, parsedScans = 0;
 	private int scanNumber;
 	private int msLevel;
 	private int parentScan;
@@ -63,9 +65,14 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 	private boolean centroided;
 	private int dataPointsNumber;
 	private int stepNumber;
-	private long storageFileOffset;
 	private int fragmentCount;
+	private int currentStorageID;
+	private int storedDataID;
+	private int storedDataNumDP;
+	private TreeMap<Integer, Long> dataPointsOffsets;
+	private TreeMap<Integer, Integer> dataPointsLengths;
 	private StreamCopy copyMachine;
+	private ArrayList<StorableMassList> massLists;
 
 	private boolean canceled = false;
 
@@ -86,15 +93,17 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 		stepNumber = 0;
 		numberOfScans = 0;
 		parsedScans = 0;
-		storageFileOffset = 0;
 
 		charBuffer = new StringBuffer();
+		massLists = new ArrayList<StorableMassList>();
 
 		// Writes the scan file into a temporary file
 		logger.info("Moving scan file : " + scansEntry.getName()
 				+ " to the temporary folder");
 
 		newRawDataFile = (RawDataFileImpl) MZmineCore.createNewFile(null);
+		dataPointsOffsets = newRawDataFile.getDataPointsOffsets();
+		dataPointsLengths = newRawDataFile.getDataPointsLengths();
 
 		File tempFile = RawDataFileImpl.createNewDataPointsFile();
 
@@ -158,15 +167,41 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 		if (canceled)
 			throw new SAXException("Parsing canceled");
 
-		if (qName.equals(RawDataElementName_1_97.QUANTITY_FRAGMENT_SCAN
+		if (qName.equals(RawDataElementName_2_6.QUANTITY_FRAGMENT_SCAN
 				.getElementName())) {
 			numberOfFragments = Integer
-					.parseInt(attrs.getValue(RawDataElementName_1_97.QUANTITY
+					.parseInt(attrs.getValue(RawDataElementName_2_6.QUANTITY
 							.getElementName()));
 			if (numberOfFragments > 0) {
 				fragmentScan = new int[numberOfFragments];
 				fragmentCount = 0;
 			}
+		}
+
+		if (qName.equals(RawDataElementName_2_6.SCAN.getElementName())) {
+			currentStorageID = Integer.parseInt(attrs
+					.getValue(RawDataElementName_2_6.STORAGE_ID
+							.getElementName()));
+		}
+
+		if (qName.equals(RawDataElementName_2_6.STORED_DATA.getElementName())) {
+			storedDataID = Integer.parseInt(attrs
+					.getValue(RawDataElementName_2_6.STORAGE_ID
+							.getElementName()));
+			storedDataNumDP = Integer.parseInt(attrs
+					.getValue(RawDataElementName_2_6.QUANTITY_DATAPOINTS
+							.getElementName()));
+		}
+
+		if (qName.equals(RawDataElementName_2_6.MASS_LIST.getElementName())) {
+			String name = attrs.getValue(RawDataElementName_2_6.NAME
+					.getElementName());
+			int storageID = Integer.parseInt(attrs
+					.getValue(RawDataElementName_2_6.STORAGE_ID
+							.getElementName()));
+			StorableMassList newML = new StorableMassList(newRawDataFile,
+					storageID, name, null);
+			massLists.add(newML);
 		}
 	}
 
@@ -181,7 +216,7 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			throw new SAXException("Parsing canceled");
 
 		// <NAME>
-		if (qName.equals(RawDataElementName_1_97.NAME.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.NAME.getElementName())) {
 
 			// Adds the scan file and the name to the new raw data file
 			String name = getTextOfElement();
@@ -189,77 +224,75 @@ public class RawDataFileOpenHandler_1_97 extends DefaultHandler implements
 			newRawDataFile.setName(name);
 		}
 
-		if (qName
-				.equals(RawDataElementName_1_97.QUANTITY_SCAN.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.QUANTITY_SCAN.getElementName())) {
 			numberOfScans = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.SCAN_ID.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.SCAN_ID.getElementName())) {
 			scanNumber = Integer.parseInt(getTextOfElement());
 			parsedScans++;
 		}
 
-		if (qName.equals(RawDataElementName_1_97.MS_LEVEL.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.STORED_DATA.getElementName())) {
+			long offset = Long.parseLong(getTextOfElement());
+			dataPointsOffsets.put(storedDataID, offset);
+			dataPointsLengths.put(storedDataID, storedDataNumDP);
+		}
+
+		if (qName.equals(RawDataElementName_2_6.MS_LEVEL.getElementName())) {
 			msLevel = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.PARENT_SCAN.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.PARENT_SCAN.getElementName())) {
 			parentScan = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.PRECURSOR_MZ.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.PRECURSOR_MZ.getElementName())) {
 			precursorMZ = Double.parseDouble(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.PRECURSOR_CHARGE
+		if (qName.equals(RawDataElementName_2_6.PRECURSOR_CHARGE
 				.getElementName())) {
 			precursorCharge = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.RETENTION_TIME
-				.getElementName())) {
+		if (qName
+				.equals(RawDataElementName_2_6.RETENTION_TIME.getElementName())) {
 			retentionTime = Double.parseDouble(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.CENTROIDED.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.CENTROIDED.getElementName())) {
 			centroided = Boolean.parseBoolean(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.QUANTITY_DATAPOINTS
+		if (qName.equals(RawDataElementName_2_6.QUANTITY_DATAPOINTS
 				.getElementName())) {
 			dataPointsNumber = Integer.parseInt(getTextOfElement());
 		}
 
-		if (qName
-				.equals(RawDataElementName_1_97.FRAGMENT_SCAN.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.FRAGMENT_SCAN.getElementName())) {
 			fragmentScan[fragmentCount++] = Integer
 					.parseInt(getTextOfElement());
 		}
 
-		if (qName.equals(RawDataElementName_1_97.SCAN.getElementName())) {
+		if (qName.equals(RawDataElementName_2_6.SCAN.getElementName())) {
+
+			StorableScan storableScan = new StorableScan(newRawDataFile,
+					currentStorageID, dataPointsNumber, scanNumber, msLevel,
+					retentionTime, parentScan, precursorMZ, precursorCharge,
+					fragmentScan, centroided);
 
 			try {
-				int newStorageID = 1;
-				TreeMap<Integer, Long> dataPointsOffsets = newRawDataFile
-						.getDataPointsOffsets();
-				TreeMap<Integer, Integer> dataPointsLengths = newRawDataFile
-						.getDataPointsLengths();
-				if (!dataPointsOffsets.isEmpty())
-					newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
-
-				StorableScan storableScan = new StorableScan(newRawDataFile,
-						newStorageID, dataPointsNumber, scanNumber, msLevel,
-						retentionTime, parentScan, precursorMZ,
-						precursorCharge, fragmentScan, centroided);
 				newRawDataFile.addScan(storableScan);
-
-				dataPointsOffsets.put(newStorageID, storageFileOffset);
-				dataPointsLengths.put(newStorageID, dataPointsNumber);
-
 			} catch (IOException e) {
 				throw new SAXException(e);
 			}
-			storageFileOffset += dataPointsNumber * 4 * 2;
+
+			for (StorableMassList newML : massLists) {
+				newML.setScan(storableScan);
+				storableScan.addMassList(newML);
+			}
+			massLists.clear();
 
 		}
 	}

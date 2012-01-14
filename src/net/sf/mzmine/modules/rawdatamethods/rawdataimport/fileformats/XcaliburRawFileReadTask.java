@@ -102,11 +102,11 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 		// Check the OS we are running
 		String osName = System.getProperty("os.name").toUpperCase();
-		
+
 		String rawDumpPath = System.getProperty("user.dir") + File.separator
 				+ "lib" + File.separator + "RAWdump.exe";
 		String cmdLine[];
-		
+
 		if (osName.toUpperCase().contains("WINDOWS")) {
 			cmdLine = new String[] { rawDumpPath, file.getPath() };
 		} else {
@@ -116,7 +116,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		Process dumper = null;
 
 		try {
-			
+
 			// Create a separate process and execute RAWdump.exe
 			dumper = Runtime.getRuntime().exec(cmdLine);
 
@@ -223,11 +223,9 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 			}
 
 			if (line.startsWith("RETENTION TIME: ")) {
-				// Retention time in the RAW file is reported in minutes, but in
-				// MZmine we use seconds representation, so we need to multiply
-				// by 60
+				// Retention time in the RAW file is reported in minutes.
 				retentionTime = Double.parseDouble(line
-						.substring("RETENTION TIME: ".length())) * 60;
+						.substring("RETENTION TIME: ".length()));
 			}
 
 			if (line.startsWith("PRECURSOR: ")) {

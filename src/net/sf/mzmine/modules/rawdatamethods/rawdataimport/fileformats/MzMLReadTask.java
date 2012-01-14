@@ -258,9 +258,9 @@ public class MzMLReadTask extends AbstractTask {
 							// used in mzML 1.1.0 :-/
 							if (unitAccession.equals("MS:1000038")
 									|| unitAccession.equals("UO:0000031"))
-								retentionTime = Double.parseDouble(value) * 60d;
-							else
 								retentionTime = Double.parseDouble(value);
+							else
+								retentionTime = Double.parseDouble(value) / 60d;
 						} else
 							throw new SAXException(
 									"Corrupted retention time information");

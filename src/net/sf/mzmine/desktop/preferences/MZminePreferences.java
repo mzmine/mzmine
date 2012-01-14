@@ -21,10 +21,6 @@ package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 
-import net.sf.mzmine.desktop.preferences.numberformat.NumberFormatParameter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatParameter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatter;
-import net.sf.mzmine.desktop.preferences.numberformat.RTFormatterType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -38,18 +34,15 @@ import net.sf.mzmine.util.dialogs.ExitCode;
 public class MZminePreferences extends SimpleParameterSet {
 
 	public static final NumberFormatParameter mzFormat = new NumberFormatParameter(
-			"m/z value format",
-			"Format of m/z values. Please check the help file for details.",
+			"m/z value format", "Format of m/z values", false,
 			new DecimalFormat("0.000"));
 
-	public static final RTFormatParameter rtFormat = new RTFormatParameter(
-			"Retention time value format",
-			"Format of retention time values. Please check the help file for details.",
-			new RTFormatter(RTFormatterType.NumberInMin, "0.0"));
+	public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
+			"Retention time value format", "Format of retention time values",
+			false, new DecimalFormat("0.0"));
 
 	public static final NumberFormatParameter intensityFormat = new NumberFormatParameter(
-			"Intensity format",
-			"Format of intensity values. Please check the help file for details.",
+			"Intensity format", "Format of intensity values", true,
 			new DecimalFormat("0.0E0"));
 
 	public static final NumOfThreadsParameter numOfThreads = new NumOfThreadsParameter();

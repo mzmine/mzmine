@@ -258,7 +258,9 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 
 		if (qName
 				.equals(RawDataElementName_2_5.RETENTION_TIME.getElementName())) {
-			retentionTime = Double.parseDouble(getTextOfElement());
+			// Before MZmine 2.6 retention time was saved in seconds, but now we
+			// use minutes, so we need to divide by 60
+			retentionTime = Double.parseDouble(getTextOfElement()) / 60d;
 		}
 
 		if (qName.equals(RawDataElementName_2_5.CENTROIDED.getElementName())) {

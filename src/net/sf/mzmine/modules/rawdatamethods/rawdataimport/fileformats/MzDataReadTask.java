@@ -205,12 +205,12 @@ public class MzDataReadTask extends AbstractTask {
 					if ((attrs.getValue("accession").equals("PSI:1000038"))
 							|| (attrs.getValue("name").equals("time.min"))) {
 						retentionTime = Double.parseDouble(attrs
-								.getValue("value")) * 60f;
+								.getValue("value"));
 					}
 					if ((attrs.getValue("accession").equals("PSI:1000039"))
 							|| (attrs.getValue("name").equals("time.sec"))) {
 						retentionTime = Double.parseDouble(attrs
-								.getValue("value"));
+								.getValue("value")) / 60d;
 					}
 				}
 				if (precursorFlag) {

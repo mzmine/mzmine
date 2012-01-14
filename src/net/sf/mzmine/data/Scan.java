@@ -46,7 +46,7 @@ public interface Scan {
 
     /**
      * 
-     * @return Retention time of this scan in seconds
+     * @return Retention time of this scan in minutes
      */
     public double getRetentionTime();
 

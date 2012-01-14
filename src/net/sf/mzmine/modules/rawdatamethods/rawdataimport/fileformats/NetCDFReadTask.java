@@ -242,12 +242,10 @@ public class NetCDFReadTask extends AbstractTask {
 		ind = 0;
 		while (scanTimeIterator.hasNext()) {
 			if (scanTimeVariable.getDataType().getPrimitiveClassType() == float.class) {
-				retentionTimes[ind] = ((Double) scanTimeIterator.next())
-						.floatValue();
+				retentionTimes[ind] = ((Double) scanTimeIterator.next()) / 60d;
 			}
 			if (scanTimeVariable.getDataType().getPrimitiveClassType() == double.class) {
-				retentionTimes[ind] = ((Double) scanTimeIterator.next())
-						.doubleValue();
+				retentionTimes[ind] = ((Double) scanTimeIterator.next()) / 60d;
 			}
 			ind++;
 		}

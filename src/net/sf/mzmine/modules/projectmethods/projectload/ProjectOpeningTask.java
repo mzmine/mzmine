@@ -38,15 +38,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.PeakListOpenHandler_1_97;
-import net.sf.mzmine.modules.projectmethods.projectload.version_1_97.RawDataFileOpenHandler_1_97;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.PeakListOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.RawDataFileOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.PeakListOpenHandler_2_5;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.RawDataFileOpenHandler_2_5;
-import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.UserParameterOpenHandler_2_5;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.PeakListOpenHandler_2_6;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.RawDataFileOpenHandler_2_6;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.UserParameterOpenHandler_2_6;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
@@ -265,32 +265,12 @@ public class ProjectOpeningTask extends AbstractTask {
 		int projectMinorVersion = Integer.valueOf(m.group(2));
 
 		// Check if project was saved with an old version
-		if ((projectMajorVersion == 1) && (projectMinorVersion < 96)) {
+		if (projectMajorVersion == 1) {
 			throw new IOException(
 					"This project was saved with an old version (MZmine "
 							+ projectVersionString
 							+ ") and it cannot be opened in MZmine "
 							+ mzmineVersionString);
-		}
-
-		// Check if the project version is 1.96
-		if ((projectMajorVersion == 1) && (projectMinorVersion == 96)) {
-			String warning = "Warning: this project was saved with MZmine "
-					+ projectVersionString
-					+ ". Opening this project in MZmine " + mzmineVersionString
-					+ " may result in errors or loss of information.";
-			MZmineCore.getDesktop().displayMessage(warning);
-			// We can still use 1.97 opening handlers for 1.96 project
-			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
-			peakListOpenHandler = new PeakListOpenHandler_1_97(dataFilesIDMap);
-			return;
-		}
-
-		// Check if the project version is 1.97 to 1.98
-		if ((projectMajorVersion == 1) && (projectMinorVersion > 96)) {
-			rawDataFileOpenHandler = new RawDataFileOpenHandler_1_97();
-			peakListOpenHandler = new PeakListOpenHandler_1_97(dataFilesIDMap);
-			return;
 		}
 
 		// Check if the project version is 2.0 to 2.2
@@ -307,6 +287,13 @@ public class ProjectOpeningTask extends AbstractTask {
 			return;
 		}
 
+		// Check if the project version is 2.5
+		if ((projectMajorVersion == 2) && (projectMinorVersion == 5)) {
+			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+			peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+			return;
+		}
+
 		// Check if project was saved with a newer version
 		if ((projectMajorVersion > mzmineMajorVersion)
 				|| ((projectMajorVersion == mzmineMajorVersion) && (projectMinorVersion > mzmineMinorVersion))) {
@@ -319,9 +306,9 @@ public class ProjectOpeningTask extends AbstractTask {
 		}
 
 		// Default opening handler
-		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
-		peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
-		userParameterOpenHandler = new UserParameterOpenHandler_2_5(newProject,
+		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_6();
+		peakListOpenHandler = new PeakListOpenHandler_2_6(dataFilesIDMap);
+		userParameterOpenHandler = new UserParameterOpenHandler_2_6(newProject,
 				dataFilesIDMap);
 
 	}

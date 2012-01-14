@@ -17,12 +17,10 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.desktop.preferences.numberformat;
+package net.sf.mzmine.desktop.preferences;
 
 import java.text.DecimalFormat;
 import java.util.Collection;
-
-import javax.swing.JTextField;
 
 import net.sf.mzmine.parameters.UserParameter;
 
@@ -34,18 +32,20 @@ import org.w3c.dom.Element;
  * 
  */
 public class NumberFormatParameter implements
-		UserParameter<DecimalFormat, JTextField> {
+		UserParameter<DecimalFormat, NumberFormatEditor> {
 
 	private String name, description;
+	private boolean showExponentOption;
 	private DecimalFormat value;
 
 	public NumberFormatParameter(String name, String description,
-			DecimalFormat defaultValue) {
+			boolean showExponentOption, DecimalFormat defaultValue) {
 
 		assert defaultValue != null;
 
 		this.name = name;
 		this.description = description;
+		this.showExponentOption = showExponentOption;
 		this.value = defaultValue;
 	}
 
@@ -66,10 +66,8 @@ public class NumberFormatParameter implements
 	}
 
 	@Override
-	public JTextField createEditingComponent() {
-		JTextField editor = new JTextField();
-		editor.setColumns(8);
-		editor.setText(value.toPattern());
+	public NumberFormatEditor createEditingComponent() {
+		NumberFormatEditor editor = new NumberFormatEditor(showExponentOption);
 		return editor;
 	}
 
@@ -85,20 +83,35 @@ public class NumberFormatParameter implements
 
 	@Override
 	public NumberFormatParameter clone() {
-		NumberFormatParameter copy = new NumberFormatParameter(name, description,
-				value);
+		NumberFormatParameter copy = new NumberFormatParameter(name,
+				description, showExponentOption, value);
 		copy.setValue(this.getValue());
 		return copy;
 	}
 
 	@Override
-	public void setValueFromComponent(JTextField component) {
-		value.applyPattern(component.getText());
+	public void setValueFromComponent(NumberFormatEditor component) {
+		final int decimals = component.getDecimals();
+		final boolean showExponent = component.getShowExponent();
+		String pattern = "0";
+
+		if (decimals > 0) {
+			pattern += ".";
+			for (int i = 0; i < decimals; i++)
+				pattern += "0";
+		}
+		if (showExponent) {
+			pattern += "E0";
+		}
+		value.applyPattern(pattern);
 	}
 
 	@Override
-	public void setValueToComponent(JTextField component, DecimalFormat newValue) {
-		component.setText(newValue.toPattern());
+	public void setValueToComponent(NumberFormatEditor component,
+			DecimalFormat newValue) {
+		final int decimals = newValue.getMinimumFractionDigits();
+		boolean showExponent = newValue.toPattern().contains("E");
+		component.setValue(decimals, showExponent);
 	}
 
 	@Override

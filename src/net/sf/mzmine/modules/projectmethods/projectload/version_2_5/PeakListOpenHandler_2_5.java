@@ -102,15 +102,15 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements
 
 		totalRows = 0;
 		parsedRows = 0;
-		
+
 		charBuffer = new StringBuffer();
 		appliedMethods = new Vector<String>();
 		appliedMethodParameters = new Vector<String>();
 		currentPeakListDataFiles = new Vector<RawDataFile>();
 		currentIsotopes = new Vector<DataPoint>();
-		
+
 		buildingPeakList = null;
-		
+
 		// Parse the XML file
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = factory.newSAXParser();
@@ -180,8 +180,10 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements
 					.getElementName());
 			mass = Double.parseDouble(attrs.getValue(PeakListElementName_2_5.MZ
 					.getElementName()));
+			// Before MZmine 2.6 retention time was saved in seconds, but now we
+			// use minutes, so we need to divide by 60
 			rt = Double.parseDouble(attrs.getValue(PeakListElementName_2_5.RT
-					.getElementName()));
+					.getElementName())) / 60d;
 			height = Double.parseDouble(attrs
 					.getValue(PeakListElementName_2_5.HEIGHT.getElementName()));
 			area = Double.parseDouble(attrs
