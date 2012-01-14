@@ -25,6 +25,6 @@ package net.sf.mzmine.main;
 public class MZmineVersion {
 
 	// Version number in the form x.y, or x.y.z
-	public static final String MZMINE_VERSION = "2.5";
+	public static final String MZMINE_VERSION = "2.6";
 
 }
