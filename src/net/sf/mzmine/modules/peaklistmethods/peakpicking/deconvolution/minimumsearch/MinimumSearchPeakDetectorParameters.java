@@ -61,7 +61,7 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
             "Peak duration range",
             "Range of acceptable peak lengths",
             MZmineCore.getRTFormat(),
-            new Range(0.0, 600.0));
+            new Range(0.0, 10.0));
 
     private final PeakResolver peakResolver;
 

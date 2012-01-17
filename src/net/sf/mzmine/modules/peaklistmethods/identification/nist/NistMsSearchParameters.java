@@ -62,7 +62,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
             "Spectrum RT tolerance",
             "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak.",
             MZmineCore.getRTFormat(),
-            3.0,
+            0.05,
             0.0,
             null);
 

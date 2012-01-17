@@ -40,7 +40,7 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
             "Peak duration range",
             "Range of acceptable peak lengths",
             MZmineCore.getRTFormat(),
-            new Range(0.0, 600.0));
+            new Range(0.0, 10.0));
 
     public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter(
             "Amplitude of noise",

@@ -57,7 +57,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
             "Peak duration range",
             "Permissible range of (average) peak durations per row",
             MZmineCore.getRTFormat(),
-            new Range(0.0, 600.0));
+            new Range(0.0, 10.0));
 
     public static final BooleanParameter HAS_IDENTITIES = new BooleanParameter(
             "Only identified?",

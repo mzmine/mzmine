@@ -36,7 +36,7 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
             "Min peak height", "Minimum acceptable peak height (absolute intensity)", MZmineCore.getIntensityFormat());
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
-            "Peak duration range", "Range of acceptable peak lengths", MZmineCore.getRTFormat(), new Range(0.0, 600.0));
+            "Peak duration range", "Range of acceptable peak lengths", MZmineCore.getRTFormat(), new Range(0.0, 10.0));
 
     public static final PercentParameter DERIVATIVE_THRESHOLD_LEVEL = new PercentParameter(
             "Derivative threshold level", "Minimum acceptable intensity in the 2nd derivative for peak recognition");
