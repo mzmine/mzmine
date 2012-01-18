@@ -20,10 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
 import java.util.Iterator;
 import java.util.Set;
-import java.util.LinkedHashMap;
-import java.util.TreeSet;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.data.*;
