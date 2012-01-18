@@ -18,8 +18,6 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
-import java.util.ArrayList;
-import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.SimpleParameterSet;
