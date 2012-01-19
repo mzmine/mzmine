@@ -1,11 +1,45 @@
 BUGS
 
-* title in project tree is changed, but ... sometimes appear
+show chromatogram quick from missing peak -> 
+[17:27:46|SEVERE|WorkerThread]: Unhandled exception java.lang.NullPointerException while processing task Updating TIC visualizer of Blood 500ul SAM00076 NEG(java.lang.NullPointerException@net.sf.mzmine.util.Range.isWithin(Range.java:159))
+java.lang.NullPointerException
+	at net.sf.mzmine.util.Range.isWithin(Range.java:159)
+	at net.sf.mzmine.modules.visualization.tic.TICDataSet.run(TICDataSet.java:126)
+	at net.sf.mzmine.taskcontrol.impl.WorkerThread.run(WorkerThread.java:60)
+Exception in thread "AWT-EventQueue-0" java.lang.NullPointerException
+	at net.sf.mzmine.modules.visualization.tic.TICVisualizerWindow.updateTitle(TICVisualizerWindow.java:130)
+	at net.sf.mzmine.modules.visualization.tic.TICPlot.chartProgress(TICPlot.java:364)
+	at org.jfree.chart.JFreeChart.notifyListeners(JFreeChart.java:1560)
+	at org.jfree.chart.JFreeChart.draw(JFreeChart.java:1241)
+	at org.jfree.chart.ChartPanel.paintComponent(ChartPanel.java:1677)
+	at javax.swing.JComponent.paint(JComponent.java:1029)
+	at javax.swing.JComponent.paintChildren(JComponent.java:862)
+	at javax.swing.JComponent.paint(JComponent.java:1038)
+	at javax.swing.JComponent.paintChildren(JComponent.java:862)
+	at javax.swing.JComponent.paint(JComponent.java:1038)
+	at javax.swing.JLayeredPane.paint(JLayeredPane.java:567)
+	at javax.swing.JComponent.paintChildren(JComponent.java:862)
+	at javax.swing.JComponent.paint(JComponent.java:1038)
+	
+
+- fragment scan info is lost (h vs p project 4)
+
+mz range paramteter - add FROM FORMULA (formula, ionization type, mass tolerance)
+
 * locales when using some input components (e.g. Neutral mass)
 * mnemonic conflict (Chris)
 * batch queue save
 * support referenceable parameters in mzML
+* delete rows throws exception
 
+* chromatogram deconvolution bug (desktop)
+* manual has missing figures
+* RT tolerance value turns strange
+
+Manual --> google docs
+don't change window size when loading project
+
+3D visualizer needs a toggle to estimate missing data points, sometimes shows Grid2D exception - does not form valid grid
 
 
 Future improvements
