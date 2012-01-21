@@ -36,13 +36,12 @@ import net.sf.mzmine.modules.MZmineModule;
 public interface Desktop extends MZmineModule {
 
     /**
-     * Returns a reference to main application window
+     * Returns a reference to main application window.
+     * May return null if MZmine is running in headless (batch) mode.
      * 
      * @return Main window frame
      */
     public JFrame getMainFrame();
-
-
 
     /**
      * Adds a new internal frame (JInternalFrame) to the desktop pane

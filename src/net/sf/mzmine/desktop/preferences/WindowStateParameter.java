@@ -24,7 +24,8 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.util.Collection;
 
-import net.sf.mzmine.desktop.impl.MainWindow;
+import javax.swing.JFrame;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 
@@ -54,8 +55,6 @@ public class WindowStateParameter implements Parameter<Object> {
 	@Override
 	public void loadValueFromXML(Element xmlElement) {
 
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-
 		// Set window position
 		NodeList posElement = xmlElement.getElementsByTagName("position");
 		if (posElement.getLength() == 1) {
@@ -65,8 +64,10 @@ public class WindowStateParameter implements Parameter<Object> {
 			int posY = Integer.valueOf(posArray[1]);
 
 			// Only update the window state on startup
-			if (firstMZmineStartup) {
-				mainWindow.setLocation(posX, posY);
+			if (firstMZmineStartup
+					&& (MZmineCore.getDesktop().getMainFrame() != null)) {
+				JFrame mainFrame = MZmineCore.getDesktop().getMainFrame();
+				mainFrame.setLocation(posX, posY);
 			}
 		}
 
@@ -90,9 +91,11 @@ public class WindowStateParameter implements Parameter<Object> {
 				height = Integer.parseInt(sizeArray[1]);
 
 			// Only update the window state on startup
-			if (firstMZmineStartup) {
-				mainWindow.setSize(width, height);
-				mainWindow.setExtendedState(newState);
+			if (firstMZmineStartup
+					&& (MZmineCore.getDesktop().getMainFrame() != null)) {
+				JFrame mainFrame = MZmineCore.getDesktop().getMainFrame();
+				mainFrame.setSize(width, height);
+				mainFrame.setExtendedState(newState);
 			}
 		}
 
@@ -105,13 +108,14 @@ public class WindowStateParameter implements Parameter<Object> {
 	@Override
 	public void saveValueToXML(Element xmlElement) {
 
-		Document doc = xmlElement.getOwnerDocument();
-
 		// Get window properties
-		MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-		Point position = mainWindow.getLocation();
-		int state = mainWindow.getExtendedState();
-		Dimension size = mainWindow.getSize();
+		JFrame mainFrame = MZmineCore.getDesktop().getMainFrame();
+		if (mainFrame == null)
+			return;
+
+		Point position = mainFrame.getLocation();
+		int state = mainFrame.getExtendedState();
+		Dimension size = mainFrame.getSize();
 		String mainWindowWidth, mainWindowHeight;
 		if ((state & Frame.MAXIMIZED_HORIZ) != 0)
 			mainWindowWidth = "maximized";
@@ -123,10 +127,10 @@ public class WindowStateParameter implements Parameter<Object> {
 			mainWindowHeight = String.valueOf(size.height);
 
 		// Add elements
+		Document doc = xmlElement.getOwnerDocument();
 		Element positionElement = doc.createElement("position");
 		xmlElement.appendChild(positionElement);
 		positionElement.setTextContent(position.x + ":" + position.y);
-
 		Element sizeElement = doc.createElement("size");
 		xmlElement.appendChild(sizeElement);
 		sizeElement.setTextContent(mainWindowWidth + ":" + mainWindowHeight);

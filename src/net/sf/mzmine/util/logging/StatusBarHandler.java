@@ -47,26 +47,28 @@ public class StatusBarHandler extends Handler {
 		if (record.getLevel().intValue() < infoLevel)
 			return;
 
-		// get Desktop instance from MainWindow
+		// get Desktop instance
 		Desktop desktop = MZmineCore.getDesktop();
-		if (desktop != null) {
+		if (desktop == null)
+			return;
+		if (desktop.getMainFrame() == null)
+			return;
 
-			Date recordTime = new Date(record.getMillis());
+		Date recordTime = new Date(record.getMillis());
 
-			// format the message
-			String formattedMessage = "[" + timeFormat.format(recordTime)
-					+ "]: " + record.getMessage();
+		// format the message
+		String formattedMessage = "[" + timeFormat.format(recordTime) + "]: "
+				+ record.getMessage();
 
-			// default color is black
-			Color messageColor = Color.black;
+		// default color is black
+		Color messageColor = Color.black;
 
-			// display severe errors in red
-			if (record.getLevel().equals(Level.SEVERE))
-				messageColor = Color.red;
+		// display severe errors in red
+		if (record.getLevel().equals(Level.SEVERE))
+			messageColor = Color.red;
 
-			// set status bar text
-			desktop.setStatusBarText(formattedMessage, messageColor);
-		}
+		// set status bar text
+		desktop.setStatusBarText(formattedMessage, messageColor);
 
 	}
 

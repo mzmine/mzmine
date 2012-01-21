@@ -31,7 +31,6 @@ import java.io.File;
 /**
  * Helper utilities for choosing files.
  *
- * @author $Author$
  * @version $Revision$
  */
 public class ChooserHelper {

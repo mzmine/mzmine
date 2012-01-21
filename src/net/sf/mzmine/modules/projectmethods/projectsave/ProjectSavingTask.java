@@ -215,8 +215,10 @@ public class ProjectSavingTask extends AbstractTask {
 			savedProject.setProjectFile(saveFile);
 
 			// Update the window title to reflect the new name of the project
-			MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
-			mainWindow.updateTitle();
+			if (MZmineCore.getDesktop() instanceof MainWindow) {
+				MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
+				mainWindow.updateTitle();
+			}
 
 			logger.info("Finished saving the project to " + saveFile);
 

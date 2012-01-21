@@ -19,6 +19,13 @@
 
 package net.sf.mzmine.modules.batchmode;
 
+import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -26,10 +33,15 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 
+import org.w3c.dom.Document;
+
 /**
  * Batch mode module
  */
 public class BatchModeModule implements MZmineProcessingModule {
+
+	private static Logger logger = Logger.getLogger(BatchModeModule.class
+			.getName());
 
 	private BatchModeParameters parameters = new BatchModeParameters();
 
@@ -60,6 +72,28 @@ public class BatchModeModule implements MZmineProcessingModule {
 	@Override
 	public MZmineModuleCategory getModuleCategory() {
 		return MZmineModuleCategory.PROJECT;
+	}
+
+	public static void runBatch(File batchFile) {
+
+		logger.info("Running batch from file " + batchFile);
+
+		try {
+			DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
+					.newDocumentBuilder();
+			Document parsedBatchXML = docBuilder.parse(batchFile);
+			BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML
+					.getDocumentElement());
+			ParameterSet parameters = new BatchModeParameters();
+			parameters.getParameter(BatchModeParameters.batchQueue).setValue(
+					newQueue);
+			Task batchTask = new BatchTask(parameters);
+			batchTask.run();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Error while running batch", e);
+			e.printStackTrace();
+		}
+
 	}
 
 }

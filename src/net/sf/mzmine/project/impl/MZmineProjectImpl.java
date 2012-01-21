@@ -57,13 +57,17 @@ public class MZmineProjectImpl implements MZmineProject {
 
 	public void activateProject() {
 
+		// If running without GUI, just return
+		if (!(MZmineCore.getDesktop() instanceof MainWindow))
+			return;
+
 		Runnable swingThreadCode = new Runnable() {
 			public void run() {
 				MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 
 				// Update the name of the project in the window title
 				mainWindow.updateTitle();
-				
+
 				ProjectTree projectTree = mainWindow.getMainPanel()
 						.getProjectTree();
 				projectTree.setModel(treeModel);
@@ -167,10 +171,10 @@ public class MZmineProjectImpl implements MZmineProject {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		// Close the data file, which also removed the temporary data
 		file.close();
-		
+
 	}
 
 	public RawDataFile[] getDataFiles() {

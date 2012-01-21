@@ -76,13 +76,8 @@ public class TaskControllerImpl implements TaskController, Runnable {
 		taskControllerThread.setPriority(Thread.MIN_PRIORITY);
 		taskControllerThread.start();
 
-		// Create the task progress window and add it to desktop
+		// Create the task progress window
 		taskWindow = new TaskProgressWindow();
-		MZmineCore.getDesktop().addInternalFrame(taskWindow);
-
-		// Initially, hide the task progress window
-		taskWindow.setVisible(false);
-
 	}
 
 	TaskQueue getTaskQueue() {
@@ -118,12 +113,17 @@ public class TaskControllerImpl implements TaskController, Runnable {
 			this.notifyAll();
 		}
 
-		// Show the task list component
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				taskWindow.setVisible(true);
-			}
-		});
+		// Show the task list component, if we have GUI
+		if (MZmineCore.getDesktop().getMainFrame() != null) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					if (taskWindow.getParent() == null)
+						MZmineCore.getDesktop().addInternalFrame(taskWindow);
+					// Initially, hide the task progress window
+					taskWindow.setVisible(true);
+				}
+			});
+		}
 
 	}
 
@@ -159,11 +159,13 @@ public class TaskControllerImpl implements TaskController, Runnable {
 
 			// Check if all tasks in the queue are finished
 			if (taskQueue.allTasksFinished()) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						taskWindow.setVisible(false);
-					}
-				});
+				if (MZmineCore.getDesktop().getMainFrame() != null) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							taskWindow.setVisible(false);
+						}
+					});
+				}
 				taskQueue.clear();
 				continue;
 			}

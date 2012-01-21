@@ -50,11 +50,12 @@ import javax.xml.xpath.XPathFactory;
 
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
-import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
@@ -75,80 +76,32 @@ import de.schlichtherle.io.FileOutputStream;
 /**
  * MZmine main class
  */
-public class MZmineCore implements Runnable {
-
-	public static final File CONFIG_FILE = new File("conf/config.xml");
+public abstract class MZmineCore {
 
 	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-	private static MZminePreferences preferences;
+	protected static final File CONFIG_FILE = new File("conf/config.xml");
 
-	private static TaskControllerImpl taskController;
-	private static MainWindow desktop;
-	private static ProjectManagerImpl projectManager;
-	private static MZmineModule[] initializedModules;
-	private static HelpImpl help;
+	protected static MZminePreferences preferences;
+	protected static TaskControllerImpl taskController;
+	protected static Desktop desktop;
+	protected static ProjectManagerImpl projectManager;
+	protected static MZmineModule[] initializedModules;
 
 	/**
 	 * Main method
 	 */
 	public static void main(String args[]) {
-		// create the GUI in the event-dispatching thread
-		MZmineCore core = new MZmineCore();
-		SwingUtilities.invokeLater(core);
-	}
-
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
 
 		// In the beginning, set the default locale to English, to avoid
 		// problems with conversion of numbers etc. (e.g. decimal separator may
-		// be . or ,)
+		// be . or , depending on the locale)
 		Locale.setDefault(new Locale("en", "US"));
 
 		logger.info("Starting MZmine " + getMZmineVersion());
 
-		logger.fine("Checking for old temporary files...");
-
-		try {
-
-			// Find all temporary files with the mask mzmine*.scans
-			File tempDir = new File(System.getProperty("java.io.tmpdir"));
-			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					return name.matches("mzmine.*\\.scans");
-				}
-			});
-
-			if (remainingTmpFiles != null)
-				for (File remainingTmpFile : remainingTmpFiles) {
-
-					// Skip files created by someone else
-					if (!remainingTmpFile.canWrite())
-						continue;
-
-					// Try to obtain a lock on the file
-					RandomAccessFile rac = new RandomAccessFile(
-							remainingTmpFile, "rw");
-
-					FileLock lock = rac.getChannel().tryLock();
-					rac.close();
-
-					if (lock != null) {
-						// We locked the file, which means nobody is using it
-						// anymore and it can be removed
-						logger.finest("Removing unused file "
-								+ remainingTmpFile);
-						remainingTmpFile.delete();
-					}
-
-				}
-		} catch (IOException e) {
-			logger.log(Level.WARNING,
-					"Error while checking for old temporary files", e);
-		}
+		// Remove old temporary files, if we find any
+		removeOldTemporaryFiles();
 
 		logger.fine("Loading core classes..");
 
@@ -156,21 +109,13 @@ public class MZmineCore implements Runnable {
 		preferences = new MZminePreferences();
 
 		// create instances of core modules
-		taskController = new TaskControllerImpl();
 		projectManager = new ProjectManagerImpl();
-		desktop = new MainWindow();
-		help = new HelpImpl();
+		taskController = new TaskControllerImpl();
 
 		logger.fine("Initializing core classes..");
 
 		projectManager.initModule();
-		desktop.initModule();
 		taskController.initModule();
-
-		// Activate project - bind it to the desktop's project tree
-		MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
-				.getCurrentProject();
-		currentProject.activateProject();
 
 		logger.fine("Loading modules");
 
@@ -186,12 +131,6 @@ public class MZmineCore implements Runnable {
 				MZmineModule moduleInstance = (MZmineModule) moduleClass
 						.newInstance();
 
-				// add desktop menu icon
-				if (moduleInstance instanceof MZmineProcessingModule) {
-					desktop.getMainMenu().addMenuItemForModule(
-							(MZmineProcessingModule) moduleInstance);
-				}
-
 				// add to the module set
 				moduleSet.add(moduleInstance);
 
@@ -204,9 +143,49 @@ public class MZmineCore implements Runnable {
 
 		}
 
-		MZmineCore.initializedModules = moduleSet.toArray(new MZmineModule[0]);
+		initializedModules = moduleSet.toArray(new MZmineModule[0]);
 
-		if (CONFIG_FILE.canRead()) {
+		// If we have no arguments, run in GUI mode, otherwise run in batch mode
+		if (args.length == 0) {
+
+			// Create the Swing GUI in the event-dispatching thread, as is
+			// generally recommended
+			Runnable desktopInit = new Runnable() {
+				public void run() {
+
+					logger.fine("Initializing GUI");
+					MainWindow mainWindow = new MainWindow();
+					desktop = mainWindow;
+					mainWindow.initModule();
+
+					// Activate project - bind it to the desktop's project tree
+					MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
+							.getCurrentProject();
+					currentProject.activateProject();
+
+					// add desktop menu icon
+					for (MZmineModule module : initializedModules) {
+						if (module instanceof MZmineProcessingModule) {
+							mainWindow.getMainMenu().addMenuItemForModule(
+									(MZmineProcessingModule) module);
+						}
+					}
+				};
+
+			};
+
+			try {
+				SwingUtilities.invokeAndWait(desktopInit);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		} else {
+			desktop = new HeadLessDesktop();
+		}
+
+		// load configuration
+		if (CONFIG_FILE.exists() && CONFIG_FILE.canRead()) {
 			try {
 				loadConfiguration(CONFIG_FILE);
 			} catch (Exception e) {
@@ -214,16 +193,32 @@ public class MZmineCore implements Runnable {
 			}
 		}
 
-		// register shutdown hook
-		ShutDownHook shutDownHook = new ShutDownHook();
-		Runtime.getRuntime().addShutdownHook(shutDownHook);
+		// if we have GUI, show it now
+		if (desktop.getMainFrame() != null) {
+			// show the GUI
+			logger.info("Showing main window");
+			desktop.getMainFrame().setVisible(true);
 
-		// show the GUI
-		logger.info("Showing main window");
-		desktop.setVisible(true);
+			// show the welcome message
+			desktop.setStatusBarText("Welcome to MZmine 2!");
 
-		// show the welcome message
-		desktop.setStatusBarText("Welcome to MZmine 2!");
+			// register shutdown hook only if we have GUI - we don't want to
+			// save configuration on exit if we only run a batch
+			ShutDownHook shutDownHook = new ShutDownHook();
+			Runtime.getRuntime().addShutdownHook(shutDownHook);
+		}
+
+		// if arguments were specified (= running without GUI), run the batch
+		// mode for each argument
+		for (String fileName : args) {
+			File batchFile = new File(fileName);
+			if ((!batchFile.exists()) || (!batchFile.canRead())) {
+				logger.severe("Cannot read batch file " + batchFile);
+				continue;
+			}
+			BatchModeModule.runBatch(batchFile);
+			System.exit(0);
+		}
 
 	}
 
@@ -364,15 +359,6 @@ public class MZmineCore implements Runnable {
 	}
 
 	/**
-	 * 
-	 * 
-	 * @return
-	 */
-	public static HelpImpl getHelpImpl() {
-		return help;
-	}
-
-	/**
 	 * Saves configuration and exits the application.
 	 * 
 	 */
@@ -424,4 +410,46 @@ public class MZmineCore implements Runnable {
 		return preferences;
 	}
 
+	private static void removeOldTemporaryFiles() {
+
+		logger.fine("Checking for old temporary files...");
+		try {
+
+			// Find all temporary files with the mask mzmine*.scans
+			File tempDir = new File(System.getProperty("java.io.tmpdir"));
+			File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return name.matches("mzmine.*\\.scans");
+				}
+			});
+
+			if (remainingTmpFiles != null)
+				for (File remainingTmpFile : remainingTmpFiles) {
+
+					// Skip files created by someone else
+					if (!remainingTmpFile.canWrite())
+						continue;
+
+					// Try to obtain a lock on the file
+					RandomAccessFile rac = new RandomAccessFile(
+							remainingTmpFile, "rw");
+
+					FileLock lock = rac.getChannel().tryLock();
+					rac.close();
+
+					if (lock != null) {
+						// We locked the file, which means nobody is using it
+						// anymore and it can be removed
+						logger.finest("Removing unused file "
+								+ remainingTmpFile);
+						remainingTmpFile.delete();
+					}
+
+				}
+		} catch (IOException e) {
+			logger.log(Level.WARNING,
+					"Error while checking for old temporary files", e);
+		}
+
+	}
 }

@@ -42,6 +42,7 @@ import javax.swing.tree.TreeModel;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
@@ -65,8 +66,14 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 	private MainMenu menuBar;
 
+	private HelpImpl help;
+
 	public MainMenu getMainMenu() {
 		return menuBar;
+	}
+	
+	public HelpImpl getHelpImpl() {
+		return help;
 	}
 
 	public void addInternalFrame(JInternalFrame frame) {
@@ -158,6 +165,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 		DesktopSetup desktopSetup = new DesktopSetup();
 		desktopSetup.init();
 
+		help = new HelpImpl();
+		
 		try {
 			BufferedImage MZmineIcon = ImageIO.read(new File(
 					"icons/MZmineIcon.png"));
@@ -246,7 +255,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
 	public void showAboutDialog() {
 
-		MZmineHelpSet hs = MZmineCore.getHelpImpl().getHelpSet();
+		MZmineHelpSet hs = help.getHelpSet();
 		if (hs == null)
 			return;
 
