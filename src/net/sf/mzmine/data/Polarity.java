@@ -21,15 +21,15 @@ package net.sf.mzmine.data;
 
 public enum Polarity {
 
-	Positive(+1), Negative(-1), Neutral(0);
+    Positive(+1), Negative(-1), Neutral(0);
 
-	private final int sign;
+    private final int sign;
 
-	Polarity(int sign) {
-		this.sign = sign;
-	}
+    Polarity(int sign) {
+	this.sign = sign;
+    }
 
-	public int getSign() {
-		return sign;
-	}
+    public int getSign() {
+	return sign;
+    }
 }

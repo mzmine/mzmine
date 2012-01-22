@@ -19,16 +19,21 @@
 
 package net.sf.mzmine.data;
 
+import javax.annotation.Nonnull;
+
 /**
  * This class represent detected masses (ions) in one mass spectrum. Each ion is
  * represented by MzPeak
  */
 public interface MassList {
 
-	public String getName();
+    @Nonnull
+    public String getName();
 
-	public Scan getScan();
+    @Nonnull
+    public Scan getScan();
 
-	public DataPoint[] getDataPoints();
-	
+    @Nonnull
+    public DataPoint[] getDataPoints();
+
 }

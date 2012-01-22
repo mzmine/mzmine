@@ -29,7 +29,8 @@ public interface RawDataFile {
      * Returns the name of this data file (can be a descriptive name, not
      * necessarily the original file name)
      */
-    public @Nonnull String getName();
+    @Nonnull
+    public String getName();
 
     /**
      * Change the name of this data file
@@ -43,14 +44,16 @@ public interface RawDataFile {
     /**
      * Returns sorted array of all MS levels in this file
      */
-    public @Nonnull int[] getMSLevels();
+    @Nonnull
+    public int[] getMSLevels();
 
     /**
      * Returns sorted array of all scan numbers in this file
      * 
      * @return Sorted array of scan numbers, never returns null
      */
-    public @Nonnull int[] getScanNumbers();
+    @Nonnull
+    public int[] getScanNumbers();
 
     /**
      * Returns sorted array of all scan numbers in given MS level
@@ -59,7 +62,8 @@ public interface RawDataFile {
      *            MS level
      * @return Sorted array of scan numbers, never returns null
      */
-    public @Nonnull int[] getScanNumbers(int msLevel);
+    @Nonnull
+    public int[] getScanNumbers(int msLevel);
 
     /**
      * Returns sorted array of all scan numbers in given MS level and retention
@@ -71,7 +75,8 @@ public interface RawDataFile {
      *            Retention time range
      * @return Sorted array of scan numbers, never returns null
      */
-    public @Nonnull int[] getScanNumbers(int msLevel, @Nonnull Range rtRange);
+    @Nonnull
+    public int[] getScanNumbers(int msLevel, @Nonnull Range rtRange);
 
     /**
      * 
@@ -79,15 +84,20 @@ public interface RawDataFile {
      *            Desired scan number
      * @return Desired scan
      */
-    public @Nonnull Scan getScan(int scan);
+    @Nonnull
+    public Scan getScan(int scan);
 
-    public @Nonnull Range getDataMZRange();
+    @Nonnull
+    public Range getDataMZRange();
 
-    public @Nonnull Range getDataRTRange();
+    @Nonnull
+    public Range getDataRTRange();
 
-    public @Nonnull Range getDataMZRange(int msLevel);
+    @Nonnull
+    public Range getDataMZRange(int msLevel);
 
-    public @Nonnull Range getDataRTRange(int msLevel);
+    @Nonnull
+    public Range getDataRTRange(int msLevel);
 
     public double getDataMaxBasePeakIntensity(int msLevel);
 

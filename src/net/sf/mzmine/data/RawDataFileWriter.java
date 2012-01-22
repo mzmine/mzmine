@@ -31,7 +31,8 @@ public interface RawDataFileWriter {
     /**
      * Adds a new scan to the file.
      * 
-     * @param newScan Scan to add
+     * @param newScan
+     *            Scan to add
      */
     public void addScan(Scan newScan) throws IOException;
 

@@ -33,7 +33,8 @@ public interface Scan {
      * 
      * @return RawDataFile containing this Scan
      */
-    public @Nonnull RawDataFile getDataFile();
+    @Nonnull
+    public RawDataFile getDataFile();
 
     /**
      * 
@@ -58,7 +59,8 @@ public interface Scan {
      * 
      * @return m/z range of this Scan
      */
-    public @Nonnull Range getMZRange();
+    @Nonnull
+    public Range getMZRange();
 
     /**
      * Returns the top intensity data point. May return null if there are no
@@ -66,7 +68,8 @@ public interface Scan {
      * 
      * @return Base peak
      */
-    public @Nullable DataPoint getBasePeak();
+    @Nullable
+    public DataPoint getBasePeak();
 
     /**
      * Returns the sum of intensities of all data points.
@@ -120,7 +123,8 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public @Nonnull DataPoint[] getDataPoints();
+    @Nonnull
+    public DataPoint[] getDataPoints();
 
     /**
      * Returns data points in given m/z range, sorted in m/z order.
@@ -131,7 +135,8 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange);
+    @Nonnull
+    public DataPoint[] getDataPointsByMass(@Nonnull Range mzRange);
 
     /**
      * Returns data points over given intensity, sorted in m/z order.
@@ -142,11 +147,14 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity);
+    @Nonnull
+    public DataPoint[] getDataPointsOverIntensity(double intensity);
 
-    public @Nonnull MassList[] getMassLists();
+    @Nonnull
+    public MassList[] getMassLists();
 
-    public @Nullable MassList getMassList(@Nonnull String name);
+    @Nullable
+    public MassList getMassList(@Nonnull String name);
 
     public void addMassList(@Nonnull MassList massList);
 

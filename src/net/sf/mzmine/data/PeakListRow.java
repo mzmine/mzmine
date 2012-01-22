@@ -19,137 +19,134 @@
 
 package net.sf.mzmine.data;
 
-/**
- * 
- */
 public interface PeakListRow {
 
-	/**
-	 * Return raw datas with peaks on this row
-	 */
-	public RawDataFile[] getRawDataFiles();
+    /**
+     * Return raw data with peaks on this row
+     */
+    public RawDataFile[] getRawDataFiles();
 
-	/**
-	 * Returns ID of this row
-	 */
-	public int getID();
+    /**
+     * Returns ID of this row
+     */
+    public int getID();
 
-	/**
-	 * Returns number of peaks assigned to this row
-	 */
-	public int getNumberOfPeaks();
+    /**
+     * Returns number of peaks assigned to this row
+     */
+    public int getNumberOfPeaks();
 
-	/**
-	 * Return peaks assigned to this row
-	 */
-	public ChromatographicPeak[] getPeaks();
+    /**
+     * Return peaks assigned to this row
+     */
+    public ChromatographicPeak[] getPeaks();
 
-	/**
-	 * Returns peak for given raw data file
-	 */
-	public ChromatographicPeak getPeak(RawDataFile rawData);
+    /**
+     * Returns peak for given raw data file
+     */
+    public ChromatographicPeak getPeak(RawDataFile rawData);
 
-	/**
-	 * Add a peak
-	 */
-	public void addPeak(RawDataFile rawData, ChromatographicPeak peak);
+    /**
+     * Add a peak
+     */
+    public void addPeak(RawDataFile rawData, ChromatographicPeak peak);
 
-	/**
-	 * Has a peak?
-	 */
-	public boolean hasPeak(ChromatographicPeak peak);
+    /**
+     * Has a peak?
+     */
+    public boolean hasPeak(ChromatographicPeak peak);
 
-	/**
-	 * Has a peak?
-	 */
-	public boolean hasPeak(RawDataFile rawData);
+    /**
+     * Has a peak?
+     */
+    public boolean hasPeak(RawDataFile rawData);
 
-	/**
-	 * Returns average M/Z for peaks on this row
-	 */
-	public double getAverageMZ();
+    /**
+     * Returns average M/Z for peaks on this row
+     */
+    public double getAverageMZ();
 
-	/**
-	 * Returns average RT for peaks on this row
-	 */
-	public double getAverageRT();
-	
-	/**
-	 * Returns average height for peaks on this row
-	 */
-	public double getAverageHeight();
-	
-	/**
-	 * Returns average area for peaks on this row
-	 */
-	public double getAverageArea();
+    /**
+     * Returns average RT for peaks on this row
+     */
+    public double getAverageRT();
 
-	/**
-	 * Returns comment for this row
-	 */
-	public String getComment();
+    /**
+     * Returns average height for peaks on this row
+     */
+    public double getAverageHeight();
 
-	/**
-	 * Sets comment for this row
-	 */
-	public void setComment(String comment);
+    /**
+     * Returns average area for peaks on this row
+     */
+    public double getAverageArea();
 
-	/**
-	 * Add a new identity candidate (result of identification method)
-	 * 
-	 * @param identity
-	 *            New peak identity
-	 * @param preffered
-	 *            boolean value to define this identity as preferred identity
-	 */
-	public void addPeakIdentity(PeakIdentity identity, boolean preffered);
+    /**
+     * Returns comment for this row
+     */
+    public String getComment();
 
-	/**
-	 * Remove identity candidate
-	 * 
-	 * @param identity
-	 *            Peak identity
-	 */
-	public void removePeakIdentity(PeakIdentity identity);
+    /**
+     * Sets comment for this row
+     */
+    public void setComment(String comment);
 
-	/**
-	 * Returns all candidates for this peak's identity
-	 * 
-	 * @return Identity candidates
-	 */
-	public PeakIdentity[] getPeakIdentities();
+    /**
+     * Add a new identity candidate (result of identification method)
+     * 
+     * @param identity
+     *            New peak identity
+     * @param preffered
+     *            boolean value to define this identity as preferred identity
+     */
+    public void addPeakIdentity(PeakIdentity identity, boolean preffered);
 
-	/**
-	 * Returns preferred peak identity among candidates
-	 * 
-	 * @return Preferred identity
-	 */
-	public PeakIdentity getPreferredPeakIdentity();
+    /**
+     * Remove identity candidate
+     * 
+     * @param identity
+     *            Peak identity
+     */
+    public void removePeakIdentity(PeakIdentity identity);
 
-	/**
-	 * Sets a preferred peak identity among candidates
-	 * 
-	 * @param identity
-	 *            Preferred identity
-	 */
-	public void setPreferredPeakIdentity(PeakIdentity identity);
+    /**
+     * Returns all candidates for this peak's identity
+     * 
+     * @return Identity candidates
+     */
+    public PeakIdentity[] getPeakIdentities();
 
-	/**
-	 * Returns maximum raw data point intensity among all peaks in this row
-	 * 
-	 * @return Maximum intensity
-	 */
-	public double getDataPointMaxIntensity();
+    /**
+     * Returns preferred peak identity among candidates
+     * 
+     * @return Preferred identity
+     */
+    public PeakIdentity getPreferredPeakIdentity();
 
-	/**
-	 * Returns the most intense peak in this row
-	 */
-	public ChromatographicPeak getBestPeak();
+    /**
+     * Sets a preferred peak identity among candidates
+     * 
+     * @param identity
+     *            Preferred identity
+     */
+    public void setPreferredPeakIdentity(PeakIdentity identity);
 
-	/**
-	 * Returns the most intense isotope pattern in this row. If there are no
-	 * isotope patterns present in the row, returns null.
-	 */
-	public IsotopePattern getBestIsotopePattern();
+    /**
+     * Returns maximum raw data point intensity among all peaks in this row
+     * 
+     * @return Maximum intensity
+     */
+    public double getDataPointMaxIntensity();
+
+    /**
+     * Returns the most intense peak in this row
+     */
+    public ChromatographicPeak getBestPeak();
+
+    /**
+     * Returns the most intense isotope pattern in this row. If there are no
+     * isotope patterns present in the row, returns null.
+     */
+    public IsotopePattern getBestIsotopePattern();
 
 }

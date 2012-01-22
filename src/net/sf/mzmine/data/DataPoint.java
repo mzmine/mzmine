@@ -27,8 +27,10 @@ import javax.annotation.Nonnull;
  */
 public interface DataPoint {
 
-    public @Nonnull double getMZ();
+    @Nonnull
+    public double getMZ();
 
-    public @Nonnull double getIntensity();
+    @Nonnull
+    public double getIntensity();
 
 }
