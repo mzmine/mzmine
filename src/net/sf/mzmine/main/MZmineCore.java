@@ -177,7 +177,8 @@ public abstract class MZmineCore {
 			try {
 				SwingUtilities.invokeAndWait(desktopInit);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.log(Level.SEVERE, "Could not initialize GUI", e);
+				System.exit(1);
 			}
 
 		} else {

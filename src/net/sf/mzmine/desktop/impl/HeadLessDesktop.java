@@ -20,7 +20,6 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.Color;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
@@ -92,7 +91,6 @@ public class HeadLessDesktop implements Desktop {
 
 	@Override
 	public void displayException(Exception e) {
-		logger.log(Level.SEVERE, e.toString(), e);
 		e.printStackTrace();
 	}
 

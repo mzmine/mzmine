@@ -20,8 +20,8 @@
 package net.sf.mzmine.util.dialogs;
 
 /**
- * Simple enum for for dialog exit code
+ * Simple enum for for exit codes
  */
 public enum ExitCode {
-    UNKNOWN, OK, CANCEL
+    UNKNOWN, OK, CANCEL, ERROR
 }
