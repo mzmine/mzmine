@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.elements;
+package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements;
 
 import net.sf.mzmine.parameters.ParameterSet;
 

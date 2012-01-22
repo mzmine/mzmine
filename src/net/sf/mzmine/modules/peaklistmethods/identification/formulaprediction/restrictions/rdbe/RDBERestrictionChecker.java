@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restictions.rdbe;
+package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe;
 
 import java.util.HashMap;
 import java.util.Map;
