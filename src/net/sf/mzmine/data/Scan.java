@@ -19,6 +19,9 @@
 
 package net.sf.mzmine.data;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import net.sf.mzmine.util.Range;
 
 /**
@@ -30,8 +33,8 @@ public interface Scan {
      * 
      * @return RawDataFile containing this Scan
      */
-    public RawDataFile getDataFile();
-    
+    public @Nonnull RawDataFile getDataFile();
+
     /**
      * 
      * @return Scan number
@@ -55,7 +58,7 @@ public interface Scan {
      * 
      * @return m/z range of this Scan
      */
-    public Range getMZRange();
+    public @Nonnull Range getMZRange();
 
     /**
      * Returns the top intensity data point. May return null if there are no
@@ -63,7 +66,7 @@ public interface Scan {
      * 
      * @return Base peak
      */
-    public DataPoint getBasePeak();
+    public @Nullable DataPoint getBasePeak();
 
     /**
      * Returns the sum of intensities of all data points.
@@ -117,7 +120,7 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this scan
      */
-    public DataPoint[] getDataPoints();
+    public @Nonnull DataPoint[] getDataPoints();
 
     /**
      * Returns data points in given m/z range, sorted in m/z order.
@@ -128,7 +131,7 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public DataPoint[] getDataPointsByMass(Range mzRange);
+    public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange);
 
     /**
      * Returns data points over given intensity, sorted in m/z order.
@@ -139,14 +142,14 @@ public interface Scan {
      * 
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
-    public DataPoint[] getDataPointsOverIntensity(double intensity);
-    
-	public MassList[] getMassLists();
-	
-	public MassList getMassList(String name);
-	
-	public void addMassList(MassList massList);
-	
-	public void removeMassList(MassList massList);
-	
+    public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity);
+
+    public @Nonnull MassList[] getMassLists();
+
+    public @Nullable MassList getMassList(@Nonnull String name);
+
+    public void addMassList(@Nonnull MassList massList);
+
+    public void removeMassList(@Nonnull MassList massList);
+
 }
