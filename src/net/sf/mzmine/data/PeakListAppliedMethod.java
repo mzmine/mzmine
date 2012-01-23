@@ -19,10 +19,14 @@
 
 package net.sf.mzmine.data;
 
+import javax.annotation.Nonnull;
+
 public interface PeakListAppliedMethod {
 
-	public String getDescription();
+    @Nonnull
+    public String getDescription();
 
-	public String getParameters();
+    @Nonnull
+    public String getParameters();
 
 }
