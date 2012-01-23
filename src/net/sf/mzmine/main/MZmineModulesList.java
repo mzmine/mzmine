@@ -44,6 +44,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.Fragm
 import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper.IsotopeGrouperModule;
@@ -84,87 +85,88 @@ import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
  */
 public class MZmineModulesList {
 
-	public static final Class<?> MODULES[] = new Class<?>[] {
+    public static final Class<?> MODULES[] = new Class<?>[] {
 
-			// Project methods
-			ProjectLoadModule.class,
-			ProjectSaveModule.class,
-			ProjectSaveAsModule.class,
-			ProjectCloseModule.class,
+	    // Project methods
+	    ProjectLoadModule.class,
+	    ProjectSaveModule.class,
+	    ProjectSaveAsModule.class,
+	    ProjectCloseModule.class,
 
-			// Batch mode
-			BatchModeModule.class,
+	    // Batch mode
+	    BatchModeModule.class,
 
-			// Raw data methods
-			RawDataImportModule.class,
-			MassDetectionModule.class,
-			ShoulderPeaksFilterModule.class,
-			ChromatogramBuilderModule.class,
-			ManualPeakPickerModule.class,
-			MsMsPeakPickerModule.class,
-			ScanFiltersModule.class,
-			DataSetFiltersModule.class,
-			BaselineCorrectionModule.class,
+	    // Raw data methods
+	    RawDataImportModule.class,
+	    MassDetectionModule.class,
+	    ShoulderPeaksFilterModule.class,
+	    ChromatogramBuilderModule.class,
+	    ManualPeakPickerModule.class,
+	    MsMsPeakPickerModule.class,
+	    ScanFiltersModule.class,
+	    DataSetFiltersModule.class,
+	    BaselineCorrectionModule.class,
 
-			// Alignment
-			JoinAlignerModule.class,
-			RansacAlignerModule.class,
-			// PathAlignerModule.class,
+	    // Alignment
+	    JoinAlignerModule.class,
+	    RansacAlignerModule.class,
+	    // PathAlignerModule.class,
 
-			// I/O
-			CSVExportModule.class,
-			XMLExportModule.class,
-			XMLImportModule.class,
+	    // I/O
+	    CSVExportModule.class,
+	    XMLExportModule.class,
+	    XMLImportModule.class,
+	    SQLExportModule.class,
 
-			// Gap filling
-			PeakFinderModule.class,
-			SameRangeGapFillerModule.class,
+	    // Gap filling
+	    PeakFinderModule.class,
+	    SameRangeGapFillerModule.class,
 
-			// Isotopes
-			IsotopeGrouperModule.class,
-			IsotopePatternCalculator.class,
+	    // Isotopes
+	    IsotopeGrouperModule.class,
+	    IsotopePatternCalculator.class,
 
-			// Peak detection
-			SmoothingModule.class,
-			DeconvolutionModule.class,
-			ShapeModelerModule.class,
-			PeakExtenderModule.class,
+	    // Peak detection
+	    SmoothingModule.class,
+	    DeconvolutionModule.class,
+	    ShapeModelerModule.class,
+	    PeakExtenderModule.class,
 
-			// Peak list filtering
-			DuplicateFilterModule.class,
-			RowsFilterModule.class,
+	    // Peak list filtering
+	    DuplicateFilterModule.class,
+	    RowsFilterModule.class,
 
-			// Normalization
-			RTNormalizerModule.class,
-			LinearNormalizerModule.class,
-			StandardCompoundNormalizerModule.class,
+	    // Normalization
+	    RTNormalizerModule.class,
+	    LinearNormalizerModule.class,
+	    StandardCompoundNormalizerModule.class,
 
-			// Data analysis
-			CVPlotModule.class,
-			LogratioPlotModule.class,
-			PCAPlotModule.class,
-			CDAPlotModule.class,
-			SammonsPlotModule.class,
-			ClusteringModule.class,
-			HeatMapModule.class,
+	    // Data analysis
+	    CVPlotModule.class,
+	    LogratioPlotModule.class,
+	    PCAPlotModule.class,
+	    CDAPlotModule.class,
+	    SammonsPlotModule.class,
+	    ClusteringModule.class,
+	    HeatMapModule.class,
 
-			// Identification
-			CustomDBSearchModule.class,
-			FormulaPredictionModule.class,
-			FragmentSearchModule.class,
-			AdductSearchModule.class,
-			ComplexSearchModule.class,
-			OnlineDBSearchModule.class,
-			// MascotSearchModule.class,
-			GPLipidSearchModule.class,
-			NistMsSearchModule.class,
+	    // Identification
+	    CustomDBSearchModule.class,
+	    FormulaPredictionModule.class,
+	    FragmentSearchModule.class,
+	    AdductSearchModule.class,
+	    ComplexSearchModule.class,
+	    OnlineDBSearchModule.class,
+	    // MascotSearchModule.class,
+	    GPLipidSearchModule.class,
+	    NistMsSearchModule.class,
 
-			// Visualizers
-			TICVisualizerModule.class, SpectraVisualizerModule.class,
-			TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
-			NeutralLossVisualizerModule.class, PeakListTableModule.class,
-			IsotopePatternExportModule.class, MSMSExportModule.class,
-			ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
-			InfoVisualizerModule.class, IntensityPlotModule.class };
+	    // Visualizers
+	    TICVisualizerModule.class, SpectraVisualizerModule.class,
+	    TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
+	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
+	    IsotopePatternExportModule.class, MSMSExportModule.class,
+	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
+	    InfoVisualizerModule.class, IntensityPlotModule.class };
 
 }
