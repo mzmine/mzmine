@@ -91,9 +91,11 @@ public class NistMsSearchTask
     private static final String CAS_PROPERTY = "CAS number";
     private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
-    // The peak-list and rows to search.
+    // The peak-list.
     private final PeakList peakList;
-    private final PeakListRow[] peakListRows;
+
+    // The peak list row to search for (null => all).
+    private final PeakListRow peakListRow;
 
     // Progress counters.
     private int progress;
@@ -116,21 +118,21 @@ public class NistMsSearchTask
     public NistMsSearchTask(final PeakList list,
                             final ParameterSet params) {
 
-        this(list.getRows(), list, params);
+        this(null, list, params);
     }
 
     /**
      * Create the task.
      *
-     * @param rows   peak list rows to search.
+     * @param row    the peak list row to search for.
      * @param list   the peak list to search.
      * @param params search parameters.
      */
-    public NistMsSearchTask(final PeakListRow[] rows, final PeakList list, final ParameterSet params) {
+    public NistMsSearchTask(final PeakListRow row, final PeakList list, final ParameterSet params) {
 
         // Initialize.
         peakList = list;
-        peakListRows = Arrays.copyOf(rows, rows.length);
+        peakListRow = row;
         progress = 0;
         progressMax = 0;
 
@@ -183,8 +185,19 @@ public class NistMsSearchTask
                     }
                 }
 
-                // Determine the RT neighbourhoods of each row.
-                final Map<PeakListRow, Set<PeakListRow>> rowHoods = groupContemporaneousRows();
+                // Single or multiple row search?
+                final PeakListRow[] peakListRows;
+                final Map<PeakListRow, Set<PeakListRow>> rowHoods;
+                if (peakListRow == null) {
+
+                    peakListRows = peakList.getRows();
+                    rowHoods = groupContemporaneousRows();
+
+                } else {
+
+                    peakListRows = new PeakListRow[]{peakListRow};
+                    rowHoods = getContemporaneousRows();
+                }
 
                 // Store search results for each neighbourhood - to avoid repeat searches.
                 final int numRows = peakListRows.length;
@@ -194,7 +207,7 @@ public class NistMsSearchTask
                 // Search command string.
                 final String command = NIST_MS_SEARCH_EXE.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
-                // Perform searches for each raw data file represented in the peak list.
+                // Perform searches for each peak list row..
                 progress = 0;
                 progressMax = numRows;
                 for (final PeakListRow row : peakListRows) {
@@ -247,9 +260,9 @@ public class NistMsSearchTask
                 setStatus(TaskStatus.FINISHED);
                 LOG.info("NIST MS Search completed");
             }
-            
-			// Repaint the window to reflect the change in the peak list
-			MZmineCore.getDesktop().getMainFrame().repaint();
+
+            // Repaint the window to reflect the change in the peak list
+            MZmineCore.getDesktop().getMainFrame().repaint();
         }
         catch (Throwable t) {
 
@@ -261,9 +274,37 @@ public class NistMsSearchTask
 
             // Clean up.
             if (locatorFile2 != null) {
+
                 locatorFile2.delete();
             }
         }
+    }
+
+    /**
+     * Determines the contemporaneity between all pairs of non-identical peak rows.
+     *
+     * @return a map holding pairs of adjacent (non-identical) peak rows.  (x,y) <=> (y,x)
+     */
+    private Map<PeakListRow, Set<PeakListRow>> getContemporaneousRows() {
+
+        // Create neighbourhood.
+        final Set<PeakListRow> neighbours = new HashSet<PeakListRow>();
+        neighbours.add(peakListRow);
+
+        // Find neighbours.
+        for (final PeakListRow row2 : peakList.getRows()) {
+
+            // Are peak rows contemporaneous?
+            if (!peakListRow.equals(row2) && isContemporaneousPair(peakListRow, row2)) {
+
+                neighbours.add(row2);
+            }
+        }
+
+        // Return neighbourhood.
+        final Map<PeakListRow, Set<PeakListRow>> rowHoods = new HashMap<PeakListRow, Set<PeakListRow>>(1);
+        rowHoods.put(peakListRow, neighbours);
+        return rowHoods;
     }
 
     /**
@@ -277,24 +318,28 @@ public class NistMsSearchTask
         // aligned peak lists, i.e. several different peaks with different RTs per row.
 
         // Determine contemporaneity.
-        final int numRows = peakListRows.length;
+        final int numRows = peakList.getNumberOfRows();
         final Map<PeakListRow, Set<PeakListRow>> rowHoods = new HashMap<PeakListRow, Set<PeakListRow>>(numRows);
         for (int i = 0;
              i < numRows;
              i++) {
 
             // Get this row's neighbours list - create it if necessary.
-            final PeakListRow row1 = peakListRows[i];
+            final PeakListRow row1 = peakList.getRow(i);
             if (!rowHoods.containsKey(row1)) {
+
                 rowHoods.put(row1, new HashSet<PeakListRow>());
             }
+
             final Set<PeakListRow> neighbours = rowHoods.get(row1);
             neighbours.add(row1);
 
-            for (int j = i + 1; j < numRows; j++) {
+            for (int j = i + 1;
+                 j < numRows;
+                 j++) {
 
                 // Are peak rows contemporaneous?
-                final PeakListRow row2 = peakListRows[j];
+                final PeakListRow row2 = peakList.getRow(j);
                 if (isContemporaneousPair(row1, row2)) {
 
                     // Add rows to each others' neighbours lists.

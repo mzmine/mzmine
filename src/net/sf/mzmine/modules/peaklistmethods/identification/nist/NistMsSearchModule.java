@@ -103,7 +103,7 @@ public class NistMsSearchModule implements MZmineProcessingModule {
         final ParameterSet parameters = getInstance().getParameterSet();
         if (parameters.showSetupDialog() == ExitCode.OK) {
 
-            MZmineCore.getTaskController().addTask(new NistMsSearchTask(new PeakListRow[]{row}, peakList, parameters));
+            MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
         }
     }
 }
