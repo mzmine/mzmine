@@ -44,7 +44,7 @@ rem Show java version, in case a problem occurs
 %JAVA_COMMAND% -version
 
 rem This command starts the Java Virtual Machine
-%JAVA_COMMAND% %JAVA_PARAMETERS% -classpath %CLASS_PATH% %MAIN_CLASS% (%*)
+%JAVA_COMMAND% %JAVA_PARAMETERS% -classpath %CLASS_PATH% %MAIN_CLASS% %*
 
 rem If there was an error, give the user chance to see it
 IF ERRORLEVEL 1 pause
