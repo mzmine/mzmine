@@ -62,395 +62,395 @@ import de.schlichtherle.util.zip.ZipFile;
 
 public class ProjectOpeningTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private File openFile;
-	private MZmineProjectImpl newProject;
+    private File openFile;
+    private MZmineProjectImpl newProject;
 
-	private RawDataFileOpenHandler rawDataFileOpenHandler;
-	private PeakListOpenHandler peakListOpenHandler;
-	private UserParameterOpenHandler userParameterOpenHandler;
+    private RawDataFileOpenHandler rawDataFileOpenHandler;
+    private PeakListOpenHandler peakListOpenHandler;
+    private UserParameterOpenHandler userParameterOpenHandler;
 
-	private int currentStage;
-	private String currentLoadedObjectName;
+    private int currentStage;
+    private String currentLoadedObjectName;
 
-	// This hashtable maps stored IDs to raw data file objects
-	private Hashtable<String, RawDataFile> dataFilesIDMap;
+    // This hashtable maps stored IDs to raw data file objects
+    private Hashtable<String, RawDataFile> dataFilesIDMap;
 
-	public ProjectOpeningTask(File openFile) {
-		this.openFile = openFile;
-		dataFilesIDMap = new Hashtable<String, RawDataFile>();
+    public ProjectOpeningTask(File openFile) {
+	this.openFile = openFile;
+	dataFilesIDMap = new Hashtable<String, RawDataFile>();
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+	if (currentLoadedObjectName == null)
+	    return "Opening project " + openFile;
+	return "Opening project " + openFile + " (" + currentLoadedObjectName
+		+ ")";
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+	switch (currentStage) {
+	case 2:
+	    if (rawDataFileOpenHandler == null)
+		return 0;
+	    return rawDataFileOpenHandler.getProgress();
+	case 3:
+	    if (peakListOpenHandler == null)
+		return 0;
+	    return peakListOpenHandler.getProgress();
+	case 4:
+	    if (userParameterOpenHandler == null)
+		return 0;
+	    return userParameterOpenHandler.getProgress();
+	case 5:
+	    return 1;
+	default:
+	    return 0;
+	}
+    }
+
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
+
+	try {
+
+	    logger.info("Started opening project " + openFile);
+	    setStatus(TaskStatus.PROCESSING);
+
+	    // Create a new project
+	    newProject = new MZmineProjectImpl();
+	    newProject.setProjectFile(openFile);
+
+	    // Get project ZIP stream
+	    ZipFile zipFile = new ZipFile(openFile);
+
+	    // Stage 1 - check version and load configuration
+	    currentStage++;
+	    loadVersion(zipFile);
+	    loadConfiguration(zipFile);
+	    if (isCanceled()) {
+		zipFile.close();
+		return;
+	    }
+
+	    // Stage 2 - load raw data files
+	    currentStage++;
+	    loadRawDataFiles(zipFile);
+	    if (isCanceled()) {
+		zipFile.close();
+		return;
+	    }
+
+	    // Stage 3 - load peak lists
+	    currentStage++;
+	    loadPeakLists(zipFile);
+	    if (isCanceled()) {
+		zipFile.close();
+		return;
+	    }
+
+	    // Stage 4 - load user parameters
+	    currentStage++;
+	    loadUserParameters(zipFile);
+	    if (isCanceled()) {
+		zipFile.close();
+		return;
+	    }
+
+	    // Stage 5 - finish and close the project ZIP file
+	    currentStage++;
+	    zipFile.close();
+
+	    // Final check for cancel
+	    if (isCanceled())
+		return;
+
+	    // Close all open frames related to previous project
+	    JInternalFrame frames[] = MZmineCore.getDesktop()
+		    .getInternalFrames();
+	    for (JInternalFrame frame : frames) {
+		// Use doDefailtCloseAction() instead of dispose() to protect
+		// the TaskProgressWindow from disposing
+		frame.doDefaultCloseAction();
+	    }
+
+	    // Replace the current project with the new one
+	    ProjectManager projectManager = MZmineCore.getProjectManager();
+	    projectManager.setCurrentProject(newProject);
+
+	    logger.info("Finished opening project " + openFile);
+
+	    setStatus(TaskStatus.FINISHED);
+
+	} catch (Throwable e) {
+
+	    // If project opening was canceled, parser was stopped by a
+	    // SAXException which can be safely ignored
+	    if (isCanceled())
+		return;
+
+	    setStatus(TaskStatus.ERROR);
+	    e.printStackTrace();
+	    errorMessage = "Failed opening project: "
+		    + ExceptionUtils.exceptionToString(e);
+	}
+    }
+
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+
+	logger.info("Canceling opening of project " + openFile);
+
+	setStatus(TaskStatus.CANCELED);
+
+	if (rawDataFileOpenHandler != null)
+	    rawDataFileOpenHandler.cancel();
+
+	if (peakListOpenHandler != null)
+	    peakListOpenHandler.cancel();
+
+    }
+
+    /**
+     * Load the version info from the ZIP file and checks whether such version
+     * can be opened with this MZmine
+     */
+    private void loadVersion(ZipFile zipFile) throws IOException {
+
+	logger.info("Checking project version");
+
+	ZipEntry versionEntry = zipFile
+		.getEntry(ProjectSavingTask.VERSION_FILENAME);
+
+	if (versionEntry == null) {
+	    throw new IOException(
+		    "This file is not valid MZmine 2 project. It does not contain version information.");
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		if (currentLoadedObjectName == null)
-			return "Opening project " + openFile;
-		return "Opening project " + openFile + " (" + currentLoadedObjectName
-				+ ")";
+	Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
+
+	InputStream versionInputStream = zipFile.getInputStream(versionEntry);
+	BufferedReader reader = new BufferedReader(new InputStreamReader(
+		versionInputStream));
+	String projectVersionString = reader.readLine();
+	reader.close();
+
+	String mzmineVersionString = MZmineCore.getMZmineVersion();
+
+	Matcher m = versionPattern.matcher(mzmineVersionString);
+	if (!m.find()) {
+	    throw new IOException("Invalid MZmine version "
+		    + mzmineVersionString);
+	}
+	int mzmineMajorVersion = Integer.valueOf(m.group(1));
+	int mzmineMinorVersion = Integer.valueOf(m.group(2));
+
+	m = versionPattern.matcher(projectVersionString);
+	if (!m.find()) {
+	    throw new IOException("Invalid project version "
+		    + projectVersionString);
+	}
+	int projectMajorVersion = Integer.valueOf(m.group(1));
+	int projectMinorVersion = Integer.valueOf(m.group(2));
+
+	// Check if project was saved with an old version
+	if (projectMajorVersion == 1) {
+	    throw new IOException(
+		    "This project was saved with an old version (MZmine "
+			    + projectVersionString
+			    + ") and it cannot be opened in MZmine "
+			    + mzmineVersionString);
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		switch (currentStage) {
-		case 2:
-			if (rawDataFileOpenHandler == null)
-				return 0;
-			return rawDataFileOpenHandler.getProgress();
-		case 3:
-			if (peakListOpenHandler == null)
-				return 0;
-			return peakListOpenHandler.getProgress();
-		case 4:
-			if (userParameterOpenHandler == null)
-				return 0;
-			return userParameterOpenHandler.getProgress();
-		case 5:
-			return 1;
-		default:
-			return 0;
-		}
+	// Check if the project version is 2.0 to 2.2
+	if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
+	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
+	    peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
+	    return;
 	}
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-
-		try {
-
-			logger.info("Started opening project " + openFile);
-			setStatus(TaskStatus.PROCESSING);
-
-			// Create a new project
-			newProject = new MZmineProjectImpl();
-			newProject.setProjectFile(openFile);
-
-			// Get project ZIP stream
-			ZipFile zipFile = new ZipFile(openFile);
-
-			// Stage 1 - check version and load configuration
-			currentStage++;
-			loadVersion(zipFile);
-			loadConfiguration(zipFile);
-			if (isCanceled()) {
-				zipFile.close();
-				return;
-			}
-
-			// Stage 2 - load raw data files
-			currentStage++;
-			loadRawDataFiles(zipFile);
-			if (isCanceled()) {
-				zipFile.close();
-				return;
-			}
-
-			// Stage 3 - load peak lists
-			currentStage++;
-			loadPeakLists(zipFile);
-			if (isCanceled()) {
-				zipFile.close();
-				return;
-			}
-
-			// Stage 4 - load user parameters
-			currentStage++;
-			loadUserParameters(zipFile);
-			if (isCanceled()) {
-				zipFile.close();
-				return;
-			}
-
-			// Stage 5 - finish and close the project ZIP file
-			currentStage++;
-			zipFile.close();
-
-			// Final check for cancel
-			if (isCanceled())
-				return;
-
-			// Close all open frames related to previous project
-			JInternalFrame frames[] = MZmineCore.getDesktop()
-					.getInternalFrames();
-			for (JInternalFrame frame : frames) {
-				// Use doDefailtCloseAction() instead of dispose() to protect
-				// the TaskProgressWindow from disposing
-				frame.doDefaultCloseAction();
-			}
-
-			// Replace the current project with the new one
-			ProjectManager projectManager = MZmineCore.getProjectManager();
-			projectManager.setCurrentProject(newProject);
-
-			logger.info("Finished opening project " + openFile);
-
-			setStatus(TaskStatus.FINISHED);
-
-		} catch (Throwable e) {
-
-			// If project opening was canceled, parser was stopped by a
-			// SAXException which can be safely ignored
-			if (isCanceled())
-				return;
-
-			setStatus(TaskStatus.ERROR);
-			e.printStackTrace();
-			errorMessage = "Failed opening project: "
-					+ ExceptionUtils.exceptionToString(e);
-		}
+	// Check if the project version is 2.3 to 2.4
+	if ((projectMajorVersion == 2) && (projectMinorVersion < 5)) {
+	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
+	    peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
+	    return;
 	}
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-
-		logger.info("Canceling opening of project " + openFile);
-
-		setStatus(TaskStatus.CANCELED);
-
-		if (rawDataFileOpenHandler != null)
-			rawDataFileOpenHandler.cancel();
-
-		if (peakListOpenHandler != null)
-			peakListOpenHandler.cancel();
-
+	// Check if the project version is 2.5
+	if ((projectMajorVersion == 2) && (projectMinorVersion == 5)) {
+	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+	    peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+	    return;
 	}
 
-	/**
-	 * Load the version info from the ZIP file and checks whether such version
-	 * can be opened with this MZmine
-	 */
-	private void loadVersion(ZipFile zipFile) throws IOException {
-
-		logger.info("Checking project version");
-
-		ZipEntry versionEntry = zipFile
-				.getEntry(ProjectSavingTask.VERSION_FILENAME);
-
-		if (versionEntry == null) {
-			throw new IOException(
-					"This file is not valid MZmine 2 project. It does not contain version information.");
-		}
-
-		Pattern versionPattern = Pattern.compile("^(\\d+)\\.(\\d+)");
-
-		InputStream versionInputStream = zipFile.getInputStream(versionEntry);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				versionInputStream));
-		String projectVersionString = reader.readLine();
-		reader.close();
-
-		String mzmineVersionString = MZmineCore.getMZmineVersion();
-
-		Matcher m = versionPattern.matcher(mzmineVersionString);
-		if (!m.find()) {
-			throw new IOException("Invalid MZmine version "
-					+ mzmineVersionString);
-		}
-		int mzmineMajorVersion = Integer.valueOf(m.group(1));
-		int mzmineMinorVersion = Integer.valueOf(m.group(2));
-
-		m = versionPattern.matcher(projectVersionString);
-		if (!m.find()) {
-			throw new IOException("Invalid project version "
-					+ projectVersionString);
-		}
-		int projectMajorVersion = Integer.valueOf(m.group(1));
-		int projectMinorVersion = Integer.valueOf(m.group(2));
-
-		// Check if project was saved with an old version
-		if (projectMajorVersion == 1) {
-			throw new IOException(
-					"This project was saved with an old version (MZmine "
-							+ projectVersionString
-							+ ") and it cannot be opened in MZmine "
-							+ mzmineVersionString);
-		}
-
-		// Check if the project version is 2.0 to 2.2
-		if ((projectMajorVersion == 2) && (projectMinorVersion <= 2)) {
-			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_0();
-			peakListOpenHandler = new PeakListOpenHandler_2_0(dataFilesIDMap);
-			return;
-		}
-
-		// Check if the project version is 2.3 to 2.4
-		if ((projectMajorVersion == 2) && (projectMinorVersion < 5)) {
-			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
-			peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
-			return;
-		}
-
-		// Check if the project version is 2.5
-		if ((projectMajorVersion == 2) && (projectMinorVersion == 5)) {
-			rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
-			peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
-			return;
-		}
-
-		// Check if project was saved with a newer version
-		if ((projectMajorVersion > mzmineMajorVersion)
-				|| ((projectMajorVersion == mzmineMajorVersion) && (projectMinorVersion > mzmineMinorVersion))) {
-			String warning = "Warning: this project was saved with a newer version of MZmine ("
-					+ projectVersionString
-					+ "). Opening this project in MZmine "
-					+ mzmineVersionString
-					+ " may result in errors or loss of information.";
-			MZmineCore.getDesktop().displayMessage(warning);
-		}
-
-		// Default opening handler
-		rawDataFileOpenHandler = new RawDataFileOpenHandler_2_6();
-		peakListOpenHandler = new PeakListOpenHandler_2_6(dataFilesIDMap);
-		userParameterOpenHandler = new UserParameterOpenHandler_2_6(newProject,
-				dataFilesIDMap);
-
+	// Check if project was saved with a newer version
+	if ((projectMajorVersion > mzmineMajorVersion)
+		|| ((projectMajorVersion == mzmineMajorVersion) && (projectMinorVersion > mzmineMinorVersion))) {
+	    String warning = "Warning: this project was saved with a newer version of MZmine ("
+		    + projectVersionString
+		    + "). Opening this project in MZmine "
+		    + mzmineVersionString
+		    + " may result in errors or loss of information.";
+	    MZmineCore.getDesktop().displayMessage(warning);
 	}
 
-	/**
-	 * Load the configuration file from the project zip file
-	 */
-	private void loadConfiguration(ZipFile zipFile) throws IOException {
+	// Default opening handler
+	rawDataFileOpenHandler = new RawDataFileOpenHandler_2_6();
+	peakListOpenHandler = new PeakListOpenHandler_2_6(dataFilesIDMap);
+	userParameterOpenHandler = new UserParameterOpenHandler_2_6(newProject,
+		dataFilesIDMap);
 
-		logger.info("Loading configuration file");
+    }
 
-		ZipEntry configEntry = zipFile
-				.getEntry(ProjectSavingTask.CONFIG_FILENAME);
+    /**
+     * Load the configuration file from the project zip file
+     */
+    private void loadConfiguration(ZipFile zipFile) throws IOException {
 
-		if (configEntry == null) {
-			throw new IOException(
-					"This file is not valid MZmine 2 project. It does not contain configuration data.");
-		}
+	logger.info("Loading configuration file");
 
-		InputStream configInputStream = zipFile.getInputStream(configEntry);
-		File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
-		FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
-		StreamCopy copyMachine = new StreamCopy();
-		copyMachine.copy(configInputStream, fileStream);
-		fileStream.close();
+	ZipEntry configEntry = zipFile
+		.getEntry(ProjectSavingTask.CONFIG_FILENAME);
 
-		try {
-			MZmineCore.loadConfiguration(tempConfigFile);
-		} catch (Exception e) {
-			throw (new IOException("Could not load configuration: "
-					+ ExceptionUtils.exceptionToString(e)));
-		}
-
-		tempConfigFile.delete();
+	if (configEntry == null) {
+	    throw new IOException(
+		    "This file is not valid MZmine 2 project. It does not contain configuration data.");
 	}
 
-	private void loadRawDataFiles(ZipFile zipFile) throws IOException,
-			ParserConfigurationException, SAXException, InstantiationException,
-			IllegalAccessException {
+	InputStream configInputStream = zipFile.getInputStream(configEntry);
+	File tempConfigFile = File.createTempFile("mzmineconfig", ".tmp");
+	FileOutputStream fileStream = new FileOutputStream(tempConfigFile);
+	StreamCopy copyMachine = new StreamCopy();
+	copyMachine.copy(configInputStream, fileStream);
+	fileStream.close();
 
-		logger.info("Loading raw data files");
-
-		Pattern filePattern = Pattern
-				.compile("Raw data file #([\\d]+) (.*)\\.xml$");
-
-		Enumeration zipEntries = zipFile.entries();
-		while (zipEntries.hasMoreElements()) {
-
-			// Canceled
-			if (isCanceled())
-				return;
-
-			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
-			String entryName = entry.getName();
-			Matcher fileMatcher = filePattern.matcher(entryName);
-
-			if (fileMatcher.matches()) {
-				String fileID = fileMatcher.group(1);
-				currentLoadedObjectName = fileMatcher.group(2);
-
-				String scansFileName = entryName.replaceFirst("\\.xml$",
-						".scans");
-				ZipEntry scansEntry = zipFile.getEntry(scansFileName);
-				RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
-						zipFile, scansEntry, entry);
-				newProject.addFile(newFile);
-				dataFilesIDMap.put(fileID, newFile);
-			}
-
-		}
-
+	try {
+	    MZmineCore.loadConfiguration(tempConfigFile);
+	} catch (Exception e) {
+	    logger.warning("Could not load configuration from the project: "
+		    + ExceptionUtils.exceptionToString(e));
 	}
 
-	private void loadPeakLists(ZipFile zipFile) throws IOException,
-			ParserConfigurationException, SAXException, InstantiationException,
-			IllegalAccessException {
+	tempConfigFile.delete();
+    }
 
-		logger.info("Loading peak lists");
+    private void loadRawDataFiles(ZipFile zipFile) throws IOException,
+	    ParserConfigurationException, SAXException, InstantiationException,
+	    IllegalAccessException {
 
-		Pattern filePattern = Pattern
-				.compile("Peak list #([\\d]+) (.*)\\.xml$");
+	logger.info("Loading raw data files");
 
-		Enumeration zipEntries = zipFile.entries();
-		while (zipEntries.hasMoreElements()) {
+	Pattern filePattern = Pattern
+		.compile("Raw data file #([\\d]+) (.*)\\.xml$");
 
-			// Canceled
-			if (isCanceled())
-				return;
+	Enumeration zipEntries = zipFile.entries();
+	while (zipEntries.hasMoreElements()) {
 
-			ZipEntry entry = (ZipEntry) zipEntries.nextElement();
-			String entryName = entry.getName();
+	    // Canceled
+	    if (isCanceled())
+		return;
 
-			Matcher fileMatcher = filePattern.matcher(entryName);
+	    ZipEntry entry = (ZipEntry) zipEntries.nextElement();
+	    String entryName = entry.getName();
+	    Matcher fileMatcher = filePattern.matcher(entryName);
 
-			if (fileMatcher.matches()) {
+	    if (fileMatcher.matches()) {
+		String fileID = fileMatcher.group(1);
+		currentLoadedObjectName = fileMatcher.group(2);
 
-				currentLoadedObjectName = fileMatcher.group(2);
-
-				InputStream peakListStream = zipFile.getInputStream(entry);
-
-				PeakList newPeakList = peakListOpenHandler
-						.readPeakList(peakListStream);
-
-				newProject.addPeakList(newPeakList);
-			}
-
-		}
+		String scansFileName = entryName.replaceFirst("\\.xml$",
+			".scans");
+		ZipEntry scansEntry = zipFile.getEntry(scansFileName);
+		RawDataFile newFile = rawDataFileOpenHandler.readRawDataFile(
+			zipFile, scansEntry, entry);
+		newProject.addFile(newFile);
+		dataFilesIDMap.put(fileID, newFile);
+	    }
 
 	}
 
-	private void loadUserParameters(ZipFile zipFile) throws IOException,
-			ParserConfigurationException, SAXException, InstantiationException,
-			IllegalAccessException {
+    }
 
-		// Older versions of MZmine had no parameter saving
-		if (userParameterOpenHandler == null)
-			return;
+    private void loadPeakLists(ZipFile zipFile) throws IOException,
+	    ParserConfigurationException, SAXException, InstantiationException,
+	    IllegalAccessException {
 
-		logger.info("Loading user parameters");
+	logger.info("Loading peak lists");
 
-		ZipEntry entry = zipFile.getEntry("User parameters.xml");
+	Pattern filePattern = Pattern
+		.compile("Peak list #([\\d]+) (.*)\\.xml$");
 
-		// If there are no parameters, just ignore
-		if (entry == null)
-			return;
+	Enumeration zipEntries = zipFile.entries();
+	while (zipEntries.hasMoreElements()) {
 
-		currentLoadedObjectName = "User parameters";
+	    // Canceled
+	    if (isCanceled())
+		return;
 
-		InputStream userParamStream = zipFile.getInputStream(entry);
+	    ZipEntry entry = (ZipEntry) zipEntries.nextElement();
+	    String entryName = entry.getName();
 
-		userParameterOpenHandler.readUserParameters(userParamStream);
+	    Matcher fileMatcher = filePattern.matcher(entryName);
+
+	    if (fileMatcher.matches()) {
+
+		currentLoadedObjectName = fileMatcher.group(2);
+
+		InputStream peakListStream = zipFile.getInputStream(entry);
+
+		PeakList newPeakList = peakListOpenHandler
+			.readPeakList(peakListStream);
+
+		newProject.addPeakList(newPeakList);
+	    }
 
 	}
 
-	public Object[] getCreatedObjects() {
-		ArrayList<Object> newObjects = new ArrayList<Object>();
-		for (RawDataFile file : newProject.getDataFiles()) {
-			newObjects.add(file);
-		}
-		for (PeakList peakList : newProject.getPeakLists()) {
-			newObjects.add(peakList);
-		}
-		return newObjects.toArray();
+    }
+
+    private void loadUserParameters(ZipFile zipFile) throws IOException,
+	    ParserConfigurationException, SAXException, InstantiationException,
+	    IllegalAccessException {
+
+	// Older versions of MZmine had no parameter saving
+	if (userParameterOpenHandler == null)
+	    return;
+
+	logger.info("Loading user parameters");
+
+	ZipEntry entry = zipFile.getEntry("User parameters.xml");
+
+	// If there are no parameters, just ignore
+	if (entry == null)
+	    return;
+
+	currentLoadedObjectName = "User parameters";
+
+	InputStream userParamStream = zipFile.getInputStream(entry);
+
+	userParameterOpenHandler.readUserParameters(userParamStream);
+
+    }
+
+    public Object[] getCreatedObjects() {
+	ArrayList<Object> newObjects = new ArrayList<Object>();
+	for (RawDataFile file : newProject.getDataFiles()) {
+	    newObjects.add(file);
 	}
+	for (PeakList peakList : newProject.getPeakLists()) {
+	    newObjects.add(peakList);
+	}
+	return newObjects.toArray();
+    }
 }
