@@ -269,8 +269,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	MZmineModuleCategory parentMenu = module.getModuleCategory();
 	String menuItemText = module.getName();
+	String menuItemToolTip = module.getDescription();
 
 	JMenuItem newItem = new JMenuItem(menuItemText);
+	newItem.setToolTipText(menuItemToolTip);
 	newItem.addActionListener(this);
 
 	moduleMenuItems.put(newItem, module);

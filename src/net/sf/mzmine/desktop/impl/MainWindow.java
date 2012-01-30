@@ -48,6 +48,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.TextUtils;
@@ -160,8 +161,6 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	return mainPanel.getProjectTree().getSelectedObjects(PeakList.class);
     }
 
-    /**
-     */
     public void initModule() {
 
 	DesktopSetup desktopSetup = new DesktopSetup();
@@ -274,7 +273,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     @Override
     public Class<? extends ParameterSet> getParameterSetClass() {
-	return null;
+	return SimpleParameterSet.class;
     }
 
     @Override
