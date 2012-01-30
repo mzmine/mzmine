@@ -77,7 +77,7 @@ public class AlignmentRansacPlot extends ChartPanel {
     private XYSeriesCollection dataset;
     private JFreeChart chart;
     private XYPlot plot;
-    private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
     public AlignmentRansacPlot() {
         super(null, true);

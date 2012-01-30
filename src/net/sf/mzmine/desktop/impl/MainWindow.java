@@ -49,6 +49,7 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.TextUtils;
 
 /**
@@ -56,225 +57,244 @@ import net.sf.mzmine.util.TextUtils;
  * 
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
-		WindowListener {
+	WindowListener {
 
-	static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html";
+    static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html";
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private MainPanel mainPanel;
+    private MainPanel mainPanel;
 
-	private MainMenu menuBar;
+    private MainMenu menuBar;
 
-	private HelpImpl help;
+    private HelpImpl help;
 
-	public MainMenu getMainMenu() {
-		return menuBar;
-	}
-	
-	public HelpImpl getHelpImpl() {
-		return help;
-	}
+    public MainMenu getMainMenu() {
+	return menuBar;
+    }
 
-	public void addInternalFrame(JInternalFrame frame) {
-		mainPanel.addInternalFrame(frame);
-	}
+    public HelpImpl getHelpImpl() {
+	return help;
+    }
 
-	/**
-	 * WindowListener interface implementation
-	 */
-	public void windowOpened(WindowEvent e) {
-	}
+    public void addInternalFrame(JInternalFrame frame) {
+	mainPanel.addInternalFrame(frame);
+    }
 
-	public void windowClosing(WindowEvent e) {
-		MZmineCore.exitMZmine();
-	}
-
-	public void windowClosed(WindowEvent e) {
-	}
-
-	public void windowIconified(WindowEvent e) {
-	}
-
-	public void windowDeiconified(WindowEvent e) {
-	}
-
-	public void windowActivated(WindowEvent e) {
-	}
-
-	public void windowDeactivated(WindowEvent e) {
-	}
-
-	public void setStatusBarText(String text) {
-		setStatusBarText(text, Color.black);
-	}
-
-	/**
+    /**
+     * WindowListener interface implementation
      */
-	public void displayMessage(String msg) {
-		displayMessage("Message", msg, JOptionPane.INFORMATION_MESSAGE);
-	}
+    public void windowOpened(WindowEvent e) {
+    }
 
-	/**
+    public void windowClosing(WindowEvent e) {
+	exitMZmine();
+    }
+
+    public void windowClosed(WindowEvent e) {
+    }
+
+    public void windowIconified(WindowEvent e) {
+    }
+
+    public void windowDeiconified(WindowEvent e) {
+    }
+
+    public void windowActivated(WindowEvent e) {
+    }
+
+    public void windowDeactivated(WindowEvent e) {
+    }
+
+    public void setStatusBarText(String text) {
+	setStatusBarText(text, Color.black);
+    }
+
+    /**
      */
-	public void displayMessage(String title, String msg) {
-		displayMessage(title, msg, JOptionPane.INFORMATION_MESSAGE);
-	}
+    public void displayMessage(String msg) {
+	displayMessage("Message", msg, JOptionPane.INFORMATION_MESSAGE);
+    }
 
-	public void displayErrorMessage(String msg) {
-		displayMessage("Error", msg);
-	}
-
-	public void displayErrorMessage(String title, String msg) {
-		displayMessage(title, msg, JOptionPane.ERROR_MESSAGE);
-	}
-
-	public void displayMessage(String title, String msg, int type) {
-
-		assert msg != null;
-		
-		// If the message does not contain newline characters, wrap it automatically
-		String wrappedMsg;
-		if (msg.contains("\n"))
-			wrappedMsg = msg;
-		else
-			wrappedMsg = TextUtils.wrapText(msg, 80);
-
-		JOptionPane.showMessageDialog(this, wrappedMsg, title, type);
-	}
-
-	public void addMenuItem(MZmineModuleCategory parentMenu, JMenuItem newItem) {
-		menuBar.addMenuItem(parentMenu, newItem);
-	}
-
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getSelectedDataFiles()
-	 */
-	public RawDataFile[] getSelectedDataFiles() {
-		return mainPanel.getProjectTree().getSelectedObjects(RawDataFile.class);
-	}
-
-	public PeakList[] getSelectedPeakLists() {
-		return mainPanel.getProjectTree().getSelectedObjects(PeakList.class);
-	}
-
-	/**
+    /**
      */
-	public void initModule() {
+    public void displayMessage(String title, String msg) {
+	displayMessage(title, msg, JOptionPane.INFORMATION_MESSAGE);
+    }
 
-		DesktopSetup desktopSetup = new DesktopSetup();
-		desktopSetup.init();
+    public void displayErrorMessage(String msg) {
+	displayMessage("Error", msg);
+    }
 
-		help = new HelpImpl();
-		
-		try {
-			BufferedImage MZmineIcon = ImageIO.read(new File(
-					"icons/MZmineIcon.png"));
-			setIconImage(MZmineIcon);
-		} catch (IOException e) {
-			logger.log(Level.WARNING, "Could not set application icon", e);
-		}
+    public void displayErrorMessage(String title, String msg) {
+	displayMessage(title, msg, JOptionPane.ERROR_MESSAGE);
+    }
 
-		mainPanel = new MainPanel();
-		add(mainPanel);
+    public void displayMessage(String title, String msg, int type) {
 
-		// Construct menu
-		menuBar = new MainMenu();
-		setJMenuBar(menuBar);
+	assert msg != null;
 
-		// Initialize window listener for responding to user events
-		addWindowListener(this);
+	// If the message does not contain newline characters, wrap it
+	// automatically
+	String wrappedMsg;
+	if (msg.contains("\n"))
+	    wrappedMsg = msg;
+	else
+	    wrappedMsg = TextUtils.wrapText(msg, 80);
 
-		pack();
+	JOptionPane.showMessageDialog(this, wrappedMsg, title, type);
+    }
 
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
-		Dimension screenSize = toolkit.getScreenSize();
+    public void addMenuItem(MZmineModuleCategory parentMenu, JMenuItem newItem) {
+	menuBar.addMenuItem(parentMenu, newItem);
+    }
 
-		// Set initial window size to 1000x700 pixels, but check the screen size
-		// first
-		int width = Math.min(screenSize.width, 1000);
-		int height = Math.min(screenSize.height, 700);
-		setBounds(0, 0, width, height);
-		setLocationRelativeTo(null);
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getSelectedDataFiles()
+     */
+    public RawDataFile[] getSelectedDataFiles() {
+	return mainPanel.getProjectTree().getSelectedObjects(RawDataFile.class);
+    }
 
-		// Application wants to control closing by itself
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    public PeakList[] getSelectedPeakLists() {
+	return mainPanel.getProjectTree().getSelectedObjects(PeakList.class);
+    }
 
-		updateTitle();
+    /**
+     */
+    public void initModule() {
 
+	DesktopSetup desktopSetup = new DesktopSetup();
+	desktopSetup.init();
+
+	help = new HelpImpl();
+
+	try {
+	    BufferedImage MZmineIcon = ImageIO.read(new File(
+		    "icons/MZmineIcon.png"));
+	    setIconImage(MZmineIcon);
+	} catch (IOException e) {
+	    logger.log(Level.WARNING, "Could not set application icon", e);
 	}
 
-	public void updateTitle() {
-		String projectName = MZmineCore.getCurrentProject().toString();
-		setTitle("MZmine " + MZmineCore.getMZmineVersion() + ": " + projectName);
-	}
+	mainPanel = new MainPanel();
+	add(mainPanel);
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
-	 */
-	public JFrame getMainFrame() {
-		return this;
-	}
+	// Construct menu
+	menuBar = new MainMenu();
+	setJMenuBar(menuBar);
 
-	/**
-	 * @see net.sf.mzmine.desktop.Desktop#setStatusBarText(java.lang.String,
-	 *      java.awt.Color)
-	 */
-	public void setStatusBarText(String text, Color textColor) {
+	// Initialize window listener for responding to user events
+	addWindowListener(this);
 
-		// If the request was caused by exception during MZmine startup, desktop
-		// may not be initialized yet
-		if ((mainPanel == null) || (mainPanel.getStatusBar() == null))
-			return;
+	pack();
 
-		mainPanel.getStatusBar().setStatusText(text, textColor);
-	}
+	Toolkit toolkit = Toolkit.getDefaultToolkit();
+	Dimension screenSize = toolkit.getScreenSize();
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return null;
-	}
+	// Set initial window size to 1000x700 pixels, but check the screen size
+	// first
+	int width = Math.min(screenSize.width, 1000);
+	int height = Math.min(screenSize.height, 700);
+	setBounds(0, 0, width, height);
+	setLocationRelativeTo(null);
 
-	public void displayException(Exception e) {
-		displayErrorMessage(ExceptionUtils.exceptionToString(e));
-	}
+	// Application wants to control closing by itself
+	setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-	public MainPanel getMainPanel() {
-		return mainPanel;
-	}
+	updateTitle();
 
-	public JInternalFrame[] getInternalFrames() {
-		return mainPanel.getInternalFrames();
-	}
+    }
 
-	public JInternalFrame getSelectedFrame() {
-		return mainPanel.getSelectedFrame();
-	}
+    public void updateTitle() {
+	String projectName = MZmineCore.getCurrentProject().toString();
+	setTitle("MZmine " + MZmineCore.getMZmineVersion() + ": " + projectName);
+    }
 
-	public void showAboutDialog() {
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#getMainFrame()
+     */
+    public JFrame getMainFrame() {
+	return this;
+    }
 
-		MZmineHelpSet hs = help.getHelpSet();
-		if (hs == null)
-			return;
+    /**
+     * @see net.sf.mzmine.desktop.Desktop#setStatusBarText(java.lang.String,
+     *      java.awt.Color)
+     */
+    public void setStatusBarText(String text, Color textColor) {
 
-		HelpBroker hb = hs.createHelpBroker();
-		hs.setHomeID(aboutHelpID);
+	// If the request was caused by exception during MZmine startup, desktop
+	// may not be initialized yet
+	if ((mainPanel == null) || (mainPanel.getStatusBar() == null))
+	    return;
 
-		hb.setDisplayed(true);
-	}
+	mainPanel.getStatusBar().setStatusText(text, textColor);
+    }
 
-	@Override
-	public void addProjectTreeListener(TreeModelListener listener) {
-		TreeModel model = getMainPanel().getProjectTree().getModel();
-		model.addTreeModelListener(listener);
-	}
+    public void displayException(Exception e) {
+	displayErrorMessage(ExceptionUtils.exceptionToString(e));
+    }
 
-	@Override
-	public void removeProjectTreeListener(TreeModelListener listener) {
-		TreeModel model = getMainPanel().getProjectTree().getModel();
-		model.removeTreeModelListener(listener);
-	}
+    public MainPanel getMainPanel() {
+	return mainPanel;
+    }
+
+    public JInternalFrame[] getInternalFrames() {
+	return mainPanel.getInternalFrames();
+    }
+
+    public JInternalFrame getSelectedFrame() {
+	return mainPanel.getSelectedFrame();
+    }
+
+    public void showAboutDialog() {
+
+	MZmineHelpSet hs = help.getHelpSet();
+	if (hs == null)
+	    return;
+
+	HelpBroker hb = hs.createHelpBroker();
+	hs.setHomeID(aboutHelpID);
+
+	hb.setDisplayed(true);
+    }
+
+    @Override
+    public void addProjectTreeListener(TreeModelListener listener) {
+	TreeModel model = getMainPanel().getProjectTree().getModel();
+	model.addTreeModelListener(listener);
+    }
+
+    @Override
+    public void removeProjectTreeListener(TreeModelListener listener) {
+	TreeModel model = getMainPanel().getProjectTree().getModel();
+	model.removeTreeModelListener(listener);
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return null;
+    }
+
+    @Override
+    public ExitCode exitMZmine() {
+
+	int selectedValue = JOptionPane.showInternalConfirmDialog(
+		this.getContentPane(), "Are you sure you want to exit?",
+		"Exiting...", JOptionPane.YES_NO_OPTION,
+		JOptionPane.WARNING_MESSAGE);
+
+	if (selectedValue != JOptionPane.YES_OPTION)
+	    return ExitCode.CANCEL;
+
+	this.dispose();
+
+	logger.info("Exiting MZmine");
+
+	System.exit(0);
+
+	return ExitCode.OK;
+    }
 
 }

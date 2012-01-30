@@ -24,65 +24,59 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
-import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
 import net.sf.mzmine.parameters.ParameterSet;
-import weka.clusterers.Clusterer;
 import weka.clusterers.EM;
 import weka.core.Instance;
 import weka.core.Instances;
 
 public class EMClusterer implements ClusteringAlgorithm {
 
-        private ParameterSet parameters;
-        private int numberOfGroups = 0;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-        public EMClusterer() {
-                parameters = new EMClustererParameters();
-        }
+    private static final String MODULE_NAME = "Density-based clusterer";
 
-        public List<Integer> getClusterGroups(Instances dataset) {
-                List<Integer> clusters = new ArrayList<Integer>();
-                String[] options = new String[2];
-                Clusterer clusterer = new EM();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-                int numberOfIterations = parameters.getParameter(EMClustererParameters.numberOfIterations).getValue();
-                options[0] = "-I";
-                options[1] = String.valueOf(numberOfIterations);
+    @Override
+    public ClusteringResult performClustering(Instances dataset,
+	    ParameterSet parameters) {
 
-                try {
-                        ((EM) clusterer).setOptions(options);
-                        clusterer.buildClusterer(dataset);
-                        Enumeration e = dataset.enumerateInstances();
-                        while (e.hasMoreElements()) {
-                                clusters.add(clusterer.clusterInstance((Instance) e.nextElement()));
-                        }
-                        this.numberOfGroups = clusterer.numberOfClusters();
-                } catch (Exception ex) {
-                        Logger.getLogger(EMClusterer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                return clusters;
-        }
+	List<Integer> clusters = new ArrayList<Integer>();
+	String[] options = new String[2];
+	EM clusterer = new EM();
 
-        @Override
-        public String toString() {
-                return "Density Based Clusterer";
-        }
+	int numberOfIterations = parameters.getParameter(
+		EMClustererParameters.numberOfIterations).getValue();
+	options[0] = "-I";
+	options[1] = String.valueOf(numberOfIterations);
 
-        @Override
-        public ParameterSet getParameterSet() {
-                return parameters;
-        }
+	try {
+	    clusterer.setOptions(options);
+	    clusterer.buildClusterer(dataset);
+	    Enumeration e = dataset.enumerateInstances();
+	    while (e.hasMoreElements()) {
+		clusters.add(clusterer.clusterInstance((Instance) e
+			.nextElement()));
+	    }
+	    ClusteringResult result = new ClusteringResult(clusters, null,
+		    clusterer.numberOfClusters(), parameters.getParameter(
+			    EMClustererParameters.visualization).getValue());
+	    return result;
 
-        public String getHierarchicalCluster(Instances dataset) {
-                return null;
-        }
+	} catch (Exception ex) {
+	    logger.log(Level.SEVERE, null, ex);
+	    return null;
+	}
+    }
 
-        public VisualizationType getVisualizationType() {
-                return parameters.getParameter(EMClustererParameters.visualization).getValue();
-        }
-
-        public int getNumberOfGroups() {
-                return this.numberOfGroups;
-        }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return EMClustererParameters.class;
+    }
 }

@@ -29,97 +29,100 @@ import keggapi.KEGGPortType;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
 
 public class KEGGGateway implements DBGateway {
 
-	public static final String keggEntryAddress = "http://www.genome.jp/dbget-bin/www_bget?";
-	public static final String kegg2DStructureAddress = "http://www.genome.jp/dbget-bin/www_bget?-f+m+";
-	public static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb2/";
-	public static final String met3DStructureAddress2 = ".pdb";
+    public static final String keggEntryAddress = "http://www.genome.jp/dbget-bin/www_bget?";
+    public static final String kegg2DStructureAddress = "http://www.genome.jp/dbget-bin/www_bget?-f+m+";
+    public static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb2/";
+    public static final String met3DStructureAddress2 = ".pdb";
 
-	/**
+    /**
 	 */
-	public String[] findCompounds(double mass, MZTolerance mzTolerance,
-			int numOfResults) throws IOException {
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+	    int numOfResults, ParameterSet parameters) throws IOException {
 
-		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		KEGGLocator locator = new KEGGLocator();
-		KEGGPortType serv;
-		try {
-			serv = locator.getKEGGPort();
-		} catch (ServiceException e) {
-			throw (new IOException(e));
+	KEGGLocator locator = new KEGGLocator();
+	KEGGPortType serv;
+	try {
+	    serv = locator.getKEGGPort();
+	} catch (ServiceException e) {
+	    throw (new IOException(e));
+	}
+
+	String[] results = serv.search_compounds_by_mass(
+		(float) toleranceRange.getAverage(),
+		(float) toleranceRange.getSize() / 2);
+
+	return results;
+
+    }
+
+    /**
+     * This method retrieves the details about a KEGG compound
+     * 
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+	    throws IOException {
+
+	KEGGLocator locator = new KEGGLocator();
+	KEGGPortType serv;
+	try {
+	    serv = locator.getKEGGPort();
+	} catch (ServiceException e) {
+	    throw (new IOException(e));
+	}
+
+	String compoundData = serv.bget(ID);
+	String dataLines[] = compoundData.split("\n");
+
+	String compoundName = null, compoundFormula = null, ID3DMet = null;
+
+	for (String line : dataLines) {
+	    if (line.startsWith("NAME")) {
+		compoundName = line.substring(12);
+		if (compoundName.endsWith(";")) {
+		    compoundName = compoundName.substring(0,
+			    compoundName.length() - 1);
 		}
+	    }
 
-		String[] results = serv.search_compounds_by_mass((float) toleranceRange.getAverage(),
-				(float) toleranceRange.getSize() / 2);
+	    if (line.startsWith("FORMULA")) {
+		compoundFormula = line.substring(12);
+	    }
 
-		return results;
+	    // 3DMET id is last 6 characters on the line
+	    if (line.contains("3DMET")) {
+		ID3DMet = line.substring(line.length() - 6);
+	    }
 
 	}
 
-	/**
-	 * This method retrieves the details about a KEGG compound
-	 * 
-	 */
-	public DBCompound getCompound(String ID) throws IOException {
-
-		KEGGLocator locator = new KEGGLocator();
-		KEGGPortType serv;
-		try {
-			serv = locator.getKEGGPort();
-		} catch (ServiceException e) {
-			throw (new IOException(e));
-		}
-
-		String compoundData = serv.bget(ID);
-		String dataLines[] = compoundData.split("\n");
-
-		String compoundName = null, compoundFormula = null, ID3DMet = null;
-
-		for (String line : dataLines) {
-			if (line.startsWith("NAME")) {
-				compoundName = line.substring(12);
-				if (compoundName.endsWith(";")) {
-					compoundName = compoundName.substring(0, compoundName
-							.length() - 1);
-				}
-			}
-			
-			if (line.startsWith("FORMULA")) {
-				compoundFormula = line.substring(12);
-			}
-
-			// 3DMET id is last 6 characters on the line
-			if (line.contains("3DMET")) {
-				ID3DMet = line.substring(line.length() - 6);
-			}
-
-		}
-
-		if ((compoundName == null) || (compoundFormula == null)) {
-			throw (new IOException("Could not obtain compound name and formula"));
-		}
-
-		URL entryURL = new URL(keggEntryAddress + ID);
-		URL structure2DURL = new URL(kegg2DStructureAddress + ID);
-
-		URL structure3DURL = null;
-
-		if (ID3DMet != null) {
-			structure3DURL = new URL(met3DStructureAddress1 + ID3DMet
-					+ met3DStructureAddress2);
-		}
-
-		DBCompound newCompound = new DBCompound(OnlineDatabase.KEGG, ID,
-				compoundName, compoundFormula, entryURL, structure2DURL,
-				structure3DURL);
-
-		return newCompound;
-
+	if ((compoundName == null) || (compoundFormula == null)) {
+	    throw (new IOException("Could not obtain compound name and formula"));
 	}
+
+	URL entryURL = new URL(keggEntryAddress + ID);
+	URL structure2DURL = new URL(kegg2DStructureAddress + ID);
+
+	URL structure3DURL = null;
+
+	if (ID3DMet != null) {
+	    structure3DURL = new URL(met3DStructureAddress1 + ID3DMet
+		    + met3DStructureAddress2);
+	}
+
+	DBCompound newCompound = new DBCompound(OnlineDatabase.KEGG, ID,
+		compoundName, compoundFormula, entryURL, structure2DURL,
+		structure3DURL);
+
+	return newCompound;
+
+    }
 
 }

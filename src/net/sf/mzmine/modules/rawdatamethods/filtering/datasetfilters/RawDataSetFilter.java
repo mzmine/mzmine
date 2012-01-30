@@ -24,15 +24,17 @@ import java.io.IOException;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public interface RawDataSetFilter extends MZmineModule {
 
-	/**
-	 * Returns a modified data file after being processed by the filter
-	 */
-	public RawDataFile filterDatafile(RawDataFile dataFile,
-			RawDataFileWriter newFile) throws IOException;
+    /**
+     * Returns a modified data file after being processed by the filter
+     */
+    public RawDataFile filterDatafile(RawDataFile dataFile,
+	    RawDataFileWriter newFile, ParameterSet parameters)
+	    throws IOException;
 
-	public double getProgress();
+    public double getProgress();
 
 }

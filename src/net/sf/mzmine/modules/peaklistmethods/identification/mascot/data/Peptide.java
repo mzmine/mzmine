@@ -234,7 +234,7 @@ public class Peptide {
 	/**
 	 * Returns a description of this peptide
 	 */
-	public String toString() {
+	public String getName() {
 		return ProteomeUtils.peptideToString(this);
 	}
 	

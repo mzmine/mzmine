@@ -30,50 +30,56 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class SimpleDataPoint implements DataPoint {
 
-	private double mz, intensity;
+    private double mz, intensity;
 
-	/**
-	 * Constructor which copies the data from another DataPoint
-	 */
-	public SimpleDataPoint(DataPoint dp) {
-		this.mz = dp.getMZ();
-		this.intensity = dp.getIntensity();
-	}
+    /**
+     * Constructor which copies the data from another DataPoint
+     */
+    public SimpleDataPoint(DataPoint dp) {
+	this.mz = dp.getMZ();
+	this.intensity = dp.getIntensity();
+    }
 
-	/**
-	 * @param mz
-	 * @param intensity
-	 */
-	public SimpleDataPoint(double mz, double intensity) {
-		this.mz = mz;
-		this.intensity = intensity;
-	}
+    /**
+     * @param mz
+     * @param intensity
+     */
+    public SimpleDataPoint(double mz, double intensity) {
+	this.mz = mz;
+	this.intensity = intensity;
+    }
 
-	public double getIntensity() {
-		return intensity;
-	}
+    @Override
+    public double getIntensity() {
+	return intensity;
+    }
 
-	public double getMZ() {
-		return mz;
-	}
+    @Override
+    public double getMZ() {
+	return mz;
+    }
 
-	public boolean equals(Object obj) {
-		if (!(obj instanceof DataPoint))
-			return false;
-		DataPoint dp = (DataPoint) obj;
-		return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
-	}
+    @Override
+    public boolean equals(Object obj) {
+	if (!(obj instanceof DataPoint))
+	    return false;
+	DataPoint dp = (DataPoint) obj;
+	return (this.mz == dp.getMZ()) && (this.intensity == dp.getIntensity());
+    }
 
-	public int hashCode() {
-		return (int) (this.mz + this.intensity);
-	}
+    @Override
+    public int hashCode() {
+	return (int) (this.mz + this.intensity);
+    }
 
-	public String toString() {
-		Format mzFormat = MZmineCore.getMZFormat();
-		Format intensityFormat = MZmineCore.getIntensityFormat();
-		String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
-				+ intensityFormat.format(intensity);
-		return str;
-	}
+    @Override
+    public String toString() {
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+	Format intensityFormat = MZmineCore.getConfiguration()
+		.getIntensityFormat();
+	String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
+		+ intensityFormat.format(intensity);
+	return str;
+    }
 
 }

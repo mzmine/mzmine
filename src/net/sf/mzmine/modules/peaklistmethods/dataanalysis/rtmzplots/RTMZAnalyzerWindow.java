@@ -26,54 +26,57 @@ import java.awt.event.ActionListener;
 import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
-import net.sf.mzmine.util.dialogs.ExitCode;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScaleSetupDialog;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class RTMZAnalyzerWindow extends JInternalFrame implements ActionListener {
+public class RTMZAnalyzerWindow extends JInternalFrame implements
+	ActionListener {
 
-	private RTMZToolbar toolbar;
-	private RTMZPlot plot;
-	
-	public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList, InterpolatingLookupPaintScale paintScale) {
-		super(null, true, true, true, true);
-	
-		
-        toolbar = new RTMZToolbar(this);
-        add(toolbar, BorderLayout.EAST);
-        
-        plot = new RTMZPlot(this, dataset, paintScale);
-        add(plot, BorderLayout.CENTER);
-        
-        String title = peakList.toString();
-        title = title.concat(" : ");
-        title = title.concat(dataset.toString());
-        this.setTitle(title);
-        
-        pack();
+    private RTMZToolbar toolbar;
+    private RTMZPlot plot;
 
+    public RTMZAnalyzerWindow(AbstractXYZDataset dataset, PeakList peakList,
+	    InterpolatingLookupPaintScale paintScale) {
+	super(null, true, true, true, true);
+
+	toolbar = new RTMZToolbar(this);
+	add(toolbar, BorderLayout.EAST);
+
+	plot = new RTMZPlot(this, dataset, paintScale);
+	add(plot, BorderLayout.CENTER);
+
+	String title = peakList.getName();
+	title = title.concat(" : ");
+	title = title.concat(dataset.toString());
+	this.setTitle(title);
+
+	pack();
+
+    }
+
+    public void actionPerformed(ActionEvent event) {
+
+	String command = event.getActionCommand();
+
+	if (command.equals("SETUP_AXES")) {
+	    AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart()
+		    .getXYPlot());
+	    dialog.setVisible(true);
 	}
-	
-	public void actionPerformed(ActionEvent event) {
-		
-        String command = event.getActionCommand();
-        
-        if (command.equals("SETUP_AXES")) {
-        	AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart().getXYPlot());
-        	dialog.setVisible(true);
-        }
-        
-        if (command.equals("SETUP_COLORS")) {
-        	InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog(plot.getPaintScale());
-            colorDialog.setVisible(true);
-            	
-        	if (colorDialog.getExitCode()==ExitCode.OK)
-        		plot.setPaintScale(colorDialog.getPaintScale());
-        }
-        
+
+	if (command.equals("SETUP_COLORS")) {
+	    InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog(
+		    plot.getPaintScale());
+	    colorDialog.setVisible(true);
+
+	    if (colorDialog.getExitCode() == ExitCode.OK)
+		plot.setPaintScale(colorDialog.getPaintScale());
 	}
+
+    }
 
 }

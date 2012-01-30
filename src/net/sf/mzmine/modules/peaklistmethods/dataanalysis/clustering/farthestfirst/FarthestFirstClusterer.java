@@ -23,64 +23,59 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
-import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
+import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em.EMClustererParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import weka.clusterers.Clusterer;
 import weka.clusterers.FarthestFirst;
 import weka.core.Instance;
 import weka.core.Instances;
 
 public class FarthestFirstClusterer implements ClusteringAlgorithm {
 
-        private ParameterSet parameters;
-        private int numberOfGroups = 0;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-        public FarthestFirstClusterer() {
-                parameters = new FarthestFirstClustererParameters();
-        }
+    private static final String MODULE_NAME = "Farthest first clusterer";
 
-        public String toString() {
-                return "Farthest First";
-        }
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-        @Override
-        public ParameterSet getParameterSet() {
-                return parameters;
-        }
+    @Override
+    public ClusteringResult performClustering(Instances dataset,
+	    ParameterSet parameters) {
 
-        public List<Integer> getClusterGroups(Instances dataset) {
-                List<Integer> clusters = new ArrayList<Integer>();
-                String[] options = new String[2];
-                Clusterer clusterer = new FarthestFirst();
+	List<Integer> clusters = new ArrayList<Integer>();
+	String[] options = new String[2];
+	FarthestFirst clusterer = new FarthestFirst();
 
-                int numberOfGroups = parameters.getParameter(FarthestFirstClustererParameters.numberOfGroups).getValue();
-                options[0] = "-N";
-                options[1] = String.valueOf(numberOfGroups);
+	int numberOfGroups = parameters.getParameter(
+		FarthestFirstClustererParameters.numberOfGroups).getValue();
+	options[0] = "-N";
+	options[1] = String.valueOf(numberOfGroups);
 
-                try {
-                        ((FarthestFirst) clusterer).setOptions(options);
-                        clusterer.buildClusterer(dataset);
-                        Enumeration e = dataset.enumerateInstances();
-                        while (e.hasMoreElements()) {
-                                clusters.add(clusterer.clusterInstance((Instance) e.nextElement()));
-                        }
-                        this.numberOfGroups = clusterer.numberOfClusters();
-                } catch (Exception ex) {
-                        Logger.getLogger(FarthestFirstClusterer.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                return clusters;
-        }
+	try {
+	    clusterer.setOptions(options);
+	    clusterer.buildClusterer(dataset);
+	    Enumeration e = dataset.enumerateInstances();
+	    while (e.hasMoreElements()) {
+		clusters.add(clusterer.clusterInstance((Instance) e
+			.nextElement()));
+	    }
+	    ClusteringResult result = new ClusteringResult(clusters, null,
+		    clusterer.numberOfClusters(), parameters.getParameter(
+			    EMClustererParameters.visualization).getValue());
+	    return result;
+	} catch (Exception ex) {
+	    logger.log(Level.SEVERE, null, ex);
+	    return null;
+	}
+    }
 
-        public String getHierarchicalCluster(Instances dataset) {
-                return null;
-        }
-
-        public VisualizationType getVisualizationType() {
-                return parameters.getParameter(FarthestFirstClustererParameters.visualization).getValue();
-        }
-
-        public int getNumberOfGroups() {
-                return this.numberOfGroups;
-        }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return FarthestFirstClustererParameters.class;
+    }
 }

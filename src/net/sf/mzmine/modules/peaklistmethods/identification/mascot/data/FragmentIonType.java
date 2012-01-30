@@ -96,7 +96,7 @@ public enum FragmentIonType {
     	 return color;
      }
 
-     public String toString(){
+     public String getName(){
     	 return description;
      }
 

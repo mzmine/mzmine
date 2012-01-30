@@ -19,51 +19,56 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class DeconvolutionModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Chromatogram deconvolution";
+    private static final String MODULE_NAME = "Chromatogram deconvolution";
+    private static final String MODULE_DESCRIPTION = "This module separates each detected chromatogram into individual peaks.";
 
-	private ParameterSet parameters = new DeconvolutionParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(
+		DeconvolutionParameters.peakLists).getValue();
+
+	for (final PeakList peakList : peakLists) {
+	    Task newTask = new DeconvolutionTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTPICKING;
+    }
 
-		PeakList peakLists[] = parameters.getParameter(
-				DeconvolutionParameters.peakLists).getValue();
-
-		// prepare a new group of tasks
-		Task tasks[] = new DeconvolutionTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new DeconvolutionTask(peakLists[i], parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return DeconvolutionParameters.class;
+    }
 
 }

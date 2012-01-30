@@ -20,14 +20,14 @@
 package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MassListParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class ShoulderPeaksFilterParameters extends SimpleParameterSet {
 

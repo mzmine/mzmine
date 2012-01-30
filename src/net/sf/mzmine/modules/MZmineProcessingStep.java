@@ -17,11 +17,23 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.util.dialogs;
+package net.sf.mzmine.modules;
+
+import javax.annotation.Nonnull;
+
+import net.sf.mzmine.parameters.ParameterSet;
 
 /**
- * Simple enum for for exit codes
+ * Interface for a processing step. Processing step means a reference to MZmine
+ * module and its parameters. This interface can be parameterized to a
+ * particular ModuleType, such as MassDetector.
  */
-public enum ExitCode {
-    UNKNOWN, OK, CANCEL, ERROR
+public interface MZmineProcessingStep<ModuleType extends MZmineModule> {
+
+    @Nonnull
+    public ModuleType getModule();
+
+    @Nonnull
+    public ParameterSet getParameterSet();
+
 }

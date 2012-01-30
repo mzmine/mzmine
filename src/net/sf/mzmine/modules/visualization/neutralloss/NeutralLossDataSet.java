@@ -278,7 +278,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	 *      int, int)
 	 */
 	public String generateToolTip(XYDataset dataset, int series, int item) {
-		return dataSeries.get(series).get(item).toString();
+		return dataSeries.get(series).get(item).getName();
 	}
 
 	public void cancel() {

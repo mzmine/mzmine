@@ -170,7 +170,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 		return scanNumbers;
 	}
 
-	public String toString() {
+	public String getName() {
 		return "Gaussian peak " + PeakUtils.peakToString(this);
 	}
 	

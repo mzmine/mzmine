@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class HeatMapParameters extends SimpleParameterSet {
 

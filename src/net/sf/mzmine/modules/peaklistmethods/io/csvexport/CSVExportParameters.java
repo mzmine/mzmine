@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;

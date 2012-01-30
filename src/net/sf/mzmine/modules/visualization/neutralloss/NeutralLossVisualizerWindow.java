@@ -50,7 +50,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 	public NeutralLossVisualizerWindow(RawDataFile dataFile,
 			ParameterSet parameters) {
 
-		super(dataFile.toString(), true, true, true, true);
+		super(dataFile.getName(), true, true, true, true);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		setBackground(Color.white);
@@ -90,7 +90,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		StringBuffer title = new StringBuffer();
 		title.append("[");
-		title.append(dataFile.toString());
+		title.append(dataFile.getName());
 		title.append("]: neutral loss");
 
 		setTitle(title.toString());
@@ -99,7 +99,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
 
 		if (pos != null) {
 			title.append(", ");
-			title.append(pos.toString());
+			title.append(pos.getName());
 		}
 
 		neutralLossPlot.setTitle(title.toString());

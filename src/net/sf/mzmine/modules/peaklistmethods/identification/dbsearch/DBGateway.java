@@ -21,18 +21,21 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
 import java.io.IOException;
 
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 
 public interface DBGateway {
 
-	/**
-	 */
-	public String[] findCompounds(double mass, MZTolerance mzTolerance,
-			int numOfResults) throws IOException;
+    /**
+     * Retrieves candidate compounds
+     */
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+	    int numOfResults, ParameterSet parameters) throws IOException;
 
-	/**
-	 * This method retrieves the details about a compound
-	 */
-	public DBCompound getCompound(String ID) throws IOException;
+    /**
+     * This method retrieves the details about a compound
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+	    throws IOException;
 
 }

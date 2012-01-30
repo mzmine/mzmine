@@ -20,46 +20,41 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
     public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
-            "Min peak height",
-            "Minimum acceptable peak height (absolute intensity)",
-            MZmineCore.getIntensityFormat());
+	    "Min peak height",
+	    "Minimum acceptable peak height (absolute intensity)",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
-            "Peak duration range",
-            "Range of acceptable peak lengths",
-            MZmineCore.getRTFormat(),
-            new Range(0.0, 10.0));
+	    "Peak duration range", "Range of acceptable peak lengths",
+	    MZmineCore.getConfiguration().getRTFormat(), new Range(0.0, 10.0));
 
     public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter(
-            "Baseline level",
-            "Level below which all data points of the chromatogram are removed (absolute intensity)",
-            MZmineCore.getIntensityFormat());
+	    "Baseline level",
+	    "Level below which all data points of the chromatogram are removed (absolute intensity)",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
-    private final PeakResolver peakResolver;
-
-    public BaselinePeakDetectorParameters(final PeakResolver resolver) {
-
-        super(new Parameter[]{MIN_PEAK_HEIGHT, PEAK_DURATION, BASELINE_LEVEL});
-        peakResolver = resolver;
+    public BaselinePeakDetectorParameters() {
+	super(
+		new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
+			BASELINE_LEVEL });
     }
 
     @Override
     public ExitCode showSetupDialog() {
-
-        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(peakResolver);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
+	final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+		this, BaselinePeakDetector.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
     }
 }

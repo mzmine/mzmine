@@ -153,7 +153,7 @@ public class ThreeDPropertiesDialog extends JDialog {
         final JSlider slider = new JSlider(0, SLIDER_MAX);
 
         // Normalize value field.
-        final JFormattedTextField textField = new JFormattedTextField(MZmineCore.getIntensityFormat());
+        final JFormattedTextField textField = new JFormattedTextField(MZmineCore.getConfiguration().getIntensityFormat());
         textField.setColumns(8);
         textField.addPropertyChangeListener(
                 "value",

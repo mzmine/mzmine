@@ -49,7 +49,7 @@ public class PeakPreviewComboRenderer extends JPanel implements
         ChromatographicPeak peak = row.getPeaks()[0];
 
         String labelText = "#" + row.getID() + " "
-                + MZmineCore.getMZFormat().format(row.getAverageMZ()) + " m/z ";
+                + MZmineCore.getConfiguration().getMZFormat().format(row.getAverageMZ()) + " m/z ";
         JLabel textComponent = new JLabel(labelText);
         textComponent.setFont(combo.getFont());
 

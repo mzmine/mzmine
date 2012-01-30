@@ -171,7 +171,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 	 */
 	public String getTaskDescription() {
 		return "Formula prediction for "
-				+ MZmineCore.getMZFormat().format(searchedMass);
+				+ MZmineCore.getConfiguration().getMZFormat().format(searchedMass);
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		setStatus(TaskStatus.PROCESSING);
 
 		resultWindow = new ResultWindow("Searching for "
-				+ MZmineCore.getMZFormat().format(searchedMass), peakListRow,
+				+ MZmineCore.getConfiguration().getMZFormat().format(searchedMass), peakListRow,
 				searchedMass, charge, this);
 		MZmineCore.getDesktop().addInternalFrame(resultWindow);
 
@@ -215,7 +215,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				resultWindow.setTitle("Finished searching for "
-						+ MZmineCore.getMZFormat().format(searchedMass)
+						+ MZmineCore.getConfiguration().getMZFormat().format(searchedMass)
 						+ " amu, " + foundFormulas + " formulas found");
 
 			}

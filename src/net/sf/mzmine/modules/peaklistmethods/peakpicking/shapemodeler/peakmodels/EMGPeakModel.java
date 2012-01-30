@@ -178,7 +178,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 		return scanNumbers;
 	}
 
-	public String toString() {
+	public String getName() {
 		return "EMG peak " + PeakUtils.peakToString(this);
 	}
 
@@ -311,8 +311,8 @@ public class EMGPeakModel implements ChromatographicPeak {
 		double Wb = Math.abs(b - a);
 
 		// DEBUGGING
-		// logger.finest("Value a= " + MZmineCore.getRTFormat().format(a) +
-		// " b= " + MZmineCore.getRTFormat().format(b) + " Ap= " + Ap + " Wb= "
+		// logger.finest("Value a= " + MZmineCore.getConfiguration().getRTFormat().format(a) +
+		// " b= " + MZmineCore.getConfiguration().getRTFormat().format(b) + " Ap= " + Ap + " Wb= "
 		// + Wb);
 
 		/*
@@ -383,7 +383,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 
 		// DEBUGGING
 		// logger.finest("Value C= " + C + " M= " +
-		// MZmineCore.getRTFormat().format(M) + " H= " + H);
+		// MZmineCore.getConfiguration().getRTFormat().format(M) + " H= " + H);
 
 	}
 

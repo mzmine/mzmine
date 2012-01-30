@@ -43,8 +43,8 @@ public class PeakUtils {
 	 */
 	public static String peakToString(ChromatographicPeak peak) {
 		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
-		Format timeFormat = MZmineCore.getRTFormat();
+		Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
 		buf.append(mzFormat.format(peak.getMZ()));
 		buf.append(" m/z @");
 		buf.append(timeFormat.format(peak.getRT()));

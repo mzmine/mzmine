@@ -28,101 +28,103 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
 public class MassBankGateway implements DBGateway {
 
-	// Unfortunately, we need to list all the instrument types here
-	private static final String instrumentTypes[] = { "EI-B", "EI-EBEB",
-			"GC-EI-TOF", "CE-ESI-TOF", "ESI-IT-MS/MS", "ESI-QqQ-MS/MS",
-			"ESI-QqTOF-MS/MS", "LC-ESI-IT", "LC-ESI-ITFT", "LC-ESI-ITTOF",
-			"LC-ESI-Q", "LC-ESI-QIT", "LC-ESI-QQ", "LC-ESI-QTOF", "CI-B",
-			"FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B", "MALDI-TOF" };
+    // Unfortunately, we need to list all the instrument types here
+    private static final String instrumentTypes[] = { "EI-B", "EI-EBEB",
+	    "GC-EI-TOF", "CE-ESI-TOF", "ESI-IT-MS/MS", "ESI-QqQ-MS/MS",
+	    "ESI-QqTOF-MS/MS", "LC-ESI-IT", "LC-ESI-ITFT", "LC-ESI-ITTOF",
+	    "LC-ESI-Q", "LC-ESI-QIT", "LC-ESI-QQ", "LC-ESI-QTOF", "CI-B",
+	    "FAB-B", "FAB-EB", "FAB-EBEB", "FD-B", "FI-B", "MALDI-TOF" };
 
-	private static final String massBankSearchAddress = "http://www.massbank.jp/jsp/Result.jsp?type=quick";
-	private static final String massBankEntryAddress = "http://www.massbank.jp/jsp/FwdRecord.jsp?id=";
+    private static final String massBankSearchAddress = "http://www.massbank.jp/jsp/Result.jsp?type=quick";
+    private static final String massBankEntryAddress = "http://www.massbank.jp/jsp/FwdRecord.jsp?id=";
 
-	public String[] findCompounds(double mass, MZTolerance mzTolerance,
-			int numOfResults) throws IOException {
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+	    int numOfResults, ParameterSet parameters) throws IOException {
 
-		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		StringBuilder queryAddress = new StringBuilder(massBankSearchAddress);
+	StringBuilder queryAddress = new StringBuilder(massBankSearchAddress);
 
-		for (String inst : instrumentTypes) {
-			queryAddress.append("&inst=");
-			queryAddress.append(inst);
-		}
-
-		queryAddress.append("&mz=");
-		queryAddress.append(toleranceRange.getAverage());
-		queryAddress.append("&tol=");
-		queryAddress.append(toleranceRange.getSize() / 2);
-
-		URL queryURL = new URL(queryAddress.toString());
-
-		// Submit the query
-		String queryResult = InetUtils.retrieveData(queryURL);
-
-		Vector<String> results = new Vector<String>();
-
-		// Find IDs in the HTML data
-		Pattern pat = Pattern
-				.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z0-9]{8})&nbsp;");
-		Matcher matcher = pat.matcher(queryResult);
-		while (matcher.find()) {
-			String MID = matcher.group(1);
-			results.add(MID);
-			if (results.size() == numOfResults)
-				break;
-		}
-
-		return results.toArray(new String[0]);
-
+	for (String inst : instrumentTypes) {
+	    queryAddress.append("&inst=");
+	    queryAddress.append(inst);
 	}
 
-	/**
-	 * This method retrieves the details about the compound
-	 * 
-	 */
-	public DBCompound getCompound(String ID) throws IOException {
+	queryAddress.append("&mz=");
+	queryAddress.append(toleranceRange.getAverage());
+	queryAddress.append("&tol=");
+	queryAddress.append(toleranceRange.getSize() / 2);
 
-		URL entryURL = new URL(massBankEntryAddress + ID);
+	URL queryURL = new URL(queryAddress.toString());
 
-		String massBankEntry = InetUtils.retrieveData(entryURL);
+	// Submit the query
+	String queryResult = InetUtils.retrieveData(queryURL);
 
-		String compoundName = null;
-		String compoundFormula = null;
-		URL structure2DURL = null;
-		URL structure3DURL = null;
-		URL databaseURL = entryURL;
+	Vector<String> results = new Vector<String>();
 
-		// Find compound name
-		Pattern patName = Pattern.compile("RECORD_TITLE: (.*)");
-		Matcher matcherName = patName.matcher(massBankEntry);
-		if (matcherName.find()) {
-			compoundName = matcherName.group(1);
-		}
-
-		// Find compound formula
-		Pattern patFormula = Pattern.compile("CH\\$FORMULA: (.*)");
-		Matcher matcherFormula = patFormula.matcher(massBankEntry);
-		if (matcherFormula.find()) {
-			compoundFormula = matcherFormula.group(1);
-		}
-
-		if (compoundName == null) {
-			throw (new IOException(
-					"Could not parse compound name for compound " + ID));
-		}
-
-		DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANK, ID,
-				compoundName, compoundFormula, databaseURL, structure2DURL,
-				structure3DURL);
-
-		return newCompound;
-
+	// Find IDs in the HTML data
+	Pattern pat = Pattern
+		.compile("&nbsp;&nbsp;&nbsp;&nbsp;([A-Z0-9]{8})&nbsp;");
+	Matcher matcher = pat.matcher(queryResult);
+	while (matcher.find()) {
+	    String MID = matcher.group(1);
+	    results.add(MID);
+	    if (results.size() == numOfResults)
+		break;
 	}
+
+	return results.toArray(new String[0]);
+
+    }
+
+    /**
+     * This method retrieves the details about the compound
+     * 
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+	    throws IOException {
+
+	URL entryURL = new URL(massBankEntryAddress + ID);
+
+	String massBankEntry = InetUtils.retrieveData(entryURL);
+
+	String compoundName = null;
+	String compoundFormula = null;
+	URL structure2DURL = null;
+	URL structure3DURL = null;
+	URL databaseURL = entryURL;
+
+	// Find compound name
+	Pattern patName = Pattern.compile("RECORD_TITLE: (.*)");
+	Matcher matcherName = patName.matcher(massBankEntry);
+	if (matcherName.find()) {
+	    compoundName = matcherName.group(1);
+	}
+
+	// Find compound formula
+	Pattern patFormula = Pattern.compile("CH\\$FORMULA: (.*)");
+	Matcher matcherFormula = patFormula.matcher(massBankEntry);
+	if (matcherFormula.find()) {
+	    compoundFormula = matcherFormula.group(1);
+	}
+
+	if (compoundName == null) {
+	    throw (new IOException(
+		    "Could not parse compound name for compound " + ID));
+	}
+
+	DBCompound newCompound = new DBCompound(OnlineDatabase.MASSBANK, ID,
+		compoundName, compoundFormula, databaseURL, structure2DURL,
+		structure3DURL);
+
+	return newCompound;
+
+    }
 }

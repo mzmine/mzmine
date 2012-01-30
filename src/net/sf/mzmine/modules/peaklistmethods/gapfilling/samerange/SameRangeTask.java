@@ -60,11 +60,11 @@ class SameRangeTask extends AbstractTask {
 		this.peakList = peakList;
 		this.parameters = parameters;
 
-		suffix = parameters.getParameter(SameRangeParameters.suffix).getValue();
-		mzTolerance = parameters.getParameter(SameRangeParameters.mzTolerance)
+		suffix = parameters.getParameter(SameRangeGapFillerParameters.suffix).getValue();
+		mzTolerance = parameters.getParameter(SameRangeGapFillerParameters.mzTolerance)
 				.getValue();
 		removeOriginal = parameters
-				.getParameter(SameRangeParameters.autoRemove).getValue();
+				.getParameter(SameRangeGapFillerParameters.autoRemove).getValue();
 
 	}
 

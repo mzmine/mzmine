@@ -179,7 +179,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
                 return peaks[index];
         }
 
-        public String toString() {
+        public String getName() {
                 StringBuilder sb = new StringBuilder();
                 for (PeakListRow d : peaks) {
                         sb.append(d != null ? d.toString() : "GAP").append(' ');

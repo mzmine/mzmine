@@ -21,32 +21,32 @@ package net.sf.mzmine.modules;
 
 public enum MZmineModuleCategory {
 
-	PROJECTIO("Project I/O"),
-	PROJECT("Project"),
-	RAWDATA("Raw data methods"),
-	RAWDATAFILTERING("Raw data filtering"),
-	PEAKPICKING("Peak picking"),
-	GAPFILLING("Gap filling"),
-	ISOTOPES("Isotopes"),
-	PEAKLISTPICKING("Peak list processing"),
-	PEAKLISTFILTERING("Peak list filtering"),
-	ALIGNMENT("Alignment"),
-	NORMALIZATION("Normalization"),
-	IDENTIFICATION("Identification"),
-	PEAKLISTEXPORT("Peak list export"),
-	VISUALIZATIONRAWDATA("Visualization"),
-	VISUALIZATIONPEAKLIST("Visualization peak list"),
-	DATAANALYSIS("Data analysis"),
-	HELPSYSTEM("Help");
+    PROJECTIO("Project I/O"), //
+    PROJECT("Project"), //
+    RAWDATA("Raw data methods"), //
+    RAWDATAFILTERING("Raw data filtering"), //
+    PEAKPICKING("Peak picking"), //
+    GAPFILLING("Gap filling"), //
+    ISOTOPES("Isotopes"), //
+    PEAKLISTPICKING("Peak list processing"), //
+    PEAKLISTFILTERING("Peak list filtering"), //
+    ALIGNMENT("Alignment"), //
+    NORMALIZATION("Normalization"), //
+    IDENTIFICATION("Identification"), //
+    PEAKLISTEXPORT("Peak list export"), //
+    VISUALIZATIONRAWDATA("Visualization"), //
+    VISUALIZATIONPEAKLIST("Visualization peak list"), //
+    DATAANALYSIS("Data analysis"), //
+    HELPSYSTEM("Help");
 
-	private final String name;
+    private final String name;
 
-	MZmineModuleCategory(String name) {
-		this.name = name;
-	}
+    MZmineModuleCategory(String name) {
+	this.name = name;
+    }
 
-	public String toString() {
-		return name;
-	}
+    public String toString() {
+	return name;
+    }
 
 }

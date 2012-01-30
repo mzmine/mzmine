@@ -19,25 +19,34 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import net.sf.mzmine.data.*;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.autoRemove;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.peakResolver;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.suffix;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListAppliedMethod;
+import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.DeconvolutionParameters.*;
-
 public class DeconvolutionTask extends AbstractTask {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(DeconvolutionTask.class.getName());
+    private static final Logger LOG = Logger.getLogger(DeconvolutionTask.class
+	    .getName());
 
     // Peak lists.
     private final PeakList originalPeakList;
@@ -52,161 +61,170 @@ public class DeconvolutionTask extends AbstractTask {
 
     /**
      * Create the task.
-     *
-     * @param list         peak list to operate on.
-     * @param parameterSet task parameters.
+     * 
+     * @param list
+     *            peak list to operate on.
+     * @param parameterSet
+     *            task parameters.
      */
-    public DeconvolutionTask(final PeakList list, final ParameterSet parameterSet) {
+    public DeconvolutionTask(final PeakList list,
+	    final ParameterSet parameterSet) {
 
-        // Initialize.
-        parameters = parameterSet;
-        originalPeakList = list;
-        newPeakList = null;
-        processedRows = 0;
-        totalRows = 0;
+	// Initialize.
+	parameters = parameterSet;
+	originalPeakList = list;
+	newPeakList = null;
+	processedRows = 0;
+	totalRows = 0;
     }
 
     @Override
     public String getTaskDescription() {
 
-        return "Peak recognition on " + originalPeakList;
+	return "Peak recognition on " + originalPeakList;
     }
 
     @Override
     public double getFinishedPercentage() {
 
-        return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
+	return totalRows == 0 ? 0.0 : (double) processedRows
+		/ (double) totalRows;
     }
 
     @Override
     public Object[] getCreatedObjects() {
 
-        return new Object[]{newPeakList};
+	return new Object[] { newPeakList };
     }
 
     @Override
     public void run() {
 
-        if (!isCanceled()) {
+	if (!isCanceled()) {
 
-            setStatus(TaskStatus.PROCESSING);
-            LOG.info("Started peak deconvolution on " + originalPeakList);
+	    setStatus(TaskStatus.PROCESSING);
+	    LOG.info("Started peak deconvolution on " + originalPeakList);
 
-            // Check raw data files.
-            if (originalPeakList.getNumberOfRawDataFiles() > 1) {
+	    // Check raw data files.
+	    if (originalPeakList.getNumberOfRawDataFiles() > 1) {
 
-                setStatus(TaskStatus.ERROR);
-                errorMessage = "Peak deconvolution can only be performed on peak lists with a single raw data file";
+		setStatus(TaskStatus.ERROR);
+		errorMessage = "Peak deconvolution can only be performed on peak lists with a single raw data file";
 
-            } else {
+	    } else {
 
-                try {
+		try {
 
-                    // Deconvolve peaks.
-                    newPeakList = resolvePeaks(originalPeakList);
+		    // Deconvolve peaks.
+		    newPeakList = resolvePeaks(originalPeakList);
 
-                    if (!isCanceled()) {
+		    if (!isCanceled()) {
 
-                        // Add new peaklist to the project.
-                        final MZmineProject currentProject = MZmineCore.getCurrentProject();
-                        currentProject.addPeakList(newPeakList);
+			// Add new peaklist to the project.
+			final MZmineProject currentProject = MZmineCore
+				.getCurrentProject();
+			currentProject.addPeakList(newPeakList);
 
-                        // Remove the original peaklist if requested.
-                        if (parameters.getParameter(autoRemove).getValue()) {
+			// Remove the original peaklist if requested.
+			if (parameters.getParameter(autoRemove).getValue()) {
 
-                            currentProject.removePeakList(originalPeakList);
-                        }
+			    currentProject.removePeakList(originalPeakList);
+			}
 
-                        setStatus(TaskStatus.FINISHED);
-                        LOG.info("Finished peak recognition on " + originalPeakList);
-                    }
-                }
-                catch (Throwable t) {
+			setStatus(TaskStatus.FINISHED);
+			LOG.info("Finished peak recognition on "
+				+ originalPeakList);
+		    }
+		} catch (Throwable t) {
 
-                    setStatus(TaskStatus.ERROR);
-                    errorMessage = t.getMessage();
-                    LOG.log(Level.SEVERE, "Peak deconvolution error", t);
-                }
-            }
-        }
+		    setStatus(TaskStatus.ERROR);
+		    errorMessage = t.getMessage();
+		    LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+		}
+	    }
+	}
     }
 
     /**
      * Deconvolve a chromatogram into separate peaks.
-     *
-     * @param peakList holds the chromatogram to deconvolve.
+     * 
+     * @param peakList
+     *            holds the chromatogram to deconvolve.
      * @return a new peak list holding the resolved peaks.
      */
+    @SuppressWarnings("unchecked")
     private PeakList resolvePeaks(final PeakList peakList) {
 
-        // Get data file information.
-        final RawDataFile dataFile = peakList.getRawDataFile(0);
-        final int[] scanNumbers = dataFile.getScanNumbers(1);
-        final int scanCount = scanNumbers.length;
-        final double[] retentionTimes = new double[scanCount];
-        for (int i = 0;
-             i < scanCount;
-             i++) {
+	// Get data file information.
+	final RawDataFile dataFile = peakList.getRawDataFile(0);
+	final int[] scanNumbers = dataFile.getScanNumbers(1);
+	final int scanCount = scanNumbers.length;
+	final double[] retentionTimes = new double[scanCount];
+	for (int i = 0; i < scanCount; i++) {
 
-            retentionTimes[i] = dataFile.getScan(scanNumbers[i]).getRetentionTime();
-        }
+	    retentionTimes[i] = dataFile.getScan(scanNumbers[i])
+		    .getRetentionTime();
+	}
 
-        // Peak resolver.
-        final PeakResolver resolver = parameters.getParameter(peakResolver).getValue();
+	// Peak resolver.
 
-        // Create new peak list.
-        final PeakList resolvedPeaks =
-                new SimplePeakList(peakList + " " + parameters.getParameter(suffix).getValue(), dataFile);
+	final MZmineProcessingStep<PeakResolver> resolver = parameters
+		.getParameter(peakResolver).getValue();
 
-        // Load previous applied methods.
-        for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+	// Create new peak list.
+	final PeakList resolvedPeaks = new SimplePeakList(peakList + " "
+		+ parameters.getParameter(suffix).getValue(), dataFile);
 
-            resolvedPeaks.addDescriptionOfAppliedTask(method);
-        }
+	// Load previous applied methods.
+	for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
 
-        // Add task description to peak list.
-        resolvedPeaks.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                "Peak deconvolution by " + resolver, resolver.getParameterSet()));
+	    resolvedPeaks.addDescriptionOfAppliedTask(method);
+	}
 
-        // Initialise counters.
-        processedRows = 0;
-        totalRows = peakList.getNumberOfRows();
-        int peakId = 1;
+	// Add task description to peak list.
+	resolvedPeaks
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			"Peak deconvolution by " + resolver, resolver
+				.getParameterSet()));
 
-        // Process each chromatogram.
-        final ChromatographicPeak[] chromatograms = peakList.getPeaks(dataFile);
-        final int chromatogramCount = chromatograms.length;
-        for (int index = 0;
-             !isCanceled() && index < chromatogramCount;
-             index++) {
+	// Initialise counters.
+	processedRows = 0;
+	totalRows = peakList.getNumberOfRows();
+	int peakId = 1;
 
-            final ChromatographicPeak chromatogram = chromatograms[index];
+	// Process each chromatogram.
+	final ChromatographicPeak[] chromatograms = peakList.getPeaks(dataFile);
+	final int chromatogramCount = chromatograms.length;
+	for (int index = 0; !isCanceled() && index < chromatogramCount; index++) {
 
-            // Load the intensities into array.
-            final double[] intensities = new double[scanCount];
-            for (int i = 0;
-                 i < scanCount;
-                 i++) {
+	    final ChromatographicPeak chromatogram = chromatograms[index];
 
-                final DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
-                intensities[i] = dp != null ? dp.getIntensity() : 0.0;
-            }
+	    // Load the intensities into array.
+	    final double[] intensities = new double[scanCount];
+	    for (int i = 0; i < scanCount; i++) {
 
-            // Resolve peaks.
-            final ChromatographicPeak[] peaks =
-                    resolver.resolvePeaks(chromatogram, scanNumbers, retentionTimes, intensities);
+		final DataPoint dp = chromatogram.getDataPoint(scanNumbers[i]);
+		intensities[i] = dp != null ? dp.getIntensity() : 0.0;
+	    }
 
-            // Add peaks to the new peak list.
-            for (final ChromatographicPeak peak : peaks) {
+	    // Resolve peaks.
+	    final PeakResolver resolverModule = resolver.getModule();
+	    final ParameterSet resolverParams = resolver.getParameterSet();
+	    final ChromatographicPeak[] peaks = resolverModule.resolvePeaks(
+		    chromatogram, scanNumbers, retentionTimes, intensities,
+		    resolverParams);
 
-                final PeakListRow newRow = new SimplePeakListRow(peakId++);
-                newRow.addPeak(dataFile, peak);
-                resolvedPeaks.addRow(newRow);
-            }
+	    // Add peaks to the new peak list.
+	    for (final ChromatographicPeak peak : peaks) {
 
-            processedRows++;
-        }
+		final PeakListRow newRow = new SimplePeakListRow(peakId++);
+		newRow.addPeak(dataFile, peak);
+		resolvedPeaks.addRow(newRow);
+	    }
 
-        return resolvedPeaks;
+	    processedRows++;
+	}
+
+	return resolvedPeaks;
     }
 }

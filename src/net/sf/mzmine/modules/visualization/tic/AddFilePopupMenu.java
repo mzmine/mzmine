@@ -69,7 +69,7 @@ class AddFilePopupMenu extends JMenu implements MenuListener,
                 continue;
 
             // add a menu item for each file
-            JMenuItem newItem = new JMenuItem(file.toString());
+            JMenuItem newItem = new JMenuItem(file.getName());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
             add(newItem);

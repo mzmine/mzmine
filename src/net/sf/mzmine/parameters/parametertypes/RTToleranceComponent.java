@@ -70,7 +70,7 @@ public class RTToleranceComponent extends JPanel {
 		double toleranceDouble;
 		try {
 			if (index == 0) {
-				toleranceDouble = MZmineCore.getRTFormat().parse(valueString)
+				toleranceDouble = MZmineCore.getConfiguration().getRTFormat().parse(valueString)
 						.doubleValue();
 			} else {
 				Number toleranceValue = Double.parseDouble(valueString);

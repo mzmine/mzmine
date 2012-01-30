@@ -19,60 +19,48 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.path;
 
-import java.util.logging.Logger;
+import java.util.Collection;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
-/**
- * 
- */
 public class PathAlignerModule implements MZmineProcessingModule {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private PathAlignerParameters parameters = new PathAlignerParameters();
-	private Desktop desktop;
+    private static final String MODULE_NAME = "Path aligner";
+    private static final String MODULE_DESCRIPTION = "Description not yet available."; // TODO
 
-	@Override
-	public String toString() {
-		return "Path alignment";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public void taskStarted(Task task) {
-		logger.info("Running Path alignment");
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	Task newTask = new PathAlignerTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.ALIGNMENT;
+    }
 
-		PeakList peakLists[] = parameters.getParameter(
-				PathAlignerParameters.peakLists).getValue();
-
-		// check peak lists
-		if ((peakLists == null) || (peakLists.length == 0)) {
-			desktop.displayErrorMessage("Please select peak lists for alignment");
-			return null;
-		}
-
-		// prepare a new group with just one task
-		Task task = new PathAlignerTask(peakLists, parameters);
-
-		MZmineCore.getTaskController().addTask(task);
-
-		return new Task[] { task };
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.ALIGNMENT;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return PathAlignerParameters.class;
+    }
 
 }

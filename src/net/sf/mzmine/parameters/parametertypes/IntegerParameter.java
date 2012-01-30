@@ -155,12 +155,6 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
     }
 
     @Override
-    public String toString() {
-
-        return name;
-    }
-
-    @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
         final boolean check;

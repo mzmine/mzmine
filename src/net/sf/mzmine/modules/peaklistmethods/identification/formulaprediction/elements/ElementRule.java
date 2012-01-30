@@ -114,7 +114,7 @@ public class ElementRule {
 		return elementSymbol.equals(otherRule.elementSymbol);
 	}
 
-	public String toString() {
+	public String getName() {
 		return elementSymbol + "[" + minCount + "-" + maxCount + "]";
 	}
 

@@ -31,7 +31,7 @@ import org.jfree.data.xy.XYDataset;
  */
 class AlignmentPreviewTooltipGenerator implements XYToolTipGenerator {
 
-    private NumberFormat rtFormat = MZmineCore.getRTFormat();
+    private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	String axis_X, axis_Y;
 
 	public AlignmentPreviewTooltipGenerator(String axis_X, String axis_Y){

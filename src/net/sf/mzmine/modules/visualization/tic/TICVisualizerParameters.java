@@ -23,14 +23,14 @@ import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.RawDataFileUtils;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public static final RangeParameter RT_RANGE = new RangeParameter(
             "Retention time", "Retention time (X axis) range",
-            MZmineCore.getRTFormat());
+            MZmineCore.getConfiguration().getRTFormat());
 
     /**
      * m/z range.
@@ -71,7 +71,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public static final RangeParameter MZ_RANGE = new RangeParameter(
             "m/z range",
             "Range of m/z values. If this range does not include the whole scan m/z range, the resulting visualizer is XIC type.",
-            MZmineCore.getMZFormat());
+            MZmineCore.getConfiguration().getMZFormat());
 
     /**
      * Peaks to display.

@@ -35,81 +35,79 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
 
-/**
- */
 public class MassListComponent extends JPanel implements ActionListener {
 
-	private JTextField nameField;
-	private JButton lookupButton;
-	private JPopupMenu lookupMenu;
+    private JTextField nameField;
+    private JButton lookupButton;
+    private JPopupMenu lookupMenu;
 
-	public MassListComponent() {
+    public MassListComponent() {
 
-		super(new BorderLayout());
+	super(new BorderLayout());
 
-		nameField = new JTextField(15);
+	nameField = new JTextField(15);
 
-		add(nameField, BorderLayout.CENTER);
+	add(nameField, BorderLayout.CENTER);
 
-		lookupButton = new JButton("Choose...");
-		lookupButton.addActionListener(this);
-		add(lookupButton, BorderLayout.EAST);
+	lookupButton = new JButton("Choose...");
+	lookupButton.addActionListener(this);
+	add(lookupButton, BorderLayout.EAST);
 
-		lookupMenu = new JPopupMenu("Select name");
+	lookupMenu = new JPopupMenu("Select name");
 
-	}
+    }
 
-	public String getValue() {
-		return nameField.getText();
-	}
+    public String getValue() {
+	return nameField.getText();
+    }
 
-	public void setValue(String value) {
-		nameField.setText(value);
-	}
+    public void setValue(String value) {
+	nameField.setText(value);
+    }
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
+    @Override
+    public void actionPerformed(ActionEvent e) {
 
-		Object src = e.getSource();
+	Object src = e.getSource();
 
-		if (src == lookupButton) {
-			ArrayList<String> currentNames = new ArrayList<String>();
-			RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
-					.getDataFiles();
-			for (RawDataFile dataFile : dataFiles) {
-				int scanNums[] = dataFile.getScanNumbers();
-				for (int scanNum : scanNums) {
-					Scan scan = dataFile.getScan(scanNum);
-					MassList massLists[] = scan.getMassLists();
-					for (MassList massList : massLists) {
-						String name = massList.getName();
-						if (!currentNames.contains(name))
-							currentNames.add(name);
-					}
-				}
-			}
-
-			lookupMenu.removeAll();
-			for (String name : currentNames) {
-				JMenuItem item = new JMenuItem(name);
-				item.addActionListener(this);
-				lookupMenu.add(item);
-			}
-
-			lookupMenu.show(lookupButton, 0, 0);
-
+	if (src == lookupButton) {
+	    ArrayList<String> currentNames = new ArrayList<String>();
+	    RawDataFile dataFiles[] = MZmineCore.getCurrentProject()
+		    .getDataFiles();
+	    for (RawDataFile dataFile : dataFiles) {
+		int scanNums[] = dataFile.getScanNumbers();
+		for (int scanNum : scanNums) {
+		    Scan scan = dataFile.getScan(scanNum);
+		    MassList massLists[] = scan.getMassLists();
+		    for (MassList massList : massLists) {
+			String name = massList.getName();
+			if (!currentNames.contains(name))
+			    currentNames.add(name);
+		    }
 		}
+	    }
 
-		if (src instanceof JMenuItem) {
-			String name = ((JMenuItem) src).getText();
-			nameField.setText(name);
-		}
+	    lookupMenu.removeAll();
+	    for (String name : currentNames) {
+		JMenuItem item = new JMenuItem(name);
+		item.addActionListener(this);
+		lookupMenu.add(item);
+	    }
+
+	    lookupMenu.show(lookupButton, 0, 0);
 
 	}
-	
-	@Override
-	public void setToolTipText(String toolTip) {
-		nameField.setToolTipText(toolTip);
+
+	if (src instanceof JMenuItem) {
+	    String name = ((JMenuItem) src).getText();
+	    nameField.setText(name);
 	}
+
+    }
+
+    @Override
+    public void setToolTipText(String toolTip) {
+	nameField.setToolTipText(toolTip);
+    }
 
 }

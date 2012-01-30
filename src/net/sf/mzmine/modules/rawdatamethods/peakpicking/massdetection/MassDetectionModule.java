@@ -19,56 +19,57 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class MassDetectionModule implements MZmineProcessingModule {
 
-	private MassDetectionParameters parameters = new MassDetectionParameters();
+    private static final String MODULE_NAME = "Mass detection";
+    private static final String MODULE_DESCRIPTION = "This module detects individual ions in each scan and builds a mass list for each scan.";
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return "Mass detection";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		MassDetectionParameters.dataFiles).getValue();
+
+	for (RawDataFile dataFile : dataFiles) {
+	    Task newTask = new MassDetectionTask(dataFile, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.AlignmentResult[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    }
 
-		RawDataFile[] dataFiles = parameters.getParameter(
-				MassDetectionParameters.dataFiles).getValue();
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new MassDetectionTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new MassDetectionTask(dataFiles[i], parameters.clone());
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return MassDetectionParameters.class;
+    }
 
 }

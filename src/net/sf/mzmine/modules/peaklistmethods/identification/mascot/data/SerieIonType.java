@@ -62,7 +62,7 @@ public enum SerieIonType {
 		return ionTypes;
 	}
 	
-	public String toString(){
+	public String getName(){
 		return name;
 	}
 

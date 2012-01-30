@@ -78,14 +78,14 @@ public class HistogramRangeEditor extends JPanel implements ActionListener {
 			
 			switch (selectedType) {
 			case MASS:
-				dataRangeComponent.setNumberFormat(MZmineCore.getMZFormat());
+				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getMZFormat());
 				return;
 			case HEIGHT:
 			case AREA:
-				dataRangeComponent.setNumberFormat(MZmineCore.getIntensityFormat());
+				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getIntensityFormat());
 				return;
 			case RT:
-				dataRangeComponent.setNumberFormat(MZmineCore.getRTFormat());
+				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getRTFormat());
 				return;
 			}
 		}

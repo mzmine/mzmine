@@ -19,56 +19,57 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.custom;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class CustomDBSearchModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Custom database search";
+    public static final String MODULE_NAME = "Custom database search";
+    private static final String MODULE_DESCRIPTION = "This method searches a custom database (CSV file) using m/z and retention time values.";
 
-	private CustomDBSearchParameters parameters = new CustomDBSearchParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(
+		CustomDBSearchParameters.peakLists).getValue();
+
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new CustomDBSearchTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+	return ExitCode.OK;
 
-		PeakList peakLists[] = parameters.getParameter(
-				CustomDBSearchParameters.peakLists).getValue();
+    }
 
-		// prepare a new sequence of tasks
-		Task tasks[] = new CustomDBSearchTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new CustomDBSearchTask(peakLists[i], parameters);
-		}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.IDENTIFICATION;
+    }
 
-		// execute the sequence
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	public String toString() {
-		return MODULE_NAME;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.IDENTIFICATION;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return CustomDBSearchParameters.class;
+    }
 
 }

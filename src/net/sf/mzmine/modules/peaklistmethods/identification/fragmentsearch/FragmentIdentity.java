@@ -33,7 +33,7 @@ public class FragmentIdentity extends SimplePeakIdentity {
 			PeakListRow fragmentPeakListRow) {
 
 		super("Fragment of "
-				+ MZmineCore.getMZFormat().format(
+				+ MZmineCore.getConfiguration().getMZFormat().format(
 						mainPeakListRow.getAverageMZ()) + " m/z");
 
 		this.mainPeakListRow = mainPeakListRow;

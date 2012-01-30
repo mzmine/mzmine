@@ -30,88 +30,102 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.ExitCode;
 
 public class HeadLessDesktop implements Desktop {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private static final String MODULE_NAME = "Desktop";
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return null;
-	}
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	@Override
-	public JFrame getMainFrame() {
-		return null;
-	}
+    @Override
+    public JFrame getMainFrame() {
+	return null;
+    }
 
-	@Override
-	public void addInternalFrame(JInternalFrame frame) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void addInternalFrame(JInternalFrame frame) {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public JInternalFrame[] getInternalFrames() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public JInternalFrame[] getInternalFrames() {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public JInternalFrame getSelectedFrame() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public JInternalFrame getSelectedFrame() {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void setStatusBarText(String text) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void setStatusBarText(String text) {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void setStatusBarText(String text, Color textColor) {
-	}
+    @Override
+    public void setStatusBarText(String text, Color textColor) {
+    }
 
-	@Override
-	public void displayMessage(String msg) {
-		logger.info(msg);
-	}
+    @Override
+    public void displayMessage(String msg) {
+	logger.info(msg);
+    }
 
-	@Override
-	public void displayMessage(String title, String msg) {
-		logger.info(msg);
-	}
+    @Override
+    public void displayMessage(String title, String msg) {
+	logger.info(msg);
+    }
 
-	@Override
-	public void displayErrorMessage(String msg) {
-		logger.severe(msg);
-	}
+    @Override
+    public void displayErrorMessage(String msg) {
+	logger.severe(msg);
+    }
 
-	@Override
-	public void displayErrorMessage(String title, String msg) {
-		logger.severe(msg);
-	}
+    @Override
+    public void displayErrorMessage(String title, String msg) {
+	logger.severe(msg);
+    }
 
-	@Override
-	public void displayException(Exception e) {
-		e.printStackTrace();
-	}
+    @Override
+    public void displayException(Exception e) {
+	e.printStackTrace();
+    }
 
-	@Override
-	public RawDataFile[] getSelectedDataFiles() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public RawDataFile[] getSelectedDataFiles() {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public PeakList[] getSelectedPeakLists() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public PeakList[] getSelectedPeakLists() {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void addProjectTreeListener(TreeModelListener listener) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void addProjectTreeListener(TreeModelListener listener) {
+	throw new UnsupportedOperationException();
+    }
 
-	@Override
-	public void removeProjectTreeListener(TreeModelListener listener) {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void removeProjectTreeListener(TreeModelListener listener) {
+	throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return null;
+    }
+
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public ExitCode exitMZmine() {
+	System.exit(0);
+	return ExitCode.OK;
+    }
 
 }

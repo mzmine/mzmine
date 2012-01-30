@@ -20,8 +20,8 @@
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
 import net.sf.mzmine.data.Polarity;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;

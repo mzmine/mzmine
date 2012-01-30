@@ -103,7 +103,7 @@ public class TrianglePeakModel implements ChromatographicPeak {
 		return scanNumbers;
 	}
 
-	public String toString() {
+	public String getName() {
 		return "Triangle peak " + PeakUtils.peakToString(this);
 	}
 

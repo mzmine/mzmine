@@ -19,62 +19,57 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.peakextender;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class PeakExtenderModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Peak extender";
+    private static final String MODULE_NAME = "Peak extender";
+    private static final String MODULE_DESCRIPTION = "This module extends the peaks detected by the MS/MS detector module.";
 
-	private PeakExtenderParameters parameters = new PeakExtenderParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList[] peakLists = parameters.getParameter(
+		PeakExtenderParameters.peakLists).getValue();
+
+	for (final PeakList peakList : peakLists) {
+	    Task newTask = new PeakExtenderTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+	return ExitCode.OK;
 
-		PeakList[] peakLists = parameters.getParameter(
-				PeakExtenderParameters.peakLists).getValue();
+    }
 
-		// prepare a new task group
-		Task tasks[] = new PeakExtenderTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new PeakExtenderTask(peakLists[i], parameters);
-		}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTPICKING;
+    }
 
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return PeakExtenderParameters.class;
+    }
 
 }

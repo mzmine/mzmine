@@ -49,8 +49,8 @@ class NeutralLossDataPoint {
             int precursorScanNumber, double precursorMZ, int precursorCharge,
             double retentionTime) {
 
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
+        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
         this.mzValue = mzValue;
         this.scanNumber = scanNumber;
@@ -138,7 +138,7 @@ class NeutralLossDataPoint {
         return neutralLoss;
     }
 
-    public String toString() {
+    public String getName() {
         return label;
 
     }

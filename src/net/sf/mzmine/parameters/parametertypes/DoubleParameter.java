@@ -78,12 +78,6 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     }
 
     @Override
-    public String getName() {
-
-        return name;
-    }
-
-    @Override
     public String getDescription() {
 
         return description;
@@ -162,7 +156,7 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     }
 
     @Override
-    public String toString() {
+    public String getName() {
 
         return name;
     }

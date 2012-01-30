@@ -17,7 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.util;
 
 import java.text.Format;
@@ -30,93 +29,94 @@ import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Protein;
 import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ProteinSection;
 
 public class ProteomeUtils {
-	
-	/**
-	 * Common utility method to be used as Peptide.toString() method 
-	 * 
-	 * @param Peptide
-	 *            Peptide to be converted to String
-	 * @return String representation of the peptide
-	 */
-	public static String peptideToString(Peptide peptide) {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
 
-		Protein protein = peptide.getProtein();
-		ProteinSection section;
-		section = protein.getSection(peptide);
-		buf.append(protein.getSysname()+":"+section.toString() + "; "+protein.getHits()+" hits");
-		
-		buf.append("\n"+peptide.getSequence());
-		buf.append("\nPeptideMz ");
-		buf.append( mzFormat.format(peptide.getMass()) );
-		buf.append(" ;CalculatedMz ");
-		buf.append(  mzFormat.format(peptide.getMassExpected()) );
-		buf.append(" ;Score ");
-		buf.append(  peptide.getIonScore() );
-		buf.append(" \nCharge ");
-		buf.append( peptide.getPrecursorCharge() );
-		buf.append(" ;FragmentScan ");
-		buf.append( peptide.getScan().getScanNumber() );
+    /**
+     * Common utility method to be used as Peptide.toString() method
+     * 
+     * @param Peptide
+     *            Peptide to be converted to String
+     * @return String representation of the peptide
+     */
+    public static String peptideToString(Peptide peptide) {
+	StringBuffer buf = new StringBuffer();
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-		return buf.toString();
-	}
+	Protein protein = peptide.getProtein();
+	ProteinSection section;
+	section = protein.getSection(peptide);
+	buf.append(protein.getSysname() + ":" + section.getName() + "; "
+		+ protein.getHits() + " hits");
 
-	/**
-	 * Common utility method to be used as Protein.toString() method 
-	 * 
-	 * @param Protein
-	 *            Protein to be converted to String
-	 * @return String representation of the protein
-	 */
-	public static String proteinToString(Protein protein) {
-		StringBuffer buf = new StringBuffer();
-		buf.append(protein.getSysname());
-		buf.append(" ;Peptides ");
-		buf.append(protein.getPeptidesNumber());
-		buf.append(" ;Hits ");
-		buf.append(protein.getHits());
+	buf.append("\n" + peptide.getSequence());
+	buf.append("\nPeptideMz ");
+	buf.append(mzFormat.format(peptide.getMass()));
+	buf.append(" ;CalculatedMz ");
+	buf.append(mzFormat.format(peptide.getMassExpected()));
+	buf.append(" ;Score ");
+	buf.append(peptide.getIonScore());
+	buf.append(" \nCharge ");
+	buf.append(peptide.getPrecursorCharge());
+	buf.append(" ;FragmentScan ");
+	buf.append(peptide.getScan().getScanNumber());
 
-		return buf.toString();
-	}
+	return buf.toString();
+    }
 
-	/**
-	 * Common utility method to be used as ModificationPeptide.toString() method 
-	 * 
-	 * @param ModificationPeptide
-	 *            Modification to be converted to String
-	 * @return String representation of the modification
-	 */
-	public static String modificationToString(ModificationPeptide modification) {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
-		if (modification.isFixed()) 
-			buf.append("Fixed mod. ");
-		else
-			buf.append("Variable mod. ");
-		buf.append(modification.getName());
-		buf.append(" (" + mzFormat.format(modification.getMass()) + ")");
+    /**
+     * Common utility method to be used as Protein.toString() method
+     * 
+     * @param Protein
+     *            Protein to be converted to String
+     * @return String representation of the protein
+     */
+    public static String proteinToString(Protein protein) {
+	StringBuffer buf = new StringBuffer();
+	buf.append(protein.getSysname());
+	buf.append(" ;Peptides ");
+	buf.append(protein.getPeptidesNumber());
+	buf.append(" ;Hits ");
+	buf.append(protein.getHits());
 
-		return buf.toString();
-	}
-	
-	/**
-	 * Common utility method to be used as FragmentIon.toString() method 
-	 * 
-	 * @param FragmentIon
-	 *            Fragment ion to be converted to String
-	 * @return String representation of the ion
-	 */	
-	public static String fragmentIonToString(FragmentIon fragmentIon) {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getMZFormat();
-		buf.append(fragmentIon.getType().toString());
-		buf.append(" #");
-		buf.append(fragmentIon.getPosition());
-		buf.append(" ; ");
-		buf.append(mzFormat.format(fragmentIon.getMass()) );
-		buf.append(" MZ");
-		return buf.toString();
-	}
+	return buf.toString();
+    }
+
+    /**
+     * Common utility method to be used as ModificationPeptide.toString() method
+     * 
+     * @param ModificationPeptide
+     *            Modification to be converted to String
+     * @return String representation of the modification
+     */
+    public static String modificationToString(ModificationPeptide modification) {
+	StringBuffer buf = new StringBuffer();
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+	if (modification.isFixed())
+	    buf.append("Fixed mod. ");
+	else
+	    buf.append("Variable mod. ");
+	buf.append(modification.getName());
+	buf.append(" (" + mzFormat.format(modification.getMass()) + ")");
+
+	return buf.toString();
+    }
+
+    /**
+     * Common utility method to be used as FragmentIon.toString() method
+     * 
+     * @param FragmentIon
+     *            Fragment ion to be converted to String
+     * @return String representation of the ion
+     */
+    public static String fragmentIonToString(FragmentIon fragmentIon) {
+	StringBuffer buf = new StringBuffer();
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+	buf.append(fragmentIon.getType().getName());
+	buf.append(" #");
+	buf.append(fragmentIon.getPosition());
+	buf.append(" ; ");
+	buf.append(mzFormat.format(fragmentIon.getMass()));
+	buf.append(" MZ");
+	return buf.toString();
+    }
 
 }

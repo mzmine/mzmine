@@ -183,7 +183,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 
 	public int getColumnIndex(Comparable column) {
 		for (int i = 0; i < selectedFiles.length; i++) {
-			if (selectedFiles[i].toString().equals(column))
+			if (selectedFiles[i].getName().equals(column))
 				return i;
 		}
 		return -1;

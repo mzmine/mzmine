@@ -31,70 +31,70 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 public class LocalMaxMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters = new LocalMaxMassDetectorParameters();
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
-	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+	double noiseLevel = parameters.getParameter(
+		LocalMaxMassDetectorParameters.noiseLevel).getValue();
 
-		double noiseLevel = parameters.getParameter(
-				LocalMaxMassDetectorParameters.noiseLevel).getValue();
+	// List of found mz peaks
+	ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
 
-		// List of found mz peaks
-		ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+	DataPoint dataPoints[] = scan.getDataPoints();
 
-		DataPoint dataPoints[] = scan.getDataPoints();
+	// All data points of current m/z peak
 
-		// All data points of current m/z peak
+	// Top data point of current m/z peak
+	DataPoint currentMzPeakTop = null;
 
-		// Top data point of current m/z peak
-		DataPoint currentMzPeakTop = null;
+	// True if we haven't reached the current local maximum yet
+	boolean ascending = true;
 
-		// True if we haven't reached the current local maximum yet
-		boolean ascending = true;
+	// Iterate through all data points
+	for (int i = 0; i < dataPoints.length - 1; i++) {
 
-		// Iterate through all data points
-		for (int i = 0; i < dataPoints.length - 1; i++) {
+	    boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i]
+		    .getIntensity();
+	    boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
+	    boolean currentIsZero = dataPoints[i].getIntensity() == 0;
 
-			boolean nextIsBigger = dataPoints[i + 1].getIntensity() > dataPoints[i]
-					.getIntensity();
-			boolean nextIsZero = dataPoints[i + 1].getIntensity() == 0;
-			boolean currentIsZero = dataPoints[i].getIntensity() == 0;
+	    // Ignore zero intensity regions
+	    if (currentIsZero)
+		continue;
 
-			// Ignore zero intensity regions
-			if (currentIsZero)
-				continue;
+	    // Check for local maximum
+	    if (ascending && (!nextIsBigger)) {
+		currentMzPeakTop = dataPoints[i];
+		ascending = false;
+		continue;
+	    }
 
-			// Check for local maximum
-			if (ascending && (!nextIsBigger)) {
-				currentMzPeakTop = dataPoints[i];
-				ascending = false;
-				continue;
-			}
+	    assert currentMzPeakTop != null;
 
-			assert currentMzPeakTop != null;
+	    // Check for the end of the peak
+	    if ((!ascending) && (nextIsBigger || nextIsZero)) {
 
-			// Check for the end of the peak
-			if ((!ascending) && (nextIsBigger || nextIsZero)) {
-
-				// Add the m/z peak if it is above the noise level
-				if (currentMzPeakTop.getIntensity() > noiseLevel) {
-					mzPeaks.add(currentMzPeakTop);
-				}
-
-				// Reset and start with new peak
-				ascending = true;
-
-			}
-
+		// Add the m/z peak if it is above the noise level
+		if (currentMzPeakTop.getIntensity() > noiseLevel) {
+		    mzPeaks.add(currentMzPeakTop);
 		}
-		return mzPeaks.toArray(new DataPoint[0]);
-	}
 
-	public String toString() {
-		return "Local maxima";
-	}
+		// Reset and start with new peak
+		ascending = true;
 
-	public ParameterSet getParameterSet() {
-		return moduleParameters;
+	    }
+
 	}
+	return mzPeaks.toArray(new DataPoint[0]);
+    }
+
+    @Override
+    public String getName() {
+	return "Local maxima";
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return LocalMaxMassDetectorParameters.class;
+    }
 
 }

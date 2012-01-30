@@ -24,15 +24,15 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.RawDataFileUtils;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * 3D visualizer parameter set
@@ -45,14 +45,14 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
 	public static final RangeParameter retentionTimeRange = new RangeParameter(
 			"Retention time", "Retention time (X axis) range",
-			MZmineCore.getRTFormat());
+			MZmineCore.getConfiguration().getRTFormat());
 
 	public static final IntegerParameter rtResolution = new IntegerParameter(
 			"Retention time resolution",
 			"Number of data points on retention time axis", 500);
 
 	public static final RangeParameter mzRange = new RangeParameter(
-			"m/z range", "m/z (Y axis) range", MZmineCore.getMZFormat());
+			"m/z range", "m/z (Y axis) range", MZmineCore.getConfiguration().getMZFormat());
 
 	public static final IntegerParameter mzResolution = new IntegerParameter(
 			"m/z resolution", "Number of data points on m/z axis", 500);

@@ -25,86 +25,83 @@ import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class ManualPeakPickerModule implements MZmineModule {
 
+    /**
+     * @see net.sf.mzmine.modules.MZmineProcessingModule#getName()
+     */
+    public String getName() {
+	return "Manual peak detector";
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return "Manual peak detector";
+    public static void runManualDetection(RawDataFile dataFile,
+	    PeakListRow peakListRow) {
+	runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
+    }
+
+    public static void runManualDetection(RawDataFile dataFiles[],
+	    PeakListRow peakListRow) {
+
+	Range mzRange = null, rtRange = null;
+
+	// Check the peaks for selected data files
+	for (RawDataFile dataFile : dataFiles) {
+	    ChromatographicPeak peak = peakListRow.getPeak(dataFile);
+	    if (peak == null)
+		continue;
+	    if ((mzRange == null) || (rtRange == null)) {
+		mzRange = new Range(peak.getRawDataPointsMZRange());
+		rtRange = new Range(peak.getRawDataPointsRTRange());
+	    } else {
+		mzRange.extendRange(peak.getRawDataPointsMZRange());
+		rtRange.extendRange(peak.getRawDataPointsRTRange());
+	    }
+
 	}
 
-	public static void runManualDetection(RawDataFile dataFile,
-			PeakListRow peakListRow) {
-		runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
-	}
-
-	public static void runManualDetection(RawDataFile dataFiles[],
-			PeakListRow peakListRow) {
-
-		Range mzRange = null, rtRange = null;
-
-		// Check the peaks for selected data files
-		for (RawDataFile dataFile : dataFiles) {
-			ChromatographicPeak peak = peakListRow.getPeak(dataFile);
-			if (peak == null)
-				continue;
-			if ((mzRange == null) || (rtRange == null)) {
-				mzRange = new Range(peak.getRawDataPointsMZRange());
-				rtRange = new Range(peak.getRawDataPointsRTRange());
-			} else {
-				mzRange.extendRange(peak.getRawDataPointsMZRange());
-				rtRange.extendRange(peak.getRawDataPointsRTRange());
-			}
-
+	// If none of the data files had a peak, check the whole row
+	if (mzRange == null) {
+	    for (ChromatographicPeak peak : peakListRow.getPeaks()) {
+		if (peak == null)
+		    continue;
+		if ((mzRange == null) || (rtRange == null)) {
+		    mzRange = new Range(peak.getRawDataPointsMZRange());
+		    rtRange = new Range(peak.getRawDataPointsRTRange());
+		} else {
+		    mzRange.extendRange(peak.getRawDataPointsMZRange());
+		    rtRange.extendRange(peak.getRawDataPointsRTRange());
 		}
 
-		// If none of the data files had a peak, check the whole row
-		if (mzRange == null) {
-			for (ChromatographicPeak peak : peakListRow.getPeaks()) {
-				if (peak == null)
-					continue;
-				if ((mzRange == null) || (rtRange == null)) {
-					mzRange = new Range(peak.getRawDataPointsMZRange());
-					rtRange = new Range(peak.getRawDataPointsRTRange());
-				} else {
-					mzRange.extendRange(peak.getRawDataPointsMZRange());
-					rtRange.extendRange(peak.getRawDataPointsRTRange());
-				}
-
-			}
-		}
-
-		ManualPickerParameters parameters = new ManualPickerParameters();
-
-		if (mzRange != null) {
-			parameters.getParameter(ManualPickerParameters.retentionTimeRange)
-					.setValue(rtRange);
-			parameters.getParameter(ManualPickerParameters.mzRange).setValue(
-					mzRange);
-		}
-
-		ExitCode exitCode = parameters.showSetupDialog();
-
-		if (exitCode != ExitCode.OK)
-			return;
-
-		ManualPickerTask task = new ManualPickerTask(peakListRow, dataFiles,
-				parameters);
-
-		MZmineCore.getTaskController().addTask(task);
-
+	    }
 	}
 
-	public ParameterSet getParameterSet() {
-		return null;
+	ManualPickerParameters parameters = new ManualPickerParameters();
+
+	if (mzRange != null) {
+	    parameters.getParameter(ManualPickerParameters.retentionTimeRange)
+		    .setValue(rtRange);
+	    parameters.getParameter(ManualPickerParameters.mzRange).setValue(
+		    mzRange);
 	}
 
-	public void setParameters(ParameterSet parameterValues) {
-	}
+	ExitCode exitCode = parameters.showSetupDialog();
+
+	if (exitCode != ExitCode.OK)
+	    return;
+
+	ManualPickerTask task = new ManualPickerTask(peakListRow, dataFiles,
+		parameters);
+
+	MZmineCore.getTaskController().addTask(task);
+
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ManualPickerParameters.class;
+    }
 
 }

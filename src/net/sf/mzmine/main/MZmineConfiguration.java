@@ -17,44 +17,37 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.batchmode;
+package net.sf.mzmine.main;
 
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import java.io.File;
+import java.io.IOException;
+import java.text.NumberFormat;
+
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
+import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
- * 
+ * MZmine configuration interface
  */
-class BatchStepWrapper {
-
-    private MZmineProcessingModule method;
-    private ParameterSet parameters;
-
-    /**
-     * @param method
-     * @param parameters
-     */
-    BatchStepWrapper(MZmineProcessingModule method, ParameterSet parameters) {
-        this.method = method;
-        this.parameters = parameters;
-    }
-
-    /**
-     * @return Returns the method.
-     */
-    MZmineProcessingModule getMethod() {
-        return method;
-    }
-
-    /**
-     * @return Returns the parameters.
-     */
-    ParameterSet getParameters() {
-        return parameters;
-    }
+public interface MZmineConfiguration {
     
-    public String toString() {
-        return method.toString();
-    }
+    public static final File CONFIG_FILE = new File("conf/config.xml");
+
+    public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
+
+    public void setModuleParameters(Class<? extends MZmineModule> module, ParameterSet parameters);
+
+    public MZminePreferences getPreferences();
+
+    public NumberFormat getMZFormat();
+    
+    public NumberFormat getRTFormat();
+    
+    public NumberFormat getIntensityFormat();
+    
+    public void loadConfiguration(File file) throws IOException;
+
+    public void saveConfiguration(File file) throws IOException;
 
 }

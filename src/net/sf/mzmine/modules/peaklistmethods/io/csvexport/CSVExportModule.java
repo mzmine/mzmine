@@ -19,46 +19,49 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class CSVExportModule implements MZmineProcessingModule {
 
+    private static final String MODULE_NAME = "Export to CSV file";
+    private static final String MODULE_DESCRIPTION = "This method exports the peak list contents into a CSV (comma-separated values) file.";
 
-	private static final String MODULE_NAME = "Export to CSV file";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	private CSVExportParameters parameters= new CSVExportParameters();
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	CSVExportTask task = new CSVExportTask(parameters);
+	tasks.add(task);
+	return ExitCode.OK;
 
+    }
 
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTEXPORT;
-	}
-
-	public Task[] runModule(
-			ParameterSet parameters) {
-
-		CSVExportTask task = new CSVExportTask(parameters);
-
-		// start this group
-		MZmineCore.getTaskController().addTask(task);
-
-		return new Task[] { task };
-
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return CSVExportParameters.class;
+    }
 
 }

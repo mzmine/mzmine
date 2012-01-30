@@ -26,7 +26,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -61,7 +61,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     public static final DoubleParameter SPECTRUM_RT_WIDTH = new DoubleParameter(
             "Spectrum RT tolerance",
             "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak.",
-            MZmineCore.getRTFormat(),
+            MZmineCore.getConfiguration().getRTFormat(),
             0.05,
             0.0,
             null);

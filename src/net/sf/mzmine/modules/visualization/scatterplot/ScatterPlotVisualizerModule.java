@@ -19,76 +19,82 @@
 
 package net.sf.mzmine.modules.visualization.scatterplot;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ScatterPlotVisualizerModule implements MZmineProcessingModule {
 
-	private ScatterPlotParameters parameters = new ScatterPlotParameters();
+    private static final String MODULE_NAME = "Scatter plot";
+    private static final String MODULE_DESCRIPTION = "Scatter plot."; // TODO
 
-	public static void showNewScatterPlotWindow(PeakList peakList) {
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-		if (peakList.getNumberOfRawDataFiles() < 2) {
-			MZmineCore
-					.getDesktop()
-					.displayErrorMessage(
-							"There is only one raw data file in the selected "
-									+ "peak list, it is necessary at least two for comparison");
-			return;
-		}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-		ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
 
-		MZmineCore.getDesktop().addInternalFrame(newWindow);
+	PeakList peakLists[] = parameters.getParameter(
+		ScatterPlotParameters.peakLists).getValue();
 
+	PeakList peakList = peakLists[0];
+	if (peakList.getNumberOfRawDataFiles() < 2) {
+	    MZmineCore
+		    .getDesktop()
+		    .displayErrorMessage(
+			    "There is only one raw data file in the selected "
+				    + "peak list, it is necessary at least two for comparison");
+	    return ExitCode.ERROR;
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "Scatter plot";
+	ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
+	MZmineCore.getDesktop().addInternalFrame(newWindow);
+
+	return ExitCode.OK;
+    }
+
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ScatterPlotParameters.class;
+    }
+
+    public static void showNewScatterPlotWindow(PeakList peakList) {
+
+	if (peakList.getNumberOfRawDataFiles() < 2) {
+	    MZmineCore
+		    .getDesktop()
+		    .displayErrorMessage(
+			    "There is only one raw data file in the selected "
+				    + "peak list, it is necessary at least two for comparison");
+	    return;
 	}
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
+	MZmineCore.getDesktop().addInternalFrame(newWindow);
 
-		PeakList peakLists[] = parameters.getParameter(
-				ScatterPlotParameters.peakLists).getValue();
-		
-		if ((peakLists == null) || (peakLists.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select a peak list");
-			return null;
-		}
-
-		PeakList peakList = peakLists[0];
-		if (peakList.getNumberOfRawDataFiles() < 2) {
-			MZmineCore
-					.getDesktop()
-					.displayErrorMessage(
-							"There is only one raw data file in the selected "
-									+ "peak list, it is necessary at least two for comparison");
-			return null;
-		}
-
-		ScatterPlotWindow newWindow = new ScatterPlotWindow(peakList);
-		MZmineCore.getDesktop().addInternalFrame(newWindow);
-
-		return null;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
-	}
+    }
 
 }

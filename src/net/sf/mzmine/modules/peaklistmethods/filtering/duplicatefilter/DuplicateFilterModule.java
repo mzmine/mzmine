@@ -19,12 +19,16 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.duplicatefilter;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * Duplicate peak filter
@@ -40,40 +44,43 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 public class DuplicateFilterModule implements MZmineProcessingModule {
 
-	private DuplicateFilterParameters parameters = new DuplicateFilterParameters();
+    private static final String MODULE_NAME = "Duplicate peak filter";
+    private static final String MODULE_DESCRIPTION = "This method removes duplicate peaks (peaks with same retention times and m/z) from the peak list.";
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return "Duplicate peak filter";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList[] peakLists = parameters.getParameter(
+		DuplicateFilterParameters.peakLists).getValue();
+
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new DuplicateFilterTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
 
-	public Task[] runModule(ParameterSet parameters) {
+    }
 
-		PeakList[] peakLists = parameters.getParameter(
-				DuplicateFilterParameters.peakLists).getValue();
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new DuplicateFilterTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new DuplicateFilterTask(peakLists[i], parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTFILTERING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return DuplicateFilterParameters.class;
+    }
 }

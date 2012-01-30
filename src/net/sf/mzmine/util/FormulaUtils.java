@@ -30,97 +30,97 @@ import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
-	public static final double electronMass = 0.0005485799;
+    public static final double electronMass = 0.0005485799;
 
-	/**
-	 * Calculates exact monoisotopic mass of a given formula
-	 */
-	public static double calculateExactMass(String formula) {
+    /**
+     * Calculates exact monoisotopic mass of a given formula
+     */
+    public static double calculateExactMass(String formula) {
 
-		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
-		IMolecularFormula formulaObject = MolecularFormulaManipulator
-				.getMolecularFormula(formula, builder);
+	IMolecularFormula formulaObject = MolecularFormulaManipulator
+		.getMolecularFormula(formula, builder);
 
-		return calculateExactMass(formulaObject);
+	return calculateExactMass(formulaObject);
 
-	}
+    }
 
-	/**
-	 * Calculates exact monoisotopic mass of a given formula
-	 */
-	public static double calculateExactMass(IMolecularFormula formula) {
+    /**
+     * Calculates exact monoisotopic mass of a given formula
+     */
+    public static double calculateExactMass(IMolecularFormula formula) {
 
-		// getTotalExactMass returns the mass according to charge (addition or
-		// removal or electron mass)
-		double mass = MolecularFormulaManipulator.getTotalExactMass(formula);
+	// getTotalExactMass returns the mass according to charge (addition or
+	// removal or electron mass)
+	double mass = MolecularFormulaManipulator.getTotalExactMass(formula);
 
-		return mass;
+	return mass;
 
-	}
+    }
 
-	/**
-	 * Modifies the formula according to the ionization type
-	 */
-	public static IMolecularFormula ionizeFormula(
-			IMolecularFormula formulaObject, IonizationType ionType, int charge) {
+    /**
+     * Modifies the formula according to the ionization type
+     */
+    public static IMolecularFormula ionizeFormula(
+	    IMolecularFormula formulaObject, IonizationType ionType, int charge) {
 
-		// No ionization must be treated special
-		if (ionType == IonizationType.NO_IONIZATION)
-			return formulaObject;
+	// No ionization must be treated special
+	if (ionType == IonizationType.NO_IONIZATION)
+	    return formulaObject;
 
-		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
-		IMolecularFormula newFormulaObject = new MolecularFormula();
+	IMolecularFormula newFormulaObject = new MolecularFormula();
 
-		IMolecularFormula adductObject = MolecularFormulaManipulator
-				.getMolecularFormula(ionType.getAdduct(), builder);
+	IMolecularFormula adductObject = MolecularFormulaManipulator
+		.getMolecularFormula(ionType.getAdduct(), builder);
 
-		int sign = 1;
-		if (ionType.toString().startsWith("-"))
-			sign = -1;
+	int sign = 1;
+	if (ionType.toString().startsWith("-"))
+	    sign = -1;
 
-		for (IIsotope formulaIsotope : formulaObject.isotopes()) {
-			int count = formulaObject.getIsotopeCount(formulaIsotope);
-			for (IIsotope adductIsotope : adductObject.isotopes()) {
-				if (formulaIsotope.getSymbol()
-						.equals(adductIsotope.getSymbol())) {
-					int adductCount = adductObject
-							.getIsotopeCount(adductIsotope);
-					count += sign * adductCount * charge;
-				}
-			}
-			if (count > 0)
-				newFormulaObject.addIsotope(formulaIsotope, count);
+	for (IIsotope formulaIsotope : formulaObject.isotopes()) {
+	    int count = formulaObject.getIsotopeCount(formulaIsotope);
+	    for (IIsotope adductIsotope : adductObject.isotopes()) {
+		if (formulaIsotope.getSymbol()
+			.equals(adductIsotope.getSymbol())) {
+		    int adductCount = adductObject
+			    .getIsotopeCount(adductIsotope);
+		    count += sign * adductCount * charge;
 		}
-
-		return newFormulaObject;
-
+	    }
+	    if (count > 0)
+		newFormulaObject.addIsotope(formulaIsotope, count);
 	}
 
-	/**
-	 * Modifies the formula according to the ionization type
-	 */
-	public static String ionizeFormula(String formula, IonizationType ionType,
-			int charge) {
+	return newFormulaObject;
 
-		// No ionization must be treated special
-		if (ionType == IonizationType.NO_IONIZATION)
-			return formula;
+    }
 
-		IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+    /**
+     * Modifies the formula according to the ionization type
+     */
+    public static String ionizeFormula(String formula, IonizationType ionType,
+	    int charge) {
 
-		IMolecularFormula formulaObject = MolecularFormulaManipulator
-				.getMolecularFormula(formula, builder);
+	// No ionization must be treated special
+	if (ionType == IonizationType.NO_IONIZATION)
+	    return formula;
 
-		IMolecularFormula adjustedFormulaObject = ionizeFormula(formulaObject,
-				ionType, charge);
+	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
 
-		String newFormula = MolecularFormulaManipulator
-				.getString(adjustedFormulaObject);
+	IMolecularFormula formulaObject = MolecularFormulaManipulator
+		.getMolecularFormula(formula, builder);
 
-		return newFormula;
+	IMolecularFormula adjustedFormulaObject = ionizeFormula(formulaObject,
+		ionType, charge);
 
-	}
+	String newFormula = MolecularFormulaManipulator
+		.getString(adjustedFormulaObject);
+
+	return newFormula;
+
+    }
 
 }

@@ -128,7 +128,7 @@ class TICItemLabelGenerator implements XYItemLabelGenerator {
 
 		// Prepare the label
 		double mz = ticDataSet.getZ(0, item).doubleValue();
-		String label = MZmineCore.getMZFormat().format(mz);
+		String label = MZmineCore.getConfiguration().getMZFormat().format(mz);
 
 		return label;
 

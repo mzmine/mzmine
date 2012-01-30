@@ -42,7 +42,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class InterpolatingLookupPaintScaleSetupDialog extends JDialog implements
 		ActionListener, ListSelectionListener {

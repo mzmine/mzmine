@@ -61,7 +61,7 @@ public class ProteinSection {
 		return multiplicity;
 	}
 	
-	public String toString(){
+	public String getName(){
 		return this.startRegion + " - "+ this.stopRegion;
 	}
 	

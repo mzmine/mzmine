@@ -27,30 +27,30 @@ public class AlignmentSorterFactory {
 
                 name {
 
-                        public String getName() {
+                        public String toString() {
                                 return "name";
                         }
                 },
                 peaks {
 
-                        public String getName() {
+                        public String toString() {
                                 return "number of peaks";
                         }
                 },
                 rt {
 
-                        public String getName() {
+                        public String toString() {
                                 return "RT";
                         }
                 },               
                 none {
 
-                        public String getName() {
+                        public String toString() {
                                 return "nothing";
                         }
                 };
 
-                public abstract String getName();
+                public abstract String toString();
         }
 
         public static Comparator<PeakListRow> getComparator(final SORT_MODE mode) {

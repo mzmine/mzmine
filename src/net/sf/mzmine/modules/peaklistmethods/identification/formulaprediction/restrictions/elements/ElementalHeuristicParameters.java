@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 
 public class ElementalHeuristicParameters extends SimpleParameterSet {

@@ -19,45 +19,55 @@
 
 package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ShoulderPeaksFilterModule implements MZmineProcessingModule {
 
-	private ParameterSet moduleParameters = new ShoulderPeaksFilterParameters();
+    private static final String MODULE_NAME = "FTMS shoulder peaks filter";
+    private static final String MODULE_DESCRIPTION = "This method filters mass lists and removes residual signals known as 'shoulder peaks' and commonly observed in FTMS data.";
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return moduleParameters;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		ShoulderPeaksFilterParameters.dataFiles).getValue();
+	for (RawDataFile dataFile : dataFiles) {
+	    Task newTask = new ShoulderPeaksFilterTask(dataFile,
+		    parameters.clone());
+	    tasks.add(newTask);
 	}
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
+	return ExitCode.OK;
+    }
 
-		RawDataFile[] dataFiles = parameters.getParameter(
-				ShoulderPeaksFilterParameters.dataFiles).getValue();
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new ShoulderPeaksFilterTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ShoulderPeaksFilterTask(dataFiles[i], parameters.clone());
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public String toString() {
-		return "FTMS shoulder peaks filter";
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ShoulderPeaksFilterParameters.class;
+    }
 }

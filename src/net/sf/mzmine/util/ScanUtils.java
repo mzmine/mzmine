@@ -51,8 +51,8 @@ public class ScanUtils {
      */
     public static String scanToString(Scan scan) {
 	StringBuffer buf = new StringBuffer();
-	Format rtFormat = MZmineCore.getRTFormat();
-	Format mzFormat = MZmineCore.getMZFormat();
+	Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
 	buf.append("#");
 	buf.append(scan.getScanNumber());
 	buf.append(" @");

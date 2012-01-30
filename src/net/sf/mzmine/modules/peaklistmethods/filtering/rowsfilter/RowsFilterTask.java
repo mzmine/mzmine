@@ -136,7 +136,7 @@ public class RowsFilterTask extends AbstractTask {
 
                 // Create new peak list.
                 final PeakList newPeakList = new SimplePeakList(
-                        peakList.toString() + ' ' + parameters.getParameter(SUFFIX).getValue(), peakList.getRawDataFiles());
+                        peakList.getName() + ' ' + parameters.getParameter(SUFFIX).getValue(), peakList.getRawDataFiles());
 
                 // Copy previous applied methods.
                 for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {

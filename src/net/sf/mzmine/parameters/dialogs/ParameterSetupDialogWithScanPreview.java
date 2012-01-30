@@ -84,12 +84,12 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	private void updateTitle(Scan currentScan) {
 
 		// Formats
-		NumberFormat rtFormat = MZmineCore.getRTFormat();
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
-		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+		NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+		NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
 		// Set window and plot titles
-		String title = "[" + previewDataFile.toString() + "] scan #"
+		String title = "[" + previewDataFile.getName() + "] scan #"
 				+ currentScan.getScanNumber();
 
 		String subTitle = "MS" + currentScan.getMSLevel() + ", RT "

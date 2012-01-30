@@ -39,7 +39,7 @@ public class ResultTableModel extends AbstractTableModel {
 
 	private Vector<ResultFormula> formulas = new Vector<ResultFormula>();
 
-	private final NumberFormat massFormat = MZmineCore.getMZFormat();
+	private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
 
 	ResultTableModel(double searchedMass) {
 		this.searchedMass = searchedMass;

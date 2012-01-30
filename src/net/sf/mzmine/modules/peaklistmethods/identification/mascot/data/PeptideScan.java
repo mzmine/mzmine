@@ -321,7 +321,7 @@ public class PeptideScan implements Scan {
 		return totalIonCurrent;
 	}
 
-	public String toString() {
+	public String getName() {
 		return ScanUtils.scanToString(this);
 	}
 

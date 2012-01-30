@@ -19,8 +19,13 @@
 
 package net.sf.mzmine.modules;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * Interface representing a data processing method which can be executed in a
@@ -28,17 +33,46 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 public interface MZmineProcessingModule extends MZmineModule {
 
-	/**
-	 * Runs this method on a given items, and calls another task listener after
-	 * task is complete and results have been processed.
-	 * 
-	 */
-	public Task[] runModule(ParameterSet parameters);
+    /**
+     * Returns a brief module description for quick tooltips in the GUI
+     * 
+     * @return Module description
+     */
+    @Nonnull
+    public String getDescription();
 
-	/**
-	 * Returns the category of the module (e.g. raw data processing, peak
-	 * picking etc.). Menu item will be created according to the category.
-	 */
-	public MZmineModuleCategory getModuleCategory();
+    /**
+     * Run this module with given parameters. The module may create new Tasks
+     * and add them to the 'tasks' collection. The module is not supposed to
+     * submit the tasks to the TaskController by itself.
+     * 
+     * @param parameters
+     *            ParameterSet to invoke this module with. The ParameterSet has
+     *            already been cloned for exclusive use by this module,
+     *            therefore the module does not need to clone it again. Upon
+     *            invocation of the runModule() method it is guaranteed that the
+     *            ParameterSet is of the proper class as returned by
+     *            getParameterSetClass(). Also, it is guaranteed that the
+     *            ParameterSet is checked by checkParameters(), therefore the
+     *            module does not need to perform these checks again.
+     * @param tasks
+     *            A collection where the module should add its newly created
+     *            Tasks, if it creates any.
+     * @return Exit code of the operation. ExitCode.OK means the module was
+     *         started properly, however it does not guarantee that the Tasks
+     *         will finish without error. ExitCode.ERROR means there was a
+     *         problem starting the module.
+     */
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks);
+
+    /**
+     * Returns the category of the module (e.g. raw data processing, peak
+     * picking etc.). A menu item for this module will be created according to
+     * the category.
+     */
+    @Nonnull
+    public MZmineModuleCategory getModuleCategory();
 
 }

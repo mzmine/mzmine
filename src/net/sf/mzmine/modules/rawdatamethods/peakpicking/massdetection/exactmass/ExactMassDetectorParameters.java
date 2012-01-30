@@ -21,17 +21,17 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class ExactMassDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
 			"Intensities less than this value are interpreted as noise.",
-			MZmineCore.getIntensityFormat());
+			MZmineCore.getConfiguration().getIntensityFormat());
 
 	public ExactMassDetectorParameters() {
 		super(new UserParameter[] { noiseLevel });

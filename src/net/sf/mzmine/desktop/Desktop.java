@@ -21,6 +21,7 @@ package net.sf.mzmine.desktop;
 
 import java.awt.Color;
 
+import javax.annotation.Nonnull;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.event.TreeModelListener;
@@ -28,6 +29,7 @@ import javax.swing.event.TreeModelListener;
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * This interface represents the application GUI
@@ -133,4 +135,7 @@ public interface Desktop extends MZmineModule {
     
     public void removeProjectTreeListener(TreeModelListener listener);
 
+    @Nonnull
+    public ExitCode exitMZmine();
+    
 }

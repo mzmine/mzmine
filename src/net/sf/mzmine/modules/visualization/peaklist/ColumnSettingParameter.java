@@ -27,67 +27,73 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/**
- * Simple Parameter implementation
- * 
- * 
- */
 public class ColumnSettingParameter<ValueType> extends
-		MultiChoiceParameter<ValueType> {
+	MultiChoiceParameter<ValueType> {
 
-	private int columnWidths[];
+    private int columnWidths[];
 
-	public ColumnSettingParameter(String name, String description,
-			ValueType choices[]) {
-		super(name, description, choices, choices);
-		columnWidths = new int[choices.length];
-		Arrays.fill(columnWidths, 100);
+    public ColumnSettingParameter(String name, String description,
+	    ValueType choices[]) {
+	super(name, description, choices, choices, 0);
+	columnWidths = new int[choices.length];
+	Arrays.fill(columnWidths, 100);
+    }
+
+    public int getColumnWidth(int index) {
+	return columnWidths[index];
+    }
+
+    public void setColumnWidth(int index, int width) {
+	columnWidths[index] = width;
+    }
+
+    @Override
+    public ColumnSettingParameter<ValueType> clone() {
+	ColumnSettingParameter<ValueType> copy = new ColumnSettingParameter<ValueType>(
+		getName(), getDescription(), getChoices());
+	copy.setValue(getValue());
+	copy.columnWidths = columnWidths.clone();
+	return copy;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	super.loadValueFromXML(xmlElement);
+
+	// If loading of the parameters caused all columns to be hidden, ignore
+	// the loaded value and set all to visible
+	ValueType newValues[] = getValue();
+	if (newValues.length == 0)
+	    setValue(getChoices());
+
+	NodeList items = xmlElement.getElementsByTagName("widths");
+	if (items.getLength() != 1)
+	    return;
+	String widthsString = items.item(0).getTextContent();
+	String widthsArray[] = widthsString.split(":");
+	if (widthsArray.length != getChoices().length)
+	    return;
+	int newColumnWidths[] = new int[widthsArray.length];
+	for (int i = 0; i < newColumnWidths.length; i++) {
+	    newColumnWidths[i] = Integer.parseInt(widthsArray[i]);
 	}
+	columnWidths = newColumnWidths;
+    }
 
-	public int getColumnWidth(int index) {
-		return columnWidths[index];
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	super.saveValueToXML(xmlElement);
+	Document parentDocument = xmlElement.getOwnerDocument();
+	Element widthsElement = parentDocument.createElement("widths");
+	StringBuilder widthsString = new StringBuilder();
+	for (int i = 0; i < columnWidths.length; i++) {
+	    widthsString.append(String.valueOf(columnWidths[i]));
+	    if (i < columnWidths.length - 1)
+		widthsString.append(":");
 	}
+	widthsElement.setTextContent(widthsString.toString());
+	xmlElement.appendChild(widthsElement);
 
-	public void setColumnWidth(int index, int width) {
-		columnWidths[index] = width;
-	}
-
-	@Override
-	public ColumnSettingParameter<ValueType> clone() {
-		ColumnSettingParameter<ValueType> copy = new ColumnSettingParameter<ValueType>(getName(), getDescription(), getChoices());
-		copy.setValue(getValue());
-		copy.columnWidths = columnWidths.clone();
-		return copy;
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		super.loadValueFromXML(xmlElement);
-		NodeList items = xmlElement.getElementsByTagName("widths");
-		if (items.getLength() != 1) return;
-		String widthsString = items.item(0).getTextContent();
-		String widthsArray[] = widthsString.split(":");
-		if (widthsArray.length != getChoices().length) return;
-		int newColumnWidths[] = new int[widthsArray.length];
-		for (int i = 0; i < newColumnWidths.length; i++) {
-			newColumnWidths[i] = Integer.parseInt(widthsArray[i]);
-		}
-		columnWidths = newColumnWidths;
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		super.saveValueToXML(xmlElement);
-		Document parentDocument = xmlElement.getOwnerDocument();
-		Element widthsElement = parentDocument.createElement("widths");
-		StringBuilder widthsString = new StringBuilder();
-		for (int i = 0; i < columnWidths.length; i++) {
-			widthsString.append(String.valueOf(columnWidths[i]));
-			if (i < columnWidths.length - 1) widthsString.append(":");
-		}
-		widthsElement.setTextContent(widthsString.toString());
-		xmlElement.appendChild(widthsElement);
-
-	}
+    }
 
 }

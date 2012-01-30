@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.simplekmea
 
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.VisualizationType;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 

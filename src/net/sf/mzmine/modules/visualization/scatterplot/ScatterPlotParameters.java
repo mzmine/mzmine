@@ -20,9 +20,9 @@
 package net.sf.mzmine.modules.visualization.scatterplot;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class ScatterPlotParameters extends SimpleParameterSet {
 

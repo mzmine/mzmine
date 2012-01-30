@@ -23,87 +23,73 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * NIST MS Search module.
- *
- * @author Chris Pudney, Syngenta Ltd
+ * 
  * @version $Revision: 2369 $
  */
 public class NistMsSearchModule implements MZmineProcessingModule {
 
-    // Module name.
     private static final String MODULE_NAME = "NIST MS Search";
+    private static final String MODULE_DESCRIPTION = "This method searches the spectra in the NIST library.";
 
-    // Parameters.
-    private final ParameterSet parameterSet = new NistMsSearchParameters();
-
-    // Instance variable.
-    private static NistMsSearchModule instance;
-
-    /**
-     * Create the module.
-     */
-    public NistMsSearchModule() {
-
-        instance = this;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
     }
 
     @Override
-    public ParameterSet getParameterSet() {
-
-        return parameterSet;
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
     }
 
     @Override
-    public Task[] runModule(final ParameterSet parameters) {
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
 
-        // Process each peak list.
-        final PeakList[] peakLists = parameters.getParameter(NistMsSearchParameters.PEAK_LISTS).getValue();
-        final Task[] tasks = new Task[peakLists.length];
-        int i = 0;
-        for (final PeakList peakList : peakLists) {
+	final PeakList[] peakLists = parameters.getParameter(
+		NistMsSearchParameters.PEAK_LISTS).getValue();
 
-            tasks[i++] = new NistMsSearchTask(peakList, parameters);
-        }
+	for (final PeakList peakList : peakLists) {
+	    Task newTask = new NistMsSearchTask(peakList, parameters);
+	    tasks.add(newTask);
+	}
 
-        // Queue and return tasks.
-        MZmineCore.getTaskController().addTasks(tasks);
-        return tasks;
+	return ExitCode.OK;
     }
 
     @Override
     public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.IDENTIFICATION;
+    }
 
-        return MZmineModuleCategory.IDENTIFICATION;
+    public static void singleRowSearch(final PeakList peakList,
+	    final PeakListRow row) {
+	final ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(NistMsSearchModule.class);
+	if (parameters.showSetupDialog() == ExitCode.OK) {
+	    Task newTask = new NistMsSearchTask(row, peakList,
+		    parameters.clone());
+	    MZmineCore.getTaskController().addTask(newTask);
+	}
     }
 
     @Override
-    public String toString() {
-
-        return MODULE_NAME;
-    }
-
-    public static MZmineModule getInstance() {
-
-        return instance;
-    }
-
-    public static void singleRowSearch(final PeakList peakList, final PeakListRow row) {
-
-        final ParameterSet parameters = getInstance().getParameterSet();
-        if (parameters.showSetupDialog() == ExitCode.OK) {
-
-            MZmineCore.getTaskController().addTask(new NistMsSearchTask(row, peakList, parameters));
-        }
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return NistMsSearchParameters.class;
     }
 }

@@ -142,8 +142,8 @@ public class SpectraPlot extends ChartPanel {
 		plot.setDomainCrosshairVisible(false);
 		plot.setRangeCrosshairVisible(false);
 
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
-		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+		NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
 		// set the X axis (retention time) properties
 		NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

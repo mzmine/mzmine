@@ -21,10 +21,10 @@
  * pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
  */
 
-package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
+package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 /**

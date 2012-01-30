@@ -175,16 +175,16 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         ((BaseColorControl) colorMap.getControl()).setTable(createColorTable());
 
         // Set retention time axis properties.
-        configureAxis(retentionTimeMap.getAxisScale(), "Retention Time", MZmineCore.getRTFormat());
+        configureAxis(retentionTimeMap.getAxisScale(), "Retention Time", MZmineCore.getConfiguration().getRTFormat());
 
         // Set m/z axis properties: we ignore m/z format because it ends up like 400.00000 anyway
-        configureAxis(mzMap.getAxisScale(), "m/z", MZmineCore.getMZFormat());
+        configureAxis(mzMap.getAxisScale(), "m/z", MZmineCore.getConfiguration().getMZFormat());
 
         // Set intensity axis properties.
-        configureAxis(intensityMap.getAxisScale(), "Intensity", MZmineCore.getIntensityFormat());
+        configureAxis(intensityMap.getAxisScale(), "Intensity", MZmineCore.getConfiguration().getIntensityFormat());
 
         // Set log axis properties.
-        configureAxis(logIntensityMap.getAxisScale(), "Intensity", MZmineCore.getIntensityFormat());
+        configureAxis(logIntensityMap.getAxisScale(), "Intensity", MZmineCore.getConfiguration().getIntensityFormat());
 
         // height is the same as intensity
         heightMap.getAxisScale().setVisible(false);
@@ -319,7 +319,7 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         final Data[] peakValues = new Data[peakCount];
 
         // Set the resolution (number of data points) on m/z axis.
-        final NumberFormat mzFormat = MZmineCore.getMZFormat();
+        final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
         for (int i = 0; i < peakCount; i++) {
 
             peaksDomainPoints[0][i] = (float) peaks[i].getRT();

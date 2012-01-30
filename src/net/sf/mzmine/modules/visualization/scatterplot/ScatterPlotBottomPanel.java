@@ -260,7 +260,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 				maxSearchField.setVisible(true);
 				labelRange.setVisible(true);
 				txtSearchField.setVisible(false);
-				NumberFormat mzFormatter = MZmineCore.getMZFormat();
+				NumberFormat mzFormatter = MZmineCore.getConfiguration().getMZFormat();
 				Range mzRange = peakList.getRowsMZRange();
 				DefaultFormatterFactory mzFormatFac = new DefaultFormatterFactory(
 						new NumberFormatter(mzFormatter));
@@ -275,7 +275,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 				maxSearchField.setVisible(true);
 				labelRange.setVisible(true);
 				txtSearchField.setVisible(false);
-				NumberFormat rtFormatter = MZmineCore.getRTFormat();
+				NumberFormat rtFormatter = MZmineCore.getConfiguration().getRTFormat();
 				Range rtRange = peakList.getRowsRTRange();
 				DefaultFormatterFactory rtFormatFac = new DefaultFormatterFactory(
 						new NumberFormatter(rtFormatter));

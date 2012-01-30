@@ -19,36 +19,36 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
-	
 public enum GPLipidType {
 
-	PC("Phosphatidylcholine", "PC", "C8H18NO6P"),
-	PE("Phosphatidylethanolamine", "PE", "C5H12NO6P"),
-	PI("Phosphatidylinositol", "PI", "C9H17O11P"),
-	PS("Phosphatidylserine", "PS", "C6H12NO8P");
+    PC("Phosphatidylcholine", "PC", "C8H18NO6P"), //
+    PE("Phosphatidylethanolamine", "PE", "C5H12NO6P"), //
+    PI("Phosphatidylinositol", "PI", "C9H17O11P"), //
+    PS("Phosphatidylserine", "PS", "C6H12NO8P");
 
-	private final String name, abbr, formula;
+    private final String name, abbr, formula;
 
-	GPLipidType(String name, String abbr, String formula) {
-		this.name = name;
-		this.abbr = abbr;
-		this.formula = formula;
-	}
+    GPLipidType(String name, String abbr, String formula) {
+	this.name = name;
+	this.abbr = abbr;
+	this.formula = formula;
+    }
 
-	public String getName() {
-		return name;
-	}
-	
-	public String getAbbr() {
-		return abbr;
-	}
+    public String getAbbr() {
+	return abbr;
+    }
 
-	public String getFormula() {
-		return formula;
-	}
+    public String getFormula() {
+	return formula;
+    }
 
-	public String toString() {
-		return this.name;
-	}
+    public String getName() {
+	return this.name;
+    }
+
+    @Override
+    public String toString() {
+	return this.name;
+    }
 
 }

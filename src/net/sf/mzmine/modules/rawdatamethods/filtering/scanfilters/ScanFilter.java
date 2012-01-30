@@ -21,12 +21,13 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 
 public interface ScanFilter extends MZmineModule {
 
-	/**
-	 * Returns a modified scan after being processed by the filter
-	 */
-	public Scan filterScan(Scan scan);
+    /**
+     * Returns a modified scan after being processed by the filter
+     */
+    public Scan filterScan(Scan scan, ParameterSet parameters);
 
 }

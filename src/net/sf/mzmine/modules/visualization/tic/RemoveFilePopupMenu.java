@@ -58,7 +58,7 @@ class RemoveFilePopupMenu extends JMenu implements MenuListener,
 
         menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
         for (RawDataFile file : files) {
-            JMenuItem newItem = new JMenuItem(file.toString());
+            JMenuItem newItem = new JMenuItem(file.getName());
             newItem.addActionListener(this);
             menuItemFiles.put(newItem, file);
             add(newItem);

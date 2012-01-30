@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
@@ -27,17 +29,19 @@ import net.sf.mzmine.parameters.ParameterSet;
 public interface MZmineModule {
 
     /**
-     * Returns module name 
+     * Returns module name
      * 
      * @return Module name
      */
-    public String toString();
-    
+    @Nonnull
+    public String getName();
+
     /**
-     * Returns module's current parameters and their values
-     * 
-     * @return Parameter values as ParameterSet or null if module has no parameters
+     * Returns module's parameter class. If the module has no parameters, it can
+     * return SimpleParameterSet class. The returned class must provide a public
+     * constructor without parameters.
      */
-    public ParameterSet getParameterSet();
- 
+    @Nonnull
+    public Class<? extends ParameterSet> getParameterSetClass();
+
 }

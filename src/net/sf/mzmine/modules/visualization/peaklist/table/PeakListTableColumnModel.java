@@ -77,9 +77,9 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		header.addMouseListener(this);
 
 		// prepare formatters
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
-		NumberFormat rtFormat = MZmineCore.getRTFormat();
-		NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+		NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+		NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
 		// prepare cell renderers
 		mzRenderer = new FormattedCellRenderer(mzFormat);
@@ -168,7 +168,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		for (int i = 0; i < peakList.getNumberOfRawDataFiles(); i++) {
 
 			RawDataFile dataFile = peakList.getRawDataFile(i);
-			ColumnGroup fileGroup = new ColumnGroup(dataFile.toString());
+			ColumnGroup fileGroup = new ColumnGroup(dataFile.getName());
 			header.addColumnGroup(fileGroup);
 
 			for (int j = 0; j < visibleDataFileColumns.length; j++) {

@@ -126,14 +126,14 @@ public class ScatterPlotChart extends ChartPanel implements
         // Set the domain log axis
         LogAxis logAxisDomain = new LogAxis();
         logAxisDomain.setMinorTickCount(1);
-        logAxisDomain.setNumberFormatOverride(MZmineCore.getIntensityFormat());
+        logAxisDomain.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
         logAxisDomain.setAutoRange(true);
         plot.setDomainAxis(logAxisDomain);
 
         // Set the range log axis
         LogAxis logAxisRange = new LogAxis();
         logAxisRange.setMinorTickCount(1);
-        logAxisRange.setNumberFormatOverride(MZmineCore.getIntensityFormat());
+        logAxisRange.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
         logAxisRange.setAutoRange(true);
         plot.setRangeAxis(logAxisRange);
 

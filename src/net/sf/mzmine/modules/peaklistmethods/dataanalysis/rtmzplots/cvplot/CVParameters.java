@@ -23,47 +23,47 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.PeakMeasurementType;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class CVParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter(
-			1, 1);
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+	    1, 1);
 
-	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-			"Data files", "Samples for CV analysis", new RawDataFile[0], null,
-			2);
+    public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+	    "Data files", "Samples for CV analysis", new RawDataFile[0], null,
+	    2);
 
-	public static final ComboParameter<PeakMeasurementType> measurementType = new ComboParameter<PeakMeasurementType>(
-			"Peak measurement type",
-			"Determines whether peak's area or height is used in computations.",
-			PeakMeasurementType.values());
+    public static final ComboParameter<PeakMeasurementType> measurementType = new ComboParameter<PeakMeasurementType>(
+	    "Peak measurement type",
+	    "Determines whether peak's area or height is used in computations.",
+	    PeakMeasurementType.values());
 
-	public CVParameters() {
-		super(new Parameter[] { peakLists, dataFiles, measurementType });
+    public CVParameters() {
+	super(new Parameter[] { peakLists, dataFiles, measurementType });
+    }
+
+    @Override
+    public ExitCode showSetupDialog() {
+
+	PeakList selectedPeakLists[] = getParameter(peakLists).getValue();
+
+	if (selectedPeakLists.length != 1) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "Please select a single peak list");
+	    return ExitCode.CANCEL;
 	}
 
-	@Override
-	public ExitCode showSetupDialog() {
+	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
 
-		PeakList selectedPeakLists[] = getParameter(peakLists).getValue();
+	getParameter(dataFiles).setChoices(plDataFiles);
 
-		if (selectedPeakLists.length != 1) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select a single peak list");
-			return ExitCode.CANCEL;
-		}
-
-		RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
-
-		getParameter(dataFiles).setChoices(plDataFiles);
-
-		return super.showSetupDialog();
-	}
+	return super.showSetupDialog();
+    }
 
 }

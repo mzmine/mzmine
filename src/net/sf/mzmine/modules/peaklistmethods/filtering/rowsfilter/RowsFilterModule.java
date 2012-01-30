@@ -19,53 +19,61 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
- * Implements a filter for alignment results. The filter removes rows that have fewer than a defined number of
- * peaks detected and other conditions.
+ * Implements a filter for alignment results. The filter removes rows that have
+ * fewer than a defined number of peaks detected and other conditions.
  */
 public class RowsFilterModule implements MZmineProcessingModule {
 
-    private final ParameterSet parameterSet = new RowsFilterParameters();
+    private static final String MODULE_NAME = "Peak list rows filter";
+    private static final String MODULE_DESCRIPTION = "This method removes certain entries for a peak list based on given restrictions.";
 
-    public String toString() {
-
-        return "Peak list rows filter";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
     }
 
     @Override
-    public ParameterSet getParameterSet() {
-
-        return parameterSet;
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
     }
 
     @Override
-    public Task[] runModule(final ParameterSet parameters) {
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
 
-        final PeakList[] peakLists = parameters.getParameter(RowsFilterParameters.PEAK_LISTS).getValue();
+	final PeakList[] peakLists = parameters.getParameter(
+		RowsFilterParameters.PEAK_LISTS).getValue();
 
-        // Prepare a new group of tasks.
-        final int peakListLen = peakLists.length;
-        final Task[] tasks = new RowsFilterTask[peakListLen];
-        for (int i = 0; i < peakListLen; i++) {
+	for (PeakList peakList : peakLists) {
 
-            tasks[i] = new RowsFilterTask(peakLists[i], parameters);
-        }
+	    Task newTask = new RowsFilterTask(peakList, parameters);
+	    tasks.add(newTask);
 
-        // Add tasks and return.
-        MZmineCore.getTaskController().addTasks(tasks);
-        return tasks;
+	}
+
+	return ExitCode.OK;
     }
 
     @Override
     public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTFILTERING;
+    }
 
-        return MZmineModuleCategory.PEAKLISTFILTERING;
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return RowsFilterParameters.class;
     }
 }

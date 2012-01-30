@@ -19,63 +19,57 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.msms;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class MsMsPeakPickerModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "MS/MS peaklist builder";
+    private static final String MODULE_NAME = "MS/MS peaklist builder";
+    private static final String MODULE_DESCRIPTION = "This module looks through the whole raw data for MS2 scans and makes a list of chromatographic peaks using the precursor mass.";
 
-	private MsMsPeakPickerParameters parameters = new MsMsPeakPickerParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		MsMsPeakPickerParameters.dataFiles).getValue();
+
+	for (RawDataFile dataFile : dataFiles) {
+	    Task newTask = new MsMsPeakPickingTask(dataFile, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+	return ExitCode.OK;
 
-		RawDataFile[] dataFiles = parameters.getParameter(
-				MsMsPeakPickerParameters.dataFiles).getValue();
+    }
 
-		// prepare a new task group
-		Task tasks[] = new MsMsPeakPickingTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new MsMsPeakPickingTask(dataFiles[i],
-					(MsMsPeakPickerParameters) parameters);
-		}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return MsMsPeakPickerParameters.class;
+    }
 
 }

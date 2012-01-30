@@ -19,206 +19,218 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
-import net.sf.mzmine.data.*;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.*;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import net.sf.mzmine.util.ExceptionUtils;
+import net.sf.mzmine.util.FormulaUtils;
+import net.sf.mzmine.util.PeakListRowSorter;
+import net.sf.mzmine.util.SortingDirection;
+import net.sf.mzmine.util.SortingProperty;
 
 public class PeakListIdentificationTask extends AbstractTask {
 
-	// Logger.
-	private static final Logger LOG = Logger
-			.getLogger(PeakListIdentificationTask.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+	    .getLogger(PeakListIdentificationTask.class.getName());
 
-	// Minimum abundance.
-	private static final double MIN_ABUNDANCE = 0.001;
+    // Minimum abundance.
+    private static final double MIN_ABUNDANCE = 0.001;
 
-	// Counters.
-	private int finishedItems;
-	private int numItems;
+    // Counters.
+    private int finishedItems;
+    private int numItems;
 
-	private final OnlineDatabase db;
-	private final MZTolerance mzTolerance;
-	private final int numOfResults;
-	private final PeakList peakList;
-	private final boolean isotopeFilter;
-	private final ParameterSet isotopeFilterParameters;
-	private final IonizationType ionType;
-	private DBGateway gateway;
-	private PeakListRow currentRow;
+    private final MZmineProcessingStep<OnlineDatabase> db;
+    private final MZTolerance mzTolerance;
+    private final int numOfResults;
+    private final PeakList peakList;
+    private final boolean isotopeFilter;
+    private final ParameterSet isotopeFilterParameters;
+    private final IonizationType ionType;
+    private DBGateway gateway;
+    private PeakListRow currentRow;
 
-	/**
-	 * Create the identification task.
-	 * 
-	 * @param parameters
-	 *            task parameters.
-	 * @param list
-	 *            peak list to operate on.
-	 */
-	PeakListIdentificationTask(final ParameterSet parameters,
-			final PeakList list) {
+    /**
+     * Create the identification task.
+     * 
+     * @param parameters
+     *            task parameters.
+     * @param list
+     *            peak list to operate on.
+     */
+    @SuppressWarnings("unchecked")
+    PeakListIdentificationTask(final ParameterSet parameters,
+	    final PeakList list) {
 
-		peakList = list;
-		numItems = 0;
-		finishedItems = 0;
-		gateway = null;
-		currentRow = null;
+	peakList = list;
+	numItems = 0;
+	finishedItems = 0;
+	gateway = null;
+	currentRow = null;
 
-		db = parameters
-				.getParameter(SingleRowIdentificationParameters.DATABASE)
-				.getValue();
-		mzTolerance = parameters.getParameter(
-				SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
-		numOfResults = parameters.getParameter(
-				SingleRowIdentificationParameters.MAX_RESULTS).getValue();
-		isotopeFilter = parameters.getParameter(
-				SingleRowIdentificationParameters.ISOTOPE_FILTER).getValue();
-		isotopeFilterParameters = parameters.getParameter(
-				SingleRowIdentificationParameters.ISOTOPE_FILTER)
-				.getEmbeddedParameters();
-		ionType = parameters.getParameter(
-				PeakListIdentificationParameters.ionizationType).getValue();
-	}
+	db = parameters
+		.getParameter(SingleRowIdentificationParameters.DATABASE)
+		.getValue();
+	mzTolerance = parameters.getParameter(
+		SingleRowIdentificationParameters.MZ_TOLERANCE).getValue();
+	numOfResults = parameters.getParameter(
+		SingleRowIdentificationParameters.MAX_RESULTS).getValue();
+	isotopeFilter = parameters.getParameter(
+		SingleRowIdentificationParameters.ISOTOPE_FILTER).getValue();
+	isotopeFilterParameters = parameters.getParameter(
+		SingleRowIdentificationParameters.ISOTOPE_FILTER)
+		.getEmbeddedParameters();
+	ionType = parameters.getParameter(
+		PeakListIdentificationParameters.ionizationType).getValue();
+    }
 
-	@Override
-	public double getFinishedPercentage() {
+    @Override
+    public double getFinishedPercentage() {
 
-		return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
-	}
+	return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
+    }
 
-	@Override
-	public Object[] getCreatedObjects() {
+    @Override
+    public Object[] getCreatedObjects() {
 
-		return null;
-	}
+	return null;
+    }
 
-	@Override
-	public String getTaskDescription() {
+    @Override
+    public String getTaskDescription() {
 
-		return "Identification of peaks in "
-				+ peakList
-				+ (currentRow == null ? " using " + db : " ("
-						+ MZmineCore.getMZFormat().format(
-								currentRow.getAverageMZ()) + " m/z) using "
-						+ db);
-	}
+	return "Identification of peaks in "
+		+ peakList
+		+ (currentRow == null ? " using " + db : " ("
+			+ MZmineCore.getConfiguration().getMZFormat()
+				.format(currentRow.getAverageMZ())
+			+ " m/z) using " + db);
+    }
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
+
+	if (!isCanceled()) {
+	    try {
+
+		setStatus(TaskStatus.PROCESSING);
+
+		// Create database gateway.
+		gateway = db.getModule().getGatewayClass().newInstance();
+
+		// Identify the peak list rows starting from the biggest peaks.
+		final PeakListRow[] rows = peakList.getRows();
+		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area,
+			SortingDirection.Descending));
+
+		// Initialize counters.
+		numItems = rows.length;
+
+		// Process rows.
+		for (finishedItems = 0; !isCanceled()
+			&& finishedItems < numItems; finishedItems++) {
+
+		    // Retrieve results for each row.
+		    retrieveIdentification(rows[finishedItems]);
+		}
 
 		if (!isCanceled()) {
-			try {
-
-				setStatus(TaskStatus.PROCESSING);
-
-				// Create database gateway.
-				gateway = db.getGatewayClass().newInstance();
-
-				// Identify the peak list rows starting from the biggest peaks.
-				final PeakListRow[] rows = peakList.getRows();
-				Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Area,
-						SortingDirection.Descending));
-
-				// Initialize counters.
-				numItems = rows.length;
-
-				// Process rows.
-				for (finishedItems = 0; !isCanceled()
-						&& finishedItems < numItems; finishedItems++) {
-
-					// Retrieve results for each row.
-					retrieveIdentification(rows[finishedItems]);
-				}
-
-				if (!isCanceled()) {
-					setStatus(TaskStatus.FINISHED);
-				}
-			} catch (Throwable t) {
-
-				final String msg = "Could not search " + db;
-				LOG.log(Level.WARNING, msg, t);
-				setStatus(TaskStatus.ERROR);
-				errorMessage = msg + ": " + ExceptionUtils.exceptionToString(t);
-			}
+		    setStatus(TaskStatus.FINISHED);
 		}
+	    } catch (Throwable t) {
+
+		final String msg = "Could not search " + db;
+		LOG.log(Level.WARNING, msg, t);
+		setStatus(TaskStatus.ERROR);
+		errorMessage = msg + ": " + ExceptionUtils.exceptionToString(t);
+	    }
+	}
+    }
+
+    /**
+     * Search the database for the peak's identity.
+     * 
+     * @param row
+     *            the peak list row.
+     * @throws IOException
+     *             if there are i/o problems.
+     */
+    private void retrieveIdentification(final PeakListRow row)
+	    throws IOException {
+
+	currentRow = row;
+
+	// Determine peak charge.
+	final ChromatographicPeak bestPeak = row.getBestPeak();
+	int charge = bestPeak.getCharge();
+	if (charge <= 0) {
+	    charge = 1;
 	}
 
-	/**
-	 * Search the database for the peak's identity.
-	 * 
-	 * @param row
-	 *            the peak list row.
-	 * @throws IOException
-	 *             if there are i/o problems.
-	 */
-	private void retrieveIdentification(final PeakListRow row)
-			throws IOException {
+	// Calculate mass value.
+	final double massValue = (row.getAverageMZ() - ionType.getAddedMass())
+		* (double) charge;
 
-		currentRow = row;
+	// Isotope pattern.
+	final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
 
-		// Determine peak charge.
-		final ChromatographicPeak bestPeak = row.getBestPeak();
-		int charge = bestPeak.getCharge();
-		if (charge <= 0) {
-			charge = 1;
-		}
+	// Process each one of the result ID's.
+	final String[] findCompounds = gateway.findCompounds(massValue,
+		mzTolerance, numOfResults, db.getParameterSet());
+	for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
 
-		// Calculate mass value.
-		final double massValue = (row.getAverageMZ() - ionType.getAddedMass())
-				* (double) charge;
+	    final DBCompound compound = gateway.getCompound(findCompounds[i],
+		    db.getParameterSet());
+	    final String formula = compound
+		    .getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
 
-		// Isotope pattern.
-		final IsotopePattern rowIsotopePattern = bestPeak.getIsotopePattern();
+	    // If required, check isotope score.
+	    if (isotopeFilter && rowIsotopePattern != null && formula != null) {
 
-		// Process each one of the result ID's.
-		final String[] findCompounds = gateway.findCompounds(massValue,
-				mzTolerance, numOfResults);
-		for (int i = 0; !isCanceled() && i < findCompounds.length; i++) {
+		// First modify the formula according to ionization.
+		final String adjustedFormula = FormulaUtils.ionizeFormula(
+			formula, ionType, charge);
 
-			final DBCompound compound = gateway.getCompound(findCompounds[i]);
-			final String formula = compound
-					.getPropertyValue(PeakIdentity.PROPERTY_FORMULA);
+		LOG.finest("Calculating isotope pattern for compound formula "
+			+ formula + " adjusted to " + adjustedFormula);
 
-			// If required, check isotope score.
-			if (isotopeFilter && rowIsotopePattern != null && formula != null) {
+		// Generate IsotopePattern for this compound
+		final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
+			.calculateIsotopePattern(adjustedFormula,
+				MIN_ABUNDANCE, charge, ionType.getPolarity());
 
-				// First modify the formula according to ionization.
-				final String adjustedFormula = FormulaUtils.ionizeFormula(
-						formula, ionType, charge);
+		// Check isotope pattern match
+		boolean check = IsotopePatternScoreCalculator.checkMatch(
+			rowIsotopePattern, compoundIsotopePattern,
+			isotopeFilterParameters);
 
-				LOG.finest("Calculating isotope pattern for compound formula "
-						+ formula + " adjusted to " + adjustedFormula);
+		if (!check)
+		    continue;
+	    }
 
-				// Generate IsotopePattern for this compound
-				final IsotopePattern compoundIsotopePattern = IsotopePatternCalculator
-						.calculateIsotopePattern(adjustedFormula,
-								MIN_ABUNDANCE, charge, ionType.getPolarity());
+	    // Add the retrieved identity to the peak list row
+	    row.addPeakIdentity(compound, false);
 
-				// Check isotope pattern match
-				boolean check = IsotopePatternScoreCalculator.checkMatch(
-						rowIsotopePattern, compoundIsotopePattern,
-						isotopeFilterParameters);
-
-				if (!check)
-					continue;
-			}
-
-			// Add the retrieved identity to the peak list row
-			row.addPeakIdentity(compound, false);
-
-			// Notify the GUI about the change in the project
-			MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
-			MZmineCore.getDesktop().getMainFrame().repaint();
-		}
+	    // Notify the GUI about the change in the project
+	    MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
+	    MZmineCore.getDesktop().getMainFrame().repaint();
 	}
+    }
 }

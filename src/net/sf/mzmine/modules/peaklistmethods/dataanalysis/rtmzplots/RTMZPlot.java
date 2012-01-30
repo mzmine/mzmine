@@ -105,8 +105,8 @@ public class RTMZPlot extends ChartPanel {
         plot.setDomainCrosshairStroke(crossHairStroke);
         plot.setRangeCrosshairStroke(crossHairStroke);
   
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
+        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
         // set the X axis (retention time) properties
         NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();

@@ -25,7 +25,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.re
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;

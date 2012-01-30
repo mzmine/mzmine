@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.normalization.rtnormalizer;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
@@ -39,17 +39,17 @@ public class RTNormalizerParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter MZTolerance = new DoubleParameter(
 			"m/z tolerance", "Maximum allowed m/z difference",
-			MZmineCore.getMZFormat());
+			MZmineCore.getConfiguration().getMZFormat());
 
 	public static final DoubleParameter RTTolerance = new DoubleParameter(
 			"Retention time tolerance",
 			"Maximum allowed retention time difference",
-			MZmineCore.getRTFormat());
+			MZmineCore.getConfiguration().getRTFormat());
 
 	public static final DoubleParameter minHeight = new DoubleParameter(
 			"Minimum standard intensity",
 			"Minimum height of a peak to be selected as normalization standard",
-			MZmineCore.getIntensityFormat());
+			MZmineCore.getConfiguration().getIntensityFormat());
 
 	public static final BooleanParameter autoRemove = new BooleanParameter(
 			"Remove original peak list",

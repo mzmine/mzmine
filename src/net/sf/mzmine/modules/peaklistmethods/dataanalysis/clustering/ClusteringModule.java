@@ -19,35 +19,48 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots.ProjectionPlotDataset;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ClusteringModule implements MZmineProcessingModule {
 
-	private ClusteringParameters parameters = new ClusteringParameters();
+    private static final String MODULE_NAME = "Clustering";
+    private static final String MODULE_DESCRIPTION = "This method provides a set of clustering algorithms.";
 
-	@Override
-	public String toString() {
-		return "Clustering algorithms";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public ClusteringParameters getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-		ProjectionPlotDataset dataset = new ClusteringTask(parameters);
-		MZmineCore.getTaskController().addTask(dataset);
-		return new Task[] { dataset };
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	ProjectionPlotDataset dataset = new ClusteringTask(parameters);
+	tasks.add(dataset);
+	return ExitCode.OK;
+    }
 
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.DATAANALYSIS;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.DATAANALYSIS;
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ClusteringParameters.class;
+    }
 }

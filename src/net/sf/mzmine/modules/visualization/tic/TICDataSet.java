@@ -200,7 +200,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     @Override
     public Comparable<String> getSeriesKey(final int series) {
 
-        return dataFile.toString();
+        return dataFile.getName();
     }
 
     @Override

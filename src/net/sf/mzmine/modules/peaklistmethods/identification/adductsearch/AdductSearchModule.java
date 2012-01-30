@@ -19,60 +19,55 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class AdductSearchModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Adduct search";
+    public static final String MODULE_NAME = "Adduct search";
+    private static final String MODULE_DESCRIPTION = "This method searches for adduct peaks that appear at the same retention time with other peak and have a defined mass difference.";
 
-	private AdductSearchParameters parameters = new AdductSearchParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(
+		AdductSearchParameters.peakLists).getValue();
+
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new AdductSearchTask(parameters, peakList);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#getModuleCategory()
-	 */
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.IDENTIFICATION;
-	}
+	return ExitCode.OK;
+    }
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data
-	 *      .RawDataFile[], net.sf.mzmine.data.PeakList[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.IDENTIFICATION;
+    }
 
-		PeakList peakLists[] = parameters.getParameter(
-				AdductSearchParameters.peakLists).getValue();
-
-		// prepare a new sequence of tasks
-		Task tasks[] = new AdductSearchTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new AdductSearchTask(parameters, peakLists[i]);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return AdductSearchParameters.class;
+    }
 }

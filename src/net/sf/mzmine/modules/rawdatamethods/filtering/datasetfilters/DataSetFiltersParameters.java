@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper.CropFilter;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;

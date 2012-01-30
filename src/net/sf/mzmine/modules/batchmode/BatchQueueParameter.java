@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.batchmode;
 
+import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
@@ -31,7 +32,8 @@ import java.util.Collection;
 /**
  * Batch queue parameter.
  */
-public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetupComponent>, Cloneable {
+public class BatchQueueParameter implements
+	UserParameter<BatchQueue, BatchSetupComponent>, Cloneable {
 
     private BatchQueue value;
 
@@ -39,97 +41,97 @@ public class BatchQueueParameter implements UserParameter<BatchQueue, BatchSetup
      * Create the parameter.
      */
     public BatchQueueParameter() {
-        value = null;
+	value = null;
     }
 
     @Override
     public String getName() {
-        return "Batch queue";
+	return "Batch queue";
     }
 
     @Override
     public String getDescription() {
-        return "Please add and configure individual batch steps";
+	return "Please add and configure individual batch steps";
     }
 
     @Override
     public BatchSetupComponent createEditingComponent() {
-        return new BatchSetupComponent();
+	return new BatchSetupComponent();
     }
 
     @Override
     public BatchQueue getValue() {
-        return value;
+	return value;
     }
 
     @Override
     public void setValue(final BatchQueue newValue) {
-        value = newValue;
+	value = newValue;
     }
 
     @Override
     public void setValueFromComponent(final BatchSetupComponent component) {
-        setValue(component.getValue());
+	setValue(component.getValue());
     }
 
     @Override
     public void setValueToComponent(final BatchSetupComponent component,
-                                    final BatchQueue newValue) {
-        component.setValue(newValue);
+	    final BatchQueue newValue) {
+	component.setValue(newValue);
     }
 
     @Override
     public BatchQueueParameter clone() {
-        final BatchQueueParameter copy = new BatchQueueParameter();
-        copy.setValue(value.clone());
-        return copy;
+	final BatchQueueParameter copy = new BatchQueueParameter();
+	copy.setValue(value.clone());
+	return copy;
     }
 
     @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
-        boolean allParamsOK = true;
-        if (value == null) {
+	boolean allParamsOK = true;
+	if (value == null) {
 
-            // Parameters not set.
-            errorMessages.add(getName() + " is not set");
-            allParamsOK = false;
+	    // Parameters not set.
+	    errorMessages.add(getName() + " is not set");
+	    allParamsOK = false;
 
-        } else {
+	} else {
 
-            // Check each step.
-            for (final BatchStepWrapper batchStep : value) {
+	    // Check each step.
+	    for (final MZmineProcessingStep batchStep : value) {
 
-                // Check step's parameters.
-                final ParameterSet params = batchStep.getParameters();
-                if (params != null) {
-                    for (final Parameter<?> parameter : params.getParameters()) {
+		// Check step's parameters.
+		final ParameterSet params = batchStep.getParameterSet();
+		if (params != null) {
+		    for (final Parameter<?> parameter : params.getParameters()) {
 
-                        // Ignore the raw data files and peak lists parameters
-                        if (!(parameter instanceof RawDataFilesParameter) &&
-                            !(parameter instanceof PeakListsParameter) &&
-                            !parameter.checkValue(errorMessages)) {
-                            allParamsOK = false;
-                        }
-                    }
-                }
-            }
-        }
+			// Ignore the raw data files and peak lists parameters
+			if (!(parameter instanceof RawDataFilesParameter)
+				&& !(parameter instanceof PeakListsParameter)
+				&& !parameter.checkValue(errorMessages)) {
+			    allParamsOK = false;
+			}
+		    }
+		}
+	    }
+	}
 
-        return allParamsOK;
+	return allParamsOK;
     }
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
 
-        value = BatchQueue.loadFromXml(xmlElement);
+	value = BatchQueue.loadFromXml(xmlElement);
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
 
-        if (value != null) {
-            value.saveToXml(xmlElement);
-        }
+	if (value != null) {
+	    value.saveToXml(xmlElement);
+	}
     }
 }

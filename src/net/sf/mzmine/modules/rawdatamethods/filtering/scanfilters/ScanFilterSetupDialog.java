@@ -26,6 +26,7 @@ import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 
 /**
@@ -35,44 +36,51 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  */
 public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-	private ScanFilter rawDataFilter;
+    private ParameterSet filterParameters;
+    private ScanFilter rawDataFilter;
 
-	/**
-	 * @param parameters
-	 * @param rawDataFilterTypeNumber
-	 */
-	public ScanFilterSetupDialog(ScanFilter rawDataFilter) {
+    /**
+     * @param parameters
+     * @param rawDataFilterTypeNumber
+     */
+    public ScanFilterSetupDialog(ParameterSet filterParameters,
+	    Class<? extends ScanFilter> filterClass) {
 
-		super(rawDataFilter.getParameterSet());
+	super(filterParameters);
+	this.filterParameters = filterParameters;
 
-		this.rawDataFilter = rawDataFilter;
+	try {
+	    this.rawDataFilter = filterClass.newInstance();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /**
+     * This function set all the information into the plot chart
+     * 
+     * @param scanNumber
+     */
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+
+	Scan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
+
+	ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
+	ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan",
+		previewScan);
+
+	spectrumPlot.removeAllDataSets();
+
+	spectrumPlot.addDataSet(spectraOriginalDataSet,
+		SpectraVisualizerWindow.scanColor, true);
+	spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
+
+	// if the scan is centroided, switch to centroid mode
+	if (previewScan.isCentroided()) {
+	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
+	} else {
+	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
 	}
 
-	/**
-	 * This function set all the information into the plot chart
-	 * 
-	 * @param scanNumber
-	 */
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
-
-		Scan newScan = rawDataFilter.filterScan(previewScan);
-
-		ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
-		ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan",
-				previewScan);
-
-		spectrumPlot.removeAllDataSets();
-
-		spectrumPlot.addDataSet(spectraOriginalDataSet,
-				SpectraVisualizerWindow.scanColor, true);
-		spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
-
-		// if the scan is centroided, switch to centroid mode
-		if (previewScan.isCentroided()) {
-			spectrumPlot.setPlotMode(PlotMode.CENTROID);
-		} else {
-			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-		}
-
-	}
+    }
 }

@@ -21,24 +21,18 @@ package net.sf.mzmine.util;
 
 public enum SearchDefinitionType {
 
-	NAME("Name"),
+    NAME("Name"), //
+    MASS("m/z"), //
+    RT("Retention time");
 
-	MASS("m/z"),
+    private String text;
 
-	RT("Retention time");
+    SearchDefinitionType(String text) {
+	this.text = text;
+    }
 
-	private String text;
-
-	SearchDefinitionType(String text) {
-		this.text = text;
-	}
-
-	public String getText() {
-		return text;
-	}
-
-	public String toString() {
-		return text;
-	}
+    public String toString() {
+	return text;
+    }
 
 }

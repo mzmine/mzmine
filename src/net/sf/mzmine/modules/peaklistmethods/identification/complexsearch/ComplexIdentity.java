@@ -32,9 +32,9 @@ public class ComplexIdentity extends SimplePeakIdentity {
 	public ComplexIdentity(PeakListRow complexRow, PeakListRow peak1,
 			PeakListRow peak2) {
 		super("Complex of "
-				+ MZmineCore.getMZFormat().format(peak1.getAverageMZ())
+				+ MZmineCore.getConfiguration().getMZFormat().format(peak1.getAverageMZ())
 				+ " and "
-				+ MZmineCore.getMZFormat().format(peak2.getAverageMZ())
+				+ MZmineCore.getConfiguration().getMZFormat().format(peak2.getAverageMZ())
 				+ " m/z");
 
 		this.complexRow = complexRow;

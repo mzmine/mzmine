@@ -16,7 +16,12 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
+
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -24,43 +29,44 @@ import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class TargetedPeakDetectionModule implements MZmineProcessingModule {
 
-        public static final String MODULE_NAME = "Targeted peak detection";
-        private TargetedPeakDetectionParameters parameters = new TargetedPeakDetectionParameters();
+    private static final String MODULE_NAME = "Targeted peak detection";
+    private static final String MODULE_DESCRIPTION = "Targeted peak detection"; // TODO
 
-        public String toString() {
-                return MODULE_NAME;
-        }
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-        /**
-         * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-         */
-        public ParameterSet getParameterSet() {
-                return parameters;
-        }
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-        /**
-         * @see
-         *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-         *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-         *      net.sf.mzmine.taskcontrol.Task[]Listener)
-         */
-        public Task[] runModule(ParameterSet parameters) {
-                // prepare a new group of tasks
-                RawDataFile[] files = MZmineCore.getDesktop().getSelectedDataFiles();
-                Task tasks[] = new TargetedPeakDetectionModuleTask[files.length];
-                for (int i = 0; i < files.length; i++) {
-                        tasks[i] = new TargetedPeakDetectionModuleTask(parameters, files[i]);
-                }
-                MZmineCore.getTaskController().addTasks(tasks);
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	RawDataFile[] dataFiles = MZmineCore.getDesktop()
+		.getSelectedDataFiles();
+	for (RawDataFile dataFile : dataFiles) {
+	    Task newTask = new TargetedPeakDetectionModuleTask(parameters,
+		    dataFile);
+	    tasks.add(newTask);
+	}
+	return ExitCode.OK;
+    }
 
-                return tasks;
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-        }
-
-        public MZmineModuleCategory getModuleCategory() {
-                return MZmineModuleCategory.PEAKPICKING;
-        }
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return TargetedPeakDetectionParameters.class;
+    }
 }

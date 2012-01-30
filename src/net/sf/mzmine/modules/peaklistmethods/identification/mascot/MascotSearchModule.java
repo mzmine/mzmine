@@ -19,75 +19,59 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  *
  */
 public class MascotSearchModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
+    private static final String MODULE_NAME = "Mascot MS/MS Ion Search (experimental)";
+    private static final String MODULE_DESCRIPTION = "Mascot MS/MS Ion Search (experimental)";
 
-    // private Logger logger = Logger.getLogger(this.getClass().getName());
-    
-    
-    private MascotSearchParameters parameters= new MascotSearchParameters();
-	
-    // private ParameterSet mascotParameters;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(
+		MascotParameters.peakLists).getValue();
+
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new MascotSearchTask(parameters, peakList);
+	    tasks.add(newTask);
 	}
 
+	return ExitCode.OK;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#getModuleCategory()
-	 */
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.IDENTIFICATION;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.IDENTIFICATION;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.batchmode.BatchStep#runModule(net.sf.mzmine.data.RawDataFile[],
-	 *      net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(
-			ParameterSet parameters) {
-		
-		PeakList peakLists[] = parameters.getParameter(MascotParameters.peakLists).getValue();
-		
-		if (peakLists == null) {
-			throw new IllegalArgumentException(
-					"Cannot run identification without a peak list");
-		}
-
-		// prepare a new sequence of tasks
-		Task tasks[] = new MascotSearchTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new MascotSearchTask(
-					(MascotParameters) parameters, peakLists[i]);
-		}
-
-		// execute the sequence
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return MascotSearchParameters.class;
+    }
 
 }

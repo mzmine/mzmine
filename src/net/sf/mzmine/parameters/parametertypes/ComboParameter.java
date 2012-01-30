@@ -51,14 +51,6 @@ public class ComboParameter<ValueType> implements
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	/**
 	 * @see net.sf.mzmine.data.Parameter#getDescription()
 	 */
 	@Override
@@ -141,7 +133,7 @@ public class ComboParameter<ValueType> implements
 	}
 
 	@Override
-	public String toString() {
+	public String getName() {
 		return name;
 	}
 

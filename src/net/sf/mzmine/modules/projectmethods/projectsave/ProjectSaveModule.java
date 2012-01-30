@@ -19,40 +19,48 @@
 
 package net.sf.mzmine.modules.projectmethods.projectsave;
 
-import java.io.File;
+import java.util.Collection;
 
-import net.sf.mzmine.main.MZmineCore;
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ProjectSaveModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Save project";
+    private static final String MODULE_NAME = "Save project";
+    private static final String MODULE_DESCRIPTION = "This module saves the current MZmine project.";
 
-	private ProjectSaveParameters parameters = new ProjectSaveParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
-		File selectedFile = parameters.getParameter(
-				ProjectSaveParameters.projectFile).getValue();
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-		ProjectSavingTask task = new ProjectSavingTask(selectedFile);
-		Task[] tasksArray = new Task[] { task };
-		MZmineCore.getTaskController().addTasks(tasksArray);
-		return tasksArray;
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	ProjectSavingTask newTask = new ProjectSavingTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PROJECTIO;
+    }
 
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PROJECTIO;
-	}
-
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ProjectSaveParameters.class;
+    }
 
 }

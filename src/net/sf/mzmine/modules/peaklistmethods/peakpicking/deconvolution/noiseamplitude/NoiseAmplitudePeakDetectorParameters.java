@@ -20,47 +20,41 @@
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
 
     public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
-            "Min peak height",
-            "Minimum acceptable height (intensity) for a chromatographic peak",
-            MZmineCore.getIntensityFormat());
+	    "Min peak height",
+	    "Minimum acceptable height (intensity) for a chromatographic peak",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
-            "Peak duration range",
-            "Range of acceptable peak lengths",
-            MZmineCore.getRTFormat(),
-            new Range(0.0, 10.0));
+	    "Peak duration range", "Range of acceptable peak lengths",
+	    MZmineCore.getConfiguration().getRTFormat(), new Range(0.0, 10.0));
 
     public static final DoubleParameter NOISE_AMPLITUDE = new DoubleParameter(
-            "Amplitude of noise",
-            "This value is the intensity amplitude of the signal in the noise region",
-            MZmineCore.getIntensityFormat());
+	    "Amplitude of noise",
+	    "This value is the intensity amplitude of the signal in the noise region",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
-    // Resolver.
-    private final PeakResolver peakResolver;
-
-    public NoiseAmplitudePeakDetectorParameters(final PeakResolver resolver) {
-
-        super(new Parameter[]{MIN_PEAK_HEIGHT, PEAK_DURATION, NOISE_AMPLITUDE});
-        peakResolver = resolver;
+    public NoiseAmplitudePeakDetectorParameters() {
+	super(
+		new Parameter[] { MIN_PEAK_HEIGHT, PEAK_DURATION,
+			NOISE_AMPLITUDE });
     }
 
     @Override
     public ExitCode showSetupDialog() {
-
-        final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(peakResolver);
-        dialog.setVisible(true);
-        return dialog.getExitCode();
+	final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
+		this, NoiseAmplitudePeakDetector.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
     }
 }

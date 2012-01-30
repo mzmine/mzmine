@@ -32,83 +32,81 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class MSMSExportModule implements MZmineModule {
 
-	private ParameterSet parameters = new MSMSExportParameters();
+    private static final String MODULE_NAME = "MS/MS pattern export";
 
-	private static MSMSExportModule myInstance;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public MSMSExportModule() {
-		myInstance = this;
+    public static void exportMSMS(PeakListRow row) {
+
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(MSMSExportModule.class);
+
+	ExitCode exitCode = parameters.showSetupDialog();
+	if (exitCode != ExitCode.OK)
+	    return;
+
+	File outputFile = parameters.getParameter(
+		MSMSExportParameters.outputFile).getValue();
+	String massListName = parameters.getParameter(
+		MSMSExportParameters.massList).getValue();
+
+	if ((outputFile == null) || (massListName == null))
+	    return;
+
+	// Best peak always exists, because peak list row has at least one peak
+	ChromatographicPeak bestPeak = row.getBestPeak();
+
+	// Get the MS/MS scan number
+	int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+	if (msmsScanNumber < 1) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "There is no MS/MS scan for peak " + bestPeak);
+	    return;
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
+	// MS/MS scan must exist, because msmsScanNumber was > 0
+	Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+
+	MassList massList = msmsScan.getMassList(massListName);
+	if (massList == null) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "There is no mass list called " + massListName
+			    + " for MS/MS scan #" + msmsScanNumber + " ("
+			    + bestPeak.getDataFile() + ")");
+	    return;
 	}
 
-	public static void exportMSMS(PeakListRow row) {
+	DataPoint peaks[] = massList.getDataPoints();
 
-		ParameterSet parameters = myInstance.getParameterSet();
+	try {
+	    FileWriter fileWriter = new FileWriter(outputFile);
+	    BufferedWriter writer = new BufferedWriter(fileWriter);
 
-		ExitCode exitCode = parameters.showSetupDialog();
-		if (exitCode != ExitCode.OK)
-			return;
+	    for (DataPoint peak : peaks) {
+		writer.write(peak.getMZ() + " " + peak.getIntensity());
+		writer.newLine();
+	    }
 
-		File outputFile = parameters.getParameter(
-				MSMSExportParameters.outputFile).getValue();
-		String massListName = parameters.getParameter(
-				MSMSExportParameters.massList).getValue();
+	    writer.close();
 
-		if ((outputFile == null) || (massListName == null))
-			return;
-
-		// Best peak always exists, because peak list row has at least one peak
-		ChromatographicPeak bestPeak = row.getBestPeak();
-
-		// Get the MS/MS scan number
-		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-		if (msmsScanNumber < 1) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"There is no MS/MS scan for peak " + bestPeak);
-			return;
-		}
-
-		// MS/MS scan must exist, because msmsScanNumber was > 0
-		Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
-
-		MassList massList = msmsScan.getMassList(massListName);
-		if (massList == null) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"There is no mass list called " + massListName
-							+ " for MS/MS scan #" + msmsScanNumber + " ("
-							+ bestPeak.getDataFile() + ")");
-			return;
-		}
-
-		DataPoint peaks[] = massList.getDataPoints();
-
-		try {
-			FileWriter fileWriter = new FileWriter(outputFile);
-			BufferedWriter writer = new BufferedWriter(fileWriter);
-
-			for (DataPoint peak : peaks) {
-				writer.write(peak.getMZ() + " " + peak.getIntensity());
-				writer.newLine();
-			}
-
-			writer.close();
-
-		} catch (Exception e) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Error writing to file " + outputFile + ": "
-							+ ExceptionUtils.exceptionToString(e));
-		}
-
+	} catch (Exception e) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "Error writing to file " + outputFile + ": "
+			    + ExceptionUtils.exceptionToString(e));
 	}
+
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return MSMSExportParameters.class;
+    }
 
 }

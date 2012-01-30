@@ -19,55 +19,56 @@
 
 package net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class SameRangeGapFillerModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Same RT and m/z range gap filler";
+    public static final String MODULE_NAME = "Same RT and m/z range gap filler";
+    private static final String MODULE_DESCRIPTION = "This method fills the missing peaks (gaps) in the peak list by looking at the whole m/z and retention time range of the peak list row and adding all raw data points in the same range.";
 
-	private SameRangeParameters parameters = new SameRangeParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList[] peakLists = parameters.getParameter(
+		SameRangeGapFillerParameters.peakLists).getValue();
+
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new SameRangeTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    }
 
-		PeakList[] peakLists = parameters.getParameter(
-				SameRangeParameters.peakLists).getValue();
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.GAPFILLING;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new SameRangeTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new SameRangeTask(peakLists[i], parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.GAPFILLING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return SameRangeGapFillerParameters.class;
+    }
 
 }

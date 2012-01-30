@@ -19,64 +19,62 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.deisotoper;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * This class implements a simple isotopic peaks grouper method based on
  * searching for neighbouring peaks from expected locations.
  * 
  */
-
 public class IsotopeGrouperModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Isotopic peaks grouper";
+    private static final String MODULE_NAME = "Isotopic peaks grouper";
+    private static final String MODULE_DESCRIPTION = "This module detects isotopic peaks and groups them together into isotope patterns.";
 
-	private IsotopeGrouperParameters parameters = new IsotopeGrouperParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(
+		IsotopeGrouperParameters.peakLists).getValue();
+
+	for (final PeakList peakList : peakLists) {
+	    Task newTask = new IsotopeGrouperTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    }
 
-		PeakList peakLists[] = parameters.getParameter(
-				IsotopeGrouperParameters.peakLists).getValue();
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.ISOTOPES;
+    }
 
-		// prepare a new group of tasks
-		Task tasks[] = new IsotopeGrouperTask[peakLists.length];
-		for (int i = 0; i < peakLists.length; i++) {
-			tasks[i] = new IsotopeGrouperTask(peakLists[i], parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.ISOTOPES;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return IsotopeGrouperParameters.class;
+    }
 
 }

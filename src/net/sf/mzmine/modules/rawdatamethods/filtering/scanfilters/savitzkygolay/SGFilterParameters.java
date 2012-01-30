@@ -19,32 +19,29 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay;
 
-import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
-import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class SGFilterParameters extends SimpleParameterSet {
 
-	private static final Integer options[] = new Integer[] { 5, 7, 9, 11, 13,
-			15 };
+    private static final Integer options[] = new Integer[] { 5, 7, 9, 11, 13,
+	    15 };
 
-	public static final ComboParameter<Integer> datapoints = new ComboParameter<Integer>(
-			"Number of datapoints", "Number of datapoints", options);
+    public static final ComboParameter<Integer> datapoints = new ComboParameter<Integer>(
+	    "Number of datapoints", "Number of datapoints", options);
 
-	private ScanFilter scanFilter;
-	
-	public SGFilterParameters(ScanFilter scanFilter) {
-		super(new UserParameter[] { datapoints });
-		this.scanFilter = scanFilter;
-	}
+    public SGFilterParameters() {
+	super(new Parameter[] { datapoints });
+    }
 
-	public ExitCode showSetupDialog() {
-		ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(scanFilter);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
-	
+    public ExitCode showSetupDialog() {
+	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(this,
+		SGFilter.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
+
 }

@@ -19,54 +19,57 @@
 
 package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ChromatogramBuilderModule implements MZmineProcessingModule {
 
-	private ChromatogramBuilderParameters parameters = new ChromatogramBuilderParameters();
+    private static final String MODULE_NAME = "Chromatogram builder";
+    private static final String MODULE_DESCRIPTION = "This module connects data points from mass lists and builds chromatograms.";
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return "Chromatogram builder";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		ChromatogramBuilderParameters.dataFiles).getValue();
+
+	for (int i = 0; i < dataFiles.length; i++) {
+	    Task newTask = new ChromatogramBuilderTask(dataFiles[i],
+		    parameters.clone());
+	    tasks.add(newTask);
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
+	return ExitCode.OK;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
-
-		RawDataFile[] dataFiles = parameters.getParameter(
-				ChromatogramBuilderParameters.dataFiles).getValue();
-
-		// prepare a new group of tasks
-		Task tasks[] = new ChromatogramBuilderTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ChromatogramBuilderTask(dataFiles[i],
-					parameters.clone());
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKPICKING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ChromatogramBuilderParameters.class;
+    }
 
 }

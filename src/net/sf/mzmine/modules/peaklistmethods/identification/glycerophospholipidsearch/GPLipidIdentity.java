@@ -24,49 +24,44 @@ import net.sf.mzmine.util.FormulaUtils;
 
 public class GPLipidIdentity extends SimplePeakIdentity {
 
-	private double mass;
-	
-	/**
-	 * @param originalPeakListRow
-	 * @param relatedPeakListRow
-	 * @param adduct
-	 */
-	public GPLipidIdentity(GPLipidType lipidType, int fattyAcid1Length,
-			int fattyAcid1DoubleBonds, int fattyAcid2Length,
-			int fattyAcid2DoubleBonds) {
+    private final double mass;
 
-		super (lipidType.getAbbr() + "(" + fattyAcid1Length + ":"
-				+ fattyAcid1DoubleBonds + "/" + fattyAcid2Length + ":"
-				+ fattyAcid2DoubleBonds + ")");
+    public GPLipidIdentity(GPLipidType lipidType, int fattyAcid1Length,
+	    int fattyAcid1DoubleBonds, int fattyAcid2Length,
+	    int fattyAcid2DoubleBonds) {
 
-		String fattyAcid1Formula = "H", fattyAcid2Formula = "H";
+	super(lipidType.getAbbr() + "(" + fattyAcid1Length + ":"
+		+ fattyAcid1DoubleBonds + "/" + fattyAcid2Length + ":"
+		+ fattyAcid2DoubleBonds + ")");
 
-		if (fattyAcid1Length > 0) {
-			int numberOfHydrogens = (fattyAcid1Length * 2)
-					- (fattyAcid1DoubleBonds * 2) - 1;
-			fattyAcid1Formula = "C" + fattyAcid1Length + "H"
-					+ numberOfHydrogens + "O";
-		}
+	String fattyAcid1Formula = "H", fattyAcid2Formula = "H";
 
-		if (fattyAcid2Length > 0) {
-			int numberOfHydrogens = (fattyAcid2Length * 2)
-					- (fattyAcid2DoubleBonds * 2) - 1;
-			fattyAcid2Formula = "C" + fattyAcid2Length + "H"
-					+ numberOfHydrogens + "O";
-		}
-
-		String formula = lipidType.getFormula() + fattyAcid1Formula
-				+ fattyAcid2Formula;
-
-		this.mass = FormulaUtils.calculateExactMass(formula);
-
-		setPropertyValue(PROPERTY_FORMULA, formula);
-		setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
-		
+	if (fattyAcid1Length > 0) {
+	    int numberOfHydrogens = (fattyAcid1Length * 2)
+		    - (fattyAcid1DoubleBonds * 2) - 1;
+	    fattyAcid1Formula = "C" + fattyAcid1Length + "H"
+		    + numberOfHydrogens + "O";
 	}
-	
-	double getMass() {
-		return mass;
+
+	if (fattyAcid2Length > 0) {
+	    int numberOfHydrogens = (fattyAcid2Length * 2)
+		    - (fattyAcid2DoubleBonds * 2) - 1;
+	    fattyAcid2Formula = "C" + fattyAcid2Length + "H"
+		    + numberOfHydrogens + "O";
 	}
+
+	String formula = lipidType.getFormula() + fattyAcid1Formula
+		+ fattyAcid2Formula;
+
+	this.mass = FormulaUtils.calculateExactMass(formula);
+
+	setPropertyValue(PROPERTY_FORMULA, formula);
+	setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
+
+    }
+
+    double getMass() {
+	return mass;
+    }
 
 }

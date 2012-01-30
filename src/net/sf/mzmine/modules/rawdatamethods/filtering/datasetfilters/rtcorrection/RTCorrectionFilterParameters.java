@@ -20,18 +20,18 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrecti
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class RTCorrectionFilterParameters extends SimpleParameterSet {
 
 	public static final RangeParameter mzRange = new RangeParameter(
 			"m/z range", "m/z boundary of the cropped region",
-			MZmineCore.getMZFormat());
+			MZmineCore.getConfiguration().getMZFormat());
 
 	public static final RangeParameter retentionTimeRange = new RangeParameter(
 			"Retention time", "retention time boundary of the cropped region",
-			MZmineCore.getRTFormat());
+			MZmineCore.getConfiguration().getRTFormat());
 
 	public RTCorrectionFilterParameters() {
 		super(new UserParameter[] { mzRange, retentionTimeRange });

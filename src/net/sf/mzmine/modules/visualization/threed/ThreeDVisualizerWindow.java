@@ -86,7 +86,7 @@ public class ThreeDVisualizerWindow extends JInternalFrame implements
                                   final Range rt, final int rtRes, final Range mz, final int mzRes)
             throws VisADException, RemoteException {
 
-        super(file.toString(), true, true, true, true);
+        super(file.getName(), true, true, true, true);
 
         // Configure.
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);

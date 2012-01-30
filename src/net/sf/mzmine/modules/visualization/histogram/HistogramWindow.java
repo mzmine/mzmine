@@ -44,7 +44,7 @@ public class HistogramWindow extends JInternalFrame {
         
         PeakList peakList = parameters.getParameter(HistogramParameters.peakList).getValue()[0];
         
-        this.setTitle("Histogram of " + peakList.toString());
+        this.setTitle("Histogram of " + peakList.getName());
 
         RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();
 

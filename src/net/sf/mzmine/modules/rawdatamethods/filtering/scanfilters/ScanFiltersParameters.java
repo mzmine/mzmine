@@ -24,7 +24,7 @@ import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean.MeanFilte
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample.ResampleFilter;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay.SGFilter;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;

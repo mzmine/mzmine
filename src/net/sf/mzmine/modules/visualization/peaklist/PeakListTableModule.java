@@ -26,25 +26,24 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class PeakListTableModule implements MZmineModule {
 
-	private ParameterSet parameters = new PeakListTableParameters();
+    private static final String MODULE_NAME = "Peak list table";
 
-	private static PeakListTableModule myInstance;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public PeakListTableModule() {
-		myInstance = this;
-	}
+    public static void showNewPeakListVisualizerWindow(PeakList peakList) {
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(PeakListTableModule.class);
+	PeakListTableWindow window = new PeakListTableWindow(peakList,
+		parameters);
+	MZmineCore.getDesktop().addInternalFrame(window);
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	public static void showNewPeakListVisualizerWindow(PeakList peakList) {
-		PeakListTableWindow window = new PeakListTableWindow(peakList,
-				myInstance.parameters);
-		MZmineCore.getDesktop().addInternalFrame(window);
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return PeakListTableParameters.class;
+    }
 
 }

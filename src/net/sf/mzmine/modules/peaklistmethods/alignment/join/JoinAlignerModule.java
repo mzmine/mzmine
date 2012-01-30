@@ -19,53 +19,49 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.join;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
-/**
- * 
- */
 public class JoinAlignerModule implements MZmineProcessingModule {
 
-	private JoinAlignerParameters parameters = new JoinAlignerParameters();
+    private static final String MODULE_NAME = "Join aligner";
+    private static final String MODULE_DESCRIPTION = "This method aligns detected peaks using a match score. This score is calculated based on the mass and retention time of each peak using preset tolerance.";
 
-	public String toString() {
-		return "Join aligner";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	Task newTask = new JoinAlignerTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
 
-		PeakList[] peakLists = parameters.getParameter(
-				JoinAlignerParameters.peakLists).getValue();
+    }
 
-		// prepare a new group with just one task
-		Task task = new JoinAlignerTask(peakLists, parameters);
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.ALIGNMENT;
+    }
 
-		MZmineCore.getTaskController().addTask(task);
-
-		return new Task[] { task };
-
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.ALIGNMENT;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return JoinAlignerParameters.class;
+    }
 
 }

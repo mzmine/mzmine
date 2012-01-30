@@ -19,33 +19,47 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.projectionplots;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class SammonsPlotModule implements MZmineProcessingModule {
 
-	private ProjectionPlotParameters parameters = new ProjectionPlotParameters();
+    private static final String MODULE_NAME = "Sammon's projection";
+    private static final String MODULE_DESCRIPTION = "Sammon's projection"; // TODO
 
-	public String toString() {
-		return "Sammon's projection";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public ProjectionPlotParameters getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-		ProjectionPlotDataset dataset = new SammonsDataset(parameters);
-		MZmineCore.getTaskController().addTask(dataset);
-		return new Task[] { dataset };
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	ProjectionPlotDataset dataset = new SammonsDataset(parameters);
+	tasks.add(dataset);
+	return ExitCode.OK;
+    }
 
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.DATAANALYSIS;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.DATAANALYSIS;
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ProjectionPlotParameters.class;
+    }
 }

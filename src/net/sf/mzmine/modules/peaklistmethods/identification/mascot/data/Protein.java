@@ -146,7 +146,7 @@ public class Protein {
 		this.description = description;
 	}
 
-	public String toString() {
+	public String getName() {
 		return ProteomeUtils.proteinToString(this);
 	}
 

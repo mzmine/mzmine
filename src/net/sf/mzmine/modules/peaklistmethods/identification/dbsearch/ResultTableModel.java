@@ -37,7 +37,7 @@ public class ResultTableModel extends AbstractTableModel {
 	private Vector<DBCompound> compounds = new Vector<DBCompound>();
 
 	final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-	final NumberFormat massFormat = MZmineCore.getMZFormat();
+	final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
 
 	ResultTableModel(double searchedMass) {
 		this.searchedMass = searchedMass;

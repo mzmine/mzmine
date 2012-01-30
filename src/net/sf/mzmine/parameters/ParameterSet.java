@@ -21,7 +21,7 @@ package net.sf.mzmine.parameters;
 
 import java.util.Collection;
 
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 import org.w3c.dom.Element;
 

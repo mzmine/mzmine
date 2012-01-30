@@ -259,11 +259,11 @@ public class ScoreAligner implements Aligner {
                 return curAlignment;
         }
 
-        public String getName() {
-                return toString();
+        public String toString() {
+                return getName();
         }
 
-        public String toString() {
+        public String getName() {
                 return calc == null ? name : calc.name();
         }
 
@@ -353,9 +353,6 @@ public class ScoreAligner implements Aligner {
                         return startIx;
                 }
 
-                public String toString() {
-                        return column + " , [" + startIx + "," + endIx + "]";
-                }
         }
 
         public boolean isConfigurable() {

@@ -33,104 +33,103 @@ import net.sf.mzmine.data.PeakListRow;
  * 
  */
 public class SearchDefinition {
-	
-	private SearchDefinitionType type;
-	private Pattern nameRegex;
-	private Range range;
 
-	/**
-	 * Creates a search definition by using a regular expression
-	 */
-	public SearchDefinition(SearchDefinitionType type, String regex)
-			throws PatternSyntaxException {
+    private SearchDefinitionType type;
+    private Pattern nameRegex;
+    private Range range;
 
-		assert type == SearchDefinitionType.NAME;
+    /**
+     * Creates a search definition by using a regular expression
+     */
+    public SearchDefinition(SearchDefinitionType type, String regex)
+	    throws PatternSyntaxException {
 
-		this.type = type;
-		this.nameRegex = Pattern.compile(regex);
-		
+	assert type == SearchDefinitionType.NAME;
 
+	this.type = type;
+	this.nameRegex = Pattern.compile(regex);
+
+    }
+
+    /**
+     * Creates a search definition by m/z or RT range
+     */
+    public SearchDefinition(SearchDefinitionType type, Range range) {
+
+	assert type == SearchDefinitionType.NAME;
+
+	this.type = type;
+	this.range = range;
+
+    }
+
+    /**
+     * Creates a search definition by using a regular expression
+     */
+    public SearchDefinition(SearchDefinitionType type, String regex, Range range)
+	    throws PatternSyntaxException {
+
+	this.type = type;
+	this.range = range;
+
+	// Avoid compiling the regex pattern (may cause exceptions) unless the
+	// search type is set to NAME
+	if (type == SearchDefinitionType.NAME) {
+	    this.nameRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 	}
 
-	/**
-	 * Creates a search definition by m/z or RT range
-	 */
-	public SearchDefinition(SearchDefinitionType type, Range range) {
+    }
 
-		assert type == SearchDefinitionType.NAME;
-
-		this.type = type;
-		this.range = range;
-
-	}
-
-	/**
-	 * Creates a search definition by using a regular expression
-	 */
-	public SearchDefinition(SearchDefinitionType type, String regex, Range range)
-			throws PatternSyntaxException {
-
-		this.type = type;
-		this.range = range;
-
-		// Avoid compiling the regex pattern (may cause exceptions) unless the
-		// search type is set to NAME
-		if (type == SearchDefinitionType.NAME) {
-			this.nameRegex = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-		}
-
-	}
-
-	/**
-	 * Checks whether given peak list row conforms to this search condition.
-	 */
-	public boolean conforms(PeakListRow row) {
-		switch (type) {
-		case NAME:
-			PeakIdentity identity = row.getPreferredPeakIdentity();
-			if (identity == null)
-				return false;
-			String name = identity.toString();
-			
-			if (isEmpty(nameRegex.toString()) || isEmpty(name)) {
-				return false;
-			}
-
-			Matcher matcher = nameRegex.matcher(name);
-			return matcher.find();
-
-		case MASS:
-			return range.contains(row.getAverageMZ());
-
-		case RT:
-			return range.contains(row.getAverageRT());
-
-		}
+    /**
+     * Checks whether given peak list row conforms to this search condition.
+     */
+    public boolean conforms(PeakListRow row) {
+	switch (type) {
+	case NAME:
+	    PeakIdentity identity = row.getPreferredPeakIdentity();
+	    if (identity == null)
 		return false;
-	}
+	    String name = identity.getName();
 
-	public String toString() {
-		String text = "Search by " + type.toString();
-		switch (type) {
-		case NAME:
-			text += ": " + nameRegex;
-			break;
-		case MASS:
-		case RT:
-			text += ": " + range;
-			break;
-		}
-		return text;
-	}
+	    if (isEmpty(nameRegex.toString()) || isEmpty(name)) {
+		return false;
+	    }
 
-	/**
-	 * Checks if the the string is not empty
-	 */
-	private static boolean isEmpty(String str) {
-		if (str != null && str.trim().length() > 0) {
-			return false;
-		}
-		return true;
+	    Matcher matcher = nameRegex.matcher(name);
+	    return matcher.find();
+
+	case MASS:
+	    return range.contains(row.getAverageMZ());
+
+	case RT:
+	    return range.contains(row.getAverageRT());
+
 	}
+	return false;
+    }
+
+    public String getName() {
+	String text = "Search by " + type.toString();
+	switch (type) {
+	case NAME:
+	    text += ": " + nameRegex;
+	    break;
+	case MASS:
+	case RT:
+	    text += ": " + range;
+	    break;
+	}
+	return text;
+    }
+
+    /**
+     * Checks if the the string is not empty
+     */
+    private static boolean isEmpty(String str) {
+	if (str != null && str.trim().length() > 0) {
+	    return false;
+	}
+	return true;
+    }
 
 }

@@ -34,89 +34,89 @@ import org.w3c.dom.Element;
  */
 public class StringParameter implements UserParameter<String, JTextField> {
 
-	private String name, description, value;
+    private String name, description, value;
 
-	public StringParameter(String name, String description) {
-		this(name, description, null);
-	}
+    public StringParameter(String name, String description) {
+	this(name, description, null);
+    }
 
-	public StringParameter(String name, String description, String defaultValue) {
-		this.name = name;
-		this.description = description;
-		this.value = defaultValue;
-	}
+    public StringParameter(String name, String description, String defaultValue) {
+	this.name = name;
+	this.description = description;
+	this.value = defaultValue;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
 
-	@Override
-	public JTextField createEditingComponent() {
-		return new JTextField(20);
-	}
+    @Override
+    public JTextField createEditingComponent() {
+	return new JTextField(20);
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+	return value;
+    }
 
-	@Override
-	public void setValue(String value) {
-		this.value = value;
-	}
+    @Override
+    public void setValue(String value) {
+	this.value = value;
+    }
 
-	@Override
-	public StringParameter clone() {
-		StringParameter copy = new StringParameter(name, description);
-		copy.setValue(this.getValue());
-		return copy;
-	}
+    @Override
+    public StringParameter clone() {
+	StringParameter copy = new StringParameter(name, description);
+	copy.setValue(this.getValue());
+	return copy;
+    }
 
     @Override
     public String toString() {
-        return name;
+	return name;
     }
-    
-	@Override
-	public void setValueFromComponent(JTextField component) {
-		value = component.getText();
-	}
 
-	@Override
-	public void setValueToComponent(JTextField component, String newValue) {
-		component.setText(newValue);
-	}
+    @Override
+    public void setValueFromComponent(JTextField component) {
+	value = component.getText();
+    }
 
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		value = xmlElement.getTextContent();
-	}
+    @Override
+    public void setValueToComponent(JTextField component, String newValue) {
+	component.setText(newValue);
+    }
 
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value);
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if ((value == null) || (value.trim().length() == 0)) {
+	    errorMessages.add(name + " is not set properly");
+	    return false;
 	}
-	
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if ((value == null) || (value.trim().length() == 0)) {
-			errorMessages.add(name + " is not set properly");
-			return false;
-		}
-		return true;
-	}
+	return true;
+    }
 
 }

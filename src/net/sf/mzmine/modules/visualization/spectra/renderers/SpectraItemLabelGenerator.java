@@ -42,7 +42,7 @@ public class SpectraItemLabelGenerator implements XYItemLabelGenerator {
 
 	private SpectraPlot plot;
 
-	private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
 	public SpectraItemLabelGenerator(SpectraPlot plot) {
 		this.plot = plot;

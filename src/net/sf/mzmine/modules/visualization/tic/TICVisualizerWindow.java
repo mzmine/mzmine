@@ -117,9 +117,9 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
     void updateTitle() {
 
-        NumberFormat rtFormat = MZmineCore.getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getMZFormat();
-        NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+        NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
         StringBuffer mainTitle = new StringBuffer();
         StringBuffer subTitle = new StringBuffer();

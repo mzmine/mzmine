@@ -30,9 +30,9 @@ import java.text.NumberFormat;
  */
 public class TICToolTipGenerator implements XYToolTipGenerator {
 
-    private final NumberFormat rtFormat = MZmineCore.getRTFormat();
-    private final NumberFormat mzFormat = MZmineCore.getMZFormat();
-    private final NumberFormat intensityFormat = MZmineCore.getIntensityFormat();
+    private final NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+    private final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    private final NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 
     @Override
     public String generateToolTip(final XYDataset dataSet, final int series, final int item) {

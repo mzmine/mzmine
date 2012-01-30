@@ -19,18 +19,12 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import java.util.List;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.parameters.ParameterSet;
 import weka.core.Instances;
 
 public interface ClusteringAlgorithm extends MZmineModule {
 
-        public List<Integer> getClusterGroups(Instances dataset);
-
-        public String getHierarchicalCluster(Instances dataset);
-
-        public VisualizationType getVisualizationType();
-
-        public int getNumberOfGroups();
+    public ClusteringResult performClustering(Instances dataset, ParameterSet parameters);
 
 }

@@ -27,6 +27,7 @@ import javax.swing.JInternalFrame;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -34,120 +35,119 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JInternalFrame implements
-		ActionListener {
+	ActionListener {
 
-	private TwoDToolBar toolBar;
-	private TwoDPlot twoDPlot;
-	private TwoDBottomPanel bottomPanel;
-	private TwoDDataSet dataset;
-	private RawDataFile dataFile;
-	private int msLevel;
-	private boolean tooltipMode;
+    private TwoDToolBar toolBar;
+    private TwoDPlot twoDPlot;
+    private TwoDBottomPanel bottomPanel;
+    private TwoDDataSet dataset;
+    private RawDataFile dataFile;
+    private int msLevel;
+    private boolean tooltipMode;
 
-	public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
-			Range rtRange, Range mzRange, TwoDParameters parameters) {
+    public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
+	    Range rtRange, Range mzRange, ParameterSet parameters) {
 
-		super(dataFile.toString(), true, true, true, true);
+	super(dataFile.getName(), true, true, true, true);
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
+	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	setBackground(Color.white);
 
-		this.dataFile = dataFile;
-		this.msLevel = msLevel;
+	this.dataFile = dataFile;
+	this.msLevel = msLevel;
 
-		this.tooltipMode = true;
+	this.tooltipMode = true;
 
-		dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
+	dataset = new TwoDDataSet(dataFile, msLevel, rtRange, mzRange, this);
 
-		toolBar = new TwoDToolBar(this);
-		add(toolBar, BorderLayout.EAST);
+	toolBar = new TwoDToolBar(this);
+	add(toolBar, BorderLayout.EAST);
 
-		twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
-		add(twoDPlot, BorderLayout.CENTER);
+	twoDPlot = new TwoDPlot(dataFile, this, dataset, rtRange, mzRange);
+	add(twoDPlot, BorderLayout.CENTER);
 
-		bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
-		add(bottomPanel, BorderLayout.SOUTH);
+	bottomPanel = new TwoDBottomPanel(this, dataFile, parameters);
+	add(bottomPanel, BorderLayout.SOUTH);
 
-		updateTitle();
+	updateTitle();
 
-		// After we have constructed everything, load the peak lists into the
-		// bottom panel
-		bottomPanel.rebuildPeakListSelector();
+	// After we have constructed everything, load the peak lists into the
+	// bottom panel
+	bottomPanel.rebuildPeakListSelector();
 
-		MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
-		
-		pack();
+	MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
 
-	}
-	
-	public void dispose() {
-		super.dispose();
-		MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
-	}
+	pack();
 
-	void updateTitle() {
+    }
 
-		StringBuffer title = new StringBuffer();
-		title.append("[");
-		title.append(dataFile.toString());
-		title.append("]: 2D view");
+    public void dispose() {
+	super.dispose();
+	MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
+    }
 
-		setTitle(title.toString());
+    void updateTitle() {
 
-		title.append(", MS");
-		title.append(msLevel);
+	StringBuffer title = new StringBuffer();
+	title.append("[");
+	title.append(dataFile.getName());
+	title.append("]: 2D view");
 
-		twoDPlot.setTitle(title.toString());
+	setTitle(title.toString());
 
-	}
+	title.append(", MS");
+	title.append(msLevel);
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent event) {
+	twoDPlot.setTitle(title.toString());
 
-		String command = event.getActionCommand();
+    }
 
-		if (command.equals("SWITCH_PALETTE")) {
-			twoDPlot.getXYPlot().switchPalette();
-		}
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
 
-		if (command.equals("SHOW_DATA_POINTS")) {
-			twoDPlot.switchDataPointsVisible();
-		}
+	String command = event.getActionCommand();
 
-		if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
-			dialog.setVisible(true);
-		}
-
-		if (command.equals("SWITCH_PLOTMODE")) {
-
-			if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
-				toolBar.setCentroidButton(true);
-				twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
-			} else {
-				toolBar.setCentroidButton(false);
-				twoDPlot.setPlotMode(PlotMode.CENTROID);
-			}
-		}
-
-		if (command.equals("SWITCH_TOOLTIPS")) {
-			if (tooltipMode) {
-				twoDPlot.showPeaksTooltips(false);
-				toolBar.setTooltipButton(false);
-				tooltipMode = false;
-			} else {
-				twoDPlot.showPeaksTooltips(true);
-				toolBar.setTooltipButton(true);
-				tooltipMode = true;
-			}
-		}
-
+	if (command.equals("SWITCH_PALETTE")) {
+	    twoDPlot.getXYPlot().switchPalette();
 	}
 
-
-	TwoDPlot getPlot() {
-		return twoDPlot;
+	if (command.equals("SHOW_DATA_POINTS")) {
+	    twoDPlot.switchDataPointsVisible();
 	}
+
+	if (command.equals("SETUP_AXES")) {
+	    AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+	    dialog.setVisible(true);
+	}
+
+	if (command.equals("SWITCH_PLOTMODE")) {
+
+	    if (twoDPlot.getPlotMode() == PlotMode.CENTROID) {
+		toolBar.setCentroidButton(true);
+		twoDPlot.setPlotMode(PlotMode.CONTINUOUS);
+	    } else {
+		toolBar.setCentroidButton(false);
+		twoDPlot.setPlotMode(PlotMode.CENTROID);
+	    }
+	}
+
+	if (command.equals("SWITCH_TOOLTIPS")) {
+	    if (tooltipMode) {
+		twoDPlot.showPeaksTooltips(false);
+		toolBar.setTooltipButton(false);
+		tooltipMode = false;
+	    } else {
+		twoDPlot.showPeaksTooltips(true);
+		toolBar.setTooltipButton(true);
+		tooltipMode = true;
+	    }
+	}
+
+    }
+
+    TwoDPlot getPlot() {
+	return twoDPlot;
+    }
 }

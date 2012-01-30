@@ -21,31 +21,26 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFilterSetupDialog;
-import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
-import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class CropFilterParameters extends SimpleParameterSet {
 
-	public static final RangeParameter retentionTimeRange = new RangeParameter(
-			"Retention time", "retention time boundary of the cropped region",
-			MZmineCore.getRTFormat());
+    public static final RangeParameter retentionTimeRange = new RangeParameter(
+	    "Retention time", "retention time boundary of the cropped region",
+	    MZmineCore.getConfiguration().getRTFormat());
 
-	private RawDataSetFilter dataSetFilter;
+    public CropFilterParameters() {
+	super(new Parameter[] { retentionTimeRange });
+    }
 
-	public CropFilterParameters(RawDataSetFilter dataSetFilter) {
-		super(new UserParameter[] { retentionTimeRange });
-
-		this.dataSetFilter = dataSetFilter;
-	}
-
-	public ExitCode showSetupDialog() {
-		DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(
-				dataSetFilter);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    public ExitCode showSetupDialog() {
+	DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(this,
+		CropFilter.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
 
 }

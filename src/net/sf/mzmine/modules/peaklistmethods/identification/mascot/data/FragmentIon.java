@@ -66,7 +66,7 @@ public class FragmentIon {
     	return position;
     }
     
-	public String toString(){
+	public String getName(){
     	return ProteomeUtils.fragmentIonToString(this); 
     }
 

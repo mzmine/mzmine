@@ -28,44 +28,41 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class RTCorrectionFilter implements RawDataSetFilter {
 
-	RTCorrectionFilterParameters parameters;
+    @Override
+    public RawDataFile filterDatafile(RawDataFile dataFile,
+	    RawDataFileWriter rawDataFileWriter, ParameterSet parameters) {
 
-	public RTCorrectionFilter(RTCorrectionFilterParameters parameters) {
-		this.parameters = parameters;
-	}
+	try {
+	    int[] scanNumbers = dataFile.getScanNumbers(1);
+	    int totalScans = scanNumbers.length;
 
-	public RawDataFile filterDatafile(RawDataFile dataFile,
-			RawDataFileWriter rawDataFileWriter) {
-
-		try {
-			int[] scanNumbers = dataFile.getScanNumbers(1);
-			int totalScans = scanNumbers.length;
-
-			for (int i = 0; i < totalScans; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);
-				if (scan != null) {
-					rawDataFileWriter.addScan(new SimpleScan(scan));
-				}
-			}
-
-			return rawDataFileWriter.finishWriting();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+	    for (int i = 0; i < totalScans; i++) {
+		Scan scan = dataFile.getScan(scanNumbers[i]);
+		if (scan != null) {
+		    rawDataFileWriter.addScan(new SimpleScan(scan));
 		}
-	}
+	    }
 
-	public double getProgress() {
-		return 0.5f;
-	}
-	
-	public String toString() {
-		return "RT correction filter";
-	}
+	    return rawDataFileWriter.finishWriting();
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return parameters;
+	} catch (Exception e) {
+	    e.printStackTrace();
+	    return null;
 	}
+    }
+
+    @Override
+    public double getProgress() {
+	return 0.5f;
+    }
+
+    @Override
+    public String getName() {
+	return "RT correction filter";
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return RTCorrectionFilterParameters.class;
+    }
 }

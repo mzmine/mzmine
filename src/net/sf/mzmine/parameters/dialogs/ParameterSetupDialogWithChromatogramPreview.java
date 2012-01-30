@@ -77,8 +77,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	private void updateTitle() {
 
-		NumberFormat rtFormat = MZmineCore.getRTFormat();
-		NumberFormat mzFormat = MZmineCore.getMZFormat();
+		NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+		NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
 		Range rtRange = rtRangeBox.getValue();
 		Range mzRange = mzRangeBox.getValue();
@@ -196,10 +196,10 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		comboDataFileName.setSelectedItem(previewDataFile);
 		comboDataFileName.addActionListener(this);
 
-		rtRangeBox = new RangeComponent(MZmineCore.getRTFormat());
+		rtRangeBox = new RangeComponent(MZmineCore.getConfiguration().getRTFormat());
 		rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
 
-		mzRangeBox = new RangeComponent(MZmineCore.getMZFormat());
+		mzRangeBox = new RangeComponent(MZmineCore.getConfiguration().getMZFormat());
 		mzRangeBox.setValue(previewDataFile.getDataMZRange(1));
 
 		pnlFlds.add(comboDataFileName);

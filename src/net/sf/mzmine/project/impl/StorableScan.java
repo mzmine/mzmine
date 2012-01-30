@@ -304,7 +304,8 @@ public class StorableScan implements Scan {
 			updateValues();
 		return totalIonCurrent;
 	}
-
+	
+	@Override
 	public String toString() {
 		return ScanUtils.scanToString(this);
 	}

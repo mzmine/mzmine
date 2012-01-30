@@ -31,47 +31,43 @@ import net.sf.mzmine.util.Range;
 
 public class CropFilter implements RawDataSetFilter {
 
-	private CropFilterParameters parameters;
-	private int processedScans, totalScans;
+    private int processedScans, totalScans;
 
-	public CropFilter() {
-		parameters = new CropFilterParameters(this);
+    public RawDataFile filterDatafile(RawDataFile dataFile,
+	    RawDataFileWriter rawDataFileWriter, ParameterSet parameters)
+	    throws IOException {
+
+	Range RTRange = parameters.getParameter(
+		CropFilterParameters.retentionTimeRange).getValue();
+
+	int[] scanNumbers = dataFile.getScanNumbers();
+	totalScans = scanNumbers.length;
+
+	for (processedScans = 0; processedScans < totalScans; processedScans++) {
+	    Scan scan = dataFile.getScan(scanNumbers[processedScans]);
+
+	    if (RTRange.contains(scan.getRetentionTime())) {
+		Scan scanCopy = new SimpleScan(scan);
+		rawDataFileWriter.addScan(scanCopy);
+	    }
 	}
 
-	public RawDataFile filterDatafile(RawDataFile dataFile,
-			RawDataFileWriter rawDataFileWriter) throws IOException {
+	return rawDataFileWriter.finishWriting();
 
-		Range RTRange = parameters.getParameter(
-				CropFilterParameters.retentionTimeRange).getValue();
+    }
 
-		int[] scanNumbers = dataFile.getScanNumbers();
-		totalScans = scanNumbers.length;
+    public double getProgress() {
+	if (totalScans == 0)
+	    return 0;
+	return (double) processedScans / totalScans;
+    }
 
-		for (processedScans = 0; processedScans < totalScans; processedScans++) {
-			Scan scan = dataFile.getScan(scanNumbers[processedScans]);
+    public String getName() {
+	return "Crop filter";
+    }
 
-			if (RTRange.contains(scan.getRetentionTime())) {
-				Scan scanCopy = new SimpleScan(scan);
-				rawDataFileWriter.addScan(scanCopy);
-			}
-		}
-
-		return rawDataFileWriter.finishWriting();
-
-	}
-
-	public double getProgress() {
-		if (totalScans == 0)
-			return 0;
-		return (double) processedScans / totalScans;
-	}
-	
-	public String toString() {
-		return "Crop filter";
-	}
-
-	@Override
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return CropFilterParameters.class;
+    }
 }

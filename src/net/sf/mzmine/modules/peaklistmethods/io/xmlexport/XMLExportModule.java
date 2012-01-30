@@ -19,38 +19,49 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.xmlexport;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class XMLExportModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Export to XML file";
+    private static final String MODULE_NAME = "Export to XML file";
+    private static final String MODULE_DESCRIPTION = "This method exports the peak list contents into an XML file.";
 
-	private XMLExportParameters parameters = new XMLExportParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	XMLExportTask newTask = new XMLExportTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
 
-		XMLExportTask task = new XMLExportTask(parameters);
+    }
 
-		MZmineCore.getTaskController().addTask(task);
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTEXPORT;
+    }
 
-		return new Task[] { task };
-
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTEXPORT;
-	}
-
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return XMLExportParameters.class;
+    }
 
 }

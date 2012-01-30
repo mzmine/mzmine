@@ -34,7 +34,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class PeakListTableWindow extends JInternalFrame implements
 		ActionListener {
@@ -50,7 +50,7 @@ public class PeakListTableWindow extends JInternalFrame implements
 	 */
 	PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
-		super(peakList.toString(), true, true, true, true);
+		super(peakList.getName(), true, true, true, true);
 
 		this.parameters = parameters;
 

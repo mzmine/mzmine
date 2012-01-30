@@ -29,21 +29,21 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class MultiLineLabel extends JScrollPane {
 
-	public MultiLineLabel(String text) {
-		this(text, 0);
-	}
+    public MultiLineLabel(String text) {
+	this(text, 0);
+    }
 
-	public MultiLineLabel(String text, int margin) {
-				
-		JTextArea label = new JTextArea(text); 
-		label.setLineWrap(true);
-		label.setWrapStyleWord(true);
-		label.setEditable(false);
-		if (margin > 0)
-			GUIUtils.addMargin(label, margin);
-		
-		setViewportView(label);
-		
-	}
+    public MultiLineLabel(String text, int margin) {
+
+	JTextArea label = new JTextArea(text);
+	label.setLineWrap(true);
+	label.setWrapStyleWord(true);
+	label.setEditable(false);
+	if (margin > 0)
+	    GUIUtils.addMargin(label, margin);
+
+	setViewportView(label);
+
+    }
 
 }

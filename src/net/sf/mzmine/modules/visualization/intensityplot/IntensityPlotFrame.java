@@ -160,10 +160,10 @@ public class IntensityPlotFrame extends JInternalFrame {
 			yAxis = (NumberAxis) ((CategoryPlot) plot).getRangeAxis();
 		else
 			yAxis = (NumberAxis) ((XYPlot) plot).getRangeAxis();
-		NumberFormat yAxisFormat = MZmineCore.getIntensityFormat();
+		NumberFormat yAxisFormat = MZmineCore.getConfiguration().getIntensityFormat();
 		if (parameters.getParameter(IntensityPlotParameters.yAxisValueSource)
 				.getValue() == YAxisValueSource.RT)
-			yAxisFormat = MZmineCore.getRTFormat();
+			yAxisFormat = MZmineCore.getConfiguration().getRTFormat();
 		yAxis.setNumberFormatOverride(yAxisFormat);
 
 		setTitle(title);

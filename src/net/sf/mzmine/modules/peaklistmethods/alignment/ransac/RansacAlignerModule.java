@@ -19,52 +19,56 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
-/**
- * 
- */
 public class RansacAlignerModule implements MZmineProcessingModule {
 
-	private RansacAlignerParameters parameters = new RansacAlignerParameters();
+    private static final String MODULE_NAME = "RANSAC aligner";
+    private static final String MODULE_DESCRIPTION = "Peak list aligner based on the RANSAC algorithm.";
 
-	public String toString() {
-		return "RANSAC aligner";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.PeakList[], net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
 
-		PeakList[] peakLists = parameters.getParameter(
-				RansacAlignerParameters.peakLists).getValue();
+	PeakList[] peakLists = parameters.getParameter(
+		RansacAlignerParameters.peakLists).getValue();
 
-		// prepare a new group with just one task
-		Task task = new RansacAlignerTask(peakLists, parameters);
+	Task task = new RansacAlignerTask(peakLists, parameters);
 
-		MZmineCore.getTaskController().addTask(task);
+	tasks.add(task);
 
-		return new Task[] { task };
+	return ExitCode.OK;
 
-	}
+    }
 
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.ALIGNMENT;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.ALIGNMENT;
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return RansacAlignerParameters.class;
+    }
+
 }

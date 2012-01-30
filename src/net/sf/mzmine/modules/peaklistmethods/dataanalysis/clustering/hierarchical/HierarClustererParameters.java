@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 
 public class HierarClustererParameters extends SimpleParameterSet {

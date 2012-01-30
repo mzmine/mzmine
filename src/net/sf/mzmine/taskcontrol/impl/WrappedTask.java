@@ -78,7 +78,7 @@ class WrappedTask {
         return task;
     }
 
-    public synchronized String toString() {
+    public synchronized String getName() {
         return task.getTaskDescription();
     }
 

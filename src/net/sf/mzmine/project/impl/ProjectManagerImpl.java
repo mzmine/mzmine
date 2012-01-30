@@ -22,8 +22,10 @@ package net.sf.mzmine.project.impl;
 import java.io.File;
 
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 
@@ -32,54 +34,55 @@ import net.sf.mzmine.project.ProjectManager;
  */
 public class ProjectManagerImpl implements ProjectManager {
 
-	private static ProjectManagerImpl myInstance;
+    private static ProjectManagerImpl myInstance;
 
-	MZmineProject currentProject;
+    MZmineProject currentProject;
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
-	 */
-	public void initModule() {
-		currentProject = new MZmineProjectImpl();
-		myInstance = this;
+    /**
+     * @see net.sf.mzmine.modules.MZmineModule#initModule(net.sf.mzmine.main.MZmineCore)
+     */
+    public void initModule() {
+	currentProject = new MZmineProjectImpl();
+	myInstance = this;
+    }
+
+    public MZmineProject getCurrentProject() {
+	return currentProject;
+    }
+
+    public void setCurrentProject(MZmineProject project) {
+
+	if (project == currentProject)
+	    return;
+
+	// Close previous data files
+	if (currentProject != null) {
+	    RawDataFile prevDataFiles[] = currentProject.getDataFiles();
+	    for (RawDataFile prevDataFile : prevDataFiles) {
+		prevDataFile.close();
+	    }
 	}
 
-	public MZmineProject getCurrentProject() {
-		return currentProject;
+	this.currentProject = project;
+
+	// This is a hack to keep correct value of last opened directory (this
+	// value was overwritten when configuration file was loaded from the new
+	// project)
+	if (project.getProjectFile() != null) {
+	    File projectFile = project.getProjectFile();
+	    ParameterSet loaderParams = MZmineCore.getConfiguration()
+		    .getModuleParameters(ProjectLoadModule.class);
+	    loaderParams.getParameter(ProjectLoaderParameters.projectFile)
+		    .setValue(projectFile);
 	}
 
-	public void setCurrentProject(MZmineProject project) {
+	// Notify the GUI about project structure change
+	((MZmineProjectImpl) project).activateProject();
 
-		if (project == currentProject)
-			return;
+    }
 
-		// Close previous data files
-		if (currentProject != null) {
-			RawDataFile prevDataFiles[] = currentProject.getDataFiles();
-			for (RawDataFile prevDataFile : prevDataFiles) {
-				prevDataFile.close();
-			}
-		}
-
-		this.currentProject = project;
-
-		// This is a hack to keep correct value of last opened directory (this
-		// value was overwritten when configuration file was loaded from the new
-		// project)
-		if (project.getProjectFile() != null) {
-			File projectFile = project.getProjectFile();
-			ProjectLoadModule.getInstance().getParameterSet()
-					.getParameter(ProjectLoaderParameters.projectFile)
-					.setValue(projectFile);
-		}
-
-		// Notify the GUI about project structure change
-		((MZmineProjectImpl) project).activateProject();
-
-	}
-
-	public static ProjectManagerImpl getInstance() {
-		return myInstance;
-	}
+    public static ProjectManagerImpl getInstance() {
+	return myInstance;
+    }
 
 }

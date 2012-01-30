@@ -20,47 +20,55 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.*;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.ChemSpiderGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.ChemSpiderParameters;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.HMDBGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.KEGGGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
 public enum OnlineDatabase implements MZmineModule {
 
-    KEGG("KEGG Compound Database", KEGGGateway.class),
-    PubChem("PubChem Compound Database", PubChemGateway.class),
-    HMDB("Human Metabolome Database", HMDBGateway.class),
-    // METLIN SOAP gateway is broken
-    // METLIN("METLIN Database", MetLinGateway.class),
-    LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class),
-    MASSBANK("MassBank Database", MassBankGateway.class),
-    CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class, new ChemSpiderParameters());
+    KEGG("KEGG Compound Database", KEGGGateway.class), //
+    PubChem("PubChem Compound Database", PubChemGateway.class), //
+    HMDB("Human Metabolome Database", HMDBGateway.class), //
+    METLIN("METLIN Database", MetLinGateway.class), //
+    LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
+    MASSBANK("MassBank Database", MassBankGateway.class), //
+    CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
+	    ChemSpiderParameters.class);
 
     private final String dbName;
     private final Class<? extends DBGateway> gatewayClass;
-    private final ParameterSet parameters;
+    private final Class<? extends ParameterSet> parametersClass;
 
-    OnlineDatabase(final String name,
-                   final Class<? extends DBGateway> aClass,
-                   final ParameterSet parameterSet) {
-        dbName = name;
-        gatewayClass = aClass;
-        parameters = parameterSet;
+    OnlineDatabase(final String dbName,
+	    final Class<? extends DBGateway> gatewayClass,
+	    final Class<? extends ParameterSet> parametersClass) {
+	this.dbName = dbName;
+	this.gatewayClass = gatewayClass;
+	this.parametersClass = parametersClass;
     }
 
     OnlineDatabase(final String name,
-                   final Class<? extends DBGateway> aClass) {
-        this(name, aClass, null );
+	    final Class<? extends DBGateway> gatewayClass) {
+	this(name, gatewayClass, SimpleParameterSet.class);
     }
 
     public Class<? extends DBGateway> getGatewayClass() {
-        return gatewayClass;
+	return gatewayClass;
     }
 
-    public String toString() {
-        return dbName;
+    public String getName() {
+	return dbName;
     }
 
     @Override
-    public ParameterSet getParameterSet() {
-        return parameters;
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return parametersClass;
     }
 }

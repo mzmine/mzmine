@@ -118,7 +118,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	 * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
 	 */
 	public Comparable getSeriesKey(int series) {
-		return rawDataFile.toString();
+		return rawDataFile.getName();
 	}
 
 	/**

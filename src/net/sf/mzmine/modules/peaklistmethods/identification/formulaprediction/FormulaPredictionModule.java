@@ -23,68 +23,47 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
-/**
- * 
- */
 public class FormulaPredictionModule implements MZmineModule {
 
-	public static final String MODULE_NAME = "Formula prediction";
+    private static final String MODULE_NAME = "Formula prediction";
 
-	private FormulaPredictionParameters parameters;
+    public static void showSingleRowIdentificationDialog(PeakListRow row) {
 
-	private static FormulaPredictionModule myInstance;
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(FormulaPredictionModule.class);
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
+	double mzValue = row.getAverageMZ();
+	parameters.getParameter(FormulaPredictionParameters.neutralMass)
+		.setIonMass(mzValue);
+
+	int charge = row.getBestPeak().getCharge();
+	if (charge > 0) {
+	    parameters.getParameter(FormulaPredictionParameters.neutralMass)
+		    .setCharge(charge);
 	}
 
-	public FormulaPredictionModule() {
+	ExitCode exitCode = parameters.showSetupDialog();
+	if (exitCode != ExitCode.OK)
+	    return;
 
-		parameters = new FormulaPredictionParameters();
+	SingleRowPredictionTask newTask = new SingleRowPredictionTask(
+		parameters.clone(), row);
 
-		myInstance = this;
+	// execute the sequence
+	MZmineCore.getTaskController().addTask(newTask);
 
-	}
+    }
 
-	public static FormulaPredictionModule getInstance() {
-		return myInstance;
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public static void showSingleRowIdentificationDialog(PeakListRow row) {
-
-		assert myInstance != null;
-
-		ParameterSet parameters = myInstance.getParameterSet();
-
-		double mzValue = row.getAverageMZ();
-		parameters.getParameter(FormulaPredictionParameters.neutralMass)
-				.setIonMass(mzValue);
-
-		int charge = row.getBestPeak().getCharge();
-		if (charge > 0) {
-			parameters.getParameter(FormulaPredictionParameters.neutralMass)
-					.setCharge(charge);
-		}
-
-		ExitCode exitCode = parameters.showSetupDialog();
-		if (exitCode != ExitCode.OK)
-			return;
-
-		SingleRowPredictionTask newTask = new SingleRowPredictionTask(
-				parameters.clone(), row);
-
-		// execute the sequence
-		MZmineCore.getTaskController().addTask(newTask);
-
-	}
-
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return FormulaPredictionParameters.class;
+    }
 
 }

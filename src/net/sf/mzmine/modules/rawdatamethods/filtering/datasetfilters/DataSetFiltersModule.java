@@ -16,62 +16,49 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class DataSetFiltersModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Data set filtering";
+    private static final String MODULE_NAME = "Data set filtering";
+    private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on the whole raw data files.";
 
-	private DataSetFiltersParameters parameters = new DataSetFiltersParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	Task newTask = new DataSetFilteringTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.RAWDATAFILTERING;
+    }
 
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.AlignmentResult[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
-
-		RawDataFile[] dataFiles = parameters.getParameter(
-				DataSetFiltersParameters.dataFiles).getValue();
-
-		// prepare a new group of tasks
-		Task tasks[] = new DataSetFilteringTask[1];
-
-		tasks[0] = new DataSetFilteringTask(dataFiles, parameters);
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.RAWDATAFILTERING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return DataSetFiltersParameters.class;
+    }
 }

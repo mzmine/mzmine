@@ -133,7 +133,7 @@ class SameRangePeak implements ChromatographicPeak {
 		return dataFile;
 	}
 
-	public String toString() {
+	public String getName() {
 		return PeakUtils.peakToString(this);
 	}
 

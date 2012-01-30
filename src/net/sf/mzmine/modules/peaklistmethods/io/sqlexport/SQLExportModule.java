@@ -19,42 +19,49 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.sqlexport;
 
-import net.sf.mzmine.main.MZmineCore;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class SQLExportModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Export to SQL database";
+    private static final String MODULE_DESCRIPTION = "This method exports the peak list contents into an SQL database using JDBC.";
 
-    private SQLExportParameters parameters = new SQLExportParameters();
-
-    public ParameterSet getParameterSet() {
-	return parameters;
-    }
-
-    /**
-     * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-     */
-    public String toString() {
+    @Override
+    public String getName() {
 	return MODULE_NAME;
     }
 
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	SQLExportTask newTask = new SQLExportTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+
+    }
+
+    @Override
     public MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTEXPORT;
     }
 
-    public Task[] runModule(ParameterSet parameters) {
-
-	SQLExportTask task = new SQLExportTask(parameters);
-
-	// start this group
-	MZmineCore.getTaskController().addTask(task);
-
-	return new Task[] { task };
-
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return SQLExportParameters.class;
     }
 
 }

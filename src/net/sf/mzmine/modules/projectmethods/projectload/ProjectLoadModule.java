@@ -19,13 +19,15 @@
 
 package net.sf.mzmine.modules.projectmethods.projectload;
 
-import java.io.File;
+import java.util.Collection;
 
-import net.sf.mzmine.main.MZmineCore;
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * This class implements BatchStep interface, so project loading can be
@@ -34,42 +36,36 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 public class ProjectLoadModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Open project";
+    private static final String MODULE_NAME = "Open project";
+    private static final String MODULE_DESCRIPTION = "This module opens an existing MZmine project. The current workspace will be discarded.";
 
-	private static ProjectLoadModule myInstance;
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	private ProjectLoaderParameters parameters = new ProjectLoaderParameters();
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public ProjectLoadModule() {
-		myInstance = this;
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	ProjectOpeningTask newTask = new ProjectOpeningTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
-		File selectedFile = parameters.getParameter(
-				ProjectLoaderParameters.projectFile).getValue();
-		if (selectedFile == null) {
-			return null;
-		}
-		ProjectOpeningTask task = new ProjectOpeningTask(selectedFile);
-		Task[] tasksArray = new Task[] { task };
-		MZmineCore.getTaskController().addTasks(tasksArray);
-		return tasksArray;
-	}
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PROJECTIO;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PROJECTIO;
-	}
-
-	public String toString() {
-		return MODULE_NAME;
-	}
-
-	public static ProjectLoadModule getInstance() {
-		return myInstance;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ProjectLoaderParameters.class;
+    }
 
 }

@@ -29,6 +29,7 @@ import javax.xml.rpc.ServiceException;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
@@ -40,93 +41,92 @@ import edu.scripps.metlin.soap.metlin_wsdl.MetlinServiceLocator;
 
 public class MetLinGateway implements DBGateway {
 
-	private static final String adduct[] = { "M" };
+    private static final String adduct[] = { "M" };
 
-	public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
-	public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
-	public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
-	public static final String metLinStructureAddress2 = ".mol";
+    public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
+    public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
+    public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
+    public static final String metLinStructureAddress2 = ".mol";
 
-	/**
-	 */
-	public String[] findCompounds(double mass, MZTolerance mzTolerance,
-			int numOfResults) throws IOException {
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+	    int numOfResults, ParameterSet parameters) throws IOException {
 
-		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		MetlinServiceLocator locator = new MetlinServiceLocator();
-		MetlinPortType serv;
-		try {
-			serv = locator.getMetlinPort();
-		} catch (ServiceException e) {
-			throw (new IOException(e));
-		}
-
-		// Search mass as float[]
-		float searchMass[] = new float[] { (float) toleranceRange.getAverage() };
-
-		float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
-
-		MetaboliteSearch parameters = new MetaboliteSearch(searchMass, adduct, searchTolerance, "Da");
-		MetaboliteSearchResponse results = serv.metaboliteSearch(parameters);
-		LineInfo resultsData[][] = results.getMetaboliteSearchResult();
-		
-		System.out.println(Arrays.toString(resultsData) + " "
-				);
-		return adduct;
-
+	MetlinServiceLocator locator = new MetlinServiceLocator();
+	MetlinPortType serv;
+	try {
+	    serv = locator.getMetlinPort();
+	} catch (ServiceException e) {
+	    throw (new IOException(e));
 	}
 
-	/**
-	 * This method retrieves the details about METLIN compound
-	 * 
-	 */
-	public DBCompound getCompound(String ID) throws IOException {
+	// Search mass as float[]
+	float searchMass[] = new float[] { (float) toleranceRange.getAverage() };
 
-		URL entryURL = new URL(metLinEntryAddress + ID);
+	float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
 
-		String metLinEntry = InetUtils.retrieveData(entryURL);
+	MetaboliteSearch parameters2 = new MetaboliteSearch(searchMass, adduct,
+		searchTolerance, "Da");
+	MetaboliteSearchResponse results = serv.metaboliteSearch(parameters2);
+	LineInfo resultsData[][] = results.getMetaboliteSearchResult();
 
-		String compoundName = null;
-		String compoundFormula = null;
-		URL structure2DURL = null;
-		URL structure3DURL = null;
+	System.out.println(Arrays.toString(resultsData) + " ");
+	return adduct;
 
-		// Find compound name
-		Pattern patName = Pattern.compile(
-				"</iframe>',1,450,300\\)\">(.+?)&nbsp;&nbsp;&nbsp;&nbsp",
-				Pattern.DOTALL);
-		Matcher matcherName = patName.matcher(metLinEntry);
-		if (matcherName.find()) {
-			compoundName = matcherName.group(1);
-		}
+    }
 
-		// Find compound formula
-		Pattern patFormula = Pattern.compile(
-				"Formula.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
-		Matcher matcherFormula = patFormula.matcher(metLinEntry);
-		if (matcherFormula.find()) {
-			String htmlFormula = matcherFormula.group(1);
-			compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
-		}
+    /**
+     * This method retrieves the details about METLIN compound
+     * 
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+	    throws IOException {
 
-		// Unfortunately, 2D structures provided by METLIN cannot be loaded
-		// into CDK (throws CDKException). They can be loaded into JMol, so
-		// we can show 3D structure.
-		structure3DURL = new URL(metLinStructureAddress1 + ID
-				+ metLinStructureAddress2);
+	URL entryURL = new URL(metLinEntryAddress + ID);
 
-		if (compoundName == null) {
-			throw (new IOException(
-					"Could not parse compound name for compound " + ID));
-		}
+	String metLinEntry = InetUtils.retrieveData(entryURL);
 
-		DBCompound newCompound = new DBCompound(
-				// OnlineDatabase.METLIN,
-				null, ID, compoundName, compoundFormula, entryURL,
-				structure2DURL, structure3DURL);
+	String compoundName = null;
+	String compoundFormula = null;
+	URL structure2DURL = null;
+	URL structure3DURL = null;
 
-		return newCompound;
-
+	// Find compound name
+	Pattern patName = Pattern.compile(
+		"</iframe>',1,450,300\\)\">(.+?)&nbsp;&nbsp;&nbsp;&nbsp",
+		Pattern.DOTALL);
+	Matcher matcherName = patName.matcher(metLinEntry);
+	if (matcherName.find()) {
+	    compoundName = matcherName.group(1);
 	}
+
+	// Find compound formula
+	Pattern patFormula = Pattern.compile(
+		"Formula.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
+	Matcher matcherFormula = patFormula.matcher(metLinEntry);
+	if (matcherFormula.find()) {
+	    String htmlFormula = matcherFormula.group(1);
+	    compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
+	}
+
+	// Unfortunately, 2D structures provided by METLIN cannot be loaded
+	// into CDK (throws CDKException). They can be loaded into JMol, so
+	// we can show 3D structure.
+	structure3DURL = new URL(metLinStructureAddress1 + ID
+		+ metLinStructureAddress2);
+
+	if (compoundName == null) {
+	    throw (new IOException(
+		    "Could not parse compound name for compound " + ID));
+	}
+
+	DBCompound newCompound = new DBCompound(
+		// OnlineDatabase.METLIN,
+		null, ID, compoundName, compoundFormula, entryURL,
+		structure2DURL, structure3DURL);
+
+	return newCompound;
+
+    }
 }

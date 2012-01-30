@@ -89,8 +89,8 @@ public class ExtendedPeak implements ChromatographicPeak {
 	 * 
 	 * @return String information
 	 */
-	public String toString() {
-		return "Extended peak " + MZmineCore.getMZFormat().format(mz) + " m/z";
+	public String getName() {
+		return "Extended peak " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
 	}
 
 	public double getArea() {

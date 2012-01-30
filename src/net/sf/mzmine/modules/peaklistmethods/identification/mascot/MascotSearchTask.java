@@ -36,7 +36,6 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima.LocalMaxMassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -68,10 +67,10 @@ public class MascotSearchTask extends AbstractTask {
 	 * @param peakList
 	 *            the peak list
 	 */
-	public MascotSearchTask(MascotParameters parameters, PeakList peakList) {
+	public MascotSearchTask(ParameterSet parameters, PeakList peakList) {
 
 		this.pp = peakList;
-		this.parameters = parameters;
+		this.parameters = (MascotParameters) parameters;
 	}
 
 	/**
@@ -110,13 +109,13 @@ public class MascotSearchTask extends AbstractTask {
 		DataPoint[] dps = scan.getDataPoints();
 
 		if (!scan.isCentroided()) {
-			LocalMaxMassDetector detector = new LocalMaxMassDetector();
-			ParameterSet params = detector.getParameterSet();
-			DataPoint[] peaks = detector.getMassValues(scan, params);
+			/*LocalMaxMassDetector detector = new LocalMaxMassDetector();
+			//ParameterSet params = detector.getParameterSet();
+			DataPoint[] peaks = null; // detector.getMassValues(scan, params);
 			for (int i = 0; i < peaks.length; i++) {
 				writer.println(peaks[i].getMZ() + "\t"
 						+ peaks[i].getIntensity());
-			}
+			}*/
 		} else {
 			for (int k = 0; k < dps.length; k++) {
 				writer.println(dps[k].getMZ() + "\t" + dps[k].getIntensity());

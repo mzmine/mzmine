@@ -111,10 +111,10 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         JLabel name, info;
         if (identity != null) {
-            name = new JLabel(identity.toString(), SwingUtilities.LEFT);
+            name = new JLabel(identity.getName(), SwingUtilities.LEFT);
             StringBuffer buf = new StringBuffer();
-            Format mzFormat = MZmineCore.getMZFormat();
-            Format timeFormat = MZmineCore.getRTFormat();
+            Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+            Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
             buf.append("#" + row.getID() + " ");
             buf.append(mzFormat.format(row.getAverageMZ()));
             buf.append(" m/z @");
@@ -414,7 +414,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
                     } else {
                         MZmineCore.getDesktop().displayMessage(
                                 "There is no fragment for the mass "
-                                + MZmineCore.getMZFormat().format(
+                                + MZmineCore.getConfiguration().getMZFormat().format(
                                         selectedPeaks[i].getMZ())
                                 + "m/z in the current raw data.");
                         return;

@@ -41,13 +41,13 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
      *      int, int)
      */
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
-        Format intensityFormat = MZmineCore.getIntensityFormat();
+        Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
         ChromatographicPeak peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
         RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < files.length; i++) {
-            sb.append(files[i].toString());
+            sb.append(files[i].getName());
             sb.append(": ");
             if (peaks[i] != null) {
                 sb.append(peaks[i].toString());

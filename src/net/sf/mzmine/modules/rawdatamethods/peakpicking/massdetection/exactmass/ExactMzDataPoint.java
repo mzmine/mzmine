@@ -109,9 +109,9 @@ public class ExactMzDataPoint implements DataPoint {
 		return (int) (this.mz + this.intensity);
 	}
 
-	public String toString() {
-		Format mzFormat = MZmineCore.getMZFormat();
-		Format intensityFormat = MZmineCore.getIntensityFormat();
+	public String getName() {
+		Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+		Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
 		String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
 				+ intensityFormat.format(intensity);
 		return str;

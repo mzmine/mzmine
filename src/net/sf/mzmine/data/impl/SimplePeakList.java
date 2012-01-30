@@ -78,6 +78,11 @@ public class SimplePeakList implements PeakList {
 	}
 
 	@Override
+	public String getName() {
+		return name;
+	}
+	
+	@Override
 	public String toString() {
 		return name;
 	}
@@ -304,10 +309,6 @@ public class SimplePeakList implements PeakList {
 		}
 
 		return null;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public void setName(String name) {

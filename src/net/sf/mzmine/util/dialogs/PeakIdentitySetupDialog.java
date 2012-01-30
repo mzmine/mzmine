@@ -38,6 +38,7 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.ExitCode;
 
 public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 

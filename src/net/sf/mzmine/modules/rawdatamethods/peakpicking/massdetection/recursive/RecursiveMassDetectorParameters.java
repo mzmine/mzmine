@@ -21,25 +21,25 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class RecursiveMassDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
 			"Intensities less than this value are interpreted as noise",
-			MZmineCore.getIntensityFormat());
+			MZmineCore.getConfiguration().getIntensityFormat());
 
 	public static final DoubleParameter minimumMZPeakWidth = new DoubleParameter(
 			"Min m/z peak width", "Minimum acceptable peak width in m/z",
-			MZmineCore.getMZFormat());
+			MZmineCore.getConfiguration().getMZFormat());
 
 	public static final DoubleParameter maximumMZPeakWidth = new DoubleParameter(
 			"Max m/z peak width", "Maximum acceptable peak width in m/z",
-			MZmineCore.getMZFormat());
+			MZmineCore.getConfiguration().getMZFormat());
 
 	public RecursiveMassDetectorParameters() {
 		super(new UserParameter[] { noiseLevel, minimumMZPeakWidth,

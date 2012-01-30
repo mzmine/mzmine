@@ -27,7 +27,7 @@ import java.text.DecimalFormat;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
@@ -90,7 +90,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 	public static final DoubleParameter MZ_BIN_WIDTH = new DoubleParameter(
 			"m/z bin width", "The m/z bin size (>= 0.001) to use when the \""
 					+ USE_MZ_BINS.getName() + "\" option is enabled.",
-			MZmineCore.getMZFormat(), 1.0, 0.001, null);
+			MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
 
 	/**
 	 * MS-level.

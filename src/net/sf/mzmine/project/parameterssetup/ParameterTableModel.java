@@ -48,7 +48,7 @@ public class ParameterTableModel extends AbstractTableModel {
 			return "Raw data";
 		if (col > 0) {
 			UserParameter p = parameters[col - 1];
-			return p.toString();
+			return p.getName();
 		}
 		return null;
 	}
@@ -59,7 +59,7 @@ public class ParameterTableModel extends AbstractTableModel {
 
 	public Object getValueAt(int row, int col) {
 		if (col == 0)
-			return files[row].toString();
+			return files[row].getName();
 		if (col > 0) {
 			UserParameter p = parameters[col - 1];
 			return parameterValues.get(p)[row];

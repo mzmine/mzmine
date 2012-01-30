@@ -20,18 +20,19 @@
 package net.sf.mzmine.modules.batchmode;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.util.ExitCode;
 
 import org.w3c.dom.Document;
 
@@ -40,60 +41,61 @@ import org.w3c.dom.Document;
  */
 public class BatchModeModule implements MZmineProcessingModule {
 
-	private static Logger logger = Logger.getLogger(BatchModeModule.class
-			.getName());
+    private static Logger logger = Logger.getLogger(BatchModeModule.class
+	    .getName());
 
-	private BatchModeParameters parameters = new BatchModeParameters();
+    private static final String MODULE_NAME = "Batch mode";
+    private static final String MODULE_DESCRIPTION = "This module allows execution of multiple processing tasks in a batch.";
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "Batch mode";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	BatchTask newTask = new BatchTask(parameters);
+	tasks.add(newTask);
+	return ExitCode.OK;
+    }
+
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PROJECT;
+    }
+
+    public static void runBatch(File batchFile) {
+
+	logger.info("Running batch from file " + batchFile);
+
+	try {
+	    DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
+		    .newDocumentBuilder();
+	    Document parsedBatchXML = docBuilder.parse(batchFile);
+	    BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML
+		    .getDocumentElement());
+	    ParameterSet parameters = new BatchModeParameters();
+	    parameters.getParameter(BatchModeParameters.batchQueue).setValue(
+		    newQueue);
+	    Task batchTask = new BatchTask(parameters);
+	    batchTask.run();
+	} catch (Exception e) {
+	    logger.log(Level.SEVERE, "Error while running batch", e);
+	    e.printStackTrace();
 	}
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    }
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-
-		BatchTask newTask = new BatchTask(parameters);
-
-		MZmineCore.getTaskController().addTask(newTask, TaskPriority.HIGH);
-
-		return new Task[] { newTask };
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PROJECT;
-	}
-
-	public static void runBatch(File batchFile) {
-
-		logger.info("Running batch from file " + batchFile);
-
-		try {
-			DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance()
-					.newDocumentBuilder();
-			Document parsedBatchXML = docBuilder.parse(batchFile);
-			BatchQueue newQueue = BatchQueue.loadFromXml(parsedBatchXML
-					.getDocumentElement());
-			ParameterSet parameters = new BatchModeParameters();
-			parameters.getParameter(BatchModeParameters.batchQueue).setValue(
-					newQueue);
-			Task batchTask = new BatchTask(parameters);
-			batchTask.run();
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Error while running batch", e);
-			e.printStackTrace();
-		}
-
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return BatchModeParameters.class;
+    }
 
 }

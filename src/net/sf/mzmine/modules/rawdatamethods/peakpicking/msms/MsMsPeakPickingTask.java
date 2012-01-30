@@ -30,6 +30,7 @@ import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
 import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -49,7 +50,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 	private SimplePeakList newPeakList;
 
 	public MsMsPeakPickingTask(RawDataFile dataFile,
-			MsMsPeakPickerParameters parameters) {
+			ParameterSet parameters) {
 		this.dataFile = dataFile;
 		binSize = parameters.getParameter(MsMsPeakPickerParameters.mzWindow)
 				.getValue();

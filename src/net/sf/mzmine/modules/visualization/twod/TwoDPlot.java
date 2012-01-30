@@ -72,8 +72,8 @@ class TwoDPlot extends ChartPanel {
 
 	private NumberAxis xAxis, yAxis;
 
-	private NumberFormat rtFormat = MZmineCore.getRTFormat();
-	private NumberFormat mzFormat = MZmineCore.getMZFormat();
+	private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+	private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
 	// private TwoDItemRenderer renderer;
 

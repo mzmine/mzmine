@@ -23,58 +23,60 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * Chromatographic smoothing.
  * 
- * @author $Author$
  * @version $Revision$
  */
 public class SmoothingModule implements MZmineProcessingModule {
 
-	// Module name.
-	private static final String MODULE_NAME = "Smoothing";
+    private static final String MODULE_NAME = "Smoothing";
+    private static final String MODULE_DESCRIPTION = "This module performs smoothing of chromatograms prior to deconvolution.";
 
-	// Task parameters.
-	private final SmoothingParameters parameterSet = new SmoothingParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return parameterSet;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	PeakList peakLists[] = parameters.getParameter(
+		SmoothingParameters.peakLists).getValue();
+
+	for (final PeakList peakList : peakLists) {
+	    Task newTask = new SmoothingTask(peakList, parameters);
+	    tasks.add(newTask);
 	}
 
-	@Override
-	public Task[] runModule(final ParameterSet parameters) {
+	return ExitCode.OK;
+    }
 
-		PeakList peakLists[] = parameters.getParameter(
-				SmoothingParameters.peakLists).getValue();
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKLISTPICKING;
+    }
 
-		// Create a task for each peak list.
-		Task[] tasks = new Task[peakLists.length];
-		int i = 0;
-		for (final PeakList peakList : peakLists) {
-			tasks[i++] = new SmoothingTask(peakList, parameters);
-		}
-
-		// Queue and return tasks.
-		MZmineCore.getTaskController().addTasks(tasks);
-		return tasks;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKLISTPICKING;
-	}
-
-	@Override
-	public String toString() {
-		return MODULE_NAME;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return SmoothingParameters.class;
+    }
 
 }

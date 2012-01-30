@@ -19,61 +19,54 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class ScanFiltersModule implements MZmineProcessingModule {
 
-	public static final String MODULE_NAME = "Scan by scan filtering";
+    private static final String MODULE_NAME = "Scan by scan filtering";
+    private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on each scan individually.";
 
-	private ScanFiltersParameters parameters = new ScanFiltersParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineProcessingModule#toString()
-	 */
-	public String toString() {
-		return MODULE_NAME;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		ScanFiltersParameters.dataFiles).getValue();
+
+	for (RawDataFile dataFile : dataFiles) {
+	    Task newTask = new ScanFilteringTask(dataFile, parameters);
+	    tasks.add(newTask);
 	}
+	return ExitCode.OK;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.BatchStep#setupParameters(net.sf.mzmine.data.ParameterSet)
-	 */
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.RAWDATAFILTERING;
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	/**
-	 * @see 
-	 *      net.sf.mzmine.modules.BatchStep#runModule(net.sf.mzmine.data.RawDataFile
-	 *      [], net.sf.mzmine.data.AlignmentResult[],
-	 *      net.sf.mzmine.data.ParameterSet,
-	 *      net.sf.mzmine.taskcontrol.Task[]Listener)
-	 */
-	public Task[] runModule(ParameterSet parameters) {
-
-		RawDataFile[] dataFiles = parameters.getParameter(
-				ScanFiltersParameters.dataFiles).getValue();
-
-		// prepare a new group of tasks
-		Task tasks[] = new ScanFilteringTask[dataFiles.length];
-		for (int i = 0; i < dataFiles.length; i++) {
-			tasks[i] = new ScanFilteringTask(dataFiles[i], parameters);
-		}
-
-		MZmineCore.getTaskController().addTasks(tasks);
-
-		return tasks;
-	}
-
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.RAWDATAFILTERING;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return ScanFiltersParameters.class;
+    }
 }

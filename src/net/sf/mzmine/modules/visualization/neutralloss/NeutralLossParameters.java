@@ -24,13 +24,13 @@ import java.util.Hashtable;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class NeutralLossParameters extends SimpleParameterSet {
 
@@ -46,11 +46,11 @@ public class NeutralLossParameters extends SimpleParameterSet {
 
 	public static final RangeParameter retentionTimeRange = new RangeParameter(
 			"Retention time", "Retention time (X axis) range",
-			MZmineCore.getRTFormat());
+			MZmineCore.getConfiguration().getRTFormat());
 
 	public static final RangeParameter mzRange = new RangeParameter(
 			"Precursor m/z", "Range of precursor m/z values",
-			MZmineCore.getMZFormat());
+			MZmineCore.getConfiguration().getMZFormat());
 
 	public static final IntegerParameter numOfFragments = new IntegerParameter(
 			"Fragments", "Number of most intense fragments");

@@ -19,60 +19,49 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class HistogramVisualizerModule implements MZmineProcessingModule {
 
-	private HistogramParameters parameters = new HistogramParameters();
+    private static final String MODULE_NAME = "Histogram plot";
+    private static final String MODULE_DESCRIPTION = "Histogram plot"; // TODO
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "Histogram plot";
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public void setParameters(ParameterSet parameterValues) {
-		this.parameters = (HistogramParameters) parameterValues;
-	}
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	HistogramWindow newWindow = new HistogramWindow(parameters);
+	MZmineCore.getDesktop().addInternalFrame(newWindow);
+	return ExitCode.OK;
+    }
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
+    }
 
-		PeakList selectedPeakLists[] = parameters.getParameter(
-				HistogramParameters.peakList).getValue();
-		if ((selectedPeakLists == null) || (selectedPeakLists.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select a peak list");
-			return null;
-		}
-
-		RawDataFile selectedDataFiles[] = parameters.getParameter(
-				HistogramParameters.dataFiles).getValue();
-		if ((selectedDataFiles == null) || (selectedDataFiles.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select data files");
-			return null;
-		}
-
-		HistogramWindow newWindow = new HistogramWindow(parameters);
-		MZmineCore.getDesktop().addInternalFrame(newWindow);
-		return null;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONPEAKLIST;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return HistogramParameters.class;
+    }
 
 }

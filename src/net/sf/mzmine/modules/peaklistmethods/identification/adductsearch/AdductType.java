@@ -41,10 +41,6 @@ public enum AdductType {
 		this.massDifference = massDifference;
 	}
 
-	public String getName() {
-		return this.name;
-	}
-
 	public double getMassDifference() {
 		return this.massDifference;
 	}
@@ -53,6 +49,6 @@ public enum AdductType {
 		if (this == CUSTOM) return this.name;
 		else
 		return this.name + " "
-				+ MZmineCore.getMZFormat().format(this.massDifference) + " m/z";
+				+ MZmineCore.getConfiguration().getMZFormat().format(this.massDifference) + " m/z";
 	}
 }

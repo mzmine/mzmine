@@ -28,121 +28,121 @@ import java.util.regex.Pattern;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
 public class HMDBGateway implements DBGateway {
 
-	public static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
+    public static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
-	/**
-	 */
-	public String[] findCompounds(double mass, MZTolerance mzTolerance,
-			int numOfResults) throws IOException {
+    public String[] findCompounds(double mass, MZTolerance mzTolerance,
+	    int numOfResults, ParameterSet parameters) throws IOException {
 
-		Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-		String queryAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight&query_from="
-				+ toleranceRange.getMin()
-				+ "&query_to="
-				+ toleranceRange.getMax();
+	String queryAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight&query_from="
+		+ toleranceRange.getMin()
+		+ "&query_to="
+		+ toleranceRange.getMax();
 
-		URL queryURL = new URL(queryAddress);
+	URL queryURL = new URL(queryAddress);
 
-		// Submit the query
-		String queryResult = InetUtils.retrieveData(queryURL);
+	// Submit the query
+	String queryResult = InetUtils.retrieveData(queryURL);
 
-		// Organize the IDs as a TreeSet to keep them sorted
-		TreeSet<String> results = new TreeSet<String>();
+	// Organize the IDs as a TreeSet to keep them sorted
+	TreeSet<String> results = new TreeSet<String>();
 
-		// Find IDs in the HTML data
-		Pattern pat = Pattern.compile("\"metabolites/(HMDB[0-9]{5})\"");
-		Matcher matcher = pat.matcher(queryResult);
-		while (matcher.find()) {
-			String hmdbID = matcher.group(1);
-			results.add(hmdbID);
+	// Find IDs in the HTML data
+	Pattern pat = Pattern.compile("\"metabolites/(HMDB[0-9]{5})\"");
+	Matcher matcher = pat.matcher(queryResult);
+	while (matcher.find()) {
+	    String hmdbID = matcher.group(1);
+	    results.add(hmdbID);
+	}
+
+	// Remove all except first numOfResults IDs
+	while (results.size() > numOfResults) {
+	    String lastItem = results.last();
+	    results.remove(lastItem);
+	}
+
+	return results.toArray(new String[0]);
+
+    }
+
+    /**
+     * This method retrieves the details about HMDB compound
+     * 
+     */
+    public DBCompound getCompound(String ID, ParameterSet parameters)
+	    throws IOException {
+
+	URL entryURL = new URL(hmdbEntryAddress + ID);
+
+	String metaboCard = InetUtils.retrieveData(entryURL);
+	String lines[] = metaboCard.split("\n");
+
+	String compoundName = null;
+	String compoundFormula = null;
+	URL structure2DURL = null;
+	URL structure3DURL = null;
+
+	for (int i = 0; i < lines.length - 1; i++) {
+
+	    if (lines[i].contains("<td>Common Name</td>")) {
+		Pattern pat = Pattern
+			.compile("<td><strong>([^<]+)</strong></td>");
+		Matcher matcher = pat.matcher(lines[i + 1]);
+		if (matcher.find()) {
+		    compoundName = matcher.group(1);
 		}
+	    }
 
-		// Remove all except first numOfResults IDs
-		while (results.size() > numOfResults) {
-			String lastItem = results.last();
-			results.remove(lastItem);
+	    if (lines[i].contains("<td>Chemical Formula</td>")) {
+		Pattern pat = Pattern.compile("<td>(.+)</td>");
+		Matcher matcher = pat.matcher(lines[i + 1]);
+		if (matcher.find()) {
+		    String htmlFormula = matcher.group(1);
+		    compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
 		}
+	    }
 
-		return results.toArray(new String[0]);
+	    if (lines[i].contains("<td>SDF File</td>")) {
+		Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
+		Matcher matcher = pat.matcher(lines[i + 1]);
+		if (matcher.find()) {
+		    String structureAddress = matcher.group(1);
+		    structureAddress = structureAddress
+			    .replaceAll("&amp;", "&");
+		    structure2DURL = new URL(structureAddress);
+		}
+	    }
+
+	    if (lines[i].contains("<td>PDB File</td>")) {
+		Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
+		Matcher matcher = pat.matcher(lines[i + 1]);
+		if (matcher.find()) {
+		    String structureAddress = matcher.group(1);
+		    structureAddress = structureAddress
+			    .replaceAll("&amp;", "&");
+		    structure3DURL = new URL(structureAddress);
+		}
+	    }
 
 	}
 
-	/**
-	 * This method retrieves the details about HMDB compound
-	 * 
-	 */
-	public DBCompound getCompound(String ID) throws IOException {
-
-		URL entryURL = new URL(hmdbEntryAddress + ID);
-
-		String metaboCard = InetUtils.retrieveData(entryURL);
-		String lines[] = metaboCard.split("\n");
-
-		String compoundName = null;
-		String compoundFormula = null;
-		URL structure2DURL = null;
-		URL structure3DURL = null;
-
-		for (int i = 0; i < lines.length - 1; i++) {
-
-			if (lines[i].contains("<td>Common Name</td>")) {
-				Pattern pat = Pattern
-						.compile("<td><strong>([^<]+)</strong></td>");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					compoundName = matcher.group(1);
-				}
-			}
-
-			if (lines[i].contains("<td>Chemical Formula</td>")) {
-				Pattern pat = Pattern.compile("<td>(.+)</td>");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					String htmlFormula = matcher.group(1);
-					compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
-				}
-			}
-
-			if (lines[i].contains("<td>SDF File</td>")) {
-				Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					String structureAddress = matcher.group(1);
-					structureAddress = structureAddress
-							.replaceAll("&amp;", "&");
-					structure2DURL = new URL(structureAddress);
-				}
-			}
-
-			if (lines[i].contains("<td>PDB File</td>")) {
-				Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-				Matcher matcher = pat.matcher(lines[i + 1]);
-				if (matcher.find()) {
-					String structureAddress = matcher.group(1);
-					structureAddress = structureAddress
-							.replaceAll("&amp;", "&");
-					structure3DURL = new URL(structureAddress);
-				}
-			}
-
-		}
-
-		if (compoundName == null) {
-			throw (new IOException("Could not parse compound name"));
-		}
-
-		DBCompound newCompound = new DBCompound(OnlineDatabase.HMDB, ID,
-				compoundName, compoundFormula, entryURL, structure2DURL,
-				structure3DURL);
-
-		return newCompound;
-
+	if (compoundName == null) {
+	    throw (new IOException("Could not parse compound name"));
 	}
+
+	DBCompound newCompound = new DBCompound(OnlineDatabase.HMDB, ID,
+		compoundName, compoundFormula, entryURL, structure2DURL,
+		structure3DURL);
+
+	return newCompound;
+
+    }
 }

@@ -19,6 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.spectra;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.RawDataFile;
@@ -26,129 +30,106 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 /**
- * Spectrum visualizer using JFreeChart library
+ * Spectrum visualizer
  */
 public class SpectraVisualizerModule implements MZmineProcessingModule {
 
-	private static SpectraVisualizerModule myInstance;
+    private static final String MODULE_NAME = "Spectra visualizer";
+    private static final String MODULE_DESCRIPTION = "Spectra visualizer."; // TODO
 
-	private SpectraVisualizerParameters parameters = new SpectraVisualizerParameters();
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	public SpectraVisualizerModule() {
-		myInstance = this;
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	RawDataFile dataFiles[] = parameters.getParameter(
+		SpectraVisualizerParameters.dataFiles).getValue();
+
+	if ((dataFiles == null) || (dataFiles.length == 0)) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "Please select raw data file");
+	    return null;
 	}
 
-	public static void setupNewSpectrumVisualizer(RawDataFile dataFile) {
+	int scanNumber = parameters.getParameter(
+		SpectraVisualizerParameters.scanNumber).getValue();
 
-		myInstance.parameters
-				.getParameter(ThreeDVisualizerParameters.dataFiles).setValue(
-						new RawDataFile[] { dataFile });
+	showNewSpectrumWindow(dataFiles[0], scanNumber);
 
-		ExitCode exitCode = myInstance.parameters.showSetupDialog();
+	return ExitCode.OK;
+    }
 
-		if (exitCode == ExitCode.OK)
-			myInstance.runModule(myInstance.parameters.clone());
+    
+    public static SpectraVisualizerWindow showNewSpectrumWindow(
+	    RawDataFile dataFile, int scanNumber) {
+	return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
+    }
 
+    public static SpectraVisualizerWindow showNewSpectrumWindow(
+	    RawDataFile dataFile, int scanNumber, ChromatographicPeak peak) {
+	return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
+    }
+
+    public static SpectraVisualizerWindow showNewSpectrumWindow(
+	    RawDataFile dataFile, int scanNumber, IsotopePattern detectedPattern) {
+	return showNewSpectrumWindow(dataFile, scanNumber, null,
+		detectedPattern, null);
+    }
+
+    public static SpectraVisualizerWindow showNewSpectrumWindow(
+	    RawDataFile dataFile, int scanNumber, ChromatographicPeak peak,
+	    IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
+
+	Scan scan = dataFile.getScan(scanNumber);
+
+	if (scan == null) {
+	    MZmineCore.getDesktop().displayErrorMessage(
+		    "Raw data file " + dataFile + " does not contain scan #"
+			    + scanNumber);
+	    return null;
 	}
 
-	public static SpectraVisualizerWindow showNewSpectrumWindow(
-			RawDataFile dataFile, int scanNumber) {
-		return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
-	}
+	SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
+		dataFile);
+	newWindow.loadRawData(scan);
 
-	public static SpectraVisualizerWindow showNewSpectrumWindow(
-			RawDataFile dataFile, int scanNumber, ChromatographicPeak peak) {
-		return showNewSpectrumWindow(dataFile, scanNumber, peak, null, null);
-	}
+	if (peak != null)
+	    newWindow.loadSinglePeak(peak);
 
-	public static SpectraVisualizerWindow showNewSpectrumWindow(
-			RawDataFile dataFile, int scanNumber, IsotopePattern detectedPattern) {
-		return showNewSpectrumWindow(dataFile, scanNumber, null,
-				detectedPattern, null);
-	}
+	if (detectedPattern != null)
+	    newWindow.loadIsotopes(detectedPattern);
 
-	public static SpectraVisualizerWindow showNewSpectrumWindow(
-			RawDataFile dataFile, int scanNumber, ChromatographicPeak peak,
-			IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
+	if (predictedPattern != null)
+	    newWindow.loadIsotopes(predictedPattern);
 
-		Scan scan = dataFile.getScan(scanNumber);
+	MZmineCore.getDesktop().addInternalFrame(newWindow);
 
-		if (scan == null) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Raw data file " + dataFile + " does not contain scan #"
-							+ scanNumber);
-			return null;
-		}
+	return newWindow;
 
-		SpectraVisualizerWindow newWindow = new SpectraVisualizerWindow(
-				dataFile);
-		newWindow.loadRawData(scan);
+    }
 
-		if (peak != null)
-			newWindow.loadSinglePeak(peak);
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+    }
 
-		if (detectedPattern != null)
-			newWindow.loadIsotopes(detectedPattern);
-
-		if (predictedPattern != null)
-			newWindow.loadIsotopes(predictedPattern);
-
-		MZmineCore.getDesktop().addInternalFrame(newWindow);
-
-		return newWindow;
-
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#toString()
-	 */
-	public String toString() {
-		return "Spectra visualizer";
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getParameterSet()
-	 */
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
-
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public void setParameters(ParameterSet newParameters) {
-		parameters = (SpectraVisualizerParameters) newParameters;
-	}
-
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
-
-		RawDataFile dataFiles[] = parameters.getParameter(
-				SpectraVisualizerParameters.dataFiles).getValue();
-		
-		if ((dataFiles == null) || (dataFiles.length == 0)) {
-			MZmineCore.getDesktop().displayErrorMessage(
-					"Please select raw data file");
-			return null;
-		}
-
-		int scanNumber = parameters.getParameter(
-				SpectraVisualizerParameters.scanNumber).getValue();
-
-		showNewSpectrumWindow(dataFiles[0], scanNumber);
-
-		return null;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return SpectraVisualizerParameters.class;
+    }
 
 }

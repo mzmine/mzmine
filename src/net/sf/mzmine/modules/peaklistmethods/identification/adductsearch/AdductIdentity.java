@@ -37,8 +37,8 @@ public class AdductIdentity extends SimplePeakIdentity {
 	public AdductIdentity(PeakListRow originalPeakListRow,
 			PeakListRow adductPeakListRow, AdductType adduct) {
 		
-		super(adduct.getName() + " adduct of "
-		+ MZmineCore.getMZFormat().format(originalPeakListRow.getAverageMZ()) + " m/z");
+		super(adduct.toString() + " adduct of "
+		+ MZmineCore.getConfiguration().getMZFormat().format(originalPeakListRow.getAverageMZ()) + " m/z");
 		
 		this.originalPeakListRow = originalPeakListRow;
 		this.adductPeakListRow = adductPeakListRow;

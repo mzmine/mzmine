@@ -132,7 +132,7 @@ public class MZmineModulesList {
 	    DeconvolutionModule.class,
 	    ShapeModelerModule.class,
 	    PeakExtenderModule.class,
-            TargetedPeakDetectionModule.class,
+	    TargetedPeakDetectionModule.class,
 
 	    // Peak list filtering
 	    DuplicateFilterModule.class,
@@ -159,7 +159,6 @@ public class MZmineModulesList {
 	    AdductSearchModule.class,
 	    ComplexSearchModule.class,
 	    OnlineDBSearchModule.class,
-	    // MascotSearchModule.class,
 	    GPLipidSearchModule.class,
 	    NistMsSearchModule.class,
 

@@ -214,13 +214,13 @@ public class TICPlot extends ChartPanel {
 
         // Set the x-axis (retention time) properties.
         final NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
-        xAxis.setNumberFormatOverride(MZmineCore.getRTFormat());
+        xAxis.setNumberFormatOverride(MZmineCore.getConfiguration().getRTFormat());
         xAxis.setUpperMargin(AXIS_MARGINS);
         xAxis.setLowerMargin(AXIS_MARGINS);
 
         // Set the y-axis (intensity) properties.
         final NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setNumberFormatOverride(MZmineCore.getIntensityFormat());
+        yAxis.setNumberFormatOverride(MZmineCore.getConfiguration().getIntensityFormat());
 
         // Set default renderer properties.
         defaultRenderer = new TICPlotRenderer();

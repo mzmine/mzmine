@@ -42,12 +42,12 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpen
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.PeakListOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.RawDataFileOpenHandler_2_3;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_3.UserParameterOpenHandler_2_3;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.PeakListOpenHandler_2_5;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.RawDataFileOpenHandler_2_5;
-import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.PeakListOpenHandler_2_6;
-import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.RawDataFileOpenHandler_2_6;
-import net.sf.mzmine.modules.projectmethods.projectload.version_2_6.UserParameterOpenHandler_2_6;
+import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.UserParameterOpenHandler_2_5;
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
+import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -77,8 +77,9 @@ public class ProjectOpeningTask extends AbstractTask {
     // This hashtable maps stored IDs to raw data file objects
     private Hashtable<String, RawDataFile> dataFilesIDMap;
 
-    public ProjectOpeningTask(File openFile) {
-	this.openFile = openFile;
+    public ProjectOpeningTask(ParameterSet parameters) {
+	this.openFile = parameters.getParameter(
+		ProjectLoaderParameters.projectFile).getValue();
 	dataFilesIDMap = new Hashtable<String, RawDataFile>();
     }
 
@@ -281,16 +282,20 @@ public class ProjectOpeningTask extends AbstractTask {
 	}
 
 	// Check if the project version is 2.3 to 2.4
-	if ((projectMajorVersion == 2) && (projectMinorVersion < 5)) {
+	if ((projectMajorVersion == 2) && (projectMinorVersion <= 4)) {
 	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_3();
 	    peakListOpenHandler = new PeakListOpenHandler_2_3(dataFilesIDMap);
+	    userParameterOpenHandler = new UserParameterOpenHandler_2_3(
+		    newProject, dataFilesIDMap);
 	    return;
 	}
 
-	// Check if the project version is 2.5
-	if ((projectMajorVersion == 2) && (projectMinorVersion == 5)) {
+	// Check if the project version is 2.5 to 2.6
+	if ((projectMajorVersion == 2) && (projectMinorVersion <= 6)) {
 	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
 	    peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+	    userParameterOpenHandler = new UserParameterOpenHandler_2_5(
+		    newProject, dataFilesIDMap);
 	    return;
 	}
 
@@ -303,13 +308,13 @@ public class ProjectOpeningTask extends AbstractTask {
 		    + mzmineVersionString
 		    + " may result in errors or loss of information.";
 	    MZmineCore.getDesktop().displayMessage(warning);
-	}
 
-	// Default opening handler
-	rawDataFileOpenHandler = new RawDataFileOpenHandler_2_6();
-	peakListOpenHandler = new PeakListOpenHandler_2_6(dataFilesIDMap);
-	userParameterOpenHandler = new UserParameterOpenHandler_2_6(newProject,
-		dataFilesIDMap);
+	    // Default opening handler
+	    rawDataFileOpenHandler = new RawDataFileOpenHandler_2_5();
+	    peakListOpenHandler = new PeakListOpenHandler_2_5(dataFilesIDMap);
+	    userParameterOpenHandler = new UserParameterOpenHandler_2_5(
+		    newProject, dataFilesIDMap);
+	}
 
     }
 
@@ -336,7 +341,7 @@ public class ProjectOpeningTask extends AbstractTask {
 	fileStream.close();
 
 	try {
-	    MZmineCore.loadConfiguration(tempConfigFile);
+	    MZmineCore.getConfiguration().loadConfiguration(tempConfigFile);
 	} catch (Exception e) {
 	    logger.warning("Could not load configuration from the project: "
 		    + ExceptionUtils.exceptionToString(e));

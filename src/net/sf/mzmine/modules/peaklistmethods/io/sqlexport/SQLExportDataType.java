@@ -37,7 +37,7 @@ public enum SQLExportDataType {
 	this.hasAdditionalValue = hasAdditionalValue;
     }
 
-    public String toString() {
+    public String getName() {
 	return this.name;
     }
 

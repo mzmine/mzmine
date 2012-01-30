@@ -22,18 +22,18 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter noiseLevel = new DoubleParameter(
 			"Noise level",
 			"Intensities less than this value are interpreted as noise",
-			MZmineCore.getIntensityFormat());
+			MZmineCore.getConfiguration().getIntensityFormat());
 
 	public static final IntegerParameter scaleLevel = new IntegerParameter(
 			"Scale level",

@@ -44,10 +44,10 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.GridBagPanel;
 import net.sf.mzmine.util.components.HelpButton;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 /**
  * This class represents the parameter setup dialog to set the values of

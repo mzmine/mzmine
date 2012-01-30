@@ -20,6 +20,9 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot;
 
 import java.awt.Color;
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -29,50 +32,61 @@ import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzer
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
 public class LogratioPlotModule implements MZmineProcessingModule {
 
-	private ParameterSet parameters = new LogratioParameters();
+    private static final String MODULE_NAME = "Logratio analysis";
+    private static final String MODULE_DESCRIPTION = "Logratio analysis"; // TODO
 
-	public String toString() {
-		return "Logratio analysis";
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	PeakList peakLists[] = parameters.getParameter(CVParameters.peakLists)
+		.getValue();
+
+	for (PeakList pl : peakLists) {
+
+	    // Create dataset & paint scale
+	    AbstractXYZDataset dataset = new LogratioDataset(pl, parameters);
+	    InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
+	    paintScale.add(-1.00, new Color(0, 255, 0));
+	    paintScale.add(0.00, new Color(0, 0, 0));
+	    paintScale.add(1.00, new Color(255, 0, 0));
+
+	    // Create & show window
+	    RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
+		    paintScale);
+	    MZmineCore.getDesktop().addInternalFrame(window);
+
 	}
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+	return ExitCode.OK;
+    }
 
-	@Override
-	public Task[] runModule(ParameterSet parameters) {
+    @Override
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.DATAANALYSIS;
+    }
 
-		PeakList peakLists[] = parameters.getParameter(CVParameters.peakLists)
-				.getValue();
-
-		for (PeakList pl : peakLists) {
-
-			// Create dataset & paint scale
-			AbstractXYZDataset dataset = new LogratioDataset(pl, parameters);
-			InterpolatingLookupPaintScale paintScale = new InterpolatingLookupPaintScale();
-			paintScale.add(-1.00, new Color(0, 255, 0));
-			paintScale.add(0.00, new Color(0, 0, 0));
-			paintScale.add(1.00, new Color(255, 0, 0));
-
-			// Create & show window
-			RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
-					paintScale);
-			MZmineCore.getDesktop().addInternalFrame(window);
-
-		}
-
-		return null;
-	}
-
-	@Override
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.DATAANALYSIS;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return LogratioParameters.class;
+    }
 
 }

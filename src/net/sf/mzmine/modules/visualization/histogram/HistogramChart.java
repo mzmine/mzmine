@@ -170,16 +170,16 @@ public class HistogramChart extends ChartPanel{
 		NumberFormat formatter = null;
 		switch (dataType){
 		case AREA:
-			formatter = MZmineCore.getIntensityFormat();
+			formatter = MZmineCore.getConfiguration().getIntensityFormat();
 			break;
 		case MASS:
-			formatter = MZmineCore.getMZFormat();
+			formatter = MZmineCore.getConfiguration().getMZFormat();
 			break;
 		case HEIGHT:
-			formatter = MZmineCore.getIntensityFormat();
+			formatter = MZmineCore.getConfiguration().getIntensityFormat();
 			break;
 		case RT:
-			formatter = MZmineCore.getRTFormat();
+			formatter = MZmineCore.getConfiguration().getRTFormat();
 			break;
 		}
 		((NumberAxis)plot.getDomainAxis()).setNumberFormatOverride(formatter);

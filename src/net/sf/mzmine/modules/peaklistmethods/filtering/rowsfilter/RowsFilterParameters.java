@@ -20,12 +20,12 @@ package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.*;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.ExitCode;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -48,17 +48,17 @@ public class RowsFilterParameters extends SimpleParameterSet {
         public static final RangeParameter MZ_RANGE = new RangeParameter(
                 "m/z range",
                 "Permissible range of (average) m/z values per row",
-                MZmineCore.getMZFormat());
+                MZmineCore.getConfiguration().getMZFormat());
 
         public static final RangeParameter RT_RANGE = new RangeParameter(
                 "Retention time range",
                 "Permissible range of (average) retention times per row",
-                MZmineCore.getRTFormat());
+                MZmineCore.getConfiguration().getRTFormat());
         
         public static final RangeParameter PEAK_DURATION = new RangeParameter(
                 "Peak duration range",
                 "Permissible range of (average) peak durations per row",
-                MZmineCore.getRTFormat(),
+                MZmineCore.getConfiguration().getRTFormat(),
                 new Range(0.0, 10.0));
 
         public static final BooleanParameter GROUPS = new BooleanParameter(

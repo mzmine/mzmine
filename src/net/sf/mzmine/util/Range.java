@@ -209,7 +209,7 @@ public class Range {
 	 * 
 	 * @return This range as string
 	 */
-	public String toString() {
+	public String getName() {
 		return String.valueOf(min) + "~" + String.valueOf(max);
 	}
 

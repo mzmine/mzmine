@@ -19,38 +19,53 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.heatmaps;
 
+import java.util.Collection;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.util.ExitCode;
 
 public class HeatMapModule implements MZmineProcessingModule {
 
-	private HeatMapParameters parameters = new HeatMapParameters();
+    private static final String MODULE_NAME = "Heat map plot";
+    private static final String MODULE_DESCRIPTION = "Heat map plot.";
 
-	public ParameterSet getParameterSet() {
-		return parameters;
-	}
+    @Override
+    public String getName() {
+	return MODULE_NAME;
+    }
 
-	@Override
-	public String toString() {
-		return "Heat map plot";
-	}
+    @Override
+    public String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	public Task[] runModule(ParameterSet parameters) {
-		PeakList[] selectedDatasets = MZmineCore.getDesktop()
-				.getSelectedPeakLists();
-		HeatMapTask heatMapTask = new HeatMapTask(selectedDatasets[0],
-				parameters);
-		MZmineCore.getTaskController().addTask(heatMapTask);
-		return new Task[] { heatMapTask };
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+	PeakList[] selectedDatasets = MZmineCore.getDesktop()
+		.getSelectedPeakLists();
+	HeatMapTask heatMapTask = new HeatMapTask(selectedDatasets[0],
+		parameters);
+	tasks.add(heatMapTask);
+	return ExitCode.OK;
 
-	}
+    }
 
-	public MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.DATAANALYSIS;
-	}
+    public MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.DATAANALYSIS;
+    }
+
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return HeatMapParameters.class;
+    }
 
 }

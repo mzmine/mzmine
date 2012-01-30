@@ -28,36 +28,34 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public class CentroidMassDetector implements MassDetector {
 
-	private ParameterSet moduleParameters = new CentroidMassDetectorParameters();
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 
-	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+	double noiseLevel = parameters.getParameter(
+		CentroidMassDetectorParameters.noiseLevel).getValue();
 
-		double noiseLevel = parameters.getParameter(
-				CentroidMassDetectorParameters.noiseLevel).getValue();
+	ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
 
-		ArrayList<DataPoint> mzPeaks = new ArrayList<DataPoint>();
+	DataPoint dataPoints[] = scan.getDataPoints();
 
-		DataPoint dataPoints[] = scan.getDataPoints();
+	// Find possible mzPeaks
+	for (int j = 0; j < dataPoints.length; j++) {
 
-		// Find possible mzPeaks
-		for (int j = 0; j < dataPoints.length; j++) {
-
-			// Is intensity above the noise level?
-			if (dataPoints[j].getIntensity() >= noiseLevel) {
-				// Yes, then mark this index as mzPeak
-				mzPeaks.add(dataPoints[j]);
-			}
-		}
-		return mzPeaks.toArray(new DataPoint[0]);
+	    // Is intensity above the noise level?
+	    if (dataPoints[j].getIntensity() >= noiseLevel) {
+		// Yes, then mark this index as mzPeak
+		mzPeaks.add(dataPoints[j]);
+	    }
 	}
+	return mzPeaks.toArray(new DataPoint[0]);
+    }
 
-	public String toString() {
-		return "Centroid";
-	}
+    public String getName() {
+	return "Centroid";
+    }
 
-	@Override
-	public ParameterSet getParameterSet() {
-		return moduleParameters;
-	}
+    @Override
+    public Class<? extends ParameterSet> getParameterSetClass() {
+	return CentroidMassDetectorParameters.class;
+    }
 
 }

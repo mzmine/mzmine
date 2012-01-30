@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.SimpleParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
@@ -29,7 +29,7 @@ import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.util.dialogs.ExitCode;
+import net.sf.mzmine.util.ExitCode;
 
 public class RansacAlignerParameters extends SimpleParameterSet {
 
@@ -58,7 +58,7 @@ public class RansacAlignerParameters extends SimpleParameterSet {
 
 	public static final DoubleParameter Margin = new DoubleParameter(
 			"Threshold value",
-			"Threshold value (seconds) for determining when a data point fits a model (t)");
+			"Threshold value (minutes) for determining when a data point fits a model (t)");
 
 	public static final BooleanParameter Linear = new BooleanParameter(
 			"Linear model", "Switch between polynomial model or lineal model");
