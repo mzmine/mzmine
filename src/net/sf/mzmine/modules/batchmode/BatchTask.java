@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.Parameter;
@@ -114,19 +115,24 @@ public class BatchTask extends AbstractTask {
 	}
 
 	ArrayList<Task> currentStepTasks = new ArrayList<Task>();
-	ExitCode exitCode = method.runModule(batchStepParameters, currentStepTasks);
+	ExitCode exitCode = method.runModule(batchStepParameters,
+		currentStepTasks);
 
 	if (exitCode != ExitCode.OK) {
 	    setStatus(TaskStatus.ERROR);
 	    errorMessage = "Could not start batch step " + method.getName();
 	    return;
 	}
-	
+
 	// If current step didn't produce any tasks, continue with next step
 	if (currentStepTasks.isEmpty())
 	    return;
 
 	boolean allTasksFinished = false;
+
+	// Submit the tasks to the task controller for processing
+	MZmineCore.getTaskController().addTasks(
+		currentStepTasks.toArray(new Task[0]));
 
 	while (!allTasksFinished) {
 

@@ -28,10 +28,12 @@ import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.ExitCode;
 
 import org.w3c.dom.Document;
@@ -62,7 +64,16 @@ public class BatchModeModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
 	BatchTask newTask = new BatchTask(parameters);
-	tasks.add(newTask);
+
+	/*
+	 * We do not add the task to the tasks collection, but instead directly
+	 * submit to the task controller, because we need to set the priority to
+	 * HIGH. If the priority is not HIGH and the maximum number of
+	 * concurrent tasks is set to 1 in the MZmine preferences, then this
+	 * BatchTask would block all other tasks.
+	 */
+	MZmineCore.getTaskController().addTask(newTask, TaskPriority.HIGH);
+
 	return ExitCode.OK;
     }
 
