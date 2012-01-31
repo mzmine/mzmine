@@ -47,6 +47,7 @@ import net.sf.mzmine.project.impl.ProjectManagerImpl;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.util.ExitCode;
 
 /**
  * MZmine main class
@@ -206,8 +207,11 @@ public final class MZmineCore {
 		logger.severe("Cannot read batch file " + batchFile);
 		continue;
 	    }
-	    BatchModeModule.runBatch(batchFile);
-	    System.exit(0);
+	    ExitCode exitCode = BatchModeModule.runBatch(batchFile);
+	    if (exitCode == ExitCode.OK)
+		System.exit(0);
+	    else
+		System.exit(1);
 	}
 
     }

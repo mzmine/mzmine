@@ -34,6 +34,7 @@ import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExitCode;
 
 import org.w3c.dom.Document;
@@ -82,7 +83,7 @@ public class BatchModeModule implements MZmineProcessingModule {
 	return MZmineModuleCategory.PROJECT;
     }
 
-    public static void runBatch(File batchFile) {
+    public static ExitCode runBatch(File batchFile) {
 
 	logger.info("Running batch from file " + batchFile);
 
@@ -97,9 +98,14 @@ public class BatchModeModule implements MZmineProcessingModule {
 		    newQueue);
 	    Task batchTask = new BatchTask(parameters);
 	    batchTask.run();
-	} catch (Exception e) {
+	    if (batchTask.getStatus() == TaskStatus.FINISHED)
+		return ExitCode.OK;
+	    else
+		return ExitCode.ERROR;
+	} catch (Throwable e) {
 	    logger.log(Level.SEVERE, "Error while running batch", e);
 	    e.printStackTrace();
+	    return ExitCode.ERROR;
 	}
 
     }
