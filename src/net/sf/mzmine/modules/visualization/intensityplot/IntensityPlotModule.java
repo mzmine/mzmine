@@ -28,8 +28,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
@@ -79,12 +79,15 @@ public class IntensityPlotModule implements MZmineProcessingModule {
 	parameters.getParameter(IntensityPlotParameters.selectedRows).setValue(
 		rows);
 
-	Parameter projectParams[] = MZmineCore.getCurrentProject()
+	UserParameter projectParams[] = MZmineCore.getCurrentProject()
 		.getParameters();
 	Object xAxisSources[] = new Object[projectParams.length + 1];
 	xAxisSources[0] = IntensityPlotParameters.rawDataFilesOption;
-	System.arraycopy(projectParams, 0, xAxisSources, 1,
-		projectParams.length);
+
+	for (int i = 0; i < projectParams.length; i++) {
+	    xAxisSources[i + 1] = new ParameterWrapper(projectParams[i]);
+	}
+
 	parameters.getParameter(IntensityPlotParameters.xAxisValueSource)
 		.setChoices(xAxisSources);
 
