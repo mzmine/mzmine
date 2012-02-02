@@ -166,7 +166,10 @@ class CustomDBSearchTask extends AbstractTask {
 	    Range rtRange = rtTolerance.getToleranceRange(peakRow
 		    .getAverageRT());
 
-	    if (mzRange.contains(lineMZ) && rtRange.contains(lineRT)) {
+	    boolean mzMatches = (lineMZ == 0d) || mzRange.contains(lineMZ);
+	    boolean rtMatches = (lineRT == 0d) || rtRange.contains(lineRT);
+
+	    if (mzMatches && rtMatches) {
 
 		logger.finest("Found compound " + lineName + " (m/z " + lineMZ
 			+ ", RT " + lineRT + ")");
