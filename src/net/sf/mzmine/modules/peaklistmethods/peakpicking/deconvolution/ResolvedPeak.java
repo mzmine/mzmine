@@ -188,7 +188,7 @@ public class ResolvedPeak implements ChromatographicPeak {
 	 * 
 	 * @return String information
 	 */
-	public String getName() {
+	public String toString() {
 		return PeakUtils.peakToString(this);
 	}
 
