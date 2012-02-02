@@ -64,232 +64,232 @@ import net.sf.mzmine.util.components.PercentageCellRenderer;
 
 public class ResultWindow extends JInternalFrame implements ActionListener {
 
-	private final JTable resultsTable;
-	private final ResultTableModel resultsTableModel;
-	private final TableRowSorter<ResultTableModel> resultsTableSorter;
-	private final PeakListRow peakListRow;
-	private final Task searchTask;
-	private final String title;
+    private final JTable resultsTable;
+    private final ResultTableModel resultsTableModel;
+    private final TableRowSorter<ResultTableModel> resultsTableSorter;
+    private final PeakListRow peakListRow;
+    private final Task searchTask;
+    private final String title;
 
-	public ResultWindow(String title, PeakListRow peakListRow,
-			double searchedMass, int charge, Task searchTask) {
+    public ResultWindow(String title, PeakListRow peakListRow,
+	    double searchedMass, int charge, Task searchTask) {
 
-		super(title, true, true, true, true);
+	super(title, true, true, true, true);
 
-		this.title = title;
-		this.peakListRow = peakListRow;
-		this.searchTask = searchTask;
+	this.title = title;
+	this.peakListRow = peakListRow;
+	this.searchTask = searchTask;
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
+	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	setBackground(Color.white);
 
-		JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
-		pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+	JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
+	pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		pnlLabelsAndList.add(new JLabel("List of possible formulas"),
-				BorderLayout.NORTH);
+	pnlLabelsAndList.add(new JLabel("List of possible formulas"),
+		BorderLayout.NORTH);
 
-		resultsTableModel = new ResultTableModel(searchedMass);
-		resultsTable = new JTable();
-		resultsTable.setModel(resultsTableModel);
-		resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		resultsTable.getTableHeader().setReorderingAllowed(false);
+	resultsTableModel = new ResultTableModel(searchedMass);
+	resultsTable = new JTable();
+	resultsTable.setModel(resultsTableModel);
+	resultsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	resultsTable.getTableHeader().setReorderingAllowed(false);
 
-		resultsTableSorter = new TableRowSorter<ResultTableModel>(
-				resultsTableModel);
+	resultsTableSorter = new TableRowSorter<ResultTableModel>(
+		resultsTableModel);
 
-		// set descending order by isotope score
-		resultsTableSorter.toggleSortOrder(3);
-		resultsTableSorter.toggleSortOrder(3);
+	// set descending order by isotope score
+	resultsTableSorter.toggleSortOrder(3);
+	resultsTableSorter.toggleSortOrder(3);
 
-		resultsTable.setRowSorter(resultsTableSorter);
+	resultsTable.setRowSorter(resultsTableSorter);
 
-		TableColumnModel columnModel = resultsTable.getColumnModel();
-		DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
-		renderer.setHorizontalAlignment(SwingConstants.LEFT);
-		resultsTable.setDefaultRenderer(Double.class, renderer);
-		columnModel.getColumn(3).setCellRenderer(new PercentageCellRenderer(1));
-		columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer(1));
+	TableColumnModel columnModel = resultsTable.getColumnModel();
+	DefaultTableCellRenderer renderer = new DefaultTableCellRenderer();
+	renderer.setHorizontalAlignment(SwingConstants.LEFT);
+	resultsTable.setDefaultRenderer(Double.class, renderer);
+	columnModel.getColumn(3).setCellRenderer(new PercentageCellRenderer(1));
+	columnModel.getColumn(4).setCellRenderer(new PercentageCellRenderer(1));
 
-		JScrollPane listScroller = new JScrollPane(resultsTable);
-		listScroller.setPreferredSize(new Dimension(350, 100));
-		listScroller.setAlignmentX(LEFT_ALIGNMENT);
-		JPanel listPanel = new JPanel();
-		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
-		listPanel.add(listScroller);
-		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
+	JScrollPane listScroller = new JScrollPane(resultsTable);
+	listScroller.setPreferredSize(new Dimension(350, 100));
+	listScroller.setAlignmentX(LEFT_ALIGNMENT);
+	JPanel listPanel = new JPanel();
+	listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
+	listPanel.add(listScroller);
+	listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+	pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
-		JPanel pnlButtons = new JPanel();
-		pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+	JPanel pnlButtons = new JPanel();
+	pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+	pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
-		GUIUtils.addButton(pnlButtons, "Copy to clipboard", null, this, "COPY");
-		GUIUtils.addButton(pnlButtons, "Export all", null, this, "EXPORT");
-		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
-				"SHOW_ISOTOPES");
-		GUIUtils.addButton(pnlButtons, "Show MS/MS", null, this, "SHOW_MSMS");
+	GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+	GUIUtils.addButton(pnlButtons, "Copy to clipboard", null, this, "COPY");
+	GUIUtils.addButton(pnlButtons, "Export all", null, this, "EXPORT");
+	GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
+		"SHOW_ISOTOPES");
+	GUIUtils.addButton(pnlButtons, "Show MS/MS", null, this, "SHOW_MSMS");
 
-		setLayout(new BorderLayout());
-		setSize(500, 200);
-		add(pnlLabelsAndList, BorderLayout.CENTER);
-		add(pnlButtons, BorderLayout.SOUTH);
-		pack();
+	setLayout(new BorderLayout());
+	setSize(500, 200);
+	add(pnlLabelsAndList, BorderLayout.CENTER);
+	add(pnlButtons, BorderLayout.SOUTH);
+	pack();
+
+    }
+
+    public void actionPerformed(ActionEvent e) {
+
+	String command = e.getActionCommand();
+
+	if (command.equals("EXPORT")) {
+
+	    // Ask for filename
+	    JFileChooser fileChooser = new JFileChooser();
+	    fileChooser.setApproveButtonText("Export");
+
+	    int result = fileChooser.showSaveDialog(MZmineCore.getDesktop()
+		    .getMainFrame());
+	    if (result != JFileChooser.APPROVE_OPTION)
+		return;
+	    File outputFile = fileChooser.getSelectedFile();
+	    try {
+		FileWriter fileWriter = new FileWriter(outputFile);
+		BufferedWriter writer = new BufferedWriter(fileWriter);
+		writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
+		writer.newLine();
+
+		for (int row = 0; row < resultsTable.getRowCount(); row++) {
+		    int modelRow = resultsTable.convertRowIndexToModel(row);
+		    ResultFormula formula = resultsTableModel
+			    .getFormula(modelRow);
+		    writer.write(formula.getFormulaAsString());
+		    writer.write(",");
+		    writer.write(String.valueOf(formula.getExactMass()));
+		    writer.write(",");
+		    if (formula.getRDBE() != null)
+			writer.write(String.valueOf(formula.getRDBE()));
+		    writer.write(",");
+		    if (formula.getIsotopeScore() != null)
+			writer.write(String.valueOf(formula.getIsotopeScore()));
+		    writer.write(",");
+		    if (formula.getMSMSScore() != null)
+			writer.write(String.valueOf(formula.getMSMSScore()));
+		    writer.newLine();
+		}
+
+		writer.close();
+
+	    } catch (Exception ex) {
+		MZmineCore.getDesktop().displayErrorMessage(
+			"Error writing to file " + outputFile + ": "
+				+ ExceptionUtils.exceptionToString(ex));
+	    }
+	    return;
 
 	}
 
-	public void actionPerformed(ActionEvent e) {
+	// The following actions require a single row to be selected
 
-		String command = e.getActionCommand();
+	int index = resultsTable.getSelectedRow();
 
-		if (command.equals("EXPORT")) {
+	if (index < 0) {
+	    MZmineCore.getDesktop().displayMessage("Please select one result");
+	    return;
+	}
+	index = resultsTable.convertRowIndexToModel(index);
+	ResultFormula formula = resultsTableModel.getFormula(index);
 
-			// Ask for filename
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setApproveButtonText("Export");
+	if (command.equals("ADD")) {
 
-			int result = fileChooser.showSaveDialog(MZmineCore.getDesktop()
-					.getMainFrame());
-			if (result != JFileChooser.APPROVE_OPTION)
-				return;
-			File outputFile = fileChooser.getSelectedFile();
-			try {
-				FileWriter fileWriter = new FileWriter(outputFile);
-				BufferedWriter writer = new BufferedWriter(fileWriter);
-				writer.write("Formula,Mass,RDBE,Isotope pattern score,MS/MS score");
-				writer.newLine();
+	    SimplePeakIdentity newIdentity = new SimplePeakIdentity(
+		    formula.getFormulaAsString());
+	    peakListRow.addPeakIdentity(newIdentity, false);
 
-				for (int row = 0; row < resultsTable.getRowCount(); row++) {
-					int modelRow = resultsTable.convertRowIndexToModel(row);
-					ResultFormula formula = resultsTableModel
-							.getFormula(modelRow);
-					writer.write(formula.getFormulaAsString());
-					writer.write(",");
-					writer.write(String.valueOf(formula.getExactMass()));
-					writer.write(",");
-					if (formula.getRDBE() != null)
-						writer.write(String.valueOf(formula.getRDBE()));
-					writer.write(",");
-					if (formula.getIsotopeScore() != null)
-						writer.write(String.valueOf(formula.getIsotopeScore()));
-					writer.write(",");
-					if (formula.getMSMSScore() != null)
-						writer.write(String.valueOf(formula.getMSMSScore()));
-					writer.newLine();
-				}
+	    // Notify the GUI about the change in the project
+	    MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
+		    false);
 
-				writer.close();
+	    // Repaint the window to reflect the change in the peak list
+	    MZmineCore.getDesktop().getMainFrame().repaint();
 
-			} catch (Exception ex) {
-				MZmineCore.getDesktop().displayErrorMessage(
-						"Error writing to file " + outputFile + ": "
-								+ ExceptionUtils.exceptionToString(ex));
-			}
-			return;
+	    dispose();
+	}
 
-		}
+	if (command.equals("COPY")) {
 
-		// The following actions require a single row to be selected
-
-		int index = resultsTable.getSelectedRow();
-
-		if (index < 0) {
-			MZmineCore.getDesktop().displayMessage("Please select one result");
-			return;
-		}
-		index = resultsTable.convertRowIndexToModel(index);
-		ResultFormula formula = resultsTableModel.getFormula(index);
-
-		if (command.equals("ADD")) {
-
-			SimplePeakIdentity newIdentity = new SimplePeakIdentity(
-					formula.getFormulaAsString());
-			peakListRow.addPeakIdentity(newIdentity, false);
-
-			// Notify the GUI about the change in the project
-			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
-					false);
-
-			// Repaint the window to reflect the change in the peak list
-			MZmineCore.getDesktop().getMainFrame().repaint();
-
-			dispose();
-		}
-
-		if (command.equals("COPY")) {
-
-			String formulaString = formula.getFormulaAsString();
-			StringSelection stringSelection = new StringSelection(formulaString);
-			Clipboard clipboard = Toolkit.getDefaultToolkit()
-					.getSystemClipboard();
-			clipboard.setContents(stringSelection, null);
-
-		}
-
-		if (command.equals("SHOW_ISOTOPES")) {
-
-			IsotopePattern predictedPattern = formula.getPredictedIsotopes();
-
-			if (predictedPattern == null)
-				return;
-
-			ChromatographicPeak peak = peakListRow.getBestPeak();
-
-			RawDataFile dataFile = peak.getDataFile();
-			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
-					null, peak.getIsotopePattern(), predictedPattern);
-
-		}
-
-		if (command.equals("SHOW_MSMS")) {
-
-			ChromatographicPeak bestPeak = peakListRow.getBestPeak();
-
-			RawDataFile dataFile = bestPeak.getDataFile();
-			int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
-
-			if (msmsScanNumber < 1)
-				return;
-
-			SpectraVisualizerWindow msmsPlot = SpectraVisualizerModule
-					.showNewSpectrumWindow(dataFile, msmsScanNumber);
-
-			if (msmsPlot == null)
-				return;
-			Map<DataPoint, String> annotation = formula.getMSMSannotation();
-
-			if (annotation == null)
-				return;
-			msmsPlot.addAnnotation(annotation);
-
-		}
+	    String formulaString = formula.getFormulaAsString();
+	    StringSelection stringSelection = new StringSelection(formulaString);
+	    Clipboard clipboard = Toolkit.getDefaultToolkit()
+		    .getSystemClipboard();
+	    clipboard.setContents(stringSelection, null);
 
 	}
 
-	public void addNewListItem(final ResultFormula formula) {
+	if (command.equals("SHOW_ISOTOPES")) {
 
-		// Update the model in swing thread to avoid exceptions
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				resultsTableModel.addElement(formula);
-				setTitle(title + ", " + resultsTableModel.getRowCount()
-						+ " formulas found");
-			}
-		});
-	}
+	    IsotopePattern predictedPattern = formula.getPredictedIsotopes();
 
-	public void dispose() {
+	    if (predictedPattern == null)
+		return;
 
-		// Cancel the search task if it is still running
-		TaskStatus searchStatus = searchTask.getStatus();
-		if ((searchStatus == TaskStatus.WAITING)
-				|| (searchStatus == TaskStatus.PROCESSING))
-			searchTask.cancel();
+	    ChromatographicPeak peak = peakListRow.getBestPeak();
 
-		super.dispose();
+	    RawDataFile dataFile = peak.getDataFile();
+	    int scanNumber = peak.getRepresentativeScanNumber();
+	    SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
+		    null, peak.getIsotopePattern(), predictedPattern);
 
 	}
+
+	if (command.equals("SHOW_MSMS")) {
+
+	    ChromatographicPeak bestPeak = peakListRow.getBestPeak();
+
+	    RawDataFile dataFile = bestPeak.getDataFile();
+	    int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
+
+	    if (msmsScanNumber < 1)
+		return;
+
+	    SpectraVisualizerWindow msmsPlot = SpectraVisualizerModule
+		    .showNewSpectrumWindow(dataFile, msmsScanNumber);
+
+	    if (msmsPlot == null)
+		return;
+	    Map<DataPoint, String> annotation = formula.getMSMSannotation();
+
+	    if (annotation == null)
+		return;
+	    msmsPlot.addAnnotation(annotation);
+
+	}
+
+    }
+
+    public void addNewListItem(final ResultFormula formula) {
+
+	// Update the model in swing thread to avoid exceptions
+	SwingUtilities.invokeLater(new Runnable() {
+	    public void run() {
+		resultsTableModel.addElement(formula);
+		setTitle(title + ", " + resultsTableModel.getRowCount()
+			+ " formulas found");
+	    }
+	});
+    }
+
+    public void dispose() {
+
+	// Cancel the search task if it is still running
+	TaskStatus searchStatus = searchTask.getStatus();
+	if ((searchStatus == TaskStatus.WAITING)
+		|| (searchStatus == TaskStatus.PROCESSING))
+	    searchTask.cancel();
+
+	super.dispose();
+
+    }
 
 }

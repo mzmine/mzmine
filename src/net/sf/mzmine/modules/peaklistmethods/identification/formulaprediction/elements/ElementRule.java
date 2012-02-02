@@ -30,92 +30,92 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class ElementRule {
 
-	private String elementSymbol;
-	private IIsotope elementObject;
-	private double elementMass;
-	private int minCount, maxCount;
+    private String elementSymbol;
+    private IIsotope elementObject;
+    private double elementMass;
+    private int minCount, maxCount;
 
-	public ElementRule(String elementSymbol, int min, int max) {
-		initRule(elementSymbol, min, max);
+    public ElementRule(String elementSymbol, int min, int max) {
+	initRule(elementSymbol, min, max);
+    }
+
+    public ElementRule(String stringRepresentation) {
+
+	Pattern p = Pattern.compile("([a-zA-Z]+)\\[([0-9]+)-([0-9]+)\\]");
+	Matcher m = p.matcher(stringRepresentation);
+	if (!m.matches()) {
+	    throw new IllegalArgumentException("Invalid element rule format: "
+		    + stringRepresentation);
 	}
 
-	public ElementRule(String stringRepresentation) {
+	elementSymbol = m.group(1);
+	minCount = Integer.parseInt(m.group(2));
+	maxCount = Integer.parseInt(m.group(3));
 
-		Pattern p = Pattern.compile("([a-zA-Z]+)\\[([0-9]+)-([0-9]+)\\]");
-		Matcher m = p.matcher(stringRepresentation);
-		if (!m.matches()) {
-			throw new IllegalArgumentException("Invalid element rule format: "
-					+ stringRepresentation);
-		}
+	if (minCount < 0)
+	    minCount = 0;
+	if (maxCount < 0)
+	    maxCount = 0;
 
-		elementSymbol = m.group(1);
-		minCount = Integer.parseInt(m.group(2));
-		maxCount = Integer.parseInt(m.group(3));
+	initRule(elementSymbol, minCount, maxCount);
 
-		if (minCount < 0)
-			minCount = 0;
-		if (maxCount < 0)
-			maxCount = 0;
+    }
 
-		initRule(elementSymbol, minCount, maxCount);
+    private void initRule(String elementSymbol, int min, int max) {
 
+	this.elementSymbol = elementSymbol;
+	this.minCount = min;
+	this.maxCount = max;
+
+	try {
+	    // Use CDK to obtain element's mass
+	    IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	    IsotopeFactory ifac = IsotopeFactory.getInstance(builder);
+	    elementObject = ifac.getMajorIsotope(elementSymbol);
+	    elementMass = elementObject.getExactMass();
+	} catch (IOException e) {
+	    // This can never happen
+	    e.printStackTrace();
 	}
+    }
 
-	private void initRule(String elementSymbol, int min, int max) {
+    public String getElementSymbol() {
+	return elementSymbol;
+    }
 
-		this.elementSymbol = elementSymbol;
-		this.minCount = min;
-		this.maxCount = max;
+    public IIsotope getElementObject() {
+	return elementObject;
+    }
 
-		try {
-			// Use CDK to obtain element's mass
-			IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-			IsotopeFactory ifac = IsotopeFactory.getInstance(builder);
-			elementObject = ifac.getMajorIsotope(elementSymbol);
-			elementMass = elementObject.getExactMass();
-		} catch (IOException e) {
-			// This can never happen
-			e.printStackTrace();
-		}
-	}
+    public int getMinCount() {
+	return minCount;
+    }
 
-	public String getElementSymbol() {
-		return elementSymbol;
-	}
+    public void setMinCount(int min) {
+	this.minCount = min;
+    }
 
-	public IIsotope getElementObject() {
-		return elementObject;
-	}
+    public int getMaxCount() {
+	return maxCount;
+    }
 
-	public int getMinCount() {
-		return minCount;
-	}
+    public void setMaxCount(int max) {
+	this.maxCount = max;
+    }
 
-	public void setMinCount(int min) {
-		this.minCount = min;
-	}
+    public double getMass() {
+	return elementMass;
+    }
 
-	public int getMaxCount() {
-		return maxCount;
-	}
+    public boolean equals(Object o) {
+	if (!(o instanceof ElementRule))
+	    return false;
+	ElementRule otherRule = (ElementRule) o;
+	return elementSymbol.equals(otherRule.elementSymbol);
+    }
 
-	public void setMaxCount(int max) {
-		this.maxCount = max;
-	}
-
-	public double getMass() {
-		return elementMass;
-	}
-
-	public boolean equals(Object o) {
-		if (!(o instanceof ElementRule))
-			return false;
-		ElementRule otherRule = (ElementRule) o;
-		return elementSymbol.equals(otherRule.elementSymbol);
-	}
-
-	public String getName() {
-		return elementSymbol + "[" + minCount + "-" + maxCount + "]";
-	}
+    public String toString() {
+	return elementSymbol + "[" + minCount + "-" + maxCount + "]";
+    }
 
 }

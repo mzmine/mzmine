@@ -31,86 +31,86 @@ import org.w3c.dom.Element;
  * 
  */
 public class ElementsParameter implements
-		UserParameter<String, ElementsTableComponent> {
+	UserParameter<String, ElementsTableComponent> {
 
-	private String name, description;
-	private String value;
+    private String name, description;
+    private String value;
 
-	public ElementsParameter(String name, String description) {
-		this.name = name;
-		this.description = description;
+    public ElementsParameter(String name, String description) {
+	this.name = name;
+	this.description = description;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
+
+    @Override
+    public ElementsTableComponent createEditingComponent() {
+	ElementsTableComponent editor = new ElementsTableComponent();
+	editor.setElementsFromString(value);
+	return editor;
+    }
+
+    @Override
+    public ElementsParameter clone() {
+	ElementsParameter copy = new ElementsParameter(name, description);
+	copy.value = value;
+	return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(ElementsTableComponent component) {
+	value = component.getElementsAsString();
+    }
+
+    @Override
+    public void setValueToComponent(ElementsTableComponent component,
+	    String newValue) {
+	component.setElementsFromString(newValue);
+    }
+
+    @Override
+    public String getValue() {
+	return value;
+    }
+
+    @Override
+    public void setValue(String newValue) {
+	this.value = newValue;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if ((value == null) || (value.trim().length() == 0)) {
+	    errorMessages.add("Please set the chemical elements");
+	    return false;
 	}
-
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
-
-	@Override
-	public ElementsTableComponent createEditingComponent() {
-		ElementsTableComponent editor = new ElementsTableComponent();
-		editor.setElementsFromString(value);
-		return editor;
-	}
-
-	@Override
-	public ElementsParameter clone() {
-		ElementsParameter copy = new ElementsParameter(name, description);
-		copy.value = value;
-		return copy;
-	}
-
-	@Override
-	public void setValueFromComponent(ElementsTableComponent component) {
-		value = component.getElementsAsString();
-	}
-
-	@Override
-	public void setValueToComponent(ElementsTableComponent component,
-			String newValue) {
-		component.setElementsFromString(newValue);
-	}
-
-	@Override
-	public String getValue() {
-		return value;
-	}
-
-	@Override
-	public void setValue(String newValue) {
-		this.value = newValue;
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		value = xmlElement.getTextContent();
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value);
-	}
-
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if ((value == null) || (value.trim().length() == 0)) {
-			errorMessages.add("Please set the chemical elements");
-			return false;
-		}
-		return true;
-	}
+	return true;
+    }
 
 }
