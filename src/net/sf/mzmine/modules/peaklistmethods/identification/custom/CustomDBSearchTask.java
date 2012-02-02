@@ -38,155 +38,153 @@ import net.sf.mzmine.util.Range;
 
 import com.Ostermiller.util.CSVParser;
 
-/**
- * 
- */
 class CustomDBSearchTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakList peakList;
+    private PeakList peakList;
 
-	private String[][] databaseValues;
-	private int finishedLines = 0;
+    private String[][] databaseValues;
+    private int finishedLines = 0;
 
-	private File dataBaseFile;
-	private String fieldSeparator;
-	private FieldItem[] fieldOrder;
-	private boolean ignoreFirstLine;
-	private MZTolerance mzTolerance;
-	private RTTolerance rtTolerance;
-	private ParameterSet parameters;
+    private File dataBaseFile;
+    private String fieldSeparator;
+    private FieldItem[] fieldOrder;
+    private boolean ignoreFirstLine;
+    private MZTolerance mzTolerance;
+    private RTTolerance rtTolerance;
+    private ParameterSet parameters;
 
-	CustomDBSearchTask(PeakList peakList, ParameterSet parameters) {
+    CustomDBSearchTask(PeakList peakList, ParameterSet parameters) {
 
-		this.peakList = peakList;
-		this.parameters = parameters;
+	this.peakList = peakList;
+	this.parameters = parameters;
 
-		dataBaseFile = parameters.getParameter(
-				CustomDBSearchParameters.dataBaseFile).getValue();
-		fieldSeparator = parameters.getParameter(
-				CustomDBSearchParameters.fieldSeparator).getValue();
+	dataBaseFile = parameters.getParameter(
+		CustomDBSearchParameters.dataBaseFile).getValue();
+	fieldSeparator = parameters.getParameter(
+		CustomDBSearchParameters.fieldSeparator).getValue();
 
-		fieldOrder = parameters.getParameter(
-				CustomDBSearchParameters.fieldOrder).getValue();
+	fieldOrder = parameters.getParameter(
+		CustomDBSearchParameters.fieldOrder).getValue();
 
-		ignoreFirstLine = parameters.getParameter(
-				CustomDBSearchParameters.ignoreFirstLine).getValue();
-		mzTolerance = parameters.getParameter(
-				CustomDBSearchParameters.mzTolerance).getValue();
-		rtTolerance = parameters.getParameter(
-				CustomDBSearchParameters.rtTolerance).getValue();
+	ignoreFirstLine = parameters.getParameter(
+		CustomDBSearchParameters.ignoreFirstLine).getValue();
+	mzTolerance = parameters.getParameter(
+		CustomDBSearchParameters.mzTolerance).getValue();
+	rtTolerance = parameters.getParameter(
+		CustomDBSearchParameters.rtTolerance).getValue();
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (databaseValues == null)
-			return 0;
-		return ((double) finishedLines) / databaseValues.length;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+	if (databaseValues == null)
+	    return 0;
+	return ((double) finishedLines) / databaseValues.length;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Peak identification of " + peakList + " using database "
-				+ dataBaseFile;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+	return "Peak identification of " + peakList + " using database "
+		+ dataBaseFile;
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
 
-		setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
+	try {
+	    // read database contents in memory
+	    FileReader dbFileReader = new FileReader(dataBaseFile);
+	    databaseValues = CSVParser.parse(dbFileReader,
+		    fieldSeparator.charAt(0));
+	    if (ignoreFirstLine)
+		finishedLines++;
+	    for (; finishedLines < databaseValues.length; finishedLines++) {
 		try {
-			// read database contents in memory
-			FileReader dbFileReader = new FileReader(dataBaseFile);
-			databaseValues = CSVParser.parse(dbFileReader,
-					fieldSeparator.charAt(0));
-			if (ignoreFirstLine)
-				finishedLines++;
-			for (; finishedLines < databaseValues.length; finishedLines++) {
-				try {
-					processOneLine(databaseValues[finishedLines]);
-				} catch (Exception e) {
-					// ingore incorrect lines
-				}
-			}
-			dbFileReader.close();
-
+		    processOneLine(databaseValues[finishedLines]);
 		} catch (Exception e) {
-			logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
-			setStatus(TaskStatus.ERROR);
-			errorMessage = e.toString();
-			return;
+		    // ingore incorrect lines
 		}
+	    }
+	    dbFileReader.close();
 
-		// Add task description to peakList
-		peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-				"Peak identification using database " + dataBaseFile,
-				parameters));
-		
-		// Repaint the window to reflect the changes in the peak list
-		MZmineCore.getDesktop().getMainFrame().repaint();
-
-		setStatus(TaskStatus.FINISHED);
-
+	} catch (Exception e) {
+	    logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
+	    setStatus(TaskStatus.ERROR);
+	    errorMessage = e.toString();
+	    return;
 	}
 
-	private void processOneLine(String values[]) {
+	// Add task description to peakList
+	peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+		"Peak identification using database " + dataBaseFile,
+		parameters));
 
-		int numOfColumns = Math.min(fieldOrder.length, values.length);
+	// Repaint the window to reflect the changes in the peak list
+	MZmineCore.getDesktop().getMainFrame().repaint();
 
-		String lineID = null, lineName = null, lineFormula = null;
-		double lineMZ = 0, lineRT = 0;
+	setStatus(TaskStatus.FINISHED);
 
-		for (int i = 0; i < numOfColumns; i++) {
-			if (fieldOrder[i] == FieldItem.FIELD_ID)
-				lineID = values[i];
-			if (fieldOrder[i] == FieldItem.FIELD_NAME)
-				lineName = values[i];
-			if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
-				lineFormula = values[i];
-			if (fieldOrder[i] == FieldItem.FIELD_MZ)
-				lineMZ = Double.parseDouble(values[i]);
-			if (fieldOrder[i] == FieldItem.FIELD_RT)
-				lineRT = Double.parseDouble(values[i]) * 60;
-		}
+    }
 
-		SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineName,
-				lineFormula, dataBaseFile.getName(), lineID, null);
+    private void processOneLine(String values[]) {
 
-		for (PeakListRow peakRow : peakList.getRows()) {
+	int numOfColumns = Math.min(fieldOrder.length, values.length);
 
-			Range mzRange = mzTolerance.getToleranceRange(peakRow
-					.getAverageMZ());
-			Range rtRange = rtTolerance.getToleranceRange(peakRow
-					.getAverageRT());
+	String lineID = null, lineName = null, lineFormula = null;
+	double lineMZ = 0, lineRT = 0;
 
-			if (mzRange.contains(lineMZ) && rtRange.contains(lineRT)) {
-
-				logger.finest("Found compound " + lineName + " (m/z " + lineMZ
-						+ ", RT " + lineRT + ")");
-
-				// add new identity to the row
-				peakRow.addPeakIdentity(newIdentity, false);
-
-				// Notify the GUI about the change in the project
-				MZmineCore.getCurrentProject().notifyObjectChanged(peakRow, false);
-
-			}
-		}
-
+	for (int i = 0; i < numOfColumns; i++) {
+	    if (fieldOrder[i] == FieldItem.FIELD_ID)
+		lineID = values[i];
+	    if (fieldOrder[i] == FieldItem.FIELD_NAME)
+		lineName = values[i];
+	    if (fieldOrder[i] == FieldItem.FIELD_FORMULA)
+		lineFormula = values[i];
+	    if (fieldOrder[i] == FieldItem.FIELD_MZ)
+		lineMZ = Double.parseDouble(values[i]);
+	    if (fieldOrder[i] == FieldItem.FIELD_RT)
+		lineRT = Double.parseDouble(values[i]);
 	}
 
-	public Object[] getCreatedObjects() {
-		return null;
+	SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineName,
+		lineFormula, dataBaseFile.getName(), lineID, null);
+
+	for (PeakListRow peakRow : peakList.getRows()) {
+
+	    Range mzRange = mzTolerance.getToleranceRange(peakRow
+		    .getAverageMZ());
+	    Range rtRange = rtTolerance.getToleranceRange(peakRow
+		    .getAverageRT());
+
+	    if (mzRange.contains(lineMZ) && rtRange.contains(lineRT)) {
+
+		logger.finest("Found compound " + lineName + " (m/z " + lineMZ
+			+ ", RT " + lineRT + ")");
+
+		// add new identity to the row
+		peakRow.addPeakIdentity(newIdentity, false);
+
+		// Notify the GUI about the change in the project
+		MZmineCore.getCurrentProject().notifyObjectChanged(peakRow,
+			false);
+
+	    }
 	}
+
+    }
+
+    public Object[] getCreatedObjects() {
+	return null;
+    }
 
 }

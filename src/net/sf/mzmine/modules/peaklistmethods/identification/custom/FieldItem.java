@@ -23,7 +23,7 @@ public enum FieldItem {
 
     FIELD_ID("ID"), //
     FIELD_MZ("m/z"), //
-    FIELD_RT("Retention time"), //
+    FIELD_RT("Retention time (min)"), //
     FIELD_NAME("Identity"), //
     FIELD_FORMULA("Formula");
 
