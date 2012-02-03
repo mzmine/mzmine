@@ -126,7 +126,7 @@ public class SQLColumnSettingsParameter implements
 	    String columnValue = (String) value.getValueAt(row, 2);
 	    Element newElement = parentDocument.createElement("column");
 	    newElement.setAttribute("name", sqlColumn);
-	    newElement.setAttribute("datatype", dataType.getName());
+	    newElement.setAttribute("datatype", dataType.toString());
 	    newElement.setAttribute("columnValue", columnValue);
 	    xmlElement.appendChild(newElement);
 	}
