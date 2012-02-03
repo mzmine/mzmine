@@ -42,244 +42,248 @@ import net.sf.mzmine.util.ScanUtils;
  */
 public class Chromatogram implements ChromatographicPeak {
 
-	// Data file of this chromatogram
-	private RawDataFile dataFile;
+    // Data file of this chromatogram
+    private RawDataFile dataFile;
 
-	// Data points of the chromatogram (map of scan number -> m/z peak)
-	private Hashtable<Integer, DataPoint> dataPointsMap;
+    // Data points of the chromatogram (map of scan number -> m/z peak)
+    private Hashtable<Integer, DataPoint> dataPointsMap;
 
-	// Chromatogram m/z, RT, height, area
-	private double mz, rt, height, area;
+    // Chromatogram m/z, RT, height, area
+    private double mz, rt, height, area;
 
-	// Top intensity scan, fragment scan
-	private int representativeScan = -1, fragmentScan = -1;
+    // Top intensity scan, fragment scan
+    private int representativeScan = -1, fragmentScan = -1;
 
-	// Ranges of raw data points
-	private Range rawDataPointsIntensityRange, rawDataPointsMZRange, rawDataPointsRTRange;
+    // Ranges of raw data points
+    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+	    rawDataPointsRTRange;
 
-	// A set of scan numbers of a segment which is currently being connected
-	private Vector<Integer> buildingSegment;
+    // A set of scan numbers of a segment which is currently being connected
+    private Vector<Integer> buildingSegment;
 
-	// Keep track of last added data point
-	private DataPoint lastMzPeak;
+    // Keep track of last added data point
+    private DataPoint lastMzPeak;
 
-	// Number of connected segments, which have been committed by
-	// commitBuildingSegment()
-	private int numOfCommittedSegments = 0;
+    // Number of connected segments, which have been committed by
+    // commitBuildingSegment()
+    private int numOfCommittedSegments = 0;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping
-	// method.
-	private IsotopePattern isotopePattern;
-	private int charge = 0;
+    // Isotope pattern. Null by default but can be set later by deisotoping
+    // method.
+    private IsotopePattern isotopePattern;
+    private int charge = 0;
 
-	/**
-	 * Initializes this Chromatogram
-	 */
-	public Chromatogram(RawDataFile dataFile) {
-		this.dataFile = dataFile;
-		
-		// Create a copy, not a reference
-		rawDataPointsRTRange = new Range(dataFile.getDataRTRange(1));
-		
-		dataPointsMap = new Hashtable<Integer, DataPoint>();
-		buildingSegment = new Vector<Integer>(128);
+    /**
+     * Initializes this Chromatogram
+     */
+    public Chromatogram(RawDataFile dataFile) {
+	this.dataFile = dataFile;
+
+	// Create a copy, not a reference
+	rawDataPointsRTRange = new Range(dataFile.getDataRTRange(1));
+
+	dataPointsMap = new Hashtable<Integer, DataPoint>();
+	buildingSegment = new Vector<Integer>(128);
+    }
+
+    /**
+     * This method adds a MzPeak to this Chromatogram. All values of this
+     * Chromatogram (rt, m/z, intensity and ranges) are updated on request
+     * 
+     * @param mzValue
+     */
+    public void addMzPeak(int scanNumber, DataPoint mzValue) {
+	dataPointsMap.put(scanNumber, mzValue);
+	lastMzPeak = mzValue;
+	buildingSegment.add(scanNumber);
+    }
+
+    public DataPoint getDataPoint(int scanNumber) {
+	return dataPointsMap.get(scanNumber);
+    }
+
+    /**
+     * Returns m/z value of last added data point
+     */
+    public DataPoint getLastMzPeak() {
+	return lastMzPeak;
+    }
+
+    /**
+     * This method returns m/z value of the chromatogram
+     */
+    public double getMZ() {
+	return mz;
+    }
+
+    /**
+     * This method returns a string with the basic information that defines this
+     * peak
+     * 
+     * @return String information
+     */
+    public String getName() {
+	return "Chromatogram "
+		+ MZmineCore.getConfiguration().getMZFormat().format(mz)
+		+ " m/z";
+    }
+
+    public double getArea() {
+	return area;
+    }
+
+    public double getHeight() {
+	return height;
+    }
+
+    public int getMostIntenseFragmentScanNumber() {
+	return fragmentScan;
+    }
+
+    public PeakStatus getPeakStatus() {
+	return PeakStatus.DETECTED;
+    }
+
+    public double getRT() {
+	return rt;
+    }
+
+    public Range getRawDataPointsIntensityRange() {
+	return rawDataPointsIntensityRange;
+    }
+
+    public Range getRawDataPointsMZRange() {
+	return rawDataPointsMZRange;
+    }
+
+    public Range getRawDataPointsRTRange() {
+	return rawDataPointsRTRange;
+    }
+
+    public int getRepresentativeScanNumber() {
+	return representativeScan;
+    }
+
+    public int[] getScanNumbers() {
+	return dataFile.getScanNumbers(1);
+    }
+
+    public RawDataFile getDataFile() {
+	return dataFile;
+    }
+
+    public IsotopePattern getIsotopePattern() {
+	return isotopePattern;
+    }
+
+    public void setIsotopePattern(IsotopePattern isotopePattern) {
+	this.isotopePattern = isotopePattern;
+    }
+
+    public void finishChromatogram() {
+
+	int allScanNumbers[] = CollectionUtils.toIntArray(dataPointsMap
+		.keySet());
+	Arrays.sort(allScanNumbers);
+
+	// Calculate median m/z
+	double allMzValues[] = new double[allScanNumbers.length];
+	for (int i = 0; i < allScanNumbers.length; i++) {
+	    allMzValues[i] = dataPointsMap.get(allScanNumbers[i]).getMZ();
+	}
+	mz = MathUtils.calcQuantile(allMzValues, 0.5f);
+
+	// Update raw data point ranges, height, rt and representative scan
+	height = Double.MIN_VALUE;
+	for (int i = 0; i < allScanNumbers.length; i++) {
+
+	    DataPoint mzPeak = dataPointsMap.get(allScanNumbers[i]);
+
+	    // Replace the MzPeak instance with an instance of SimpleDataPoint,
+	    // to reduce the memory usage. After we finish this Chromatogram, we
+	    // don't need the additional data provided by the MzPeak
+
+	    dataPointsMap.put(allScanNumbers[i], mzPeak);
+
+	    if (i == 0) {
+		rawDataPointsIntensityRange = new Range(mzPeak.getIntensity());
+		rawDataPointsMZRange = new Range(mzPeak.getMZ());
+	    } else {
+		rawDataPointsIntensityRange.extendRange(mzPeak.getIntensity());
+		rawDataPointsMZRange.extendRange(mzPeak.getMZ());
+	    }
+
+	    if (height < mzPeak.getIntensity()) {
+		height = mzPeak.getIntensity();
+		rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+		representativeScan = allScanNumbers[i];
+	    }
 	}
 
-	/**
-	 * This method adds a MzPeak to this Chromatogram. All values of this
-	 * Chromatogram (rt, m/z, intensity and ranges) are updated on request
-	 * 
-	 * @param mzValue
-	 */
-	public void addMzPeak(int scanNumber, DataPoint mzValue) {
-		dataPointsMap.put(scanNumber, mzValue);
-		lastMzPeak = mzValue;
-		buildingSegment.add(scanNumber);
+	// Update area
+	area = 0;
+	for (int i = 1; i < allScanNumbers.length; i++) {
+	    // For area calculation, we use retention time in seconds
+	    double previousRT = dataFile.getScan(allScanNumbers[i - 1])
+		    .getRetentionTime() * 60d;
+	    double currentRT = dataFile.getScan(allScanNumbers[i])
+		    .getRetentionTime() * 60d;
+	    double previousHeight = dataPointsMap.get(allScanNumbers[i - 1])
+		    .getIntensity();
+	    double currentHeight = dataPointsMap.get(allScanNumbers[i])
+		    .getIntensity();
+	    area += (currentRT - previousRT) * (currentHeight + previousHeight)
+		    / 2;
 	}
 
-	public DataPoint getDataPoint(int scanNumber) {
-		return dataPointsMap.get(scanNumber);
+	// Update fragment scan
+	fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
+		dataFile.getDataRTRange(1), rawDataPointsMZRange);
+
+	if (fragmentScan > 0) {
+	    Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+	    int precursorCharge = fragmentScanObject.getPrecursorCharge();
+	    if (precursorCharge > 0)
+		this.charge = precursorCharge;
 	}
 
-	/**
-	 * Returns m/z value of last added data point
-	 */
-	public DataPoint getLastMzPeak() {
-		return lastMzPeak;
-	}
+	// Discard the fields we don't need anymore
+	buildingSegment = null;
+	lastMzPeak = null;
 
-	/**
-	 * This method returns m/z value of the chromatogram
-	 */
-	public double getMZ() {
-		return mz;
-	}
+    }
 
-	/**
-	 * This method returns a string with the basic information that defines this
-	 * peak
-	 * 
-	 * @return String information
-	 */
-	public String getName() {
-		return "Chromatogram " + MZmineCore.getConfiguration().getMZFormat().format(mz) + " m/z";
-	}
+    public double getBuildingSegmentLength() {
+	if (buildingSegment.size() < 2)
+	    return 0;
+	int firstScan = buildingSegment.firstElement();
+	int lastScan = buildingSegment.lastElement();
+	double firstRT = dataFile.getScan(firstScan).getRetentionTime();
+	double lastRT = dataFile.getScan(lastScan).getRetentionTime();
+	return (lastRT - firstRT);
+    }
 
-	public double getArea() {
-		return area;
-	}
+    public int getNumberOfCommittedSegments() {
+	return numOfCommittedSegments;
+    }
 
-	public double getHeight() {
-		return height;
-	}
+    public void removeBuildingSegment() {
+	for (int scanNumber : buildingSegment)
+	    dataPointsMap.remove(scanNumber);
+	buildingSegment.clear();
+    }
 
-	public int getMostIntenseFragmentScanNumber() {
-		return fragmentScan;
-	}
+    public void commitBuildingSegment() {
+	buildingSegment.clear();
+	numOfCommittedSegments++;
+    }
 
-	public PeakStatus getPeakStatus() {
-		return PeakStatus.DETECTED;
-	}
+    public int getCharge() {
+	return charge;
+    }
 
-	public double getRT() {
-		return rt;
-	}
-
-	public Range getRawDataPointsIntensityRange() {
-		return rawDataPointsIntensityRange;
-	}
-
-	public Range getRawDataPointsMZRange() {
-		return rawDataPointsMZRange;
-	}
-
-	public Range getRawDataPointsRTRange() {
-		return rawDataPointsRTRange;
-	}
-
-	public int getRepresentativeScanNumber() {
-		return representativeScan;
-	}
-
-	public int[] getScanNumbers() {
-		return dataFile.getScanNumbers(1);
-	}
-
-	public RawDataFile getDataFile() {
-		return dataFile;
-	}
-
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-
-	public void finishChromatogram() {
-
-		int allScanNumbers[] = CollectionUtils.toIntArray(dataPointsMap
-				.keySet());
-		Arrays.sort(allScanNumbers);
-
-		// Calculate median m/z
-		double allMzValues[] = new double[allScanNumbers.length];
-		for (int i = 0; i < allScanNumbers.length; i++) {
-			allMzValues[i] = dataPointsMap.get(allScanNumbers[i]).getMZ();
-		}
-		mz = MathUtils.calcQuantile(allMzValues, 0.5f);
-
-		// Update raw data point ranges, height, rt and representative scan
-		height = Double.MIN_VALUE;
-		for (int i = 0; i < allScanNumbers.length; i++) {
-
-			DataPoint mzPeak = dataPointsMap.get(allScanNumbers[i]);
-
-			// Replace the MzPeak instance with an instance of SimpleDataPoint,
-			// to reduce the memory usage. After we finish this Chromatogram, we
-			// don't need the additional data provided by the MzPeak
-
-			dataPointsMap.put(allScanNumbers[i], mzPeak);
-
-			if (i == 0) {
-				rawDataPointsIntensityRange = new Range(mzPeak.getIntensity());
-				rawDataPointsMZRange = new Range(mzPeak.getMZ());
-			} else {
-				rawDataPointsIntensityRange.extendRange(mzPeak.getIntensity());
-				rawDataPointsMZRange.extendRange(mzPeak.getMZ());
-			}
-
-			if (height < mzPeak.getIntensity()) {
-				height = mzPeak.getIntensity();
-				rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
-				representativeScan = allScanNumbers[i];
-			}
-		}
-
-		// Update area
-		area = 0;
-		for (int i = 1; i < allScanNumbers.length; i++) {
-			double previousRT = dataFile.getScan(allScanNumbers[i - 1])
-					.getRetentionTime();
-			double currentRT = dataFile.getScan(allScanNumbers[i])
-					.getRetentionTime();
-			double previousHeight = dataPointsMap.get(allScanNumbers[i - 1])
-					.getIntensity();
-			double currentHeight = dataPointsMap.get(allScanNumbers[i])
-					.getIntensity();
-			area += (currentRT - previousRT) * (currentHeight + previousHeight)
-					/ 2;
-		}
-
-		// Update fragment scan
-		fragmentScan = ScanUtils.findBestFragmentScan(dataFile,
-				dataFile.getDataRTRange(1), rawDataPointsMZRange);
-
-		if (fragmentScan > 0) {
-			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-			int precursorCharge = fragmentScanObject.getPrecursorCharge();
-			if (precursorCharge > 0)
-				this.charge = precursorCharge;
-		}
-
-		// Discard the fields we don't need anymore
-		buildingSegment = null;
-		lastMzPeak = null;
-
-	}
-
-	public double getBuildingSegmentLength() {
-		if (buildingSegment.size() < 2)
-			return 0;
-		int firstScan = buildingSegment.firstElement();
-		int lastScan = buildingSegment.lastElement();
-		double firstRT = dataFile.getScan(firstScan).getRetentionTime();
-		double lastRT = dataFile.getScan(lastScan).getRetentionTime();
-		return (lastRT - firstRT);
-	}
-
-	public int getNumberOfCommittedSegments() {
-		return numOfCommittedSegments;
-	}
-
-	public void removeBuildingSegment() {
-		for (int scanNumber : buildingSegment)
-			dataPointsMap.remove(scanNumber);
-		buildingSegment.clear();
-	}
-
-	public void commitBuildingSegment() {
-		buildingSegment.clear();
-		numOfCommittedSegments++;
-	}
-
-	public int getCharge() {
-		return charge;
-	}
-
-	public void setCharge(int charge) {
-		this.charge = charge;
-	}
+    public void setCharge(int charge) {
+	this.charge = charge;
+    }
 
 }

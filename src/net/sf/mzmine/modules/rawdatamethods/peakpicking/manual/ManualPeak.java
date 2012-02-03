@@ -38,231 +38,232 @@ import net.sf.mzmine.util.ScanUtils;
  */
 class ManualPeak implements ChromatographicPeak {
 
-	private RawDataFile dataFile;
+    private RawDataFile dataFile;
 
-	// Raw M/Z, RT, Height and Area
-	private double mz, rt, height, area;
+    // Raw M/Z, RT, Height and Area
+    private double mz, rt, height, area;
 
-	// Boundaries of the peak
-	private Range rtRange, mzRange, intensityRange;
+    // Boundaries of the peak
+    private Range rtRange, mzRange, intensityRange;
 
-	// Map of scan number and data point
-	private TreeMap<Integer, DataPoint> dataPointMap;
+    // Map of scan number and data point
+    private TreeMap<Integer, DataPoint> dataPointMap;
 
-	// Number of most intense fragment scan
-	private int fragmentScan, representativeScan;
+    // Number of most intense fragment scan
+    private int fragmentScan, representativeScan;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
-	private IsotopePattern isotopePattern;
-	private int charge = 0;
-	
-	/**
-	 * Initializes empty peak for adding data points
-	 */
-	ManualPeak(RawDataFile dataFile) {
-		this.dataFile = dataFile;
-		dataPointMap = new TreeMap<Integer, DataPoint>();
+    // Isotope pattern. Null by default but can be set later by deisotoping
+    // method.
+    private IsotopePattern isotopePattern;
+    private int charge = 0;
+
+    /**
+     * Initializes empty peak for adding data points
+     */
+    ManualPeak(RawDataFile dataFile) {
+	this.dataFile = dataFile;
+	dataPointMap = new TreeMap<Integer, DataPoint>();
+    }
+
+    /**
+     * This peak is always a result of manual peak detection, therefore MANUAL
+     */
+    public PeakStatus getPeakStatus() {
+	return PeakStatus.MANUAL;
+    }
+
+    /**
+     * This method returns M/Z value of the peak
+     */
+    public double getMZ() {
+	return mz;
+    }
+
+    /**
+     * This method returns retention time of the peak
+     */
+    public double getRT() {
+	return rt;
+    }
+
+    /**
+     * This method returns the raw height of the peak
+     */
+    public double getHeight() {
+	return height;
+    }
+
+    /**
+     * This method returns the raw area of the peak
+     */
+    public double getArea() {
+	return area;
+    }
+
+    /**
+     * This method returns numbers of scans that contain this peak
+     */
+    public int[] getScanNumbers() {
+	return CollectionUtils.toIntArray(dataPointMap.keySet());
+    }
+
+    /**
+     * This method returns a representative datapoint of this peak in a given
+     * scan
+     */
+    public DataPoint getDataPoint(int scanNumber) {
+	return dataPointMap.get(scanNumber);
+    }
+
+    public Range getRawDataPointsIntensityRange() {
+	return intensityRange;
+    }
+
+    public Range getRawDataPointsMZRange() {
+	return mzRange;
+    }
+
+    public Range getRawDataPointsRTRange() {
+	return rtRange;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
+     */
+    public RawDataFile getDataFile() {
+	return dataFile;
+    }
+
+    public String getName() {
+	return PeakUtils.peakToString(this);
+    }
+
+    public IsotopePattern getIsotopePattern() {
+	return isotopePattern;
+    }
+
+    public void setIsotopePattern(IsotopePattern isotopePattern) {
+	this.isotopePattern = isotopePattern;
+    }
+
+    /**
+     * Adds a new data point to this peak
+     * 
+     * @param scanNumber
+     * @param dataPoints
+     * @param rawDataPoints
+     */
+    void addDatapoint(int scanNumber, DataPoint dataPoint) {
+
+	double rt = dataFile.getScan(scanNumber).getRetentionTime();
+
+	if (dataPointMap.isEmpty()) {
+	    rtRange = new Range(rt);
+	    mzRange = new Range(dataPoint.getMZ());
+	    intensityRange = new Range(dataPoint.getIntensity());
+	} else {
+	    rtRange.extendRange(rt);
+	    mzRange.extendRange(dataPoint.getMZ());
+	    intensityRange.extendRange(dataPoint.getIntensity());
 	}
 
-	/**
-	 * This peak is always a result of manual peak detection, therefore MANUAL
-	 */
-	public PeakStatus getPeakStatus() {
-		return PeakStatus.MANUAL;
+	dataPointMap.put(scanNumber, dataPoint);
+
+    }
+
+    void finalizePeak() {
+
+	// Trim the zero-intensity data points from the beginning and end
+	while (!dataPointMap.isEmpty()) {
+	    int scanNumber = dataPointMap.firstKey();
+	    if (dataPointMap.get(scanNumber).getIntensity() > 0)
+		break;
+	    dataPointMap.remove(scanNumber);
+	}
+	while (!dataPointMap.isEmpty()) {
+	    int scanNumber = dataPointMap.lastKey();
+	    if (dataPointMap.get(scanNumber).getIntensity() > 0)
+		break;
+	    dataPointMap.remove(scanNumber);
 	}
 
-	/**
-	 * This method returns M/Z value of the peak
-	 */
-	public double getMZ() {
-		return mz;
+	// Check if we have any data points
+	if (dataPointMap.isEmpty()) {
+	    throw (new IllegalStateException(
+		    "Peak can not be finalized without any data points"));
 	}
 
-	/**
-	 * This method returns retention time of the peak
-	 */
-	public double getRT() {
-		return rt;
+	// Get all scan numbers
+	int allScanNumbers[] = CollectionUtils
+		.toIntArray(dataPointMap.keySet());
+
+	// Find the data point with top intensity and use its RT and height
+	for (int i = 0; i < allScanNumbers.length; i++) {
+	    DataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
+	    double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
+	    if (dataPoint.getIntensity() > height) {
+		height = dataPoint.getIntensity();
+		representativeScan = allScanNumbers[i];
+		this.rt = rt;
+	    }
 	}
 
-	/**
-	 * This method returns the raw height of the peak
-	 */
-	public double getHeight() {
-		return height;
-	}
+	// Calculate peak area
+	area = 0;
+	for (int i = 1; i < allScanNumbers.length; i++) {
 
-	/**
-	 * This method returns the raw area of the peak
-	 */
-	public double getArea() {
-		return area;
-	}
+	    // For area calculation, we use retention time in seconds
+	    double previousRT = dataFile.getScan(allScanNumbers[i - 1])
+		    .getRetentionTime() * 60d;
+	    double currentRT = dataFile.getScan(allScanNumbers[i])
+		    .getRetentionTime() * 60d;
 
-	/**
-	 * This method returns numbers of scans that contain this peak
-	 */
-	public int[] getScanNumbers() {
-		return CollectionUtils.toIntArray(dataPointMap.keySet());
-	}
+	    double rtDifference = currentRT - previousRT;
 
-	/**
-	 * This method returns a representative datapoint of this peak in a given
-	 * scan
-	 */
-	public DataPoint getDataPoint(int scanNumber) {
-		return dataPointMap.get(scanNumber);
-	}
+	    // Intensity at the beginning and end of the interval
+	    double previousIntensity = dataPointMap.get(allScanNumbers[i - 1])
+		    .getIntensity();
+	    double thisIntensity = dataPointMap.get(allScanNumbers[i])
+		    .getIntensity();
+	    double averageIntensity = (previousIntensity + thisIntensity) / 2;
 
-	public Range getRawDataPointsIntensityRange() {
-		return intensityRange;
-	}
-
-	public Range getRawDataPointsMZRange() {
-		return mzRange;
-	}
-
-	public Range getRawDataPointsRTRange() {
-		return rtRange;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
-	 */
-	public RawDataFile getDataFile() {
-		return dataFile;
-	}
-
-	public String getName() {
-		return PeakUtils.peakToString(this);
-	}
-	
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-
-	/**
-	 * Adds a new data point to this peak
-	 * 
-	 * @param scanNumber
-	 * @param dataPoints
-	 * @param rawDataPoints
-	 */
-	void addDatapoint(int scanNumber, DataPoint dataPoint) {
-
-		double rt = dataFile.getScan(scanNumber).getRetentionTime();
-
-		if (dataPointMap.isEmpty()) {
-			rtRange = new Range(rt);
-			mzRange = new Range(dataPoint.getMZ());
-			intensityRange = new Range(dataPoint.getIntensity());
-		} else {
-			rtRange.extendRange(rt);
-			mzRange.extendRange(dataPoint.getMZ());
-			intensityRange.extendRange(dataPoint.getIntensity());
-		}
-
-		dataPointMap.put(scanNumber, dataPoint);
-
-	}
-
-	void finalizePeak() {
-
-		// Trim the zero-intensity data points from the beginning and end
-		while (!dataPointMap.isEmpty()) {
-			int scanNumber = dataPointMap.firstKey();
-			if (dataPointMap.get(scanNumber).getIntensity() > 0)
-				break;
-			dataPointMap.remove(scanNumber);
-		}
-		while (!dataPointMap.isEmpty()) {
-			int scanNumber = dataPointMap.lastKey();
-			if (dataPointMap.get(scanNumber).getIntensity() > 0)
-				break;
-			dataPointMap.remove(scanNumber);
-		}
-
-		// Check if we have any data points
-		if (dataPointMap.isEmpty()) {
-			throw (new IllegalStateException(
-					"Peak can not be finalized without any data points"));
-		}
-
-		// Get all scan numbers
-		int allScanNumbers[] = CollectionUtils
-				.toIntArray(dataPointMap.keySet());
-
-		// Find the data point with top intensity and use its RT and height
-		for (int i = 0; i < allScanNumbers.length; i++) {
-			DataPoint dataPoint = dataPointMap.get(allScanNumbers[i]);
-			double rt = dataFile.getScan(allScanNumbers[i]).getRetentionTime();
-			if (dataPoint.getIntensity() > height) {
-				height = dataPoint.getIntensity();
-				representativeScan = allScanNumbers[i];
-				this.rt = rt;
-			}
-		}
-
-		// Calculate peak area
-		area = 0f;
-		for (int i = 1; i < allScanNumbers.length; i++) {
-
-			// X axis interval length
-			double previousRT = dataFile.getScan(allScanNumbers[i - 1])
-					.getRetentionTime();
-			double thisRT = dataFile.getScan(allScanNumbers[i])
-					.getRetentionTime();
-			double rtDifference = thisRT - previousRT;
-
-			// Intensity at the beginning and end of the interval
-			double previousIntensity = dataPointMap.get(allScanNumbers[i - 1])
-					.getIntensity();
-			double thisIntensity = dataPointMap.get(allScanNumbers[i])
-					.getIntensity();
-			double averageIntensity = (previousIntensity + thisIntensity) / 2;
-
-			// Calculate area of the interval
-			area += (rtDifference * averageIntensity);
-
-		}
-
-		// Calculate median MZ
-		double mzArray[] = new double[allScanNumbers.length];
-		for (int i = 0; i < allScanNumbers.length; i++) {
-			mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
-		}
-		this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
-
-		fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange,
-				mzRange);
-
-		if (fragmentScan > 0) {
-			Scan fragmentScanObject = dataFile.getScan(fragmentScan);
-			int precursorCharge = fragmentScanObject.getPrecursorCharge();
-			if ((precursorCharge > 0) && (this.charge == 0))
-				this.charge = precursorCharge;
-		}
-
+	    // Calculate area of the interval
+	    area += (rtDifference * averageIntensity);
 
 	}
 
-	public int getRepresentativeScanNumber() {
-		return representativeScan;
+	// Calculate median MZ
+	double mzArray[] = new double[allScanNumbers.length];
+	for (int i = 0; i < allScanNumbers.length; i++) {
+	    mzArray[i] = dataPointMap.get(allScanNumbers[i]).getMZ();
+	}
+	this.mz = MathUtils.calcQuantile(mzArray, 0.5f);
+
+	fragmentScan = ScanUtils.findBestFragmentScan(dataFile, rtRange,
+		mzRange);
+
+	if (fragmentScan > 0) {
+	    Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+	    int precursorCharge = fragmentScanObject.getPrecursorCharge();
+	    if ((precursorCharge > 0) && (this.charge == 0))
+		this.charge = precursorCharge;
 	}
 
-	public int getMostIntenseFragmentScanNumber() {
-		return fragmentScan;
-	}
+    }
 
-	public int getCharge() {
-		return charge;
-	}
+    public int getRepresentativeScanNumber() {
+	return representativeScan;
+    }
 
-	public void setCharge(int charge) {
-		this.charge = charge;
-	}
+    public int getMostIntenseFragmentScanNumber() {
+	return fragmentScan;
+    }
+
+    public int getCharge() {
+	return charge;
+    }
+
+    public void setCharge(int charge) {
+	this.charge = charge;
+    }
 }

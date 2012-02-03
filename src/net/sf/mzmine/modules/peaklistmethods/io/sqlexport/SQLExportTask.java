@@ -170,31 +170,36 @@ class SQLExportTask extends AbstractTask {
 		break;
 	    case ISOTOPEPATTERN:
 		IsotopePattern isotopes = row.getBestIsotopePattern();
-		if (isotopes != null) {
-		    DataPoint dataPoints[] = isotopes.getDataPoints();
-		    byte bytes[] = ScanUtils
-			    .encodeDataPointsToBytes(dataPoints);
-		    ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-		    statement.setBlob(i + 1, is);
-		} else {
+		if (isotopes == null) {
 		    statement.setNull(i + 1, Types.BLOB);
+		    break;
 		}
+		DataPoint dataPoints[] = isotopes.getDataPoints();
+		byte bytes[] = ScanUtils.encodeDataPointsToBytes(dataPoints);
+		ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+		statement.setBlob(i + 1, is);
 		break;
 	    case MSMS:
 		int msmsScanNum = row.getBestPeak()
 			.getMostIntenseFragmentScanNumber();
+		// Check if there is any MS/MS scan
+		if (msmsScanNum <= 0) {
+		    statement.setNull(i + 1, Types.BLOB);
+		    break;
+		}
 		RawDataFile dataFile = row.getBestPeak().getDataFile();
 		Scan msmsScan = dataFile.getScan(msmsScanNum);
 		MassList msmsMassList = msmsScan.getMassList(dataValue);
-		if (msmsMassList != null) {
-		    DataPoint dataPoints[] = msmsMassList.getDataPoints();
-		    byte bytes[] = ScanUtils
-			    .encodeDataPointsToBytes(dataPoints);
-		    ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-		    statement.setBlob(i + 1, is);
-		} else {
+		// Check if there is a masslist for the scan
+		if (msmsMassList == null) {
 		    statement.setNull(i + 1, Types.BLOB);
+		    break;
 		}
+		dataPoints = msmsMassList.getDataPoints();
+		bytes = ScanUtils.encodeDataPointsToBytes(dataPoints);
+		is = new ByteArrayInputStream(bytes);
+		statement.setBlob(i + 1, is);
+
 		break;
 	    }
 	}

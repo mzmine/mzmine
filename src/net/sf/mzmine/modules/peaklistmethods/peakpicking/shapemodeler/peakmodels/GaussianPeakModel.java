@@ -33,276 +33,277 @@ import net.sf.mzmine.util.Range;
 
 public class GaussianPeakModel implements ChromatographicPeak {
 
-	private double FWHM, partC, part2C2;
+    private double FWHM, partC, part2C2;
 
-	// Peak information
-	private double rt, height, mz, area;
-	private int[] scanNumbers;
-	private RawDataFile rawDataFile;
-	private PeakStatus status;
-	private int representativeScan = -1, fragmentScan = -1;
-	private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
-			rawDataPointsRTRange;
-	private TreeMap<Integer, DataPoint> dataPointsMap;
+    // Peak information
+    private double rt, height, mz, area;
+    private int[] scanNumbers;
+    private RawDataFile rawDataFile;
+    private PeakStatus status;
+    private int representativeScan = -1, fragmentScan = -1;
+    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+	    rawDataPointsRTRange;
+    private TreeMap<Integer, DataPoint> dataPointsMap;
 
-	// Isotope pattern. Null by default but can be set later by deisotoping method.
-	private IsotopePattern isotopePattern;
-	private int charge = 0;
-	
-	private static double CONST = 2.354820045;
+    // Isotope pattern. Null by default but can be set later by deisotoping
+    // method.
+    private IsotopePattern isotopePattern;
+    private int charge = 0;
 
-	public GaussianPeakModel(ChromatographicPeak originalDetectedShape,
-			int[] scanNumbers, double[] intensities, double[] retentionTimes,
-			double resolution) {
-	
-		height = originalDetectedShape.getHeight();
-		rt = originalDetectedShape.getRT();
-		mz = originalDetectedShape.getMZ();
-		rawDataFile = originalDetectedShape.getDataFile();
+    private static double CONST = 2.354820045;
 
-		// Create a copy of the mutable properties
-		rawDataPointsIntensityRange = new Range(
-				originalDetectedShape.getRawDataPointsIntensityRange());
-		rawDataPointsMZRange = new Range(
-				originalDetectedShape.getRawDataPointsMZRange());
-		
-		dataPointsMap = new TreeMap<Integer, DataPoint>();
-		status = originalDetectedShape.getPeakStatus();
-	
-		// FWFM (Full Width at Half Maximum)
-		FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
-				height);
-		// FWHM = MathUtils.calcStd(intensities) * 2.355;
-	
-		partC = FWHM / CONST;
-		part2C2 = 2f * (double) Math.pow(partC, 2);
-	
-		// Calculate intensity of each point in the shape.
-		double shapeHeight, currentRT, previousRT, previousHeight;
-	
-		int allScanNumbers[] = rawDataFile.getScanNumbers(1);
-		double allRetentionTimes[] = new double[allScanNumbers.length];
-		for (int i = 0; i < allScanNumbers.length; i++)
-			allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
-					.getRetentionTime();
-	
-		previousHeight = calculateIntensity(allRetentionTimes[0]);
-		previousRT = allRetentionTimes[0];
-		rawDataPointsRTRange = new Range(allRetentionTimes[0]);
-	
-		for (int i = 0; i < allRetentionTimes.length; i++) {
-	
-			currentRT = allRetentionTimes[i];
-			shapeHeight = calculateIntensity(currentRT);
-			if (shapeHeight > height * 0.01d) {
-				SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
-				dataPointsMap.put(allScanNumbers[i], mzPeak);
-				rawDataPointsRTRange.extendRange(currentRT);
-				area += ((currentRT - previousRT) * (shapeHeight + previousHeight)) / 2;
-			}
-	
-			previousRT = currentRT;
-			previousHeight = shapeHeight;
+    public GaussianPeakModel(ChromatographicPeak originalDetectedShape,
+	    int[] scanNumbers, double[] intensities, double[] retentionTimes,
+	    double resolution) {
+
+	height = originalDetectedShape.getHeight();
+	rt = originalDetectedShape.getRT();
+	mz = originalDetectedShape.getMZ();
+	rawDataFile = originalDetectedShape.getDataFile();
+
+	// Create a copy of the mutable properties
+	rawDataPointsIntensityRange = new Range(
+		originalDetectedShape.getRawDataPointsIntensityRange());
+	rawDataPointsMZRange = new Range(
+		originalDetectedShape.getRawDataPointsMZRange());
+
+	dataPointsMap = new TreeMap<Integer, DataPoint>();
+	status = originalDetectedShape.getPeakStatus();
+
+	// FWFM (Full Width at Half Maximum)
+	FWHM = calculateWidth(intensities, retentionTimes, resolution, rt, mz,
+		height);
+	// FWHM = MathUtils.calcStd(intensities) * 2.355;
+
+	partC = FWHM / CONST;
+	part2C2 = 2f * (double) Math.pow(partC, 2);
+
+	// Calculate intensity of each point in the shape.
+	double shapeHeight, currentRT, previousRT, previousHeight;
+
+	int allScanNumbers[] = rawDataFile.getScanNumbers(1);
+	double allRetentionTimes[] = new double[allScanNumbers.length];
+	for (int i = 0; i < allScanNumbers.length; i++)
+	    allRetentionTimes[i] = rawDataFile.getScan(allScanNumbers[i])
+		    .getRetentionTime();
+
+	previousHeight = calculateIntensity(allRetentionTimes[0]);
+	previousRT = allRetentionTimes[0] * 60d;
+	rawDataPointsRTRange = new Range(allRetentionTimes[0]);
+
+	for (int i = 0; i < allRetentionTimes.length; i++) {
+
+	    currentRT = allRetentionTimes[i] * 60d;
+	    shapeHeight = calculateIntensity(currentRT);
+	    if (shapeHeight > height * 0.01d) {
+		SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
+		dataPointsMap.put(allScanNumbers[i], mzPeak);
+		rawDataPointsRTRange.extendRange(currentRT);
+		area += ((currentRT - previousRT) * (shapeHeight + previousHeight)) / 2;
+	    }
+
+	    previousRT = currentRT;
+	    previousHeight = shapeHeight;
+	}
+
+	int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
+	int i = 0;
+	Iterator<Integer> itr = dataPointsMap.keySet().iterator();
+	while (itr.hasNext()) {
+	    int number = itr.next();
+	    newScanNumbers[i] = number;
+	    i++;
+	}
+
+	this.scanNumbers = newScanNumbers;
+
+    }
+
+    public double getArea() {
+	return area;
+    }
+
+    public RawDataFile getDataFile() {
+	return rawDataFile;
+    }
+
+    public double getHeight() {
+	return height;
+    }
+
+    public double getMZ() {
+	return mz;
+    }
+
+    public int getMostIntenseFragmentScanNumber() {
+	return fragmentScan;
+    }
+
+    public DataPoint getDataPoint(int scanNumber) {
+	return dataPointsMap.get(scanNumber);
+    }
+
+    public PeakStatus getPeakStatus() {
+	return status;
+    }
+
+    public double getRT() {
+	return rt;
+    }
+
+    public Range getRawDataPointsIntensityRange() {
+	return rawDataPointsIntensityRange;
+    }
+
+    public Range getRawDataPointsMZRange() {
+	return rawDataPointsMZRange;
+    }
+
+    public Range getRawDataPointsRTRange() {
+	return rawDataPointsRTRange;
+    }
+
+    public int getRepresentativeScanNumber() {
+	return representativeScan;
+    }
+
+    public int[] getScanNumbers() {
+	return scanNumbers;
+    }
+
+    public String getName() {
+	return "Gaussian peak " + PeakUtils.peakToString(this);
+    }
+
+    public IsotopePattern getIsotopePattern() {
+	return isotopePattern;
+    }
+
+    public void setIsotopePattern(IsotopePattern isotopePattern) {
+	this.isotopePattern = isotopePattern;
+    }
+
+    public double calculateIntensity(double retentionTime) {
+
+	// Using the Gaussian function we calculate the intensity at given m/z
+	double diff2 = (double) Math.pow(retentionTime - rt, 2);
+	double exponent = -1 * (diff2 / part2C2);
+	double eX = (double) Math.exp(exponent);
+	double intensity = height * eX;
+	return intensity;
+    }
+
+    /**
+     * This method calculates the width of the chromatographic peak at half
+     * intensity
+     * 
+     * @param listMzPeaks
+     * @param height
+     * @param RT
+     * @return FWHM
+     */
+    private static double calculateWidth(double[] intensities,
+	    double[] retentionTimes, double resolution, double retentionTime,
+	    double mass, double maxIntensity) {
+
+	double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
+	double beginning = retentionTimes[0];
+	double ending = retentionTimes[retentionTimes.length - 1];
+	double xRight = -1;
+	double xLeft = -1;
+
+	for (int i = 0; i < intensities.length - 1; i++) {
+
+	    intensity = intensities[i];
+	    intensityPlus = intensities[i + 1];
+
+	    if (intensity > maxIntensity)
+		continue;
+
+	    // Left side of the curve
+	    if (retentionTimes[i] < retentionTime) {
+		if ((intensity <= halfIntensity)
+			&& (intensityPlus >= halfIntensity)) {
+
+		    // First point with intensity just less than half of total
+		    // intensity
+		    double leftY1 = intensity;
+		    double leftX1 = retentionTimes[i];
+
+		    // Second point with intensity just bigger than half of
+		    // total
+		    // intensity
+		    double leftY2 = intensityPlus;
+		    double leftX2 = retentionTimes[i + 1];
+
+		    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
+		    double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
+
+		    // We calculate the desired point (at half intensity) with
+		    // the
+		    // linear equation
+		    // X = X1 + [(Y - Y1) / m ], where Y = half of total
+		    // intensity
+		    xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
+		    continue;
 		}
-	
-		int[] newScanNumbers = new int[dataPointsMap.keySet().size()];
-		int i = 0;
-		Iterator<Integer> itr = dataPointsMap.keySet().iterator();
-		while (itr.hasNext()) {
-			int number = itr.next();
-			newScanNumbers[i] = number;
-			i++;
+	    }
+
+	    // Right side of the curve
+	    if (retentionTimes[i] > retentionTime) {
+		if ((intensity >= halfIntensity)
+			&& (intensityPlus <= halfIntensity)) {
+
+		    // First point with intensity just bigger than half of total
+		    // intensity
+		    double rightY1 = intensity;
+		    double rightX1 = retentionTimes[i];
+
+		    // Second point with intensity just less than half of total
+		    // intensity
+		    double rightY2 = intensityPlus;
+		    double rightX2 = retentionTimes[i + 1];
+
+		    // We calculate the slope with formula m = Y1 - Y2 / X1 - X2
+		    double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
+
+		    // We calculate the desired point (at half intensity) with
+		    // the
+		    // linear equation
+		    // X = X1 + [(Y - Y1) / m ], where Y = half of total
+		    // intensity
+		    xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
+		    break;
 		}
-	
-		this.scanNumbers = newScanNumbers;
-	
+	    }
 	}
 
-	public double getArea() {
-		return area;
+	if ((xRight <= -1) && (xLeft > 0)) {
+	    xRight = retentionTime + (ending - beginning) / 4.71f;
 	}
 
-	public RawDataFile getDataFile() {
-		return rawDataFile;
+	if ((xRight > 0) && (xLeft <= -1)) {
+	    xLeft = retentionTime - (ending - beginning) / 4.71f;
 	}
 
-	public double getHeight() {
-		return height;
+	boolean negative = (((xRight - xLeft)) < 0);
+
+	if ((negative) || ((xRight == -1) && (xLeft == -1))) {
+	    xRight = retentionTime + (ending - beginning) / 9.42f;
+	    xLeft = retentionTime - (ending - beginning) / 9.42f;
 	}
 
-	public double getMZ() {
-		return mz;
-	}
+	double aproximatedFWHM = (xRight - xLeft);
 
-	public int getMostIntenseFragmentScanNumber() {
-		return fragmentScan;
-	}
+	return aproximatedFWHM;
+    }
 
-	public DataPoint getDataPoint(int scanNumber) {
-		return dataPointsMap.get(scanNumber);
-	}
+    public int getCharge() {
+	return charge;
+    }
 
-	public PeakStatus getPeakStatus() {
-		return status;
-	}
-
-	public double getRT() {
-		return rt;
-	}
-
-	public Range getRawDataPointsIntensityRange() {
-		return rawDataPointsIntensityRange;
-	}
-
-	public Range getRawDataPointsMZRange() {
-		return rawDataPointsMZRange;
-	}
-
-	public Range getRawDataPointsRTRange() {
-		return rawDataPointsRTRange;
-	}
-
-	public int getRepresentativeScanNumber() {
-		return representativeScan;
-	}
-
-	public int[] getScanNumbers() {
-		return scanNumbers;
-	}
-
-	public String getName() {
-		return "Gaussian peak " + PeakUtils.peakToString(this);
-	}
-	
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
-
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
-
-	public double calculateIntensity(double retentionTime) {
-
-		// Using the Gaussian function we calculate the intensity at given m/z
-		double diff2 = (double) Math.pow(retentionTime - rt, 2);
-		double exponent = -1 * (diff2 / part2C2);
-		double eX = (double) Math.exp(exponent);
-		double intensity = height * eX;
-		return intensity;
-	}
-
-	/**
-	 * This method calculates the width of the chromatographic peak at half
-	 * intensity
-	 * 
-	 * @param listMzPeaks
-	 * @param height
-	 * @param RT
-	 * @return FWHM
-	 */
-	private static double calculateWidth(double[] intensities,
-			double[] retentionTimes, double resolution, double retentionTime,
-			double mass, double maxIntensity) {
-
-		double halfIntensity = maxIntensity / 2, intensity = 0, intensityPlus = 0;
-		double beginning = retentionTimes[0];
-		double ending = retentionTimes[retentionTimes.length - 1];
-		double xRight = -1;
-		double xLeft = -1;
-
-		for (int i = 0; i < intensities.length - 1; i++) {
-
-			intensity = intensities[i];
-			intensityPlus = intensities[i + 1];
-
-			if (intensity > maxIntensity)
-				continue;
-
-			// Left side of the curve
-			if (retentionTimes[i] < retentionTime) {
-				if ((intensity <= halfIntensity)
-						&& (intensityPlus >= halfIntensity)) {
-
-					// First point with intensity just less than half of total
-					// intensity
-					double leftY1 = intensity;
-					double leftX1 = retentionTimes[i];
-
-					// Second point with intensity just bigger than half of
-					// total
-					// intensity
-					double leftY2 = intensityPlus;
-					double leftX2 = retentionTimes[i + 1];
-
-					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-					double mLeft = (leftY1 - leftY2) / (leftX1 - leftX2);
-
-					// We calculate the desired point (at half intensity) with
-					// the
-					// linear equation
-					// X = X1 + [(Y - Y1) / m ], where Y = half of total
-					// intensity
-					xLeft = leftX1 + (((halfIntensity) - leftY1) / mLeft);
-					continue;
-				}
-			}
-
-			// Right side of the curve
-			if (retentionTimes[i] > retentionTime) {
-				if ((intensity >= halfIntensity)
-						&& (intensityPlus <= halfIntensity)) {
-
-					// First point with intensity just bigger than half of total
-					// intensity
-					double rightY1 = intensity;
-					double rightX1 = retentionTimes[i];
-
-					// Second point with intensity just less than half of total
-					// intensity
-					double rightY2 = intensityPlus;
-					double rightX2 = retentionTimes[i + 1];
-
-					// We calculate the slope with formula m = Y1 - Y2 / X1 - X2
-					double mRight = (rightY1 - rightY2) / (rightX1 - rightX2);
-
-					// We calculate the desired point (at half intensity) with
-					// the
-					// linear equation
-					// X = X1 + [(Y - Y1) / m ], where Y = half of total
-					// intensity
-					xRight = rightX1 + (((halfIntensity) - rightY1) / mRight);
-					break;
-				}
-			}
-		}
-
-		if ((xRight <= -1) && (xLeft > 0)) {
-			xRight = retentionTime + (ending - beginning) / 4.71f;
-		}
-
-		if ((xRight > 0) && (xLeft <= -1)) {
-			xLeft = retentionTime - (ending - beginning) / 4.71f;
-		}
-
-		boolean negative = (((xRight - xLeft)) < 0);
-
-		if ((negative) || ((xRight == -1) && (xLeft == -1))) {
-			xRight = retentionTime + (ending - beginning) / 9.42f;
-			xLeft = retentionTime - (ending - beginning) / 9.42f;
-		}
-
-		double aproximatedFWHM = (xRight - xLeft);
-
-		return aproximatedFWHM;
-	}
-
-	public int getCharge() {
-		return charge;
-	}
-
-	public void setCharge(int charge) {
-		this.charge = charge;
-	}
+    public void setCharge(int charge) {
+	this.charge = charge;
+    }
 
 }
