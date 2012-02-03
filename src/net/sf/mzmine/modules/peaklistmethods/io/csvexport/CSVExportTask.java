@@ -174,8 +174,7 @@ class CSVExportTask extends AbstractTask {
 		    line.append(peakListRow.getAverageMZ() + fieldSeparator);
 		    break;
 		case ROW_RT:
-		    line.append((peakListRow.getAverageRT() / 60)
-			    + fieldSeparator);
+		    line.append(peakListRow.getAverageRT() + fieldSeparator);
 		    break;
 		case ROW_COMMENT:
 		    String comment = peakListRow.getComment();
