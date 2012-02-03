@@ -228,7 +228,6 @@ int main(int argc, char* argv[]) {
         fwrite(pDataPeaks, 16, dataPoints, stdout);
 
         // Cleanup
-        SysFreeString(bstrFilter);
         delete[] thermoFilterLine;
         SafeArrayUnaccessData(psa); // Release the data handle
         VariantClear(&varMassList); // Delete all memory associated with the variant
