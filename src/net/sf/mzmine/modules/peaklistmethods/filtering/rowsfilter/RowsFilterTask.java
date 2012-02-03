@@ -149,8 +149,7 @@ public class RowsFilterTask extends AbstractTask {
 
                 // Get parameters.
                 final boolean identified = parameters.getParameter(HAS_IDENTITIES).getValue();
-                final boolean byGroups = parameters.getParameter(GROUPS).getValue();
-                final UserParameter groupingParameter = (UserParameter) parameters.getParameter(GROUPSPARAMETER).getValue();
+                final String groupingParameter = (String) parameters.getParameter(GROUPSPARAMETER).getValue();
                 final int minPresent = parameters.getParameter(MIN_PEAK_COUNT).getValue();
                 final int minIsotopePatternSize = parameters.getParameter(MIN_ISOTOPE_PATTERN_COUNT).getValue();
                 final Range mzRange = parameters.getParameter(MZ_RANGE).getValue();
@@ -168,7 +167,7 @@ public class RowsFilterTask extends AbstractTask {
                         boolean rowIsGood = true;
 
                         // Check number of peaks.
-                        final int peakCount = getPeakCount(row, byGroups, groupingParameter);
+                        final int peakCount = getPeakCount(row, groupingParameter);
                         if (peakCount < minPresent) {
 
                                 rowIsGood = false;
@@ -253,19 +252,25 @@ public class RowsFilterTask extends AbstractTask {
                 return newRow;
         }
 
-        private int getPeakCount(PeakListRow row, boolean byGroups, UserParameter groupingParameter) {
-                if (byGroups) {
+        private int getPeakCount(PeakListRow row, String groupingParameter) {
+                if (groupingParameter.contains("Filtering by ")) {
                         HashMap<String, Integer> groups = new HashMap<String, Integer>();
                         for (RawDataFile file : MZmineCore.getCurrentProject().getDataFiles()) {
-                                String parameterValue = String.valueOf(MZmineCore.getCurrentProject().getParameterValue(groupingParameter, file));
-                                if (row.hasPeak(file)) {                                        
-                                        if (groups.containsKey(parameterValue)) {
-                                                groups.put(parameterValue, groups.get(parameterValue) + 1);
-                                        } else {
-                                                groups.put(parameterValue, 1);
+                                UserParameter params[] = MZmineCore.getCurrentProject().getParameters();
+                                for (UserParameter p : params) {
+                                        groupingParameter = groupingParameter.replace("Filtering by ", "");
+                                        if (groupingParameter.equals(p.getName())) {
+                                                String parameterValue = String.valueOf(MZmineCore.getCurrentProject().getParameterValue(p, file));
+                                                if (row.hasPeak(file)) {
+                                                        if (groups.containsKey(parameterValue)) {
+                                                                groups.put(parameterValue, groups.get(parameterValue) + 1);
+                                                        } else {
+                                                                groups.put(parameterValue, 1);
+                                                        }
+                                                } else {
+                                                        groups.put(parameterValue, 0);
+                                                }
                                         }
-                                }else{
-                                        groups.put(parameterValue, 0);
                                 }
                         }
 
@@ -274,7 +279,7 @@ public class RowsFilterTask extends AbstractTask {
                         int min = Integer.MAX_VALUE;
                         while (it.hasNext()) {
                                 String name = (String) it.next();
-                                int val = groups.get(name);                               
+                                int val = groups.get(name);
                                 if (val < min) {
                                         min = val;
                                 }

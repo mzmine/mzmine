@@ -59,11 +59,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
                 "Peak duration range",
                 "Permissible range of (average) peak durations per row",
                 MZmineCore.getConfiguration().getRTFormat(),
-                new Range(0.0, 10.0));
-
-        public static final BooleanParameter GROUPS = new BooleanParameter(
-                "Filtering by groups",
-                "Samples are separated by groups before filtering the peaks");
+                new Range(0.0, 10.0));      
 
         public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
                 "Parameter",
@@ -81,7 +77,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
         public RowsFilterParameters() {
                 super(new Parameter[]{
                                 PEAK_LISTS, SUFFIX, MIN_PEAK_COUNT, MIN_ISOTOPE_PATTERN_COUNT, MZ_RANGE, RT_RANGE, PEAK_DURATION,
-                                GROUPS, GROUPSPARAMETER, HAS_IDENTITIES, AUTO_REMOVE});
+                                GROUPSPARAMETER, HAS_IDENTITIES, AUTO_REMOVE});
         }
 
         @Override
@@ -89,7 +85,19 @@ public class RowsFilterParameters extends SimpleParameterSet {
 
                 // Update the parameter choices
                 UserParameter newChoices[] = MZmineCore.getCurrentProject().getParameters();
-                getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(newChoices);             
+                String[] choices;
+                if(newChoices == null || newChoices.length == 0){
+                        choices= new String[1];
+                        choices[0] = "No parameters defined";
+                }else{
+                        choices = new String[newChoices.length+1];
+                        choices[0] = "Ignore groups";
+                        for(int i = 0; i < newChoices.length; i++){
+                                choices[i+1] = "Filtering by "+ newChoices[i].getName();
+                        }                        
+                }
+
+                getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
                 ParameterSetupDialog dialog = new ParameterSetupDialog(this, null);
                 dialog.setVisible(true);
                 return dialog.getExitCode();
