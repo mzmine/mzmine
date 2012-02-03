@@ -28,7 +28,7 @@ public enum SQLExportDataType {
     AREA("Peak area", false), //
     COMMENT("Comment", false), //
     IDENTITY("Identity", false), //
-    MSMS("MS/MS pattern (BLOB)", false), //
+    MSMS("MS/MS pattern (BLOB)", true), //
     ISOTOPEPATTERN("Isotope pattern (BLOB)", false);
 
     private final String name;
