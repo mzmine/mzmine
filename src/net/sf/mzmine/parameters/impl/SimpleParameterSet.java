@@ -94,7 +94,7 @@ public class SimpleParameterSet implements ParameterSet {
     /**
      * Represent method's parameters and their values in human-readable format
      */
-    public String getName() {
+    public String toString() {
 
 	StringBuilder s = new StringBuilder();
 	for (int i = 0; i < parameters.length; i++) {
