@@ -24,6 +24,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -163,6 +164,8 @@ class SQLExportTask extends AbstractTask {
 		PeakIdentity id = row.getPreferredPeakIdentity();
 		if (id != null) {
 		    statement.setString(i + 1, id.getName());
+		} else {
+		    statement.setNull(i + 1, Types.VARCHAR);
 		}
 		break;
 	    case ISOTOPEPATTERN:
@@ -173,6 +176,8 @@ class SQLExportTask extends AbstractTask {
 			    .encodeDataPointsToBytes(dataPoints);
 		    ByteArrayInputStream is = new ByteArrayInputStream(bytes);
 		    statement.setBlob(i + 1, is);
+		} else {
+		    statement.setNull(i + 1, Types.BLOB);
 		}
 		break;
 	    case MSMS:
@@ -187,6 +192,8 @@ class SQLExportTask extends AbstractTask {
 			    .encodeDataPointsToBytes(dataPoints);
 		    ByteArrayInputStream is = new ByteArrayInputStream(bytes);
 		    statement.setBlob(i + 1, is);
+		} else {
+		    statement.setNull(i + 1, Types.BLOB);
 		}
 		break;
 	    }
