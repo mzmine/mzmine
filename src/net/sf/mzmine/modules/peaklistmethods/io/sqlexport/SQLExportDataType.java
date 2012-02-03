@@ -24,6 +24,8 @@ public enum SQLExportDataType {
     CONSTANT("Constant value", true), //
     MZ("m/z", false), //
     RT("Retention time", false), //
+    HEIGHT("Peak height", false), //
+    AREA("Peak area", false), //
     COMMENT("Comment", false), //
     IDENTITY("Identity", false), //
     MSMS("MS/MS pattern (BLOB)", false), //

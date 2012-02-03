@@ -150,6 +150,12 @@ class SQLExportTask extends AbstractTask {
 	    case RT:
 		statement.setDouble(i + 1, row.getAverageRT());
 		break;
+	    case HEIGHT:
+		statement.setDouble(i + 1, row.getAverageHeight());
+		break;
+	    case AREA:
+		statement.setDouble(i + 1, row.getAverageArea());
+		break;
 	    case COMMENT:
 		statement.setString(i + 1, row.getComment());
 		break;
