@@ -33,108 +33,113 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-	private String label;
-	private Scan scan;
-	private Map<DataPoint, String> annotation;
+    private String label;
+    private Scan scan;
+    private Map<DataPoint, String> annotation;
 
-	/*
-	 * Save a local copy of m/z and intensity values, because accessing the scan
-	 * every time may cause reloading the data from HDD
-	 */
-	private DataPoint dataPoints[];
+    /*
+     * Save a local copy of m/z and intensity values, because accessing the scan
+     * every time may cause reloading the data from HDD
+     */
+    private DataPoint dataPoints[];
 
-	public ScanDataSet(Scan scan) {
-		this("Scan #" + scan.getScanNumber(), scan);
+    public ScanDataSet(Scan scan) {
+	this("Scan #" + scan.getScanNumber(), scan);
+    }
+
+    public ScanDataSet(String label, Scan scan) {
+	this.dataPoints = scan.getDataPoints();
+	this.scan = scan;
+	this.label = label;
+    }
+
+    @Override
+    public int getSeriesCount() {
+	return 1;
+    }
+
+    @Override
+    public Comparable getSeriesKey(int series) {
+	return label;
+    }
+
+    public int getItemCount(int series) {
+	return dataPoints.length;
+    }
+
+    public Number getX(int series, int item) {
+	return dataPoints[item].getMZ();
+    }
+
+    public Number getY(int series, int item) {
+	return dataPoints[item].getIntensity();
+    }
+
+    public Number getEndX(int series, int item) {
+	return getX(series, item);
+    }
+
+    public double getEndXValue(int series, int item) {
+	return getXValue(series, item);
+    }
+
+    public Number getEndY(int series, int item) {
+	return getY(series, item);
+    }
+
+    public double getEndYValue(int series, int item) {
+	return getYValue(series, item);
+    }
+
+    public Number getStartX(int series, int item) {
+	return getX(series, item);
+    }
+
+    public double getStartXValue(int series, int item) {
+	return getXValue(series, item);
+    }
+
+    public Number getStartY(int series, int item) {
+	return getY(series, item);
+    }
+
+    public double getStartYValue(int series, int item) {
+	return getYValue(series, item);
+    }
+
+    /**
+     * This function finds highest data point intensity in given m/z range. It
+     * is important for normalizing isotope patterns.
+     */
+    public double getHighestIntensity(Range mzRange) {
+
+	double maxIntensity = 0;
+	for (DataPoint dp : dataPoints) {
+	    if ((mzRange.contains(dp.getMZ()))
+		    && (dp.getIntensity() > maxIntensity))
+		maxIntensity = dp.getIntensity();
 	}
 
-	public ScanDataSet(String label, Scan scan) {
-		this.dataPoints = scan.getDataPoints();
-		this.scan = scan;
-		this.label = label;
+	return maxIntensity;
+    }
+
+    public Scan getScan() {
+	return scan;
+    }
+
+    public void addAnnotation(Map<DataPoint, String> annotation) {
+	this.annotation = annotation;
+    }
+
+    public String getAnnotation(int item) {
+	if (annotation == null)
+	    return null;
+	DataPoint itemDataPoint = dataPoints[item];
+	for (DataPoint key : annotation.keySet()) {
+	    if (Math.abs(key.getMZ() - itemDataPoint.getMZ()) < 0.001)
+		return annotation.get(key);
 	}
+	return null;
+    }
 
-	@Override
-	public int getSeriesCount() {
-		return 1;
-	}
-
-	@Override
-	public Comparable getSeriesKey(int series) {
-		return label;
-	}
-
-	public int getItemCount(int series) {
-		return dataPoints.length;
-	}
-
-	public Number getX(int series, int item) {
-		return dataPoints[item].getMZ();
-	}
-
-	public Number getY(int series, int item) {
-		return dataPoints[item].getIntensity();
-	}
-
-	public Number getEndX(int series, int item) {
-		return getX(series, item);
-	}
-
-	public double getEndXValue(int series, int item) {
-		return getXValue(series, item);
-	}
-
-	public Number getEndY(int series, int item) {
-		return getY(series, item);
-	}
-
-	public double getEndYValue(int series, int item) {
-		return getYValue(series, item);
-	}
-
-	public Number getStartX(int series, int item) {
-		return getX(series, item);
-	}
-
-	public double getStartXValue(int series, int item) {
-		return getXValue(series, item);
-	}
-
-	public Number getStartY(int series, int item) {
-		return getY(series, item);
-	}
-
-	public double getStartYValue(int series, int item) {
-		return getYValue(series, item);
-	}
-
-	/**
-	 * This function finds highest data point intensity in given m/z range. It
-	 * is important for normalizing isotope patterns.
-	 */
-	public double getHighestIntensity(Range mzRange) {
-
-		double maxIntensity = 0;
-		for (DataPoint dp : dataPoints) {
-			if ((mzRange.contains(dp.getMZ()))
-					&& (dp.getIntensity() > maxIntensity))
-				maxIntensity = dp.getIntensity();
-		}
-
-		return maxIntensity;
-	}
-
-	public Scan getScan() {
-		return scan;
-	}
-
-	public void addAnnotation(Map<DataPoint, String> annotation) {
-		this.annotation = annotation;
-	}
-
-	public String getAnnotation(int item) {
-		if (annotation == null)
-			return null;
-		return annotation.get(dataPoints[item]);
-	}
-	
 }
