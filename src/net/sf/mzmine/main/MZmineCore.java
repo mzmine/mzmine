@@ -200,12 +200,12 @@ public final class MZmineCore {
 	}
 
 	// if arguments were specified (= running without GUI), run the batch
-	// mode for each argument
-	for (String fileName : args) {
-	    File batchFile = new File(fileName);
+	// mode
+	if (args.length > 0) {
+	    File batchFile = new File(args[0]);
 	    if ((!batchFile.exists()) || (!batchFile.canRead())) {
 		logger.severe("Cannot read batch file " + batchFile);
-		continue;
+		System.exit(1);
 	    }
 	    ExitCode exitCode = BatchModeModule.runBatch(batchFile);
 	    if (exitCode == ExitCode.OK)
