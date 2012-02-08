@@ -35,7 +35,7 @@ import net.sf.mzmine.util.Range;
 
 public class HMDBGateway implements DBGateway {
 
-    public static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
+    private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
@@ -63,7 +63,9 @@ public class HMDBGateway implements DBGateway {
 	    results.add(hmdbID);
 	}
 
-	// Remove all except first numOfResults IDs
+	// Remove all except first numOfResults IDs. The reason why we first
+	// retrieve all results and then remove those above numOfResults is to
+	// keep the lowest HDMB IDs - these may be the most interesting ones.
 	while (results.size() > numOfResults) {
 	    String lastItem = results.last();
 	    results.remove(lastItem);

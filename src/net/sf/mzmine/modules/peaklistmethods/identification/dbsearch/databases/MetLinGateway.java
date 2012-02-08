@@ -40,10 +40,9 @@ public class MetLinGateway implements DBGateway {
 
     private static final String adduct[] = { "M" };
 
-    public static final String metLinSearchAddress = "http://metlin.scripps.edu/metabo_list.php?";
-    public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
-    public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
-    public static final String metLinStructureAddress2 = ".mol";
+    private static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
+    private static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
+    private static final String metLinStructureAddress2 = ".mol";
 
     private Map<String, LineInfo> retrievedMolecules = new Hashtable<String, LineInfo>();
 

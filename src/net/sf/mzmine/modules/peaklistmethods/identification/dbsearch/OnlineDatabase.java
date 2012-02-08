@@ -27,6 +27,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.K
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PlantCycGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -40,7 +41,8 @@ public enum OnlineDatabase implements MZmineModule {
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
     MASSBANK("MassBank Database", MassBankGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
-	    ChemSpiderParameters.class);
+	    ChemSpiderParameters.class), //
+    PLANTCYC("PlantCyc", PlantCycGateway.class);
 
     private final String dbName;
     private final Class<? extends DBGateway> gatewayClass;

@@ -35,13 +35,11 @@ import net.sf.mzmine.util.Range;
 
 public class KEGGGateway implements DBGateway {
 
-    public static final String keggEntryAddress = "http://www.genome.jp/dbget-bin/www_bget?";
-    public static final String kegg2DStructureAddress = "http://www.genome.jp/dbget-bin/www_bget?-f+m+";
-    public static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb2/";
-    public static final String met3DStructureAddress2 = ".pdb";
+    private static final String keggEntryAddress = "http://www.genome.jp/dbget-bin/www_bget?";
+    private static final String kegg2DStructureAddress = "http://www.genome.jp/dbget-bin/www_bget?-f+m+";
+    private static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb2/";
+    private static final String met3DStructureAddress2 = ".pdb";
 
-    /**
-	 */
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
 
