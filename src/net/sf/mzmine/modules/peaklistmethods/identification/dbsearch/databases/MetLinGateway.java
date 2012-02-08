@@ -21,23 +21,20 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Hashtable;
+import java.util.Map;
 
 import javax.xml.rpc.ServiceException;
 
+import metlin.LineInfo;
+import metlin.MetaboliteSearchRequest;
+import metlin.MetlinPortType;
+import metlin.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
-import edu.scripps.metlin.soap.metlin_wsdl.LineInfo;
-import edu.scripps.metlin.soap.metlin_wsdl.MetaboliteSearch;
-import edu.scripps.metlin.soap.metlin_wsdl.MetaboliteSearchResponse;
-import edu.scripps.metlin.soap.metlin_wsdl.MetlinPortType;
-import edu.scripps.metlin.soap.metlin_wsdl.MetlinServiceLocator;
 
 public class MetLinGateway implements DBGateway {
 
@@ -47,6 +44,8 @@ public class MetLinGateway implements DBGateway {
     public static final String metLinEntryAddress = "http://metlin.scripps.edu/metabo_info.php?molid=";
     public static final String metLinStructureAddress1 = "http://metlin.scripps.edu/structure/";
     public static final String metLinStructureAddress2 = ".mol";
+
+    private Map<String, LineInfo> retrievedMolecules = new Hashtable<String, LineInfo>();
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
@@ -66,13 +65,25 @@ public class MetLinGateway implements DBGateway {
 
 	float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
 
-	MetaboliteSearch parameters2 = new MetaboliteSearch(searchMass, adduct,
-		searchTolerance, "Da");
-	MetaboliteSearchResponse results = serv.metaboliteSearch(parameters2);
-	LineInfo resultsData[][] = results.getMetaboliteSearchResult();
+	MetaboliteSearchRequest searchParams = new MetaboliteSearchRequest(
+		"MZmine", searchMass, adduct, searchTolerance, "Da");
+	LineInfo resultsData[][] = serv.metaboliteSearch(searchParams);
 
-	System.out.println(Arrays.toString(resultsData) + " ");
-	return adduct;
+	if (resultsData.length == 0) {
+	    throw (new IOException("Results could not be retrieved from METLIN"));
+
+	}
+	final int totalResults = Math.min(resultsData[0].length, numOfResults);
+	String metlinIDs[] = new String[totalResults];
+
+	for (int i = 0; i < totalResults; i++) {
+	    LineInfo metlinEntry = resultsData[0][i];
+	    String metlinID = metlinEntry.getMolid();
+	    retrievedMolecules.put(metlinID, metlinEntry);
+	    metlinIDs[i] = metlinID;
+	}
+
+	return metlinIDs;
 
     }
 
@@ -85,41 +96,28 @@ public class MetLinGateway implements DBGateway {
 
 	URL entryURL = new URL(metLinEntryAddress + ID);
 
-	String metLinEntry = InetUtils.retrieveData(entryURL);
+	LineInfo metlinEntry = retrievedMolecules.get(ID);
 
-	String compoundName = null;
-	String compoundFormula = null;
-	URL structure2DURL = null;
-	URL structure3DURL = null;
-
-	// Find compound name
-	Pattern patName = Pattern.compile(
-		"</iframe>',1,450,300\\)\">(.+?)&nbsp;&nbsp;&nbsp;&nbsp",
-		Pattern.DOTALL);
-	Matcher matcherName = patName.matcher(metLinEntry);
-	if (matcherName.find()) {
-	    compoundName = matcherName.group(1);
+	if (metlinEntry == null) {
+	    throw new IOException("Unknown ID " + ID);
 	}
 
-	// Find compound formula
-	Pattern patFormula = Pattern.compile(
-		"Formula.*?<td.*?</script>(.+?)</td>", Pattern.DOTALL);
-	Matcher matcherFormula = patFormula.matcher(metLinEntry);
-	if (matcherFormula.find()) {
-	    String htmlFormula = matcherFormula.group(1);
-	    compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
-	}
-
-	// Unfortunately, 2D structures provided by METLIN cannot be loaded
-	// into CDK (throws CDKException). They can be loaded into JMol, so
-	// we can show 3D structure.
-	structure3DURL = new URL(metLinStructureAddress1 + ID
-		+ metLinStructureAddress2);
+	String compoundName = metlinEntry.getName();
 
 	if (compoundName == null) {
 	    throw (new IOException(
 		    "Could not parse compound name for compound " + ID));
 	}
+
+	String compoundFormula = metlinEntry.getFormula();
+
+	// Unfortunately, 2D structures provided by METLIN cannot be loaded
+	// into CDK (throws CDKException). They can be loaded into JMol, so
+	// we can show 3D structure.
+	URL structure2DURL = null;
+
+	URL structure3DURL = new URL(metLinStructureAddress1 + ID
+		+ metLinStructureAddress2);
 
 	DBCompound newCompound = new DBCompound(
 		// OnlineDatabase.METLIN,
