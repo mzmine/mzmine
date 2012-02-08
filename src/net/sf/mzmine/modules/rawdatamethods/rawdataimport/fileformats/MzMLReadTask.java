@@ -20,18 +20,13 @@
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
-
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
@@ -40,18 +35,23 @@ import net.sf.mzmine.data.impl.SimpleDataPoint;
 import net.sf.mzmine.data.impl.SimpleScan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.CompressionUtils;
 import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
-
-import org.apache.axis.encoding.Base64;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
+import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
+import uk.ac.ebi.jmzml.model.mzml.BinaryDataArrayList;
+import uk.ac.ebi.jmzml.model.mzml.CVParam;
+import uk.ac.ebi.jmzml.model.mzml.ParamGroup;
+import uk.ac.ebi.jmzml.model.mzml.Precursor;
+import uk.ac.ebi.jmzml.model.mzml.PrecursorList;
+import uk.ac.ebi.jmzml.model.mzml.SelectedIonList;
+import uk.ac.ebi.jmzml.model.mzml.Spectrum;
+import uk.ac.ebi.jmzml.xml.io.MzMLObjectIterator;
+import uk.ac.ebi.jmzml.xml.io.MzMLUnmarshaller;
 
 /**
- * This class reads mzML 1.0 and 1.1.0 files.
- * (http://www.psidev.info/index.php?q=node/257)
+ * This class reads mzML 1.0 and 1.1.0 files
+ * (http://www.psidev.info/index.php?q=node/257) using the jmzml library
+ * (http://code.google.com/p/jmzml/).
  */
 public class MzMLReadTask extends AbstractTask {
 
@@ -61,36 +61,10 @@ public class MzMLReadTask extends AbstractTask {
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
     private int totalScans = 0, parsedScans;
-    private int peaksCount = 0;
-    private StringBuilder charBuffer;
-    private boolean precursorFlag = false;
-    private boolean spectrumFlag = false;
-    private boolean spectrumListFlag = false;
-    private boolean scanFlag = false;
-    private boolean ionSelectionFlag = false;
-    private boolean binaryDataArrayFlag = false;
-    private boolean mzArrayBinaryFlag = false;
-    private boolean intenArrayBinaryFlag = false;
-    private boolean compressFlag = false;
-    private int precision, scanNumber = 0, msLevel, parentScan;
-    private double retentionTime, precursorMz;
-    private int precursorCharge = 0;
-    private DefaultHandler handler = new MzMLHandler();
 
-    private HashMap<String, Integer> scanId = new HashMap<String, Integer>();
+    private int lastScanNumber = 0;
 
-    /*
-     * The information of "m/z" & "int" is content in two arrays because the
-     * mzData standard manages this information in two different tags.
-     */
-    private double[] mzDataPoints;
-    private double[] intensityDataPoints;
-
-    /*
-     * This variable hold the current scan or fragment, it is send to the stack
-     * when another scan/fragment appears as a parser.startElement
-     */
-    private SimpleScan buildingScan;
+    private Map<String, Integer> scanIdTable = new Hashtable<String, Integer>();
 
     /*
      * This stack stores at most 20 consecutive scans. This window serves to
@@ -100,13 +74,10 @@ public class MzMLReadTask extends AbstractTask {
      * implemented because exists the possibility to find fragments of one scan
      * after one or more full scans.
      */
-    private static final int limitSize = 20;
-    private LinkedList<SimpleScan> parentStack;
+    private static final int PARENT_STACK_SIZE = 20;
+    private LinkedList<SimpleScan> parentStack = new LinkedList<SimpleScan>();
 
     public MzMLReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
-	// 256 kilo-chars buffer
-	charBuffer = new StringBuilder(1 << 18);
-	parentStack = new LinkedList<SimpleScan>();
 	this.file = fileToOpen;
 	this.newMZmineFile = newMZmineFile;
     }
@@ -126,22 +97,77 @@ public class MzMLReadTask extends AbstractTask {
 	setStatus(TaskStatus.PROCESSING);
 	logger.info("Started parsing file " + file);
 
-	// Use the default (non-validating) parser
-	SAXParserFactory factory = SAXParserFactory.newInstance();
+	MzMLUnmarshaller unmarshaller = new MzMLUnmarshaller(file);
 
+	totalScans = unmarshaller
+		.getObjectCountForXpath("/run/spectrumList/spectrum");
+
+	MzMLObjectIterator<Spectrum> spectrumIterator = unmarshaller
+		.unmarshalCollectionFromXpath("/run/spectrumList/spectrum",
+			Spectrum.class);
 	try {
 
-	    SAXParser saxParser = factory.newSAXParser();
-	    saxParser.parse(file, handler);
+	    while (spectrumIterator.hasNext()) {
 
-	    // Close file
+		Spectrum spectrum = spectrumIterator.next();
+
+		String scanId = spectrum.getId();
+		int scanNumber = convertScanIdToScanNumber(scanId);
+
+		int msLevel = extractMSLevel(spectrum);
+		double retentionTime = extractRetentionTime(spectrum);
+
+		// Get parent scan number
+		int parentScan = extractParentScanNumber(spectrum);
+		double precursorMz = extractPrecursorMz(spectrum);
+		int precursorCharge = extractPrecursorCharge(spectrum);
+
+		DataPoint dataPoints[] = extractDataPoints(spectrum);
+
+		// Auto-detect whether this scan is centroided
+		boolean centroided = ScanUtils.isCentroided(dataPoints);
+
+		// Remove zero data points
+		DataPoint optimizedDataPoints[] = ScanUtils
+			.removeZeroDataPoints(dataPoints, centroided);
+
+		SimpleScan scan = new SimpleScan(null, scanNumber, msLevel,
+			retentionTime, parentScan, precursorMz,
+			precursorCharge, null, optimizedDataPoints, centroided);
+
+		for (SimpleScan s : parentStack) {
+		    if (s.getScanNumber() == parentScan) {
+			s.addFragmentScan(scanNumber);
+		    }
+		}
+
+		/*
+		 * Verify the size of parentStack. The actual size of the window
+		 * to cover possible candidates is defined by limitSize.
+		 */
+		if (parentStack.size() > PARENT_STACK_SIZE) {
+		    SimpleScan firstScan = parentStack.removeLast();
+		    newMZmineFile.addScan(firstScan);
+		}
+
+		parentStack.addFirst(scan);
+
+		parsedScans++;
+
+	    }
+
+	    while (!parentStack.isEmpty()) {
+		SimpleScan scan = parentStack.removeLast();
+		newMZmineFile.addScan(scan);
+
+	    }
+
 	    finalRawDataFile = newMZmineFile.finishWriting();
 
 	} catch (Throwable e) {
-	    if (getStatus() == TaskStatus.PROCESSING) {
-		setStatus(TaskStatus.ERROR);
-		errorMessage = ExceptionUtils.exceptionToString(e);
-	    }
+	    setStatus(TaskStatus.ERROR);
+	    errorMessage = "Error parsing mzML: "
+		    + ExceptionUtils.exceptionToString(e);
 	    return;
 	}
 
@@ -157,6 +183,196 @@ public class MzMLReadTask extends AbstractTask {
 
     }
 
+    private int convertScanIdToScanNumber(String scanId) {
+
+	if (scanIdTable.containsKey(scanId))
+	    return scanIdTable.get(scanId);
+
+	final Pattern pattern = Pattern.compile("scan=([0-9]+)");
+	final Matcher matcher = pattern.matcher(scanId);
+	boolean scanNumberFound = matcher.find();
+
+	// Some vendors include scan=XX in the ID, some don't, such as
+	// mzML converted from WIFF files. See the definition of nativeID in
+	// http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
+	if (scanNumberFound) {
+	    int scanNumber = Integer.parseInt(matcher.group(1));
+	    scanIdTable.put(scanId, scanNumber);
+	    return scanNumber;
+	}
+
+	int scanNumber = lastScanNumber + 1;
+	lastScanNumber++;
+	scanIdTable.put(scanId, scanNumber);
+	return scanNumber;
+    }
+
+    private int extractMSLevel(Spectrum spectrum) {
+	// Browse the spectrum parameters
+	List<CVParam> cvParams = spectrum.getCvParam();
+	if (cvParams == null)
+	    return 1;
+	for (CVParam param : cvParams) {
+	    String accession = param.getAccession();
+	    String value = param.getValue();
+	    if ((accession == null) || (value == null))
+		continue;
+
+	    // MS level MS:1000511
+	    if (accession.equals("MS:1000511")) {
+		int msLevel = Integer.parseInt(value);
+		return msLevel;
+	    }
+	}
+	return 1;
+    }
+
+    private double extractRetentionTime(Spectrum spectrum) {
+	// Browse the spectrum parameters
+	List<CVParam> cvParams = spectrum.getCvParam();
+	if (cvParams == null)
+	    return 0;
+	for (CVParam param : cvParams) {
+	    String accession = param.getAccession();
+	    String unitAccession = param.getUnitAccession();
+	    String value = param.getValue();
+	    if ((accession == null) || (value == null))
+		continue;
+
+	    // Retention time (actually "Scan start time") MS:100001
+	    if (accession.equals("MS:1000016")) {
+		// MS:1000038 is used in mzML 1.0, while UO:0000031
+		// is used in mzML 1.1.0 :-/
+		double retentionTime;
+		if ((unitAccession == null)
+			|| (unitAccession.equals("MS:1000038"))
+			|| unitAccession.equals("UO:0000031")) {
+		    retentionTime = Double.parseDouble(value);
+
+		} else {
+		    retentionTime = Double.parseDouble(value) / 60d;
+		}
+		return retentionTime;
+	    }
+	}
+	return 0;
+    }
+
+    private DataPoint[] extractDataPoints(Spectrum spectrum) {
+	BinaryDataArrayList dataList = spectrum.getBinaryDataArrayList();
+
+	if ((dataList == null) || (dataList.getCount() == 0))
+	    return new DataPoint[0];
+
+	BinaryDataArray mzArray = dataList.getBinaryDataArray().get(0);
+	BinaryDataArray intensityArray = dataList.getBinaryDataArray().get(1);
+	Number mzValues[] = mzArray.getBinaryDataAsNumberArray();
+	Number intensityValues[] = intensityArray.getBinaryDataAsNumberArray();
+	DataPoint dataPoints[] = new DataPoint[mzValues.length];
+	for (int i = 0; i < dataPoints.length; i++) {
+	    double mz = mzValues[i].doubleValue();
+	    double intensity = intensityValues[i].doubleValue();
+	    dataPoints[i] = new SimpleDataPoint(mz, intensity);
+	}
+	return dataPoints;
+
+    }
+
+    private int extractParentScanNumber(Spectrum spectrum) {
+	PrecursorList precursorListElement = spectrum.getPrecursorList();
+	if ((precursorListElement == null)
+		|| (precursorListElement.getCount() == 0))
+	    return -1;
+
+	List<Precursor> precursorList = precursorListElement.getPrecursor();
+	for (Precursor parent : precursorList) {
+	    // Get the precursor scan number
+	    String precursorScanId = parent.getSpectrumRef();
+	    int parentScan = convertScanIdToScanNumber(precursorScanId);
+	    return parentScan;
+	}
+	return -1;
+    }
+
+    private double extractPrecursorMz(Spectrum spectrum) {
+
+	PrecursorList precursorListElement = spectrum.getPrecursorList();
+	if ((precursorListElement == null)
+		|| (precursorListElement.getCount() == 0))
+	    return 0;
+
+	List<Precursor> precursorList = precursorListElement.getPrecursor();
+	for (Precursor parent : precursorList) {
+
+	    SelectedIonList selectedIonListElement = parent
+		    .getSelectedIonList();
+	    if ((selectedIonListElement == null)
+		    || (selectedIonListElement.getCount() == 0))
+		return 0;
+	    List<ParamGroup> selectedIonParams = selectedIonListElement
+		    .getSelectedIon();
+	    if (selectedIonParams == null)
+		continue;
+
+	    for (ParamGroup pg : selectedIonParams) {
+		List<CVParam> pgCvParams = pg.getCvParam();
+		for (CVParam param : pgCvParams) {
+		    String accession = param.getAccession();
+		    String value = param.getValue();
+		    if ((accession == null) || (value == null))
+			continue;
+		    // MS:1000040 is used in mzML 1.0,
+		    // MS:1000744 is used in mzML 1.1.0
+		    if (accession.equals("MS:1000040")
+			    || accession.equals("MS:1000744")) {
+			double precursorMz = Double.parseDouble(value);
+			return precursorMz;
+		    }
+		}
+
+	    }
+	}
+	return 0;
+    }
+
+    private int extractPrecursorCharge(Spectrum spectrum) {
+	PrecursorList precursorListElement = spectrum.getPrecursorList();
+	if ((precursorListElement == null)
+		|| (precursorListElement.getCount() == 0))
+	    return 0;
+
+	List<Precursor> precursorList = precursorListElement.getPrecursor();
+	for (Precursor parent : precursorList) {
+
+	    SelectedIonList selectedIonListElement = parent
+		    .getSelectedIonList();
+	    if ((selectedIonListElement == null)
+		    || (selectedIonListElement.getCount() == 0))
+		return 0;
+	    List<ParamGroup> selectedIonParams = selectedIonListElement
+		    .getSelectedIon();
+	    if (selectedIonParams == null)
+		continue;
+
+	    for (ParamGroup pg : selectedIonParams) {
+		List<CVParam> pgCvParams = pg.getCvParam();
+		for (CVParam param : pgCvParams) {
+		    String accession = param.getAccession();
+		    String value = param.getValue();
+		    if ((accession == null) || (value == null))
+			continue;
+		    if (accession.equals("MS:1000041")) {
+			int precursorCharge = Integer.parseInt(value);
+			return precursorCharge;
+		    }
+
+		}
+
+	    }
+	}
+	return 0;
+    }
+
     public String getTaskDescription() {
 	return "Opening file" + file;
     }
@@ -165,326 +381,4 @@ public class MzMLReadTask extends AbstractTask {
 	return new Object[] { finalRawDataFile };
     }
 
-    private class MzMLHandler extends DefaultHandler {
-
-	/**
-	 * startElement()
-	 * 
-	 * @see org.xml.sax.ContentHandler#startElement(String , String , String
-	 *      , Attributes )
-	 */
-	public void startElement(String namespaceURI, String lName,
-		String qName, Attributes attrs) throws SAXException {
-
-	    if (isCanceled())
-		throw new SAXException("Parsing Cancelled");
-
-	    // <spectrumList>
-	    if (qName.equals("spectrumList")) {
-		String count = attrs.getValue("count");
-		if (count != null)
-		    totalScans = Integer.parseInt(count);
-		spectrumListFlag = true;
-	    }
-
-	    // <spectrum>
-	    if (qName.equalsIgnoreCase("spectrum")) {
-		retentionTime = 0;
-		parentScan = -1;
-		precursorMz = 0f;
-		precision = 32;
-		precursorCharge = 0;
-		compressFlag = false;
-
-		String id = attrs.getValue("id");
-		String defaultArrayLength = attrs
-			.getValue("defaultArrayLength");
-		if ((id == null) || (defaultArrayLength == null))
-		    throw new SAXException(
-			    "Missing spectrum id or defaultArrayLength");
-
-		Pattern pattern = Pattern.compile("scan=([0-9]+)");
-		Matcher matcher = pattern.matcher(id);
-		boolean scanNumberFound = matcher.find();
-
-		// Some vendors include scan=XX in the ID, some don't, such as
-		// in WIFF files. See the definition of nativeID in
-		// http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
-		if (scanNumberFound)
-		    scanNumber = Integer.parseInt(matcher.group(1));
-		else
-		    scanNumber = scanNumber + 1;
-
-		peaksCount = Integer.parseInt(defaultArrayLength);
-		scanId.put(id, scanNumber);
-		spectrumFlag = true;
-	    }
-
-	    // <scan>
-	    if (qName.equalsIgnoreCase("scan")) {
-		scanFlag = true;
-	    }
-
-	    // <selectedIon> (mzML 1.1.0) or <ionSelection> (mzML 1.0)
-	    if (qName.equalsIgnoreCase("ionSelection")
-		    || qName.equalsIgnoreCase("selectedIon")) {
-		ionSelectionFlag = true;
-	    }
-
-	    // <precursor>
-	    if (qName.equalsIgnoreCase("precursor")) {
-		String parent = attrs.getValue("spectrumRef");
-		if (parent != null) {
-		    if (scanId.containsKey(parent))
-			parentScan = scanId.get(parent);
-		    else
-			parentScan = -1;
-		} else
-		    parentScan = -1;
-		precursorFlag = true;
-	    }
-
-	    // <cvParam>
-	    if (qName.equalsIgnoreCase("cvParam")) {
-		String accession = attrs.getValue("accession");
-
-		if (spectrumFlag) {
-		    if (accession.equals("MS:1000511")) {
-			msLevel = Integer.parseInt(attrs.getValue("value"));
-		    }
-		}
-
-		if (scanFlag) {
-		    if (accession.equals("MS:1000016")) {
-			String unitAccession = attrs.getValue("unitAccession");
-			String value = attrs.getValue("value");
-			if ((unitAccession != null) && (value != null)) {
-			    // MS:1000038 is used in mzML 1.0, while UO:0000031
-			    // is used in mzML 1.1.0 :-/
-			    if (unitAccession.equals("MS:1000038")
-				    || unitAccession.equals("UO:0000031")) {
-				retentionTime = Double.parseDouble(value);
-			    } else
-				retentionTime = Double.parseDouble(value) / 60d;
-			} else
-			    throw new SAXException(
-				    "Corrupted retention time information");
-		    }
-		}
-
-		if ((precursorFlag) && (ionSelectionFlag)) {
-		    String value = attrs.getValue("value");
-		    if (value != null) {
-			// MS:1000040 is used in mzML 1.0, MS:1000744 is used in
-			// mzML 1.1.0
-			if (accession.equals("MS:1000040")
-				|| accession.equals("MS:1000744"))
-			    precursorMz = Double.parseDouble(value);
-			if (accession.equals("MS:1000041"))
-			    precursorCharge = Integer.parseInt(value);
-		    } else
-			throw new SAXException(
-				"Corrupted precursor information");
-		}
-		if (binaryDataArrayFlag) {
-		    if (accession.equals("MS:1000514"))
-			mzArrayBinaryFlag = true;
-		    if (accession.equals("MS:1000515"))
-			intenArrayBinaryFlag = true;
-		    if (accession.equals("MS:1000521")) {
-			precision = 32;
-		    }
-		    if (accession.equals("MS:1000523")) {
-			precision = 64;
-		    }
-		    if (accession.equals("MS:1000574")) {
-			compressFlag = true;
-		    }
-		}
-	    }
-
-	    // <binaryDataArray>
-	    if (qName.equalsIgnoreCase("binaryDataArray")) {
-		binaryDataArrayFlag = true;
-	    }
-
-	}
-
-	/**
-	 * endElement()
-	 * 
-	 * @see org.xml.sax.ContentHandler#endElement(String , String , String )
-	 */
-	public void endElement(String namespaceURI, String sName, String qName)
-		throws SAXException {
-
-	    // <spectrumList>
-	    if (qName.equals("spectrumList")) {
-		spectrumListFlag = false;
-	    }
-
-	    // <spectrum>
-	    if (qName.equalsIgnoreCase("spectrum")) {
-		spectrumFlag = false;
-	    }
-
-	    // <scan>
-	    if (qName.equalsIgnoreCase("scan")) {
-		scanFlag = false;
-	    }
-
-	    // <precursor>
-	    if (qName.equalsIgnoreCase("precursor")) {
-		precursorFlag = false;
-	    }
-
-	    // <selectedIon> (mzML 1.1.0) or <ionSelection> (mzML 1.0)
-	    if (qName.equalsIgnoreCase("ionSelection")
-		    || qName.equalsIgnoreCase("selectedIon")) {
-		ionSelectionFlag = false;
-	    }
-
-	    // <spectrum>
-	    if (qName.equalsIgnoreCase("spectrum")) {
-
-		if (mzDataPoints.length != intensityDataPoints.length) {
-		    setStatus(TaskStatus.ERROR);
-		    errorMessage = "Corrupt list of peaks of scan number "
-			    + scanNumber;
-		    throw new SAXException("Parsing Cancelled");
-		}
-
-		DataPoint completeDataPoints[] = new DataPoint[peaksCount];
-
-		// Copy m/z and intensity data
-		for (int i = 0; i < completeDataPoints.length; i++) {
-		    completeDataPoints[i] = new SimpleDataPoint(
-			    (double) mzDataPoints[i],
-			    (double) intensityDataPoints[i]);
-		}
-
-		// Auto-detect whether this scan is centroided
-		boolean centroided = ScanUtils.isCentroided(completeDataPoints);
-
-		// Remove zero data points
-		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints, centroided);
-
-		buildingScan = new SimpleScan(null, scanNumber, msLevel,
-			retentionTime, parentScan, precursorMz,
-			precursorCharge, null, optimizedDataPoints, centroided);
-
-		buildingScan.setPrecursorCharge(precursorCharge);
-
-		/*
-		 * Update of fragmentScanNumbers of each Scan in the parentStack
-		 */
-		for (SimpleScan s : parentStack) {
-		    if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
-			s.addFragmentScan(buildingScan.getScanNumber());
-		    }
-		}
-
-		/*
-		 * Verify the size of parentStack. The actual size of the window
-		 * to cover possible candidates is defined by limitSize.
-		 */
-		if (parentStack.size() > limitSize) {
-		    SimpleScan scan = parentStack.removeLast();
-		    try {
-			newMZmineFile.addScan(scan);
-		    } catch (IOException e) {
-			setStatus(TaskStatus.ERROR);
-			errorMessage = "IO error: " + e;
-			throw new SAXException("Parsing cancelled");
-		    }
-		    parsedScans++;
-		}
-
-		parentStack.addFirst(buildingScan);
-		buildingScan = null;
-
-	    }
-
-	    if (qName.equalsIgnoreCase("binaryDataArray")) {
-		// clean the current char buffer for the new element
-		binaryDataArrayFlag = false;
-	    }
-
-	    // <Binary>
-	    if ((qName.equalsIgnoreCase("Binary")) && (spectrumListFlag)) {
-
-		byte[] peakBytes = Base64.decode(charBuffer.toString());
-
-		if (compressFlag) {
-		    // Uncompress the bytes
-		    try {
-			peakBytes = CompressionUtils.decompress(peakBytes);
-		    } catch (DataFormatException e) {
-			setStatus(TaskStatus.ERROR);
-			errorMessage = "Corrupt compressed peak: "
-				+ e.toString();
-			throw new SAXException("Parsing Cancelled");
-		    }
-		}
-
-		ByteBuffer currentBytes = ByteBuffer.wrap(peakBytes);
-		currentBytes = currentBytes.order(ByteOrder.LITTLE_ENDIAN);
-
-		if (mzArrayBinaryFlag) {
-
-		    mzArrayBinaryFlag = false;
-		    mzDataPoints = new double[peaksCount];
-
-		    for (int i = 0; i < mzDataPoints.length; i++) {
-			if (precision == 32)
-			    mzDataPoints[i] = (double) currentBytes.getFloat();
-			else
-			    mzDataPoints[i] = currentBytes.getDouble();
-		    }
-		}
-
-		if (intenArrayBinaryFlag) {
-
-		    intenArrayBinaryFlag = false;
-		    intensityDataPoints = new double[peaksCount];
-
-		    for (int i = 0; i < intensityDataPoints.length; i++) {
-			if (precision == 32)
-			    intensityDataPoints[i] = (double) currentBytes
-				    .getFloat();
-			else
-			    intensityDataPoints[i] = currentBytes.getDouble();
-		    }
-		}
-		charBuffer.setLength(0);
-	    }
-
-	}
-
-	/**
-	 * characters()
-	 * 
-	 * @see org.xml.sax.ContentHandler#characters(char[], int, int)
-	 */
-	public void characters(char buf[], int offset, int len)
-		throws SAXException {
-	    charBuffer.append(buf, offset, len);
-	}
-
-	public void endDocument() throws SAXException {
-	    while (!parentStack.isEmpty()) {
-		SimpleScan scan = parentStack.removeLast();
-		try {
-		    newMZmineFile.addScan(scan);
-		} catch (IOException e) {
-		    setStatus(TaskStatus.ERROR);
-		    errorMessage = "IO error: " + e;
-		    throw new SAXException("Parsing cancelled");
-		}
-		parsedScans++;
-	    }
-	}
-
-    }
 }
