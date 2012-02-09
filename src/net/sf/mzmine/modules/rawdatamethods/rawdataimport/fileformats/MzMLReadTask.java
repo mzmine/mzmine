@@ -43,6 +43,8 @@ import uk.ac.ebi.jmzml.model.mzml.CVParam;
 import uk.ac.ebi.jmzml.model.mzml.ParamGroup;
 import uk.ac.ebi.jmzml.model.mzml.Precursor;
 import uk.ac.ebi.jmzml.model.mzml.PrecursorList;
+import uk.ac.ebi.jmzml.model.mzml.Scan;
+import uk.ac.ebi.jmzml.model.mzml.ScanList;
 import uk.ac.ebi.jmzml.model.mzml.SelectedIonList;
 import uk.ac.ebi.jmzml.model.mzml.Spectrum;
 import uk.ac.ebi.jmzml.xml.io.MzMLObjectIterator;
@@ -228,33 +230,44 @@ public class MzMLReadTask extends AbstractTask {
     }
 
     private double extractRetentionTime(Spectrum spectrum) {
-	// Browse the spectrum parameters
-	List<CVParam> cvParams = spectrum.getCvParam();
-	if (cvParams == null)
+
+	ScanList scanListElement = spectrum.getScanList();
+	if (scanListElement == null)
 	    return 0;
-	for (CVParam param : cvParams) {
-	    String accession = param.getAccession();
-	    String unitAccession = param.getUnitAccession();
-	    String value = param.getValue();
-	    if ((accession == null) || (value == null))
+	List<Scan> scanElements = scanListElement.getScan();
+	if (scanElements == null)
+	    return 0;
+
+	for (Scan scan : scanElements) {
+	    List<CVParam> cvParams = scan.getCvParam();
+	    if (cvParams == null)
 		continue;
 
-	    // Retention time (actually "Scan start time") MS:100001
-	    if (accession.equals("MS:1000016")) {
-		// MS:1000038 is used in mzML 1.0, while UO:0000031
-		// is used in mzML 1.1.0 :-/
-		double retentionTime;
-		if ((unitAccession == null)
-			|| (unitAccession.equals("MS:1000038"))
-			|| unitAccession.equals("UO:0000031")) {
-		    retentionTime = Double.parseDouble(value);
+	    for (CVParam param : cvParams) {
+		String accession = param.getAccession();
+		String unitAccession = param.getUnitAccession();
+		String value = param.getValue();
+		if ((accession == null) || (value == null))
+		    continue;
 
-		} else {
-		    retentionTime = Double.parseDouble(value) / 60d;
+		// Retention time (actually "Scan start time") MS:100001
+		if (accession.equals("MS:1000016")) {
+		    // MS:1000038 is used in mzML 1.0, while UO:0000031
+		    // is used in mzML 1.1.0 :-/
+		    double retentionTime;
+		    if ((unitAccession == null)
+			    || (unitAccession.equals("MS:1000038"))
+			    || unitAccession.equals("UO:0000031")) {
+			retentionTime = Double.parseDouble(value);
+		    } else {
+			retentionTime = Double.parseDouble(value) / 60d;
+		    }
+		    return retentionTime;
+
 		}
-		return retentionTime;
 	    }
 	}
+
 	return 0;
     }
 
