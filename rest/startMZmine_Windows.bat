@@ -11,11 +11,6 @@ rem files (parsed raw data) will be placed. Default is %TEMP%, which
 rem represents the system temporary directory.
 set TMP_FILE_DIRECTORY=%TEMP%
 
-rem This is the home directory path for NIST MS Search.  It should hold
-rem nistms$.exe.
-set NIST_MS_SEARCH_PATH=C:\NISTDEMO\MSSEARCH
-
-
 rem Set R environment variables.
 set R_HOME=C:\Program Files\R\R-2.12.0
 set R_SHARE_DIR=%R_HOME%\share 
@@ -36,7 +31,7 @@ set JAVA_COMMAND=java
 
 rem It is not necessary to modify the following section
 set LOGGING_CONFIG_FILE=conf/logging.properties
-set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m -Dnist.ms.search.path="%NIST_MS_SEARCH_PATH%" -Djava.library.path="%JRI_LIB_PATH%"
+set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m -Djava.library.path="%JRI_LIB_PATH%"
 set CLASS_PATH=MZmine2.jar
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 

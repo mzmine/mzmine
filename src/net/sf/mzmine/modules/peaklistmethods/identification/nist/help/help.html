@@ -23,36 +23,46 @@
 
 <p>
     NIST MS Search accepts spectra as input to its searches. Each spectrum is defined by a list of (mass, intensity)
-    pairs. The module forms a search spectrum for each peak in the peak list. For each peak <em>P</em> it finds all
-    other detected peaks whose RTs are within a specified tolerance (see <em>Spectrum RT tolerance</em>) of <em>P</em>'s
-    RT. The peaks' (neutral) mass and intensity value pairs are combined to form a search spectrum for <em>P</em>.
+    pairs. The module forms a query spectrum for each row in the peak list. For each peak-list row <em>P</em> it finds
+    all other peak-list rows whose (average) RTs are within a specified tolerance (see <em>Spectrum RT tolerance</em>)
+    of <em>P</em>'s RT. The peaks' (neutral) mass and intensity value pairs are combined to form a search spectrum for
+    <em>P</em>.
 </p>
 
 <p>
-    For aligned peak-lists the operation for forming spectra is extended such that for two sets of aligned peaks
-    (<em>P</em><sub>1</sub>, <em>P</em><sub>2</sub>, <em>P</em><sub>3</sub>) and (<em>Q</em><sub>1</sub>,
-    <em>Q</em><sub>2</sub>, <em>Q</em><sub>3</sub>) the aligned peaks' RTs are considered within the tolerance if any
-    corresponding pair of peaks (<em>P</em><sub>1</sub>, <em>Q</em><sub>1</sub>), (<em>P</em><sub>2</sub>,
-    <em>Q</em><sub>2</sub>) or (<em>P</em><sub>3</sub>, <em>Q</em><sub>3</sub>) have RTs within the specified tolerance.
+    The number of peaks used to form a mass spectrum can be limited by setting the <em>Max. peaks per spectrum</em>
+    parameter to a value greater than zero. If this parameter is set to <em>N</em> then the <em>N</em> rows whose RTs
+    are closest to that of the row (and within the specified RT tolerance) are used to form the mass spectrum.
 </p>
 
 <p>
     The module can also be run for an individual row of the peak-list table by highlighting the row and then selecting
     <em>NIST MS Search</em> from the pop-up menu (right mouse-button click). In such cases, the mass spectrum passed to
-    NIST MS Search will consist of a single (mass, intensity) pair for each peak in the row.
+    NIST MS Search is formed in the same way as described above.
 </p>
 
 <h4>Method Parameters</h4>
 
 <dl>
+    <dt>NIST MS Search directory</dt>
+    <dd>Full path of the directory containing the NIST MS Search executable (nistms$.exe).</dd>
+
     <dt>Ionization method</dt>
     <dd>Type of ionization that produced the peak subjected to identification. This is used to calculate the neutral
         mass.
     </dd>
 
     <dt>Spectrum RT tolerance</dt>
-    <dd>When forming a search spectrum for a given peak, include all other detected peaks whose RT is within the
-        specified tolerance of the given peak. Ignored when run on a single peak-list table row.
+    <dd>When forming a search spectrum for a given peak-list row, include all other rows whose (average) RT is within
+        the specified tolerance of the given row.
+    </dd>
+
+    <dt>Max. peaks per spectrum</dt>
+    <dd>When forming a search spectrum for a given peak-list row, include at most the specified number of peaks
+        (including the current row). If a row has more than this maximum number of peaks, <em>N</em>, whose RTs are
+        within the specified RT tolerance then it is the <em>N</em> rows whose RTs are closest to that of the row that
+        are used to form the mass spectrum. Setting this parameter to 0 will cause it to be ignored, i.e. all peak-list
+        rows within the specified RT tolerance are used to form the mass spectrum.
     </dd>
 
     <dt>Min. match factor</dt>
@@ -69,9 +79,8 @@
 <h3>Requirements</h3>
 
 <p>
-    This module relies on the NIST MS Search software, which is currently only available for Microsoft
-    Windows, being installed. When MZmine 2 is started the <tt>nist.ms.search.path</tt> system property must be set to
-    the full path-name of the directory in which the <tt>NISTMS$.EXE</tt> program is found.
+    This module relies on the NIST MS Search software, which is currently only available for Microsoft Windows, being
+    installed.
 </p>
 
 </body>

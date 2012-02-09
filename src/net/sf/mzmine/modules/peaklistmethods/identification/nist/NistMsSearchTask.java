@@ -32,13 +32,13 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 import java.io.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchUtilities.NIST_MS_SEARCH_DIR;
-import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchUtilities.NIST_MS_SEARCH_EXE;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.*;
 
 /**
  * Performs NIST MS Search.
@@ -91,6 +91,9 @@ public class NistMsSearchTask
     private static final String CAS_PROPERTY = "CAS number";
     private static final String MOLECULAR_WEIGHT_PROPERTY = "Molecular weight";
 
+    // Initial neighbourhood size.
+    private static final int INITIAL_NEIGHBOURHOOD_SIZE = 4;
+
     // The peak-list.
     private final PeakList peakList;
 
@@ -104,10 +107,15 @@ public class NistMsSearchTask
     // Ion type parameter.
     private final IonizationType ionType;
 
-    // Match factor cut-offs.
+    // Match factor cut-offs, RT window and maximum number or peaks.
     private final int minMatchFactor;
     private final int minReverseMatchFactor;
     private final double rtWindow;
+    private final int maxPeaks;
+
+    // NIST MS Search directory and executable.
+    private final File nistMsSearchDir;
+    private final File nistMsSearchExe;
 
     /**
      * Create the task.
@@ -137,38 +145,72 @@ public class NistMsSearchTask
         progressMax = 0;
 
         // Parameters.
-        ionType = params.getParameter(NistMsSearchParameters.IONIZATION_METHOD).getValue();
-        minMatchFactor = params.getParameter(NistMsSearchParameters.MIN_MATCH_FACTOR).getValue();
-        minReverseMatchFactor = params.getParameter(NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR).getValue();
-        rtWindow = params.getParameter(NistMsSearchParameters.SPECTRUM_RT_WIDTH).getValue();
+        ionType = params.getParameter(IONIZATION_METHOD).getValue();
+        minMatchFactor = params.getParameter(MIN_MATCH_FACTOR).getValue();
+        minReverseMatchFactor = params.getParameter(MIN_REVERSE_MATCH_FACTOR).getValue();
+        rtWindow = params.getParameter(SPECTRUM_RT_WIDTH).getValue();
+        maxPeaks = params.getParameter(MAX_NUM_PEAKS).getValue();
+        nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
+        nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     }
 
     @Override
     public String getTaskDescription() {
+
         return "Running NIST MS Search for " + peakList;
     }
 
     @Override
     public double getFinishedPercentage() {
+
         return progressMax == 0 ? 0.0 : (double) progress / (double) progressMax;
     }
 
     @Override
     public void run() {
 
-        File locatorFile2 = null;
-
         try {
 
-            // Waiting to get the SEMAPHORE: only one instance of NIST MS Search can run at a time.
-            setStatus(TaskStatus.WAITING);
-            synchronized (SEMAPHORE) {
+            // Run the search.
+            nistSearch();
 
+            if (!isCanceled()) {
+
+                // Finished.
+                setStatus(TaskStatus.FINISHED);
+                LOG.info("NIST MS Search completed");
+            }
+
+            // Repaint the window to reflect the change in the peak list
+            MZmineCore.getDesktop().getMainFrame().repaint();
+        }
+        catch (Throwable t) {
+
+            LOG.log(Level.SEVERE, "NIST MS Search error", t);
+            errorMessage = t.getMessage();
+            setStatus(TaskStatus.ERROR);
+        }
+    }
+
+    /**
+     * Run the NIST search.
+     *
+     * @throws IOException if there are i/o problems.
+     */
+    private void nistSearch() throws IOException {
+
+        // Waiting to get the SEMAPHORE: only one instance of NIST MS Search can run at a time.
+        setStatus(TaskStatus.WAITING);
+        synchronized (SEMAPHORE) {
+
+            File locatorFile2 = null;
+            try {
                 if (!isCanceled()) {
+
                     setStatus(TaskStatus.PROCESSING);
 
                     // Configure locator files.
-                    final File locatorFile1 = new File(NIST_MS_SEARCH_DIR, PRIMARY_LOCATOR_FILE_NAME);
+                    final File locatorFile1 = new File(nistMsSearchDir, PRIMARY_LOCATOR_FILE_NAME);
                     locatorFile2 = getSecondLocatorFile(locatorFile1);
                     if (locatorFile2 == null) {
 
@@ -199,13 +241,16 @@ public class NistMsSearchTask
                     rowHoods = getContemporaneousRows();
                 }
 
+                // Reduce neighbourhoods to maximum number of peaks.
+                trimNeighbours(rowHoods);
+
                 // Store search results for each neighbourhood - to avoid repeat searches.
                 final int numRows = peakListRows.length;
                 final Map<Set<PeakListRow>, List<PeakIdentity>> rowIdentities =
                         new HashMap<Set<PeakListRow>, List<PeakIdentity>>(numRows);
 
                 // Search command string.
-                final String command = NIST_MS_SEARCH_EXE.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
+                final String command = nistMsSearchExe.getAbsolutePath() + ' ' + COMMAND_LINE_ARGS;
 
                 // Perform searches for each peak list row..
                 progress = 0;
@@ -253,29 +298,63 @@ public class NistMsSearchTask
                     progress++;
                 }
             }
+            finally {
 
-            if (!isCanceled()) {
+                // Clean up.
+                if (locatorFile2 != null) {
 
-                // Finished.
-                setStatus(TaskStatus.FINISHED);
-                LOG.info("NIST MS Search completed");
+                    locatorFile2.delete();
+                }
             }
-
-            // Repaint the window to reflect the change in the peak list
-            MZmineCore.getDesktop().getMainFrame().repaint();
         }
-        catch (Throwable t) {
+    }
 
-            LOG.log(Level.SEVERE, "NIST MS Search error", t);
-            errorMessage = t.getMessage();
-            setStatus(TaskStatus.ERROR);
-        }
-        finally {
+    /**
+     * Trims the row neighbourhoods to the specified size.
+     *
+     * @param neighbourhoods map from each peak list row to its neighbours.
+     */
+    private void trimNeighbours(final Map<PeakListRow, Set<PeakListRow>> neighbourhoods) {
 
-            // Clean up.
-            if (locatorFile2 != null) {
+        if (maxPeaks > 0) {
 
-                locatorFile2.delete();
+            // Process each row's neighbour list.
+            for (final Entry<PeakListRow, Set<PeakListRow>> entry : neighbourhoods.entrySet()) {
+
+                final PeakListRow row = entry.getKey();
+                final Set<PeakListRow> neighbours = entry.getValue();
+
+                // Need trimming?
+                if (neighbours.size() > maxPeaks) {
+
+                    final List<PeakListRow> keepers = new ArrayList<PeakListRow>(neighbours);
+
+                    // Exclude current row from sorting.
+                    keepers.remove(row);
+
+                    // Sort on RT difference (ascending) then intensity (descending)
+                    final double rt = row.getAverageRT();
+                    Collections.sort(keepers, new Comparator<PeakListRow>() {
+
+                        @Override
+                        public int compare(final PeakListRow o1, final PeakListRow o2) {
+
+                            // Compare on RT difference (ascending).
+                            final int compare =
+                                    Double.compare(Math.abs(rt - o1.getAverageRT()), Math.abs(rt - o2.getAverageRT()));
+
+                            // Compare on intensity (descending) if equal RT difference.
+                            return compare == 0 ?
+                                   Double.compare(o2.getAverageHeight(), o1.getAverageHeight()) :
+                                   compare;
+                        }
+                    });
+
+                    // Add the current row and keepers up to maxPeaks.
+                    neighbours.clear();
+                    neighbours.add(row);
+                    neighbours.addAll(keepers.subList(0, maxPeaks - 1));
+                }
             }
         }
     }
@@ -288,14 +367,17 @@ public class NistMsSearchTask
     private Map<PeakListRow, Set<PeakListRow>> getContemporaneousRows() {
 
         // Create neighbourhood.
-        final Set<PeakListRow> neighbours = new HashSet<PeakListRow>();
+        final Set<PeakListRow> neighbours = new HashSet<PeakListRow>(INITIAL_NEIGHBOURHOOD_SIZE);
+
+        // Contemporaneous with self.
         neighbours.add(peakListRow);
 
         // Find neighbours.
+        final double rt = peakListRow.getAverageRT();
         for (final PeakListRow row2 : peakList.getRows()) {
 
             // Are peak rows contemporaneous?
-            if (!peakListRow.equals(row2) && isContemporaneousPair(peakListRow, row2)) {
+            if (!peakListRow.equals(row2) && Math.abs(rt - row2.getAverageRT()) <= rtWindow) {
 
                 neighbours.add(row2);
             }
@@ -328,54 +410,37 @@ public class NistMsSearchTask
             final PeakListRow row1 = peakList.getRow(i);
             if (!rowHoods.containsKey(row1)) {
 
-                rowHoods.put(row1, new HashSet<PeakListRow>());
+                rowHoods.put(row1, new HashSet<PeakListRow>(4));
             }
 
+            // Holds neighbours.
             final Set<PeakListRow> neighbours = rowHoods.get(row1);
+
+            // Contemporaneous with self.
             neighbours.add(row1);
 
+            // Find contemporaneous peaks.
+            final double rt = row1.getAverageRT();
             for (int j = i + 1;
                  j < numRows;
                  j++) {
 
                 // Are peak rows contemporaneous?
                 final PeakListRow row2 = peakList.getRow(j);
-                if (isContemporaneousPair(row1, row2)) {
+
+                if (Math.abs(rt - row2.getAverageRT()) <= rtWindow) {
 
                     // Add rows to each others' neighbours lists.
                     neighbours.add(row2);
                     if (!rowHoods.containsKey(row2)) {
 
-                        rowHoods.put(row2, new HashSet<PeakListRow>());
+                        rowHoods.put(row2, new HashSet<PeakListRow>(4));
                     }
                     rowHoods.get(row2).add(row1);
                 }
             }
         }
         return rowHoods;
-    }
-
-    /**
-     * Determines whether two peak rows are within RT window.
-     *
-     * @param row1 first row to compare.
-     * @param row2 second row to compare.
-     * @return true if any of the rows corresponding pairs of peaks (one pair per raw data file) have RTs within the
-     *         specified window, false otherwise.
-     */
-    private boolean isContemporaneousPair(final PeakListRow row1, final PeakListRow row2) {
-
-        boolean adjacent = false;
-        final RawDataFile[] files = row1.getRawDataFiles();
-        for (int i = 0; !adjacent && i < files.length; i++) {
-
-            // Compare peaks for the given file.
-            final RawDataFile file = files[i];
-            final ChromatographicPeak peak1 = row1.getPeak(file);
-            final ChromatographicPeak peak2 = row2.getPeak(file);
-            adjacent = peak1 != null && peak2 != null && Math.abs(peak1.getRT() - peak2.getRT()) <= rtWindow;
-        }
-        return adjacent;
     }
 
     /**
@@ -392,7 +457,7 @@ public class NistMsSearchTask
 
         // Read the results file.
         final BufferedReader reader =
-                new BufferedReader(new FileReader(new File(NIST_MS_SEARCH_DIR, SEARCH_RESULTS_FILE_NAME)));
+                new BufferedReader(new FileReader(new File(nistMsSearchDir, SEARCH_RESULTS_FILE_NAME)));
         try {
 
             // Read results.
@@ -473,7 +538,7 @@ public class NistMsSearchTask
     private void runNistMsSearch(final String command) throws IOException {
 
         // Remove the results polling file.
-        final File srcReady = new File(NIST_MS_SEARCH_DIR, SEARCH_POLL_FILE_NAME);
+        final File srcReady = new File(nistMsSearchDir, SEARCH_POLL_FILE_NAME);
         if (srcReady.exists() && !srcReady.delete()) {
             throw new IOException(
                     "Couldn't delete the search results polling file " + srcReady + ".  Please delete it manually.");
@@ -566,7 +631,7 @@ public class NistMsSearchTask
      * @return the secondary locator file or null if the primary locator file couldn't be read.
      * @throws IOException if there are i/o problems.
      */
-    private static File getSecondLocatorFile(final File primaryLocatorFile) throws IOException {
+    private File getSecondLocatorFile(final File primaryLocatorFile) throws IOException {
 
         // Check for the primary locator file.
         if (!primaryLocatorFile.exists()) {
@@ -575,7 +640,7 @@ public class NistMsSearchTask
             // Write the primary locator file.
             final BufferedWriter writer = new BufferedWriter(new FileWriter(primaryLocatorFile));
             try {
-                writer.write(new File(NIST_MS_SEARCH_DIR, SECONDARY_LOCATOR_FILE_NAME).getCanonicalPath());
+                writer.write(new File(nistMsSearchDir, SECONDARY_LOCATOR_FILE_NAME).getCanonicalPath());
                 writer.newLine();
             }
             finally {
