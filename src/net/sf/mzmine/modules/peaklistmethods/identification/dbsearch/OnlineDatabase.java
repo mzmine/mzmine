@@ -42,7 +42,7 @@ public enum OnlineDatabase implements MZmineModule {
     MASSBANK("MassBank Database", MassBankGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
 	    ChemSpiderParameters.class), //
-    PLANTCYC("PlantCyc", PlantCycGateway.class);
+    PLANTCYC("PlantCyc Database", PlantCycGateway.class);
 
     private final String dbName;
     private final Class<? extends DBGateway> gatewayClass;
