@@ -38,7 +38,6 @@ import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.project.impl.StorableMassList;
 import net.sf.mzmine.project.impl.StorableScan;
-import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
@@ -51,11 +50,11 @@ class RawDataFileSaveHandler {
     private Logger logger = Logger.getLogger(this.getClass().getName());
     private int numOfScans, completedScans;
     private ZipOutputStream zipOutputStream;
-    private StreamCopy copyMachine;
     private boolean canceled = false;
     private Map<Integer, Long> dataPointsOffsets;
     private Map<Integer, Long> consolidatedDataPointsOffsets;
     private Map<Integer, Integer> dataPointsLengths;
+    private double progress = 0;
 
     RawDataFileSaveHandler(ZipOutputStream zipOutputStream) {
 	this.zipOutputStream = zipOutputStream;
@@ -78,7 +77,6 @@ class RawDataFileSaveHandler {
 	    throws IOException, TransformerConfigurationException, SAXException {
 
 	numOfScans = rawDataFile.getNumOfScans();
-	completedScans = 0;
 
 	// Get the structure of the data points file
 	dataPointsOffsets = rawDataFile.getDataPointsOffsets();
@@ -115,6 +113,7 @@ class RawDataFileSaveHandler {
 	    dataPointsFile.read(buffer, 0, bytes);
 	    zipOutputStream.write(buffer, 0, bytes);
 	    newOffset += bytes;
+	    progress = 0.9 * ((double) offset / dataPointsFile.length());
 	}
 
 	if (canceled)
@@ -216,6 +215,7 @@ class RawDataFileSaveHandler {
 	    hd.endElement("", "", RawDataElementName.SCAN.getElementName());
 	    atts.clear();
 	    completedScans++;
+	    progress = 0.9 + (0.1 * ((double) completedScans / numOfScans));
 	}
 
 	hd.endElement("", "", RawDataElementName.RAWDATA.getElementName());
@@ -348,29 +348,10 @@ class RawDataFileSaveHandler {
      *         to the zip file.
      */
     double getProgress() {
-
-	if (copyMachine == null)
-	    return 0;
-
-	double progress = 0;
-
-	if (copyMachine.finished()) {
-
-	    // We can estimate that copying the data file takes ~75% of the time
-	    progress = 0.75;
-	    if (numOfScans != 0)
-		progress += 0.25 * (double) completedScans / numOfScans;
-	} else {
-	    progress = copyMachine.getProgress() * 0.75;
-	}
-
 	return progress;
-
     }
 
     void cancel() {
 	canceled = true;
-	if (copyMachine != null)
-	    copyMachine.cancel();
     }
 }

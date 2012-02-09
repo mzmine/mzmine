@@ -74,8 +74,6 @@ public class ProjectSavingTask extends AbstractTask {
     public ProjectSavingTask(ParameterSet parameters) {
 	this.saveFile = parameters.getParameter(
 		ProjectLoaderParameters.projectFile).getValue();
-	;
-	;
 	dataFilesIDMap = new Hashtable<RawDataFile, String>();
     }
 
@@ -94,6 +92,7 @@ public class ProjectSavingTask extends AbstractTask {
     public double getFinishedPercentage() {
 
 	switch (currentStage) {
+
 	case 2:
 	    if (rawDataFileSaveHandler == null)
 		return 0;
