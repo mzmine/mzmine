@@ -160,6 +160,8 @@ public class SimpleParameterSet implements ParameterSet {
     }
 
     protected ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
+	if ((parameters == null) || (parameters.length == 0))
+	    return ExitCode.OK;
 	ParameterSetupDialog dialog = new ParameterSetupDialog(this, autoValues);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
