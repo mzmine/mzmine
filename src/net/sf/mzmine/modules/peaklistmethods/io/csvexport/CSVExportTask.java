@@ -251,7 +251,14 @@ class CSVExportTask extends AbstractTask {
 			    break;
 			}
 		    } else {
-			line.append("N/A" + fieldSeparator);
+			switch (dataFileElements[i]) {
+			case PEAK_STATUS:
+			    line.append(PeakStatus.UNKNOWN + fieldSeparator);
+			    break;
+			default:
+			    line.append("0" + fieldSeparator);
+			    break;
+			}
 		    }
 		}
 	    }
