@@ -82,15 +82,15 @@ public class HMDBGateway implements DBGateway {
     public DBCompound getCompound(String ID, ParameterSet parameters)
 	    throws IOException {
 
-	URL entryURL = new URL(hmdbEntryAddress + ID);
+	final URL entryURL = new URL(hmdbEntryAddress + ID);
 
 	String metaboCard = InetUtils.retrieveData(entryURL);
 	String lines[] = metaboCard.split("\n");
 
 	String compoundName = null;
 	String compoundFormula = null;
-	URL structure2DURL = null;
-	URL structure3DURL = null;
+	final URL structure2DURL = new URL(hmdbEntryAddress + ID + ".sdf");
+	final URL structure3DURL = new URL(hmdbEntryAddress + ID + ".sdf");
 
 	for (int i = 0; i < lines.length - 1; i++) {
 
@@ -109,28 +109,6 @@ public class HMDBGateway implements DBGateway {
 		if (matcher.find()) {
 		    String htmlFormula = matcher.group(1);
 		    compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
-		}
-	    }
-
-	    if (lines[i].contains("<td>SDF File</td>")) {
-		Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-		Matcher matcher = pat.matcher(lines[i + 1]);
-		if (matcher.find()) {
-		    String structureAddress = matcher.group(1);
-		    structureAddress = structureAddress
-			    .replaceAll("&amp;", "&");
-		    structure2DURL = new URL(structureAddress);
-		}
-	    }
-
-	    if (lines[i].contains("<td>PDB File</td>")) {
-		Pattern pat = Pattern.compile("href=\"(http://[^\"]+)\"");
-		Matcher matcher = pat.matcher(lines[i + 1]);
-		if (matcher.find()) {
-		    String structureAddress = matcher.group(1);
-		    structureAddress = structureAddress
-			    .replaceAll("&amp;", "&");
-		    structure3DURL = new URL(structureAddress);
 		}
 	    }
 

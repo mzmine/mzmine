@@ -55,7 +55,7 @@ public class YMDBGateway implements DBGateway {
 	TreeSet<String> results = new TreeSet<String>();
 
 	// Find IDs in the HTML data
-	Pattern pat = Pattern.compile("\"compounds/(YMDB[0-9]{5})\"");
+	Pattern pat = Pattern.compile("\"/compounds/(YMDB[0-9]{5})\"");
 	Matcher matcher = pat.matcher(queryResult);
 	while (matcher.find()) {
 	    String ymdbID = matcher.group(1);
@@ -81,14 +81,16 @@ public class YMDBGateway implements DBGateway {
     public DBCompound getCompound(String ID, ParameterSet parameters)
 	    throws IOException {
 
-	URL entryURL = new URL(ymdbEntryAddress + ID);
+	// We will parse the name and formula from the SDF file, it seems like
+	// the easiest way
 	URL sdfURL = new URL(ymdbEntryAddress + ID + ".sdf");
 
-	String metaboCard = InetUtils.retrieveData(sdfURL);
-	String lines[] = metaboCard.split("\n");
+	String sdfRecord = InetUtils.retrieveData(sdfURL);
+	String lines[] = sdfRecord.split("\n");
 
 	String compoundName = null;
 	String compoundFormula = null;
+	URL entryURL = new URL(ymdbEntryAddress + ID);
 	URL structure2DURL = sdfURL;
 	URL structure3DURL = sdfURL;
 
