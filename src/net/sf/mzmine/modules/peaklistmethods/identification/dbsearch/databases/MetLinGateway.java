@@ -32,6 +32,7 @@ import metlin.MetlinPortType;
 import metlin.MetlinServiceLocator;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
@@ -64,8 +65,11 @@ public class MetLinGateway implements DBGateway {
 
 	float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
 
+	final String token = parameters.getParameter(
+		MetLinParameters.SECURITY_TOKEN).getValue();
+
 	MetaboliteSearchRequest searchParams = new MetaboliteSearchRequest(
-		"MZmine", searchMass, adduct, searchTolerance, "Da");
+		token, searchMass, adduct, searchTolerance, "Da");
 	LineInfo resultsData[][] = serv.metaboliteSearch(searchParams);
 
 	if (resultsData.length == 0) {
@@ -118,10 +122,9 @@ public class MetLinGateway implements DBGateway {
 	URL structure3DURL = new URL(metLinStructureAddress1 + ID
 		+ metLinStructureAddress2);
 
-	DBCompound newCompound = new DBCompound(
-		// OnlineDatabase.METLIN,
-		null, ID, compoundName, compoundFormula, entryURL,
-		structure2DURL, structure3DURL);
+	DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
+		compoundName, compoundFormula, entryURL, structure2DURL,
+		structure3DURL);
 
 	return newCompound;
 

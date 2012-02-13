@@ -27,8 +27,10 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.K
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.LipidMapsGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MassBankGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.MetLinParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PlantCycGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.PubChemGateway;
+import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.YMDBGateway;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
@@ -36,8 +38,9 @@ public enum OnlineDatabase implements MZmineModule {
 
     KEGG("KEGG Compound Database", KEGGGateway.class), //
     PubChem("PubChem Compound Database", PubChemGateway.class), //
-    HMDB("Human Metabolome Database", HMDBGateway.class), //
-    METLIN("METLIN Database", MetLinGateway.class), //
+    HMDB("Human Metabolome Database (HMDB)", HMDBGateway.class), //
+    YMDB("Yeast Metabolome Database (YMDB)", YMDBGateway.class), //
+    METLIN("METLIN Database", MetLinGateway.class, MetLinParameters.class), //
     LIPIDMAPS("LipidMaps Database", LipidMapsGateway.class), //
     MASSBANK("MassBank Database", MassBankGateway.class), //
     CHEMSPIDER("ChemSpider Database", ChemSpiderGateway.class,
