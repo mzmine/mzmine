@@ -35,6 +35,7 @@ import net.sf.mzmine.util.Range;
 
 public class YMDBGateway implements DBGateway {
 
+    private static final String ymdbSeachAddress = "http://www.ymdb.ca/chemquery/mass?";
     private static final String ymdbEntryAddress = "http://www.ymdb.ca/compounds/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
@@ -42,7 +43,7 @@ public class YMDBGateway implements DBGateway {
 
 	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-	String queryAddress = "http://www.ymdb.ca/chemquery/mass?query_from="
+	String queryAddress = ymdbSeachAddress + "query_from="
 		+ toleranceRange.getMin() + "&query_to="
 		+ toleranceRange.getMax();
 

@@ -35,6 +35,8 @@ import net.sf.mzmine.util.Range;
 
 public class HMDBGateway implements DBGateway {
 
+    private static final String hmdbSeachAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight";
+    private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
     private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
@@ -42,9 +44,8 @@ public class HMDBGateway implements DBGateway {
 
 	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-	String queryAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight&query_from="
-		+ toleranceRange.getMin()
-		+ "&query_to="
+	String queryAddress = hmdbSeachAddress + "&query_from="
+		+ toleranceRange.getMin() + "&query_to="
 		+ toleranceRange.getMax();
 
 	URL queryURL = new URL(queryAddress);
@@ -89,8 +90,8 @@ public class HMDBGateway implements DBGateway {
 
 	String compoundName = null;
 	String compoundFormula = null;
-	final URL structure2DURL = new URL(hmdbEntryAddress + ID + ".sdf");
-	final URL structure3DURL = new URL(hmdbEntryAddress + ID + ".sdf");
+	final URL structure2DURL = new URL(hmdbStructureAddress + ID + ".sdf");
+	final URL structure3DURL = new URL(hmdbStructureAddress + ID + ".pdb");
 
 	for (int i = 0; i < lines.length - 1; i++) {
 
