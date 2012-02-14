@@ -215,7 +215,7 @@ public class StorableScan implements Scan {
 		return retentionTime;
 	}
 
-	private void updateValues() {
+	void updateValues() {
 		DataPoint dataPoints[] = getDataPoints();
 
 		// find m/z range and base peak
