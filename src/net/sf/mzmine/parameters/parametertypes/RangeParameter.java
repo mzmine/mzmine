@@ -29,11 +29,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-/**
- * Simple Parameter implementation
- * 
- * 
- */
 public class RangeParameter implements UserParameter<Range, RangeComponent> {
 
     private String name, description;

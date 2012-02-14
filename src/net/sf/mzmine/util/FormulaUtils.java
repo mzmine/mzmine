@@ -19,83 +19,125 @@
 
 package net.sf.mzmine.util;
 
+import java.io.IOException;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.IonizationType;
 
 import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.formula.MolecularFormula;
+import org.openscience.cdk.config.IsotopeFactory;
 import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
-import org.openscience.cdk.interfaces.IMolecularFormula;
-import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class FormulaUtils {
 
-    public static final double electronMass = 0.0005485799;
+    private static final double electronMass = 0.00054857990946;
 
     /**
-     * Calculates exact monoisotopic mass of a given formula
+     * Returns the exact mass of an element. Mass is obtained from the CDK
+     * library.
      */
-    public static double calculateExactMass(String formula) {
-
+    public static double getElementMass(String element) {
 	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-
-	IMolecularFormula formulaObject = MolecularFormulaManipulator
-		.getMolecularFormula(formula, builder);
-
-	return calculateExactMass(formulaObject);
-
-    }
-
-    /**
-     * Calculates exact monoisotopic mass of a given formula
-     */
-    public static double calculateExactMass(IMolecularFormula formula) {
-
-	// getTotalExactMass returns the mass according to charge (addition or
-	// removal or electron mass)
-	double mass = MolecularFormulaManipulator.getTotalExactMass(formula);
-
+	IsotopeFactory isotopeFac;
+	try {
+	    isotopeFac = IsotopeFactory.getInstance(builder);
+	} catch (IOException e) {
+	    e.printStackTrace();
+	    return 0;
+	}
+	IIsotope majorIsotope = isotopeFac.getMajorIsotope(element);
+	double mass = majorIsotope.getExactMass();
 	return mass;
+    }
 
+    @Nonnull
+    public static Map<String, Integer> parseFormula(String formula) {
+
+	Map<String, Integer> parsedFormula = new Hashtable<String, Integer>();
+
+	Pattern pattern = Pattern.compile("([A-Z][a-z]?)(-?[0-9]*)");
+	Matcher matcher = pattern.matcher(formula);
+
+	while (matcher.find()) {
+	    String element = matcher.group(1);
+	    String countString = matcher.group(2);
+	    int addCount = Integer.parseInt(countString);
+	    int currentCount = 0;
+	    if (parsedFormula.containsKey(element)) {
+		currentCount = parsedFormula.get(element);
+	    }
+	    int newCount = currentCount + addCount;
+	    parsedFormula.put(element, newCount);
+	}
+	return parsedFormula;
+    }
+
+    @Nonnull
+    public static String formatFormula(
+	    @Nonnull Map<String, Integer> parsedFormula) {
+
+	StringBuilder formattedFormula = new StringBuilder();
+
+	// Use TreeSet to sort the elements by alphabet
+	TreeSet<String> elements = new TreeSet<String>(parsedFormula.keySet());
+
+	if (elements.contains("C")) {
+	    int countC = parsedFormula.get("C");
+	    formattedFormula.append("C");
+	    if (countC > 1)
+		formattedFormula.append(countC);
+	    elements.remove("C");
+	    if (elements.contains("H")) {
+		int countH = parsedFormula.get("H");
+		formattedFormula.append("H");
+		if (countH > 1)
+		    formattedFormula.append(countH);
+		elements.remove("H");
+	    }
+	}
+	for (String element : elements) {
+	    formattedFormula.append(element);
+	    int count = parsedFormula.get(element);
+	    if (count > 1)
+		formattedFormula.append(count);
+	}
+	return formattedFormula.toString();
+    }
+
+    public static double calculateExactMass(String formula) {
+	return calculateExactMass(formula, 0);
     }
 
     /**
-     * Modifies the formula according to the ionization type
+     * Calculates exact monoisotopic mass of a given formula. Note that the
+     * returned mass may be negative, in case the formula contains negative such
+     * as C3H10P-3. This is important for calculating the mass of some
+     * ionization adducts, such as deprotonation (H-1).
      */
-    public static IMolecularFormula ionizeFormula(
-	    IMolecularFormula formulaObject, IonizationType ionType, int charge) {
+    public static double calculateExactMass(String formula, int charge) {
 
-	// No ionization must be treated special
-	if (ionType == IonizationType.NO_IONIZATION)
-	    return formulaObject;
+	if (formula.trim().length() == 0)
+	    return 0;
 
-	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	Map<String, Integer> parsedFormula = parseFormula(formula);
 
-	IMolecularFormula newFormulaObject = new MolecularFormula();
-
-	IMolecularFormula adductObject = MolecularFormulaManipulator
-		.getMolecularFormula(ionType.getAdduct(), builder);
-
-	int sign = 1;
-	if (ionType.toString().startsWith("-"))
-	    sign = -1;
-
-	for (IIsotope formulaIsotope : formulaObject.isotopes()) {
-	    int count = formulaObject.getIsotopeCount(formulaIsotope);
-	    for (IIsotope adductIsotope : adductObject.isotopes()) {
-		if (formulaIsotope.getSymbol()
-			.equals(adductIsotope.getSymbol())) {
-		    int adductCount = adductObject
-			    .getIsotopeCount(adductIsotope);
-		    count += sign * adductCount * charge;
-		}
-	    }
-	    if (count > 0)
-		newFormulaObject.addIsotope(formulaIsotope, count);
+	double totalMass = 0;
+	for (String element : parsedFormula.keySet()) {
+	    int count = parsedFormula.get(element);
+	    double elementMass = getElementMass(element);
+	    totalMass += count * elementMass;
 	}
 
-	return newFormulaObject;
+	totalMass -= charge * electronMass;
 
+	return totalMass;
     }
 
     /**
@@ -104,20 +146,20 @@ public class FormulaUtils {
     public static String ionizeFormula(String formula, IonizationType ionType,
 	    int charge) {
 
-	// No ionization must be treated special
+	// No ionization
 	if (ionType == IonizationType.NO_IONIZATION)
 	    return formula;
 
-	IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
+	StringBuilder combinedFormula = new StringBuilder();
+	combinedFormula.append(formula);
+	for (int i = 0; i < charge; i++) {
+	    combinedFormula.append(ionType.getAdduct());
+	}
 
-	IMolecularFormula formulaObject = MolecularFormulaManipulator
-		.getMolecularFormula(formula, builder);
+	Map<String, Integer> parsedFormula = parseFormula(combinedFormula
+		.toString());
 
-	IMolecularFormula adjustedFormulaObject = ionizeFormula(formulaObject,
-		ionType, charge);
-
-	String newFormula = MolecularFormulaManipulator
-		.getString(adjustedFormulaObject);
+	String newFormula = formatFormula(parsedFormula);
 
 	return newFormula;
 

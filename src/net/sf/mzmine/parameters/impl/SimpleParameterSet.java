@@ -21,7 +21,6 @@ package net.sf.mzmine.parameters.impl;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -156,13 +155,9 @@ public class SimpleParameterSet implements ParameterSet {
 
     @Override
     public ExitCode showSetupDialog() {
-	return showSetupDialog(null);
-    }
-
-    protected ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
 	if ((parameters == null) || (parameters.length == 0))
 	    return ExitCode.OK;
-	ParameterSetupDialog dialog = new ParameterSetupDialog(this, autoValues);
+	ParameterSetupDialog dialog = new ParameterSetupDialog(this);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

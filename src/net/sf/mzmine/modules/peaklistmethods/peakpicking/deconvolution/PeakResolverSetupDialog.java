@@ -72,13 +72,9 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
     private PeakResolver peakResolver;
     private ParameterSet parameters;
 
-    /**
-     * @param parameters
-     * @param massDetectorTypeNumber
-     */
     public PeakResolverSetupDialog(ParameterSet peakResolverParameters,
 	    Class<? extends PeakResolver> peakResolverClass) {
-	super(peakResolverParameters, null);
+	super(peakResolverParameters);
 	try {
 	    this.peakResolver = peakResolverClass.newInstance();
 	} catch (Exception e) {

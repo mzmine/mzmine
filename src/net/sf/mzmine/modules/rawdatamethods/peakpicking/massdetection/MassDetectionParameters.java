@@ -19,8 +19,6 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
-import java.util.Map;
-
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -30,7 +28,6 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxim
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive.RecursiveMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet.WaveletMassDetector;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
@@ -64,9 +61,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog(Map<UserParameter, Object> autoValues) {
+    public ExitCode showSetupDialog() {
 
-	ExitCode exitCode = super.showSetupDialog(autoValues);
+	ExitCode exitCode = super.showSetupDialog();
 
 	// If the parameters are not complete, let's just stop here
 	if (exitCode != ExitCode.OK)

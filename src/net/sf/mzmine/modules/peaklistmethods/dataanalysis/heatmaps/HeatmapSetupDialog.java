@@ -35,7 +35,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 	private UserParameter previousParameterSelection;
 
 	public HeatmapSetupDialog(HeatMapParameters parameters) {
-		super(parameters, null);
+		super(parameters);
 
 		// Get a reference to the combo boxes
 		selDataCombo = (JComboBox) this

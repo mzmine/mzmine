@@ -27,11 +27,6 @@ import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
 
-/**
- * Simple Parameter implementation
- * 
- * 
- */
 public class StringParameter implements UserParameter<String, JTextField> {
 
     private String name, description, value;

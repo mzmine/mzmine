@@ -62,12 +62,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	private JComboBox peakListsComboX, peakListsComboY;
 	private JButton alignmentPreviewButton;
 
-	/**
-	 * @param parameters
-	 * @param massDetectorTypeNumber
-	 */
 	public RansacAlignerSetupDialog(RansacAlignerParameters parameters) {
-		super(parameters, null);
+		super(parameters);
 	}
 
 	/**

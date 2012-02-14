@@ -98,7 +98,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
                 }
 
                 getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
-                ParameterSetupDialog dialog = new ParameterSetupDialog(this, null);
+                ParameterSetupDialog dialog = new ParameterSetupDialog(this);
                 dialog.setVisible(true);
                 return dialog.getExitCode();
         }

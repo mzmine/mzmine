@@ -68,6 +68,7 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetect
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.msms.MsMsPeakPickerModule;
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.RawDataImportModule;
 import net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection.TargetedPeakDetectionModule;
+import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
 import net.sf.mzmine.modules.visualization.histogram.HistogramVisualizerModule;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
@@ -168,6 +169,9 @@ public class MZmineModulesList {
 	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
 	    IsotopePatternExportModule.class, MSMSExportModule.class,
 	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
-	    InfoVisualizerModule.class, IntensityPlotModule.class };
+	    InfoVisualizerModule.class, IntensityPlotModule.class,
+
+	    // Tools
+	    MzRangeCalculatorModule.class };
 
 }

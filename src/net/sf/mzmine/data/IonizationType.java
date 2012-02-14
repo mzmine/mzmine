@@ -23,7 +23,7 @@ public enum IonizationType {
 
     NO_IONIZATION("No ionization", "", 0, Polarity.Neutral), //
     POSITIVE_HYDROGEN("+H⁺", "H", 1.00728, Polarity.Positive), //
-    NEGATIVE_HYDROGEN("-H⁺", "H", -1.00728, Polarity.Negative), //
+    NEGATIVE_HYDROGEN("-H⁺", "H-1", -1.00728, Polarity.Negative), //
     POTASSIUM("+K⁺", "K", 38.96316, Polarity.Positive), //
     SODIUM("+Na⁺", "Na", 22.98922, Polarity.Positive), //
     AMMONIUM("+NH₄⁺", "NH4", 18.03383, Polarity.Positive), //

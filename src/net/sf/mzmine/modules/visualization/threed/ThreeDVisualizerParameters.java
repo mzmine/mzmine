@@ -19,62 +19,37 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import java.util.Hashtable;
-
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
-import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
-import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.RawDataFileUtils;
 
 /**
  * 3D visualizer parameter set
  */
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
-	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-	public static final MSLevelParameter msLevel = new MSLevelParameter();
+    public static final MSLevelParameter msLevel = new MSLevelParameter();
 
-	public static final RangeParameter retentionTimeRange = new RangeParameter(
-			"Retention time", "Retention time (X axis) range",
-			MZmineCore.getConfiguration().getRTFormat());
+    public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
 
-	public static final IntegerParameter rtResolution = new IntegerParameter(
-			"Retention time resolution",
-			"Number of data points on retention time axis", 500);
+    public static final IntegerParameter rtResolution = new IntegerParameter(
+	    "Retention time resolution",
+	    "Number of data points on retention time axis", 500);
 
-	public static final RangeParameter mzRange = new RangeParameter(
-			"m/z range", "m/z (Y axis) range", MZmineCore.getConfiguration().getMZFormat());
+    public static final MZRangeParameter mzRange = new MZRangeParameter();
 
-	public static final IntegerParameter mzResolution = new IntegerParameter(
-			"m/z resolution", "Number of data points on m/z axis", 500);
+    public static final IntegerParameter mzResolution = new IntegerParameter(
+	    "m/z resolution", "Number of data points on m/z axis", 500);
 
-	public ThreeDVisualizerParameters() {
-		super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
-				rtResolution, mzRange, mzResolution });
-	}
+    public ThreeDVisualizerParameters() {
+	super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
+		rtResolution, mzRange, mzResolution });
+    }
 
-	public ExitCode showSetupDialog() {
-		Hashtable<UserParameter, Object> autoValues = null;
-		RawDataFile selectedFiles[] = getParameter(
-				ThreeDVisualizerParameters.dataFiles).getValue();
-		if ((selectedFiles != null) && (selectedFiles.length > 0)) {
-			autoValues = new Hashtable<UserParameter, Object>();
-			autoValues.put(ThreeDVisualizerParameters.msLevel, 1);
-			Range rtRange = RawDataFileUtils.findTotalRTRange(selectedFiles, 1);
-			Range mzRange = RawDataFileUtils.findTotalMZRange(selectedFiles, 1);
-			autoValues.put(ThreeDVisualizerParameters.retentionTimeRange,
-					rtRange);
-			autoValues.put(ThreeDVisualizerParameters.mzRange, mzRange);
-		}
-		return super.showSetupDialog(autoValues);
-	}
 }
