@@ -33,12 +33,15 @@ import org.w3c.dom.Element;
 public class ElementsParameter implements
 	UserParameter<String, ElementsTableComponent> {
 
+    private static final String DEFAULT_VALUE = "C[0-100],H[0-100],O[0-50],N[0-50],P[0-30],S[0-30]";
+
     private String name, description;
     private String value;
 
     public ElementsParameter(String name, String description) {
 	this.name = name;
 	this.description = description;
+	this.value = DEFAULT_VALUE;
     }
 
     /**
