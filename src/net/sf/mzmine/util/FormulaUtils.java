@@ -68,7 +68,9 @@ public class FormulaUtils {
 	while (matcher.find()) {
 	    String element = matcher.group(1);
 	    String countString = matcher.group(2);
-	    int addCount = Integer.parseInt(countString);
+	    int addCount = 1;
+	    if (countString.length() > 0)
+		addCount = Integer.parseInt(countString);
 	    int currentCount = 0;
 	    if (parsedFormula.containsKey(element)) {
 		currentCount = parsedFormula.get(element);
