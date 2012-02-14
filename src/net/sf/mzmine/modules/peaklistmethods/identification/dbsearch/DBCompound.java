@@ -26,66 +26,72 @@ import net.sf.mzmine.data.impl.SimplePeakIdentity;
 
 public class DBCompound extends SimplePeakIdentity {
 
-	private URL structure2DURL, structure3DURL;
-	private double isotopePatternScore;
-	private IsotopePattern isotopePattern;
+    private URL structure2DURL, structure3DURL;
+    private Double isotopePatternScore;
+    private IsotopePattern isotopePattern;
 
-	/**
-	 * @param compoundID
-	 * @param compoundName
-	 * @param alternateNames
-	 * @param compoundFormula
-	 * @param databaseEntryURL
-	 * @param identificationMethod
-	 * @param scopeNote
-	 */
-	public DBCompound(OnlineDatabase searchedDB, String compoundID,
-			String compoundName, String compoundFormula, URL databaseEntryURL,
-			URL structure2DURL, URL structure3DURL) {
+    /**
+     * @param compoundID
+     * @param compoundName
+     * @param alternateNames
+     * @param compoundFormula
+     * @param databaseEntryURL
+     * @param identificationMethod
+     * @param scopeNote
+     */
+    public DBCompound(OnlineDatabase searchedDB, String compoundID,
+	    String compoundName, String compoundFormula, URL databaseEntryURL,
+	    URL structure2DURL, URL structure3DURL) {
 
-		super(compoundName, compoundFormula, searchedDB + " search", compoundID, databaseEntryURL.toString());
+	super(compoundName, compoundFormula, searchedDB + " search",
+		compoundID, databaseEntryURL.toString());
 
-		this.structure2DURL = structure2DURL;
-		this.structure3DURL = structure3DURL;
-	}
+	this.structure2DURL = structure2DURL;
+	this.structure3DURL = structure3DURL;
+    }
 
-	/**
-	 * @return Returns the 2D structure URL
-	 */
-	public URL get2DStructureURL() {
-		return structure2DURL;
-	}
+    /**
+     * @return Returns the 2D structure URL
+     */
+    public URL get2DStructureURL() {
+	return structure2DURL;
+    }
 
-	/**
-	 * @return Returns the 3D structure URL
-	 */
-	public URL get3DStructureURL() {
-		return structure3DURL;
-	}
+    /**
+     * @return Returns the 3D structure URL
+     */
+    public URL get3DStructureURL() {
+	return structure3DURL;
+    }
 
-	/**
-	 * Set the isotope pattern (predicted) of this compound
-	 * 
-	 * @return String exact mass
-	 */
-	public void setIsotopePatternScore(double score) {
-        isotopePatternScore = score;
-	}
+    /**
+     * Set the isotope pattern (predicted) of this compound
+     * 
+     * @return String exact mass
+     */
+    public void setIsotopePatternScore(double score) {
+	isotopePatternScore = score;
+    }
 
-	/**
-	 * Returns the isotope pattern (predicted) of this compound
-	 * 
-	 * @return IsotopePattern
-	 */
-	public double getIsotopePatternScore() {
-		return isotopePatternScore;
-	}
+    /**
+     * Returns the isotope pattern score or null if the score was not calculated
+     * 
+     * @return IsotopePattern
+     */
+    public Double getIsotopePatternScore() {
+	return isotopePatternScore;
+    }
 
-	public IsotopePattern getIsotopePattern() {
-		return isotopePattern;
-	}
+    /**
+     * Returns the isotope pattern (predicted) of this compound
+     * 
+     * @return IsotopePattern
+     */
+    public IsotopePattern getIsotopePattern() {
+	return isotopePattern;
+    }
 
-	public void setIsotopePattern(IsotopePattern isotopePattern) {
-		this.isotopePattern = isotopePattern;
-	}
+    public void setIsotopePattern(IsotopePattern isotopePattern) {
+	this.isotopePattern = isotopePattern;
+    }
 }
