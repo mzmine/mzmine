@@ -38,7 +38,7 @@ import java.util.Collection;
 public class IntegerParameter implements UserParameter<Integer, JTextField> {
 
     // Text field width.
-    private static final int WIDTH = 200;
+    private static final int WIDTH = 100;
 
     private Integer value;
     private final String name;
@@ -48,137 +48,137 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
 
     public IntegerParameter(final String aName, final String aDescription) {
 
-        this(aName, aDescription, null, null, null);
+	this(aName, aDescription, null, null, null);
     }
 
-    public IntegerParameter(final String aName, final String aDescription, final Integer defaultValue) {
+    public IntegerParameter(final String aName, final String aDescription,
+	    final Integer defaultValue) {
 
-        this(aName, aDescription, defaultValue, null, null);
+	this(aName, aDescription, defaultValue, null, null);
     }
 
-    public IntegerParameter(final String aName,
-                            final String aDescription,
-                            final Integer defaultValue,
-                            final Integer min,
-                            final Integer max) {
+    public IntegerParameter(final String aName, final String aDescription,
+	    final Integer defaultValue, final Integer min, final Integer max) {
 
-        name = aName;
-        description = aDescription;
-        value = defaultValue;
-        minimum = min;
-        maximum = max;
+	name = aName;
+	description = aDescription;
+	value = defaultValue;
+	minimum = min;
+	maximum = max;
     }
 
     @Override
     public String getName() {
 
-        return name;
+	return name;
     }
 
     @Override
     public String getDescription() {
 
-        return description;
+	return description;
     }
 
     @Override
     public JTextField createEditingComponent() {
 
-        final JTextField textField = new JTextField();
-        textField.setPreferredSize(new Dimension(WIDTH, textField.getPreferredSize().height));
+	final JTextField textField = new JTextField();
+	textField.setPreferredSize(new Dimension(WIDTH, textField
+		.getPreferredSize().height));
 
-        // Add an input verifier if any bounds are specified.
-        if (minimum != null || maximum != null) {
+	// Add an input verifier if any bounds are specified.
+	if (minimum != null || maximum != null) {
 
-            textField.setInputVerifier(new MinMaxVerifier());
-        }
+	    textField.setInputVerifier(new MinMaxVerifier());
+	}
 
-        return textField;
+	return textField;
     }
 
     @Override
     public void setValueFromComponent(final JTextField component) {
 
-        final String textValue = component.getText();
-        try {
+	final String textValue = component.getText();
+	try {
 
-            value = Integer.parseInt(textValue);
-        }
-        catch (NumberFormatException e) {
+	    value = Integer.parseInt(textValue);
+	} catch (NumberFormatException e) {
 
-            value = null;
-        }
+	    value = null;
+	}
     }
 
     @Override
     public void setValue(final Integer newValue) {
 
-        value = newValue;
+	value = newValue;
     }
 
     @Override
     public IntegerParameter clone() {
 
-        return new IntegerParameter(name, description, value, minimum, maximum);
+	return new IntegerParameter(name, description, value, minimum, maximum);
     }
 
     @Override
     public void setValueToComponent(final JTextField component,
-                                    final Integer newValue) {
+	    final Integer newValue) {
 
-        component.setText(String.valueOf(newValue));
+	component.setText(String.valueOf(newValue));
     }
 
     @Override
     public Integer getValue() {
 
-        return value;
+	return value;
     }
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
 
-        final String numString = xmlElement.getTextContent();
-        if (numString.length() > 0) {
+	final String numString = xmlElement.getTextContent();
+	if (numString.length() > 0) {
 
-            value = Integer.parseInt(numString);
-        }
+	    value = Integer.parseInt(numString);
+	}
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
 
-        if (value != null) {
+	if (value != null) {
 
-            xmlElement.setTextContent(value.toString());
-        }
+	    xmlElement.setTextContent(value.toString());
+	}
     }
 
     @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
-        final boolean check;
-        if (value == null) {
+	final boolean check;
+	if (value == null) {
 
-            errorMessages.add(name + " is not set properly");
-            check = false;
+	    errorMessages.add(name + " is not set properly");
+	    check = false;
 
-        } else if (!checkBounds(value)) {
+	} else if (!checkBounds(value)) {
 
-            errorMessages.add(name + " lies outside its bounds: (" + minimum + " ... " + maximum + ')');
-            check = false;
+	    errorMessages.add(name + " lies outside its bounds: (" + minimum
+		    + " ... " + maximum + ')');
+	    check = false;
 
-        } else {
+	} else {
 
-            check = true;
-        }
+	    check = true;
+	}
 
-        return check;
+	return check;
     }
 
     private boolean checkBounds(final int number) {
 
-        return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
+	return (minimum == null || number >= minimum)
+		&& (maximum == null || number <= maximum);
     }
 
     /**
@@ -186,34 +186,34 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
      */
     private class MinMaxVerifier extends InputVerifier {
 
-        @Override
-        public boolean shouldYieldFocus(final JComponent input) {
+	@Override
+	public boolean shouldYieldFocus(final JComponent input) {
 
-            final boolean yield = super.shouldYieldFocus(input);
-            if (!yield) {
+	    final boolean yield = super.shouldYieldFocus(input);
+	    if (!yield) {
 
-                // Beep and highlight.
-                Toolkit.getDefaultToolkit().beep();
-                ((JTextComponent) input).selectAll();
-            }
+		// Beep and highlight.
+		Toolkit.getDefaultToolkit().beep();
+		((JTextComponent) input).selectAll();
+	    }
 
-            return yield;
-        }
+	    return yield;
+	}
 
-        @Override
-        public boolean verify(final JComponent input) {
+	@Override
+	public boolean verify(final JComponent input) {
 
-            boolean verified = false;
-            try {
+	    boolean verified = false;
+	    try {
 
-                verified = checkBounds(Integer.parseInt(((JTextComponent) input).getText()));
-            }
-            catch (final NumberFormatException e) {
+		verified = checkBounds(Integer
+			.parseInt(((JTextComponent) input).getText()));
+	    } catch (final NumberFormatException e) {
 
-                // not a number.
-            }
+		// not a number.
+	    }
 
-            return verified;
-        }
+	    return verified;
+	}
     }
 }
