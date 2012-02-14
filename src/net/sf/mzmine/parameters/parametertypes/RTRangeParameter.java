@@ -22,7 +22,7 @@ package net.sf.mzmine.parameters.parametertypes;
 public class RTRangeParameter extends RangeParameter {
 
     public RTRangeParameter() {
-	super("Retention time", "Retention time range", null, null);
+	super("Retention time", "Retention time range in minutes", null, null);
     }
 
     public RTRangeParameter(String name, String description) {
