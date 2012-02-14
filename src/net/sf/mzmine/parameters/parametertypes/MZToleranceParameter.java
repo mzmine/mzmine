@@ -63,7 +63,7 @@ public class MZToleranceParameter implements
 	}
 
 	@Override
-	public MZToleranceParameter clone() {
+	public MZToleranceParameter cloneParameter() {
 		MZToleranceParameter copy = new MZToleranceParameter(name, description);
 		copy.setValue(this.getValue());
 		return copy;

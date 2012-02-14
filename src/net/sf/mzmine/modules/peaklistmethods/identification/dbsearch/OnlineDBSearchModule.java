@@ -92,7 +92,7 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 	if (parameters.showSetupDialog() == ExitCode.OK) {
 
 	    MZmineCore.getTaskController().addTask(
-		    new SingleRowIdentificationTask(parameters.clone(), row));
+		    new SingleRowIdentificationTask(parameters.cloneParameter(), row));
 	}
     }
 

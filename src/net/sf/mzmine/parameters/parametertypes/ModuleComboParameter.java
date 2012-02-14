@@ -116,13 +116,13 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
 
     @SuppressWarnings("unchecked")
     @Override
-    public ModuleComboParameter clone() {
+    public ModuleComboParameter cloneParameter() {
 	MZmineProcessingStep<ModuleType> newModules[] = new MZmineProcessingStep[modulesWithParams.length];
 	MZmineProcessingStep<ModuleType> newValue = null;
 	for (int i = 0; i < modulesWithParams.length; i++) {
 	    ModuleType module = modulesWithParams[i].getModule();
 	    ParameterSet params = modulesWithParams[i].getParameterSet();
-	    params = params.clone();
+	    params = params.cloneParameter();
 	    newModules[i] = new MZmineProcessingStepImpl<ModuleType>(module,
 		    params);
 	    if (value == modulesWithParams[i])

@@ -31,7 +31,7 @@ public class MSLevelParameter extends ComboParameter<Integer> {
 	}
 
 	@Override
-	public MSLevelParameter clone() {
+	public MSLevelParameter cloneParameter() {
 		MSLevelParameter copy = new MSLevelParameter();
 		copy.setValue(getValue());
 		return copy;

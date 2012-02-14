@@ -63,7 +63,7 @@ public class RTToleranceParameter implements
 	}
 
 	@Override
-	public RTToleranceParameter clone() {
+	public RTToleranceParameter cloneParameter() {
 		RTToleranceParameter copy = new RTToleranceParameter(name, description);
 		copy.setValue(this.getValue());
 		return copy;

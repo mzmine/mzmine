@@ -87,7 +87,7 @@ public class ColoringTypeParameter implements
 	}
 
 	@Override
-	public ColoringTypeParameter clone() {
+	public ColoringTypeParameter cloneParameter() {
 		ColoringTypeParameter copy = new ColoringTypeParameter();
 		copy.setValue(this.getValue());
 		return copy;

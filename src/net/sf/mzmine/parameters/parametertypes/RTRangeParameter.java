@@ -35,7 +35,7 @@ public class RTRangeParameter extends RangeParameter {
     }
 
     @Override
-    public RTRangeParameter clone() {
+    public RTRangeParameter cloneParameter() {
 	RTRangeParameter copy = new RTRangeParameter(getName(),
 		getDescription());
 	copy.setValue(this.getValue());

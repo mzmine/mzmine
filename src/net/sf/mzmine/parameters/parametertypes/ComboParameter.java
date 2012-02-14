@@ -82,7 +82,7 @@ public class ComboParameter<ValueType> implements
 	}
 
 	@Override
-	public ComboParameter<ValueType> clone() {
+	public ComboParameter<ValueType> cloneParameter() {
 		ComboParameter<ValueType> copy = new ComboParameter<ValueType>(name,
 				description, choices);
 		copy.value = this.value;

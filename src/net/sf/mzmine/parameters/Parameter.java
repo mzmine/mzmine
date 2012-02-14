@@ -28,24 +28,29 @@ import org.w3c.dom.Element;
  */
 public interface Parameter<ValueType> {
 
-	/**
-	 * Returns this parameter's name. The name must be unique within one
-	 * ParameterSet.
-	 * 
-	 * @return Parameter name
-	 */
-	public String getName();
+    /**
+     * Returns this parameter's name. The name must be unique within one
+     * ParameterSet.
+     * 
+     * @return Parameter name
+     */
+    public String getName();
 
-	public ValueType getValue();
+    public ValueType getValue();
 
-	public void setValue(ValueType newValue);
-	
-	public boolean checkValue(Collection<String> errorMessages);
+    public void setValue(ValueType newValue);
 
-	public void loadValueFromXML(Element xmlElement);
+    public boolean checkValue(Collection<String> errorMessages);
 
-	public void saveValueToXML(Element xmlElement);
+    public void loadValueFromXML(Element xmlElement);
 
-	public Parameter clone();
+    public void saveValueToXML(Element xmlElement);
+
+    /**
+     * We use cloneParameter() instead of clone() to force the implementing
+     * classes to implement this method. Plain clone() is automatically
+     * implemented by the Object class.
+     */
+    public Parameter<ValueType> cloneParameter();
 
 }

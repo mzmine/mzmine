@@ -35,7 +35,7 @@ public class MZRangeParameter extends RangeParameter {
     }
 
     @Override
-    public MZRangeParameter clone() {
+    public MZRangeParameter cloneParameter() {
 	MZRangeParameter copy = new MZRangeParameter(getName(),
 		getDescription());
 	copy.setValue(this.getValue());

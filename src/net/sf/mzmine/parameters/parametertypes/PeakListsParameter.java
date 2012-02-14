@@ -56,7 +56,7 @@ public class PeakListsParameter implements Parameter<PeakList[]> {
 	}
 
 	@Override
-	public PeakListsParameter clone() {
+	public PeakListsParameter cloneParameter() {
 		PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
 		copy.value = value;
 		return copy;

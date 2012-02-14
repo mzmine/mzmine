@@ -49,7 +49,7 @@ public class FormulaPredictionModule implements MZmineModule {
 	    return;
 
 	SingleRowPredictionTask newTask = new SingleRowPredictionTask(
-		parameters.clone(), row);
+		parameters.cloneParameter(), row);
 
 	// execute the sequence
 	MZmineCore.getTaskController().addTask(newTask);

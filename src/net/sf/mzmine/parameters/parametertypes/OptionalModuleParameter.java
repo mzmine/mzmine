@@ -93,8 +93,8 @@ public class OptionalModuleParameter implements
     }
 
     @Override
-    public OptionalModuleParameter clone() {
-	final ParameterSet embeddedParametersClone = embeddedParameters.clone();
+    public OptionalModuleParameter cloneParameter() {
+	final ParameterSet embeddedParametersClone = embeddedParameters.cloneParameter();
 	final OptionalModuleParameter copy = new OptionalModuleParameter(name,
 		description, embeddedParametersClone);
 	copy.setValue(this.getValue());

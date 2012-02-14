@@ -65,7 +65,7 @@ public class ElementsParameter implements
     }
 
     @Override
-    public ElementsParameter clone() {
+    public ElementsParameter cloneParameter() {
 	ElementsParameter copy = new ElementsParameter(name, description);
 	copy.value = value;
 	return copy;

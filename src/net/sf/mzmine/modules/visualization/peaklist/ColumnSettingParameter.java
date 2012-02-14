@@ -48,7 +48,7 @@ public class ColumnSettingParameter<ValueType> extends
     }
 
     @Override
-    public ColumnSettingParameter<ValueType> clone() {
+    public ColumnSettingParameter<ValueType> cloneParameter() {
 	ColumnSettingParameter<ValueType> copy = new ColumnSettingParameter<ValueType>(
 		getName(), getDescription(), getChoices());
 	copy.setValue(getValue());

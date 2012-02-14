@@ -104,7 +104,7 @@ public class PeakThresholdParameter implements Parameter<Object> {
 	}
 
 	@Override
-	public PeakThresholdParameter clone() {
+	public PeakThresholdParameter cloneParameter() {
 		return this;
 	}
 

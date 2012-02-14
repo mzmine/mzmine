@@ -191,7 +191,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 		}
 
 		// Make a new step
-		final ParameterSet stepParams = methodParams.clone();
+		final ParameterSet stepParams = methodParams.cloneParameter();
 		final MZmineProcessingStep<MZmineProcessingModule> step = new MZmineProcessingStepImpl<MZmineProcessingModule>(
 			selectedMethod, stepParams);
 

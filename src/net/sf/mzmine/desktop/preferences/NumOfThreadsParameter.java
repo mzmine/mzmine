@@ -83,7 +83,7 @@ public class NumOfThreadsParameter implements
 	}
 
 	@Override
-	public NumOfThreadsParameter clone() {
+	public NumOfThreadsParameter cloneParameter() {
 		return this;
 	}
 

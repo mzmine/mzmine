@@ -74,7 +74,7 @@ public class OrderParameter<ValueType> implements
 	}
 
 	@Override
-	public OrderParameter<ValueType> clone() {
+	public OrderParameter<ValueType> cloneParameter() {
 		OrderParameter<ValueType> copy = new OrderParameter<ValueType>(name,
 				description, value);
 		copy.setValue(this.getValue());

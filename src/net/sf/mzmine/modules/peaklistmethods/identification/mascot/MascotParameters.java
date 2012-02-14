@@ -216,7 +216,7 @@ public class MascotParameters extends SimpleParameterSet {
 		// ignore
 	}
 
-	public ParameterSet clone() {
+	public ParameterSet cloneParameter() {
 		return this;
 	}
 

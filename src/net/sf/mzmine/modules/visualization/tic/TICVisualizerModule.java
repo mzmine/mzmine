@@ -148,7 +148,7 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 		selectedPeaks) == ExitCode.OK) {
 
 	    final TICVisualizerParameters p = (TICVisualizerParameters) myParameters
-		    .clone();
+		    .cloneParameter();
 
 	    if (peakLabels != null) {
 		p.setPeakLabelMap(peakLabels);

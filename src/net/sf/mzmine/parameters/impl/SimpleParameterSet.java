@@ -120,12 +120,12 @@ public class SimpleParameterSet implements ParameterSet {
     /**
      * Make a deep copy
      */
-    public ParameterSet clone() {
+    public ParameterSet cloneParameter() {
 
 	// Make a deep copy of the parameters
 	Parameter newParameters[] = new Parameter[parameters.length];
 	for (int i = 0; i < parameters.length; i++) {
-	    newParameters[i] = parameters[i].clone();
+	    newParameters[i] = parameters[i].cloneParameter();
 	}
 
 	try {

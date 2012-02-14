@@ -48,7 +48,7 @@ public class WindowStateParameter implements Parameter<Object> {
 	}
 
 	@Override
-	public WindowStateParameter clone() {
+	public WindowStateParameter cloneParameter() {
 		return this;
 	}
 

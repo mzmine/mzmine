@@ -67,7 +67,7 @@ public class HistogramRangeParameter implements
 	}
 
 	@Override
-	public HistogramRangeParameter clone() {
+	public HistogramRangeParameter cloneParameter() {
 		HistogramRangeParameter copy = new HistogramRangeParameter();
 		copy.selectedType = this.selectedType;
 		copy.value = this.value;

@@ -119,7 +119,7 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     }
 
     @Override
-    public DoubleParameter clone() {
+    public DoubleParameter cloneParameter() {
 
         return new DoubleParameter(name, description, format, value, minimum, maximum);
     }

@@ -82,7 +82,7 @@ public class NumberFormatParameter implements
 	}
 
 	@Override
-	public NumberFormatParameter clone() {
+	public NumberFormatParameter cloneParameter() {
 		NumberFormatParameter copy = new NumberFormatParameter(name,
 				description, showExponentOption, value);
 		copy.setValue(this.getValue());

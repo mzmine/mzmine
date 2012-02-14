@@ -90,7 +90,7 @@ public class PercentParameter implements
 	}
 
 	@Override
-	public PercentParameter clone() {
+	public PercentParameter cloneParameter() {
 		PercentParameter copy = new PercentParameter(name, description);
 		copy.setValue(this.getValue());
 		return copy;

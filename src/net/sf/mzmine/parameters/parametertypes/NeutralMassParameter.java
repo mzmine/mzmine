@@ -62,7 +62,7 @@ public class NeutralMassParameter implements
     }
 
     @Override
-    public NeutralMassParameter clone() {
+    public NeutralMassParameter cloneParameter() {
 	NeutralMassParameter copy = new NeutralMassParameter(name, description);
 	copy.ionMass = ionMass;
 	copy.ionType = ionType;

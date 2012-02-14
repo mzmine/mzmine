@@ -45,7 +45,7 @@ public interface ParameterSet {
 
 	public boolean checkAllParameterValues(Collection<String> errorMessages);
 	
-	public ParameterSet clone();
+	public ParameterSet cloneParameter();
 
 	/**
 	 * Represent method's parameters and their values in human-readable format

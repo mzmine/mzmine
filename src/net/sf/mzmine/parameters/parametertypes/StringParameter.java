@@ -72,7 +72,7 @@ public class StringParameter implements UserParameter<String, JTextField> {
     }
 
     @Override
-    public StringParameter clone() {
+    public StringParameter cloneParameter() {
 	StringParameter copy = new StringParameter(name, description);
 	copy.setValue(this.getValue());
 	return copy;

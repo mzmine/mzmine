@@ -56,7 +56,7 @@ public class RawDataFilesParameter implements Parameter<RawDataFile[]> {
 	}
 
 	@Override
-	public RawDataFilesParameter clone() {
+	public RawDataFilesParameter cloneParameter() {
 		RawDataFilesParameter copy = new RawDataFilesParameter(minCount,
 				maxCount);
 		copy.value = value;

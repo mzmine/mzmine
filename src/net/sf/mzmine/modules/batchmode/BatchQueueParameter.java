@@ -81,7 +81,7 @@ public class BatchQueueParameter implements
     }
 
     @Override
-    public BatchQueueParameter clone() {
+    public BatchQueueParameter cloneParameter() {
 	final BatchQueueParameter copy = new BatchQueueParameter();
 	copy.setValue(value.clone());
 	return copy;

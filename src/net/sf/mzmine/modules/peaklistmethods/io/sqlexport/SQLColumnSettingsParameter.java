@@ -154,7 +154,7 @@ public class SQLColumnSettingsParameter implements
     }
 
     @Override
-    public SQLColumnSettingsParameter clone() {
+    public SQLColumnSettingsParameter cloneParameter() {
 	SQLColumnSettingsParameter copy = new SQLColumnSettingsParameter();
 	copy.setValue(this.getValue());
 	return copy;

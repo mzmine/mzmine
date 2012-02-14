@@ -115,7 +115,7 @@ public class IntegerParameter implements UserParameter<Integer, JTextField> {
     }
 
     @Override
-    public IntegerParameter clone() {
+    public IntegerParameter cloneParameter() {
 
 	return new IntegerParameter(name, description, value, minimum, maximum);
     }

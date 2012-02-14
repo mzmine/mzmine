@@ -107,7 +107,7 @@ public class MultiChoiceParameter<ValueType> implements
 	}
 
 	@Override
-	public MultiChoiceParameter<ValueType> clone() {
+	public MultiChoiceParameter<ValueType> cloneParameter() {
 		MultiChoiceParameter<ValueType> copy = new MultiChoiceParameter<ValueType>(
 				name, description, choices, values);
 		copy.setValue(this.getValue());

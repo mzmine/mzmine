@@ -78,7 +78,7 @@ public class FileNameParameter implements UserParameter<File, FileNameComponent>
 	}
 
 	@Override
-	public FileNameParameter clone() {
+	public FileNameParameter cloneParameter() {
 		FileNameParameter copy = new FileNameParameter(name, description);
 		copy.setValue(this.getValue());
 		return copy;

@@ -138,7 +138,7 @@ public class ThreeDVisualizerModule implements MZmineProcessingModule {
 	myParameters.getParameter(ThreeDVisualizerParameters.mzRange).setValue(
 		mzRange);
 	if (myParameters.showSetupDialog() == ExitCode.OK) {
-	    myInstance.runModule(myParameters.clone(), new ArrayList<Task>());
+	    myInstance.runModule(myParameters.cloneParameter(), new ArrayList<Task>());
 	}
     }
 

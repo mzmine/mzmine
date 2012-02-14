@@ -95,7 +95,7 @@ public class IntensityPlotModule implements MZmineProcessingModule {
 
 	if (exitCode == ExitCode.OK) {
 	    IntensityPlotFrame newFrame = new IntensityPlotFrame(
-		    parameters.clone());
+		    parameters.cloneParameter());
 	    MZmineCore.getDesktop().addInternalFrame(newFrame);
 	}
 

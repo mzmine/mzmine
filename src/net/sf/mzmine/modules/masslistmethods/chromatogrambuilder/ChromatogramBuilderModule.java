@@ -55,7 +55,7 @@ public class ChromatogramBuilderModule implements MZmineProcessingModule {
 
 	for (int i = 0; i < dataFiles.length; i++) {
 	    Task newTask = new ChromatogramBuilderTask(dataFiles[i],
-		    parameters.clone());
+		    parameters.cloneParameter());
 	    tasks.add(newTask);
 	}
 

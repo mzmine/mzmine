@@ -332,7 +332,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    logger.finest("Setting parameters for module " + module.getName());
 	    ExitCode exitCode = moduleParameters.showSetupDialog();
 	    if (exitCode == ExitCode.OK) {
-		ParameterSet parametersCopy = moduleParameters.clone();
+		ParameterSet parametersCopy = moduleParameters.cloneParameter();
 		logger.finest("Starting module " + module.getName() + " with parameters "
 			+ parametersCopy);
 		ArrayList<Task> tasks = new ArrayList<Task>();

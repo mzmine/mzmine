@@ -80,7 +80,7 @@ public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
 	}
 
 	@Override
-	public BooleanParameter clone() {
+	public BooleanParameter cloneParameter() {
 		BooleanParameter copy = new BooleanParameter(name, description);
 		copy.setValue(this.getValue());
 		return copy;

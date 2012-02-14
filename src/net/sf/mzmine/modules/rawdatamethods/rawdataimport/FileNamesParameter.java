@@ -50,7 +50,7 @@ public class FileNamesParameter implements Parameter<File[]> {
 	}
 
 	@Override
-	public FileNamesParameter clone() {
+	public FileNamesParameter cloneParameter() {
 		FileNamesParameter copy = new FileNamesParameter();
 		copy.setValue(this.getValue());
 		return copy;

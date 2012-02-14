@@ -53,7 +53,7 @@ public class BatchQueue extends
 	for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
 	    final ParameterSet parameters = step.getParameterSet();
 	    final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy = new MZmineProcessingStepImpl<MZmineProcessingModule>(
-		    step.getModule(), parameters.clone());
+		    step.getModule(), parameters.cloneParameter());
 	    clonedQueue.add(stepCopy);
 	}
 	return clonedQueue;
@@ -93,7 +93,7 @@ public class BatchQueue extends
 		    final ParameterSet parameterSet = MZmineCore
 			    .getConfiguration().getModuleParameters(
 				    module.getClass());
-		    final ParameterSet methodParams = parameterSet.clone();
+		    final ParameterSet methodParams = parameterSet.cloneParameter();
 		    methodParams.loadValuesFromXML(stepElement);
 		    queue.add(new MZmineProcessingStepImpl<MZmineProcessingModule>(
 			    (MZmineProcessingModule) module, methodParams));

@@ -74,7 +74,7 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
     }
 
     @Override
-    public DirectoryParameter clone() {
+    public DirectoryParameter cloneParameter() {
 
         final DirectoryParameter copy = new DirectoryParameter(name, description);
         copy.setValue(getValue());
