@@ -30,14 +30,11 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 import net.sf.mzmine.util.ExitCode;
 
-/**
- * 
- */
 public class MZminePreferences extends SimpleParameterSet {
 
     public static final NumberFormatParameter mzFormat = new NumberFormatParameter(
 	    "m/z value format", "Format of m/z values", false,
-	    new DecimalFormat("0.000"));
+	    new DecimalFormat("0.0000"));
 
     public static final NumberFormatParameter rtFormat = new NumberFormatParameter(
 	    "Retention time value format", "Format of retention time values",
