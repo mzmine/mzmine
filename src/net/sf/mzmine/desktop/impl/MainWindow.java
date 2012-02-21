@@ -36,6 +36,7 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 
@@ -163,6 +164,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     public void initModule() {
 
+	assert SwingUtilities.isEventDispatchThread();
+	
 	DesktopSetup desktopSetup = new DesktopSetup();
 	desktopSetup.init();
 
