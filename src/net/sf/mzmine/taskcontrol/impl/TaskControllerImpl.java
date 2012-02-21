@@ -117,9 +117,15 @@ public class TaskControllerImpl implements TaskController, Runnable {
 	if (MZmineCore.getDesktop().getMainFrame() != null) {
 	    SwingUtilities.invokeLater(new Runnable() {
 		public void run() {
-		    if (taskWindow.getParent() == null)
+		    if (taskWindow.getParent() == null) {
+
 			MZmineCore.getDesktop().addInternalFrame(taskWindow);
-		    // Initially, hide the task progress window
+
+			// This is a bug fix for MZmine bug #3489524
+			// The taskWindow was created before the DesktopSetup
+			// was executed, so we need to update the UI here
+			SwingUtilities.updateComponentTreeUI(taskWindow);
+		    }
 		    taskWindow.setVisible(true);
 		}
 	    });
