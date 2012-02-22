@@ -38,6 +38,7 @@ public class TICToolBar extends JToolBar {
     private static final Icon DATA_POINTS_ICON = new ImageIcon("icons/datapointsicon.png");
     private static final Icon ANNOTATIONS_ICON = new ImageIcon("icons/annotationsicon.png");
     private static final Icon AXES_ICON = new ImageIcon("icons/axesicon.png");
+    private static final Icon LEGEND_ICON = new ImageIcon("icons/legendkey.png");
 
     public TICToolBar(final ActionListener listener) {
 
@@ -79,5 +80,9 @@ public class TICToolBar extends JToolBar {
                            listener,
                            "SETUP_AXES",
                            "Setup ranges for axes");
+
+        addSeparator();
+
+        GUIUtils.addButton(this, null, LEGEND_ICON, listener, "SHOW_LEGEND", "Toggle display of the legend");
     }
 }

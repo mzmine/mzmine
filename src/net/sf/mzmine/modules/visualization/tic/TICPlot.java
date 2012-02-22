@@ -337,6 +337,13 @@ public class TICPlot extends ChartPanel {
 
             visualizer.actionPerformed(event);
         }
+
+        if ("SHOW_LEGEND".equals(command)) {
+
+            // Toggle legend visibility.
+            final LegendTitle legend = getChart().getLegend();
+            legend.setVisible(!legend.isVisible());
+        }
     }
 
     @Override public void mouseClicked(final MouseEvent event) {
