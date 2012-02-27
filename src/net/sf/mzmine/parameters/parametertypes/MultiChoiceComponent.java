@@ -19,150 +19,240 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
-
-import net.sf.mzmine.util.GUIUtils;
+import java.util.Collection;
+import java.util.TreeSet;
 
 /**
  */
 public class MultiChoiceComponent extends JPanel implements ActionListener {
 
-	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
+    private Object[] choices;
+    private JCheckBox[] checkBoxes;
+    private final JScrollPane choicesPanel;
 
-	private JCheckBox checkBoxes[];
-	private Object choices[];
+    private final JButton selectAllButton;
+    private final JButton selectNoneButton;
+    private final JPanel buttonsPanel;
 
-	private JButton selectAllButton, selectNoneButton;
+    /**
+     * Create the component.
+     *
+     * @param theChoices the choices available to the user.
+     */
+    public MultiChoiceComponent(final Object[] theChoices) {
 
-	public MultiChoiceComponent(Object choices[]) {
+        super(new BorderLayout());
 
-		super(new BorderLayout());
+        // Create choices panel.
+        choices = theChoices.clone();
+        choicesPanel = new JScrollPane(new CheckBoxPanel(choices),
+                                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        choicesPanel.getViewport().setBackground(Color.WHITE);
+        add(choicesPanel, BorderLayout.CENTER);
 
-		this.choices = choices;
+        // Buttons panel.
+        buttonsPanel = new JPanel();
+        buttonsPanel.setLayout(new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS));
+        add(buttonsPanel, BorderLayout.EAST);
 
-		JPanel checkBoxesPanel = new JPanel();
-		checkBoxesPanel.setBackground(Color.white);
-		checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
-				BoxLayout.Y_AXIS));
+        // Add buttons.
+        selectAllButton = new JButton("All");
+        selectAllButton.setToolTipText("Select all choices");
+        addButton(selectAllButton);
+        selectNoneButton = new JButton("Clear");
+        selectNoneButton.setToolTipText("Clear all selections");
+        addButton(selectNoneButton);
+    }
 
-		int vertSize = 0, numCheckBoxes = 0, horSize = 0, widthSize = 0;
+    @Override
+    public void actionPerformed(final ActionEvent e) {
 
-		checkBoxes = new JCheckBox[choices.length];
+        final Object src = e.getSource();
+        final boolean selectAll = selectAllButton.equals(src);
+        if (selectAll || selectNoneButton.equals(src)) {
 
-		for (int i = 0; i < choices.length; i++) {
+            for (final JCheckBox ecb : checkBoxes) {
 
-			checkBoxes[i] = new JCheckBox(choices[i].toString());
-			checkBoxes[i].setFont(smallFont);
+                ecb.setSelected(selectAll);
+            }
+        }
+    }
 
-			checkBoxesPanel.add(checkBoxes[i]);
+    /**
+     * Get the users selections.
+     *
+     * @return the selected choices.
+     */
+    public Object[] getValue() {
 
-			if (numCheckBoxes < 7)
-				vertSize += (int) checkBoxes[i].getPreferredSize().getHeight() + 2;
+        final int length = checkBoxes.length;
+        final Collection<Object> selectedObjects = new ArrayList<Object>(length);
+        for (int i = 0;
+             i < length;
+             i++) {
+            if (checkBoxes[i].isSelected()) {
 
-			widthSize = (int) checkBoxes[i].getPreferredSize().getWidth();
-			if (horSize < widthSize)
-				horSize = widthSize;
+                selectedObjects.add(choices[i]);
+            }
+        }
 
-			numCheckBoxes++;
+        return selectedObjects.toArray();
+    }
 
-		}
+    /**
+     * Set the selections.
+     *
+     * @param values the selected objects.
+     */
+    public void setValue(final Object[] values) {
 
-		if (numCheckBoxes < 3)
-			vertSize += 30;
+        // Put selections in (sorted) collection.
+        final Collection<String> selections = new TreeSet<String>();
+        for (final Object v : values) {
 
-		horSize += 50;
+            selections.add(v.toString());
+        }
 
-		// If the selection panel is too small, it does not look good, so let's
-		// set a minimum width of 150 pix
-		if (horSize < 150)
-			horSize = 150;
+        // Set check-boxes according to selections.
+        for (int i = 0;
+             i < checkBoxes.length;
+             i++) {
 
-		JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            // We compare the string representations, not the actual objects, because when a project is saved,
+            // only the string representation is saved to the configuration file
+            checkBoxes[i].setSelected(selections.contains(choices[i].toString()));
+        }
+    }
 
-		scrollPane.setPreferredSize(new Dimension(horSize, vertSize));
+    /**
+     * Get the list of choices.
+     *
+     * @return the choices.
+     */
+    public Object[] getChoices() {
 
-		add(scrollPane, BorderLayout.CENTER);
+        return choices.clone();
+    }
 
-		JPanel buttonsPanel = new JPanel();
-		BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
-		buttonsPanel.setLayout(buttonsLayout);
-		selectAllButton = GUIUtils.addButton(buttonsPanel, "All", null, this);
-		buttonsPanel.add(Box.createVerticalStrut(3));
-		selectNoneButton = GUIUtils
-				.addButton(buttonsPanel, "Clear", null, this);
-		add(buttonsPanel, BorderLayout.EAST);
+    /**
+     * Set the available choices.
+     *
+     * @param newChoices the new choices.
+     */
+    public void setChoices(final Object[] newChoices) {
 
-	}
+        // Save selections.
+        final Object[] value = getValue();
 
-	public Object[] getValue() {
+        // Update choices.
+        choices = newChoices.clone();
+        choicesPanel.setViewportView(new CheckBoxPanel(choices));
+        validate();
 
-		ArrayList<Object> selectedObjects = new ArrayList<Object>();
-		for (int i = 0; i < checkBoxes.length; i++) {
-			if (checkBoxes[i].isSelected()) {
-				selectedObjects.add(choices[i]);
-			}
-		}
+        // Restore user's selection.
+        setValue(value);
+    }
 
-		return selectedObjects.toArray();
-	}
+    /**
+     * Add a button to the buttons panel.
+     *
+     * @param button the button to add.
+     */
+    public void addButton(final JButton button) {
 
-	public void setValue(Object values[]) {
+        buttonsPanel.add(button);
+        buttonsPanel.add(Box.createVerticalStrut(3));
+        button.addActionListener(this);
+    }
 
-		for (int i = 0; i < checkBoxes.length; i++) {
+    // Font for check boxes.
+    private static final Font CHECKBOX_FONT = new Font("SansSerif", Font.PLAIN, 11);
 
-			boolean isSelected = false;
-			for (Object v : values) {
-				/*
-				 * We compare the string representations, not the actual
-				 * objects, because when a project is saved, only the string
-				 * representation is saved to the configuration file
-				 */
-				if (v.toString().equals(choices[i].toString())) {
-					isSelected = true;
-					break;
-				}
-			}
-			checkBoxes[i].setSelected(isSelected);
+    /**
+     * A panel holding a check box for each choice.
+     */
+    private class CheckBoxPanel extends JPanel implements Scrollable {
 
-		}
-	}
+        // Number of visible rows to show in scrollable containers.
+        private static final int VISIBLE_ROWS = 7;
 
-	public void actionPerformed(ActionEvent event) {
+        /**
+         * Create the pane with a checkbox for each choice.
+         *
+         * @param theChoices the available choices.
+         */
+        private CheckBoxPanel(final Object[] theChoices) {
 
-		Object src = event.getSource();
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setOpaque(false);
 
-		if (src == selectAllButton) {
-			for (JCheckBox ecb : checkBoxes)
-				ecb.setSelected(true);
-		}
+            final int choiceCount = theChoices.length;
+            checkBoxes = new JCheckBox[choiceCount];
 
-		if (src == selectNoneButton) {
-			for (JCheckBox ecb : checkBoxes)
-				ecb.setSelected(false);
-		}
+            for (int i = 0;
+                 i < choiceCount;
+                 i++) {
 
-	}
+                // Create a check box (inherit tooltip text.
+                final JCheckBox checkBox = new JCheckBox(theChoices[i].toString()) {
 
-	@Override
-	public void setToolTipText(String toolTip) {
-		for (JCheckBox box : checkBoxes)
-			box.setToolTipText(toolTip);
-	}
+                    @Override
+                    public String getToolTipText() {
 
+                        return MultiChoiceComponent.this.getToolTipText();
+                    }
+                };
+                checkBox.setFont(CHECKBOX_FONT);
+                checkBox.setOpaque(false);
+                add(checkBox);
+                ToolTipManager.sharedInstance().registerComponent(checkBox);
+                checkBoxes[i] = checkBox;
+            }
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+
+            final Dimension preferredSize = getPreferredSize();
+            final int length = checkBoxes.length;
+            return new Dimension(preferredSize.width,
+                                 length > 0
+                                 ? checkBoxes[0].getHeight() * Math.min(VISIBLE_ROWS, length)
+                                 : preferredSize.height);
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(final Rectangle visibleRect,
+                                              final int orientation,
+                                              final int direction) {
+
+            return orientation == SwingConstants.VERTICAL && checkBoxes.length > 0 ? checkBoxes[0].getHeight() : 1;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(final Rectangle visibleRect,
+                                               final int orientation,
+                                               final int direction) {
+
+            return orientation == SwingConstants.VERTICAL ? visibleRect.height : visibleRect.width;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+
+            return false;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+
+            return false;
+        }
+    }
 }
