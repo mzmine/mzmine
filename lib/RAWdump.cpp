@@ -173,9 +173,10 @@ int main(int argc, char* argv[]) {
                 }else if ( varValue.vt != VT_ERROR ) {
                     precursorMz = 0;
                 }
+                VariantClear(&varValue);
                 
                 // precursorCharge
-                VariantClear(&varValue);
+                VariantInit(&varValue);
                 rawFile->GetTrailerExtraValueForScanNum(curScanNum, "Charge State:" , &varValue);
 
                 if( varValue.vt == VT_I2 ) 
