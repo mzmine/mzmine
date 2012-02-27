@@ -185,11 +185,9 @@ int main(int argc, char* argv[]) {
         }
 
         VARIANT varMassList;
-        // initiallize variant to VT_EMPTY
         VariantInit(&varMassList);
 
         VARIANT varPeakFlags; // unused
-        // initiallize variant to VT_EMPTY
         VariantInit(&varPeakFlags);
 
         // set up the parameters to read the scan
@@ -225,23 +223,8 @@ int main(int argc, char* argv[]) {
         // Dump the binary data
         fwrite(pDataPeaks, 16, dataPoints, stdout);
 
-        // Cleanup
-        delete[] thermoFilterLine;
-        SafeArrayUnaccessData(psa); // Release the data handle
-        VariantClear(&varMassList); // Delete all memory associated with the variant
-        VariantClear(&varPeakFlags); // and reinitialize to VT_EMPTY
-
-        if( varMassList.vt != VT_EMPTY ) {
-            SAFEARRAY FAR* psa = varMassList.parray;
-            varMassList.parray = NULL;
-            SafeArrayDestroy( psa ); // Delete the SafeArray
-        }
-
-        if(varPeakFlags.vt != VT_EMPTY ) {
-            SAFEARRAY FAR* psa = varPeakFlags.parray;
-            varPeakFlags.parray = NULL;
-            SafeArrayDestroy( psa ); // Delete the SafeArray
-        }
+        // Release the data handle
+        SafeArrayUnaccessData(psa);
         
     }
 
