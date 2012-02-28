@@ -182,6 +182,10 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
         // Number of visible rows to show in scrollable containers.
         private static final int VISIBLE_ROWS = 7;
 
+        // Width.
+        private static final int MIN_PREFERRED_WIDTH = 150;
+        private static final int HORIZONTAL_PADDING = 50;
+
         /**
          * Create the pane with a checkbox for each choice.
          *
@@ -221,7 +225,7 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
 
             final Dimension preferredSize = getPreferredSize();
             final int length = checkBoxes.length;
-            return new Dimension(preferredSize.width,
+            return new Dimension(Math.max(MIN_PREFERRED_WIDTH, HORIZONTAL_PADDING + preferredSize.width),
                                  length > 0
                                  ? checkBoxes[0].getHeight() * Math.min(VISIBLE_ROWS, length)
                                  : preferredSize.height);
