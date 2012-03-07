@@ -204,7 +204,12 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 	    if (line.startsWith("SCAN FILTER: ")) {
 
-		if (line.contains("ms ")) {
+		/*
+		 * 'ms ' means Full scan MS level 1
+		 * 
+		 * 'pr ' means Precursor ion scan, we will treat it as level 1
+		 */
+		if (line.contains("ms ") || line.contains("pr ")) {
 		    msLevel = 1;
 		} else {
 		    /*
