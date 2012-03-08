@@ -36,47 +36,49 @@ public class MZRangeComponent extends RangeComponent implements ActionListener {
 
     public MZRangeComponent() {
 
-	super(MZmineCore.getConfiguration().getMZFormat());
+        super(MZmineCore.getConfiguration().getMZFormat());
 
-	setAutoButton = new JButton("Auto range");
-	setAutoButton.addActionListener(this);
-	RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
-		.getDataFiles();
-	setAutoButton.setEnabled(currentFiles.length > 0);
-	add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        setAutoButton = new JButton("Auto range");
+        setAutoButton.addActionListener(this);
+        RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
+                .getDataFiles();
+        setAutoButton.setEnabled(currentFiles.length > 0);
+        add(setAutoButton, 3, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
-	fromFormulaButton = new JButton("From formula");
-	fromFormulaButton.addActionListener(this);
-	add(fromFormulaButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
+        fromFormulaButton = new JButton("From formula");
+        fromFormulaButton.addActionListener(this);
+        add(fromFormulaButton, 4, 0, 1, 1, 1, 0, GridBagConstraints.NONE);
 
     }
 
     @Override
     public void actionPerformed(ActionEvent event) {
 
-	Object src = event.getSource();
+        Object src = event.getSource();
 
-	if (src == setAutoButton) {
-	    Range mzRange = null;
-	    RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
-		    .getDataFiles();
-	    for (RawDataFile file : currentFiles) {
-		Range fileRange = file.getDataMZRange(1);
-		if (mzRange == null)
-		    mzRange = fileRange;
-		else
-		    mzRange.extendRange(fileRange);
-	    }
-	    if (mzRange != null)
-		setValue(mzRange);
-	}
+        if (src == setAutoButton) {
+            Range mzRange = null;
+            RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
+                    .getDataFiles();
+            for (RawDataFile file : currentFiles) {
+                Range fileRange = file.getDataMZRange(1);
+                if (fileRange == null)
+                    continue;
+                if (mzRange == null)
+                    mzRange = fileRange;
+                else
+                    mzRange.extendRange(fileRange);
+            }
+            if (mzRange != null)
+                setValue(mzRange);
+        }
 
-	if (src == fromFormulaButton) {
-	    Range mzRange = MzRangeCalculatorModule
-		    .showRangeCalculationDialog();
-	    if (mzRange != null)
-		setValue(mzRange);
-	}
+        if (src == fromFormulaButton) {
+            Range mzRange = MzRangeCalculatorModule
+                    .showRangeCalculationDialog();
+            if (mzRange != null)
+                setValue(mzRange);
+        }
 
     }
 
