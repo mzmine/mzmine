@@ -62,6 +62,8 @@ public class MZRangeComponent extends RangeComponent implements ActionListener {
 		    .getDataFiles();
 	    for (RawDataFile file : currentFiles) {
 		Range fileRange = file.getDataMZRange(1);
+		if (fileRange == null)
+		    continue;
 		if (mzRange == null)
 		    mzRange = fileRange;
 		else
