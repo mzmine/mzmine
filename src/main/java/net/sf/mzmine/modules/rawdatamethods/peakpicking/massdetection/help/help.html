@@ -1,0 +1,42 @@
+<html>
+	<head>
+		<title>Peak detection - Mass detection</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Mass detection</h1>
+
+<h2>Description</h2>
+
+<p>
+The Mass detection module generates a list of masses (ions) for each scan in the raw data file.
+Several algorithms are provided for this step.
+The choice of the optimal algorithm depends on the raw data characteristics (mass resolution, mass precision, peak shape, noise).
+In case the raw data is already centroided, only one algorithm (Centroid mass detector) can be used.
+Other algorithms work only with continuous type data.
+</p>
+
+<p>
+When mass lists are generated for all MS level 1 scans, a green check mark will appear at the icon of the raw data file.
+Each mass list can be opened by expanding individual scans from the project tree:<br>
+<img src="masslist_open.png">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Mass detector</dt>
+<dd>Algorithm to use for mass detection and its parameters</dd>
+
+<dt>MS level</dt>
+<dd>MS level of scans, for which the mass lists should be generated</dd> 
+
+<dt>Mass list name</dt>
+<dd>Name of the new mass list. If the processed scans already have a mass list of that name, it will be replaced.</dd> 
+
+</dl>
+
+</body>
+</html>

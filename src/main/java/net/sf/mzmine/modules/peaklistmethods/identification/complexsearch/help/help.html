@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<title>Identification - Peak complex search</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Peak complex search</h1>
+
+<h2>Description</h2>
+
+<p>
+This method attempts to identify ion complexes, that is pairs of ions which appear together at the same
+ retention time, and form an ion complex which contains both smaller ions as components. 
+The complexes are identified by 2 conditions: 1) the retention time of the component ions and the complex ion should be same and 
+2) the sum of the masses of the component ions must be equal to the mass of the complex, except the mass change caused by ionization, such as (de)protonization. 
+</p>
+
+<p>
+The following figure shows an example of a spectrum with an ion complex in positive ESI mode (both ions are protonized):<br>
+<img src="complex.png">
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Ionization method</dt>
+<dd>Type of ion used to calculate the neutral mass</dd>
+
+<dt>RT tolerance</dt>
+<dd>Maximum allowed retention retention time difference to set the relationship between peaks</dd>
+
+<dt>m/z tolerance</dt>
+<dd>Tolerance value of the m/z difference between peaks</dd>
+
+<dt>Max complex peak height</dt>
+<dd>Maximum height of the recognized complex peak, relative to the highest of component peaks</dd>
+
+</dl>
+
+</body>
+</html>

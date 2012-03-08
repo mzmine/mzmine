@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<title>Normalization - Retention time normalizer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Retention time normalizer</h1>
+
+<h2>Description</h2>
+
+<p>
+The retention time normalizer attempts to reduce the deviation of retention times between peak lists, by searching for common peaks in these peak lists and using them as normalization standards.
+The method requires multiple peak lists of different samples, processed by Deconvolution, but prior to alignment. Ions which are present in all given peak lists (according to given m/z and RT tolerance and minimum intensity) in exactly one instance are considered as standards.
+Retention times of the standards are then averaged and equalized in all samples, and retention times of all other peaks are adjusted according to the retention times of neighboring standard peaks.
+</p>
+
+<h4>Method parameters</h4>
+<dl>
+<dt>Suffix</dt>
+<dd>This string is added to the end of the name of each processed peak list</dd>
+
+<dt>m/z tolerance</dt>
+<dd>Maximum allowed m/z difference</dd>
+
+<dt>Retention time tolerance</dt>
+<dd>Maximum allowed retention time difference</dd>
+
+<dt>Minimum standard intensity</dt>
+<dd>Minimum height of a peak to be selected as normalization standard</dd>
+
+<dt>Remove original peak list</dt>
+<dd>If selected, the original chromatogram is automatically removed</dd>
+</dl>
+
+
+<p>
+The folowing screenshot shows two peak lists (top) normalized by the Retention time normalizer (bottom) with the following parameters: 
+m/z tolerance = 0.1, RT tolerance = 1:00, Minimum standard intensity = 1E6. The red color shows which peaks were selected as standards.
+The retention time of standards was averaged, and retention time of other peaks was adjusted accordingly (blue color). 
+</p>
+
+<p>
+<img src="RTnormalizer.png">
+</p>
+
+</body>
+</html>

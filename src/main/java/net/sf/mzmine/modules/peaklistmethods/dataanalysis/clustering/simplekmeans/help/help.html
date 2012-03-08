@@ -1,0 +1,52 @@
+<html>
+        <head>
+                <title>Data analysis - Clustering - Simple K-Means</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+        </head>
+
+        <body>
+
+                <h1>Clustering</h1>
+
+                <h2>Simple K-Means</h2>
+
+                <p>
+                        The goal of K-means clustering is to determine k clusters in such a way that intra cluster distances are small and inter cluster distances are large; or in other words, every point is assigned to a cluster whose centre is the nearest. K-means clustering works by randomly choosing k-centroids in the first step and then assigning the data points to the clusters in such a way that every point belongs to the cluster with the nearest centroid, and redetermining the cluster centroids by taking the mean of data points in each cluster. The process is continued until the cluster means converge.
+                </p>
+
+                <h4>Method parameters</h4>
+                <dl>
+                        <dt>Data files</dt>
+                        <dd>Raw data files correspondent to the samples selected to bi in the projection plot.</dd>
+
+                        <dt>Colouring style</dt>
+                        <dd>The dots corresponding to every sample can be colored depending on the sample's parameter state or on the file.</dd>
+
+                        <dt>Peak measuring approach</dt>
+                        <dd>It can take two values: height or area. The projections will be calculated using one of this two values.</dd>
+
+                        <dt>Peaks</dt>
+                        <dd>Peaks that will be taken into account to create the projection plot.</dd>
+
+                        <dt>Visualization</dt>
+                        <dd>The visualization of the result of non hierarchical clustering algorithms can be performed using PCA or Sammon's projection</dd>
+
+                        <dt>Type of data</dt>
+                        <dd>It can take two values: Samples or variables. The clustering will be applied to one of this types of data.</dd>
+
+                        <dt>Algorithm</dt>
+                        <dd>Algorithm that will be used to cluster the data.</dd>
+
+                        <dt>Link type</dt>
+                        <dd>This parameters is only enable when the hierarchical clustering has been chosen. The distances between clusters is determined by the chosen linkage.</dd>
+
+                        <dt>Distance fuction</dt>
+                        <dd>This parameters is only enable when the hierarchical clustering has been chosen. The distances between points is determined by the chosen distance function. </dd>
+
+                        <dt>Number of groups</dt>
+                        <dd>The number of clusters has to be defined by the user in advance for some clustering algorithms. This parameter is available only when K-means or Farthest First algorithm are chosen. </dd>
+                </dl>
+
+        </body>
+</html>

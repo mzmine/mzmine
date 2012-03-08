@@ -1,0 +1,53 @@
+<html>
+	<head>
+		<title>Visualization - Neutral loss visualizer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<link rel="stylesheet" type="text/css" href="/net/sf/mzmine/desktop/impl/helpsystem/HelpStyles.css">
+    </head>
+
+<body>
+
+<h1>Neutral loss visualizer</h1>
+
+<h2>Description</h2>
+<p>
+This plot shows the neutral loss calculated from all MS<sup>2</sup>...  MS<sup>n</sup> in the selected raw data file. 
+The user can define the number of most intense fragments to use in the calculation of the neutral loss. If a recurrent neutral loss occurs, a line pattern in the plot can be observed.
+</p>
+
+
+<h4>Parameters</h4>
+<dl>
+	<dt>X axis</dt>
+    	<dd>X axis type. The user can choose from "Retention time"  or "Precursor mass"</dd>
+	<dt>Retention time</dt>
+    	<dd>Retention time (X axis) range.</dd>
+	<dt>Precursor m/z</dt>
+    	<dd>Range of precursor m/z values.</dd>
+	<dt>Fragments</dt>
+    	<dd>Number of most intense fragments to check for neutral loss.</dd>
+
+
+</dl>
+
+<h4>Functionality</h4>
+<p>
+This plot is using the third part library JfreeChart for its basic functionality. 
+To zoom in, drag the mouse from left to right, selecting the area to zoom. To zoom out drag the zoom from right to left.
+</p>
+<p>
+<img src="neutral.png">
+</p>
+
+<p>
+The user can highlight spots in a range of m/z. This range can be for neutral loss or for the parent ion mass. 
+This option appears in a submenu by making right click on the plot area.
+</p>
+<p>
+<img src="neutral_selection1.png">
+<img src="neutral_selection2.png">
+</p>
+
+
+</body>
+</html>
