@@ -79,11 +79,6 @@
 			<url>http://types.cs.washington.edu/m2-repo</url>
 		</repository>
 		<repository>
-			<id>bedatadriven</id>
-			<name>Bedatadriven Public REpo</name>
-			<url>http://nexus.bedatadriven.com/content/groups/public/</url>
-		</repository>
-		<repository>
 			<id>genesis-maven-repository</id>
 			<name>Genesis repository</name>
 			<url>http://genesis.UGent.be/maven2/</url>
@@ -235,11 +230,6 @@
 					<groupId>com.compomics</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.bedatadriven.renjin</groupId>
-			<artifactId>renjin-core</artifactId>
-			<version>0.1.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>postgresql</groupId>
