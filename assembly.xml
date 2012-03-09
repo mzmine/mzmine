@@ -11,28 +11,28 @@
 	</dependencySets>
 	<fileSets>
 		<fileSet>
-			<directory>rest</directory>
+			<directory>src/main/scripts</directory>
 			<outputDirectory>/</outputDirectory>
 			<fileMode>0755</fileMode>
 			<filtered>true</filtered>
 		</fileSet>
 		<fileSet>
-			<directory>conf</directory>
+			<directory>src/main/conf</directory>
 			<outputDirectory>conf</outputDirectory>
-			<fileMode>0755</fileMode>
+			<fileMode>0644</fileMode>
 		</fileSet>
 		<fileSet>
-			<directory>icons</directory>
+			<directory>src/main/icons</directory>
 			<outputDirectory>icons</outputDirectory>
-			<fileMode>0755</fileMode>
+			<fileMode>0644</fileMode>
 		</fileSet>
 		<fileSet>
-			<directory>lib</directory>
+			<directory>src/main/lib</directory>
 			<includes>
 				<include>RAWdump.*</include>
 			</includes>
 			<outputDirectory>lib</outputDirectory>
-			<fileMode>0755</fileMode>
+			<fileMode>0644</fileMode>
 		</fileSet>
 	</fileSets>
 </assembly>
