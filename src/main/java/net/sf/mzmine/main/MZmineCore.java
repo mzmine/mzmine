@@ -264,14 +264,17 @@ public final class MZmineCore {
     @Nonnull
     public static String getMZmineVersion() {
         try {
-            InputStream inStream = MZmineCore.class.getClassLoader()
-                    .getResourceAsStream("mzmine.properties");
+            ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
+            InputStream inStream = myClassLoader
+                    .getResourceAsStream("META-INF/maven/net.sf.mzmine/MZmine/pom.properties");
+            if (inStream == null)
+                return "0.0";
             Properties properties = new Properties();
             properties.load(inStream);
-            return properties.getProperty("mzmine.version");
+            return properties.getProperty("version");
         } catch (Exception e) {
             e.printStackTrace();
-            return "?";
+            return "0.0";
         }
     }
 
