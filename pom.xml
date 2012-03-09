@@ -154,8 +154,8 @@
 		</dependency>
 		<dependency>
 			<groupId>types.checkers</groupId>
-			<artifactId>checkers-quals</artifactId>
-			<version>1.1.1</version>
+			<artifactId>jsr308-all</artifactId>
+			<version>1.2.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.compomics</groupId>
@@ -205,6 +205,30 @@
 				<exclusion>
 					<groupId>junit</groupId>
 					<artifactId>junit</artifactId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-jxpath</artifactId>
+					<groupId>commons-jxpath</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>commons-configuration</artifactId>
+					<groupId>commons-configuration</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>peptizer</artifactId>
+					<groupId>com.compomics</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>looks</artifactId>
+					<groupId>com.jgoodies</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackcess</artifactId>
+					<groupId>jackcess</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>rover</artifactId>
+					<groupId>com.compomics</groupId>
 				</exclusion>
 			</exclusions>
 		</dependency>
