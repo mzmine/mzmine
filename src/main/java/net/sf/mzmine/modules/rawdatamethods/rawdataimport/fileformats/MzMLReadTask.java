@@ -170,6 +170,7 @@ public class MzMLReadTask extends AbstractTask {
 	    setStatus(TaskStatus.ERROR);
 	    errorMessage = "Error parsing mzML: "
 		    + ExceptionUtils.exceptionToString(e);
+            e.printStackTrace();
 	    return;
 	}
 
@@ -301,6 +302,10 @@ public class MzMLReadTask extends AbstractTask {
 	for (Precursor parent : precursorList) {
 	    // Get the precursor scan number
 	    String precursorScanId = parent.getSpectrumRef();
+	    if (precursorScanId == null) {
+	        logger.warning("Missing precursor spectrumRef tag for spectrum ID " + spectrum.getId());
+	        return -1;
+	    }
 	    int parentScan = convertScanIdToScanNumber(precursorScanId);
 	    return parentScan;
 	}
