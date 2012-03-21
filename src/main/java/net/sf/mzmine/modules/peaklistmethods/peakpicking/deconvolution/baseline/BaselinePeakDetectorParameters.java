@@ -36,7 +36,7 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 	    MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
-	    "Peak duration range", "Range of acceptable peak lengths",
+	    "Peak duration range (min)", "Range of acceptable peak lengths",
 	    MZmineCore.getConfiguration().getRTFormat(), new Range(0.0, 10.0));
 
     public static final DoubleParameter BASELINE_LEVEL = new DoubleParameter(
