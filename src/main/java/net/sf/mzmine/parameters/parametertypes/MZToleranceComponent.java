@@ -19,59 +19,52 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-/**
- */
 public class MZToleranceComponent extends JPanel {
 
-	private static final String toleranceTypes[] = { "m/z", "ppm" };
+    private final JTextField mzToleranceField, ppmToleranceField;
 
-	private JTextField toleranceField;
-	private JComboBox toleranceType;
+    public MZToleranceComponent() {
 
-	public MZToleranceComponent() {
+        mzToleranceField = new JTextField();
+        mzToleranceField.setColumns(6);
+        add(mzToleranceField);
 
-		super(new BorderLayout());
+        add(new JLabel("m/z  or"));
 
-		toleranceField = new JTextField();
-		toleranceField.setColumns(6);
-		add(toleranceField, BorderLayout.CENTER);
+        ppmToleranceField = new JTextField();
+        ppmToleranceField.setColumns(6);
+        add(ppmToleranceField);
 
-		toleranceType = new JComboBox(toleranceTypes);
-		add(toleranceType, BorderLayout.EAST);
+        add(new JLabel("ppm"));
 
-	}
+    }
 
-	public void setValue(MZTolerance value) {
-		if (value.isAbsolute())
-			toleranceType.setSelectedIndex(0);
-		else
-			toleranceType.setSelectedIndex(1);
-		toleranceField.setText(String.valueOf(value.getTolerance()));
+    public void setValue(MZTolerance value) {
+        mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+        ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+    }
 
-	}
+    public MZTolerance getValue() {
+        try {
+            double mzTolerance = Double.parseDouble(mzToleranceField.getText());
+            double ppmTolerance = Double.parseDouble(ppmToleranceField
+                    .getText());
+            MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
+            return value;
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
-	public MZTolerance getValue() {
+    }
 
-		try {
-			int index = toleranceType.getSelectedIndex();
-			double tol = Double.parseDouble(toleranceField.getText());
-			MZTolerance value = new MZTolerance(index <= 0, tol);
-			return value;
-		} catch (NumberFormatException e) {
-			return null;
-		}
-
-	}
-	
-	@Override
-	public void setToolTipText(String toolTip) {
-		toleranceField.setToolTipText(toolTip);
-	}
+    @Override
+    public void setToolTipText(String toolTip) {
+        mzToleranceField.setToolTipText(toolTip);
+        ppmToleranceField.setToolTipText(toolTip);
+    }
 
 }

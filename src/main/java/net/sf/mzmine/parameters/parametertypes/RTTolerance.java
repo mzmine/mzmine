@@ -21,38 +21,41 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import net.sf.mzmine.util.Range;
 
-/**
- * 
- */
 public class RTTolerance {
 
-	// Tolerance can be either absolute (in m/z) or relative (in %)
-	private boolean isAbsolute;
-	private double tolerance;
+    // Tolerance can be either absolute (in m/z) or relative (in %)
+    private boolean isAbsolute;
+    private double tolerance;
 
-	public RTTolerance(boolean isAbsolute, double tolerance) {
-		this.isAbsolute = isAbsolute;
-		this.tolerance = tolerance;
-	}
+    public RTTolerance(boolean isAbsolute, double tolerance) {
+        this.isAbsolute = isAbsolute;
+        this.tolerance = tolerance;
+    }
 
-	public boolean isAbsolute() {
-		return isAbsolute;
-	}
+    public boolean isAbsolute() {
+        return isAbsolute;
+    }
 
-	public double getTolerance() {
-		return tolerance;
-	}
+    public double getTolerance() {
+        return tolerance;
+    }
 
-	public Range getToleranceRange(double rtValue) {
-		double absoluteTolerance = isAbsolute ? tolerance
-				: (rtValue * tolerance);
-		return new Range(rtValue - absoluteTolerance, rtValue
-				+ absoluteTolerance);
-	}
-	
-	public boolean checkWithinTolerance(double rt1, double rt2) {
-		Range toleranceRange = getToleranceRange(rt1);
-		return toleranceRange.contains(rt2);
-	}
+    public double getAbsoluteToleranceForRT(double rtValue) {
+        double absoluteTolerance = isAbsolute ? tolerance
+                : (rtValue * tolerance);
+        return absoluteTolerance;
+    }
+
+    public Range getToleranceRange(double rtValue) {
+        double absoluteTolerance = isAbsolute ? tolerance
+                : (rtValue * tolerance);
+        return new Range(rtValue - absoluteTolerance, rtValue
+                + absoluteTolerance);
+    }
+
+    public boolean checkWithinTolerance(double rt1, double rt2) {
+        Range toleranceRange = getToleranceRange(rt1);
+        return toleranceRange.contains(rt2);
+    }
 
 }
