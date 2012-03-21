@@ -122,7 +122,7 @@ public class Chromatogram implements ChromatographicPeak {
      * 
      * @return String information
      */
-    public String getName() {
+    public String toString() {
 	return "Chromatogram "
 		+ MZmineCore.getConfiguration().getMZFormat().format(mz)
 		+ " m/z";
