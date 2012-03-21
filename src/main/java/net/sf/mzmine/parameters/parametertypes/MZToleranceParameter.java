@@ -91,8 +91,9 @@ public class MZToleranceParameter implements
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-        double mzTolerance = 0;
-        double ppmTolerance = 0;
+        // Set some default values
+        double mzTolerance = 0.001;
+        double ppmTolerance = 5;
         NodeList items = xmlElement.getElementsByTagName("absolutetolerance");
         for (int i = 0; i < items.getLength(); i++) {
             String itemString = items.item(i).getTextContent();
