@@ -84,7 +84,7 @@
 		<repository>
 			<id>weka-repository</id>
 			<name>Weka unofficial repository</name>
-			<url>https://maven.ict-societies.eu/nexus/content/repositories/public/</url>
+			<url>http://maven.ict-societies.eu/nexus/content/repositories/public/</url>
 		</repository>
 		<repository>
 			<id>lib</id>
