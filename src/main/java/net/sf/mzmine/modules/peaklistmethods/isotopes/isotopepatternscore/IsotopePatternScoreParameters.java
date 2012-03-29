@@ -19,30 +19,39 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore;
 
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculatorParameters;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 
 public class IsotopePatternScoreParameters extends SimpleParameterSet {
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-			"Isotope m/z tolerance",
-			"m/z tolerance which defines what isotopes would be considered same when "
-					+ "comparing two isotopic patterns. This tolerance needs to be "
-					+ "higher than general m/z precision of the data, because some "
-					+ "small isotopes may overlap with the sides of bigger isotopic "
-					+ "peaks.");
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
+            "Isotope m/z tolerance",
+            "m/z tolerance which defines what isotopes would be considered same when "
+                    + "comparing two isotopic patterns. This tolerance needs to be "
+                    + "higher than general m/z precision of the data, because some "
+                    + "small isotopes may overlap with the sides of bigger isotopic "
+                    + "peaks.");
 
-	public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
-			"Minimum score",
-			"If the score between isotope pattern is lower, discard this match");
+    public static final PercentParameter minAbundance = new PercentParameter(
+            "Minimum relative abundance",
+            "Minimum relative abundance of the predicted isotopes", 0.001);
 
-	public IsotopePatternScoreParameters() {
-		super(new Parameter[] { mzTolerance,
-				IsotopePatternCalculatorParameters.minAbundance,
-				isotopePatternScoreThreshold });
-	}
+    public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
+            "Minimum absolute intensity",
+            "Minimum absolute intensity of the predicted isotopes", MZmineCore
+                    .getConfiguration().getIntensityFormat());
+
+    public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
+            "Minimum score",
+            "If the score between isotope pattern is lower, discard this match");
+
+    public IsotopePatternScoreParameters() {
+        super(new Parameter[] { mzTolerance, minAbundance, isotopeNoiseLevel,
+                isotopePatternScoreThreshold });
+    }
 
 }

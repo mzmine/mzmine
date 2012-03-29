@@ -35,96 +35,106 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class IsotopePatternScoreCalculator {
 
-	public static boolean checkMatch(IsotopePattern ip1, IsotopePattern ip2,
-			ParameterSet parameters) {
+    public static boolean checkMatch(IsotopePattern ip1, IsotopePattern ip2,
+            ParameterSet parameters) {
 
-		double score = getSimilarityScore(ip1, ip2, parameters);
+        double score = getSimilarityScore(ip1, ip2, parameters);
 
-		double minimumScore = parameters.getParameter(
-				IsotopePatternScoreParameters.isotopePatternScoreThreshold)
-				.getValue();
+        double minimumScore = parameters.getParameter(
+                IsotopePatternScoreParameters.isotopePatternScoreThreshold)
+                .getValue();
 
-		return score >= minimumScore;
-	}
+        return score >= minimumScore;
+    }
 
-	/**
-	 * Returns a calculated similarity score of two isotope patterns in the
-	 * range of 0 (not similar at all) to 1 (100% same).
-	 */
-	public static double getSimilarityScore(IsotopePattern ip1,
-			IsotopePattern ip2, ParameterSet parameters) {
+    /**
+     * Returns a calculated similarity score of two isotope patterns in the
+     * range of 0 (not similar at all) to 1 (100% same).
+     */
+    public static double getSimilarityScore(IsotopePattern ip1,
+            IsotopePattern ip2, ParameterSet parameters) {
 
-		assert ip1 != null;
-		assert ip2 != null;
+        assert ip1 != null;
+        assert ip2 != null;
 
-		MZTolerance mzTolerance = parameters.getParameter(
-				IsotopePatternScoreParameters.mzTolerance).getValue();
+        MZTolerance mzTolerance = parameters.getParameter(
+                IsotopePatternScoreParameters.mzTolerance).getValue();
 
-		assert mzTolerance != null;
-		
-		// Normalize the isotopes to intensity 0..1
-		IsotopePattern nip1 = IsotopePatternCalculator
-				.normalizeIsotopePattern(ip1);
-		IsotopePattern nip2 = IsotopePatternCalculator
-				.normalizeIsotopePattern(ip2);
+        assert mzTolerance != null;
 
-		// Merge the data points from both isotope patterns into a single array.
-		// Data points from first pattern will have positive intensities, data
-		// points from second pattern will have negative intensities.
-		ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
-		for (DataPoint dp : nip1.getDataPoints())
-			mergedDataPoints.add(dp);
-		for (DataPoint dp : nip2.getDataPoints()) {
-			DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(),
-					dp.getIntensity() * -1);
-			mergedDataPoints.add(negativeDP);
-		}
-		DataPoint mergedDPArray[] = mergedDataPoints.toArray(new DataPoint[0]);
+        final double patternIntensity = Math.max(ip1.getHighestIsotope()
+                .getIntensity(), ip2.getHighestIsotope().getIntensity());
+        final double noiseIntensity = parameters.getParameter(
+                IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
-		// Sort the merged data points by m/z
-		Arrays.sort(mergedDPArray, new DataPointSorter(SortingProperty.MZ,
-				SortingDirection.Ascending));
+        // Normalize the isotopes to intensity 0..1
+        IsotopePattern nip1 = IsotopePatternCalculator
+                .normalizeIsotopePattern(ip1);
+        IsotopePattern nip2 = IsotopePatternCalculator
+                .normalizeIsotopePattern(ip2);
 
-		// Iterate the merged data points and sum all isotopes within m/z
-		// tolerance
-		for (int i = 0; i < mergedDPArray.length - 1; i++) {
+        // Merge the data points from both isotope patterns into a single array.
+        // Data points from first pattern will have positive intensities, data
+        // points from second pattern will have negative intensities.
+        ArrayList<DataPoint> mergedDataPoints = new ArrayList<DataPoint>();
+        for (DataPoint dp : nip1.getDataPoints()) {
+            if (dp.getIntensity() * patternIntensity < noiseIntensity)
+                continue;
+            mergedDataPoints.add(dp);
+        }
+        for (DataPoint dp : nip2.getDataPoints()) {
+            if (dp.getIntensity() * patternIntensity < noiseIntensity)
+                continue;
+            DataPoint negativeDP = new SimpleDataPoint(dp.getMZ(),
+                    dp.getIntensity() * -1);
+            mergedDataPoints.add(negativeDP);
+        }
+        DataPoint mergedDPArray[] = mergedDataPoints.toArray(new DataPoint[0]);
 
-			Range toleranceRange = mzTolerance
-					.getToleranceRange(mergedDPArray[i].getMZ());
+        // Sort the merged data points by m/z
+        Arrays.sort(mergedDPArray, new DataPointSorter(SortingProperty.MZ,
+                SortingDirection.Ascending));
 
-			if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
-				continue;
+        // Iterate the merged data points and sum all isotopes within m/z
+        // tolerance
+        for (int i = 0; i < mergedDPArray.length - 1; i++) {
 
-			double summedIntensity = mergedDPArray[i].getIntensity()
-					+ mergedDPArray[i + 1].getIntensity();
+            Range toleranceRange = mzTolerance
+                    .getToleranceRange(mergedDPArray[i].getMZ());
 
-			double newMZ = mergedDPArray[i + 1].getMZ();
+            if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))
+                continue;
 
-			// Update the next data point and remove the current one
-			mergedDPArray[i + 1] = new SimpleDataPoint(newMZ, summedIntensity);
-			mergedDPArray[i] = null;
+            double summedIntensity = mergedDPArray[i].getIntensity()
+                    + mergedDPArray[i + 1].getIntensity();
 
-		}
+            double newMZ = mergedDPArray[i + 1].getMZ();
 
-		// Calculate the resulting score. Ideal score is 1, in case the final
-		// data point array is empty.
-		double result = 1;
+            // Update the next data point and remove the current one
+            mergedDPArray[i + 1] = new SimpleDataPoint(newMZ, summedIntensity);
+            mergedDPArray[i] = null;
 
-		for (DataPoint dp : mergedDPArray) {
-			if (dp == null)
-				continue;
-			double remainingIntensity = Math.abs(dp.getIntensity());
+        }
 
-			// In case some large isotopes were grouped together, the summed
-			// intensity may be over 1
-			if (remainingIntensity > 1)
-				remainingIntensity = 1;
+        // Calculate the resulting score. Ideal score is 1, in case the final
+        // data point array is empty.
+        double result = 1;
 
-			// Decrease the score with each remaining peak
-			result *= 1 - remainingIntensity;
-		}
+        for (DataPoint dp : mergedDPArray) {
+            if (dp == null)
+                continue;
+            double remainingIntensity = Math.abs(dp.getIntensity());
 
-		return result;
-	}
+            // In case some large isotopes were grouped together, the summed
+            // intensity may be over 1
+            if (remainingIntensity > 1)
+                remainingIntensity = 1;
+
+            // Decrease the score with each remaining peak
+            result *= 1 - remainingIntensity;
+        }
+
+        return result;
+    }
 
 }

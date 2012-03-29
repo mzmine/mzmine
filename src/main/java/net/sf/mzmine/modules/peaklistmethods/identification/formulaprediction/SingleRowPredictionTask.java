@@ -43,7 +43,6 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.re
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
-import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculatorParameters;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScore;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreCalculator;
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
@@ -260,7 +259,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		    ionType, charge);
 
 	    double minPredictedAbundance = isotopeParameters.getParameter(
-		    IsotopePatternCalculatorParameters.minAbundance).getValue();
+		    IsotopePatternScoreParameters.minAbundance).getValue();
 
 	    predictedIsotopePattern = IsotopePatternCalculator
 		    .calculateIsotopePattern(adjustedFormula,
