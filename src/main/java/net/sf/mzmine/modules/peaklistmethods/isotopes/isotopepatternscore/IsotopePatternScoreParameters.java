@@ -36,13 +36,9 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
                     + "small isotopes may overlap with the sides of bigger isotopic "
                     + "peaks.");
 
-    public static final PercentParameter minAbundance = new PercentParameter(
-            "Minimum relative abundance",
-            "Minimum relative abundance of the predicted isotopes", 0.001);
-
     public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
             "Minimum absolute intensity",
-            "Minimum absolute intensity of the predicted isotopes", MZmineCore
+            "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.", MZmineCore
                     .getConfiguration().getIntensityFormat());
 
     public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
@@ -50,7 +46,7 @@ public class IsotopePatternScoreParameters extends SimpleParameterSet {
             "If the score between isotope pattern is lower, discard this match");
 
     public IsotopePatternScoreParameters() {
-        super(new Parameter[] { mzTolerance, minAbundance, isotopeNoiseLevel,
+        super(new Parameter[] { mzTolerance, isotopeNoiseLevel,
                 isotopePatternScoreThreshold });
     }
 
