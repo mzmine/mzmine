@@ -28,14 +28,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -57,6 +51,7 @@ import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.DragOrderedJList;
 
+import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -68,6 +63,9 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
     // Logger.
     private static final Logger LOG = Logger
 	    .getLogger(BatchSetupComponent.class.getName());
+
+    // XML extension.
+    private static final String XML_EXTENSION = "xml";
 
     // Queue operations.
     private enum QueueOperations {
@@ -87,6 +85,9 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
     private final JButton btnLoad;
     private final JButton btnSave;
 
+    // File chooser.
+    private LoadSaveFileChooser chooser;
+
     /**
      * Create the component.
      */
@@ -96,7 +97,11 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
 	batchQueue = new BatchQueue();
 
-	// The steps list.
+    // Create file chooser.
+    chooser = new LoadSaveFileChooser("Select Batch Queue File");
+    chooser.addChoosableFileFilter(new FileNameExtensionFilter("XML files", XML_EXTENSION));
+
+    // The steps list.
 	currentStepsList = new DragOrderedJList();
 	currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -239,7 +244,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 	if (btnSave.equals(src)) {
 
 	    try {
-		final File file = ChooserHelper.getSaveFile(this);
+		final File file = chooser.getSaveFile(this, XML_EXTENSION);
 		if (file != null) {
 		    saveBatchSteps(file);
 		}
@@ -256,7 +261,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 	if (btnLoad.equals(src)) {
 	    try {
 		// Load the steps.
-		final File file = ChooserHelper.getLoadFile(this);
+		final File file = chooser.getLoadFile(this);
 		if (file != null) {
 
 		    // Load the batch steps.
@@ -275,7 +280,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
     /**
      * Get the queue.
-     * 
+     *
      * @return the queue.
      */
     public BatchQueue getValue() {
@@ -284,7 +289,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
     /**
      * Sets the queue.
-     * 
+     *
      * @param newValue
      *            the new queue.
      */
@@ -297,7 +302,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
     /**
      * Select a step of the batch queue.
-     * 
+     *
      * @param step
      *            the step's index in the queue.
      */
@@ -312,7 +317,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
     /**
      * Save the batch queue to a file.
-     * 
+     *
      * @param file
      *            the file to save in.
      * @throws ParserConfigurationException
@@ -354,7 +359,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
 
     /**
      * Load a batch queue from a file.
-     * 
+     *
      * @param file
      *            the file to read.
      * @throws ParserConfigurationException

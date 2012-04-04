@@ -52,6 +52,9 @@ public class ImportAdductsAction extends AbstractAction {
     // Logger.
     private static final Logger LOG = Logger.getLogger(ImportAdductsAction.class.getName());
 
+    // Filename extension.
+    private static final String FILENAME_EXTENSION = "csv";
+
     private LoadSaveFileChooser chooser;
 
     /**
@@ -77,10 +80,9 @@ public class ImportAdductsAction extends AbstractAction {
             // Create the chooser if necessary.
             if (chooser == null) {
 
-                chooser = new LoadSaveFileChooser();
-                chooser.setDialogTitle("Select Adducts File");
-                chooser.setMultiSelectionEnabled(false);
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated value files", "csv"));
+                chooser = new LoadSaveFileChooser("Select Adducts File");
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated values files",
+                                                                           FILENAME_EXTENSION));
             }
 
             // Select a file.

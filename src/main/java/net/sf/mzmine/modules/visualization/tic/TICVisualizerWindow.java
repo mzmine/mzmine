@@ -27,10 +27,12 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,6 +49,9 @@ import java.util.Set;
 public class TICVisualizerWindow extends JInternalFrame implements
                                                         ActionListener {
 
+    // CSV extension.
+    private static final String CSV_EXTENSION = "csv";
+
     private TICToolBar toolBar;
     private TICPlot ticPlot;
 
@@ -58,6 +63,10 @@ public class TICVisualizerWindow extends JInternalFrame implements
     private Range rtRange, mzRange;
 
     private Desktop desktop;
+
+    // Export file chooser.
+    private static LoadSaveFileChooser exportChooser = null;
+
 
     /**
      * Constructor for total ion chromatogram visualizer
@@ -71,7 +80,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
 
         assert mzRange != null;
         assert rtRange != null;
-        
+
         this.desktop = MZmineCore.getDesktop();
         this.plotType = plotType;
         this.msLevel = msLevel;
@@ -251,8 +260,16 @@ public class TICVisualizerWindow extends JInternalFrame implements
         final TICDataSet dataSet = ticDataSets.get(file);
         if (dataSet != null) {
 
+            // Create the chooser if necessary.
+            if (exportChooser == null) {
+
+                exportChooser = new LoadSaveFileChooser("Select Chromatogram File");
+                exportChooser.addChoosableFileFilter(
+                        new FileNameExtensionFilter("Comma-separated values files", CSV_EXTENSION));
+            }
+
             // Choose an export file.
-            final File exportFile = ExportChromatogramHelper.getExportFile(this, file.getName());
+            final File exportFile = exportChooser.getSaveFile(this, file.getName(), CSV_EXTENSION);
             if (exportFile != null) {
 
                 MZmineCore.getTaskController().addTask(new ExportChromatogramTask(dataSet, exportFile));

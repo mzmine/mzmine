@@ -78,10 +78,8 @@ public class ExportAdductsAction extends AbstractAction {
             // Create the chooser if necessary.
             if (chooser == null) {
 
-                chooser = new LoadSaveFileChooser();
-                chooser.setDialogTitle("Select Adducts File");
-                chooser.setMultiSelectionEnabled(false);
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated value files",
+                chooser = new LoadSaveFileChooser("Select Adducts File");
+                chooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated values files",
                                                                            FILENAME_EXTENSION));
             }
 
