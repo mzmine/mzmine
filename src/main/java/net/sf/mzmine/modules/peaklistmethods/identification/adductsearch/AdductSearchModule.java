@@ -32,42 +32,45 @@ import net.sf.mzmine.util.ExitCode;
 
 public class AdductSearchModule implements MZmineProcessingModule {
 
-    public static final String MODULE_NAME = "Adduct search";
-    private static final String MODULE_DESCRIPTION = "This method searches for adduct peaks that appear at the same retention time with other peak and have a defined mass difference.";
+    private static final String NAME = "Adduct search";
+
+    private static final String DESCRIPTION =
+            "This method searches for adduct peaks that appear at the same retention time as other peaks and have a defined mass difference.";
 
     @Override
     public String getName() {
-	return MODULE_NAME;
+
+        return NAME;
     }
 
     @Override
     public String getDescription() {
-	return MODULE_DESCRIPTION;
-    }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-
-	PeakList peakLists[] = parameters.getParameter(
-		AdductSearchParameters.peakLists).getValue();
-
-	for (PeakList peakList : peakLists) {
-	    Task newTask = new AdductSearchTask(parameters, peakList);
-	    tasks.add(newTask);
-	}
-
-	return ExitCode.OK;
+        return DESCRIPTION;
     }
 
     @Override
     public MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.IDENTIFICATION;
+
+        return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
     public Class<? extends ParameterSet> getParameterSetClass() {
-	return AdductSearchParameters.class;
+
+        return AdductSearchParameters.class;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull final ParameterSet parameters,
+                              @Nonnull final Collection<Task> tasks) {
+
+        for (final PeakList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS).getValue()) {
+
+            tasks.add(new AdductSearchTask(parameters, peakList));
+        }
+
+        return ExitCode.OK;
     }
 }

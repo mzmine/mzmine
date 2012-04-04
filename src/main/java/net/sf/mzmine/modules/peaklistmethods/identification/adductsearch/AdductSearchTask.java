@@ -19,11 +19,11 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
 import java.util.Arrays;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimplePeakList;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -33,181 +33,167 @@ import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.*;
+
 public class AdductSearchTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    // Logger.
+    private static final Logger LOG = Logger.getLogger(AdductSearchTask.class.getName());
 
-	private int finishedRows, totalRows;
-	private PeakList peakList;
+    private int finishedRows;
+    private int totalRows;
+    private final PeakList peakList;
 
-	private double rtTolerance, mzTolerance, maxAdductHeight,
-			customMassDifference;
-	private AdductType[] selectedAdducts;
+    private final double rtTolerance;
+    private final double mzTolerance;
+    private final double maxAdductHeight;
+    private final AdductType[] selectedAdducts;
 
-	private ParameterSet parameters;
+    private final ParameterSet parameters;
 
-	/**
-	 * @param parameters
-	 * @param peakList
-	 */
-	public AdductSearchTask(ParameterSet parameters, PeakList peakList) {
+    /**
+     * Create the task.
+     *
+     * @param parameterSet the parameters.
+     * @param list         peak list.
+     */
+    public AdductSearchTask(final ParameterSet parameterSet,
+                            final PeakList list) {
 
-		this.peakList = peakList;
-		this.parameters = parameters;
+        peakList = list;
+        parameters = parameterSet;
 
-		rtTolerance = parameters.getParameter(
-				AdductSearchParameters.rtTolerance).getValue();
-		mzTolerance = parameters.getParameter(
-				AdductSearchParameters.mzTolerance).getValue();
+        finishedRows = 0;
+        totalRows = 0;
 
-		selectedAdducts = parameters.getParameter(
-				AdductSearchParameters.adducts).getValue();
+        rtTolerance = parameterSet.getParameter(RT_TOLERANCE).getValue();
+        mzTolerance = parameterSet.getParameter(MZ_TOLERANCE).getValue();
+        selectedAdducts = parameterSet.getParameter(ADDUCTS).getValue();
+        maxAdductHeight = parameterSet.getParameter(MAX_ADDUCT_HEIGHT).getValue();
+    }
 
-		customMassDifference = parameters.getParameter(
-				AdductSearchParameters.customAdductValue).getValue();
+    @Override
+    public double getFinishedPercentage() {
 
-		maxAdductHeight = parameters.getParameter(
-				AdductSearchParameters.maxAdductHeight).getValue();
+        return totalRows == 0 ? 0.0 : (double) finishedRows / (double) totalRows;
+    }
 
-	}
+    @Override
+    public String getTaskDescription() {
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalRows == 0)
-			return 0;
-		return ((double) finishedRows) / totalRows;
-	}
+        return "Identification of adducts in " + peakList;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Identification of adducts in " + peakList;
-	}
+    @Override
+    public void run() {
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+        setStatus(TaskStatus.PROCESSING);
+        LOG.info("Starting adducts search in " + peakList);
 
-		setStatus(TaskStatus.PROCESSING);
+        try {
 
-		logger.info("Starting adducts search in " + peakList);
+            // Search the peak list for adducts.
+            searchAdducts();
 
-		PeakListRow rows[] = peakList.getRows();
-		totalRows = rows.length;
+            if (!isCanceled()) {
 
-		// Start with the highest peaks
-		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height,
-				SortingDirection.Descending));
+                // Add task description to peakList.
+                peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Identification of adducts",
+                                                                                     parameters));
 
-		// Compare each two rows against each other
-		for (int i = 0; i < totalRows; i++) {
+                // Repaint the window to reflect the change in the peak list.
+                MZmineCore.getDesktop().getMainFrame().repaint();
 
-			for (int j = i + 1; j < rows.length; j++) {
+                // Done.
+                setStatus(TaskStatus.FINISHED);
+                LOG.info("Finished adducts search in " + peakList);
+            }
+        }
+        catch (Throwable t) {
 
-				// Task canceled?
-				if (isCanceled())
-					return;
+            LOG.log(Level.SEVERE, "Adduct search error", t);
+            setStatus(TaskStatus.ERROR);
+            errorMessage = t.getMessage();
+        }
+    }
 
-				// Treat the smaller m/z peak as main peak and check if the
-				// bigger one may be an adduct
-				if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
-					checkAllAdducts(rows[j], rows[i]);
-				} else {
-					checkAllAdducts(rows[i], rows[j]);
-				}
+    /**
+     * Search peak-list for adducts.
+     */
+    private void searchAdducts() {
 
-			}
+        // Get rows.
+        final PeakListRow[] rows = peakList.getRows();
+        totalRows = rows.length;
 
-			finishedRows++;
+        // Start with the highest peaks.
+        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height, SortingDirection.Descending));
 
-		}
+        // Compare each pair of rows against each other.
+        for (int i = 0;
+             !isCanceled() && i < totalRows;
+             i++) {
 
-		// Add task description to peakList
-		((SimplePeakList) peakList)
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-						"Identification of adducts", parameters));
+            for (int j = i + 1;
+                 !isCanceled() && j < totalRows;
+                 j++) {
 
-		// Repaint the window to reflect the change in the peak list
-		MZmineCore.getDesktop().getMainFrame().repaint();
-		
-		setStatus(TaskStatus.FINISHED);
+                // Treat the smaller m/z peak as main peak and check if the bigger one may be an adduct.
+                if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
 
-		logger.info("Finished adducts search in " + peakList);
+                    checkAllAdducts(rows[j], rows[i]);
 
-	}
+                } else {
 
-	/**
-	 * Check if candidate peak may be a possible adduct of a given main peak
-	 * 
-	 * @param mainPeak
-	 * @param possibleFragment
-	 */
-	private void checkAllAdducts(PeakListRow mainRow, PeakListRow possibleAdduct) {
+                    checkAllAdducts(rows[i], rows[j]);
+                }
+            }
 
-		for (AdductType adduct : selectedAdducts) {
-			if (checkAdduct(mainRow, possibleAdduct, adduct)) {
-				addAdductInfo(mainRow, possibleAdduct, adduct);
-			}
-		}
-	}
+            finishedRows++;
+        }
+    }
 
-	/**
-	 * Check if candidate peak is a given type of adduct of given main peak
-	 * 
-	 * @param mainPeak
-	 * @param possibleFragment
-	 * @param adduct
-	 * @return
-	 */
-	private boolean checkAdduct(PeakListRow mainPeak,
-			PeakListRow possibleAdduct, AdductType adduct) {
+    /**
+     * Check if candidate peak may be a possible adduct of a given main peak
+     *
+     * @param mainRow        main peak.
+     * @param possibleAdduct candidate adduct peak.
+     */
+    private void checkAllAdducts(final PeakListRow mainRow,
+                                 final PeakListRow possibleAdduct) {
 
-		// Calculate expected mass difference of this adduct
-		double expectedMzDifference;
-		if (adduct == AdductType.CUSTOM)
-			expectedMzDifference = customMassDifference;
-		else
-			expectedMzDifference = adduct.getMassDifference();
+        for (final AdductType adduct : selectedAdducts) {
 
-		// Check mass difference condition
-		double mzDifference = Math.abs(mainPeak.getAverageMZ()
-				+ expectedMzDifference - possibleAdduct.getAverageMZ());
-		if (mzDifference > mzTolerance)
-			return false;
+            if (checkAdduct(mainRow, possibleAdduct, adduct)) {
 
-		// Check retention time condition
-		double rtDifference = Math.abs(mainPeak.getAverageRT()
-				- possibleAdduct.getAverageRT());
-		if (rtDifference > rtTolerance)
-			return false;
+                // Add adduct identity and notify GUI.
+                possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow, possibleAdduct, adduct), false);
+                MZmineCore.getCurrentProject().notifyObjectChanged(possibleAdduct, false);
+            }
+        }
+    }
 
-		// Check height condition
-		if (possibleAdduct.getAverageHeight() > mainPeak.getAverageHeight()
-				* maxAdductHeight)
-			return false;
+    /**
+     * Check if candidate peak is a given type of adduct of given main peak.
+     *
+     * @param mainPeak       main peak.
+     * @param possibleAdduct candidate adduct peak.
+     * @param adduct         adduct.
+     * @return true if mass difference, retention time tolerance and adduct peak height conditions are met.
+     */
+    private boolean checkAdduct(final PeakListRow mainPeak,
+                                final PeakListRow possibleAdduct,
+                                final AdductType adduct) {
 
-		return true;
+        return
+                // Check mass difference condition.
+                Math.abs(mainPeak.getAverageMZ() + adduct.getMassDifference() - possibleAdduct.getAverageMZ()) <=
+                mzTolerance
 
-	}
+                // Check retention time condition.
+                && Math.abs(mainPeak.getAverageRT() - possibleAdduct.getAverageRT()) <= rtTolerance
 
-	/**
-	 * Add new identity to the adduct row
-	 * 
-	 * @param mainRow
-	 * @param fragmentRow
-	 */
-	private void addAdductInfo(PeakListRow mainRow, PeakListRow adductRow,
-			AdductType adduct) {
-		AdductIdentity newIdentity = new AdductIdentity(mainRow, adductRow,
-				adduct);
-		adductRow.addPeakIdentity(newIdentity, false);
-		
-		// Notify the GUI about the change in the project
-		MZmineCore.getCurrentProject().notifyObjectChanged(adductRow, false);
-	}
-
+                // Check height condition.
+                && possibleAdduct.getAverageHeight() <= mainPeak.getAverageHeight() * maxAdductHeight;
+    }
 }
