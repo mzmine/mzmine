@@ -67,6 +67,14 @@ public class LoadSaveFileChooser extends JFileChooser {
         return file;
     }
 
+    /**
+     * Prompt the user for the file to save to.  If the selected file exists then the user is prompted to confirm
+     * overwriting it.  If the filename extension is missing it is added.
+     *
+     * @param parent    parent window for dialogs.
+     * @param extension extension to append.
+     * @return the selected file (or null if no choice is made).
+     */
     public File getSaveFile(final Component parent, final String extension) {
 
         return getSaveFile(parent, null, extension);
@@ -81,7 +89,6 @@ public class LoadSaveFileChooser extends JFileChooser {
      * @param extension extension to append.
      * @return the selected file (or null if no choice is made).
      */
-
     public File getSaveFile(final Component parent, final String fileName, final String extension) {
 
         // Set default selection.
