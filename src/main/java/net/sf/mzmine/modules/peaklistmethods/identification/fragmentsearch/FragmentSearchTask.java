@@ -200,8 +200,7 @@ public class FragmentSearchTask extends AbstractTask {
 	 * @param fragmentRow
 	 */
 	private void addFragmentInfo(PeakListRow mainRow, PeakListRow fragmentRow) {
-		FragmentIdentity newIdentity = new FragmentIdentity(mainRow,
-				fragmentRow);
+		FragmentIdentity newIdentity = new FragmentIdentity(mainRow);
 		fragmentRow.addPeakIdentity(newIdentity, false);
 		
 		// Notify the GUI about the change in the project

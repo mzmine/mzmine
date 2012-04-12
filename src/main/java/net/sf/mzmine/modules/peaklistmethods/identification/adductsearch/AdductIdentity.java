@@ -25,56 +25,17 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class AdductIdentity extends SimplePeakIdentity {
 
-	private PeakListRow originalPeakListRow;
-	private PeakListRow adductPeakListRow;
-	private AdductType adduct;
+    /**
+     * Create the identity.
+     *
+     * @param originalPeakListRow adduct of this peak list row.
+     * @param adduct              type of adduct.
+     */
+    public AdductIdentity(final PeakListRow originalPeakListRow, final AdductType adduct) {
 
-	/**
-	 * @param originalPeakListRow
-	 * @param relatedPeakListRow
-	 * @param adduct
-	 */
-	public AdductIdentity(PeakListRow originalPeakListRow,
-			PeakListRow adductPeakListRow, AdductType adduct) {
-		
-		super(adduct.toString() + " adduct of "
-		+ MZmineCore.getConfiguration().getMZFormat().format(originalPeakListRow.getAverageMZ()) + " m/z");
-		
-		this.originalPeakListRow = originalPeakListRow;
-		this.adductPeakListRow = adductPeakListRow;
-		this.adduct = adduct;
+        super(adduct.toString() + " adduct of "
+              + MZmineCore.getConfiguration().getMZFormat().format(originalPeakListRow.getAverageMZ()) + " m/z");
 
-		setPropertyValue(PROPERTY_METHOD, "Adduct search");
-
-	}
-
-
-	/**
-	 * @return Returns the originalPeakListRow
-	 */
-	public PeakListRow getOriginalPeakListRow() {
-		return this.originalPeakListRow;
-	}
-
-	/**
-	 * @return Returns the relatedPeakListRow
-	 */
-	public PeakListRow getAdductPeakListRow() {
-		return this.adductPeakListRow;
-	}
-
-	/**
-	 * @return Returns the type of adduct
-	 */
-	public AdductType getTypeOfAdduct() {
-		return adduct;
-	}
-
-	/**
-	 * @return Returns the mass difference
-	 */
-	public double getMassDifference() {
-		return adduct.getMassDifference();
-	}
-
+        setPropertyValue(PROPERTY_METHOD, "Adduct search");
+    }
 }

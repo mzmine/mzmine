@@ -167,7 +167,7 @@ public class AdductSearchTask extends AbstractTask {
             if (checkAdduct(mainRow, possibleAdduct, adduct)) {
 
                 // Add adduct identity and notify GUI.
-                possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow, possibleAdduct, adduct), false);
+                possibleAdduct.addPeakIdentity(new AdductIdentity(mainRow, adduct), false);
                 MZmineCore.getCurrentProject().notifyObjectChanged(possibleAdduct, false);
             }
         }

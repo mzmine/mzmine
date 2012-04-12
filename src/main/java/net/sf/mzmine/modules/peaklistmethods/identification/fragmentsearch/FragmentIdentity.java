@@ -25,25 +25,10 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class FragmentIdentity extends SimplePeakIdentity {
 
-	private PeakListRow mainPeakListRow;
+    public FragmentIdentity(final PeakListRow mainPeakListRow) {
 
-	/**
-	 */
-	public FragmentIdentity(PeakListRow mainPeakListRow,
-			PeakListRow fragmentPeakListRow) {
-
-		super("Fragment of "
-				+ MZmineCore.getConfiguration().getMZFormat().format(
-						mainPeakListRow.getAverageMZ()) + " m/z");
-
-		this.mainPeakListRow = mainPeakListRow;
-
-		setPropertyValue(PROPERTY_METHOD, "Fragment search");
-
-	}
-
-	public PeakListRow getMainPeak() {
-		return mainPeakListRow;
-	}
-
+        super("Fragment of "
+              + MZmineCore.getConfiguration().getMZFormat().format(mainPeakListRow.getAverageMZ()) + " m/z");
+        setPropertyValue(PROPERTY_METHOD, "Fragment search");
+    }
 }

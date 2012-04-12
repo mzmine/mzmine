@@ -20,83 +20,61 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
-
-import com.compomics.mascotdatfile.util.interfaces.Modification;
 import com.compomics.mascotdatfile.util.mascot.PeptideHit;
 import com.compomics.mascotdatfile.util.mascot.ProteinHit;
+import com.compomics.mascotdatfile.util.interfaces.Modification;
+import net.sf.mzmine.data.impl.SimplePeakIdentity;
 
 public class MascotPeakIdentity extends SimplePeakIdentity {
 
-	public static final String PROPERTY_PEPTIDE = "Peptide sequence";
-	public static final String PROPERTY_MASS = "Mass (Mr)";
-	public static final String PROPERTY_DELTA = "Delta";
-	public static final String PROPERTY_SCORE = "Score";
-	public static final String PROPERTY_MISSES = "Misses";
-	public static final String PROPERTY_MODIFICATIONS = "Modifications";
+    private static final String PROPERTY_PEPTIDE = "Peptide sequence";
+    private static final String PROPERTY_MASS = "Mass (Mr)";
+    private static final String PROPERTY_DELTA = "Delta";
+    private static final String PROPERTY_SCORE = "Score";
+    private static final String PROPERTY_MISSES = "Misses";
+    private static final String PROPERTY_MODIFICATIONS = "Modifications";
 
-	private PeptideHit peptide;
+    /**
+     * This class implements PeakIdentity and wrap the information of the peptide assigned to the chromatographic peak.
+     *
+     * @param peptide the peptide hit.
+     */
+    public MascotPeakIdentity(final PeptideHit peptide) {
 
-	public MascotPeakIdentity() {
-		super();
-	}
 
-	/**
-	 * This class implements PeakIdentity and wrap the information of the
-	 * peptide assigned to the chromatographic peak.
-	 * 
-	 * @param peptide
-	 */
-	@SuppressWarnings("unchecked")
-	public MascotPeakIdentity(PeptideHit peptide) {
+        final StringBuilder name = new StringBuilder();
+        for (final ProteinHit p : (Iterable<ProteinHit>) peptide.getProteinHits()) {
+            if (name.length() > 0) {
+                name.append(' ');
+            }
+            name.append(p.getAccession());
+        }
 
-		this.peptide = peptide;
+        setPropertyValue(PROPERTY_NAME, name.toString());
 
-		StringBuffer name = new StringBuffer();
-		Iterator<ProteinHit> it = peptide.getProteinHits().iterator();
-		while (it.hasNext()) {
-			ProteinHit p = it.next();
-			if (name.length() > 0)
-				name.append(" ");
-			name.append(p.getAccession());
-		}
+        final HashMap<Integer, String> varMods = new HashMap<Integer, String>();
+        for (final Modification mod : peptide.getModifications()) {
+            if (mod != null) {
+                varMods.put(mod.getModificationID(), mod.getType() + " (" + mod.getLocation() + ')');
+            }
+        }
 
-		setPropertyValue(PROPERTY_NAME, name.toString());
+        final int[] modSequences = peptide.getVariableModificationsArray();
+        String modSeqString = "";
+        for (int i = 0; i < modSequences.length; i++) {
+            if (varMods.containsKey(modSequences[i])) {
+                modSeqString += varMods.get(modSequences[i]) + " [" + i + "], ";
+            }
+        }
 
-		Modification[] mods = peptide.getModifications();
-		HashMap<Integer, String> varMods = new HashMap<Integer, String>();
-		for (int i = 0; i < mods.length; i++) {
-			if (mods[i] != null) {
-				String modString = mods[i].getType() + " ("
-						+ mods[i].getLocation() + ")";
-				varMods.put(mods[i].getModificationID(), modString);
-			}
-		}
-
-		int[] modSequences = peptide.getVariableModificationsArray();
-		String modSeqString = "";
-		for (int i = 0; i < modSequences.length; i++) {
-			if (varMods.containsKey(modSequences[i])) {
-				modSeqString += varMods.get(modSequences[i]) + " [" + i + "], ";
-			}
-		}
-
-		setPropertyValue(PROPERTY_METHOD, "MASCOT search");
-		setPropertyValue(PROPERTY_PEPTIDE, peptide.getSequence());
-		setPropertyValue(PROPERTY_FORMULA, peptide.getSequence());
-		setPropertyValue(PROPERTY_MASS, String.valueOf(peptide.getPeptideMr()));
-		setPropertyValue(PROPERTY_DELTA, String.valueOf(peptide.getDeltaMass()));
-		setPropertyValue(PROPERTY_SCORE, String.valueOf(peptide.getIonsScore()));
-		setPropertyValue(PROPERTY_MISSES,
-				String.valueOf(peptide.getMissedCleavages()));
-		setPropertyValue(PROPERTY_MODIFICATIONS, modSeqString);
-
-	}
-
-	public PeptideHit getPeptide() {
-		return peptide;
-	}
-
+        setPropertyValue(PROPERTY_METHOD, "MASCOT search");
+        setPropertyValue(PROPERTY_PEPTIDE, peptide.getSequence());
+        setPropertyValue(PROPERTY_FORMULA, peptide.getSequence());
+        setPropertyValue(PROPERTY_MASS, String.valueOf(peptide.getPeptideMr()));
+        setPropertyValue(PROPERTY_DELTA, String.valueOf(peptide.getDeltaMass()));
+        setPropertyValue(PROPERTY_SCORE, String.valueOf(peptide.getIonsScore()));
+        setPropertyValue(PROPERTY_MISSES, String.valueOf(peptide.getMissedCleavages()));
+        setPropertyValue(PROPERTY_MODIFICATIONS, modSeqString);
+    }
 }

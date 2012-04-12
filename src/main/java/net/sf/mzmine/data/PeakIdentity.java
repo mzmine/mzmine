@@ -26,18 +26,18 @@ import javax.annotation.Nonnull;
 /**
  * This interface represents an identification result.
  */
-public interface PeakIdentity {
+public interface PeakIdentity extends Cloneable{
 
     /**
      * These variables define standard properties. The PROPERTY_NAME must be
      * present in all instances of PeakIdentity. It defines the value which is
      * returned by the toString() method.
      */
-    public static final String PROPERTY_NAME = "Name";
-    public static final String PROPERTY_FORMULA = "Molecular formula";
-    public static final String PROPERTY_METHOD = "Identification method";
-    public static final String PROPERTY_ID = "ID";
-    public static final String PROPERTY_URL = "URL";
+    String PROPERTY_NAME = "Name";
+    String PROPERTY_FORMULA = "Molecular formula";
+    String PROPERTY_METHOD = "Identification method";
+    String PROPERTY_ID = "ID";
+    String PROPERTY_URL = "URL";
 
     /**
      * Returns the value of the PROPERTY_NAME property. This value must always
@@ -45,8 +45,7 @@ public interface PeakIdentity {
      * 
      * @return Name
      */
-    @Nonnull
-    public String getName();
+    @Nonnull String getName();
 
     /**
      * Returns full, multi-line description of this identity, one property per
@@ -54,23 +53,23 @@ public interface PeakIdentity {
      * 
      * @return Description
      */
-    @Nonnull
-    public String getDescription();
+    @Nonnull String getDescription();
+
+    /**
+     * Returns the value for a
+     * 
+     * @param property
+     * @return Description
+     */
+    @Nonnull String getPropertyValue(String property);
 
     /**
      * Returns all the properties in the form of a map key --> value
      * 
      * @return Description
      */
-    @Nonnull
-    public String getPropertyValue(String property);
+    @Nonnull Map<String, String> getAllProperties();
 
-    /**
-     * Returns all the properties in the form of a map key --> value
-     * 
-     * @return Description
-     */
     @Nonnull
-    public Map<String, String> getAllProperties();
-
+    public Object clone();
 }

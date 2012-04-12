@@ -122,7 +122,7 @@ public class ComplexSearchTask extends AbstractTask {
 						continue;
 
 					if (checkComplex(rows[i], testRows[j], testRows[k]))
-						addComplexInfo(rows[i], testRows[j], testRows[k]);
+						addComplexInfo(rows[i], testRows[j]);
 
 				}
 
@@ -187,10 +187,8 @@ public class ComplexSearchTask extends AbstractTask {
 	 * @param mainRow
 	 * @param fragmentRow
 	 */
-	private void addComplexInfo(PeakListRow complexRow, PeakListRow row1,
-			PeakListRow row2) {
-		ComplexIdentity newIdentity = new ComplexIdentity(complexRow, row1,
-				row2);
+	private void addComplexInfo(PeakListRow complexRow, PeakListRow row1) {
+		ComplexIdentity newIdentity = new ComplexIdentity(complexRow, row1);
 		complexRow.addPeakIdentity(newIdentity, false);
 
 		// Notify the GUI about the change in the project

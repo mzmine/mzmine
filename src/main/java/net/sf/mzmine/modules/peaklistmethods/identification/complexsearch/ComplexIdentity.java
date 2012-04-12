@@ -25,31 +25,14 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class ComplexIdentity extends SimplePeakIdentity {
 
-	private PeakListRow complexRow, peak1, peak2;
+    public ComplexIdentity(final PeakListRow peak1, final PeakListRow peak2) {
 
-	/**
-	 */
-	public ComplexIdentity(PeakListRow complexRow, PeakListRow peak1,
-			PeakListRow peak2) {
-		super("Complex of "
-				+ MZmineCore.getConfiguration().getMZFormat().format(peak1.getAverageMZ())
-				+ " and "
-				+ MZmineCore.getConfiguration().getMZFormat().format(peak2.getAverageMZ())
-				+ " m/z");
+        super("Complex of "
+              + MZmineCore.getConfiguration().getMZFormat().format(peak1.getAverageMZ())
+              + " and "
+              + MZmineCore.getConfiguration().getMZFormat().format(peak2.getAverageMZ())
+              + " m/z");
 
-		this.complexRow = complexRow;
-		this.peak1 = peak1;
-		this.peak2 = peak2;
-
-		setPropertyValue(PROPERTY_METHOD, "Complex search");
-	}
-
-	public PeakListRow getComplexPeak() {
-		return complexRow;
-	}
-
-	public PeakListRow[] getComplexedPeaks() {
-		return new PeakListRow[] { peak1, peak2 };
-	}
-
+        setPropertyValue(PROPERTY_METHOD, "Complex search");
+    }
 }

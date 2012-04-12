@@ -26,42 +26,60 @@ public class GPLipidIdentity extends SimplePeakIdentity {
 
     private final double mass;
 
-    public GPLipidIdentity(GPLipidType lipidType, int fattyAcid1Length,
-	    int fattyAcid1DoubleBonds, int fattyAcid2Length,
-	    int fattyAcid2DoubleBonds) {
+    public GPLipidIdentity(final GPLipidType lipidType,
+                           final int fattyAcid1Length,
+                           final int fattyAcid1DoubleBonds,
+                           final int fattyAcid2Length,
+                           final int fattyAcid2DoubleBonds) {
 
-	super(lipidType.getAbbr() + "(" + fattyAcid1Length + ":"
-		+ fattyAcid1DoubleBonds + "/" + fattyAcid2Length + ":"
-		+ fattyAcid2DoubleBonds + ")");
-
-	String fattyAcid1Formula = "H", fattyAcid2Formula = "H";
-
-	if (fattyAcid1Length > 0) {
-	    int numberOfHydrogens = (fattyAcid1Length * 2)
-		    - (fattyAcid1DoubleBonds * 2) - 1;
-	    fattyAcid1Formula = "C" + fattyAcid1Length + "H"
-		    + numberOfHydrogens + "O";
-	}
-
-	if (fattyAcid2Length > 0) {
-	    int numberOfHydrogens = (fattyAcid2Length * 2)
-		    - (fattyAcid2DoubleBonds * 2) - 1;
-	    fattyAcid2Formula = "C" + fattyAcid2Length + "H"
-		    + numberOfHydrogens + "O";
-	}
-
-	String formula = lipidType.getFormula() + fattyAcid1Formula
-		+ fattyAcid2Formula;
-
-	this.mass = FormulaUtils.calculateExactMass(formula);
-
-	setPropertyValue(PROPERTY_FORMULA, formula);
-	setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
-
+        this(lipidType.getAbbr()
+             + '(' + fattyAcid1Length + ':'
+             + fattyAcid1DoubleBonds + '/' + fattyAcid2Length + ':'
+             + fattyAcid2DoubleBonds + ')',
+             lipidType.getFormula() +
+             calculateFattyAcidFormula(fattyAcid1Length, fattyAcid1DoubleBonds) +
+             calculateFattyAcidFormula(fattyAcid2Length, fattyAcid2DoubleBonds));
     }
 
-    double getMass() {
-	return mass;
+    private GPLipidIdentity(final String name, final String formula) {
+
+        super(name);
+        mass = FormulaUtils.calculateExactMass(formula);
+        setPropertyValue(PROPERTY_FORMULA, formula);
+        setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
     }
 
+    /**
+     * Calculate fatty acid formula.
+     *
+     * @param fattyAcidLength      acid length.
+     * @param fattyAcidDoubleBonds double bond count.
+     * @return fatty acid formula.
+     */
+    private static String calculateFattyAcidFormula(final int fattyAcidLength, final int fattyAcidDoubleBonds) {
+
+        String fattyAcid1Formula = "H";
+        if (fattyAcidLength > 0) {
+
+            final int numberOfHydrogens = fattyAcidLength * 2 - fattyAcidDoubleBonds * 2 - 1;
+            fattyAcid1Formula = "C" + fattyAcidLength + 'H' + numberOfHydrogens + 'O';
+        }
+        return fattyAcid1Formula;
+    }
+
+    /**
+     * Get the mass.
+     *
+     * @return the mass.
+     */
+    public double getMass() {
+
+        return mass;
+    }
+
+    @Override
+    public Object clone() {
+
+        return new GPLipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
+    }
 }
