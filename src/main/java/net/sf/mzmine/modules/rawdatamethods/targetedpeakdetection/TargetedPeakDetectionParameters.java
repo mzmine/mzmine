@@ -23,6 +23,7 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.FileNameParameter;
 import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
@@ -40,11 +41,14 @@ public class TargetedPeakDetectionParameters extends SimpleParameterSet {
                 "Character(s) used to separate fields in the database file", ",");
         public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
                 "Ignore first line", "Ignore the first line of database file");
+        public static final PercentParameter intTolerance = new PercentParameter(
+			"Intensity tolerance",
+			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
         public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
         public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();        
 
         public TargetedPeakDetectionParameters() {
-                super(new Parameter[]{rawDataFile, suffix, peakListFile, fieldSeparator, ignoreFirstLine, MZTolerance,
+                super(new Parameter[]{rawDataFile, suffix, peakListFile, fieldSeparator, ignoreFirstLine, intTolerance, MZTolerance,
                                 RTTolerance});
         }
 }

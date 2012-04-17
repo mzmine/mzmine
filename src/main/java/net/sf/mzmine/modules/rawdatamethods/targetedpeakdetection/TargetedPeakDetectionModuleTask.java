@@ -50,8 +50,9 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
         private String suffix;
         private MZTolerance mzTolerance;
         private RTTolerance rtTolerance;
+        private double intTolerance;
         private ParameterSet parameters;
-        private int processedScans, totalScans;     
+        private int processedScans, totalScans;
         private File peakListFile;
         private String fieldSeparator;
         private boolean ignoreFirstLine;
@@ -66,6 +67,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
                 fieldSeparator = parameters.getParameter(TargetedPeakDetectionParameters.fieldSeparator).getValue();
                 ignoreFirstLine = parameters.getParameter(TargetedPeakDetectionParameters.ignoreFirstLine).getValue();
 
+                intTolerance = parameters.getParameter(TargetedPeakDetectionParameters.intTolerance).getValue();
                 mzTolerance = parameters.getParameter(TargetedPeakDetectionParameters.MZTolerance).getValue();
                 rtTolerance = parameters.getParameter(TargetedPeakDetectionParameters.RTTolerance).getValue();
 
@@ -115,7 +117,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
                         newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row).getName()), true);
 
                         Gap newGap = new Gap(newRow, dataFile, mzRange,
-                                rtRange);
+                                rtRange, intTolerance);
 
                         gaps.add(newGap);
 

@@ -40,6 +40,7 @@ class Gap {
         private List<GapDataPoint> currentPeakDataPoints;
         private List<GapDataPoint> bestPeakDataPoints;
         private double bestPeakHeight;
+        private double intTolerance;
 
         /**
          * Constructor: Initializes an empty gap
@@ -49,13 +50,13 @@ class Gap {
          * @param rt
          *            RT coordinate of this empty gap
          */
-        Gap(PeakListRow peakListRow, RawDataFile rawDataFile, Range mzRange, Range rtRange) {
+        Gap(PeakListRow peakListRow, RawDataFile rawDataFile, Range mzRange, Range rtRange, double intTolerance) {
 
                 this.peakListRow = peakListRow;
                 this.rawDataFile = rawDataFile;
                 this.mzRange = mzRange;
                 this.rtRange = rtRange;
-
+                this.intTolerance = intTolerance;
         }
 
         void offerNextScan(Scan scan) {
@@ -199,7 +200,7 @@ class Gap {
                 if (dp.getRT() < rtRange.getMin()) {
 			double prevInt = currentPeakDataPoints.get(
 					currentPeakDataPoints.size() - 1).getIntensity();
-			if (dp.getIntensity() > prevInt) {
+			if (dp.getIntensity() > prevInt*(1 - intTolerance)) {
 				return true;
 			}
 		}
@@ -211,7 +212,7 @@ class Gap {
 		if (dp.getRT() > rtRange.getMax()) {
 			double prevInt = currentPeakDataPoints.get(
 					currentPeakDataPoints.size() - 1).getIntensity();
-			if (dp.getIntensity() < prevInt) {
+			if (dp.getIntensity() < prevInt*(1 + intTolerance)) {
 				return true;
 			}
 		}
@@ -253,7 +254,7 @@ class Gap {
                 while (startInd > 0) {
 
                         double nextInt = currentPeakDataPoints.get(startInd - 1).getIntensity();
-                        if (currentInt < nextInt) {
+                        if (currentInt < nextInt*(1 - intTolerance)) {
                                 break;
                         }
                         startInd--;
@@ -264,7 +265,7 @@ class Gap {
                 currentInt = currentPeakDataPoints.get(stopInd).getIntensity();
                 while (stopInd < (currentPeakDataPoints.size() - 1)) {
                         double nextInt = currentPeakDataPoints.get(stopInd + 1).getIntensity();
-                        if (nextInt > currentInt) {
+                        if (nextInt > currentInt*(1 + intTolerance)) {
                                 break;
                         }
                         stopInd++;
