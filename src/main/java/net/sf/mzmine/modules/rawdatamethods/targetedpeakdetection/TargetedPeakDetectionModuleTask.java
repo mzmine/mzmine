@@ -89,6 +89,11 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
                 List<PeakInformation> peaks = this.readFile();
 
+                if(peaks == null || peaks.isEmpty()){
+                        setStatus(TaskStatus.ERROR);
+                        errorMessage = "Could not read file or the file is empty ";
+                        return;
+                }
                 // Fill new peak list with empty rows
                 for (int row = 0; row < peaks.size(); row++) {
                         PeakListRow newRow = new SimplePeakListRow(ID++);
