@@ -146,9 +146,9 @@ public class SimplePeakIdentity implements PeakIdentity {
      *
      * @return the new copy.
      */
+    @SuppressWarnings("unchecked")
     @Override
     public synchronized Object clone() {
-
         return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
     }
 }

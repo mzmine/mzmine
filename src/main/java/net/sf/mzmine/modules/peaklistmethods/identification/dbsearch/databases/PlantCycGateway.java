@@ -59,7 +59,7 @@ public class PlantCycGateway implements DBGateway {
 
         // Find IDs in the HTML data
         Pattern pat = Pattern
-                .compile("HREF=\"http://pmn.plantcyc.org/PLANT/NEW-IMAGE\\?type=COMPOUND&object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
+                .compile("/PLANT/NEW-IMAGE\\?type=COMPOUND&amp;object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
         Matcher matcher = pat.matcher(queryResult);
         while (matcher.find()) {
             String id = matcher.group(1);
