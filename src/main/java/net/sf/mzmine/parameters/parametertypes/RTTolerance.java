@@ -23,39 +23,43 @@ import net.sf.mzmine.util.Range;
 
 public class RTTolerance {
 
-    // Tolerance can be either absolute (in m/z) or relative (in %)
-    private boolean isAbsolute;
-    private double tolerance;
+    // Tolerance can be either absolute (in min) or relative (in %).
+    private final boolean isAbsolute;
+    private final double tolerance;
 
-    public RTTolerance(boolean isAbsolute, double tolerance) {
-        this.isAbsolute = isAbsolute;
-        this.tolerance = tolerance;
+    public RTTolerance(final boolean absolute,
+                       final double rtTolerance) {
+
+        isAbsolute = absolute;
+        tolerance = rtTolerance;
     }
 
     public boolean isAbsolute() {
+
         return isAbsolute;
     }
 
     public double getTolerance() {
+
         return tolerance;
     }
 
-    public double getAbsoluteToleranceForRT(double rtValue) {
-        double absoluteTolerance = isAbsolute ? tolerance
-                : (rtValue * tolerance);
-        return absoluteTolerance;
+    public Range getToleranceRange(final double rtValue) {
+
+        final double absoluteTolerance = isAbsolute ? tolerance : rtValue * tolerance;
+        return new Range(rtValue - absoluteTolerance,
+                         rtValue + absoluteTolerance);
     }
 
-    public Range getToleranceRange(double rtValue) {
-        double absoluteTolerance = isAbsolute ? tolerance
-                : (rtValue * tolerance);
-        return new Range(rtValue - absoluteTolerance, rtValue
-                + absoluteTolerance);
+    public boolean checkWithinTolerance(final double rt1,
+                                        final double rt2) {
+
+        return getToleranceRange(rt1).contains(rt2);
     }
 
-    public boolean checkWithinTolerance(double rt1, double rt2) {
-        Range toleranceRange = getToleranceRange(rt1);
-        return toleranceRange.contains(rt2);
-    }
+    @Override
+    public String toString() {
 
+        return isAbsolute ? tolerance + " min" : 100.0 * tolerance + " %";
+    }
 }

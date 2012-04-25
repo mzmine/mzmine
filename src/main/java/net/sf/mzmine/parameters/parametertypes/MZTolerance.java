@@ -28,12 +28,16 @@ import net.sf.mzmine.util.Range;
  */
 public class MZTolerance {
 
-    // Tolerance has absolute (in m/z) and relative (in ppm) values
-    private final double mzTolerance, ppmTolerance;
+    // PPM conversion factor.
+    private static final double MILLION = 1000000.0;
 
-    public MZTolerance(double mzTolerance, double ppmTolerance) {
-        this.mzTolerance = mzTolerance;
-        this.ppmTolerance = ppmTolerance;
+    // Tolerance has absolute (in m/z) and relative (in ppm) values
+    private final double mzTolerance;
+    private final double ppmTolerance;
+
+    public MZTolerance(final double toleranceMZ, final double tolerancePPM) {
+        mzTolerance = toleranceMZ;
+        ppmTolerance = tolerancePPM;
     }
 
     public double getMzTolerance() {
@@ -44,37 +48,31 @@ public class MZTolerance {
         return ppmTolerance;
     }
 
-    public double getMzToleranceForMass(double mzValue) {
-        double calculatedMzTolerance = Math.max(mzTolerance,
-                (mzValue / 1000000d * ppmTolerance));
-        return calculatedMzTolerance;
+    private double getMzToleranceForMass(final double mzValue) {
+        return Math.max(mzTolerance, mzValue / MILLION * ppmTolerance);
     }
 
-    public double getPpmToleranceForMass(double mzValue) {
-        double calculatedPpmTolerance = Math.max(mzTolerance
-                / (mzValue / 1000000d), ppmTolerance);
-        return calculatedPpmTolerance;
+    public double getPpmToleranceForMass(final double mzValue) {
+        return Math.max(ppmTolerance, mzTolerance / (mzValue / MILLION));
     }
 
-    public Range getToleranceRange(double mzValue) {
-        double absoluteTolerance = Math.max(mzTolerance,
-                (mzValue / 1000000 * ppmTolerance));
-        return new Range(mzValue - absoluteTolerance, mzValue
-                + absoluteTolerance);
+    public Range getToleranceRange(final double mzValue) {
+        final double absoluteTolerance = getMzToleranceForMass(mzValue);
+        return new Range(mzValue - absoluteTolerance,
+                         mzValue + absoluteTolerance);
     }
 
-    public Range getToleranceRange(Range mzRange) {
-        double absoluteMinTolerance = Math.max(mzTolerance,
-                (mzRange.getMin() / 1000000 * ppmTolerance));
-        double absoluteMaxTolerance = Math.max(mzTolerance,
-                (mzRange.getMax() / 1000000 * ppmTolerance));
-        return new Range(mzRange.getMin() - absoluteMinTolerance,
-                mzRange.getMax() + absoluteMaxTolerance);
+    public Range getToleranceRange(final Range mzRange) {
+        return new Range(mzRange.getMin() - getMzToleranceForMass(mzRange.getMin()),
+                         mzRange.getMax() + getMzToleranceForMass(mzRange.getMax()));
     }
 
-    public boolean checkWithinTolerance(double mz1, double mz2) {
-        Range toleranceRange = getToleranceRange(mz1);
-        return toleranceRange.contains(mz2);
+    public boolean checkWithinTolerance(final double mz1, final double mz2) {
+        return getToleranceRange(mz1).contains(mz2);
     }
 
+    @Override
+    public String toString() {
+        return mzTolerance + " m/z or " + ppmTolerance + " ppm";
+    }
 }

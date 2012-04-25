@@ -19,32 +19,27 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.AdductsParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.*;
 
 public class AdductSearchParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-    public static final DoubleParameter RT_TOLERANCE = new DoubleParameter(
+    public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter(
             "RT tolerance",
-            "Maximum allowed difference of retention time to set a relationship between peaks",
-            MZmineCore.getConfiguration().getRTFormat());
+            "Maximum allowed difference of retention time to set a relationship between peaks");
 
     public static final AdductsParameter ADDUCTS = new AdductsParameter(
             "Adducts",
             "List of adducts, each one refers a specific distance in m/z axis between related peaks");
 
-    public static final DoubleParameter MZ_TOLERANCE = new DoubleParameter(
+    public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
             "m/z tolerance",
-            "Tolerance value of the m/z difference between peaks",
-            MZmineCore.getConfiguration().getMZFormat());
+            "Tolerance value of the m/z difference between peaks");
 
-    public static final DoubleParameter MAX_ADDUCT_HEIGHT = new DoubleParameter(
+    public static final PercentParameter MAX_ADDUCT_HEIGHT = new PercentParameter(
             "Max relative adduct peak height",
             "Maximum height of the recognized adduct peak, relative to the main peak");
 

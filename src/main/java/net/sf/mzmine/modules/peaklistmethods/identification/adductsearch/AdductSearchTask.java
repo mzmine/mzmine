@@ -27,6 +27,8 @@ import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
@@ -44,8 +46,8 @@ public class AdductSearchTask extends AbstractTask {
     private int totalRows;
     private final PeakList peakList;
 
-    private final double rtTolerance;
-    private final double mzTolerance;
+    private final RTTolerance rtTolerance;
+    private final MZTolerance mzTolerance;
     private final double maxAdductHeight;
     private final AdductType[] selectedAdducts;
 
@@ -141,11 +143,11 @@ public class AdductSearchTask extends AbstractTask {
                 // Treat the smaller m/z peak as main peak and check if the bigger one may be an adduct.
                 if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
 
-                    checkAllAdducts(rows[j], rows[i]);
+                    findAdducts(rows[j], rows[i]);
 
                 } else {
 
-                    checkAllAdducts(rows[i], rows[j]);
+                    findAdducts(rows[i], rows[j]);
                 }
             }
 
@@ -154,13 +156,13 @@ public class AdductSearchTask extends AbstractTask {
     }
 
     /**
-     * Check if candidate peak may be a possible adduct of a given main peak
+     * Check if candidate peak may be a possible adduct of a given main peak.
      *
      * @param mainRow        main peak.
      * @param possibleAdduct candidate adduct peak.
      */
-    private void checkAllAdducts(final PeakListRow mainRow,
-                                 final PeakListRow possibleAdduct) {
+    private void findAdducts(final PeakListRow mainRow,
+                             final PeakListRow possibleAdduct) {
 
         for (final AdductType adduct : selectedAdducts) {
 
@@ -187,11 +189,11 @@ public class AdductSearchTask extends AbstractTask {
 
         return
                 // Check mass difference condition.
-                Math.abs(mainPeak.getAverageMZ() + adduct.getMassDifference() - possibleAdduct.getAverageMZ()) <=
-                mzTolerance
+                mzTolerance.checkWithinTolerance(mainPeak.getAverageMZ() + adduct.getMassDifference(),
+                                                 possibleAdduct.getAverageMZ())
 
                 // Check retention time condition.
-                && Math.abs(mainPeak.getAverageRT() - possibleAdduct.getAverageRT()) <= rtTolerance
+                && rtTolerance.checkWithinTolerance(mainPeak.getAverageRT(), possibleAdduct.getAverageRT())
 
                 // Check height condition.
                 && possibleAdduct.getAverageHeight() <= mainPeak.getAverageHeight() * maxAdductHeight;
