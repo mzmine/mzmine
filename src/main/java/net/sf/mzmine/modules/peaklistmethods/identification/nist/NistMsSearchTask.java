@@ -27,6 +27,7 @@ import net.sf.mzmine.data.*;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -110,8 +111,8 @@ public class NistMsSearchTask
     // Match factor cut-offs, RT window and maximum number or peaks.
     private final int minMatchFactor;
     private final int minReverseMatchFactor;
-    private final double rtWindow;
     private final int maxPeaks;
+    private final RTTolerance rtTolerance;
 
     // NIST MS Search directory and executable.
     private final File nistMsSearchDir;
@@ -148,7 +149,7 @@ public class NistMsSearchTask
         ionType = params.getParameter(IONIZATION_METHOD).getValue();
         minMatchFactor = params.getParameter(MIN_MATCH_FACTOR).getValue();
         minReverseMatchFactor = params.getParameter(MIN_REVERSE_MATCH_FACTOR).getValue();
-        rtWindow = params.getParameter(SPECTRUM_RT_WIDTH).getValue();
+        rtTolerance = params.getParameter(SPECTRUM_RT_WIDTH).getValue();
         maxPeaks = params.getParameter(MAX_NUM_PEAKS).getValue();
         nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
         nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
@@ -377,7 +378,7 @@ public class NistMsSearchTask
         for (final PeakListRow row2 : peakList.getRows()) {
 
             // Are peak rows contemporaneous?
-            if (!peakListRow.equals(row2) && Math.abs(rt - row2.getAverageRT()) <= rtWindow) {
+            if (!peakListRow.equals(row2) && rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())) {
 
                 neighbours.add(row2);
             }
@@ -427,8 +428,7 @@ public class NistMsSearchTask
 
                 // Are peak rows contemporaneous?
                 final PeakListRow row2 = peakList.getRow(j);
-
-                if (Math.abs(rt - row2.getAverageRT()) <= rtWindow) {
+                if (rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())) {
 
                     // Add rows to each others' neighbours lists.
                     neighbours.add(row2);

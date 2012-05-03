@@ -24,7 +24,6 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
 import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.*;
@@ -63,16 +62,12 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     /**
      * Spectrum RT width.
      */
-    public static final DoubleParameter SPECTRUM_RT_WIDTH = new DoubleParameter(
+    public static final RTToleranceParameter SPECTRUM_RT_WIDTH = new RTToleranceParameter(
             "Spectrum RT tolerance",
-            "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak",
-            MZmineCore.getConfiguration().getRTFormat(),
-            0.05,
-            0.0,
-            null);
+            "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak");
 
     /**
-     * Match factor cut-off.
+     * Maximum number of peaks per spectrum.
      */
     public static final IntegerParameter MAX_NUM_PEAKS = new IntegerParameter(
             "Max. peaks per spectrum",
@@ -123,8 +118,8 @@ public class NistMsSearchParameters extends SimpleParameterSet {
         // Unsupported OS.
         if (!isWindows()) {
 
-//            errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
-//            return false;
+            errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
+            return false;
         }
 
         boolean result = super.checkUserParameterValues(errorMessages);
