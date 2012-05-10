@@ -23,27 +23,32 @@
 </p>
 <ol>
     <li> The full range of m/z values present in the raw data is divided into a series of bins of a specified width (see
-        <em>m/z bin width</em>).
+        <span style="font-style: italic;">m/z bin width</span>).
     </li>
-    <li>For each bin a chromatogram is constucted from the raw data points whose m/z values fall within the bin. This
-        chromatogram (see <em>Chromatogram type</em>) may be either the base peak chromatogram or total ion count
-        (TIC) chromatogram.
+    <li>For each bin a chromatogram is constructed from the raw data points whose m/z values fall within the bin. This
+        chromatogram (see <span style="font-style: italic;">Chromatogram type</span>) may be either the base peak
+        chromatogram or total ion count (TIC) chromatogram.
     </li>
     <li>The raw intensity values of each data point in a bin are corrected by subtracting the bin's baseline.
         Subtraction of baseline intensity values proceeds according to the type of chromatogram used to determine the
         baseline.
         <p>If the base peak chromatogram was used then the corrected intensity values are calculated as follows:<br/>
-            <em>I<sub>corr</sub></em> = max(0, <em>I<sub>orig</sub></em> - <em>I<sub>base</sub></em>)</p>
+            <span style="font-style: italic;">I<sub>corr</sub></span> = max(0, <span style="font-style: italic;">I<sub>orig</sub></span>
+            - <span style="font-style: italic;">I<sub>base</sub></span>)</p>
 
         <p>If the TIC chromatogram was used then the corrected intensity values are calculated as follows:<br/>
-            <em>I<sub>corr</sub></em> = max(0, <em>I<sub>orig</sub></em> * (1 - <em>I<sub>base</sub></em> /
-            <em>I<sub>max</sub></em>))
+            <span style="font-style: italic;">I<sub>corr</sub></span> = max(0, <span style="font-style: italic;">I<sub>orig</sub></span>
+            * (1 - <span style="font-style: italic;">I<sub>base</sub></span> / <span style="font-style: italic;">I<sub>max</sub></span>))
         </p>
 
-        <p>where <em>I<sub>orig</sub></em>, <em>I<sub>base</sub></em>, <em>I<sub>max</sub></em> and
-            <em>I<sub>corr</sub></em> are the original, baseline, maximum and corrected intensity values, respectively,
-            for a given scan and m/z bin. If <em>I<sub>base</sub></em> is less or equal to zero then no correction is
-            performed, i.e. <em>I<sub>corr</sub></em>&nbsp;=&nbsp;<em>I<sub>orig</sub></em>.
+        <p>where <span style="font-style: italic;">I<sub>orig</sub></span>, <span
+                style="font-style: italic;">I<sub>base</sub></span>, <span
+                style="font-style: italic;">I<sub>max</sub></span> and <span
+                style="font-style: italic;">I<sub>corr</sub></span> are the original, baseline, maximum and corrected
+            intensity values, respectively, for a given scan and m/z bin. If <span style="font-style: italic;">I<sub>base</sub></span>
+            is less or equal to zero then no correction is performed, i.e. <span
+                    style="font-style: italic;">I<sub>corr</sub></span>&nbsp;=&nbsp;<span
+                    style="font-style: italic;">I<sub>orig</sub></span>.
         </p>
     </li>
     <li>A new raw data file is generated from the corrected intensity values.</li>
@@ -69,8 +74,9 @@
     </dd>
 
     <dt>Asymmetry</dt>
-    <dd>The weight (<em>p</em>) for points below the trendline. Conversely, 1-<em>p</em> is the weight applied to points
-        above the trendline. For baselines use a small value of <em>p</em>.
+    <dd>The weight (<span style="font-style: italic;">p</span>) for points below the trendline. Conversely, 1-<span
+            style="font-style: italic;">p</span> is the weight applied to points above the trendline. For baselines use
+        a small value of <span style="font-style: italic;">p</span>.
     </dd>
 
     <dt>Use m/z bins</dt>
@@ -81,8 +87,8 @@
     </dd>
 
     <dt>m/z bin width</dt>
-    <dd>The width of the m/z bins if binning is performed (see <em>use m/z bins</em>). Smaller bin widths result in
-        longer processing times and greater memory requirements. Avoid values below 0.01.
+    <dd>The width of the m/z bins if binning is performed (see <span style="font-style: italic;">use m/z bins</span>).
+        Smaller bin widths result in longer processing times and greater memory requirements. Avoid values below 0.01.
     </dd>
 
     <dt>Remove source file</dt>
@@ -104,9 +110,35 @@
         <pre>install.packages("rJava")</pre>
     </li>
 </ol>
-<p>In order for MZmine to make use of R, various environment variables related to R and rJava must be correctly
-    defined in the MZmine start-up shell-script or batch file.
+
+<p>
+    You will also need to correctly configure several environment variables in your MZmine start-up script
+    (startMZmine_Windows.bat, startMZmine_Linux.sh or startMZmine_MacOSX.command):
 </p>
+
+<dl>
+    <dt>R_HOME</dt>
+    <dd>This is the directory where R is installed, e.g. for Windows it will be something like <span
+            style="font-family: monospace;">C:\Program&nbsp;Files\R\R-2.15.0</span>.
+    </dd>
+
+    <dt>R_LIBS_USER</dt>
+    <dd>This is the directory in which R installs third-party packages. It's usually a sub-directory of your personal
+        directory, e.g. for Windows it will be something like <span style="font-family: monospace;">%USERPROFILE%\Documents\R\win-library\2.15</span>.
+    </dd>
+
+    <dt>PATH</dt>
+    <dd><strong>Append</strong> the directory that contains R's libraries. It will be a sub-directory of %R_HOME%, e.g.
+        for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_HOME%\bin\i386</span> or
+        for 64-bit Windows <span style="font-family: monospace;">%R_HOME%\bin\x64</span>.
+    </dd>
+
+    <dt>JRI_LIB_PATH</dt>
+    <dd>This is the directory where rJava has installed its JRI libraries. It will be a sub-directory of %R_LIBS_USER%,
+        e.g. for 32-bit Windows it will be something like <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\i386</span>
+        or for64-bit Windows <span style="font-family: monospace;">%R_LIBS_USER%\rJava\jri\x64</span>.
+    </dd>
+</dl>
 
 <h3>References</h3>
 
@@ -115,7 +147,7 @@
         <td>[1]</td>
         <td>Boelens, H.F.M., Eilers, P.H.C., Hankemeier, T. (2005) "<a
                 href="http://pubs.acs.org/doi/abs/10.1021/ac051370e">Sign constraints improve the detection of
-            differences between complex spectral data sets: LC-IR as an example</a>", <em>Analytical Chemistry</em>,
+            differences between complex spectral data sets: LC-IR as an example</a>", <span style="font-style: italic;">Analytical Chemistry</span>,
             <strong>77</strong>, 7998 – 8007.
         </td>
     </tr>
