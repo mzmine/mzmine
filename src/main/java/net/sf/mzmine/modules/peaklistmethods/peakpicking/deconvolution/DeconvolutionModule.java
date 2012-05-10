@@ -33,42 +33,43 @@ import net.sf.mzmine.util.ExitCode;
 public class DeconvolutionModule implements MZmineProcessingModule {
 
     private static final String MODULE_NAME = "Chromatogram deconvolution";
-    private static final String MODULE_DESCRIPTION = "This module separates each detected chromatogram into individual peaks.";
+    private static final String MODULE_DESCRIPTION =
+            "This module separates each detected chromatogram into individual peaks.";
 
     @Override
     public String getName() {
-	return MODULE_NAME;
+
+        return MODULE_NAME;
     }
 
     @Override
     public String getDescription() {
-	return MODULE_DESCRIPTION;
-    }
 
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-
-	PeakList peakLists[] = parameters.getParameter(
-		DeconvolutionParameters.peakLists).getValue();
-
-	for (final PeakList peakList : peakLists) {
-	    Task newTask = new DeconvolutionTask(peakList, parameters);
-	    tasks.add(newTask);
-	}
-
-	return ExitCode.OK;
+        return MODULE_DESCRIPTION;
     }
 
     @Override
     public MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKLISTPICKING;
+
+        return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
     public Class<? extends ParameterSet> getParameterSetClass() {
-	return DeconvolutionParameters.class;
+
+        return DeconvolutionParameters.class;
     }
 
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull final ParameterSet parameters,
+                              @Nonnull final Collection<Task> tasks) {
+
+        for (final PeakList peakList : parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()) {
+
+            tasks.add(new DeconvolutionTask(peakList, parameters));
+        }
+
+        return ExitCode.OK;
+    }
 }

@@ -19,29 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.logging.Logger;
-
-import javax.swing.Box;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
-
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.data.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -49,226 +27,272 @@ import net.sf.mzmine.modules.visualization.tic.TICToolBar;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+import org.jfree.data.xy.XYDataset;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * This class extends ParameterSetupDialog class, adding
+ * This class extends ParameterSetupDialog class.
  */
 public class PeakResolverSetupDialog extends ParameterSetupDialog {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+    // Logger.
+    private static final Logger LOG = Logger.getLogger(PeakResolverSetupDialog.class.getName());
 
-    // Dialog components
-    private static final Font comboFont = new Font("SansSerif", Font.PLAIN, 10);
+    // Combo-box font.
+    private static final Font COMBO_FONT = new Font("SansSerif", Font.PLAIN, 10);
 
-    private JPanel pnlPlotXY, pnlVisible, pnlLabelsFields;
-    private JComboBox comboPeakList, comboPeak;
+    // Maximum peak count.
+    private static final int MAX_PEAKS = 30;
+
+    // TIC minimum size.
+    private static final Dimension MINIMUM_TIC_DIMENSIONS = new Dimension(400, 300);
+
+    // Preferred width of peak combo-box
+    private static final int PREFERRED_PEAK_COMBO_WIDTH = 250;
+
+    // Dialog components.
+    private JPanel pnlPlotXY;
+    private JPanel pnlVisible;
+    private JPanel pnlLabelsFields;
+    private JComboBox comboPeakList;
+    private JComboBox comboPeak;
     private JCheckBox preview;
 
-    // XYPlot
-    private TICToolBar toolBar;
     private TICPlot ticPlot;
-    private ChromatogramTICDataSet ticDataset;
 
     private PeakResolver peakResolver;
-    private ParameterSet parameters;
+    private final ParameterSet parameters;
 
-    public PeakResolverSetupDialog(ParameterSet peakResolverParameters,
-	    Class<? extends PeakResolver> peakResolverClass) {
-	super(peakResolverParameters);
-	try {
-	    this.peakResolver = peakResolverClass.newInstance();
-	} catch (Exception e) {
-	    e.printStackTrace();
-	}
-	this.parameters = peakResolverParameters;
+    /**
+     * Create the dialog.
+     *
+     * @param resolverParameters resolver parameters.
+     * @param resolverClass      resolver class.
+     */
+    public PeakResolverSetupDialog(final ParameterSet resolverParameters,
+                                   final Class<? extends PeakResolver> resolverClass) {
+
+        super(resolverParameters);
+
+        // Instantiate resolver.
+        try {
+
+            peakResolver = resolverClass.newInstance();
+        }
+        catch (Throwable t) {
+
+            LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+            MZmineCore.getDesktop().displayErrorMessage("Couldn't create peak resolver (" + t.getMessage() + ')');
+        }
+
+        parameters = resolverParameters;
     }
 
-    public void actionPerformed(ActionEvent event) {
+    @Override
+    public void actionPerformed(final ActionEvent ae) {
 
-	super.actionPerformed(event);
+        super.actionPerformed(ae);
 
-	Object src = event.getSource();
+        final Object src = ae.getSource();
 
-	if (src == comboPeakList) {
-	    PeakList selectedPeakList = (PeakList) comboPeakList
-		    .getSelectedItem();
-	    PeakListRow peaks[] = selectedPeakList.getRows();
-	    comboPeak.removeActionListener(this);
-	    comboPeak.removeAllItems();
-	    for (PeakListRow peak : peaks)
-		comboPeak.addItem(peak);
-	    comboPeak.addActionListener(this);
-	    if (comboPeak.getSelectedIndex() != -1) {
-		comboPeak.setSelectedIndex(0);
-	    }
-	    return;
-	}
+        if (src.equals(comboPeakList)) {
 
-	if (src == preview) {
-	    if (preview.isSelected()) {
-		// Set the height of the preview to 200 cells, so it will span
-		// the whole vertical length of the dialog (buttons are at row
-		// no 100). Also, we set the weight to 10, so the preview
-		// component will consume most of the extra available space.
-		mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10,
-			GridBagConstraints.BOTH);
-		pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
-		updateMinimumSize();
-		pack();
-		PeakList selected[] = MZmineCore.getDesktop()
-			.getSelectedPeakLists();
-		if (selected.length > 0)
-		    comboPeakList.setSelectedItem(selected[0]);
-		else
-		    comboPeakList.setSelectedIndex(0);
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-	    } else {
-		mainPanel.remove(pnlPlotXY);
-		pnlVisible.remove(pnlLabelsFields);
-		updateMinimumSize();
-		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-	    }
-	    return;
-	}
+            // Remove current peaks (suspend listener).
+            comboPeak.removeActionListener(this);
+            comboPeak.removeAllItems();
 
+            // Add peaks to menu.
+            for (final PeakListRow peak : ((PeakList) comboPeakList.getSelectedItem()).getRows()) {
+
+                comboPeak.addItem(peak);
+            }
+
+            // Resume listener.
+            comboPeak.addActionListener(this);
+
+            // Select first item.
+            if (comboPeak.getItemCount() > 0 && comboPeak.getSelectedIndex() != -1) {
+
+                comboPeak.setSelectedIndex(0);
+            }
+        } else if (src.equals(preview)) {
+
+            if (preview.isSelected()) {
+
+                // Set the height of the preview to 200 cells, so it will span
+                // the whole vertical length of the dialog (buttons are at row
+                // no 100). Also, we set the weight to 10, so the preview
+                // component will consume most of the extra available space.
+                mainPanel.add(pnlPlotXY, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+                pnlVisible.add(pnlLabelsFields, BorderLayout.CENTER);
+                updateMinimumSize();
+                pack();
+
+                // Set selections.
+                final PeakList[] selected = MZmineCore.getDesktop().getSelectedPeakLists();
+                if (selected.length > 0) {
+
+                    comboPeakList.setSelectedItem(selected[0]);
+                } else {
+
+                    comboPeakList.setSelectedIndex(0);
+                }
+                setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+            } else {
+
+                mainPanel.remove(pnlPlotXY);
+                pnlVisible.remove(pnlLabelsFields);
+                updateBounds();
+            }
+        }
     }
 
     @Override
     public void parametersChanged() {
-	if ((preview == null) || (!preview.isSelected()))
-	    return;
 
-	PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
-	if (previewRow == null)
-	    return;
-	logger.finest("Loading new preview peak " + previewRow);
-	ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
+        if (preview != null && preview.isSelected()) {
 
-	ticPlot.removeAllTICDataSets();
+            final PeakListRow previewRow = (PeakListRow) comboPeak.getSelectedItem();
+            if (previewRow != null) {
 
-	ticDataset = new ChromatogramTICDataSet(previewRow.getPeaks()[0]);
-	ticPlot.addTICDataset(ticDataset);
+                LOG.finest("Loading new preview peak " + previewRow);
 
-	// Set auto range to axes
-	ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
-	ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
-	ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
-	ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+                ticPlot.removeAllTICDataSets();
+                ticPlot.addTICDataset(new ChromatogramTICDataSet(previewRow.getPeaks()[0]));
 
-	updateParameterSetFromComponents();
+                // Auto-range to axes.
+                ticPlot.getXYPlot().getDomainAxis().setAutoRange(true);
+                ticPlot.getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+                ticPlot.getXYPlot().getRangeAxis().setAutoRange(true);
+                ticPlot.getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
 
-	// If there is some illegal value, do not load the preview but just exit
-	ArrayList<String> errorMessages = new ArrayList<String>();
-	boolean paramsOK = parameterSet.checkUserParameterValues(errorMessages);
-	if (!paramsOK)
-	    return;
+                updateParameterSetFromComponents();
 
-	// Load the intensities into array
-	RawDataFile dataFile = previewPeak.getDataFile();
-	int scanNumbers[] = dataFile.getScanNumbers(1);
-	double retentionTimes[] = new double[scanNumbers.length];
-	for (int i = 0; i < scanNumbers.length; i++)
-	    retentionTimes[i] = dataFile.getScan(scanNumbers[i])
-		    .getRetentionTime();
-	double intensities[] = new double[scanNumbers.length];
-	for (int i = 0; i < scanNumbers.length; i++) {
-	    DataPoint dp = previewPeak.getDataPoint(scanNumbers[i]);
-	    if (dp != null)
-		intensities[i] = dp.getIntensity();
-	    else
-		intensities[i] = 0;
-	}
-	ChromatographicPeak[] resolvedPeaks = peakResolver.resolvePeaks(
-		previewPeak, scanNumbers, retentionTimes, intensities,
-		parameters);
+                // If there is some illegal value, do not load the preview but just exit.
+                if (parameterSet.checkUserParameterValues(new ArrayList<String>(0))) {
 
-	for (int i = 0; i < resolvedPeaks.length; i++) {
+                    // Load the intensities and RTs into array.
+                    final ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
+                    final RawDataFile dataFile = previewPeak.getDataFile();
+                    final int[] scanNumbers = dataFile.getScanNumbers(1);
+                    final int scanCount = scanNumbers.length;
+                    final double[] retentionTimes = new double[scanCount];
+                    final double[] intensities = new double[scanCount];
+                    for (int i = 0; i < scanCount; i++) {
 
-	    PeakDataSet peakDataSet = new PeakDataSet(resolvedPeaks[i]);
-	    ticPlot.addPeakDataset(peakDataSet);
+                        final int scanNumber = scanNumbers[i];
+                        final DataPoint dp = previewPeak.getDataPoint(scanNumber);
+                        intensities[i] = dp != null ? dp.getIntensity() : 0.0;
+                        retentionTimes[i] = dataFile.getScan(scanNumber).getRetentionTime();
+                    }
 
-	    if (i > 30) {
-		String message = "Too many peaks detected, please adjust parameter values";
-		MZmineCore.getDesktop().displayMessage(message);
-		break;
-	    }
+                    // Resolve peaks.
+                    ChromatographicPeak[] resolvedPeaks = {};
+                    try {
+                        resolvedPeaks = peakResolver
+                                .resolvePeaks(previewPeak, scanNumbers, retentionTimes, intensities, parameters);
+                    }
+                    catch (Throwable t) {
 
-	}
+                        LOG.log(Level.SEVERE, "Peak deconvolution error", t);
+                        MZmineCore.getDesktop().displayErrorMessage(t.getMessage());
+                    }
 
+                    // Add resolved peaks to TIC plot.
+                    final int peakCount = Math.min(MAX_PEAKS, resolvedPeaks.length);
+                    for (int i = 0; i < peakCount; i++) {
+
+                        final XYDataset peakDataSet = new PeakDataSet(resolvedPeaks[i]);
+                        ticPlot.addPeakDataset(peakDataSet);
+                    }
+
+                    // Check peak count.
+                    if (resolvedPeaks.length > MAX_PEAKS) {
+                        MZmineCore.getDesktop().displayMessage(
+                                "Too many peaks detected, please adjust parameter values");
+
+                    }
+                }
+            }
+        }
     }
 
     /**
-     * This function add all the additional components for this dialog over the
-     * original ParameterSetupDialog.
-     * 
+     * This function add all the additional components for this dialog over the original ParameterSetupDialog.
      */
     @Override
     protected void addDialogComponents() {
 
-	super.addDialogComponents();
+        super.addDialogComponents();
 
-	PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+        final PeakList[] peakLists = MZmineCore.getCurrentProject().getPeakLists();
 
-	// Elements of pnlpreview
-	JPanel pnlpreview = new JPanel(new BorderLayout());
+        // Elements of panel.
+        preview = new JCheckBox("Show preview");
+        preview.addActionListener(this);
+        preview.setHorizontalAlignment(SwingConstants.CENTER);
+        preview.setEnabled(peakLists.length > 0);
 
-	preview = new JCheckBox("Show preview");
-	preview.addActionListener(this);
-	preview.setHorizontalAlignment(SwingConstants.CENTER);
-	preview.setEnabled(peakLists.length > 0);
+        // Preview panel.
+        final JPanel previewPanel = new JPanel(new BorderLayout());
+        previewPanel.add(new JSeparator(), BorderLayout.NORTH);
+        previewPanel.add(preview, BorderLayout.CENTER);
+        previewPanel.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
 
-	pnlpreview.add(new JSeparator(), BorderLayout.NORTH);
-	pnlpreview.add(preview, BorderLayout.CENTER);
-	pnlpreview.add(Box.createVerticalStrut(10), BorderLayout.SOUTH);
+        // Peak list combo-box.
+        comboPeakList = new JComboBox();
+        comboPeakList.setFont(COMBO_FONT);
+        for (final PeakList peakList : peakLists) {
+            if (peakList.getNumberOfRawDataFiles() == 1) {
+                comboPeakList.addItem(peakList);
+            }
+        }
+        comboPeakList.addActionListener(this);
 
-	JComponent tableComponents[] = new JComponent[4];
-	tableComponents[0] = new JLabel("Peak list");
+        // Peaks combo box.
+        comboPeak = new JComboBox();
+        comboPeak.setFont(COMBO_FONT);
+        comboPeak.setRenderer(new PeakPreviewComboRenderer());
+        comboPeak.setPreferredSize(new Dimension(PREFERRED_PEAK_COMBO_WIDTH, comboPeak.getPreferredSize().height));
 
-	comboPeakList = new JComboBox();
-	for (PeakList peakList : peakLists) {
-	    if (peakList.getNumberOfRawDataFiles() == 1)
-		comboPeakList.addItem(peakList);
-	}
-	comboPeakList.setFont(comboFont);
-	comboPeakList.addActionListener(this);
-	tableComponents[1] = comboPeakList;
+        pnlLabelsFields = GUIUtils.makeTablePanel(
+                2, 2, new JComponent[]{new JLabel("Peak list"), comboPeakList, new JLabel("Chromatogram"), comboPeak});
 
-	comboPeak = new JComboBox();
-	comboPeak.setFont(comboFont);
-	comboPeak.setRenderer(new PeakPreviewComboRenderer());
-	comboPeak.setPreferredSize(new Dimension(250, comboPeak
-		.getPreferredSize().height));
-	tableComponents[2] = new JLabel("Chromatogram");
+        // Put all together.
+        pnlVisible = new JPanel(new BorderLayout());
+        pnlVisible.add(previewPanel, BorderLayout.NORTH);
 
-	tableComponents[3] = comboPeak;
+        // TIC plot.
+        ticPlot = new TICPlot(this);
+        ticPlot.setMinimumSize(MINIMUM_TIC_DIMENSIONS);
 
-	pnlLabelsFields = GUIUtils.makeTablePanel(2, 2, tableComponents);
+        // Tool bar.
+        final TICToolBar toolBar = new TICToolBar(ticPlot);
+        toolBar.getComponentAtIndex(0).setVisible(false);
 
-	// Put all together
-	pnlVisible = new JPanel(new BorderLayout());
-	pnlVisible.add(pnlpreview, BorderLayout.NORTH);
+        // Panel for XYPlot.
+        pnlPlotXY = new JPanel(new BorderLayout());
+        pnlPlotXY.setBackground(Color.white);
+        pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
+        pnlPlotXY.add(toolBar, BorderLayout.EAST);
+        GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
 
-	// Panel for XYPlot
-	pnlPlotXY = new JPanel(new BorderLayout());
-	GUIUtils.addMarginAndBorder(pnlPlotXY, 10);
-	pnlPlotXY.setBackground(Color.white);
+        mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0, GridBagConstraints.HORIZONTAL);
 
-	ticPlot = new TICPlot(this);
-	ticPlot.setMinimumSize(new Dimension(400, 300));
-	pnlPlotXY.add(ticPlot, BorderLayout.CENTER);
-
-	toolBar = new TICToolBar(ticPlot);
-	toolBar.getComponentAtIndex(0).setVisible(false);
-	pnlPlotXY.add(toolBar, BorderLayout.EAST);
-
-	mainPanel.add(pnlVisible, 0, getNumberOfParameters() + 3, 2, 1, 0, 0,
-		GridBagConstraints.HORIZONTAL);
-
-	updateMinimumSize();
-	pack();
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
-
+        // Layout and position.
+        updateBounds();
     }
 
+    private void updateBounds() {
+
+        updateMinimumSize();
+        pack();
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+    }
 }
