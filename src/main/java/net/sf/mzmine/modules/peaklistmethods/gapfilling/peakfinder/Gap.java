@@ -165,8 +165,8 @@ class Gap {
 					break;
 
 				// X axis interval length
-				double rtDifference = bestPeakDataPoints.get(i + 1).getRT()
-						- bestPeakDataPoints.get(i).getRT();
+				double rtDifference = (bestPeakDataPoints.get(i + 1).getRT()
+						- bestPeakDataPoints.get(i).getRT()) * 60d;
 
 				// intensity at the beginning and end of the interval
 				double intensityStart = bestPeakDataPoints.get(i)
