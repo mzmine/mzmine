@@ -42,8 +42,8 @@ import net.sf.mzmine.project.impl.StorableScan;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipOutputStream;
+import de.schlichtherle.truezip.zip.ZipEntry;
+import de.schlichtherle.truezip.zip.ZipOutputStream;
 
 class RawDataFileSaveHandler {
 

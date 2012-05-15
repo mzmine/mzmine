@@ -43,8 +43,8 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipOutputStream;
+import de.schlichtherle.truezip.zip.ZipEntry;
+import de.schlichtherle.truezip.zip.ZipOutputStream;
 
 /**
  * This class is using ZipEntry and ZipOutputStream from the truezip library, in

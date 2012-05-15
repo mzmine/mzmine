@@ -33,8 +33,8 @@ import net.sf.mzmine.modules.projectmethods.projectsave.PeakListSaveHandler;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipOutputStream;
+import de.schlichtherle.truezip.zip.ZipEntry;
+import de.schlichtherle.truezip.zip.ZipOutputStream;
 
 public class XMLExportTask extends AbstractTask {
 

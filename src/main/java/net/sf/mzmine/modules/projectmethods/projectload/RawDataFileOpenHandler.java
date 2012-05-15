@@ -27,8 +27,8 @@ import net.sf.mzmine.data.RawDataFile;
 
 import org.xml.sax.SAXException;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipFile;
+import de.schlichtherle.truezip.zip.ZipEntry;
+import de.schlichtherle.truezip.zip.ZipFile;
 
 public interface RawDataFileOpenHandler {
 

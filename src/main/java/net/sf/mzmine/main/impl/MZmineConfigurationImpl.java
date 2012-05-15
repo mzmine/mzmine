@@ -20,6 +20,7 @@
 package net.sf.mzmine.main.impl;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Hashtable;
@@ -47,8 +48,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import de.schlichtherle.io.FileOutputStream;
 
 /**
  * MZmine configuration class

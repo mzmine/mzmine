@@ -57,8 +57,8 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 
-import de.schlichtherle.util.zip.ZipEntry;
-import de.schlichtherle.util.zip.ZipFile;
+import de.schlichtherle.truezip.zip.ZipEntry;
+import de.schlichtherle.truezip.zip.ZipFile;
 
 public class ProjectOpeningTask extends AbstractTask {
 
