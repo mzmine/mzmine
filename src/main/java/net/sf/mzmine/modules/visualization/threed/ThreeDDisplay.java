@@ -43,16 +43,17 @@ import java.util.Iterator;
 public class ThreeDDisplay extends DisplayImplJ3D {
 
     // Annotations font.
-    private static final Font ANNOTATION_FONT = new Font("SansSerif", Font.PLAIN, 8);
+    private static final Font ANNOTATION_FONT = new Font("SansSerif",
+            Font.PLAIN, 8);
 
     // Axes aspect ratio X:Y:Z.
-    private static final double[] ASPECT_RATIO = {1.0, 0.8, 0.3};
+    private static final double[] ASPECT_RATIO = { 1.0, 0.8, 0.3 };
 
     // Mouse interaction transform.
-    private static final double[] MOUSE_BEHAVIOUR_MATRIX =
-            MouseBehaviorJ3D.static_make_matrix(75.0, 0.0, 0.0,  // rotation: X,Y,Z
-                                                1.0,             // scaling
-                                                0.1, 0.2, 0.0    // translation: X,Y,Z
+    private static final double[] MOUSE_BEHAVIOUR_MATRIX = MouseBehaviorJ3D
+            .static_make_matrix(75.0, 0.0, 0.0, // rotation: X,Y,Z
+                    1.0, // scaling
+                    0.1, 0.2, 0.0 // translation: X,Y,Z
             );
 
     // color table length.
@@ -113,9 +114,11 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Creates the display.
-     *
-     * @throws RemoteException if there are problems creating the display.
-     * @throws VisADException  if there are problems creating the display.
+     * 
+     * @throws RemoteException
+     *             if there are problems creating the display.
+     * @throws VisADException
+     *             if there are problems creating the display.
      */
     public ThreeDDisplay() throws RemoteException, VisADException {
 
@@ -126,28 +129,34 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         useLog10Intensity = false;
 
         // Domain.
-        final RealType retentionTimeType = RealType.getRealType("RT", SI.second);
+        final RealType retentionTimeType = RealType
+                .getRealType("RT", SI.second);
         final RealType mzType = RealType.getRealType("m/z");
         domainTuple = new RealTupleType(retentionTimeType, mzType);
 
         // Intensity types.
         final RealType intensityType = RealType.getRealType("Intensity");
-        final RealType logIntensityType = RealType.getRealType("LogIntensity", CommonUnit.promiscuous);
-        final RealTupleType intensityRange = new RealTupleType(
-                intensityType, new LogCoordinateSystem(new RealTupleType(logIntensityType)), null);
+        final RealType logIntensityType = RealType.getRealType("LogIntensity",
+                CommonUnit.promiscuous);
+        final RealTupleType intensityRange = new RealTupleType(intensityType,
+                new LogCoordinateSystem(new RealTupleType(logIntensityType)),
+                null);
 
         // Height Types.
         final RealType heightType = RealType.getRealType("Height");
-        final RealType logHeightType = RealType.getRealType("LogHeight", CommonUnit.promiscuous);
-        heightTupleType = new RealTupleType(
-                heightType, new LogCoordinateSystem(new RealTupleType(logHeightType)), null);
+        final RealType logHeightType = RealType.getRealType("LogHeight",
+                CommonUnit.promiscuous);
+        heightTupleType = new RealTupleType(heightType,
+                new LogCoordinateSystem(new RealTupleType(logHeightType)), null);
         annotationType = TextType.getTextType("Annotation");
-        annotationTupleType = new TupleType(new MathType[]{heightTupleType, annotationType});
+        annotationTupleType = new TupleType(new MathType[] { heightTupleType,
+                annotationType });
 
         // Create a function from domain (retention time and m/z) to intensity.
         intensityFunction = new FunctionType(domainTuple, intensityRange);
 
-        // Create a function from domain (retention time and m/z) to text annotation.
+        // Create a function from domain (retention time and m/z) to text
+        // annotation.
         annotationFunction = new FunctionType(domainTuple, annotationTupleType);
 
         // Create a DataReference connecting data to display.
@@ -162,7 +171,8 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         logHeightMap = new ScalarMap(logHeightType, Display.ZAxis);
         colorMap = new ScalarMap(intensityType, Display.RGB);
         annotationAlphaMap = new ScalarMap(heightType, Display.Alpha);
-        final ScalarMap annotationMap = new ScalarMap(annotationType, Display.Text);
+        final ScalarMap annotationMap = new ScalarMap(annotationType,
+                Display.Text);
 
         // Add maps to display.
         addMap(retentionTimeMap);
@@ -174,17 +184,23 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         // Set color map.
         ((BaseColorControl) colorMap.getControl()).setTable(createColorTable());
 
-        // Set retention time axis properties.
-        configureAxis(retentionTimeMap.getAxisScale(), "Retention Time", MZmineCore.getConfiguration().getRTFormat());
+        // Set retention time axis properties. We do not use the RT format from
+        // MZmine configuration, because VisAD is quite smart to choose the
+        // right format dynamically depending on the scale of the values.
+        configureAxis(retentionTimeMap.getAxisScale(), "Retention Time", null);
 
-        // Set m/z axis properties: we ignore m/z format because it ends up like 400.00000 anyway
-        configureAxis(mzMap.getAxisScale(), "m/z", MZmineCore.getConfiguration().getMZFormat());
+        // Set m/z axis properties: We do not use the m/z format from
+        // MZmine configuration, because VisAD is quite smart to choose the
+        // right format dynamically depending on the scale of the values.
+        configureAxis(mzMap.getAxisScale(), "m/z", null);
 
         // Set intensity axis properties.
-        configureAxis(intensityMap.getAxisScale(), "Intensity", MZmineCore.getConfiguration().getIntensityFormat());
+        configureAxis(intensityMap.getAxisScale(), "Intensity", MZmineCore
+                .getConfiguration().getIntensityFormat());
 
         // Set log axis properties.
-        configureAxis(logIntensityMap.getAxisScale(), "Intensity", MZmineCore.getConfiguration().getIntensityFormat());
+        configureAxis(logIntensityMap.getAxisScale(), "Intensity", MZmineCore
+                .getConfiguration().getIntensityFormat());
 
         // height is the same as intensity
         heightMap.getAxisScale().setVisible(false);
@@ -200,42 +216,54 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         dRenderer.setForegroundColor(Color.black);
         dRenderer.setBackgroundColor(Color.white);
         dRenderer.setBoxOn(false);
-        dRenderer.getMouseBehavior().getMouseHelper().setFunctionMap(
-                new int[][][]{{{MouseHelper.ROTATE, // left mouse button
-                                MouseHelper.ZOOM // SHIFT + left mouse button
-                               },
-                               {MouseHelper.ROTATE, // CTRL + left mouse button
-                                MouseHelper.ZOOM // CTRL + SHIFT + left mouse button
-                               }},
-                              {{MouseHelper.NONE, // middle mouse button
-                                MouseHelper.NONE // SHIFT + middle mouse button
-                               },
-                               {MouseHelper.NONE, // CTRL + middle mouse button
-                                MouseHelper.NONE // CTRL + SHIFT + middle mouse button
-                               }},
-                              {{MouseHelper.TRANSLATE, // right mouse button
-                                MouseHelper.DIRECT // SHIFT + right mouse button
-                               },
-                               {MouseHelper.TRANSLATE, // CTRL + right mouse button
-                                MouseHelper.DIRECT // CTRL + SHIFT + right mouse button
-                               }}});
+        dRenderer.getMouseBehavior().getMouseHelper()
+                .setFunctionMap(new int[][][] { { { MouseHelper.ROTATE, // left
+                                                                        // mouse
+                                                                        // button
+                        MouseHelper.ZOOM // SHIFT + left mouse button
+                        }, { MouseHelper.ROTATE, // CTRL + left mouse button
+                                MouseHelper.ZOOM // CTRL + SHIFT + left mouse
+                                                 // button
+                        } }, { { MouseHelper.NONE, // middle mouse button
+                        MouseHelper.NONE // SHIFT + middle mouse button
+                        }, { MouseHelper.NONE, // CTRL + middle mouse button
+                                MouseHelper.NONE // CTRL + SHIFT + middle mouse
+                                                 // button
+                        } }, { { MouseHelper.TRANSLATE, // right mouse button
+                        MouseHelper.DIRECT // SHIFT + right mouse button
+                        }, { MouseHelper.TRANSLATE, // CTRL + right mouse button
+                                MouseHelper.DIRECT // CTRL + SHIFT + right mouse
+                                                   // button
+                        } } });
 
         // Set the keyboard behavior.
-        final KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(dRenderer);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS, KeyEvent.VK_DOWN, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG, KeyEvent.VK_UP, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS, KeyEvent.VK_LEFT, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG, KeyEvent.VK_RIGHT, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS, KeyEvent.VK_PAGE_UP, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG, KeyEvent.VK_PAGE_DOWN, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN, KeyEvent.VK_PLUS, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT, KeyEvent.VK_MINUS, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN, KeyEvent.VK_ADD, 0);
-        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT, KeyEvent.VK_SUBTRACT, 0);
+        final KeyboardBehaviorJ3D keyBehavior = new KeyboardBehaviorJ3D(
+                dRenderer);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_POS,
+                KeyEvent.VK_DOWN, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_X_NEG,
+                KeyEvent.VK_UP, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_POS,
+                KeyEvent.VK_LEFT, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Y_NEG,
+                KeyEvent.VK_RIGHT, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_POS,
+                KeyEvent.VK_PAGE_UP, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehaviorJ3D.ROTATE_Z_NEG,
+                KeyEvent.VK_PAGE_DOWN, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN,
+                KeyEvent.VK_PLUS, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT,
+                KeyEvent.VK_MINUS, 0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_IN, KeyEvent.VK_ADD,
+                0);
+        keyBehavior.mapKeyToFunction(KeyboardBehavior.ZOOM_OUT,
+                KeyEvent.VK_SUBTRACT, 0);
         dRenderer.addKeyboardBehavior(keyBehavior);
 
         // Set text control properties.
-        final TextControl textControl = (TextControl) annotationMap.getControl();
+        final TextControl textControl = (TextControl) annotationMap
+                .getControl();
         textControl.setCenter(true);
         textControl.setAutoSize(false);
         textControl.setScale(TEXT_SCALE);
@@ -244,12 +272,13 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         // Get projection control to set initial rotation and zooming.
         final ProjectionControl projCont = getProjectionControl();
         projCont.setAspect(ASPECT_RATIO);
-        projCont.setMatrix(MouseBehaviorJ3D.static_multiply_matrix(MOUSE_BEHAVIOUR_MATRIX, projCont.getMatrix()));
+        projCont.setMatrix(MouseBehaviorJ3D.static_multiply_matrix(
+                MOUSE_BEHAVIOUR_MATRIX, projCont.getMatrix()));
 
         // Color of text annotations.
-        peakColorMap = new ConstantMap[]{new ConstantMap(0.5, Display.Red),
-                                         new ConstantMap(0.0, Display.Green),
-                                         new ConstantMap(0.0, Display.Blue)};
+        peakColorMap = new ConstantMap[] { new ConstantMap(0.5, Display.Red),
+                new ConstantMap(0.0, Display.Green),
+                new ConstantMap(0.0, Display.Blue) };
 
         // Create a pick renderer, so we can track user clicks.
         pickRenderer = new PickManipulationRendererJ3D();
@@ -259,12 +288,13 @@ public class ThreeDDisplay extends DisplayImplJ3D {
         peaksShown = false;
 
         // Peak area cells.
-        cells = new ThreeDPeakCells(this, new RealTupleType(retentionTimeType, mzType, heightType), pickRenderer);
+        cells = new ThreeDPeakCells(this, new RealTupleType(retentionTimeType,
+                mzType, heightType), pickRenderer);
     }
 
     /**
      * Gets the data set's maximum intensity.
-     *
+     * 
      * @return the maximum.
      */
     public double getMaxIntensity() {
@@ -273,19 +303,29 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Set data points.
-     *
-     * @param intensityValues intensity values.
-     * @param domainSet       domain.
-     * @param rtMin           RT minimum.
-     * @param rtMax           RT maximum.
-     * @param mzMin           m/z minimum.
-     * @param mzMax           m/z maximum.
-     * @param intensityMax    intensity maximum.
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * 
+     * @param intensityValues
+     *            intensity values.
+     * @param domainSet
+     *            domain.
+     * @param rtMin
+     *            RT minimum.
+     * @param rtMax
+     *            RT maximum.
+     * @param mzMin
+     *            m/z minimum.
+     * @param mzMax
+     *            m/z maximum.
+     * @param intensityMax
+     *            intensity maximum.
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
-    public void setData(final double[][] intensityValues, final Set domainSet, final double rtMin,
-                        final double rtMax, final double mzMin, final double mzMax, final double intensityMax)
+    public void setData(final float[][] intensityValues, final Set domainSet,
+            final double rtMin, final double rtMax, final double mzMin,
+            final double mzMax, final double intensityMax)
             throws VisADException, RemoteException {
 
         // Sampled intensity values stored in 1D array (FlatField).
@@ -304,57 +344,66 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Set picked peaks.
-     *
-     * @param peakList         peak-list.
-     * @param peaks            peaks.
-     * @param showCompoundName whether to show compound name.
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * 
+     * @param peakList
+     *            peak-list.
+     * @param peaks
+     *            peaks.
+     * @param showCompoundName
+     *            whether to show compound name.
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
-    public void setPeaks(final PeakList peakList, final ChromatographicPeak[] peaks,
-                         final boolean showCompoundName) throws RemoteException, VisADException {
+    public void setPeaks(final PeakList peakList,
+            final ChromatographicPeak[] peaks, final boolean showCompoundName)
+            throws RemoteException, VisADException {
 
         final int peakCount = peaks.length;
         final float[][] peaksDomainPoints = new float[2][peakCount];
         final Data[] peakValues = new Data[peakCount];
 
         // Set the resolution (number of data points) on m/z axis.
-        final NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+        final NumberFormat mzFormat = MZmineCore.getConfiguration()
+                .getMZFormat();
         for (int i = 0; i < peakCount; i++) {
 
             peaksDomainPoints[0][i] = (float) peaks[i].getRT();
             peaksDomainPoints[1][i] = (float) peaks[i].getMZ();
 
             final Data[] peakData = new Data[2];
-            peakData[0] = new RealTuple(
-                    heightTupleType,
-                    new double[]{
-                            peaks[i].getRawDataPointsIntensityRange().getMax() + maxIntensity * PEAK_LABEL_OFFSET});
+            peakData[0] = new RealTuple(heightTupleType,
+                    new double[] { peaks[i].getRawDataPointsIntensityRange()
+                            .getMax() + maxIntensity * PEAK_LABEL_OFFSET });
 
-            final PeakIdentity id = peakList.getPeakRow(peaks[i]).getPreferredPeakIdentity();
-            final String peakText =
-                    showCompoundName && id != null ? id.getName() : mzFormat.format(peaks[i].getMZ());
+            final PeakIdentity id = peakList.getPeakRow(peaks[i])
+                    .getPreferredPeakIdentity();
+            final String peakText = showCompoundName && id != null ? id
+                    .getName() : mzFormat.format(peaks[i].getMZ());
             peakData[1] = new Text(annotationType, peakText);
             peakValues[i] = new Tuple(annotationTupleType, peakData, false);
         }
 
         // Peak domain points set.
-        final Set peaksDomainSet = new Gridded2DSet(domainTuple, peaksDomainPoints, peakCount);
+        final Set peaksDomainSet = new Gridded2DSet(domainTuple,
+                peaksDomainPoints, peakCount);
 
         // Create peak values flat field.
-        final FieldImpl peakValuesFlatField = new FieldImpl(annotationFunction, peaksDomainSet);
+        final FieldImpl peakValuesFlatField = new FieldImpl(annotationFunction,
+                peaksDomainSet);
         peakValuesFlatField.setSamples(peakValues, false);
 
         peaksReference.setData(peakValuesFlatField);
 
-        // We have to remove the reference and add it again because the data have changed.
+        // We have to remove the reference and add it again because the data
+        // have changed.
         if (peaksShown) {
             cells.removeReference(peaksReference);
         }
         try {
             cells.addReference(peaksReference);
-        }
-        catch (ReferenceException re) {
+        } catch (ReferenceException re) {
 
             // ignored.
         }
@@ -368,10 +417,13 @@ public class ThreeDDisplay extends DisplayImplJ3D {
     }
 
     /**
-     * Toggle whether peaks are annotated or not. Annotation requires setPeaks() call first.
-     *
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * Toggle whether peaks are annotated or not. Annotation requires setPeaks()
+     * call first.
+     * 
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
     public void toggleShowingPeaks() throws VisADException, RemoteException {
 
@@ -390,24 +442,28 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Gets the annotation color.
-     *
+     * 
      * @return the color.
      */
     public Color getAnnotationColor() {
 
         return new Color((float) peakColorMap[0].getConstant(),
-                         (float) peakColorMap[1].getConstant(),
-                         (float) peakColorMap[2].getConstant());
+                (float) peakColorMap[1].getConstant(),
+                (float) peakColorMap[2].getConstant());
     }
 
     /**
      * Sets the annotation color.
-     *
-     * @param clr the new color.
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * 
+     * @param clr
+     *            the new color.
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
-    public void setAnnotationColor(final Color clr) throws VisADException, RemoteException {
+    public void setAnnotationColor(final Color clr) throws VisADException,
+            RemoteException {
 
         final float[] rgb = clr.getRGBColorComponents(null);
         peakColorMap[0] = new ConstantMap(rgb[0], Display.Red);
@@ -421,8 +477,9 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Whether the annotation alpha map is in effect.
-     *
-     * @return true if the annotation map is added to this display, false otherwise.
+     * 
+     * @return true if the annotation map is added to this display, false
+     *         otherwise.
      */
     public boolean getUseAnnotationAlphaMap() {
         return equals(annotationAlphaMap.getDisplay());
@@ -430,12 +487,16 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Enables/disables the annotation alpha map.
-     *
-     * @param useMap whether to apply the map.
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * 
+     * @param useMap
+     *            whether to apply the map.
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
-    public void setUseAnnotationAlphaMap(final boolean useMap) throws VisADException, RemoteException {
+    public void setUseAnnotationAlphaMap(final boolean useMap)
+            throws VisADException, RemoteException {
         if (useMap) {
             addMap(annotationAlphaMap);
         } else {
@@ -445,7 +506,7 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Is log10 scaling being used?
-     *
+     * 
      * @return whether log10 scaling of the intensity is in use.
      */
     public boolean getUseLog10Intensity() {
@@ -454,12 +515,16 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Sets whether to apply log10 scaling to the intensity axis.
-     *
-     * @param useLog10 whether to use log10 scaling.
-     * @throws RemoteException if there are VisAD problems.
-     * @throws VisADException  if there are VisAD problems.
+     * 
+     * @param useLog10
+     *            whether to use log10 scaling.
+     * @throws RemoteException
+     *             if there are VisAD problems.
+     * @throws VisADException
+     *             if there are VisAD problems.
      */
-    public void setUseLog10Intensity(final boolean useLog10) throws VisADException, RemoteException {
+    public void setUseLog10Intensity(final boolean useLog10)
+            throws VisADException, RemoteException {
 
         useLog10Intensity = useLog10;
 
@@ -482,13 +547,18 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Sets the intensity range.
-     *
-     * @param min minimum intensity.
-     * @param max maximum intensity
-     * @throws VisADException  if there are problems with VisAD.
-     * @throws RemoteException if there are problems with VisAD.
+     * 
+     * @param min
+     *            minimum intensity.
+     * @param max
+     *            maximum intensity
+     * @throws VisADException
+     *             if there are problems with VisAD.
+     * @throws RemoteException
+     *             if there are problems with VisAD.
      */
-    public void setIntensityRange(final double min, final double max) throws VisADException, RemoteException {
+    public void setIntensityRange(final double min, final double max)
+            throws VisADException, RemoteException {
 
         // Set range.
         intensityMap.setRange(min, max);
@@ -509,8 +579,9 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Label the log axis.
-     *
-     * @throws VisADException if there are problems with VisAD.
+     * 
+     * @throws VisADException
+     *             if there are problems with VisAD.
      */
     private void labelLogAxis() throws VisADException {
 
@@ -520,13 +591,13 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
         // Create label table.
         final int maxLog = (int) Math.ceil(logIntensityMap.getRange()[1]) + 1;
-        final Hashtable<Double, String> labelTable = new Hashtable<Double, String>(maxLog + 1);
-        for (int i = 0;
-             i <= maxLog;
-             i++) {
+        final Hashtable<Double, String> labelTable = new Hashtable<Double, String>(
+                maxLog + 1);
+        for (int i = 0; i <= maxLog; i++) {
 
             // Add label.
-            labelTable.put((double) i, labelFormat.format(StrictMath.pow(10.0, (double) i)));
+            labelTable.put((double) i,
+                    labelFormat.format(StrictMath.pow(10.0, (double) i)));
         }
 
         scale.setLabelTable(labelTable);
@@ -534,8 +605,9 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Calculate log10 of a number.
-     *
-     * @param v the number.
+     * 
+     * @param v
+     *            the number.
      * @return log10(v) or 0.0 if v <= 0.
      */
     private static double log10(final double v) {
@@ -544,17 +616,21 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Removes a map if the display has it.
-     *
-     * @param map the map to remove.
-     * @throws VisADException  if there are VisAD problems.
-     * @throws RemoteException if there are VisAD problems.
+     * 
+     * @param map
+     *            the map to remove.
+     * @throws VisADException
+     *             if there are VisAD problems.
+     * @throws RemoteException
+     *             if there are VisAD problems.
      */
-    private void safeRemoveMap(final ScalarMap map) throws VisADException, RemoteException {
+    private void safeRemoveMap(final ScalarMap map) throws VisADException,
+            RemoteException {
 
         // Is the map added?
         boolean hasMap = false;
-        for (Iterator<?> iterator = getMapVector().iterator();
-             !hasMap && iterator.hasNext(); ) {
+        for (Iterator<?> iterator = getMapVector().iterator(); !hasMap
+                && iterator.hasNext();) {
             hasMap = map.equals(iterator.next());
         }
 
@@ -565,12 +641,16 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Configure an axis.
-     *
-     * @param axis   the axis to configure.
-     * @param title  axis title.
-     * @param format axis number format.
+     * 
+     * @param axis
+     *            the axis to configure.
+     * @param title
+     *            axis title.
+     * @param format
+     *            axis number format.
      */
-    private static void configureAxis(final AxisScale axis, final String title, final NumberFormat format) {
+    private static void configureAxis(final AxisScale axis, final String title,
+            final NumberFormat format) {
 
         axis.setColor(Color.black);
         axis.setTitle(title);
@@ -582,7 +662,7 @@ public class ThreeDDisplay extends DisplayImplJ3D {
 
     /**
      * Creates the color table.
-     *
+     * 
      * @return the new color
      */
     private static float[][] createColorTable() {

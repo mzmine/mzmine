@@ -30,7 +30,6 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
-import visad.Gridded2DSet;
 import visad.Linear2DSet;
 import visad.Set;
 
@@ -100,63 +99,27 @@ class ThreeDSamplingTask extends AbstractTask {
      */
     public void run() {
 
-        setStatus( TaskStatus.PROCESSING );
+        setStatus(TaskStatus.PROCESSING);
 
         logger.info("Started sampling 3D plot of " + dataFile);
-        
+
         try {
 
-            // domain values set
-            Set domainSet;
-
-            // set the resolution (number of data points) on m/z axis
-            final double mzStep = mzRange.getSize() / mzResolution;
-
-            // set the resolution (number of data points) on retention time axis
-            if (scanNumbers.length > rtResolution) {
-
-                domainSet = new Linear2DSet(display.getDomainTuple(),
-                        rtRange.getMin(), rtRange.getMax(), rtResolution,
-                        mzRange.getMin(), mzRange.getMax(), mzResolution);
-
-            } else {
-
-                // number of scans is lower then max. resolution, so we can
-                // create a grid column for each scan
-                rtResolution = scanNumbers.length;
-
-                // domain points in 2D grid
-                float domainPoints[][] = new float[2][mzResolution
-                        * rtResolution];
-
-                for (int j = 0; j < mzResolution; j++) {
-                    for (int i = 0; i < rtResolution; i++) {
-
-                        int point = (rtResolution * j) + i;
-                        // set the point's X coordinate
-                        domainPoints[0][point] = (float) dataFile.getScan(
-                                scanNumbers[i]).getRetentionTime();
-
-                        // set the point's Y coordinate
-                        domainPoints[1][point] = (float) (mzRange.getMin() + (j * mzStep));
-                    }
-                }
-
-                domainSet = new Gridded2DSet(display.getDomainTuple(),
-                        domainPoints, rtResolution, mzResolution);
-
-            }
+            Set domainSet = new Linear2DSet(display.getDomainTuple(),
+                    rtRange.getMin(), rtRange.getMax(), rtResolution,
+                    mzRange.getMin(), mzRange.getMax(), mzResolution);
 
             final double rtStep = rtRange.getSize() / rtResolution;
 
             // create an array for all data points
-            double[][] intensityValues = new double[1][mzResolution
+            float[][] intensityValues = new float[1][mzResolution
                     * rtResolution];
+            boolean rtDataSet[] = new boolean[rtResolution];
 
             // load scans
             for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
 
-                if ( isCanceled( ))
+                if (isCanceled())
                     return;
 
                 Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
@@ -175,57 +138,91 @@ class ThreeDSamplingTask extends AbstractTask {
 
                 int scanBinIndex;
 
-                if (domainSet instanceof Linear2DSet) {
-                    double rt = scan.getRetentionTime();
-                    scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
+                double rt = scan.getRetentionTime();
+                scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
 
-                    // last scan falls into last bin
-                    if (scanBinIndex == rtResolution)
-                        scanBinIndex--;
-
-                } else {
-                    // 1 scan per 1 grid column
-                    scanBinIndex = scanIndex;
-                }
+                // last scan falls into last bin
+                if (scanBinIndex == rtResolution)
+                    scanBinIndex--;
 
                 for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
                     int intensityValuesIndex = (rtResolution * mzIndex)
                             + scanBinIndex;
                     if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
-                        intensityValues[0][intensityValuesIndex] = (double) binnedIntensities[mzIndex];
+                        intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
 
                     if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
                         maxBinnedIntensity = (double) binnedIntensities[mzIndex];
                 }
 
+                rtDataSet[scanBinIndex] = true;
+
                 retrievedScans++;
+
+            }
+
+            // Interpolate missing values on the RT-axis
+            for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
+
+                // If the data was set, go to next RT line
+                if (rtDataSet[rtIndex])
+                    continue;
+                int prevIndex, nextIndex;
+                for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
+                    if (rtDataSet[prevIndex])
+                        break;
+                }
+                for (nextIndex = rtIndex + 1; nextIndex < rtResolution; nextIndex++) {
+                    if (rtDataSet[nextIndex])
+                        break;
+                }
+
+                // If no neighboring data was found, give up
+                if ((prevIndex < 0) || (nextIndex >= rtResolution))
+                    continue;
+
+                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+
+                    int valueIndex = (rtResolution * mzIndex) + rtIndex;
+                    int nextValueIndex = (rtResolution * mzIndex) + nextIndex;
+                    int prevValueIndex = (rtResolution * mzIndex) + prevIndex;
+
+                    double prevValue = intensityValues[0][prevValueIndex];
+                    double nextValue = intensityValues[0][nextValueIndex];
+
+                    double slope = (nextValue - prevValue)
+                            / (nextIndex - prevIndex);
+                    intensityValues[0][valueIndex] = (float) (prevValue +(slope
+                            * (rtIndex - prevIndex)));
+
+                }
 
             }
 
             display.setData(intensityValues, domainSet, rtRange.getMin(),
                     rtRange.getMax(), mzRange.getMin(), mzRange.getMax(),
                     maxBinnedIntensity);
-            
-            // After we have constructed everything, load the peak lists into the
-            // bottom panel
+
+            // After we have constructed everything, load the peak lists into
+            // the bottom panel
             bottomPanel.rebuildPeakListSelector();
 
         } catch (Throwable e) {
-            setStatus( TaskStatus.ERROR );
+            setStatus(TaskStatus.ERROR);
             errorMessage = "Error while sampling 3D data, "
                     + ExceptionUtils.exceptionToString(e);
             return;
         }
 
         logger.info("Finished sampling 3D plot of " + dataFile);
-        
-        setStatus( TaskStatus.FINISHED );
+
+        setStatus(TaskStatus.FINISHED);
 
     }
 
-	public Object[] getCreatedObjects() {
-		return null;
-	}
+    public Object[] getCreatedObjects() {
+        return null;
+    }
 
 }
