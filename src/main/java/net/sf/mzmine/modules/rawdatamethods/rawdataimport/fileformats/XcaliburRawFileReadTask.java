@@ -248,8 +248,8 @@ public class XcaliburRawFileReadTask extends AbstractTask {
                 DataPoint completeDataPoints[] = new DataPoint[numOfDataPoints];
 
                 // Because Intel CPU is using little endian natively, we
-                // need to use LEDataInputStream instead of normal Java
-                // DataInputStream, which is big-endian.
+                // need to use LittleEndianDataInputStream instead of normal
+                // Java DataInputStream, which is big-endian.
                 LittleEndianDataInputStream dis = new LittleEndianDataInputStream(
                         dumpStream);
                 for (int i = 0; i < numOfDataPoints; i++) {
