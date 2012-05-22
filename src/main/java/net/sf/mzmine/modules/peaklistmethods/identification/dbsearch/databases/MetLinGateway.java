@@ -114,13 +114,10 @@ public class MetLinGateway implements DBGateway {
 
 	String compoundFormula = metlinEntry.getFormula();
 
-	// Unfortunately, 2D structures provided by METLIN cannot be loaded
-	// into CDK (throws CDKException). They can be loaded into JMol, so
-	// we can show 3D structure.
-	URL structure2DURL = null;
-
-	URL structure3DURL = new URL(metLinStructureAddress1 + ID
+	URL structure2DURL = new URL(metLinStructureAddress1 + ID
 		+ metLinStructureAddress2);
+	
+	URL structure3DURL = null;
 
 	DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
 		compoundName, compoundFormula, entryURL, structure2DURL,
