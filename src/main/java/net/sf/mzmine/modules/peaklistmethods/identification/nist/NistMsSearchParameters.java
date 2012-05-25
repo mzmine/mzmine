@@ -34,8 +34,8 @@ import java.util.Collection;
 /**
  * Holds NIST MS Search parameters.
  *
- * @author $Author: cpudney $
- * @version $Revision: 2369 $
+ * @author $Author$
+ * @version $Revision$
  */
 public class NistMsSearchParameters extends SimpleParameterSet {
 
@@ -77,6 +77,15 @@ public class NistMsSearchParameters extends SimpleParameterSet {
             null);
 
     /**
+     * Must have same identities.
+     */
+
+    public static final BooleanParameter SAME_IDENTITIES = new BooleanParameter(
+            "Must have same identities",
+            "Two peaks will only be included in the same spectrum if they have the same identity (for use with CAMERA pseudo-spectra)",
+            true);
+
+    /**
      * Match factor cut-off.
      */
     public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter(
@@ -108,6 +117,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
                               IONIZATION_METHOD,
                               SPECTRUM_RT_WIDTH,
                               MAX_NUM_PEAKS,
+                              SAME_IDENTITIES,
                               MIN_MATCH_FACTOR,
                               MIN_REVERSE_MATCH_FACTOR});
     }
@@ -117,7 +127,6 @@ public class NistMsSearchParameters extends SimpleParameterSet {
 
         // Unsupported OS.
         if (!isWindows()) {
-
             errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
             return false;
         }

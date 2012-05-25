@@ -44,8 +44,8 @@ import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSe
 /**
  * Performs NIST MS Search.
  *
- * @author $Author: cpudney $
- * @version $Revision: 2369 $
+ * @author $Author$
+ * @version $Revision$
  */
 public class NistMsSearchTask
         extends AbstractTask {
@@ -108,11 +108,14 @@ public class NistMsSearchTask
     // Ion type parameter.
     private final IonizationType ionType;
 
-    // Match factor cut-offs, RT window and maximum number or peaks.
+    // Match factor cut-offs.
     private final int minMatchFactor;
     private final int minReverseMatchFactor;
+
+    // Peak matching parameters.
     private final int maxPeaks;
     private final RTTolerance rtTolerance;
+    private final Boolean sameIds;
 
     // NIST MS Search directory and executable.
     private final File nistMsSearchDir;
@@ -151,6 +154,7 @@ public class NistMsSearchTask
         minReverseMatchFactor = params.getParameter(MIN_REVERSE_MATCH_FACTOR).getValue();
         rtTolerance = params.getParameter(SPECTRUM_RT_WIDTH).getValue();
         maxPeaks = params.getParameter(MAX_NUM_PEAKS).getValue();
+        sameIds = params.getParameter(SAME_IDENTITIES).getValue();
         nistMsSearchDir = params.getParameter(NIST_MS_SEARCH_DIR).getValue();
         nistMsSearchExe = ((NistMsSearchParameters) params).getNistMsSearchExecutable();
     }
@@ -234,12 +238,13 @@ public class NistMsSearchTask
                 if (peakListRow == null) {
 
                     peakListRows = peakList.getRows();
-                    rowHoods = groupContemporaneousRows();
+                    rowHoods = groupPeakRows();
 
                 } else {
 
                     peakListRows = new PeakListRow[]{peakListRow};
-                    rowHoods = getContemporaneousRows();
+                    rowHoods = new HashMap<PeakListRow, Set<PeakListRow>>(1);
+                    rowHoods.put(peakListRow, findPeakRowGroup());
                 }
 
                 // Reduce neighbourhoods to maximum number of peaks.
@@ -285,16 +290,32 @@ public class NistMsSearchTask
                     if (identities != null) {
 
                         // Add (copy of) identities to peak row.
+                        int maxMatchFactor = -1;
                         for (final PeakIdentity identity : identities) {
 
-                            row.addPeakIdentity(
-                                    new SimplePeakIdentity((Hashtable<String, String>) identity.getAllProperties()),
-                                    false);
+                            // Copy the identity.
+                            final PeakIdentity id =
+                                    new SimplePeakIdentity((Hashtable<String, String>) identity.getAllProperties());
+
+                            // Best match factor?
+                            final boolean isPreferred;
+                            final int matchFactor = Integer.parseInt(id.getPropertyValue(MATCH_FACTOR_PROPERTY));
+                            if (matchFactor > maxMatchFactor) {
+
+                                maxMatchFactor = matchFactor;
+                                isPreferred = true;
+
+                            } else {
+
+                                isPreferred = false;
+                            }
+
+                            // Add peak identity.
+                            row.addPeakIdentity(id, isPreferred);
                         }
 
                         // Notify the GUI about the change in the project
                         MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
-
                     }
                     progress++;
                 }
@@ -365,7 +386,7 @@ public class NistMsSearchTask
      *
      * @return a map holding pairs of adjacent (non-identical) peak rows.  (x,y) <=> (y,x)
      */
-    private Map<PeakListRow, Set<PeakListRow>> getContemporaneousRows() {
+    private Set<PeakListRow> findPeakRowGroup() {
 
         // Create neighbourhood.
         final Set<PeakListRow> neighbours = new HashSet<PeakListRow>(INITIAL_NEIGHBOURHOOD_SIZE);
@@ -378,16 +399,15 @@ public class NistMsSearchTask
         for (final PeakListRow row2 : peakList.getRows()) {
 
             // Are peak rows contemporaneous?
-            if (!peakListRow.equals(row2) && rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())) {
+            if (!peakListRow.equals(row2)
+                && rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())
+                && (!sameIds || checkSameIds(peakListRow, row2))) {
 
                 neighbours.add(row2);
             }
         }
 
-        // Return neighbourhood.
-        final Map<PeakListRow, Set<PeakListRow>> rowHoods = new HashMap<PeakListRow, Set<PeakListRow>>(1);
-        rowHoods.put(peakListRow, neighbours);
-        return rowHoods;
+        return neighbours;
     }
 
     /**
@@ -395,10 +415,7 @@ public class NistMsSearchTask
      *
      * @return a map holding pairs of adjacent (non-identical) peak rows.  (x,y) <=> (y,x)
      */
-    private Map<PeakListRow, Set<PeakListRow>> groupContemporaneousRows() {
-
-        // Ordinarily you'd sort by RT for some efficiency gains *but* we can't because we could be dealing with
-        // aligned peak lists, i.e. several different peaks with different RTs per row.
+    private Map<PeakListRow, Set<PeakListRow>> groupPeakRows() {
 
         // Determine contemporaneity.
         final int numRows = peakList.getNumberOfRows();
@@ -428,7 +445,8 @@ public class NistMsSearchTask
 
                 // Are peak rows contemporaneous?
                 final PeakListRow row2 = peakList.getRow(j);
-                if (rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())) {
+                if (rtTolerance.checkWithinTolerance(rt, row2.getAverageRT())
+                    && (!sameIds || checkSameIds(row1, row2))) {
 
                     // Add rows to each others' neighbours lists.
                     neighbours.add(row2);
@@ -441,6 +459,23 @@ public class NistMsSearchTask
             }
         }
         return rowHoods;
+    }
+
+    /**
+     * Check whether peak row identities are the same.
+     *
+     * @param row1 first row to compare.
+     * @param row2 second row to compare.
+     * @return true if the rows have identities with the same name or both have no identity.
+     */
+    private static boolean checkSameIds(final PeakListRow row1,
+                                        final PeakListRow row2) {
+
+        final PeakIdentity id1 = row1.getPreferredPeakIdentity();
+        final PeakIdentity id2 = row2.getPreferredPeakIdentity();
+        return id1 == id2                               // Use == rather than .equals() to handle nulls.
+               || id1 != null && id2 != null
+                  && id1.getName().equalsIgnoreCase(id2.getName());
     }
 
     /**
@@ -579,7 +614,10 @@ public class NistMsSearchTask
             LOG.finest("Writing spectra to file " + spectraFile);
 
             // Write header.
-            final String name = SPECTRUM_NAME_PREFIX + peakRow.getID() + " of " + peakList.getName();
+            final PeakIdentity identity = peakRow.getPreferredPeakIdentity();
+            final String name = SPECTRUM_NAME_PREFIX + peakRow.getID()
+                                + (identity == null ? "" : " (" + identity + ')')
+                                + " of " + peakList.getName();
             writer.write("Name: " + name.substring(0, Math.min(SPECTRUM_NAME_MAX_LENGTH, name.length())));
             writer.newLine();
             writer.write("Num Peaks: " + neighbourRows.size());

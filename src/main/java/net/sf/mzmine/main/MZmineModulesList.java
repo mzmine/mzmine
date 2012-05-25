@@ -36,6 +36,7 @@ import net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterModu
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder.PeakFinderModule;
 import net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange.SameRangeGapFillerModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.identification.camera.CameraSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.complexsearch.ComplexSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.custom.CustomDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearchModule;
@@ -161,6 +162,7 @@ public class MZmineModulesList {
 	    ComplexSearchModule.class,
 	    OnlineDBSearchModule.class,
 	    GPLipidSearchModule.class,
+        CameraSearchModule.class,
 	    NistMsSearchModule.class,
 
 	    // Visualizers

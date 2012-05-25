@@ -23,22 +23,24 @@
 
 <p>
     NIST MS Search accepts spectra as input to its searches. Each spectrum is defined by a list of (mass, intensity)
-    pairs. The module forms a query spectrum for each row in the peak list. For each peak-list row <em>P</em> it finds
-    all other peak-list rows whose (average) RTs are within a specified tolerance (see <em>Spectrum RT tolerance</em>)
-    of <em>P</em>'s RT. The peaks' (neutral) mass and intensity value pairs are combined to form a search spectrum for
-    <em>P</em>.
+    pairs. The module forms a query spectrum for each row in the peak list. For each peak-list row <span
+        style="font-style: italic;">P</span> it finds all other peak-list rows whose (average) RTs are within a
+    specified tolerance (see <span style="font-style: italic;">Spectrum RT tolerance</span>) of <span
+        style="font-style: italic;">P</span>'s RT. The peaks' (neutral) mass and intensity value pairs are combined to
+    form a search spectrum for <span style="font-style: italic;">P</span>.
 </p>
 
 <p>
-    The number of peaks used to form a mass spectrum can be limited by setting the <em>Max. peaks per spectrum</em>
-    parameter to a value greater than zero. If this parameter is set to <em>N</em> then the <em>N</em> rows whose RTs
-    are closest to that of the row (and within the specified RT tolerance) are used to form the mass spectrum.
+    The number of peaks used to form a mass spectrum can be limited by setting the <span style="font-style: italic;">Max.
+    peaks per spectrum</span> parameter to a value greater than zero. If this parameter is set to <span
+        style="font-style: italic;">N</span> then the <span style="font-style: italic;">N</span> rows whose RTs are
+    closest to that of the row (and within the specified RT tolerance) are used to form the mass spectrum.
 </p>
 
 <p>
     The module can also be run for an individual row of the peak-list table by highlighting the row and then selecting
-    <em>NIST MS Search</em> from the pop-up menu (right mouse-button click). In such cases, the mass spectrum passed to
-    NIST MS Search is formed in the same way as described above.
+    <span style="font-style: italic;">NIST MS Search</span> from the pop-up menu (right mouse-button click). In such
+    cases, the mass spectrum passed to NIST MS Search is formed in the same way as described above.
 </p>
 
 <h4>Method Parameters</h4>
@@ -59,10 +61,16 @@
 
     <dt>Max. peaks per spectrum</dt>
     <dd>When forming a search spectrum for a given peak-list row, include at most the specified number of peaks
-        (including the current row). If a row has more than this maximum number of peaks, <em>N</em>, whose RTs are
-        within the specified RT tolerance then it is the <em>N</em> rows whose RTs are closest to that of the row that
-        are used to form the mass spectrum. Setting this parameter to 0 will cause it to be ignored, i.e. all peak-list
-        rows within the specified RT tolerance are used to form the mass spectrum.
+        (including the current row). If a row has more than this maximum number of peaks, <span
+                style="font-style: italic;">N</span>, whose RTs are within the specified RT tolerance then it is the
+        <span style="font-style: italic;">N</span> rows whose RTs are closest to that of the row that are used to form
+        the mass spectrum. Setting this parameter to 0 will cause it to be ignored, i.e. all peak-list rows within the
+        specified RT tolerance are used to form the mass spectrum.
+    </dd>
+
+    <dt>Must have same identities</dt>
+    <dd>Two peaks will only be included in the same spectrum if they have the same identity (for use with <a
+            href="../../camera/help/help.html">CAMERA pseudo-spectra</a>)
     </dd>
 
     <dt>Min. match factor</dt>
@@ -71,8 +79,8 @@
     </dd>
 
     <dt>Min. reverse match factor</dt>
-    <dd>NIST MS Search calculates a <em>reverse</em> match factor (0 .. 999) between the submitted spectrum and each
-        hit. Ignore hits with a reverse match factor below the given threshold.
+    <dd>NIST MS Search calculates a <span style="font-style: italic;">reverse</span> match factor (0 .. 999) between the
+        submitted spectrum and each hit. Ignore hits with a reverse match factor below the given threshold.
     </dd>
 </dl>
 
