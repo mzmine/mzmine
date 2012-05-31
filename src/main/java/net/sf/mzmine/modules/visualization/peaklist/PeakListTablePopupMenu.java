@@ -51,7 +51,7 @@ import java.util.List;
  * Peak-list table pop-up menu.
  */
 public class PeakListTablePopupMenu extends JPopupMenu implements
-                                                       ActionListener {
+        ActionListener {
 
     private final PeakListTable table;
     private final PeakList peakList;
@@ -85,13 +85,13 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private PeakListRow clickedPeakListRow;
     private PeakListRow[] allClickedPeakListRows;
 
-    // For copying and pasting IDs - shared by all peak-list table instances.  Currently only accessed from this
+    // For copying and pasting IDs - shared by all peak-list table instances.
+    // Currently only accessed from this
     // class.
     private static PeakIdentity copiedId = null;
 
     public PeakListTablePopupMenu(final PeakListTable listTable,
-                                  final PeakListTableColumnModel model,
-                                  final PeakList list) {
+            final PeakListTableColumnModel model, final PeakList list) {
 
         table = listTable;
         peakList = list;
@@ -104,25 +104,35 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showMenu = new JMenu("Show");
         add(showMenu);
 
-        showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram (quick)", this);
-        showXICSetupItem = GUIUtils.addMenuItem(showMenu, "Chromatogram (dialog)", this);
-        showSpectrumItem = GUIUtils.addMenuItem(showMenu, "Mass spectrum", this);
+        showXICItem = GUIUtils.addMenuItem(showMenu, "Chromatogram (quick)",
+                this);
+        showXICSetupItem = GUIUtils.addMenuItem(showMenu,
+                "Chromatogram (dialog)", this);
+        showSpectrumItem = GUIUtils
+                .addMenuItem(showMenu, "Mass spectrum", this);
         show2DItem = GUIUtils.addMenuItem(showMenu, "Peak in 2D", this);
         show3DItem = GUIUtils.addMenuItem(showMenu, "Peak in 3D", this);
         showMSMSItem = GUIUtils.addMenuItem(showMenu, "MS/MS", this);
-        showIsotopePatternItem = GUIUtils.addMenuItem(showMenu, "Isotope pattern", this);
-        showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu, "Peak row summary", this);
+        showIsotopePatternItem = GUIUtils.addMenuItem(showMenu,
+                "Isotope pattern", this);
+        showPeakRowSummaryItem = GUIUtils.addMenuItem(showMenu,
+                "Peak row summary", this);
 
         searchMenu = new JMenu("Search");
         add(searchMenu);
-        dbSearchItem = GUIUtils.addMenuItem(searchMenu, "Search online database", this);
-        nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search", this);
-        formulaItem = GUIUtils.addMenuItem(searchMenu, "Predict molecular formula", this);
+        dbSearchItem = GUIUtils.addMenuItem(searchMenu,
+                "Search online database", this);
+        nistSearchItem = GUIUtils.addMenuItem(searchMenu, "NIST MS Search",
+                this);
+        formulaItem = GUIUtils.addMenuItem(searchMenu,
+                "Predict molecular formula", this);
 
         final JMenu exportMenu = new JMenu("Export");
         add(exportMenu);
-        exportIsotopesItem = GUIUtils.addMenuItem(exportMenu, "Isotope pattern", this);
-        exportMSMSItem = GUIUtils.addMenuItem(exportMenu, "MS/MS pattern", this);
+        exportIsotopesItem = GUIUtils.addMenuItem(exportMenu,
+                "Isotope pattern", this);
+        exportMSMSItem = GUIUtils
+                .addMenuItem(exportMenu, "MS/MS pattern", this);
 
         // Identities menu.
         idsMenu = new JMenu("Identities");
@@ -131,9 +141,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         copyIdsItem = GUIUtils.addMenuItem(idsMenu, "Copy", this);
         pasteIdsItem = GUIUtils.addMenuItem(idsMenu, "Paste", this);
 
-        plotRowsItem = GUIUtils.addMenuItem(this, "Plot using Intensity Plot module", this);
-        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak", this);
-        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows", this);
+        plotRowsItem = GUIUtils.addMenuItem(this,
+                "Plot using Intensity Plot module", this);
+        manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
+                this);
+        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
+                this);
         addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
     }
 
@@ -166,7 +179,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         clickedDataFile = null;
         final Point clickedPoint = new Point(x, y);
         final int clickedRow = table.rowAtPoint(clickedPoint);
-        final int clickedColumn = columnModel.getColumn(table.columnAtPoint(clickedPoint)).getModelIndex();
+        final int clickedColumn = columnModel.getColumn(
+                table.columnAtPoint(clickedPoint)).getModelIndex();
         if (clickedRow >= 0 && clickedColumn >= 0) {
 
             final int rowIndex = table.convertRowIndexToModel(clickedRow);
@@ -174,7 +188,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             allClickedPeakListRows = new PeakListRow[selectedRows.length];
             for (int i = 0; i < selectedRows.length; i++) {
 
-                allClickedPeakListRows[i] = peakList.getRow(table.convertRowIndexToModel(selectedRows[i]));
+                allClickedPeakListRows[i] = peakList.getRow(table
+                        .convertRowIndexToModel(selectedRows[i]));
             }
 
             // Enable items.
@@ -183,7 +198,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             showPeakRowSummaryItem.setEnabled(oneRowSelected);
 
             exportMSMSItem.setEnabled(oneRowSelected
-                                      && clickedPeakListRow.getBestPeak().getMostIntenseFragmentScanNumber() > 0);
+                    && clickedPeakListRow.getBestPeak()
+                            .getMostIntenseFragmentScanNumber() > 0);
 
             // If we clicked on data file columns, check the peak
             if (clickedColumn >= CommonColumnType.values().length) {
@@ -192,28 +208,36 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 manuallyDefineItem.setEnabled(oneRowSelected);
 
                 // Find the actual peak, if we have it.
-                clickedDataFile = peakList.getRawDataFile((clickedColumn - CommonColumnType.values().length)
-                                                          / DataFileColumnType.values().length);
+                clickedDataFile = peakList
+                        .getRawDataFile((clickedColumn - CommonColumnType
+                                .values().length)
+                                / DataFileColumnType.values().length);
 
-                final ChromatographicPeak clickedPeak =
-                        peakList.getRow(table.convertRowIndexToModel(clickedRow)).getPeak(clickedDataFile);
+                final ChromatographicPeak clickedPeak = peakList.getRow(
+                        table.convertRowIndexToModel(clickedRow)).getPeak(
+                        clickedDataFile);
 
                 // If we have the peak, enable Show... items
                 if (clickedPeak != null && oneRowSelected) {
-                    showIsotopePatternItem.setEnabled(clickedPeak.getIsotopePattern() != null);
-                    showMSMSItem.setEnabled(clickedPeak.getMostIntenseFragmentScanNumber() > 0);
+                    showIsotopePatternItem.setEnabled(clickedPeak
+                            .getIsotopePattern() != null);
+                    showMSMSItem.setEnabled(clickedPeak
+                            .getMostIntenseFragmentScanNumber() > 0);
                 }
 
             } else {
 
-                showIsotopePatternItem.setEnabled(clickedPeakListRow.getBestIsotopePattern() != null
-                                                  && oneRowSelected);
-                showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak().getMostIntenseFragmentScanNumber() > 0
-                                        && oneRowSelected);
+                showIsotopePatternItem.setEnabled(clickedPeakListRow
+                        .getBestIsotopePattern() != null && oneRowSelected);
+                showMSMSItem.setEnabled(clickedPeakListRow.getBestPeak()
+                        .getMostIntenseFragmentScanNumber() > 0
+                        && oneRowSelected);
             }
         }
 
-        copyIdsItem.setEnabled(oneRowSelected && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
+        copyIdsItem
+                .setEnabled(oneRowSelected
+                        && allClickedPeakListRows[0].getPreferredPeakIdentity() != null);
 
         super.show(invoker, x, y);
     }
@@ -230,7 +254,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final int[] unsortedIndexes = new int[rowsToDelete.length];
             for (int i = rowsToDelete.length - 1; i >= 0; i--) {
 
-                unsortedIndexes[i] = table.convertRowIndexToModel(rowsToDelete[i]);
+                unsortedIndexes[i] = table
+                        .convertRowIndexToModel(rowsToDelete[i]);
             }
 
             // sort row indexes and start removing from the last
@@ -252,7 +277,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final PeakListRow[] selectedRows = new PeakListRow[selectedTableRows.length];
             for (int i = 0; i < selectedTableRows.length; i++) {
 
-                selectedRows[i] = peakList.getRow(table.convertRowIndexToModel(selectedTableRows[i]));
+                selectedRows[i] = peakList.getRow(table
+                        .convertRowIndexToModel(selectedTableRows[i]));
             }
 
             IntensityPlotModule.showIntensityPlot(peakList, selectedRows);
@@ -261,12 +287,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         if (showXICItem.equals(src) && allClickedPeakListRows.length != 0) {
 
             // Map peaks to their identity labels.
-            final Map<ChromatographicPeak, String> labelsMap =
-                    new HashMap<ChromatographicPeak, String>(allClickedPeakListRows.length);
+            final Map<ChromatographicPeak, String> labelsMap = new HashMap<ChromatographicPeak, String>(
+                    allClickedPeakListRows.length);
 
-            final RawDataFile selectedDataFile = clickedDataFile == null
-                                                 ? allClickedPeakListRows[0].getBestPeak().getDataFile()
-                                                 : clickedDataFile;
+            final RawDataFile selectedDataFile = clickedDataFile == null ? allClickedPeakListRows[0]
+                    .getBestPeak().getDataFile() : clickedDataFile;
 
             Range mzRange = null;
             final List<ChromatographicPeak> selectedPeaks = new ArrayList<ChromatographicPeak>(
@@ -288,7 +313,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     selectedPeaks.add(filePeak);
 
                     // Label the peak with the row's preferred identity.
-                    final PeakIdentity identity = row.getPreferredPeakIdentity();
+                    final PeakIdentity identity = row
+                            .getPreferredPeakIdentity();
                     if (identity != null) {
                         labelsMap.put(filePeak, identity.getName());
                     }
@@ -296,30 +322,26 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             }
 
             TICVisualizerModule.showNewTICVisualizerWindow(
-                    new RawDataFile[]{selectedDataFile},
-                    selectedPeaks.toArray(new ChromatographicPeak[selectedPeaks.size()]),
-                    labelsMap,
-                    1,
-                    PlotType.BASEPEAK,
-                    selectedDataFile.getDataRTRange(1),
-                    mzRange);
+                    new RawDataFile[] { selectedDataFile }, selectedPeaks
+                            .toArray(new ChromatographicPeak[selectedPeaks
+                                    .size()]), labelsMap, 1, PlotType.BASEPEAK,
+                    selectedDataFile.getDataRTRange(1), mzRange);
         }
 
         if (showXICSetupItem.equals(src) && allClickedPeakListRows.length != 0) {
 
             // Map peaks to their identity labels.
-            final Map<ChromatographicPeak, String> labelsMap =
-                    new HashMap<ChromatographicPeak, String>(allClickedPeakListRows.length);
+            final Map<ChromatographicPeak, String> labelsMap = new HashMap<ChromatographicPeak, String>(
+                    allClickedPeakListRows.length);
 
-            final RawDataFile[] selectedDataFiles = clickedDataFile == null
-                                                    ? peakList.getRawDataFiles()
-                                                    : new RawDataFile[]{clickedDataFile};
+            final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList
+                    .getRawDataFiles() : new RawDataFile[] { clickedDataFile };
 
             Range mzRange = null;
-            final ArrayList<ChromatographicPeak> allClickedPeaks =
-                    new ArrayList<ChromatographicPeak>(allClickedPeakListRows.length);
-            final ArrayList<ChromatographicPeak> selectedClickedPeaks =
-                    new ArrayList<ChromatographicPeak>(allClickedPeakListRows.length);
+            final ArrayList<ChromatographicPeak> allClickedPeaks = new ArrayList<ChromatographicPeak>(
+                    allClickedPeakListRows.length);
+            final ArrayList<ChromatographicPeak> selectedClickedPeaks = new ArrayList<ChromatographicPeak>(
+                    allClickedPeakListRows.length);
             for (final PeakListRow row : allClickedPeakListRows) {
 
                 // Label the peak with the row's preferred identity.
@@ -348,9 +370,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     .setupNewTICVisualizer(
                             MZmineCore.getCurrentProject().getDataFiles(),
                             selectedDataFiles,
-                            allClickedPeaks.toArray(new ChromatographicPeak[allClickedPeaks.size()]),
-                            selectedClickedPeaks.toArray(new ChromatographicPeak[selectedClickedPeaks.size()]),
-                            labelsMap,
+                            allClickedPeaks
+                                    .toArray(new ChromatographicPeak[allClickedPeaks
+                                            .size()]),
+                            selectedClickedPeaks
+                                    .toArray(new ChromatographicPeak[selectedClickedPeaks
+                                            .size()]), labelsMap,
                             selectedDataFiles[0].getDataRTRange(1), mzRange);
         }
 
@@ -360,7 +385,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             if (showPeak != null) {
 
                 TwoDVisualizerModule.show2DVisualizerSetupDialog(
-                        showPeak.getDataFile(), getPeakMZRange(showPeak), getPeakRTRange(showPeak));
+                        showPeak.getDataFile(), getPeakMZRange(showPeak),
+                        getPeakRTRange(showPeak));
             }
         }
 
@@ -369,15 +395,16 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final ChromatographicPeak showPeak = getSelectedPeak();
             if (showPeak != null) {
 
-                ThreeDVisualizerModule.setupNew3DVisualizer(showPeak.getDataFile(),
-                                                            getPeakMZRange(showPeak),
-                                                            getPeakRTRange(showPeak));
+                ThreeDVisualizerModule.setupNew3DVisualizer(
+                        showPeak.getDataFile(), getPeakMZRange(showPeak),
+                        getPeakRTRange(showPeak));
             }
         }
 
         if (manuallyDefineItem.equals(src)) {
 
-            ManualPeakPickerModule.runManualDetection(clickedDataFile, clickedPeakListRow);
+            ManualPeakPickerModule.runManualDetection(clickedDataFile,
+                    clickedPeakListRow);
         }
 
         if (showSpectrumItem.equals(src)) {
@@ -385,9 +412,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final ChromatographicPeak showPeak = getSelectedPeak();
             if (showPeak != null) {
 
-                SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(),
-                                                              showPeak.getRepresentativeScanNumber(),
-                                                              showPeak);
+                SpectraVisualizerModule.showNewSpectrumWindow(
+                        showPeak.getDataFile(),
+                        showPeak.getRepresentativeScanNumber(), showPeak);
             }
         }
 
@@ -396,14 +423,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             final ChromatographicPeak showPeak = getSelectedPeak();
             if (showPeak != null) {
 
-                final int scanNumber = showPeak.getMostIntenseFragmentScanNumber();
+                final int scanNumber = showPeak
+                        .getMostIntenseFragmentScanNumber();
                 if (scanNumber > 0) {
-                    SpectraVisualizerModule.showNewSpectrumWindow(showPeak.getDataFile(), scanNumber);
+                    SpectraVisualizerModule.showNewSpectrumWindow(
+                            showPeak.getDataFile(), scanNumber);
                 } else {
                     MZmineCore.getDesktop().displayMessage(
                             "There is no fragment for "
-                            + MZmineCore.getConfiguration().getMZFormat().format(showPeak.getMZ())
-                            + " m/z in the current raw data.");
+                                    + MZmineCore.getConfiguration()
+                                            .getMZFormat()
+                                            .format(showPeak.getMZ())
+                                    + " m/z in the current raw data.");
                 }
             }
         }
@@ -422,12 +453,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (formulaItem != null && formulaItem.equals(src)) {
 
-            FormulaPredictionModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+            FormulaPredictionModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);
         }
 
         if (dbSearchItem != null && dbSearchItem.equals(src)) {
 
-            OnlineDBSearchModule.showSingleRowIdentificationDialog(clickedPeakListRow);
+            OnlineDBSearchModule
+                    .showSingleRowIdentificationDialog(clickedPeakListRow);
         }
 
         if (nistSearchItem != null && nistSearchItem.equals(src)) {
@@ -448,9 +481,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             // create a new row
             final PeakListRow newRow = new SimplePeakListRow(newID);
             peakList.addRow(newRow);
-            final PeakListTableModel tableModel = (PeakListTableModel) table.getModel();
+            final PeakListTableModel tableModel = (PeakListTableModel) table
+                    .getModel();
             tableModel.fireTableDataChanged();
-            ManualPeakPickerModule.runManualDetection(peakList.getRawDataFiles(), newRow);
+            ManualPeakPickerModule.runManualDetection(
+                    peakList.getRawDataFiles(), newRow);
 
             // Notify the GUI that peaklist contents have changed
             MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
@@ -458,7 +493,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (showPeakRowSummaryItem.equals(src)) {
 
-            PeakSummaryVisualizerModule.showNewPeakSummaryWindow(clickedPeakListRow);
+            PeakSummaryVisualizerModule
+                    .showNewPeakSummaryWindow(clickedPeakListRow);
         }
 
         if (exportIsotopesItem.equals(src)) {
@@ -488,7 +524,8 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
         if (copyIdsItem.equals(src) && allClickedPeakListRows.length > 0) {
 
-            final PeakIdentity id = allClickedPeakListRows[0].getPreferredPeakIdentity();
+            final PeakIdentity id = allClickedPeakListRows[0]
+                    .getPreferredPeakIdentity();
             if (id != null) {
 
                 copiedId = (PeakIdentity) id.clone();
@@ -518,35 +555,47 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
     /**
      * Get a peak's m/z range.
-     *
-     * @param peak the peak.
+     * 
+     * @param peak
+     *            the peak.
      * @return The peak's m/z range.
      */
     private static Range getPeakMZRange(final ChromatographicPeak peak) {
 
-        final Range range = peak.getRawDataPointsMZRange();
-        return new Range(Math.max(0.0, range.getMin() - range.getSize()), range.getMax() + range.getSize());
+        final Range peakMZRange = peak.getRawDataPointsMZRange();
+
+        // By default, open the visualizer with the m/z range of
+        // "peak_width x 2", but no smaller than 0.01 m/z, because with smaller
+        // ranges VisAD tends to show nasty anti-aliasing artifacts
+        final double minRangeWidth = Math.max(0.01, peakMZRange.getSize() * 2);
+        double mzMin = peakMZRange.getAverage() - (minRangeWidth / 2);
+        if (mzMin < 0) mzMin = 0;
+        double mzMax = peakMZRange.getAverage() + (minRangeWidth / 2);
+        return new Range(mzMin, mzMax);
     }
 
     /**
      * Get a peak's RT range.
-     *
-     * @param peak the peak.
+     * 
+     * @param peak
+     *            the peak.
      * @return The peak's RT range.
      */
     private static Range getPeakRTRange(final ChromatographicPeak peak) {
 
         final Range range = peak.getRawDataPointsRTRange();
-        return new Range(Math.max(0.0, range.getMin() - range.getSize()), range.getMax() + range.getSize());
+        return new Range(Math.max(0.0, range.getMin() - range.getSize()),
+                range.getMax() + range.getSize());
     }
 
     /**
      * Get the selected peak.
-     *
+     * 
      * @return the peak.
      */
     private ChromatographicPeak getSelectedPeak() {
 
-        return clickedDataFile != null ? clickedPeakListRow.getPeak(clickedDataFile) : clickedPeakListRow.getBestPeak();
+        return clickedDataFile != null ? clickedPeakListRow
+                .getPeak(clickedDataFile) : clickedPeakListRow.getBestPeak();
     }
 }
