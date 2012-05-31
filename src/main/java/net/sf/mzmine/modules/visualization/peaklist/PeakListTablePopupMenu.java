@@ -565,11 +565,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         final Range peakMZRange = peak.getRawDataPointsMZRange();
 
         // By default, open the visualizer with the m/z range of
-        // "peak_width x 2", but no smaller than 0.01 m/z, because with smaller
-        // ranges VisAD tends to show nasty anti-aliasing artifacts
-        final double minRangeWidth = Math.max(0.01, peakMZRange.getSize() * 2);
+        // "peak_width x 2", but no smaller than 0.1 m/z, because with smaller
+        // ranges VisAD tends to show nasty anti-aliasing artifacts.
+        // For example of such artifacts, set mzMin = 440.27, mzMax = 440.28 and
+        // mzResolution = 500
+        final double minRangeWidth = Math.max(0.1, peakMZRange.getSize() * 2);
         double mzMin = peakMZRange.getAverage() - (minRangeWidth / 2);
-        if (mzMin < 0) mzMin = 0;
+        if (mzMin < 0)
+            mzMin = 0;
         double mzMax = peakMZRange.getAverage() + (minRangeWidth / 2);
         return new Range(mzMin, mzMax);
     }
