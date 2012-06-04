@@ -99,10 +99,6 @@ public class SingleRowIdentificationTask extends AbstractTask {
         isotopeFilterParameters = parameters.getParameter(ISOTOPE_FILTER)
                 .getEmbeddedParameters();
 
-        // If there is no isotope pattern, we cannot use the isotope filter
-        if (peakListRow.getBestIsotopePattern() == null)
-            isotopeFilter = false;
-
     }
 
     /**
