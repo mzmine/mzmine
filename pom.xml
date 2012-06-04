@@ -65,7 +65,12 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- CDK repository -->
+			<!-- Temporary, until jmol is propagated to Maven Central -->
+			<id>sonatype</id>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<!-- CDK & JChemPaint repository -->
 			<id>ambit-plovdiv-thirdparty</id>
 			<url>http://ambit.uni-plovdiv.bg:8083/nexus/content/repositories/thirdparty</url>
 		</repository>
@@ -108,7 +113,7 @@
 		<dependency>
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.5.4</version>
+			<version>7.5.5</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -151,6 +156,11 @@
 			<version>3.6.7</version>
 		</dependency>
 		<dependency>
+			<groupId>net.sourceforge.jmol</groupId>
+			<artifactId>jmol</artifactId>
+			<version>12.2.28</version>
+		</dependency>
+		<dependency>
 			<groupId>org.mitre.bio.phylo</groupId>
 			<artifactId>treeviewj</artifactId>
 			<version>1.1.0</version>
@@ -172,7 +182,7 @@
 		<dependency>
 			<groupId>com.compomics</groupId>
 			<artifactId>ms-lims</artifactId>
-			<version>7.7.4</version>
+			<version>7.7.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>lennart</groupId>
@@ -268,11 +278,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
-			<artifactId>cdk-extra</artifactId>
-			<version>${cdk.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-data</artifactId>
 			<version>${cdk.version}</version>
 		</dependency>
@@ -286,7 +291,7 @@
 			<artifactId>cdk-sdg</artifactId>
 			<version>${cdk.version}</version>
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-renderbasic</artifactId>
 			<version>${cdk.version}</version>
@@ -392,11 +397,6 @@
 
 		<!-- Start of jars included with MZmine (internal repository) -->
 
-		<dependency>
-			<groupId>mzmine</groupId>
-			<artifactId>Jmol</artifactId>
-			<version>12.2.24</version>
-		</dependency>
 		<dependency>
 			<groupId>soap-apis</groupId>
 			<artifactId>metlin-api</artifactId>
