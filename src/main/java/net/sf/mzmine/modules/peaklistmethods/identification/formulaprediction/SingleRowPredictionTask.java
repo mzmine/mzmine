@@ -189,6 +189,13 @@ public class SingleRowPredictionTask extends AbstractTask {
         logger.finest("Starting search for formulas for " + massRange
                 + " Da, elements " + Arrays.toString(elementRules));
 
+        IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
+        if ((checkIsotopes) && (detectedPattern == null)) {
+            final String msg = "Cannot calculate isotope pattern scores, because selected"
+                    + " peak does not have any isotopes. Have you run the isotope peak grouper?";
+            MZmineCore.getDesktop().displayMessage(msg);
+        }
+
         generator = new FormulaGenerator(massRange, elementRules);
 
         while (true) {
