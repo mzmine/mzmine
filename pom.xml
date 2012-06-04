@@ -65,11 +65,6 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- Temporary, until jmol is propagated to Maven Central -->
-			<id>sonatype</id>
-			<url>https://oss.sonatype.org/content/repositories/releases/</url>
-		</repository>
-		<repository>
 			<!-- CDK & JChemPaint repository -->
 			<id>ambit-plovdiv-thirdparty</id>
 			<url>http://ambit.uni-plovdiv.bg:8083/nexus/content/repositories/thirdparty</url>
@@ -114,6 +109,12 @@
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
 			<version>7.5.5</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>truezip-swing</artifactId>
+					<groupId>de.schlichtherle.truezip</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -148,7 +149,7 @@
 		<dependency>
 			<groupId>types.checkers</groupId>
 			<artifactId>jsr308-all</artifactId>
-			<version>1.2.5</version>
+			<version>1.2.7</version>
 		</dependency>
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
@@ -252,6 +253,10 @@
 					<artifactId>rover</artifactId>
 					<groupId>com.compomics</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>commons-math</artifactId>
+					<groupId>commons-math</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -331,6 +336,26 @@
 			<groupId>uk.ac.ebi.pride.tools</groupId>
 			<artifactId>mzxml-parser</artifactId>
 			<version>1.3.3</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>
+						com.springsource.org.apache.commons.logging
+					</artifactId>
+					<groupId>org.apache.commons</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>
+						com.springsource.org.apache.commons.io
+					</artifactId>
+					<groupId>org.apache.commons</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>
+						com.springsource.org.apache.log4j
+					</artifactId>
+					<groupId>org.apache.log4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.pride.tools</groupId>
