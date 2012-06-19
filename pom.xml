@@ -257,6 +257,10 @@
 					<artifactId>commons-math</artifactId>
 					<groupId>commons-math</groupId>
 				</exclusion>
+				<exclusion>
+					<artifactId>jmzml</artifactId>
+					<groupId>uk.ac.ebi.jmzml</groupId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -366,6 +370,19 @@
 			<groupId>uk.ac.ebi.pride.tools</groupId>
 			<artifactId>mzml-wrapper</artifactId>
 			<version>1.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>jmzml</artifactId>
+					<groupId>uk.ac.ebi.jmzml</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency> <!-- We add jmzml 1.6.7 specifically, because the above-listed mzml-wrapper 
+				depends on version 1.6.6, which crashes when reading mzML files with missing 
+				"id" attribute in the <mzML> tag -->
+			<groupId>uk.ac.ebi.jmzml</groupId>
+			<artifactId>jmzml</artifactId>
+			<version>1.6.7</version>
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.pride.tools</groupId>
