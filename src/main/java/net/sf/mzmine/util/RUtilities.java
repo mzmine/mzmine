@@ -21,26 +21,28 @@
  * pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
  */
 
-package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
+package net.sf.mzmine.util;
+
+import java.util.logging.Logger;
 
 import org.rosuda.JRI.RMainLoopCallbacks;
 import org.rosuda.JRI.Rengine;
 
-import java.util.logging.Logger;
-
 /**
  * Utilities for interfacing with R.
- *
+ * 
  * @author $Author$
  * @version $Revision$
  */
 public class RUtilities {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(RUtilities.class.getName());
+    private static final Logger LOG = Logger.getLogger(RUtilities.class
+            .getName());
 
     /**
-     * R semaphore - all usage of R engine must be synchronized using this semaphore.
+     * R semaphore - all usage of R engine must be synchronized using this
+     * semaphore.
      */
     public static final Object R_SEMAPHORE = new Object();
 
@@ -56,7 +58,7 @@ public class RUtilities {
 
     /**
      * Gets the R Engine.
-     *
+     * 
      * @return the R Engine - creating it if necessary.
      */
     public static Rengine getREngine() {
@@ -65,18 +67,39 @@ public class RUtilities {
 
             if (rEngine == null) {
 
-                LOG.finest("Checking R Engine.");
-                if (!Rengine.versionCheck()) {
-                    throw new IllegalStateException("JRI version mismatch");
+                try {
+
+                    LOG.finest("Checking R Engine.");
+
+                    /*
+                     * For some reason if we run Rengine.versionCheck() and R is
+                     * not installed, it will crash the JVM. This was observed
+                     * at least on Windows and Mac OS X. However, if we call
+                     * System.loadLibrary("jri") before calling Rengine class,
+                     * the crash is avoided and we can catch the
+                     * UnsatisfiedLinkError properly.
+                     */
+                    System.loadLibrary("jri");
+
+                    if (!Rengine.versionCheck()) {
+                        throw new IllegalStateException("JRI version mismatch");
+                    }
+
+                } catch (UnsatisfiedLinkError error) {
+                    throw new IllegalStateException(
+                            "Could not start R. Please check if R is installed and path to the "
+                                    + "libraries is set properly in the startMZmine script.");
                 }
 
                 LOG.finest("Creating R Engine.");
-                rEngine = new Rengine(new String[]{"--vanilla"}, false, new LoggerConsole());
+                rEngine = new Rengine(new String[] { "--vanilla" }, false,
+                        new LoggerConsole());
 
                 LOG.finest("Rengine created, waiting for R.");
                 if (!rEngine.waitForR()) {
                     throw new IllegalStateException("Could not start R");
                 }
+
             }
             return rEngine;
         }
@@ -87,7 +110,8 @@ public class RUtilities {
      */
     private static class LoggerConsole implements RMainLoopCallbacks {
         @Override
-        public void rWriteConsole(final Rengine re, final String text, final int oType) {
+        public void rWriteConsole(final Rengine re, final String text,
+                final int oType) {
             LOG.finest(text);
         }
 
@@ -97,7 +121,8 @@ public class RUtilities {
         }
 
         @Override
-        public String rReadConsole(final Rengine re, final String prompt, final int addToHistory) {
+        public String rReadConsole(final Rengine re, final String prompt,
+                final int addToHistory) {
             return null;
         }
 

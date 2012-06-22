@@ -31,12 +31,12 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RUtilities;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.RUtilities;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
@@ -128,8 +128,9 @@ public class HeatMapTask extends AbstractTask {
 			rEngine = RUtilities.getREngine();
 		} catch (Throwable t) {
 			setStatus(TaskStatus.ERROR);
-			errorMessage = "Heat map requires R but it couldn't be loaded ("
+			errorMessage = "Heat map requires R but it could not be loaded ("
 					+ t.getMessage() + ')';
+			return;
 		}
 
 		finishedPercentage = 0.3f;
