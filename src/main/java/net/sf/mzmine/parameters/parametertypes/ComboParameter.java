@@ -138,6 +138,11 @@ public class ComboParameter<ValueType> implements
 	}
 
 	@Override
+	public String toString() {
+	    return name;
+	}
+	
+	@Override
 	public boolean checkValue(Collection<String> errorMessages) {
 		if (value == null) {
 			errorMessages.add(name + " is not set properly");

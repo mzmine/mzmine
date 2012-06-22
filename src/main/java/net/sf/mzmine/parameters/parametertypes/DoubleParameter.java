@@ -52,29 +52,25 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 
     public DoubleParameter(final String aName, final String aDescription) {
 
-        this(aName, aDescription, NumberFormat.getNumberInstance(), null, null, null);
+        this(aName, aDescription, NumberFormat.getNumberInstance(), null, null,
+                null);
     }
 
-    public DoubleParameter(final String aName,
-                           final String aDescription,
-                           final NumberFormat numberFormat) {
+    public DoubleParameter(final String aName, final String aDescription,
+            final NumberFormat numberFormat) {
 
         this(aName, aDescription, numberFormat, null, null, null);
     }
 
-    public DoubleParameter(final String aName,
-                           final String aDescription,
-                           final NumberFormat numberFormat,
-                           final Double defaultValue) {
+    public DoubleParameter(final String aName, final String aDescription,
+            final NumberFormat numberFormat, final Double defaultValue) {
 
         this(aName, aDescription, numberFormat, defaultValue, null, null);
     }
 
-    public DoubleParameter(final String aName,
-                           final String aDescription,
-                           final NumberFormat numberFormat,
-                           final Double defaultValue,
-                           final Double min, final Double max) {
+    public DoubleParameter(final String aName, final String aDescription,
+            final NumberFormat numberFormat, final Double defaultValue,
+            final Double min, final Double max) {
         name = aName;
         description = aDescription;
         format = numberFormat;
@@ -93,7 +89,8 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     public JTextField createEditingComponent() {
 
         final JTextField textField = new JTextField();
-        textField.setPreferredSize(new Dimension(WIDTH, textField.getPreferredSize().height));
+        textField.setPreferredSize(new Dimension(WIDTH, textField
+                .getPreferredSize().height));
 
         // Add an input verifier if any bounds are specified.
         if (minimum != null || maximum != null) {
@@ -110,8 +107,7 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
         try {
 
             value = format.parse(component.getText()).doubleValue();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
 
             value = null;
         }
@@ -126,12 +122,13 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     @Override
     public DoubleParameter cloneParameter() {
 
-        return new DoubleParameter(name, description, format, value, minimum, maximum);
+        return new DoubleParameter(name, description, format, value, minimum,
+                maximum);
     }
 
     @Override
     public void setValueToComponent(final JTextField component,
-                                    final Double newValue) {
+            final Double newValue) {
 
         component.setText(format.format(newValue));
     }
@@ -168,6 +165,11 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
     }
 
     @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
         final boolean check;
@@ -178,7 +180,8 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 
         } else if (!checkBounds(value)) {
 
-            errorMessages.add(name + " lies outside its bounds: (" + minimum + " ... " + maximum + ')');
+            errorMessages.add(name + " lies outside its bounds: (" + minimum
+                    + " ... " + maximum + ')');
             check = false;
 
         } else {
@@ -191,7 +194,8 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 
     private boolean checkBounds(final double number) {
 
-        return (minimum == null || number >= minimum) && (maximum == null || number <= maximum);
+        return (minimum == null || number >= minimum)
+                && (maximum == null || number <= maximum);
     }
 
     /**
@@ -219,9 +223,9 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
             boolean verified = false;
             try {
 
-                verified = checkBounds(format.parse(((JTextComponent) input).getText()).doubleValue());
-            }
-            catch (ParseException e) {
+                verified = checkBounds(format.parse(
+                        ((JTextComponent) input).getText()).doubleValue());
+            } catch (ParseException e) {
 
                 // Not a number.
             }
