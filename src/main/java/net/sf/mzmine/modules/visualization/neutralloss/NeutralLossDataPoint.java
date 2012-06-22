@@ -80,7 +80,7 @@ class NeutralLossDataPoint {
         sb.append(", m/z ");
         sb.append(mzFormat.format(precursorMZ));
         if (precursorCharge > 0)
-            sb.append(" (chrg " + precursorCharge + ")");
+            sb.append(" (charge " + precursorCharge + ")");
         label = sb.toString();
 
     }

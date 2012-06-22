@@ -45,8 +45,7 @@ class NeutralLossToolBar extends JToolBar {
         setBackground(Color.white);
 
         GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "HIGHLIGHT",
-                "Highlight selected precursor mass range");
+                "HIGHLIGHT", "Highlight selected precursor mass range");
 
     }
 

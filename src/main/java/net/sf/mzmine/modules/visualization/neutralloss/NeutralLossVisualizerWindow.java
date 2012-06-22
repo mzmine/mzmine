@@ -38,115 +38,111 @@ import net.sf.mzmine.util.Range;
  * Neutral loss visualizer using JFreeChart library
  */
 public class NeutralLossVisualizerWindow extends JInternalFrame implements
-		ActionListener {
+        ActionListener {
 
-	private NeutralLossToolBar toolBar;
-	private NeutralLossPlot neutralLossPlot;
+    private NeutralLossToolBar toolBar;
+    private NeutralLossPlot neutralLossPlot;
 
-	private NeutralLossDataSet dataset;
+    private NeutralLossDataSet dataset;
 
-	private RawDataFile dataFile;
+    private RawDataFile dataFile;
 
-	public NeutralLossVisualizerWindow(RawDataFile dataFile,
-			ParameterSet parameters) {
+    public NeutralLossVisualizerWindow(RawDataFile dataFile,
+            ParameterSet parameters) {
 
-		super(dataFile.getName(), true, true, true, true);
+        super(dataFile.getName(), true, true, true, true);
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setBackground(Color.white);
 
-		this.dataFile = dataFile;
+        this.dataFile = dataFile;
 
-		// Retrieve parameter's values
-		Range rtRange = parameters.getParameter(
-				NeutralLossParameters.retentionTimeRange).getValue();
-		Range mzRange = parameters.getParameter(NeutralLossParameters.mzRange)
-				.getValue();
-		int numOfFragments = parameters.getParameter(
-				NeutralLossParameters.numOfFragments).getValue();
+        // Retrieve parameter's values
+        Range rtRange = parameters.getParameter(
+                NeutralLossParameters.retentionTimeRange).getValue();
+        Range mzRange = parameters.getParameter(NeutralLossParameters.mzRange)
+                .getValue();
+        int numOfFragments = parameters.getParameter(
+                NeutralLossParameters.numOfFragments).getValue();
 
-		Object xAxisType = parameters.getParameter(
-				NeutralLossParameters.xAxisType).getValue();
+        Object xAxisType = parameters.getParameter(
+                NeutralLossParameters.xAxisType).getValue();
 
-		// Set window components
-		dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
-				numOfFragments, this);
+        // Set window components
+        dataset = new NeutralLossDataSet(dataFile, xAxisType, rtRange, mzRange,
+                numOfFragments, this);
 
-		neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
-		add(neutralLossPlot, BorderLayout.CENTER);
+        neutralLossPlot = new NeutralLossPlot(this, dataset, xAxisType);
+        add(neutralLossPlot, BorderLayout.CENTER);
 
-		toolBar = new NeutralLossToolBar(this);
-		add(toolBar, BorderLayout.EAST);
+        toolBar = new NeutralLossToolBar(this);
+        add(toolBar, BorderLayout.EAST);
 
-		MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
+        MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
-		updateTitle();
+        updateTitle();
 
-		pack();
+        pack();
 
-	}
+    }
 
-	void updateTitle() {
+    void updateTitle() {
 
-		StringBuffer title = new StringBuffer();
-		title.append("[");
-		title.append(dataFile.getName());
-		title.append("]: neutral loss");
+        StringBuffer title = new StringBuffer();
+        title.append("[");
+        title.append(dataFile.getName());
+        title.append("]: neutral loss");
 
-		setTitle(title.toString());
+        setTitle(title.toString());
 
-		NeutralLossDataPoint pos = getCursorPosition();
+        NeutralLossDataPoint pos = getCursorPosition();
 
-		if (pos != null) {
-			title.append(", ");
-			title.append(pos.getName());
-		}
+        if (pos != null) {
+            title.append(", ");
+            title.append(pos.getName());
+        }
 
-		neutralLossPlot.setTitle(title.toString());
+        neutralLossPlot.setTitle(title.toString());
 
-	}
+    }
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent event) {
-
-		String command = event.getActionCommand();
-
-		if (command.equals("HIGHLIGHT_PRECURSOR")
-				|| command.equals("HIGHLIGHT_NEUTRALLOSS")) {
-			JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot,
-					command);
-			dialog.setVisible(true);
-		}
-
-		if (command.equals("SHOW_SPECTRUM")) {
-			NeutralLossDataPoint pos = getCursorPosition();
-			if (pos != null) {
-				SpectraVisualizerModule.showNewSpectrumWindow(dataFile,
-						pos.getScanNumber());
-			}
-		}
-
-	}
-
-	/**
-     * 
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
-	public NeutralLossDataPoint getCursorPosition() {
-		double xValue = (double) neutralLossPlot.getXYPlot()
-				.getDomainCrosshairValue();
-		double yValue = (double) neutralLossPlot.getXYPlot()
-				.getRangeCrosshairValue();
+    public void actionPerformed(ActionEvent event) {
 
-		NeutralLossDataPoint point = dataset.getDataPoint(xValue, yValue);
+        String command = event.getActionCommand();
 
-		return point;
+        if (command.equals("HIGHLIGHT")) {
+            JDialog dialog = new NeutralLossSetHighlightDialog(neutralLossPlot,
+                    command);
+            dialog.setVisible(true);
+        }
 
-	}
+        if (command.equals("SHOW_SPECTRUM")) {
+            NeutralLossDataPoint pos = getCursorPosition();
+            if (pos != null) {
+                SpectraVisualizerModule.showNewSpectrumWindow(dataFile,
+                        pos.getScanNumber());
+            }
+        }
 
-	NeutralLossPlot getPlot() {
-		return neutralLossPlot;
-	}
+    }
+
+    public NeutralLossDataPoint getCursorPosition() {
+        double xValue = (double) neutralLossPlot.getXYPlot()
+                .getDomainCrosshairValue();
+        double yValue = (double) neutralLossPlot.getXYPlot()
+                .getRangeCrosshairValue();
+
+        NeutralLossDataPoint point = dataset.getDataPoint(xValue, yValue);
+
+        return point;
+
+    }
+
+    NeutralLossPlot getPlot() {
+        return neutralLossPlot;
+    }
 
 }

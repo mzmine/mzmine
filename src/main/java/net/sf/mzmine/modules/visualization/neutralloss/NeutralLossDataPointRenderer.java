@@ -35,36 +35,35 @@ import org.jfree.data.xy.XYDataset;
  * Renderer which highlights selected points
  */
 class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
-	
-	private AlphaComposite alphaComp, alphaCompOriginal;
 
-	public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {
-		super(lines, shapes);
-	}
+    private AlphaComposite alphaComp, alphaCompOriginal;
 
-	public void setTransparency(float transparency) {
-		if ((transparency > 1.0) || (transparency < 0))
-			transparency = 1.0f;
-		int type = AlphaComposite.SRC_OVER;
-		alphaComp = (AlphaComposite.getInstance(type, transparency));
-		alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
-	}
+    public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {
+        super(lines, shapes);
+    }
 
-	public void drawItem(Graphics2D g2, XYItemRendererState state,
-			Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-			ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-			int series, int item, CrosshairState crosshairState, int pass) {
+    public void setTransparency(float transparency) {
+        if ((transparency > 1.0) || (transparency < 0))
+            transparency = 1.0f;
+        int type = AlphaComposite.SRC_OVER;
+        alphaComp = (AlphaComposite.getInstance(type, transparency));
+        alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
+    }
 
-		if (series > 0) {
-			g2.setComposite(alphaComp);
-		} else if (series == 0) {
-			g2.setComposite(alphaCompOriginal);
-		}
+    public void drawItem(Graphics2D g2, XYItemRendererState state,
+            Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
+            ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
+            int series, int item, CrosshairState crosshairState, int pass) {
 
-		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-				dataset, series, item, crosshairState, pass);
+        if (series > 0) {
+            g2.setComposite(alphaComp);
+        } else if (series == 0) {
+            g2.setComposite(alphaCompOriginal);
+        }
 
-	}
+        super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+                dataset, series, item, crosshairState, pass);
 
+    }
 
 }

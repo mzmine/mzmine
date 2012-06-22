@@ -57,27 +57,27 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
     private JFormattedTextField fieldMinMZ, fieldMaxMZ;
 
     private Desktop desktop;
-    
+
     private String rangeType;
-    
+
     private NeutralLossPlot plot;
 
     public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
         // Make dialog modal
         super(MZmineCore.getDesktop().getMainFrame(), "", true);
-        
+
         this.desktop = MZmineCore.getDesktop();
         this.plot = plot;
         this.rangeType = command;
-        
+
         String title = "Highlight ";
         if (command.equals("HIGHLIGHT_PRECURSOR"))
-        	title += "precursor m/z range";
+            title += "precursor m/z range";
         else if (command.equals("HIGHLIGHT_NEUTRALLOSS"))
-        	title += "neutral loss m/z range";
+            title += "neutral loss m/z range";
         setTitle(title);
-        
+
         GridBagConstraints constraints = new GridBagConstraints();
 
         // set default layout constraints
@@ -102,14 +102,11 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
         constraints.weightx = 1;
         fieldMinMZ = new JFormattedTextField(format);
-        fieldMinMZ.setPreferredSize(new Dimension(50, fieldMinMZ.getPreferredSize().height));
+        fieldMinMZ.setPreferredSize(new Dimension(50, fieldMinMZ
+                .getPreferredSize().height));
         constraints.gridx = 1;
         components.add(fieldMinMZ, constraints);
         constraints.weightx = 0;
-
-        comp = GUIUtils.addLabel(components, "m/q (Th)");
-        constraints.gridx = 2;
-        layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addLabel(components, "Maximum m/z");
         constraints.gridx = 0;
@@ -121,10 +118,6 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
         constraints.gridx = 1;
         components.add(fieldMaxMZ, constraints);
         constraints.weightx = 0;
-
-        comp = GUIUtils.addLabel(components, "m/q (Th)");
-        constraints.gridx = 2;
-        layout.setConstraints(comp, constraints);
 
         comp = GUIUtils.addSeparator(components, PADDING_SIZE);
         constraints.gridx = 0;
@@ -174,22 +167,24 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
                 Range range = new Range(mzMin, mzMax);
                 if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
-                	plot.setHighlightedPrecursorRange(range);
+                    plot.setHighlightedPrecursorRange(range);
                 else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))
-                	plot.setHighlightedNeutralLossRange(range);
+                    plot.setHighlightedNeutralLossRange(range);
                 logger.info("Updating Neutral loss plot window");
-                
-                NeutralLossDataSet  dataSet = (NeutralLossDataSet) plot.getXYPlot().getDataset();
+
+                NeutralLossDataSet dataSet = (NeutralLossDataSet) plot
+                        .getXYPlot().getDataset();
                 dataSet.updateOnRangeDataPoints(rangeType);
-    			plot.getXYPlot().datasetChanged(
-    					new DatasetChangeEvent(plot, dataSet));
+                plot.getXYPlot().datasetChanged(
+                        new DatasetChangeEvent(plot, dataSet));
 
                 dispose();
 
             } catch (IllegalArgumentException iae) {
                 desktop.displayErrorMessage(iae.getMessage());
-            } catch (Exception e){
-                logger.log(Level.FINE, "Error while setting highlighted range",e);
+            } catch (Exception e) {
+                logger.log(Level.FINE, "Error while setting highlighted range",
+                        e);
             }
         }
 
