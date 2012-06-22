@@ -29,26 +29,32 @@ import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
-			"Common columns", "Visible common columns",
-			CommonColumnType.values());
+    public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
+            "Common columns", "Visible common columns",
+            CommonColumnType.values());
 
-	public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns = new ColumnSettingParameter<DataFileColumnType>(
-			"Data file columns", "Visible common columns",
-			DataFileColumnType.values());
+    public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns = new ColumnSettingParameter<DataFileColumnType>(
+            "Data file columns", "Visible common columns",
+            DataFileColumnType.values());
 
-	public static final IntegerParameter rowHeight = new IntegerParameter(
-			"Row height", "Row height", 30);
+    public static final IntegerParameter rowHeight = new IntegerParameter(
+            "Row height", "Row height", 30);
 
-	public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization = new ComboParameter<PeakShapeNormalization>(
-			"Peak shape normalization", "Peak shape normalization",
-			PeakShapeNormalization.values());
+    public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization = new ComboParameter<PeakShapeNormalization>(
+            "Peak shape normalization", "Peak shape normalization",
+            PeakShapeNormalization.values());
 
-	public PeakListTableParameters() {
-		super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
-				rowHeight, peakShapeNormalization });
-	}
+    public PeakListTableParameters() {
+        super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
+                rowHeight, peakShapeNormalization });
+
+        // Set the default settings for data file columns
+        DataFileColumnType[] defaultColumns = new DataFileColumnType[] {
+                DataFileColumnType.STATUS, DataFileColumnType.HEIGHT,
+                DataFileColumnType.AREA };
+        getParameter(dataFileColumns).setValue(defaultColumns);
+    }
 
 }
