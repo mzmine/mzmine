@@ -30,8 +30,7 @@ JRI_LIB_PATH=${R_HOME}/library/rJava/jri
 JAVA_COMMAND=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java
 
 # It is not necessary to modify the following section
-LOGGING_CONFIG_FILE=conf/logging.properties
-JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY $USE_64_BIT -Dapple.laf.useScreenMenuBar=true -Djava.util.logging.config.file=$LOGGING_CONFIG_FILE -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
+JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY $USE_64_BIT -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
 CLASS_PATH=lib/${project.artifactId}-${project.version}.jar
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 

@@ -30,8 +30,7 @@ rem path to the java command of that JVM
 set JAVA_COMMAND=java
 
 rem It is not necessary to modify the following section
-set LOGGING_CONFIG_FILE=conf/logging.properties
-set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Djava.util.logging.config.file=%LOGGING_CONFIG_FILE% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m -Djava.library.path="%JRI_LIB_PATH%"
+set JAVA_PARAMETERS=-XX:+UseParallelGC -Djava.io.tmpdir=%TMP_FILE_DIRECTORY% -Xms%HEAP_SIZE%m -Xmx%HEAP_SIZE%m -Djava.library.path="%JRI_LIB_PATH%"
 set CLASS_PATH=lib\${project.artifactId}-${project.version}.jar
 set MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
