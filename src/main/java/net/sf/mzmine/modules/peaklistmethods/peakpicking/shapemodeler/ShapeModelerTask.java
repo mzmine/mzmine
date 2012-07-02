@@ -96,7 +96,7 @@ class ShapeModelerTask extends AbstractTask {
 		setStatus(TaskStatus.PROCESSING);
 
 		Class shapeModelClass = shapeModelerType.getModelClass();
-		Constructor shapeModelConstruct;
+		Constructor<?> shapeModelConstruct;
 		shapeModelConstruct = shapeModelClass.getConstructors()[0];
 
 		// Get data file information

@@ -23,6 +23,8 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakIdentity;
 
 /**
@@ -91,7 +93,7 @@ public class SimplePeakIdentity implements PeakIdentity {
     }
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 
         return properties.get(PROPERTY_NAME);
     }
@@ -102,7 +104,7 @@ public class SimplePeakIdentity implements PeakIdentity {
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 
         final StringBuilder description = new StringBuilder();
         for (final Entry<String, String> entry : properties.entrySet()) {
@@ -119,13 +121,13 @@ public class SimplePeakIdentity implements PeakIdentity {
     }
 
     @Override
-    public Map<String, String> getAllProperties() {
+    public @Nonnull Map<String, String> getAllProperties() {
 
         return new Hashtable<String, String>(properties);
     }
 
     @Override
-    public String getPropertyValue(final String property) {
+    public @Nonnull String getPropertyValue(final String property) {
 
         return properties.get(property);
     }
@@ -148,7 +150,7 @@ public class SimplePeakIdentity implements PeakIdentity {
      */
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized Object clone() {
+    public synchronized @Nonnull Object clone() {
         return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
     }
 }

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
@@ -33,7 +35,7 @@ public class ManualPeakPickerModule implements MZmineModule {
     /**
      * @see net.sf.mzmine.modules.MZmineProcessingModule#getName()
      */
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Manual peak detector";
     }
 
@@ -100,7 +102,7 @@ public class ManualPeakPickerModule implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ManualPickerParameters.class;
     }
 

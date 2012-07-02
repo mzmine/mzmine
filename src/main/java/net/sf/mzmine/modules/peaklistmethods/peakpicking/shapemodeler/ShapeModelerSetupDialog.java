@@ -205,8 +205,8 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 		double resolution = ((Number) resolutionField.getValue()).doubleValue();
 
 		try {
-			Class shapeModelClass = model.getModelClass();
-			Constructor shapeModelConstruct = shapeModelClass.getConstructors()[0];
+			Class<?> shapeModelClass = model.getModelClass();
+			Constructor<?> shapeModelConstruct = shapeModelClass.getConstructors()[0];
 
 			// shapePeakModel(ChromatographicPeak originalDetectedShape, int[]
 			// scanNumbers,

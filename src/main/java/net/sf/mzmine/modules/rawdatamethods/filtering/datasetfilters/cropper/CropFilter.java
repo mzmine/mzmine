@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
 
 import java.io.IOException;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -62,12 +64,12 @@ public class CropFilter implements RawDataSetFilter {
 	return (double) processedScans / totalScans;
     }
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Crop filter";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return CropFilterParameters.class;
     }
 }

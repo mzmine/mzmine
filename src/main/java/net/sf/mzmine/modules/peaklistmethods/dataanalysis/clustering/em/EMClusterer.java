@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -39,7 +41,7 @@ public class EMClusterer implements ClusteringAlgorithm {
     private static final String MODULE_NAME = "Density-based clusterer";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -76,7 +78,7 @@ public class EMClusterer implements ClusteringAlgorithm {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return EMClustererParameters.class;
     }
 }

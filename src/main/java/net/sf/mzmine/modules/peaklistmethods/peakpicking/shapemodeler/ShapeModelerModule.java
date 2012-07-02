@@ -36,12 +36,12 @@ public class ShapeModelerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module models the shape of the peak according to the detected data points.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -62,12 +62,12 @@ public class ShapeModelerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ShapeModelerParameters.class;
     }
 

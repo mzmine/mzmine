@@ -169,6 +169,7 @@ class SameRangeTask extends AbstractTask {
 		}
 
 		assert mzRange != null;
+		assert rtRange != null;
 
 		Range mzRangeWithTol = new Range(mzTolerance.getToleranceRange(mzRange));
 

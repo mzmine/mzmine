@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.data.impl;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.Scan;
@@ -39,12 +41,12 @@ public class SimpleMassList implements MassList {
 	}
 
 	@Override
-	public String getName() {
+	public @Nonnull String getName() {
 		return name;
 	}
 
 	@Override
-	public Scan getScan() {
+	public @Nonnull Scan getScan() {
 		return scan;
 	}
 	
@@ -53,7 +55,7 @@ public class SimpleMassList implements MassList {
 	}
 
 	@Override
-	public DataPoint[] getDataPoints() {
+	public @Nonnull DataPoint[] getDataPoints() {
 		return mzPeaks;
 	}
 

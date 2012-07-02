@@ -35,12 +35,12 @@ public class JoinAlignerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method aligns detected peaks using a match score. This score is calculated based on the mass and retention time of each peak using preset tolerance.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -55,12 +55,12 @@ public class JoinAlignerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.ALIGNMENT;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return JoinAlignerParameters.class;
     }
 

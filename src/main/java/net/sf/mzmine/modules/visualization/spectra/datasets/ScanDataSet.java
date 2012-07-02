@@ -59,7 +59,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
     }
 
     @Override
-    public Comparable getSeriesKey(int series) {
+    public Comparable<?> getSeriesKey(int series) {
 	return label;
     }
 

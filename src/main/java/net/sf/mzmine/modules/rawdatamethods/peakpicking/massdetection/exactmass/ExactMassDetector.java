@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass
 import java.util.ArrayList;
 import java.util.TreeSet;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
@@ -233,12 +235,12 @@ public class ExactMassDetector implements MassDetector {
 	return exactMass;
     }
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Exact mass";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ExactMassDetectorParameters.class;
     }
 

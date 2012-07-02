@@ -40,12 +40,12 @@ public class RowsFilterModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method removes certain entries for a peak list based on given restrictions.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -68,12 +68,12 @@ public class RowsFilterModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTFILTERING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return RowsFilterParameters.class;
     }
 }

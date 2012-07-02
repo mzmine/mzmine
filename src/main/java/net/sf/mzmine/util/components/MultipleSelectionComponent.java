@@ -39,118 +39,120 @@ import net.sf.mzmine.util.GUIUtils;
 /**
  * Component with multiple checkboxes in a list
  */
-public class MultipleSelectionComponent extends JPanel implements ActionListener {
+public class MultipleSelectionComponent extends JPanel implements
+	ActionListener {
 
-	private ExtendedCheckBox<Object> checkBoxes[];
-	
-	private JButton selectAllButton, selectNoneButton;
+    private ExtendedCheckBox<Object> checkBoxes[];
 
-	@SuppressWarnings("unchecked")
-	public MultipleSelectionComponent(Object multipleValues[]) {
+    private JButton selectAllButton, selectNoneButton;
 
-		super(new BorderLayout());
+    @SuppressWarnings("unchecked")
+    public MultipleSelectionComponent(Object multipleValues[]) {
 
-		assert multipleValues != null;
+	super(new BorderLayout());
 
-		JPanel checkBoxesPanel = new JPanel();
-		checkBoxesPanel.setBackground(Color.white);
-		checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
-				BoxLayout.Y_AXIS));
+	assert multipleValues != null;
 
-		int vertSize = 0, numCheckBoxes = 0, horSize = 0, widthSize = 0;
+	JPanel checkBoxesPanel = new JPanel();
+	checkBoxesPanel.setBackground(Color.white);
+	checkBoxesPanel.setLayout(new BoxLayout(checkBoxesPanel,
+		BoxLayout.Y_AXIS));
 
-		checkBoxes = new ExtendedCheckBox[multipleValues.length];
+	int vertSize = 0, numCheckBoxes = 0, horSize = 0, widthSize = 0;
 
-		for (int i = 0; i < multipleValues.length; i++) {
+	checkBoxes = new ExtendedCheckBox[multipleValues.length];
 
-			checkBoxes[i] = new ExtendedCheckBox<Object>(multipleValues[i],
-					false);
-			checkBoxes[i].setAlignmentX(Component.LEFT_ALIGNMENT);
-			checkBoxesPanel.add(checkBoxes[i]);
+	for (int i = 0; i < multipleValues.length; i++) {
 
-			if (numCheckBoxes < 7)
-				vertSize += (int) checkBoxes[i].getPreferredSize().getHeight() + 2;
+	    checkBoxes[i] = new ExtendedCheckBox<Object>(multipleValues[i],
+		    false);
+	    checkBoxes[i].setAlignmentX(Component.LEFT_ALIGNMENT);
+	    checkBoxesPanel.add(checkBoxes[i]);
 
-			widthSize = (int) checkBoxes[i].getPreferredSize().getWidth();
-			if (horSize < widthSize)
-				horSize = widthSize;
+	    if (numCheckBoxes < 7)
+		vertSize += (int) checkBoxes[i].getPreferredSize().getHeight() + 2;
 
-			numCheckBoxes++;
-		}
+	    widthSize = (int) checkBoxes[i].getPreferredSize().getWidth();
+	    if (horSize < widthSize)
+		horSize = widthSize;
 
-		if (numCheckBoxes < 3)
-			vertSize += 30;
-
-		JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		
-		scrollPane.setPreferredSize(new Dimension(horSize, vertSize));
-		
-		add(scrollPane, BorderLayout.CENTER);
-		
-		JPanel buttonsPanel = new JPanel();
-		BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
-		buttonsPanel.setLayout(buttonsLayout);
-		selectAllButton = GUIUtils.addButton(buttonsPanel, "All", null, this);
-		buttonsPanel.add(Box.createVerticalStrut(3));
-		selectNoneButton = GUIUtils.addButton(buttonsPanel, "Clear", null, this);
-		add(buttonsPanel, BorderLayout.EAST);
-
+	    numCheckBoxes++;
 	}
 
-	public void addActionListener(ActionListener listener) {
-		for (ExtendedCheckBox ecb : checkBoxes)
-			ecb.addActionListener(listener);
+	if (numCheckBoxes < 3)
+	    vertSize += 30;
+
+	JScrollPane scrollPane = new JScrollPane(checkBoxesPanel,
+		ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+		ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+	scrollPane.setPreferredSize(new Dimension(horSize, vertSize));
+
+	add(scrollPane, BorderLayout.CENTER);
+
+	JPanel buttonsPanel = new JPanel();
+	BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
+	buttonsPanel.setLayout(buttonsLayout);
+	selectAllButton = GUIUtils.addButton(buttonsPanel, "All", null, this);
+	buttonsPanel.add(Box.createVerticalStrut(3));
+	selectNoneButton = GUIUtils
+		.addButton(buttonsPanel, "Clear", null, this);
+	add(buttonsPanel, BorderLayout.EAST);
+
+    }
+
+    public void addActionListener(ActionListener listener) {
+	for (ExtendedCheckBox<?> ecb : checkBoxes)
+	    ecb.addActionListener(listener);
+    }
+
+    public void removeActionListener(ActionListener listener) {
+	for (ExtendedCheckBox<?> ecb : checkBoxes)
+	    ecb.removeActionListener(listener);
+    }
+
+    public Object[] getSelectedValues() {
+	ArrayList<Object> selectedObjects = new ArrayList<Object>();
+	for (ExtendedCheckBox<Object> ecb : checkBoxes) {
+	    if (ecb.isSelected()) {
+		selectedObjects.add(ecb.getObject());
+	    }
+	}
+	return selectedObjects.toArray(new Object[0]);
+    }
+
+    public void setSelectedValues(Object[] values) {
+
+	for (ExtendedCheckBox<Object> ecb : checkBoxes) {
+	    boolean isSelected = false;
+	    for (Object v : values) {
+
+		// We compare the identity of the objects, as well as their
+		// string representations, because when a project is saved, only
+		// string representation is saved to the configuration file
+		if ((v == ecb.getObject())
+			|| (v.toString().equals(ecb.getObject().toString())))
+		    isSelected = true;
+	    }
+	    ecb.setSelected(isSelected);
 	}
 
-	public void removeActionListener(ActionListener listener) {
-		for (ExtendedCheckBox ecb : checkBoxes)
-			ecb.removeActionListener(listener);
+    }
+
+    public void actionPerformed(ActionEvent event) {
+
+	Object src = event.getSource();
+
+	if (src == selectAllButton) {
+	    for (ExtendedCheckBox<?> ecb : checkBoxes)
+		ecb.setSelected(true);
 	}
 
-	public Object[] getSelectedValues() {
-		ArrayList<Object> selectedObjects = new ArrayList<Object>();
-		for (ExtendedCheckBox<Object> ecb : checkBoxes) {
-			if (ecb.isSelected()) {
-				selectedObjects.add(ecb.getObject());
-			}
-		}
-		return selectedObjects.toArray(new Object[0]);
+	if (src == selectNoneButton) {
+	    for (ExtendedCheckBox<?> ecb : checkBoxes)
+		ecb.setSelected(false);
 	}
 
-	public void setSelectedValues(Object[] values) {
-	
-		for (ExtendedCheckBox<Object> ecb : checkBoxes) {
-			boolean isSelected = false;
-			for (Object v : values) {
-
-				// We compare the identity of the objects, as well as their
-				// string representations, because when a project is saved, only
-				// string representation is saved to the configuration file
-				if ((v == ecb.getObject())
-						|| (v.toString().equals(ecb.getObject().toString())))
-					isSelected = true;
-			}
-			ecb.setSelected(isSelected);
-		}
-		
-	}
-
-	public void actionPerformed(ActionEvent event) {
-		
-		Object src = event.getSource();
-		
-		if (src == selectAllButton) {
-			for (ExtendedCheckBox ecb : checkBoxes)
-				ecb.setSelected(true);
-		}
-		
-		if (src == selectNoneButton) {
-			for (ExtendedCheckBox ecb : checkBoxes)
-				ecb.setSelected(false);
-		}
-		
-	}
+    }
 
 }

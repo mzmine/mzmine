@@ -36,12 +36,12 @@ public class RansacAlignerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "Peak list aligner based on the RANSAC algorithm.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -62,12 +62,12 @@ public class RansacAlignerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.ALIGNMENT;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return RansacAlignerParameters.class;
     }
 

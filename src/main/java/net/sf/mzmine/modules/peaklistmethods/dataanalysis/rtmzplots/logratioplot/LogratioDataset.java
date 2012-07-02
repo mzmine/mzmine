@@ -137,7 +137,7 @@ public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  
 	}
 
 	@Override
-	public Comparable getSeriesKey(int series) {
+	public Comparable<?> getSeriesKey(int series) {
 		if (series==0) return new Integer(1); else return null;
 	}
 

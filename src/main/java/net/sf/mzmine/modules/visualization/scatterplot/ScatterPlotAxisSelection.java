@@ -102,7 +102,7 @@ public class ScatterPlotAxisSelection {
 			if (!(parameter instanceof ComboParameter))
 				continue;
 
-			Object possibleValues[] = ((ComboParameter) parameter).getChoices();
+			Object possibleValues[] = ((ComboParameter<Object>) parameter).getChoices();
 			for (Object value : possibleValues) {
 				ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
 						parameter, value);

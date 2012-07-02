@@ -166,7 +166,7 @@ public class PCADataset extends AbstractXYDataset implements
 	}
 
 	@Override
-	public Comparable getSeriesKey(int series) {
+	public Comparable<Integer> getSeriesKey(int series) {
 		return 1;
 	}
 

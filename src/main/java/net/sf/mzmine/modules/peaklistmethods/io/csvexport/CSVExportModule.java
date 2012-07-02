@@ -35,12 +35,12 @@ public class CSVExportModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method exports the peak list contents into a CSV (comma-separated values) file.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -55,12 +55,12 @@ public class CSVExportModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTEXPORT;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return CSVExportParameters.class;
     }
 

@@ -35,12 +35,12 @@ public class XMLImportModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method imports a peak list from an XML file.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -55,12 +55,12 @@ public class XMLImportModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTEXPORT;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return XMLImportParameters.class;
     }
 

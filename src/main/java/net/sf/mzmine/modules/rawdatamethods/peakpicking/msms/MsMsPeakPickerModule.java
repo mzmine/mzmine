@@ -36,12 +36,12 @@ public class MsMsPeakPickerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module looks through the whole raw data for MS2 scans and makes a list of chromatographic peaks using the precursor mass.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -63,12 +63,12 @@ public class MsMsPeakPickerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKPICKING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return MsMsPeakPickerParameters.class;
     }
 

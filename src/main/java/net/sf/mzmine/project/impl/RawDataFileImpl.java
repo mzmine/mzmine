@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
@@ -149,14 +151,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getScan(int)
      */
-    public Scan getScan(int scanNumber) {
+    public @Nonnull
+    Scan getScan(int scanNumber) {
 	return scans.get(scanNumber);
     }
 
     /**
      * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int)
      */
-    public int[] getScanNumbers(int msLevel) {
+    public @Nonnull
+    int[] getScanNumbers(int msLevel) {
 	if (scanNumbersCache.containsKey(msLevel))
 	    return scanNumbersCache.get(msLevel);
 	int scanNumbers[] = getScanNumbers(msLevel, new Range(
@@ -168,7 +172,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getScanNumbers(int, double, double)
      */
-    public int[] getScanNumbers(int msLevel, Range rtRange) {
+    public @Nonnull
+    int[] getScanNumbers(int msLevel, @Nonnull Range rtRange) {
 
 	assert rtRange != null;
 
@@ -192,7 +197,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getScanNumbers()
      */
-    public int[] getScanNumbers() {
+    public @Nonnull
+    int[] getScanNumbers() {
 
 	if (scanNumbersCache.containsKey(0))
 	    return scanNumbersCache.get(0);
@@ -210,7 +216,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.data.RawDataFile#getMSLevels()
      */
-    public int[] getMSLevels() {
+    public @Nonnull
+    int[] getMSLevels() {
 
 	Set<Integer> msLevelsSet = new HashSet<Integer>();
 
@@ -416,11 +423,13 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	return this;
     }
 
-    public Range getDataMZRange() {
+    public @Nonnull
+    Range getDataMZRange() {
 	return getDataMZRange(0);
     }
 
-    public Range getDataMZRange(int msLevel) {
+    public @Nonnull
+    Range getDataMZRange(int msLevel) {
 
 	// check if we have this value already cached
 	Range mzRange = dataMZRange.get(msLevel);
@@ -444,16 +453,20 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	// cache the value, if we found any
 	if (mzRange != null)
 	    dataMZRange.put(msLevel, mzRange);
+	else
+	    mzRange = new Range(0);
 
 	return mzRange;
 
     }
 
-    public Range getDataRTRange() {
+    public @Nonnull
+    Range getDataRTRange() {
 	return getDataRTRange(0);
     }
 
-    public Range getDataRTRange(int msLevel) {
+    public @Nonnull
+    Range getDataRTRange(int msLevel) {
 
 	// check if we have this value already cached
 	Range rtRange = dataRTRange.get(msLevel);
@@ -477,6 +490,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	// cache the value
 	if (rtRange != null)
 	    dataRTRange.put(msLevel, rtRange);
+	else
+	    rtRange = new Range(0);
 
 	return rtRange;
 
@@ -512,11 +527,12 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	}
     }
 
-    public String getName() {
+    public @Nonnull
+    String getName() {
 	return dataFileName;
     }
 
-    public void setName(String name) {
+    public void setName(@Nonnull String name) {
 	this.dataFileName = name;
     }
 

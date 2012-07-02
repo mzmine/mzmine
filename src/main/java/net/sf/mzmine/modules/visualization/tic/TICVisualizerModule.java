@@ -44,12 +44,12 @@ public class TICVisualizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "TIC/XIC visualizer."; // TODO
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -102,7 +102,7 @@ public class TICVisualizerModule implements MZmineProcessingModule {
 	    }
 	}
 
-	return null;
+	return ExitCode.OK;
     }
 
     public static void setupNewTICVisualizer(final RawDataFile dataFile) {
@@ -171,12 +171,12 @@ public class TICVisualizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return TICVisualizerParameters.class;
     }
 }

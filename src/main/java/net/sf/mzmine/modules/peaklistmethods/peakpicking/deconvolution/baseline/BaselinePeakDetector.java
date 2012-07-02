@@ -26,6 +26,8 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ba
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
@@ -39,7 +41,7 @@ import net.sf.mzmine.util.Range;
  */
 public class BaselinePeakDetector implements PeakResolver {
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Baseline cut-off";
     }
 
@@ -112,7 +114,7 @@ public class BaselinePeakDetector implements PeakResolver {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return BaselinePeakDetectorParameters.class;
     }
 }

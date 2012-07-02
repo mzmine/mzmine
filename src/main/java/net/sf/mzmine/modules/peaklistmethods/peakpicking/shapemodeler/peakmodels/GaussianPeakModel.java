@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodel
 import java.util.Iterator;
 import java.util.TreeMap;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -123,7 +125,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	return area;
     }
 
-    public RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return rawDataFile;
     }
 
@@ -143,7 +145,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	return dataPointsMap.get(scanNumber);
     }
 
-    public PeakStatus getPeakStatus() {
+    public @Nonnull PeakStatus getPeakStatus() {
 	return status;
     }
 
@@ -151,15 +153,15 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	return rt;
     }
 
-    public Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public Range getRawDataPointsMZRange() {
+    public @Nonnull Range getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public Range getRawDataPointsRTRange() {
+    public @Nonnull Range getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 
@@ -167,7 +169,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	return representativeScan;
     }
 
-    public int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 	return scanNumbers;
     }
 
@@ -179,7 +181,7 @@ public class GaussianPeakModel implements ChromatographicPeak {
 	return isotopePattern;
     }
 
-    public void setIsotopePattern(IsotopePattern isotopePattern) {
+    public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
 	this.isotopePattern = isotopePattern;
     }
 

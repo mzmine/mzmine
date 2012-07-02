@@ -36,12 +36,12 @@ public class ClusteringModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method provides a set of clustering algorithms.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -55,12 +55,12 @@ public class ClusteringModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.DATAANALYSIS;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ClusteringParameters.class;
     }
 }

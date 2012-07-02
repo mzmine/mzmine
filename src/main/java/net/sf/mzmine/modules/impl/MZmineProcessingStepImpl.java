@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.impl;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -37,11 +39,11 @@ public class MZmineProcessingStepImpl<ModuleType extends MZmineModule>
 	this.parameters = parameters;
     }
 
-    public ModuleType getModule() {
+    public @Nonnull ModuleType getModule() {
 	return module;
     }
 
-    public ParameterSet getParameterSet() {
+    public @Nonnull ParameterSet getParameterSet() {
 	return parameters;
     }
 

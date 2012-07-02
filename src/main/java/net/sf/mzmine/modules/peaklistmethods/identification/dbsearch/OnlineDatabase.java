@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.ChemSpiderGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases.ChemSpiderParameters;
@@ -68,12 +70,12 @@ public enum OnlineDatabase implements MZmineModule {
 	return gatewayClass;
     }
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return dbName;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return parametersClass;
     }
 }

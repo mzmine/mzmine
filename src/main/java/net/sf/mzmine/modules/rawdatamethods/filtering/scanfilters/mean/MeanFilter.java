@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean;
 
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -103,12 +105,12 @@ public class MeanFilter implements ScanFilter {
     }
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Mean filter";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return MeanFilterParameters.class;
     }
 }

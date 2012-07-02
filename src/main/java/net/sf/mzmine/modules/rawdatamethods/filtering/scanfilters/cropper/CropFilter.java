@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleScan;
@@ -53,12 +55,12 @@ public class CropFilter implements ScanFilter {
 
     }
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Crop filter";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return CropFilterParameters.class;
     }
 }

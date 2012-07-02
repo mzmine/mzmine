@@ -21,6 +21,8 @@ package net.sf.mzmine.data.impl;
 
 import java.util.Arrays;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -125,7 +127,8 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * This method returns the status of the peak
      */
-    public PeakStatus getPeakStatus() {
+    public @Nonnull
+    PeakStatus getPeakStatus() {
 	return peakStatus;
     }
 
@@ -184,7 +187,8 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * This method returns numbers of scans that contain this peak
      */
-    public int[] getScanNumbers() {
+    public @Nonnull
+    int[] getScanNumbers() {
 	return scanNumbers;
     }
 
@@ -202,7 +206,8 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
      */
-    public RawDataFile getDataFile() {
+    public @Nonnull
+    RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -223,21 +228,24 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsIntensityRange()
      */
-    public Range getRawDataPointsIntensityRange() {
+    public @Nonnull
+    Range getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsMZRange()
      */
-    public Range getRawDataPointsMZRange() {
+    public @Nonnull
+    Range getRawDataPointsMZRange() {
 	return mzRange;
     }
 
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getRawDataPointsRTRange()
      */
-    public Range getRawDataPointsRTRange() {
+    public @Nonnull
+    Range getRawDataPointsRTRange() {
 	return rtRange;
     }
 
@@ -248,9 +256,6 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	return representativeScan;
     }
 
-    /**
-	 * 
-	 */
     public int getMostIntenseFragmentScanNumber() {
 	return fragmentScanNumber;
     }
@@ -259,7 +264,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
 	return isotopePattern;
     }
 
-    public void setIsotopePattern(IsotopePattern isotopePattern) {
+    public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
 	this.isotopePattern = isotopePattern;
     }
 

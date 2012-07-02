@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchic
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -34,7 +36,7 @@ public class HierarClusterer implements ClusteringAlgorithm {
     private static final String MODULE_NAME = "Hierarchical clusterer";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -80,7 +82,7 @@ public class HierarClusterer implements ClusteringAlgorithm {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return HierarClustererParameters.class;
     }
 

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 import net.sf.mzmine.util.FormulaUtils;
 
@@ -78,7 +80,7 @@ public class GPLipidIdentity extends SimplePeakIdentity {
     }
 
     @Override
-    public Object clone() {
+    public @Nonnull Object clone() {
 
         return new GPLipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
     }

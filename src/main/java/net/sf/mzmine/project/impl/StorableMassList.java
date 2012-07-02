@@ -22,6 +22,8 @@ package net.sf.mzmine.project.impl;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.Scan;
@@ -48,12 +50,12 @@ public class StorableMassList implements MassList {
 	}
 
 	@Override
-	public String getName() {
+	public @Nonnull String getName() {
 		return name;
 	}
 
 	@Override
-	public Scan getScan() {
+	public @Nonnull Scan getScan() {
 		return scan;
 	}
 
@@ -62,7 +64,7 @@ public class StorableMassList implements MassList {
 	}
 
 	@Override
-	public DataPoint[] getDataPoints() {
+	public @Nonnull DataPoint[] getDataPoints() {
 		try {
 			DataPoint result[] = rawDataFile.readDataPoints(storageID);
 			return result;

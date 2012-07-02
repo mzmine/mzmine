@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.DataPoint;
@@ -104,7 +105,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Scan's datapoints from temporary file.
 	 */
-	public DataPoint[] getDataPoints() {
+	public @Nonnull DataPoint[] getDataPoints() {
 
 		try {
 			DataPoint result[] = rawDataFile.readDataPoints(storageID);
@@ -120,7 +121,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Returns scan datapoints within a given range
 	 */
-	public DataPoint[] getDataPointsByMass(Range mzRange) {
+	public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
 
 		DataPoint dataPoints[] = getDataPoints();
 
@@ -149,7 +150,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public DataPoint[] getDataPointsOverIntensity(double intensity) {
+	public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
 		DataPoint dataPoints[] = getDataPoints();
@@ -165,7 +166,7 @@ public class StorableScan implements Scan {
 		return pointsOverIntensity;
 	}
 
-	public RawDataFile getDataFile() {
+	public @Nonnull RawDataFile getDataFile() {
 		return rawDataFile;
 	}
 	
@@ -247,7 +248,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
 	 */
-	public Range getMZRange() {
+	public @Nonnull Range getMZRange() {
 		if (mzRange == null)
 			updateValues();
 		return mzRange;
@@ -311,7 +312,7 @@ public class StorableScan implements Scan {
 	}
 
 	@Override
-	public synchronized void addMassList(final MassList massList) {
+	public synchronized void addMassList(final @Nonnull MassList massList) {
 
 		// Remove all mass lists with same name, if there are any
 		MassList currentMassLists[] = massLists.toArray(new MassList[0]);
@@ -369,7 +370,7 @@ public class StorableScan implements Scan {
 	}
 
 	@Override
-	public synchronized void removeMassList(final MassList massList) {
+	public synchronized void removeMassList(final @Nonnull MassList massList) {
 
 		// Remove the mass list
 		massLists.remove(massList);
@@ -399,12 +400,12 @@ public class StorableScan implements Scan {
 	}
 
 	@Override
-	public MassList[] getMassLists() {
+	public @Nonnull MassList[] getMassLists() {
 		return massLists.toArray(new MassList[0]);
 	}
 
 	@Override
-	public MassList getMassList(String name) {
+	public MassList getMassList(@Nonnull String name) {
 		for (MassList ml : massLists) {
 			if (ml.getName().equals(name))
 				return ml;

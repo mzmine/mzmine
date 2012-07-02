@@ -39,12 +39,12 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
     private static final String MODULE_DESCRIPTION = "This module normalizes the peak heights and areas according to selected internal standards.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -65,12 +65,12 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.NORMALIZATION;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return StandardCompoundNormalizerParameters.class;
     }
 

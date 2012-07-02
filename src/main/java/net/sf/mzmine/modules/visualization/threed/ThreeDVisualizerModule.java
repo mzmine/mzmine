@@ -50,12 +50,12 @@ public class ThreeDVisualizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "3D visualizer."; // TODO
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -143,12 +143,12 @@ public class ThreeDVisualizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ThreeDVisualizerParameters.class;
     }
 }

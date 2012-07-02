@@ -189,6 +189,8 @@ public class SmoothingTask extends AbstractTask {
                                 }
                             }
 
+                            assert maxDataPoint != null;
+                            
                             if (!isCanceled() && maxScanNumber >= 0) {
 
                                 // Create a new peak.

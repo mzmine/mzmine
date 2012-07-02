@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.help.HelpBroker;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -165,7 +166,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     public void initModule() {
 
 	assert SwingUtilities.isEventDispatchThread();
-	
+
 	DesktopSetup desktopSetup = new DesktopSetup();
 	desktopSetup.init();
 
@@ -275,12 +276,14 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
 	return SimpleParameterSet.class;
     }
 
     @Override
-    public ExitCode exitMZmine() {
+    public @Nonnull
+    ExitCode exitMZmine() {
 
 	int selectedValue = JOptionPane.showInternalConfirmDialog(
 		this.getContentPane(), "Are you sure you want to exit?",
@@ -297,6 +300,12 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	System.exit(0);
 
 	return ExitCode.OK;
+    }
+
+    @Override
+    public @Nonnull
+    String getName() {
+	return "MZmine main window";
     }
 
 }

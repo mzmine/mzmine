@@ -37,25 +37,25 @@ public class DeconvolutionModule implements MZmineProcessingModule {
             "This module separates each detected chromatogram into individual peaks.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 
         return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 
         return MODULE_DESCRIPTION;
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 
         return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 
         return DeconvolutionParameters.class;
     }

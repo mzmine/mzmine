@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.tools.mzrangecalculator;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.sf.mzmine.data.IonizationType;
@@ -39,12 +40,12 @@ public class MzRangeCalculatorModule implements MZmineModule {
     private static final String MODULE_NAME = "m/z range calculator from formula";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
         return MODULE_NAME;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
         return MzRangeCalculatorParameters.class;
     }
 

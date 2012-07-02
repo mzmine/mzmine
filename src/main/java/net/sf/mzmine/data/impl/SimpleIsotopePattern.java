@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.data.impl;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
@@ -45,7 +47,7 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
 
     @Override
-    public DataPoint[] getDataPoints() {
+    public @Nonnull DataPoint[] getDataPoints() {
 	return dataPoints;
     }
 
@@ -55,17 +57,17 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
 
     @Override
-    public IsotopePatternStatus getStatus() {
+    public @Nonnull IsotopePatternStatus getStatus() {
 	return status;
     }
 
     @Override
-    public DataPoint getHighestIsotope() {
+    public @Nonnull DataPoint getHighestIsotope() {
 	return highestIsotope;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return description;
     }
 

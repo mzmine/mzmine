@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
 import java.util.ArrayList;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.IsotopePatternStatus;
@@ -50,7 +52,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     private static final String MODULE_NAME = "Isotope pattern prediction.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -220,7 +222,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return IsotopePatternCalculatorParameters.class;
     }
 

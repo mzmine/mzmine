@@ -168,7 +168,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
      * @param maximum
      *            the upper bound of the bin range.
      */
-    public void addSeries(Comparable key, double[] values) {
+    public void addSeries(Comparable<?> key, double[] values) {
 
 	if (key == null) {
 	    throw new IllegalArgumentException("Null 'key' argument.");
@@ -344,9 +344,9 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
      * @throws IndexOutOfBoundsException
      *             if <code>series</code> is outside the specified range.
      */
-    public Comparable getSeriesKey(int series) {
+    public Comparable<?> getSeriesKey(int series) {
 	Map map = (Map) this.list.get(series);
-	return (Comparable) map.get("key");
+	return (Comparable<?>) map.get("key");
     }
 
     /**

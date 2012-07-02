@@ -44,7 +44,7 @@ public class DataPointsDataSet extends AbstractXYDataset implements
 	}
 
 	@Override
-	public Comparable getSeriesKey(int series) {
+	public Comparable<?> getSeriesKey(int series) {
 		return label;
 	}
 

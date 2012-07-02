@@ -41,12 +41,12 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module attepts to find those peaks in a peak list, which form an isotope pattern.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -97,12 +97,12 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return PeakListIdentificationParameters.class;
     }
 }

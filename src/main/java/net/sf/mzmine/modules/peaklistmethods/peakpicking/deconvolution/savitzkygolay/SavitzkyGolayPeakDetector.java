@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
@@ -47,7 +49,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     // Savitzky-Golay filter width.
     private static final int SG_FILTER_LEVEL = 12;
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Savitzky-Golay";
     }
 
@@ -313,7 +315,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return SavitzkyGolayPeakDetectorParameters.class;
     }
 }

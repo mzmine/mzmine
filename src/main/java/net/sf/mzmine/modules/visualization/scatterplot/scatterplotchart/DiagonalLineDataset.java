@@ -32,7 +32,7 @@ public class DiagonalLineDataset extends AbstractXYDataset {
 	}
 
 	@Override
-	public Comparable getSeriesKey(int series) {
+	public Comparable<Integer> getSeriesKey(int series) {
 		return series;
 	}
 

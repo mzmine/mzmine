@@ -102,7 +102,7 @@ public class PeakDataSet extends AbstractXYDataset {
     }
 
     @Override
-    public Comparable getSeriesKey(final int series) {
+    public Comparable<?> getSeriesKey(final int series) {
         return peak.toString();
     }
 

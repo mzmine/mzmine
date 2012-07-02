@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.data;
 
-import javax.annotation.Nonnull;
 
 /**
  * This interface represents one data point of a spectra (m/z and intensity).
@@ -27,10 +26,8 @@ import javax.annotation.Nonnull;
  */
 public interface DataPoint {
 
-    @Nonnull
     public double getMZ();
 
-    @Nonnull
     public double getIntensity();
 
 }

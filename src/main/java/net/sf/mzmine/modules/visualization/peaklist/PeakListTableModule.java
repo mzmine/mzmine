@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
@@ -29,7 +31,7 @@ public class PeakListTableModule implements MZmineModule {
     private static final String MODULE_NAME = "Peak list table";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -42,7 +44,7 @@ public class PeakListTableModule implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return PeakListTableParameters.class;
     }
 

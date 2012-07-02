@@ -35,12 +35,12 @@ public class RTNormalizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "The retention time normalizer attempts to reduce the deviation of retention times between peak lists, by searching for common peaks in these peak lists and using them as normalization standards.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -55,12 +55,12 @@ public class RTNormalizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.NORMALIZATION;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return RTNormalizerParameters.class;
     }
 

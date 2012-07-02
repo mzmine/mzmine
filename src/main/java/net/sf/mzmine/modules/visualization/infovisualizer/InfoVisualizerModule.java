@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.infovisualizer;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
@@ -30,7 +32,7 @@ public class InfoVisualizerModule implements MZmineModule {
     private static final String MODULE_NAME = "Peak list info window";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -40,7 +42,7 @@ public class InfoVisualizerModule implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return SimpleParameterSet.class;
     }
 

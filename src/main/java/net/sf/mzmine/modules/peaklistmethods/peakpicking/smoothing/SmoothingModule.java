@@ -45,12 +45,12 @@ public class SmoothingModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module performs smoothing of chromatograms prior to deconvolution.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -70,12 +70,12 @@ public class SmoothingModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKLISTPICKING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return SmoothingParameters.class;
     }
 

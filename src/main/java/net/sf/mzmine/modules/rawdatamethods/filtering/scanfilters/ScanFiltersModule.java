@@ -36,12 +36,12 @@ public class ScanFiltersModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module performs filtering algorithms on each scan individually.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -61,12 +61,12 @@ public class ScanFiltersModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.RAWDATAFILTERING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ScanFiltersParameters.class;
     }
 }

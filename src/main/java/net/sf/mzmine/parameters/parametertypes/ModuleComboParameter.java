@@ -53,7 +53,12 @@ public class ModuleComboParameter<ModuleType extends MZmineModule> implements
 	for (int i = 0; i < modules.length; i++) {
 	    ParameterSet moduleParams;
 	    try {
-		moduleParams = modules[i].getParameterSetClass().newInstance();
+		Class<? extends ParameterSet> parameterSetClass = modules[i]
+			.getParameterSetClass();
+		if (parameterSetClass != null)
+		    moduleParams = parameterSetClass.newInstance();
+		else
+		    moduleParams = null;
 		MZmineProcessingStep<ModuleType> modWithParams = new MZmineProcessingStepImpl<ModuleType>(
 			modules[i], moduleParams);
 		this.modulesWithParams[i] = modWithParams;

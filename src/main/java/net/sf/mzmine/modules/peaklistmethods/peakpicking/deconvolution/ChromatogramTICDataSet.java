@@ -37,7 +37,7 @@ public class ChromatogramTICDataSet extends AbstractXYDataset {
         this.scanNumbers = dataFile.getScanNumbers(1);
 	}
 
-	public Comparable getSeriesKey(int series) {
+	public Comparable<?> getSeriesKey(int series) {
 		return chromatogram.toString();
 	}
 

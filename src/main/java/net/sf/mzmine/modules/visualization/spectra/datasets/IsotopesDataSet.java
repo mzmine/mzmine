@@ -56,7 +56,7 @@ public class IsotopesDataSet extends AbstractXYDataset implements
 	}
 
 	@Override
-	public Comparable getSeriesKey(int series) {
+	public Comparable<?> getSeriesKey(int series) {
 		return label;
 	}
 

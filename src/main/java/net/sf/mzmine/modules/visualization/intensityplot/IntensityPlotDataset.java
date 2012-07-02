@@ -50,7 +50,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 
     private Object xAxisValueSource;
     private YAxisValueSource yAxisValueSource;
-    private Comparable xValues[];
+    private Comparable<?> xValues[];
     private RawDataFile selectedFiles[];
     private PeakListRow selectedRows[];
 
@@ -73,7 +73,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	    LinkedHashSet<Comparable> parameterValues = new LinkedHashSet<Comparable>();
 	    for (RawDataFile file : selectedFiles) {
 		Object value = project.getParameterValue(xAxisParameter, file);
-		parameterValues.add((Comparable) value);
+		parameterValues.add((Comparable<?>) value);
 	    }
 	    xValues = parameterValues.toArray(new Comparable[0]);
 
@@ -95,7 +95,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return getPeaks(xValues[column], selectedRows[row]);
     }
 
-    ChromatographicPeak[] getPeaks(Comparable xValue, PeakListRow row) {
+    ChromatographicPeak[] getPeaks(Comparable<?> xValue, PeakListRow row) {
 	RawDataFile files[] = getFiles(xValue);
 	ChromatographicPeak[] peaks = new ChromatographicPeak[files.length];
 	for (int i = 0; i < files.length; i++) {
@@ -108,7 +108,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return getFiles(xValues[column]);
     }
 
-    RawDataFile[] getFiles(Comparable xValue) {
+    RawDataFile[] getFiles(Comparable<?> xValue) {
 	if (xAxisValueSource instanceof String) {
 	    RawDataFile columnFile = selectedFiles[getColumnIndex(xValue)];
 	    return new RawDataFile[] { columnFile };
@@ -192,7 +192,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return -1;
     }
 
-    public Comparable getColumnKey(int column) {
+    public Comparable<?> getColumnKey(int column) {
 	return xValues[column];
     }
 
@@ -208,7 +208,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return -1;
     }
 
-    public Comparable getRowKey(int row) {
+    public Comparable<?> getRowKey(int row) {
 	return selectedRows[row].toString();
     }
 
@@ -296,7 +296,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return selectedRows.length;
     }
 
-    public Comparable getSeriesKey(int series) {
+    public Comparable<?> getSeriesKey(int series) {
 	return getRowKey(series);
     }
 

@@ -38,25 +38,25 @@ public class AdductSearchModule implements MZmineProcessingModule {
             "This method searches for adduct peaks that appear at the same retention time as other peaks and have a defined mass difference.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 
         return NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 
         return DESCRIPTION;
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 
         return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 
         return AdductSearchParameters.class;
     }

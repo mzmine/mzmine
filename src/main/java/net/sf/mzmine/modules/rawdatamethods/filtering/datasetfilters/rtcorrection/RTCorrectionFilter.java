@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrection;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.data.Scan;
@@ -57,12 +59,12 @@ public class RTCorrectionFilter implements RawDataSetFilter {
     }
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return "RT correction filter";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return RTCorrectionFilterParameters.class;
     }
 }

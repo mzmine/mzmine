@@ -43,12 +43,12 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "Spectra visualizer."; // TODO
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -62,7 +62,7 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 	if ((dataFiles == null) || (dataFiles.length == 0)) {
 	    MZmineCore.getDesktop().displayErrorMessage(
 		    "Please select raw data file");
-	    return null;
+	    return ExitCode.ERROR;
 	}
 
 	int scanNumber = parameters.getParameter(
@@ -123,12 +123,12 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return SpectraVisualizerParameters.class;
     }
 

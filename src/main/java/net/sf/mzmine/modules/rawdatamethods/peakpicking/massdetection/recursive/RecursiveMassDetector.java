@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.recursive
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
@@ -143,12 +145,12 @@ public class RecursiveMassDetector implements MassDetector {
 
 	}
 
-	public String getName() {
+	public @Nonnull String getName() {
 		return "Recursive threshold";
 	}
 
 	@Override
-	public Class<? extends ParameterSet> getParameterSetClass() {
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	    return RecursiveMassDetectorParameters.class;
 	}
 

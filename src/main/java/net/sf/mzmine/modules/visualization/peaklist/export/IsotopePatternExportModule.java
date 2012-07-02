@@ -23,6 +23,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -39,7 +41,7 @@ public class IsotopePatternExportModule implements MZmineModule {
     private static final String MODULE_NAME = "Isotope pattern export";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
@@ -89,7 +91,7 @@ public class IsotopePatternExportModule implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return IsotopePatternExportParameters.class;
     }
 

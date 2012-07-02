@@ -22,6 +22,7 @@ package net.sf.mzmine.desktop.impl;
 import java.awt.Color;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.event.TreeModelListener;
@@ -30,6 +31,7 @@ import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
 
 public class HeadLessDesktop implements Desktop {
@@ -113,17 +115,20 @@ public class HeadLessDesktop implements Desktop {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
-	return null;
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
+	return SimpleParameterSet.class;
     }
 
     @Override
-    public String getName() {
+    public @Nonnull
+    String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public ExitCode exitMZmine() {
+    public @Nonnull
+    ExitCode exitMZmine() {
 	System.exit(0);
 	return ExitCode.OK;
     }

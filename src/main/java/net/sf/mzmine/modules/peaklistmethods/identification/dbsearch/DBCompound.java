@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 
 import java.net.URL;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.impl.SimplePeakIdentity;
 
@@ -115,7 +117,7 @@ public class DBCompound extends SimplePeakIdentity {
     }
 
     @Override
-    public synchronized Object clone() {
+    public synchronized @Nonnull Object clone() {
 
         final DBCompound dbCompound = new DBCompound(database,
                                                      getPropertyValue(PROPERTY_ID),

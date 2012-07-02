@@ -212,7 +212,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
     /**
      * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
      */
-    public Comparable getSeriesKey(int series) {
+    public Comparable<Integer> getSeriesKey(int series) {
         return series;
     }
 

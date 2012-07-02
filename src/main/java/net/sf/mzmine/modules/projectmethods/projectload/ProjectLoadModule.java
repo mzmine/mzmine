@@ -40,12 +40,12 @@ public class ProjectLoadModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This module opens an existing MZmine project. The current workspace will be discarded.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -59,12 +59,12 @@ public class ProjectLoadModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PROJECTIO;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return ProjectLoaderParameters.class;
     }
 

@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxi
 
 import java.util.ArrayList;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
@@ -88,12 +90,12 @@ public class LocalMaxMassDetector implements MassDetector {
     }
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Local maxima";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return LocalMaxMassDetectorParameters.class;
     }
 

@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+import javax.annotation.Nonnull;
+
 import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.*;
 
 /**
@@ -39,7 +41,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     // The maximum noise level relative to the maximum intensity.
     private static final double MAX_NOISE_LEVEL = 0.3;
 
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Noise amplitude";
     }
 
@@ -184,7 +186,7 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return NoiseAmplitudePeakDetectorParameters.class;
     }
 }

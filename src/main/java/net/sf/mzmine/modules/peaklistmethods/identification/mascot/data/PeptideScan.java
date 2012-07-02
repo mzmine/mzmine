@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
@@ -79,14 +81,14 @@ public class PeptideScan implements Scan {
 	/**
 	 * @return Returns scan datapoints
 	 */
-	public DataPoint[] getDataPoints() {
+	public @Nonnull DataPoint[] getDataPoints() {
 		return dataPoints;
 	}
 
 	/**
 	 * @return Returns scan datapoints within a given range
 	 */
-	public DataPoint[] getDataPointsByMass(Range mzRange) {
+	public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
 
 		int startIndex, endIndex;
 		for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -111,7 +113,7 @@ public class PeptideScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public DataPoint[] getDataPointsOverIntensity(double intensity) {
+	public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
 
@@ -243,7 +245,7 @@ public class PeptideScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
 	 */
-	public Range getMZRange() {
+	public @Nonnull Range getMZRange() {
 		return mzRange;
 	}
 
@@ -328,7 +330,7 @@ public class PeptideScan implements Scan {
 	/**
 	 * Returns the raw data file that this scan belongs.
 	 */
-	public RawDataFile getDataFile() {
+	public @Nonnull RawDataFile getDataFile() {
 		return rawDataFile;
 	}
 	
@@ -392,25 +394,24 @@ public class PeptideScan implements Scan {
 	}
 
 	@Override
-	public MassList[] getMassLists() {
+	public @Nonnull MassList[] getMassLists() {
+		return new MassList[0];
+	}
+
+	@Override
+	public MassList getMassList(@Nonnull String name) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public MassList getMassList(String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void addMassList(MassList massList) {
+	public void addMassList(@Nonnull MassList massList) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void removeMassList(MassList massList) {
+	public void removeMassList(@Nonnull MassList massList) {
 		// TODO Auto-generated method stub
 		
 	}

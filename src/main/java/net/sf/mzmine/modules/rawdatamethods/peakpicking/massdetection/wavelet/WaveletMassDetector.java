@@ -22,6 +22,8 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.data.impl.SimpleDataPoint;
@@ -214,12 +216,12 @@ public class WaveletMassDetector implements MassDetector {
     }
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Wavelet transform";
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return WaveletMassDetectorParameters.class;
     }
 

@@ -19,10 +19,13 @@
 
 package net.sf.mzmine.modules.visualization.peaksummary;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
 /**
  * 
@@ -33,7 +36,8 @@ public class PeakSummaryVisualizerModule implements MZmineModule {
      * @see net.sf.mzmine.modules.MZmineModule#getName()
      */
     @Override
-    public String getName() {
+    public @Nonnull
+    String getName() {
 	return "Peak list row summary";
     }
 
@@ -46,8 +50,9 @@ public class PeakSummaryVisualizerModule implements MZmineModule {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
-	return null;
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
+	return SimpleParameterSet.class;
     }
 
 }

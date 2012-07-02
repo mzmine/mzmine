@@ -140,7 +140,7 @@ class UserParameterSaveHandler {
 		RawDataFile dataFiles[] = project.getDataFiles();
 
 		if (parameter instanceof ComboParameter) {
-			Object choices[] = ((ComboParameter) parameter).getChoices();
+			Object choices[] = ((ComboParameter<Object>) parameter).getChoices();
 
 			for (Object choice : choices) {
 				hd.startElement("", "",

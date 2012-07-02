@@ -33,102 +33,104 @@ import org.jfree.data.xy.IntervalXYDataset;
  * Picked peaks data set;
  */
 public class PeakListDataSet extends AbstractXYDataset implements
-		IntervalXYDataset {
+	IntervalXYDataset {
 
-	private PeakList peakList;
+    private PeakList peakList;
 
-	private ChromatographicPeak displayedPeaks[];
-	private double mzValues[], intensityValues[];
-	private String label;
+    private ChromatographicPeak displayedPeaks[];
+    private double mzValues[], intensityValues[];
+    private String label;
 
-	public PeakListDataSet(RawDataFile dataFile, int scanNumber,
-			PeakList peakList) {
+    public PeakListDataSet(RawDataFile dataFile, int scanNumber,
+	    PeakList peakList) {
 
-		this.peakList = peakList;
+	this.peakList = peakList;
 
-		ChromatographicPeak peaks[] = peakList.getPeaks(dataFile);
+	ChromatographicPeak peaks[] = peakList.getPeaks(dataFile);
 
-		Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
-		for (ChromatographicPeak peak : peaks) {
-			DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
-			if (peakDataPoint != null)
-				candidates.add(peak);
-		}
-		displayedPeaks = candidates.toArray(new ChromatographicPeak[0]);
+	Vector<ChromatographicPeak> candidates = new Vector<ChromatographicPeak>();
+	for (ChromatographicPeak peak : peaks) {
+	    DataPoint peakDataPoint = peak.getDataPoint(scanNumber);
+	    if (peakDataPoint != null)
+		candidates.add(peak);
+	}
+	displayedPeaks = candidates.toArray(new ChromatographicPeak[0]);
 
-		mzValues = new double[displayedPeaks.length];
-		intensityValues = new double[displayedPeaks.length];
+	mzValues = new double[displayedPeaks.length];
+	intensityValues = new double[displayedPeaks.length];
 
-		for (int i = 0; i < displayedPeaks.length; i++) {
-			mzValues[i] = displayedPeaks[i].getDataPoint(scanNumber).getMZ();
-			intensityValues[i] = displayedPeaks[i].getDataPoint(scanNumber)
-					.getIntensity();
-		}
-
-		label = "Peaks in " + peakList.getName();
-
+	for (int i = 0; i < displayedPeaks.length; i++) {
+	    DataPoint dp = displayedPeaks[i].getDataPoint(scanNumber);
+	    if (dp == null)
+		continue;
+	    mzValues[i] = dp.getMZ();
+	    intensityValues[i] = dp.getIntensity();
 	}
 
-	@Override
-	public int getSeriesCount() {
-		return 1;
-	}
+	label = "Peaks in " + peakList.getName();
 
-	@Override
-	public Comparable getSeriesKey(int series) {
-		return label;
-	}
+    }
 
-	public PeakList getPeakList() {
-		return peakList;
-	}
+    @Override
+    public int getSeriesCount() {
+	return 1;
+    }
 
-	public ChromatographicPeak getPeak(int series, int item) {
-		return displayedPeaks[item];
-	}
+    @Override
+    public Comparable<?> getSeriesKey(int series) {
+	return label;
+    }
 
-	public int getItemCount(int series) {
-		return mzValues.length;
-	}
+    public PeakList getPeakList() {
+	return peakList;
+    }
 
-	public Number getX(int series, int item) {
-		return mzValues[item];
-	}
+    public ChromatographicPeak getPeak(int series, int item) {
+	return displayedPeaks[item];
+    }
 
-	public Number getY(int series, int item) {
-		return intensityValues[item];
-	}
+    public int getItemCount(int series) {
+	return mzValues.length;
+    }
 
-	public Number getEndX(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public Number getX(int series, int item) {
+	return mzValues[item];
+    }
 
-	public double getEndXValue(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public Number getY(int series, int item) {
+	return intensityValues[item];
+    }
 
-	public Number getEndY(int series, int item) {
-		return getY(series, item);
-	}
+    public Number getEndX(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public double getEndYValue(int series, int item) {
-		return getYValue(series, item);
-	}
+    public double getEndXValue(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public Number getStartX(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public Number getEndY(int series, int item) {
+	return getY(series, item);
+    }
 
-	public double getStartXValue(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public double getEndYValue(int series, int item) {
+	return getYValue(series, item);
+    }
 
-	public Number getStartY(int series, int item) {
-		return getY(series, item);
-	}
+    public Number getStartX(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public double getStartYValue(int series, int item) {
-		return getYValue(series, item);
-	}
+    public double getStartXValue(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
+
+    public Number getStartY(int series, int item) {
+	return getY(series, item);
+    }
+
+    public double getStartYValue(int series, int item) {
+	return getYValue(series, item);
+    }
 
 }

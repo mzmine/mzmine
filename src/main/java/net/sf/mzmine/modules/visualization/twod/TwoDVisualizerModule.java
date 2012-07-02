@@ -41,12 +41,12 @@ public class TwoDVisualizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -60,7 +60,7 @@ public class TwoDVisualizerModule implements MZmineProcessingModule {
 	if ((dataFiles == null) || (dataFiles.length == 0)) {
 	    MZmineCore.getDesktop().displayErrorMessage(
 		    "Please select raw data file");
-	    return null;
+	    return ExitCode.ERROR;
 	}
 
 	int msLevel = parameters.getParameter(TwoDParameters.msLevel)
@@ -115,12 +115,12 @@ public class TwoDVisualizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return TwoDParameters.class;
     }
 

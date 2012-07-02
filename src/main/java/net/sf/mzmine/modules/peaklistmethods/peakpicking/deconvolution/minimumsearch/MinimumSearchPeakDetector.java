@@ -29,6 +29,8 @@ import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.mi
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
@@ -44,7 +46,7 @@ import net.sf.mzmine.util.Range;
 public class MinimumSearchPeakDetector implements PeakResolver {
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return "Local minimum search";
     }
 
@@ -202,7 +204,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return MinimumSearchPeakDetectorParameters.class;
     }
 

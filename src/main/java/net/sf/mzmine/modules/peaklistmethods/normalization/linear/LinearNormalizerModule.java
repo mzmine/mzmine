@@ -36,12 +36,12 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "Linear normalizer divides the height (or area) of each peak in the peak list by a normalization factor, determined according to the given normalization type.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -63,12 +63,12 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.NORMALIZATION;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return LinearNormalizerParameters.class;
     }
 

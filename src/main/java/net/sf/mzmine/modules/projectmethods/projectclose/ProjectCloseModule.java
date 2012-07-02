@@ -49,12 +49,14 @@ public class ProjectCloseModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "Close project";
 
     @Override
-    public String getName() {
+    public @Nonnull
+    String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull
+    String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -70,7 +72,7 @@ public class ProjectCloseModule implements MZmineProcessingModule {
 		JOptionPane.WARNING_MESSAGE);
 
 	if (selectedValue != JOptionPane.YES_OPTION)
-	    return null;
+	    return ExitCode.CANCEL;
 
 	// Close all open frames related to previous project
 	JInternalFrame frames[] = MZmineCore.getDesktop().getInternalFrames();
@@ -91,16 +93,18 @@ public class ProjectCloseModule implements MZmineProcessingModule {
 	System.gc();
 
 	logger.info("Project closed.");
-	return null;
+	return ExitCode.OK;
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull
+    MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PROJECTIO;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
 	return SimpleParameterSet.class;
     }
 

@@ -22,6 +22,8 @@ package net.sf.mzmine.data.impl;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
@@ -86,14 +88,14 @@ public class SimpleScan implements Scan {
 	/**
 	 * @return Returns scan datapoints
 	 */
-	public DataPoint[] getDataPoints() {
+	public @Nonnull DataPoint[] getDataPoints() {
 		return dataPoints;
 	}
 
 	/**
 	 * @return Returns scan datapoints within a given range
 	 */
-	public DataPoint[] getDataPointsByMass(Range mzRange) {
+	public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
 
 		int startIndex, endIndex;
 		for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
@@ -118,7 +120,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * @return Returns scan datapoints over certain intensity
 	 */
-	public DataPoint[] getDataPointsOverIntensity(double intensity) {
+	public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
 		int index;
 		Vector<DataPoint> points = new Vector<DataPoint>();
 
@@ -250,7 +252,7 @@ public class SimpleScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
 	 */
-	public Range getMZRange() {
+	public @Nonnull Range getMZRange() {
 		return mzRange;
 	}
 
@@ -324,28 +326,28 @@ public class SimpleScan implements Scan {
 		return ScanUtils.scanToString(this);
 	}
 
-	public RawDataFile getDataFile() {
+	public @Nonnull RawDataFile getDataFile() {
 		return dataFile;
 	}
 
 	@Override
-	public synchronized void addMassList(MassList massList) {
+	public synchronized void addMassList(@Nonnull MassList massList) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public synchronized void removeMassList(MassList massList) {
+	public synchronized void removeMassList(@Nonnull MassList massList) {
 
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public MassList[] getMassLists() {
+	public @Nonnull MassList[] getMassLists() {
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public MassList getMassList(String name) {
+	public MassList getMassList(@Nonnull String name) {
 		throw new UnsupportedOperationException();
 	}
 }

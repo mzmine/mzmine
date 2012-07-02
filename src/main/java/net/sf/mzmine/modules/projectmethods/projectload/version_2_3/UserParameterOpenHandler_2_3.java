@@ -186,7 +186,7 @@ public class UserParameterOpenHandler_2_3 extends DefaultHandler implements
 				.getElementName())) {
 			if (currentParameter instanceof ComboParameter) {
 				String newChoices[] = currentOptions.toArray(new String[0]);
-				((ComboParameter) currentParameter).setChoices(newChoices);
+				((ComboParameter<String>) currentParameter).setChoices(newChoices);
 			}
 			newProject.addParameter(currentParameter);
 

@@ -98,7 +98,7 @@ public interface ChromatographicPeak {
      * Returns the number of scan that represents the fragmentation of this peak
      * in MS2 level.
      */
-    public @Nonnull int getMostIntenseFragmentScanNumber();
+    public int getMostIntenseFragmentScanNumber();
 
     /**
      * Returns the isotope pattern of this peak or null if no pattern is

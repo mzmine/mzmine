@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.samerange;
 
 import java.util.TreeMap;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -68,7 +70,8 @@ class SameRangePeak implements ChromatographicPeak {
     /**
      * This peak is always a result of manual peak detection, therefore MANUAL
      */
-    public PeakStatus getPeakStatus() {
+    public @Nonnull
+    PeakStatus getPeakStatus() {
 	return PeakStatus.ESTIMATED;
     }
 
@@ -103,7 +106,8 @@ class SameRangePeak implements ChromatographicPeak {
     /**
      * This method returns numbers of scans that contain this peak
      */
-    public int[] getScanNumbers() {
+    public @Nonnull
+    int[] getScanNumbers() {
 	return CollectionUtils.toIntArray(mzPeakMap.keySet());
     }
 
@@ -115,22 +119,26 @@ class SameRangePeak implements ChromatographicPeak {
 	return mzPeakMap.get(scanNumber);
     }
 
-    public Range getRawDataPointsIntensityRange() {
+    public @Nonnull
+    Range getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
-    public Range getRawDataPointsMZRange() {
+    public @Nonnull
+    Range getRawDataPointsMZRange() {
 	return mzRange;
     }
 
-    public Range getRawDataPointsRTRange() {
+    public @Nonnull
+    Range getRawDataPointsRTRange() {
 	return rtRange;
     }
 
     /**
      * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
      */
-    public RawDataFile getDataFile() {
+    public @Nonnull
+    RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -258,7 +266,7 @@ class SameRangePeak implements ChromatographicPeak {
 	return isotopePattern;
     }
 
-    public void setIsotopePattern(IsotopePattern isotopePattern) {
+    public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
 	this.isotopePattern = isotopePattern;
     }
 

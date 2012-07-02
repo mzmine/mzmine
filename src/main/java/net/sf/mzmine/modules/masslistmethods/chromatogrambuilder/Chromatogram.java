@@ -23,6 +23,8 @@ import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.data.ChromatographicPeak;
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.IsotopePattern;
@@ -140,7 +142,8 @@ public class Chromatogram implements ChromatographicPeak {
 	return fragmentScan;
     }
 
-    public PeakStatus getPeakStatus() {
+    public @Nonnull
+    PeakStatus getPeakStatus() {
 	return PeakStatus.DETECTED;
     }
 
@@ -148,15 +151,18 @@ public class Chromatogram implements ChromatographicPeak {
 	return rt;
     }
 
-    public Range getRawDataPointsIntensityRange() {
+    public @Nonnull
+    Range getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public Range getRawDataPointsMZRange() {
+    public @Nonnull
+    Range getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public Range getRawDataPointsRTRange() {
+    public @Nonnull
+    Range getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 
@@ -164,11 +170,13 @@ public class Chromatogram implements ChromatographicPeak {
 	return representativeScan;
     }
 
-    public int[] getScanNumbers() {
+    public @Nonnull
+    int[] getScanNumbers() {
 	return dataFile.getScanNumbers(1);
     }
 
-    public RawDataFile getDataFile() {
+    public @Nonnull
+    RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -176,7 +184,7 @@ public class Chromatogram implements ChromatographicPeak {
 	return isotopePattern;
     }
 
-    public void setIsotopePattern(IsotopePattern isotopePattern) {
+    public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
 	this.isotopePattern = isotopePattern;
     }
 

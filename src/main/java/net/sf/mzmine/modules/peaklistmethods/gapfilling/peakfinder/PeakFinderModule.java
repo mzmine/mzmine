@@ -36,12 +36,12 @@ public class PeakFinderModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method fills the missing peaks (gaps) in the peak list by searching for a peak in the raw data.";
 
     @Override
-    public String getName() {
+    public @Nonnull String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public String getDescription() {
+    public @Nonnull String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -63,12 +63,12 @@ public class PeakFinderModule implements MZmineProcessingModule {
     }
 
     @Override
-    public MZmineModuleCategory getModuleCategory() {
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.GAPFILLING;
     }
 
     @Override
-    public Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
 	return PeakFinderParameters.class;
     }
 
