@@ -20,9 +20,6 @@ package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchic
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.annotation.Nonnull;
-
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -31,59 +28,61 @@ import weka.core.Instances;
 
 public class HierarClusterer implements ClusteringAlgorithm {
 
-    private Logger logger = Logger.getLogger(this.getClass().getName());
+        private Logger logger = Logger.getLogger(this.getClass().getName());
+        private static final String MODULE_NAME = "Hierarchical clusterer";
 
-    private static final String MODULE_NAME = "Hierarchical clusterer";
+        @Override
+        public String getName() {
+                return MODULE_NAME;
+        }
 
-    @Override
-    public @Nonnull String getName() {
-	return MODULE_NAME;
-    }
+        @Override
+        public ClusteringResult performClustering(Instances dataset,
+                ParameterSet parameters) {
+                HierarchicalClusterer clusterer = new HierarchicalClusterer();
+                String[] options = new String[5];
+                LinkType link = parameters.getParameter(
+                        HierarClustererParameters.linkType).getValue();
+                DistanceType distanceType = parameters.getParameter(
+                        HierarClustererParameters.distanceType).getValue();
+                options[0] = "-L";
+                options[1] = link.name();
+                options[2] = "-A";
+                switch (distanceType) {
+                        case EUCLIDIAN:
+                                options[3] = "weka.core.EuclideanDistance";
+                                break;
+                        case CHEBYSHEV:
+                                options[3] = "weka.core.ChebyshevDistance";
+                                break;
+                        case MANHATTAN:
+                                options[3] = "weka.core.ManhattanDistance";
+                                break;
+                        case MINKOWSKI:
+                                options[3] = "weka.core.MinkowskiDistance";
+                                break;
+                }
 
-    @Override
-    public ClusteringResult performClustering(Instances dataset,
-	    ParameterSet parameters) {
-	HierarchicalClusterer clusterer = new HierarchicalClusterer();
-	String[] options = new String[5];
-	LinkType link = parameters.getParameter(
-		HierarClustererParameters.linkType).getValue();
-	DistanceType distanceType = parameters.getParameter(
-		HierarClustererParameters.distanceType).getValue();
-	options[0] = "-L";
-	options[1] = link.name();
-	options[2] = "-A";
-	switch (distanceType) {
-	case EUCLIDIAN:
-	    options[3] = "weka.core.EuclideanDistance";
-	    break;
-	case CHEBYSHEV:
-	    options[3] = "weka.core.ChebyshevDistance";
-	    break;
-	case MANHATTAN:
-	    options[3] = "weka.core.ManhattanDistance";
-	    break;
-	case MINKOWSKI:
-	    options[3] = "weka.core.MinkowskiDistance";
-	    break;
-	}
+                options[4] = "-P";
+                try {
+                        clusterer.setOptions(options);
+                        clusterer.setPrintNewick(true);
+                        clusterer.buildClusterer(dataset);      
+                        // clusterer.graph() gives only the first cluster and in the case there
+                        // are more than one cluster the variables in the second cluster are missing.
+                        // I'm using clusterer.toString() which contains all the clusters in Newick format.
+                        ClusteringResult result = new ClusteringResult(null, clusterer.toString(),
+                                clusterer.getNumClusters(), null);
+                        return result;
+                } catch (Exception ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                        return null;
+                }
+        }
 
-	options[4] = "-P";
-	try {
-	    clusterer.setOptions(options);
-	    clusterer.buildClusterer(dataset);
-	    String clusterGraph = clusterer.graph();
-	    ClusteringResult result = new ClusteringResult(null, clusterGraph,
-		    1, null);
-	    return result;
-	} catch (Exception ex) {
-	    logger.log(Level.SEVERE, null, ex);
-	    return null;
-	}
-    }
-
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return HierarClustererParameters.class;
-    }
+        @Override
+        public Class<? extends ParameterSet> getParameterSetClass() {
+                return HierarClustererParameters.class;
+        }
 
 }
