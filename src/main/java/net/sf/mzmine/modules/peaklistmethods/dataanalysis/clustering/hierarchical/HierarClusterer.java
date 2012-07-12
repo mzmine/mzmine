@@ -16,10 +16,14 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringAlgorithm;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.ClusteringResult;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -29,10 +33,11 @@ import weka.core.Instances;
 public class HierarClusterer implements ClusteringAlgorithm {
 
         private Logger logger = Logger.getLogger(this.getClass().getName());
+        
         private static final String MODULE_NAME = "Hierarchical clusterer";
 
         @Override
-        public String getName() {
+        public @Nonnull String getName() {
                 return MODULE_NAME;
         }
 
@@ -81,7 +86,7 @@ public class HierarClusterer implements ClusteringAlgorithm {
         }
 
         @Override
-        public Class<? extends ParameterSet> getParameterSetClass() {
+        public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
                 return HierarClustererParameters.class;
         }
 
