@@ -221,16 +221,17 @@ public class ClusteringTask extends AbstractXYDataset implements
                                 }
                                 JInternalFrame visualizationWindow = new JInternalFrame(clusterNumber, true, true, true, true);
                                 visualizationWindow.setSize(600, 500);
-                                visualizationWindow.getContentPane().setLayout(new BorderLayout());
+                                visualizationWindow.setLayout(new BorderLayout());
 
                                 HierarchyVisualizer visualizer = new HierarchyVisualizer(c);
-                                visualizationWindow.getContentPane().add(visualizer, BorderLayout.CENTER);
+                                visualizationWindow.add(visualizer, BorderLayout.CENTER);
                                 visualizer.fitToScreen();
 
                                 // Text field with the clustering result in Newick format
                                 JTextField data = new JTextField(c);
-                                visualizationWindow.getContentPane().add(data, BorderLayout.SOUTH);
+                                visualizationWindow.add(data, BorderLayout.SOUTH);
                                 visualizationWindow.setVisible(true);
+                                visualizationWindow.pack();
 
                                 MZmineCore.getDesktop().addInternalFrame(visualizationWindow);
                         }
