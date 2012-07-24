@@ -4,14 +4,7 @@
 # The HEAP_SIZE variable line defines the Java heap size in MB. 
 # That is the total amount of memory available to MZmine 2.
 # Please adjust according to the amount of memory of your computer.
-# Maximum value on a 32-bit Mac OS X system is about 2000. 
 HEAP_SIZE=1024
-
-# If you have a 64-bit CPU, 64-bit OS and 64-bit JVM installed, you 
-# can run MZmine 2 in 64-bit mode and increase the HEAP_SIZE above 
-# the limitations of 32-bit platform. In that case, please set the 
-# value of USE_64_BIT parameter to "-d64" (without quotes).
-USE_64_BIT=
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 # files (parsed raw data) will be placed. Default is /tmp.
