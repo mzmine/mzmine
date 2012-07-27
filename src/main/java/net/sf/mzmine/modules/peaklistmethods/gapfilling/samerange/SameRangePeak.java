@@ -142,7 +142,11 @@ class SameRangePeak implements ChromatographicPeak {
 	return dataFile;
     }
 
-    public String getName() {
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
 	return PeakUtils.peakToString(this);
     }
 

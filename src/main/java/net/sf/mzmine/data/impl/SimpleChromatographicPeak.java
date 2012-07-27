@@ -221,6 +221,7 @@ public class SimpleChromatographicPeak implements ChromatographicPeak {
     /**
      * @see java.lang.Object#toString()
      */
+    @Override
     public String toString() {
 	return PeakUtils.peakToString(this);
     }
