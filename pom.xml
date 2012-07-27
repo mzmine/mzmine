@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.sf.mzmine</groupId>
 	<artifactId>MZmine</artifactId>
-	<version>2.9.1</version>
+	<version>2.10</version>
 	<name>MZmine</name>
 	<description>MZmine 2 is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>http://mzmine.sourceforge.net/</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.4.10</cdk.version>
+		<cdk.version>1.4.11</cdk.version>
 	</properties>
 	<build>
 		<plugins>
@@ -117,7 +117,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>12.0</version>
+			<version>12.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -147,7 +147,7 @@
 		<dependency>
 			<groupId>types.checkers</groupId>
 			<artifactId>jsr308-all</artifactId>
-			<version>1.2.7</version>
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>12.2.28</version>
+			<version>12.2.33</version>
 		</dependency>
 		<dependency>
 			<groupId>com.compomics</groupId>
@@ -246,8 +246,8 @@
 		<!-- Start of CDK & JChemPaint dependencies -->
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
-			<artifactId>jchempaint-nodeps-cdk-1.4.10</artifactId>
-			<version>3.3.0</version>
+			<artifactId>jchempaint-nodeps</artifactId>
+			<version>3.3-1206</version>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
@@ -291,86 +291,51 @@
 		<!-- Start of parsers (http://code.google.com/p/jmzreader/) -->
 
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>jmzreader</artifactId>
-			<version>1.2.0</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>jmzreader</artifactId>
+        	<version>1.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>pkl-parser</artifactId>
-			<version>1.2.1</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>pkl-parser</artifactId>
+        	<version>1.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>dta-parser</artifactId>
-			<version>1.2.1</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>dta-parser</artifactId>
+        	<version>1.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>ms2-parser</artifactId>
-			<version>1.2.1</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>ms2-parser</artifactId>
+        	<version>1.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mgf-parser</artifactId>
-			<version>1.2.2</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>mgf-parser</artifactId>
+        	<version>1.2.2</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzxml-parser</artifactId>
-			<version>1.3.3</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>
-						com.springsource.org.apache.commons.logging
-					</artifactId>
-					<groupId>org.apache.commons</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>
-						com.springsource.org.apache.commons.io
-					</artifactId>
-					<groupId>org.apache.commons</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>
-						com.springsource.org.apache.log4j
-					</artifactId>
-					<groupId>org.apache.log4j</groupId>
-				</exclusion>
-			</exclusions>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>mzxml-parser</artifactId>
+        	<version>1.3.3</version>
+        </dependency>
+		<dependency>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>mzdata-parser</artifactId>
+       		<version>1.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzdata-parser</artifactId>
-			<version>1.2.1</version>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>mzml-wrapper</artifactId>
+        	<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mzml-wrapper</artifactId>
-			<version>1.1</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>jmzml</artifactId>
-					<groupId>uk.ac.ebi.jmzml</groupId>
-				</exclusion>
-			</exclusions>
+        	<groupId>uk.ac.ebi.pride.tools</groupId>
+        	<artifactId>pride-wrapper</artifactId>
+        	<version>1.2.0</version>
 		</dependency>
-		<dependency>
-			<!-- We add jmzml 1.6.7 specifically, because the above-listed mzml-wrapper 
-				depends on version 1.6.6, which crashes when reading mzML files with missing 
-				"id" attribute in the <mzML> tag -->
-			<groupId>uk.ac.ebi.jmzml</groupId>
-			<artifactId>jmzml</artifactId>
-			<version>1.6.7</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>pride-wrapper</artifactId>
-			<version>1.2.0</version>
-		</dependency>
-
-		<!-- End of parsers -->
+		<!-- End of jmzreader parsers -->
 
 		<!-- Start of Apache Axis 1.4 -->
 
@@ -467,10 +432,19 @@
 		<dependency>
 			<groupId>mzmine</groupId>
 			<artifactId>visad</artifactId>
-			<version>20120306</version>
+			<version>20120725</version>
 		</dependency>
 
 		<!-- End of jars included with MZmine -->
+
+		<!-- Java3D dependency, marked as 'provided' = only for compilation !-->
+		<dependency>
+			<groupId>java3d</groupId>
+			<artifactId>j3d-core</artifactId>
+			<version>1.3.1</version>
+			<scope>provided</scope>
+		</dependency>
+
 
 	</dependencies>
 
