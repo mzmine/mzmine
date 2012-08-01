@@ -149,7 +149,7 @@ public class BaselineCorrectionTask extends AbstractTask {
             }
 
             // Which chromatogram type.
-            final boolean useTIC = chromatogramType.equals(ChromatogramType.TIC);
+            final boolean useTIC = chromatogramType == ChromatogramType.TIC;
 
             // Process each MS level.
             for (final int level : levels) {
@@ -166,7 +166,7 @@ public class BaselineCorrectionTask extends AbstractTask {
                     } else {
 
                         // Copy scans for this MS-level.
-                        writeScans(rawDataFileWriter, copyScans(level));
+                        copyScansToWriter(rawDataFileWriter, level);
                     }
                 }
             }
@@ -200,14 +200,16 @@ public class BaselineCorrectionTask extends AbstractTask {
         }
     }
 
-    private static void writeScans(final RawDataFileWriter writer, final Scan[] newScans) throws IOException {
-
-        for (final Scan scan : newScans) {
-            writer.addScan(scan);
-        }
-    }
-
-    private Scan[] copyScans(final int level) {
+    /**
+     * Copy scans to RawDataFileWriter.
+     *
+     * @param writer writer to copy scans to.
+     * @param level  MS-level of scans to copy.
+     * @throws IOException if there are i/o problems.
+     */
+    private void copyScansToWriter(final RawDataFileWriter writer,
+                                   final int level)
+            throws IOException {
 
         LOG.finest("Copy scans");
 
@@ -216,8 +218,9 @@ public class BaselineCorrectionTask extends AbstractTask {
         final int numScans = scanNumbers.length;
 
         // Create copy of scans.
-        final Scan[] newScans = new Scan[numScans];
-        for (int scanIndex = 0; !isCanceled() && scanIndex < numScans; scanIndex++) {
+        for (int scanIndex = 0;
+             !isCanceled() && scanIndex < numScans;
+             scanIndex++) {
 
             // Get original scan.
             final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
@@ -229,16 +232,16 @@ public class BaselineCorrectionTask extends AbstractTask {
             // Copy original data points.
             int i = 0;
             for (final DataPoint dp : origDataPoints) {
+
                 newDataPoints[i++] = new SimpleDataPoint(dp);
             }
 
             // Create new copied scan.
             final SimpleScan newScan = new SimpleScan(origScan);
             newScan.setDataPoints(newDataPoints);
-            newScans[scanIndex] = newScan;
+            writer.addScan(newScan);
             progress++;
         }
-        return newScans;
     }
 
     /**
@@ -313,7 +316,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
             // Normalize the baseline w.r.t. chromatogram (TIC).
             for (int scanIndex = 0; scanIndex < numScans; scanIndex++) {
-                double bc = baseChrom[binIndex][scanIndex];
+                final double bc = baseChrom[binIndex][scanIndex];
                 if (bc != 0.0) {
                     baseChrom[binIndex][scanIndex] = baseline[scanIndex] / bc;
                 }
