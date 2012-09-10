@@ -106,7 +106,7 @@
 		<dependency>
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.5.5</version>
+			<version>7.6.4</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>truezip-swing</artifactId>
@@ -117,7 +117,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>12.0.1</version>
+			<version>13.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -152,12 +152,12 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.6.7</version>
+			<version>3.6.8</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>12.2.33</version>
+			<version>13.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.compomics</groupId>
@@ -247,7 +247,7 @@
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>jchempaint-nodeps</artifactId>
-			<version>3.3-1206</version>
+			<version>3.3-1207</version>
 		</dependency>
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
@@ -388,11 +388,6 @@
 			<groupId>soap-apis</groupId>
 			<artifactId>metlin-api</artifactId>
 			<version>1.0</version>
-		</dependency>
-		<dependency>
-			<groupId>soap-apis</groupId>
-			<artifactId>kegg-api</artifactId>
-			<version>6.2</version>
 		</dependency>
 		<dependency>
 			<groupId>soap-apis</groupId>

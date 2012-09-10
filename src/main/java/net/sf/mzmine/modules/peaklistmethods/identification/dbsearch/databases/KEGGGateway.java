@@ -21,21 +21,25 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.xml.rpc.ServiceException;
-
-import keggapi.KEGGLocator;
-import keggapi.KEGGPortType;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
+import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
 public class KEGGGateway implements DBGateway {
 
-    private static final String keggEntryAddress = "http://www.genome.jp/dbget-bin/www_bget?";
+    private static final String keggFindAddress1 = "http://rest.kegg.jp/find/compound/";
+    private static final String keggFindAddress2 = "/exact_mass";
+    private static final String keggGetAddress = "http://rest.kegg.jp/get/";
+    private static final String keggEntryAddress = "http://www.kegg.jp/entry/";
+
     private static final String kegg2DStructureAddress = "http://www.genome.jp/dbget-bin/www_bget?-f+m+";
     private static final String met3DStructureAddress1 = "http://www.3dmet.dna.affrc.go.jp/pdb2/";
     private static final String met3DStructureAddress2 = ".pdb";
@@ -45,19 +49,23 @@ public class KEGGGateway implements DBGateway {
 
 	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-	KEGGLocator locator = new KEGGLocator();
-	KEGGPortType serv;
-	try {
-	    serv = locator.getKEGGPort();
-	} catch (ServiceException e) {
-	    throw (new IOException(e));
+	String queryAddress = keggFindAddress1 + toleranceRange.getMin() + "-"
+		+ toleranceRange.getMax() + keggFindAddress2;
+
+	URL queryURL = new URL(queryAddress);
+
+	String queryResult = InetUtils.retrieveData(queryURL);
+
+	ArrayList<String> results = new ArrayList<String>();
+
+	Pattern pat = Pattern.compile("cpd:(C[0-9]+)");
+	Matcher matcher = pat.matcher(queryResult);
+	while (matcher.find()) {
+	    String keggID = matcher.group(1);
+	    results.add(keggID);
 	}
 
-	String[] results = serv.search_compounds_by_mass(
-		(float) toleranceRange.getAverage(),
-		(float) toleranceRange.getSize() / 2);
-
-	return results;
+	return results.toArray(new String[0]);
 
     }
 
@@ -68,15 +76,12 @@ public class KEGGGateway implements DBGateway {
     public DBCompound getCompound(String ID, ParameterSet parameters)
 	    throws IOException {
 
-	KEGGLocator locator = new KEGGLocator();
-	KEGGPortType serv;
-	try {
-	    serv = locator.getKEGGPort();
-	} catch (ServiceException e) {
-	    throw (new IOException(e));
-	}
+	String queryAddress = keggGetAddress + ID;
 
-	String compoundData = serv.bget(ID);
+	URL queryURL = new URL(queryAddress);
+
+	String compoundData = InetUtils.retrieveData(queryURL);
+
 	String dataLines[] = compoundData.split("\n");
 
 	String compoundName = null, compoundFormula = null, ID3DMet = null;
