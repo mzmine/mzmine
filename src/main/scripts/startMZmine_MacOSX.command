@@ -1,10 +1,10 @@
 #!/bin/sh
 
-
-# The HEAP_SIZE variable line defines the Java heap size in MB. 
+# The HEAP_SIZE variable defines the Java heap size in MB. 
 # That is the total amount of memory available to MZmine 2.
-# Please adjust according to the amount of memory of your computer.
-HEAP_SIZE=1024
+# By default we set this to the half of the physical memory 
+# size, but feel free to adjust according to your needs. 
+HEAP_SIZE=`sysctl hw.memsize | awk '{print int($2 / 1024^2 / 2)}'`
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 # files (parsed raw data) will be placed. Default is /tmp.
@@ -18,9 +18,8 @@ JRI_LIB_PATH=${R_HOME}/library/rJava/jri
 
 # It is usually not necessary to modify the JAVA_COMMAND parameter, but 
 # if you like to run a specific Java Virtual Machine, you may set the 
-# path to the java command of that JVM. By default, we use Mac OS X 
-# specific path to enforce using Java 6 VM
-JAVA_COMMAND=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/java
+# path to the java command of that JVM.
+JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
 JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY $USE_64_BIT -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
