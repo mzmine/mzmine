@@ -35,7 +35,7 @@ import net.sf.mzmine.util.Range;
 
 public class HMDBGateway implements DBGateway {
 
-    private static final String hmdbSeachAddress = "http://www.hmdb.ca/search/chemquery/run?search=molecular_weight";
+    private static final String hmdbSeachAddress = "http://www.hmdb.ca/chemquery/mass?";
     private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
     private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
@@ -57,7 +57,7 @@ public class HMDBGateway implements DBGateway {
 	TreeSet<String> results = new TreeSet<String>();
 
 	// Find IDs in the HTML data
-	Pattern pat = Pattern.compile("\"metabolites/(HMDB[0-9]{5})\"");
+	Pattern pat = Pattern.compile("metabolites/(HMDB[0-9]{5})");
 	Matcher matcher = pat.matcher(queryResult);
 	while (matcher.find()) {
 	    String hmdbID = matcher.group(1);
