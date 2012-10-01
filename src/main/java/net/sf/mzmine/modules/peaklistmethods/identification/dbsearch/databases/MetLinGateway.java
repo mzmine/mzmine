@@ -37,6 +37,8 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
 
+import org.apache.axis.AxisFault;
+
 public class MetLinGateway implements DBGateway {
 
     private static final String adduct[] = { "M" };
@@ -47,8 +49,9 @@ public class MetLinGateway implements DBGateway {
 
     private Map<String, LineInfo> retrievedMolecules = new Hashtable<String, LineInfo>();
 
-    public String[] findCompounds(double mass, MZTolerance mzTolerance,
-	    int numOfResults, ParameterSet parameters) throws IOException {
+    public synchronized String[] findCompounds(double mass,
+	    MZTolerance mzTolerance, int numOfResults, ParameterSet parameters)
+	    throws IOException {
 
 	Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
@@ -62,7 +65,6 @@ public class MetLinGateway implements DBGateway {
 
 	// Search mass as float[]
 	float searchMass[] = new float[] { (float) toleranceRange.getAverage() };
-
 	float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
 
 	final String token = parameters.getParameter(
@@ -70,7 +72,15 @@ public class MetLinGateway implements DBGateway {
 
 	MetaboliteSearchRequest searchParams = new MetaboliteSearchRequest(
 		token, searchMass, adduct, searchTolerance, "Da");
-	LineInfo resultsData[][] = serv.metaboliteSearch(searchParams);
+	LineInfo resultsData[][];
+	try {
+	    resultsData = serv.metaboliteSearch(searchParams);
+	} catch (AxisFault e) {
+	    // For some reason, the METLIN SOAP gateway throws AxisFault caused
+	    // by ArrayStoreException if no result is found. I suspect their
+	    // SOAP response is malformed and Axis does not like it.
+	    resultsData = new LineInfo[1][0];
+	}
 
 	if (resultsData.length == 0) {
 	    throw (new IOException("Results could not be retrieved from METLIN"));
@@ -116,7 +126,7 @@ public class MetLinGateway implements DBGateway {
 
 	URL structure2DURL = new URL(metLinStructureAddress1 + ID
 		+ metLinStructureAddress2);
-	
+
 	URL structure3DURL = null;
 
 	DBCompound newCompound = new DBCompound(OnlineDatabase.METLIN, ID,
