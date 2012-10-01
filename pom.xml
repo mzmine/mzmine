@@ -4,7 +4,7 @@
 	<groupId>net.sf.mzmine</groupId>
 	<artifactId>MZmine</artifactId>
 	<version>2.10</version>
-	<name>MZmine</name>
+	<name>MZmine 2</name>
 	<description>MZmine 2 is an open-source project delivering a software for mass-spectrometry data processing, with the main focus on LC-MS data.</description>
 	<url>http://mzmine.sourceforge.net/</url>
 	<properties>
@@ -147,7 +147,7 @@
 		<dependency>
 			<groupId>types.checkers</groupId>
 			<artifactId>jsr308-all</artifactId>
-			<version>1.3.1</version>
+			<version>1.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>13.0.2</version>
+			<version>13.0.4</version>
 		</dependency>
 		<dependency>
 			<groupId>com.compomics</groupId>
