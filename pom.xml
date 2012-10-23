@@ -106,7 +106,7 @@
 		<dependency>
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.6.4</version>
+			<version>7.6.6</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>truezip-swing</artifactId>
@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
 			<artifactId>jmol</artifactId>
-			<version>13.0.4</version>
+			<version>13.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.compomics</groupId>
