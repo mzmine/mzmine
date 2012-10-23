@@ -116,6 +116,11 @@ public class PeakListOpenHandler_2_5 extends DefaultHandler implements
 		SAXParser saxParser = factory.newSAXParser();
 		saxParser.parse(peakListStream, this);
 
+		// If there were no rows in the peaklist, it is still not initialized
+		if (buildingPeakList == null) {
+		    initializePeakList();
+		}
+		
 		return buildingPeakList;
 
 	}
