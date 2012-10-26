@@ -133,14 +133,6 @@ public class SingleRowPredictionTask extends AbstractTask {
                 if (rule.getMaxCount() == 0)
                     continue;
 
-                // Adjust the maximum numbers according to the mass we are
-                // searching
-                int maxCountAccordingToMass = (int) (massRange.getMax() / rule
-                        .getMass());
-                if (rule.getMaxCount() > maxCountAccordingToMass) {
-                    rule.setMaxCount(maxCountAccordingToMass);
-                }
-
                 rulesSet.add(rule);
 
             } catch (IllegalArgumentException e) {
