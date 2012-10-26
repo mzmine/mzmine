@@ -49,7 +49,6 @@ public class FormulaGenerator {
     private long testedCombinations = 0, totalNumberOfCombinations = 0;
 
     private int currentCounts[], minCounts[], maxCounts[];
-    private double currentMass;
 
     private boolean canceled = false;
 
@@ -80,8 +79,6 @@ public class FormulaGenerator {
 	    currentCounts[i] = elementRules[i].getMinCount();
 	    minCounts[i] = elementRules[i].getMinCount();
 	    maxCounts[i] = elementRules[i].getMaxCount();
-	    currentMass += elementRules[i].getMinCount()
-		    * elementRules[i].getMass();
 	}
 	this.minMass = massRange.getMin();
 	this.maxMass = massRange.getMax();
@@ -110,6 +107,17 @@ public class FormulaGenerator {
     }
 
     /**
+     * Calculates the exact mass of the currently evaluated formula 
+     */
+    private double getCurrentMass() {
+	double mass = 0;
+	for (int i = 0; i < currentCounts.length; i++) {
+	    mass += currentCounts[i] * elementMasses[i];
+	}
+	return mass;
+    }
+    
+    /**
      * Returns next generated formula or null in case no other formula was found
      */
     public MolecularFormula getNextFormula() {
@@ -119,6 +127,7 @@ public class FormulaGenerator {
 
 	    // Heuristics: if we are over the mass, it is meaningless to add
 	    // more atoms, so let's jump directly to the maximum count
+	    double currentMass = getCurrentMass();
 	    if (currentMass > maxMass) {
 		for (int i = 0; i < currentCounts.length; i++) {
 		    if (currentCounts[i] > minCounts[i]) {
@@ -129,8 +138,6 @@ public class FormulaGenerator {
 				    + 1;
 			}
 			testedCombinations += skippedCombinations;
-			currentMass += elementMasses[i]
-				* (maxCounts[i] - currentCounts[i]);
 			currentCounts[i] = maxCounts[i];
 
 			increaseCounter(i);
@@ -162,9 +169,6 @@ public class FormulaGenerator {
 
 	if (currentCounts[position] == maxCounts[position]) {
 
-	    currentMass -= elementMasses[position]
-		    * (currentCounts[position] - minCounts[position]);
-
 	    currentCounts[position] = minCounts[position];
 
 	    if (position < elementMasses.length - 1) {
@@ -174,7 +178,6 @@ public class FormulaGenerator {
 	    }
 	} else {
 	    currentCounts[position]++;
-	    currentMass += elementMasses[position];
 	}
 
     }
