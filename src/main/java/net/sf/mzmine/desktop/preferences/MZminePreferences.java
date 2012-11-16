@@ -88,9 +88,11 @@ public class MZminePreferences extends SimpleParameterSet {
 		    ProxySettings.proxyAddress).getValue();
 	    String port = proxyParams.getParameter(ProxySettings.proxyPort)
 		    .getValue();
+	    System.setProperty("http.proxySet", "true");
 	    System.setProperty("http.proxyHost", address);
 	    System.setProperty("http.proxyPort", port);
 	} else {
+	    System.clearProperty("http.proxySet");
 	    System.clearProperty("http.proxyHost");
 	    System.clearProperty("http.proxyPort");
 	}
