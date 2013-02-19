@@ -24,7 +24,6 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -37,12 +36,14 @@ public class TargetedPeakDetectionModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "Targeted peak detection"; // TODO
 
     @Override
-    public @Nonnull String getName() {
+    public @Nonnull
+    String getName() {
 	return MODULE_NAME;
     }
 
     @Override
-    public @Nonnull String getDescription() {
+    public @Nonnull
+    String getDescription() {
 	return MODULE_DESCRIPTION;
     }
 
@@ -50,8 +51,8 @@ public class TargetedPeakDetectionModule implements MZmineProcessingModule {
     @Nonnull
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
-	RawDataFile[] dataFiles = MZmineCore.getDesktop()
-		.getSelectedDataFiles();
+	RawDataFile[] dataFiles = parameters.getParameter(
+		TargetedPeakDetectionParameters.rawDataFile).getValue();
 	for (RawDataFile dataFile : dataFiles) {
 	    Task newTask = new TargetedPeakDetectionModuleTask(parameters,
 		    dataFile);
@@ -61,12 +62,14 @@ public class TargetedPeakDetectionModule implements MZmineProcessingModule {
     }
 
     @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
+    public @Nonnull
+    MZmineModuleCategory getModuleCategory() {
 	return MZmineModuleCategory.PEAKPICKING;
     }
 
     @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+    public @Nonnull
+    Class<? extends ParameterSet> getParameterSetClass() {
 	return TargetedPeakDetectionParameters.class;
     }
 }
