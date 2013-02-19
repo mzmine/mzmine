@@ -35,7 +35,7 @@ public class ResultFormula {
     private IsotopePattern predictedIsotopePattern;
     private Map<DataPoint, String> msmsAnnotation;
 
-    ResultFormula(MolecularFormula cdkFormula,
+    public ResultFormula(MolecularFormula cdkFormula,
 	    IsotopePattern predictedIsotopePattern, Double rdbeValue,
 	    Double isotopeScore, Double msmsScore,
 	    Map<DataPoint, String> msmsAnnotation) {
