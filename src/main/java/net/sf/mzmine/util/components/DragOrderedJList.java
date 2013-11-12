@@ -20,6 +20,7 @@
 package net.sf.mzmine.util.components;
 
 import javax.swing.*;
+
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -85,8 +86,9 @@ public class DragOrderedJList extends JList {
         super.setModel(model);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
-    public void setListData(final Vector<?> listData) {
+    public void setListData(final Vector listData) {
         final DefaultListModel model = new DefaultListModel();
         for (final Object element : listData) {
             model.addElement(element);
