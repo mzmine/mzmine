@@ -103,11 +103,17 @@ public class LoadSaveFileChooser extends JFileChooser {
 
                 // Get the selected file.
                 file = getSelectedFile();
+                
+                if (file == null) 
+                    return null;
+                
                 if (!file.exists()) {
-
                     file = applyFileNameExtension(file, extension);
                 }
 
+                if (file == null) 
+                    return null;
+                
                 // Does the file exist?
                 if (file.exists() &&
                     JOptionPane.showConfirmDialog(parent,
