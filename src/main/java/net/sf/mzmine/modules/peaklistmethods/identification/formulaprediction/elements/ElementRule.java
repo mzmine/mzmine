@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2012 The MZmine 2 Development Team
+ * Copyright 2006-2014 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,9 +23,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.openscience.cdk.DefaultChemObjectBuilder;
-import org.openscience.cdk.config.IsotopeFactory;
-import org.openscience.cdk.interfaces.IChemObjectBuilder;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.interfaces.IIsotope;
 
 public class ElementRule {
@@ -69,9 +67,8 @@ public class ElementRule {
 
 	try {
 	    // Use CDK to obtain element's mass
-	    IChemObjectBuilder builder = DefaultChemObjectBuilder.getInstance();
-	    IsotopeFactory ifac = IsotopeFactory.getInstance(builder);
-	    elementObject = ifac.getMajorIsotope(elementSymbol);
+	    Isotopes isotopeFactory = Isotopes.getInstance();
+	    elementObject = isotopeFactory.getMajorIsotope(elementSymbol);
 	    elementMass = elementObject.getExactMass();
 	} catch (IOException e) {
 	    // This can never happen

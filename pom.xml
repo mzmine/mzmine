@@ -10,7 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.4.16</cdk.version>
+		<cdk.version>1.5.5</cdk.version>
 	</properties>
 	<build>
 		<plugins>
@@ -69,12 +69,7 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- CDK & JChemPaint repository -->
-			<id>ambit-plovdiv-thirdparty</id>
-			<url>http://ambit.uni-plovdiv.bg:8083/nexus/content/repositories/thirdparty</url>
-		</repository>
-		<repository>
-			<!-- jmzreader repository -->
+			<!-- jmzreader and CDK repository -->
 			<id>ebi-repo</id>
 			<name>The EBI Maven 2 repository</name>
 			<url>http://www.ebi.ac.uk/~maven/m2repo</url>
@@ -101,7 +96,7 @@
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreechart</artifactId>
-			<version>1.0.15</version>
+			<version>1.0.17</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>xml-apis</artifactId>
@@ -112,7 +107,7 @@
 		<dependency>
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.7.5</version>
+			<version>7.7.6</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>truezip-swing</artifactId>
@@ -123,7 +118,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>15.0</version>
+			<version>16.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -262,9 +257,9 @@
 
 		<!-- Start of CDK & JChemPaint dependencies -->
 		<dependency>
-			<groupId>org.openscience.cdk</groupId>
-			<artifactId>jchempaint-nodeps</artifactId>
-			<version>3.3-1210</version>
+			<groupId>org.openscience.jchempaint</groupId>
+			<artifactId>jchempaint-hotfix</artifactId>
+			<version>3.4</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>xml-apis</artifactId>

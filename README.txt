@@ -1,5 +1,5 @@
 
-Copyright 2006-2012 The MZmine 2 Development Team
+Copyright 2006-2014 The MZmine 2 Development Team
   
 MZmine 2 is free software; you can redistribute it and/or modify it under the
 terms of the GNU General Public License as published by the Free Software
