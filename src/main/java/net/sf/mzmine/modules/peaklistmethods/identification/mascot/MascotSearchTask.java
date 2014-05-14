@@ -19,32 +19,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import com.compomics.mascotdatfile.util.mascot.MascotDatfile;
-import com.compomics.mascotdatfile.util.mascot.PeptideHit;
-import com.compomics.mascotdatfile.util.mascot.Query;
-import com.compomics.mascotdatfile.util.mascot.QueryToPeptideMap;
 
 public class MascotSearchTask extends AbstractTask {
 
@@ -158,7 +143,7 @@ public class MascotSearchTask extends AbstractTask {
 
 		setStatus( TaskStatus.PROCESSING );
 		totalRows = 100;
-
+/*
 		try {
 			logger.info("Create temporary MGF file");
 			tmpFile = File.createTempFile("mascot", "mascot");
@@ -319,7 +304,7 @@ public class MascotSearchTask extends AbstractTask {
 			e.printStackTrace();
 			setStatus( TaskStatus.ERROR );
 			return;
-		}
+		}*/
 		setStatus( TaskStatus.FINISHED );
 		logger.info("Finished peaks search");
 	}

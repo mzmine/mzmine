@@ -23,7 +23,6 @@ import java.util.Collection;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -53,13 +52,13 @@ public class MascotSearchModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
 
-	PeakList peakLists[] = parameters.getParameter(
+/*	PeakList peakLists[] = parameters.getParameter(
 		MascotParameters.peakLists).getValue();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new MascotSearchTask(parameters, peakList);
 	    tasks.add(newTask);
-	}
+	}*/
 
 	return ExitCode.OK;
     }
