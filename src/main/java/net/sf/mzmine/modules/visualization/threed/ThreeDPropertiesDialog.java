@@ -70,7 +70,7 @@ public class ThreeDPropertiesDialog extends JDialog {
      */
     public ThreeDPropertiesDialog(final ThreeDDisplay display3D) {
 
-        super(MZmineCore.getDesktop().getMainFrame(), TITLE, false);
+        super(MZmineCore.getDesktop().getMainWindow(), TITLE, false);
 
         // Initialize.
         display = display3D;
@@ -113,7 +113,7 @@ public class ThreeDPropertiesDialog extends JDialog {
 
         // Display dialog.
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
     }
 
     /**

@@ -249,7 +249,7 @@ public class CDADataset extends AbstractXYDataset implements
 
 		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
 				this, parameters);
-		MZmineCore.getDesktop().addInternalFrame(newFrame);
+		newFrame.setVisible(true);
 
 		status = TaskStatus.FINISHED;
 		logger.info("Finished computing projection plot.");

@@ -72,7 +72,7 @@ public class LogratioPlotModule implements MZmineProcessingModule {
 	    // Create & show window
 	    RTMZAnalyzerWindow window = new RTMZAnalyzerWindow(dataset, pl,
 		    paintScale);
-	    MZmineCore.getDesktop().addInternalFrame(window);
+	    window.setVisible(true);
 
 	}
 

@@ -17,16 +17,18 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.taskcontrol.impl;
+package net.sf.mzmine.desktop.impl;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -36,13 +38,15 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
+import net.sf.mzmine.taskcontrol.impl.WrappedTask;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.ComponentCellRenderer;
 
 /**
  * This class represents a window with a table of running tasks
  */
-public class TaskProgressWindow extends JInternalFrame implements
+public class TaskProgressTable extends JPanel implements
 		ActionListener {
 
 	private JTable taskTable;
@@ -55,12 +59,11 @@ public class TaskProgressWindow extends JInternalFrame implements
 	/**
 	 * Constructor
 	 */
-	public TaskProgressWindow() {
+	public TaskProgressTable() {
 
-		super("Tasks in progress...", true, true, true, true);
-
-		// We don't want this window to be closed until all tasks are finished
-		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		super(new BorderLayout());
+		
+		add(new JLabel("Tasks in progress..."), BorderLayout.NORTH);
 
 		TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore
 				.getTaskController();
@@ -97,10 +100,7 @@ public class TaskProgressWindow extends JInternalFrame implements
 		// Set the width for first column (task description)
 		taskTable.getColumnModel().getColumn(0).setPreferredWidth(350);
 
-		pack();
-
-		// Set position and size
-		setBounds(20, 20, 600, 150);
+		jJobScroll.setPreferredSize(new Dimension(600, 120));
 
 	}
 

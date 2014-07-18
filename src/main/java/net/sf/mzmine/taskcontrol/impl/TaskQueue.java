@@ -22,6 +22,7 @@ package net.sf.mzmine.taskcontrol.impl;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
+import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.taskcontrol.Task;
@@ -33,7 +34,7 @@ import net.sf.mzmine.util.components.LabeledProgressBar;
  * This class stores all tasks (as WrappedTasks) in the queue of task controller
  * and also provides data for TaskProgressWindow (as TableModel).
  */
-class TaskQueue extends AbstractTableModel {
+public class TaskQueue extends AbstractTableModel {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -85,14 +86,24 @@ class TaskQueue extends AbstractTableModel {
 
 		// Call fireTableDataChanged because we have a new row and order of rows
 		// may have changed
-		fireTableDataChanged();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				fireTableDataChanged();
+			}
+		});
 
 	}
 
 	synchronized void clear() {
 		size = 0;
 		queue = new WrappedTask[DEFAULT_CAPACITY];
-		fireTableDataChanged();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				fireTableDataChanged();
+			}
+		});
 	}
 
 	/**
@@ -104,7 +115,13 @@ class TaskQueue extends AbstractTableModel {
 
 		// We must not call fireTableDataChanged, because that would clear the
 		// selection in the task window
-		fireTableRowsUpdated(0, size - 1);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				fireTableRowsUpdated(0, size - 1);
+
+			}
+		});
 
 	}
 
@@ -122,7 +139,7 @@ class TaskQueue extends AbstractTableModel {
 		return true;
 	}
 
-	synchronized WrappedTask[] getQueueSnapshot() {
+	public synchronized WrappedTask[] getQueueSnapshot() {
 		WrappedTask[] snapshot = new WrappedTask[size];
 		System.arraycopy(queue, 0, snapshot, 0, size);
 		return snapshot;

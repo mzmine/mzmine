@@ -69,7 +69,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	private Desktop desktop;
 
 	public ProjectParametersSetupDialog() {
-		super(MZmineCore.getDesktop().getMainFrame(), true);
+		super(MZmineCore.getDesktop().getMainWindow(), true);
 
 		parameterValues = new Hashtable<UserParameter, Object[]>();
 
@@ -83,7 +83,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 		setupTableModel();
 
-		setLocationRelativeTo(desktop.getMainFrame());
+		setLocationRelativeTo(desktop.getMainWindow());
 
 	}
 

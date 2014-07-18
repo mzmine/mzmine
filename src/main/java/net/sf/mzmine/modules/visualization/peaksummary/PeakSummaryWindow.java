@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.peaksummary;
 
 import java.awt.BorderLayout;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.util.components.PeakSummaryComponent;
@@ -29,11 +29,11 @@ import net.sf.mzmine.util.components.PeakSummaryComponent;
 /**
  * 
  */
-public class PeakSummaryWindow extends JInternalFrame {
+public class PeakSummaryWindow extends JFrame {
 
     public PeakSummaryWindow(PeakListRow row) {
 
-        super(row.toString(), true, true, true, true);
+        super(row.toString());
 
         setLayout(new BorderLayout());
 

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.taskcontrol;
 
+import net.sf.mzmine.taskcontrol.impl.TaskQueue;
+
 /**
  * 
  */
@@ -36,4 +38,6 @@ public interface TaskController {
 
 	public void addTaskControlListener(TaskControlListener listener);
 
+	public TaskQueue getTaskQueue();
+	
 }

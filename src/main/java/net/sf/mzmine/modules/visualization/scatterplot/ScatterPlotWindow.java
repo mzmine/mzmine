@@ -26,7 +26,7 @@ import java.awt.Dimension;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
@@ -37,7 +37,7 @@ import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterP
  * Main window of the scatter plot visualizer.
  * 
  */
-public class ScatterPlotWindow extends JInternalFrame {
+public class ScatterPlotWindow extends JFrame {
 
 	private ScatterPlotToolBar toolbar;
 	private ScatterPlotChart chart;
@@ -46,7 +46,7 @@ public class ScatterPlotWindow extends JInternalFrame {
 
 	public ScatterPlotWindow(PeakList peakList) {
 
-		super("Scatter plot of " + peakList, true, true, true, true);
+		super("Scatter plot of " + peakList);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 

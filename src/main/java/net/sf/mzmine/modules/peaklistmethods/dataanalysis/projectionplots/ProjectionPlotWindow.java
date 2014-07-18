@@ -23,14 +23,14 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
-public class ProjectionPlotWindow extends JInternalFrame implements
+public class ProjectionPlotWindow extends JFrame implements
 		ActionListener {
 
 	private ProjectionPlotToolbar toolbar;
@@ -38,7 +38,6 @@ public class ProjectionPlotWindow extends JInternalFrame implements
 
 	public ProjectionPlotWindow(PeakList peakList,
 			ProjectionPlotDataset dataset, ParameterSet parameters) {
-		super(null, true, true, true, true);
 
 		toolbar = new ProjectionPlotToolbar(this);
 		add(toolbar, BorderLayout.EAST);

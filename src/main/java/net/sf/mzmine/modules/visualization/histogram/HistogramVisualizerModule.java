@@ -50,7 +50,7 @@ public class HistogramVisualizerModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
 	HistogramWindow newWindow = new HistogramWindow(parameters);
-	MZmineCore.getDesktop().addInternalFrame(newWindow);
+	newWindow.setVisible(true);
 	return ExitCode.OK;
     }
 

@@ -142,13 +142,13 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		updateMinimumSize();
 		pack();
 		parametersChanged();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    } else {
 		mainPanel.remove(spectrumPlot);
 		pnlPreviewFields.setVisible(false);
 		updateMinimumSize();
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    }
 	}
 
@@ -280,7 +280,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	updateMinimumSize();
 	pack();
 
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
     }
 
 }

@@ -37,29 +37,19 @@ import net.sf.mzmine.project.MZmineProject;
 /**
  * Project tree model implementation
  */
-public class ProjectTreeModel extends DefaultTreeModel {
+public class PeakListTreeModel extends DefaultTreeModel {
 
-	public static final String dataFilesNodeName = "Raw data files";
 	public static final String peakListsNodeName = "Peak lists";
-
-	private final ProjectTreeNode dataFilesNode = new ProjectTreeNode(
-			dataFilesNodeName);
-
-	private final ProjectTreeNode peakListsNode = new ProjectTreeNode(
-			peakListsNodeName);
 
 	private Hashtable<Object, DefaultMutableTreeNode> treeObjects = new Hashtable<Object, DefaultMutableTreeNode>();
 
 	private DefaultMutableTreeNode rootNode;
 
-	public ProjectTreeModel(MZmineProject project) {
+	public PeakListTreeModel(MZmineProject project) {
 
-		super(new DefaultMutableTreeNode(project));
+		super(new ProjectTreeNode(peakListsNodeName));
 
 		rootNode = (DefaultMutableTreeNode) super.getRoot();
-
-		insertNodeInto(dataFilesNode, rootNode, 0);
-		insertNodeInto(peakListsNode, rootNode, 1);
 
 	}
 
@@ -68,8 +58,8 @@ public class ProjectTreeModel extends DefaultTreeModel {
 	 */
 	public void addObject(final Object object) {
 
-	    	assert object != null;
-	    	
+		assert object != null;
+
 		if (!SwingUtilities.isEventDispatchThread()) {
 			throw new IllegalStateException(
 					"This method must be called from Swing thread");
@@ -78,12 +68,12 @@ public class ProjectTreeModel extends DefaultTreeModel {
 		// Create new node
 		final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
 				object);
-		
+
 		treeObjects.put(object, newNode);
 
 		if (object instanceof PeakList) {
-			int childCount = getChildCount(peakListsNode);
-			insertNodeInto(newNode, peakListsNode, childCount);
+			int childCount = getChildCount(rootNode);
+			insertNodeInto(newNode, rootNode, childCount);
 			final PeakList peakList = (PeakList) object;
 			PeakListRow rows[] = peakList.getRows();
 			for (int i = 0; i < rows.length; i++) {
@@ -92,31 +82,6 @@ public class ProjectTreeModel extends DefaultTreeModel {
 				treeObjects.put(rows[i], rowNode);
 				insertNodeInto(rowNode, newNode, i);
 			}
-		}
-
-		if (object instanceof RawDataFile) {
-
-			int childCount = getChildCount(dataFilesNode);
-			insertNodeInto(newNode, dataFilesNode, childCount);
-			RawDataFile dataFile = (RawDataFile) object;
-			int scanNumbers[] = dataFile.getScanNumbers();
-			for (int i = 0; i < scanNumbers.length; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);
-				DefaultMutableTreeNode scanNode = new DefaultMutableTreeNode(
-						scan);
-				treeObjects.put(scan, scanNode);
-				insertNodeInto(scanNode, newNode, i);
-
-				MassList massLists[] = scan.getMassLists();
-				for (int j = 0; j < massLists.length; j++) {
-					DefaultMutableTreeNode mlNode = new DefaultMutableTreeNode(
-							massLists[j]);
-					treeObjects.put(massLists[j], mlNode);
-					insertNodeInto(mlNode, scanNode, j);
-
-				}
-			}
-
 		}
 
 		if (object instanceof MassList) {
@@ -164,23 +129,12 @@ public class ProjectTreeModel extends DefaultTreeModel {
 	}
 
 	public synchronized PeakList[] getPeakLists() {
-		int childrenCount = getChildCount(peakListsNode);
+		int childrenCount = getChildCount(rootNode);
 		PeakList result[] = new PeakList[childrenCount];
 		for (int j = 0; j < childrenCount; j++) {
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(
-					peakListsNode, j);
+					rootNode, j);
 			result[j] = (PeakList) child.getUserObject();
-		}
-		return result;
-	}
-
-	public synchronized RawDataFile[] getDataFiles() {
-		int childrenCount = getChildCount(dataFilesNode);
-		RawDataFile result[] = new RawDataFile[childrenCount];
-		for (int j = 0; j < childrenCount; j++) {
-			DefaultMutableTreeNode child = (DefaultMutableTreeNode) getChild(
-					dataFilesNode, j);
-			result[j] = (RawDataFile) child.getUserObject();
 		}
 		return result;
 	}

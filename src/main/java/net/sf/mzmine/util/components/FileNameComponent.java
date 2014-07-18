@@ -82,7 +82,7 @@ public class FileNameComponent extends JPanel implements ActionListener {
 		}
 
 		int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
-				.getMainFrame(), "Select file");
+				.getMainWindow(), "Select file");
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			String selectedPath = fileChooser.getSelectedFile()

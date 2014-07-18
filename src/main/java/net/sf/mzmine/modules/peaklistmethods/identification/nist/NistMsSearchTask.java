@@ -187,7 +187,7 @@ public class NistMsSearchTask
             }
 
             // Repaint the window to reflect the change in the peak list
-            MZmineCore.getDesktop().getMainFrame().repaint();
+            MZmineCore.getDesktop().getMainWindow().repaint();
         }
         catch (Throwable t) {
 

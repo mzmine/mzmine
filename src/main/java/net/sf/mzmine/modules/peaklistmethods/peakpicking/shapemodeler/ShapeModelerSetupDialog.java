@@ -146,13 +146,13 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 					comboPeakList.setSelectedItem(selected[0]);
 				else
 					comboPeakList.setSelectedIndex(0);
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 			} else {
 				mainPanel.remove(pnlPlotXY);
 				pnlVisible.remove(pnlLabelsFields);
 				updateMinimumSize();
 				pack();
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 			}
 			return;
 		}
@@ -300,7 +300,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 
 		updateMinimumSize();
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
 	}
 

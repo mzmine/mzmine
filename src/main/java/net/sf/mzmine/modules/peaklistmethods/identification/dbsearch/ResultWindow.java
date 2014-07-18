@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -43,7 +43,6 @@ import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
 import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
@@ -51,7 +50,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.GUIUtils;
 
-public class ResultWindow extends JInternalFrame implements ActionListener {
+public class ResultWindow extends JFrame implements ActionListener {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -64,7 +63,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	public ResultWindow(PeakListRow peakListRow, double searchedMass,
 			Task searchTask) {
 
-		super(null, true, true, true, true);
+		super("");
 
 		this.peakListRow = peakListRow;
 		this.searchTask = searchTask;
@@ -139,7 +138,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 					false);
 
 			// Repaint the window to reflect the change in the peak list
-			MZmineCore.getDesktop().getMainFrame().repaint();
+			MZmineCore.getDesktop().getMainWindow().repaint();
 
 			dispose();
 		}
@@ -162,8 +161,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 					+ compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
 			MolStructureViewer viewer = new MolStructureViewer(name, url2D,
 					url3D);
-			Desktop desktop = MZmineCore.getDesktop();
-			desktop.addInternalFrame(viewer);
+			viewer.setVisible(true);
 
 		}
 

@@ -25,7 +25,7 @@ import net.sf.mzmine.taskcontrol.TaskPriority;
 /**
  * Wrapper class for Tasks that stores additional information
  */
-class WrappedTask {
+public class WrappedTask {
 
     private Task task;
     private TaskPriority priority;
@@ -74,7 +74,7 @@ class WrappedTask {
     /**
      * @return Returns the task.
      */
-    synchronized Task getActualTask() {
+    public synchronized Task getActualTask() {
         return task;
     }
 

@@ -200,10 +200,10 @@ public final class MZmineCore {
 		}
 
 		// if we have GUI, show it now
-		if (desktop.getMainFrame() != null) {
+		if (desktop.getMainWindow() != null) {
 			// show the GUI
 			logger.info("Showing main window");
-			desktop.getMainFrame().setVisible(true);
+			desktop.getMainWindow().setVisible(true);
 
 			// show the welcome message
 			desktop.setStatusBarText("Welcome to MZmine 2!");

@@ -73,14 +73,15 @@ public class SammonsDataset extends AbstractXYDataset implements
 
 	public SammonsDataset(ParameterSet parameters) {
 
-		this.peakList = parameters.getParameter(ProjectionPlotParameters.peakLists).getValue()[0];
+		this.peakList = parameters.getParameter(
+				ProjectionPlotParameters.peakLists).getValue()[0];
 		this.parameters = parameters;
 		this.xAxisDimension = parameters.getParameter(
 				ProjectionPlotParameters.xAxisComponent).getValue();
 		this.yAxisDimension = parameters.getParameter(
 				ProjectionPlotParameters.yAxisComponent).getValue();
 
-                        coloringType = parameters.getParameter(
+		coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();
 		selectedRawDataFiles = parameters.getParameter(
 				ProjectionPlotParameters.dataFiles).getValue();
@@ -249,9 +250,9 @@ public class SammonsDataset extends AbstractXYDataset implements
 		component1Coords = result[xAxisDimension - 1];
 		component2Coords = result[yAxisDimension - 1];
 
-		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
-				parameters);
-		MZmineCore.getDesktop().addInternalFrame(newFrame);
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
+				this, parameters);
+		newFrame.setVisible(true);
 
 		setStatus(TaskStatus.FINISHED);
 		logger.info("Finished computing projection plot.");

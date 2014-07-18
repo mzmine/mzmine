@@ -61,6 +61,9 @@ public interface Scan {
      */
     @Nonnull
     public Range getMZRange();
+    
+    // TODO: public Range getScanRange(); return the actual scanning range of the instrument
+    
 
     /**
      * Returns the top intensity data point. May return null if there are no

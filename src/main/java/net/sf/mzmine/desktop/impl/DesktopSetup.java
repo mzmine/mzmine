@@ -98,6 +98,10 @@ public class DesktopSetup {
 			}
 		}
 
+		// Let the OS decide the location of new windows. Otherwise, all windows
+		// would appear at the top left corner by default.
+		System.setProperty("java.awt.Window.locationByPlatform", "true");
+
 	}
 
 }

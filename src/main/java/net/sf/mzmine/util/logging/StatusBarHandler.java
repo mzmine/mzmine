@@ -51,7 +51,7 @@ public class StatusBarHandler extends Handler {
 		Desktop desktop = MZmineCore.getDesktop();
 		if (desktop == null)
 			return;
-		if (desktop.getMainFrame() == null)
+		if (desktop.getMainWindow() == null)
 			return;
 
 		Date recordTime = new Date(record.getMillis());

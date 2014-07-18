@@ -32,7 +32,7 @@ import net.sf.mzmine.data.DataPoint;
 import net.sf.mzmine.data.MassList;
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.desktop.impl.projecttree.ProjectTreeModel;
+import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
@@ -347,7 +347,7 @@ public class StorableScan implements Scan {
 
 		// Check if we are adding to the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-			final ProjectTreeModel treeModel = project.getTreeModel();
+			final RawDataTreeModel treeModel = project.getRawDataTreeModel();
 			final MassList newMassList = storedMassList;
 			Runnable swingCode = new Runnable() {
 				@Override
@@ -385,7 +385,7 @@ public class StorableScan implements Scan {
 
 		// Check if we are using the current project
 		if (Arrays.asList(project.getDataFiles()).contains(rawDataFile)) {
-			final ProjectTreeModel treeModel = project.getTreeModel();
+			final RawDataTreeModel treeModel = project.getRawDataTreeModel();
 			Runnable swingCode = new Runnable() {
 				@Override
 				public void run() {

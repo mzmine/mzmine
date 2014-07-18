@@ -65,7 +65,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
     public NeutralLossSetHighlightDialog(NeutralLossPlot plot, String command) {
 
         // Make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), "", true);
+        super(MZmineCore.getDesktop().getMainWindow(), "", true);
 
         this.desktop = MZmineCore.getDesktop();
         this.plot = plot;
@@ -140,7 +140,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 
         // finalize the dialog
         pack();
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
         setResizable(false);
 
     }

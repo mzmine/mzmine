@@ -118,13 +118,13 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		updateMinimumSize();
 		pack();
 		parametersChanged();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    } else {
 		mainPanel.remove(ticPlot);
 		pnlPreviewFields.setVisible(false);
 		updateMinimumSize();
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    }
 	}
 
@@ -226,7 +226,7 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	updateMinimumSize();
 	pack();
 
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
     }
 

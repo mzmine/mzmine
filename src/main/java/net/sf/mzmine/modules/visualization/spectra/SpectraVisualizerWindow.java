@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.spectra;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
@@ -29,7 +30,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.data.ChromatographicPeak;
@@ -55,7 +56,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizerWindow extends JInternalFrame implements
+public class SpectraVisualizerWindow extends JFrame implements
 	ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -82,7 +83,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
     public SpectraVisualizerWindow(RawDataFile dataFile) {
 
-	super(dataFile.getName(), true, true, true, true);
+	super(dataFile.getName());
 	this.dataFile = dataFile;
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -100,7 +101,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	bottomPanel = new SpectraBottomPanel(this, dataFile);
 	add(bottomPanel, BorderLayout.SOUTH);
 
-	MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
+	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
 	pack();
 
@@ -108,7 +109,7 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 
     public void dispose() {
 	super.dispose();
-	MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
+	MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
     public void loadRawData(Scan scan) {
@@ -455,11 +456,10 @@ public class SpectraVisualizerWindow extends JInternalFrame implements
 	    double yTick = (double) yAxis.getTickUnit().getSize();
 
 	    // Get all frames of my class
-	    JInternalFrame spectraFrames[] = MZmineCore.getDesktop()
-		    .getInternalFrames();
+	    Window spectraFrames[] = JFrame.getWindows();
 
 	    // Set the range of these frames
-	    for (JInternalFrame frame : spectraFrames) {
+	    for (Window frame : spectraFrames) {
 		if (!(frame instanceof SpectraVisualizerWindow))
 		    continue;
 		SpectraVisualizerWindow spectraFrame = (SpectraVisualizerWindow) frame;

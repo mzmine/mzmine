@@ -37,91 +37,91 @@ import net.sf.mzmine.util.Range;
  */
 public class TwoDVisualizerModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "2D visualizer";
-    private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
+	private static final String MODULE_NAME = "2D visualizer";
+	private static final String MODULE_DESCRIPTION = "2D visualizer."; // TODO
 
-    @Override
-    public @Nonnull String getName() {
-	return MODULE_NAME;
-    }
-
-    @Override
-    public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
-    }
-
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-	RawDataFile dataFiles[] = parameters.getParameter(
-		TwoDParameters.dataFiles).getValue();
-
-	if ((dataFiles == null) || (dataFiles.length == 0)) {
-	    MZmineCore.getDesktop().displayErrorMessage(
-		    "Please select raw data file");
-	    return ExitCode.ERROR;
+	@Override
+	public @Nonnull String getName() {
+		return MODULE_NAME;
 	}
 
-	int msLevel = parameters.getParameter(TwoDParameters.msLevel)
-		.getValue();
-	Range rtRange = parameters.getParameter(
-		TwoDParameters.retentionTimeRange).getValue();
-	Range mzRange = parameters.getParameter(TwoDParameters.mzRange)
-		.getValue();
-	TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
-		msLevel, rtRange, mzRange, parameters);
+	@Override
+	public @Nonnull String getDescription() {
+		return MODULE_DESCRIPTION;
+	}
 
-	MZmineCore.getDesktop().addInternalFrame(newWindow);
+	@Override
+	@Nonnull
+	public ExitCode runModule(@Nonnull ParameterSet parameters,
+			@Nonnull Collection<Task> tasks) {
+		RawDataFile dataFiles[] = parameters.getParameter(
+				TwoDParameters.dataFiles).getValue();
 
-	return ExitCode.OK;
-    }
+		if ((dataFiles == null) || (dataFiles.length == 0)) {
+			MZmineCore.getDesktop().displayErrorMessage(
+					"Please select raw data file");
+			return ExitCode.ERROR;
+		}
 
-    public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
-	show2DVisualizerSetupDialog(dataFile, null, null);
-    }
+		int msLevel = parameters.getParameter(TwoDParameters.msLevel)
+				.getValue();
+		Range rtRange = parameters.getParameter(
+				TwoDParameters.retentionTimeRange).getValue();
+		Range mzRange = parameters.getParameter(TwoDParameters.mzRange)
+				.getValue();
+		TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
+				msLevel, rtRange, mzRange, parameters);
 
-    public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
-	    Range mzRange, Range rtRange) {
+		newWindow.setVisible(true);
 
-	ParameterSet parameters = MZmineCore.getConfiguration()
-		.getModuleParameters(TwoDVisualizerModule.class);
+		return ExitCode.OK;
+	}
 
-	parameters.getParameter(TwoDParameters.dataFiles).setValue(
-		new RawDataFile[] { dataFile });
+	public static void show2DVisualizerSetupDialog(RawDataFile dataFile) {
+		show2DVisualizerSetupDialog(dataFile, null, null);
+	}
 
-	if (rtRange != null)
-	    parameters.getParameter(TwoDParameters.retentionTimeRange)
-		    .setValue(rtRange);
-	if (mzRange != null)
-	    parameters.getParameter(TwoDParameters.mzRange).setValue(mzRange);
+	public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
+			Range mzRange, Range rtRange) {
 
-	ExitCode exitCode = parameters.showSetupDialog();
+		ParameterSet parameters = MZmineCore.getConfiguration()
+				.getModuleParameters(TwoDVisualizerModule.class);
 
-	if (exitCode != ExitCode.OK)
-	    return;
+		parameters.getParameter(TwoDParameters.dataFiles).setValue(
+				new RawDataFile[] { dataFile });
 
-	int msLevel = parameters.getParameter(TwoDParameters.msLevel)
-		.getValue();
-	rtRange = parameters.getParameter(TwoDParameters.retentionTimeRange)
-		.getValue();
-	mzRange = parameters.getParameter(TwoDParameters.mzRange).getValue();
+		if (rtRange != null)
+			parameters.getParameter(TwoDParameters.retentionTimeRange)
+					.setValue(rtRange);
+		if (mzRange != null)
+			parameters.getParameter(TwoDParameters.mzRange).setValue(mzRange);
 
-	TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
-		msLevel, rtRange, mzRange, parameters);
+		ExitCode exitCode = parameters.showSetupDialog();
 
-	MZmineCore.getDesktop().addInternalFrame(newWindow);
+		if (exitCode != ExitCode.OK)
+			return;
 
-    }
+		int msLevel = parameters.getParameter(TwoDParameters.msLevel)
+				.getValue();
+		rtRange = parameters.getParameter(TwoDParameters.retentionTimeRange)
+				.getValue();
+		mzRange = parameters.getParameter(TwoDParameters.mzRange).getValue();
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.VISUALIZATIONRAWDATA;
-    }
+		TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFile,
+				msLevel, rtRange, mzRange, parameters);
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return TwoDParameters.class;
-    }
+		newWindow.setVisible(true);
+
+	}
+
+	@Override
+	public @Nonnull MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.VISUALIZATIONRAWDATA;
+	}
+
+	@Override
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+		return TwoDParameters.class;
+	}
 
 }

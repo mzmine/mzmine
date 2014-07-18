@@ -72,7 +72,7 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
     public AxesSetupDialog(XYPlot plot) {
 
         // Make dialog modal
-        super(MZmineCore.getDesktop().getMainFrame(), true);
+        super(MZmineCore.getDesktop().getMainWindow(), true);
 
         xAxis = plot.getDomainAxis();
         yAxis = plot.getRangeAxis();
@@ -178,7 +178,7 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
 
         setTitle("Please set ranges for axes");
         setResizable(false);
-        setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+        setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
         getValuesToControls();
 

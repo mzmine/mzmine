@@ -27,7 +27,7 @@ import java.net.URL;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
@@ -39,7 +39,7 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.components.MultiLineLabel;
 
-public class MolStructureViewer extends JInternalFrame {
+public class MolStructureViewer extends JFrame {
 
 	private JSplitPane splitPane;
 	private JLabel loading2Dlabel, loading3Dlabel;
@@ -50,7 +50,7 @@ public class MolStructureViewer extends JInternalFrame {
 	public MolStructureViewer(String name, final URL structure2DAddress,
 			final URL structure3DAddress) {
 
-		super("Structure of " + name, true, true, true, true);
+		super("Structure of " + name);
 
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 

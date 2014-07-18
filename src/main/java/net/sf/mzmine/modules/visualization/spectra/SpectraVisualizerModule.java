@@ -116,7 +116,7 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 	if (predictedPattern != null)
 	    newWindow.loadIsotopes(predictedPattern);
 
-	MZmineCore.getDesktop().addInternalFrame(newWindow);
+	newWindow.setVisible(true);
 
 	return newWindow;
 

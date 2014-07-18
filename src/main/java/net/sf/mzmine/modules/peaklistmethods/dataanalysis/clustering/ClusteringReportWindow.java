@@ -19,17 +19,17 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
-public class ClusteringReportWindow extends JInternalFrame {
+public class ClusteringReportWindow extends JFrame {
 
 	private JTable table;
 
 	public ClusteringReportWindow(String[] samplesOrVariables,
 			Integer[] clusteringData, String title) {
-		super(title, true, true, true, true);
+		super(title);
 		String[] columnNames = { "Variables", "Cluster number" };
 		Object[][] data = new Object[samplesOrVariables.length][2];
 		for (int i = 0; i < samplesOrVariables.length; i++) {

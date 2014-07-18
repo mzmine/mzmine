@@ -59,7 +59,7 @@ public class NeutralLossVisualizerModule implements MZmineProcessingModule {
 
         NeutralLossVisualizerWindow newWindow = new NeutralLossVisualizerWindow(
                 dataFiles[0], parameters);
-        MZmineCore.getDesktop().addInternalFrame(newWindow);
+        newWindow.setVisible(true);
 
         return ExitCode.OK;
     }

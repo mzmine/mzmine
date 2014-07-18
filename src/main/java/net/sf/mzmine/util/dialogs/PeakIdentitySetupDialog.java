@@ -69,7 +69,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 			PeakIdentity editIdentity) {
 
 		// Make dialog modal
-		super(MZmineCore.getDesktop().getMainFrame(), true);
+		super(MZmineCore.getDesktop().getMainWindow(), true);
 
 		this.peakListRow = peakListRow;
 
@@ -152,7 +152,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 		add(pnlAll);
 		setTitle("Compound Identity setup dialog");
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
 	}
 

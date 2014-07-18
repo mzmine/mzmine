@@ -25,7 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -37,7 +37,7 @@ import net.sf.mzmine.util.Range;
 /**
  * Neutral loss visualizer using JFreeChart library
  */
-public class NeutralLossVisualizerWindow extends JInternalFrame implements
+public class NeutralLossVisualizerWindow extends JFrame implements
         ActionListener {
 
     private NeutralLossToolBar toolBar;
@@ -50,7 +50,7 @@ public class NeutralLossVisualizerWindow extends JInternalFrame implements
     public NeutralLossVisualizerWindow(RawDataFile dataFile,
             ParameterSet parameters) {
 
-        super(dataFile.getName(), true, true, true, true);
+        super(dataFile.getName());
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);

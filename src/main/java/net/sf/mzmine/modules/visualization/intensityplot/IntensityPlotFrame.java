@@ -26,7 +26,7 @@ import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.logging.Logger;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 
 import net.sf.mzmine.data.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -53,7 +53,7 @@ import org.jfree.chart.title.TextTitle;
 /**
  * 
  */
-public class IntensityPlotFrame extends JInternalFrame {
+public class IntensityPlotFrame extends JFrame {
 
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
     static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -64,7 +64,6 @@ public class IntensityPlotFrame extends JInternalFrame {
     private JFreeChart chart;
 
     public IntensityPlotFrame(ParameterSet parameters) {
-	super("", true, true, true, true);
 
 	PeakList peakList = parameters.getParameter(
 		IntensityPlotParameters.peakList).getValue()[0];
@@ -169,7 +168,7 @@ public class IntensityPlotFrame extends JInternalFrame {
 	yAxis.setNumberFormatOverride(yAxisFormat);
 
 	setTitle(title);
-	setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);
+	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
 	pack();
 

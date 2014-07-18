@@ -137,7 +137,7 @@ public class FragmentSearchTask extends AbstractTask {
 						"Identification of fragments", parameters));
 
 		// Repaint the window to reflect the change in the peak list
-		MZmineCore.getDesktop().getMainFrame().repaint();
+		MZmineCore.getDesktop().getMainWindow().repaint();
 		
 		setStatus(TaskStatus.FINISHED);
 

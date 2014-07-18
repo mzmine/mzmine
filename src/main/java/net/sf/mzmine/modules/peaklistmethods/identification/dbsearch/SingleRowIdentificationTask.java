@@ -33,7 +33,6 @@ import net.sf.mzmine.data.IonizationType;
 import net.sf.mzmine.data.IsotopePattern;
 import net.sf.mzmine.data.PeakIdentity;
 import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
@@ -125,13 +124,12 @@ public class SingleRowIdentificationTask extends AbstractTask {
 
         setStatus(TaskStatus.PROCESSING);
 
-        Desktop desktop = MZmineCore.getDesktop();
         NumberFormat massFormater = MZmineCore.getConfiguration().getMZFormat();
 
         ResultWindow window = new ResultWindow(peakListRow, searchedMass, this);
         window.setTitle("Searching for " + massFormater.format(searchedMass)
                 + " amu");
-        desktop.addInternalFrame(window);
+        window.setVisible(true);
 
         IsotopePattern detectedPattern = peakListRow.getBestIsotopePattern();
         if ((isotopeFilter) && (detectedPattern == null)) {

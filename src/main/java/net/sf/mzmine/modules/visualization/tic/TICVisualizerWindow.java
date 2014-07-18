@@ -19,21 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.desktop.Desktop;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -43,10 +30,26 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.JFrame;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
+
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
-public class TICVisualizerWindow extends JInternalFrame implements
+public class TICVisualizerWindow extends JFrame implements
                                                         ActionListener {
 
     // CSV extension.
@@ -76,7 +79,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
                                ChromatographicPeak[] peaks,
                                Map<ChromatographicPeak, String> peakLabels) {
 
-        super(null, true, true, true, true);
+        super("");
 
         assert mzRange != null;
         assert rtRange != null;
@@ -88,7 +91,7 @@ public class TICVisualizerWindow extends JInternalFrame implements
         this.rtRange = rtRange;
         this.mzRange = mzRange;
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+      //  setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setBackground(Color.white);
 
         ticPlot = new TICPlot(this);

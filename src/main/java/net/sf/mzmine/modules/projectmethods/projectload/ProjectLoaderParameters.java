@@ -60,7 +60,7 @@ public class ProjectLoaderParameters extends SimpleParameterSet {
 		chooser.setMultiSelectionEnabled(false);
 
 		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainFrame());
+				.getMainWindow());
 		if (returnVal != JFileChooser.APPROVE_OPTION)
 			return ExitCode.CANCEL;
 

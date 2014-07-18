@@ -350,7 +350,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	if (src == projectSaveParameters) {
 	    JFileChooser chooser = new JFileChooser();
 	    int returnVal = chooser.showSaveDialog(MZmineCore.getDesktop()
-		    .getMainFrame());
+		    .getMainWindow());
 	    if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File configFile = chooser.getSelectedFile();
 		try {
@@ -364,7 +364,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	if (src == projectLoadParameters) {
 	    JFileChooser chooser = new JFileChooser();
 	    int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-		    .getMainFrame());
+		    .getMainWindow());
 	    if (returnVal == JFileChooser.APPROVE_OPTION) {
 		File configFile = chooser.getSelectedFile();
 		try {

@@ -88,7 +88,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
     public ParameterSetupDialog(ParameterSet parameters) {
 
 	// Make dialog modal
-	super(MZmineCore.getDesktop().getMainFrame(),
+	super(MZmineCore.getDesktop().getMainWindow(),
 		"Please set the parameters", true);
 
 	this.parameterSet = parameters;
@@ -101,7 +101,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	updateMinimumSize();
 	pack();
 
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
     }
 

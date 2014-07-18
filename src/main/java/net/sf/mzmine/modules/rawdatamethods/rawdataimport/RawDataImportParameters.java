@@ -67,7 +67,7 @@ public class RawDataImportParameters extends SimpleParameterSet {
 		chooser.setMultiSelectionEnabled(true);
 		
 		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainFrame());
+				.getMainWindow());
 
 		if (returnVal != JFileChooser.APPROVE_OPTION)
 			return ExitCode.CANCEL;

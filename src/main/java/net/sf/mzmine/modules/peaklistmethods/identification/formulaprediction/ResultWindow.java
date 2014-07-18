@@ -35,7 +35,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JFileChooser;
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -62,7 +62,7 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.PercentageCellRenderer;
 
-public class ResultWindow extends JInternalFrame implements ActionListener {
+public class ResultWindow extends JFrame implements ActionListener {
 
     private final JTable resultsTable;
     private final ResultTableModel resultsTableModel;
@@ -74,7 +74,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
     public ResultWindow(String title, PeakListRow peakListRow,
 	    double searchedMass, int charge, Task searchTask) {
 
-	super(title, true, true, true, true);
+	super(title);
 
 	this.title = title;
 	this.peakListRow = peakListRow;
@@ -150,7 +150,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 	    fileChooser.setApproveButtonText("Export");
 
 	    int result = fileChooser.showSaveDialog(MZmineCore.getDesktop()
-		    .getMainFrame());
+		    .getMainWindow());
 	    if (result != JFileChooser.APPROVE_OPTION)
 		return;
 	    File outputFile = fileChooser.getSelectedFile();
@@ -212,7 +212,7 @@ public class ResultWindow extends JInternalFrame implements ActionListener {
 		    false);
 
 	    // Repaint the window to reflect the change in the peak list
-	    MZmineCore.getDesktop().getMainFrame().repaint();
+	    MZmineCore.getDesktop().getMainWindow().repaint();
 
 	    dispose();
 	}

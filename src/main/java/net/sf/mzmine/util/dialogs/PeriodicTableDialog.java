@@ -36,7 +36,7 @@ public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 
 	public PeriodicTableDialog() {
 		
-		super(MZmineCore.getDesktop().getMainFrame(), "Choose an element...", true);
+		super(MZmineCore.getDesktop().getMainWindow(), "Choose an element...", true);
 		
 		setLayout(new BorderLayout());
 		
@@ -46,7 +46,7 @@ public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 
 		pack();
 		
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	}
 
 	public void stateChanged(EventObject event) {

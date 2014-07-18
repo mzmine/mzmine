@@ -52,7 +52,7 @@ public class PCADataset extends AbstractXYDataset implements
 
 	private ParameterSet parameters;
 	private PeakList peakList;
-	
+
 	private ColoringType coloringType;
 
 	private RawDataFile[] selectedRawDataFiles;
@@ -73,18 +73,18 @@ public class PCADataset extends AbstractXYDataset implements
 
 	public PCADataset(ParameterSet parameters) {
 
-		this.peakList = parameters.getParameter(ProjectionPlotParameters.peakLists).getValue()[0];
+		this.peakList = parameters.getParameter(
+				ProjectionPlotParameters.peakLists).getValue()[0];
 		this.parameters = parameters;
 
 		this.xAxisPC = parameters.getParameter(
 				ProjectionPlotParameters.xAxisComponent).getValue();
 		this.yAxisPC = parameters.getParameter(
 				ProjectionPlotParameters.yAxisComponent).getValue();
-               
-                coloringType = parameters.getParameter(
+
+		coloringType = parameters.getParameter(
 				ProjectionPlotParameters.coloringType).getValue();
-              
-                
+
 		selectedRawDataFiles = parameters.getParameter(
 				ProjectionPlotParameters.dataFiles).getValue();
 		selectedRows = parameters.getParameter(ProjectionPlotParameters.rows)
@@ -246,9 +246,9 @@ public class PCADataset extends AbstractXYDataset implements
 		component1Coords = result[xAxisPC - 1];
 		component2Coords = result[yAxisPC - 1];
 
-		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList, this,
-				parameters);
-		MZmineCore.getDesktop().addInternalFrame(newFrame);
+		ProjectionPlotWindow newFrame = new ProjectionPlotWindow(peakList,
+				this, parameters);
+		newFrame.setVisible(true);
 
 		status = TaskStatus.FINISHED;
 		logger.info("Finished computing projection plot.");

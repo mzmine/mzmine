@@ -67,7 +67,7 @@ public class MZminePreferences extends SimpleParameterSet {
 	    updateSystemProxySettings();
 
 	    // Repaint windows to update number formats
-	    MZmineCore.getDesktop().getMainFrame().repaint();
+	    MZmineCore.getDesktop().getMainWindow().repaint();
 	}
 
 	return retVal;

@@ -20,17 +20,11 @@
 package net.sf.mzmine.desktop.impl;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.util.ArrayList;
 
-import javax.swing.JDesktopPane;
-import javax.swing.JInternalFrame;
-import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
 
@@ -40,10 +34,8 @@ import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
  */
 public class MainPanel extends JPanel {
 
-	private JDesktopPane desktopPane;
-	private JSplitPane split;
-	private ProjectTree projectTree;
-	private StatusBar statusBar;
+	private ProjectTree rawDataTree, peakListTree;
+	private TaskProgressTable taskTable;
 
 	/**
      */
@@ -52,90 +44,36 @@ public class MainPanel extends JPanel {
 		super(new BorderLayout());
 
 		// Initialize item selector
-		projectTree = new ProjectTree();
+		rawDataTree = new ProjectTree();
+		peakListTree = new ProjectTree();
 
-		JScrollPane projectTreeScroll = new JScrollPane(projectTree);
-		projectTreeScroll.setMinimumSize(new Dimension(200, 200));
+		JScrollPane rawDataTreeScroll = new JScrollPane(rawDataTree);
+		JScrollPane peakListTreeScroll = new JScrollPane(peakListTree);
 
-		// Place objects on main window
-		desktopPane = new JDesktopPane();
-		desktopPane.setBackground(new Color(65, 105, 170));
-		desktopPane.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-		desktopPane.setBorder(new EtchedBorder(EtchedBorder.RAISED));
+		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		split.add(rawDataTreeScroll);
+		split.add(peakListTreeScroll);
+		split.setResizeWeight(0.5);
 
-		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, projectTreeScroll,
-				desktopPane);
+		split.setMinimumSize(new Dimension(200, 200));
 
 		add(split, BorderLayout.CENTER);
 
-		statusBar = new StatusBar();
-		add(statusBar, BorderLayout.SOUTH);
+		taskTable = new TaskProgressTable();
+		add(taskTable, BorderLayout.SOUTH);
 
 	}
 
-	public void addInternalFrame(JInternalFrame newFrame) {
-
-		// Find optimal position for the new frame
-		int x = 0;
-		int y = 0;
-
-		JInternalFrame visibleFrames[] = getInternalFrames();
-
-		if (visibleFrames.length > 0) {
-
-			outer: while (true) {
-				for (JInternalFrame f : visibleFrames) {
-					if ((f.getLocation().x == x) && (f.getLocation().y == y)) {
-						x += 30;
-						y += 30;
-
-						if ((x + newFrame.getWidth()) > desktopPane.getWidth())
-							x = 0;
-
-						if ((y + newFrame.getHeight()) > desktopPane
-								.getHeight())
-							y = 0;
-
-						if ((x == 0) && (y == 0)) {
-							break outer;
-						}
-
-						continue outer;
-					}
-				}
-				break outer;
-			}
-		}
-
-		desktopPane.add(newFrame, JLayeredPane.DEFAULT_LAYER);
-		newFrame.setLocation(x, y);
-		newFrame.setVisible(true);
-
+	public ProjectTree getRawDataTree() {
+		return rawDataTree;
 	}
 
-	public JInternalFrame[] getInternalFrames() {
-		ArrayList<JInternalFrame> visibleFrames = new ArrayList<JInternalFrame>();
-		for (JInternalFrame frame : desktopPane.getAllFrames()) {
-			if (frame.isVisible())
-				visibleFrames.add(frame);
-		}
-		return visibleFrames.toArray(new JInternalFrame[0]);
+	public ProjectTree getPeakListTree() {
+		return peakListTree;
 	}
 
-	public JInternalFrame getSelectedFrame() {
-		return desktopPane.getSelectedFrame();
-	}
-	
-	public JDesktopPane getDesktopPane() {
-		return desktopPane;
-	}
-
-	public ProjectTree getProjectTree() {
-		return projectTree;
-	}
-
-	public StatusBar getStatusBar() {
-		return statusBar;
+	public TaskProgressTable getTaskTable() {
+		return taskTable;
 	}
 
 }

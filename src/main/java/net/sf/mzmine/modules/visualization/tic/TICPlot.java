@@ -324,7 +324,7 @@ public class TICPlot extends ChartPanel {
             final double yTick = yAxis.getTickUnit().getSize();
 
             // Set the range of these frames
-            for (final JInternalFrame frame : MZmineCore.getDesktop().getInternalFrames()) {
+            for (final Window frame : JFrame.getWindows()) {
                 if (frame instanceof TICVisualizerWindow) {
 
                     final TICVisualizerWindow ticFrame = (TICVisualizerWindow) frame;

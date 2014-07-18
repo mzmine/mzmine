@@ -23,7 +23,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JInternalFrame;
+import javax.swing.JFrame;
 
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -34,7 +34,7 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizerWindow extends JInternalFrame implements
+public class TwoDVisualizerWindow extends JFrame implements
 	ActionListener {
 
     private TwoDToolBar toolBar;
@@ -48,7 +48,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
 	    Range rtRange, Range mzRange, ParameterSet parameters) {
 
-	super(dataFile.getName(), true, true, true, true);
+	super(dataFile.getName());
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
@@ -75,7 +75,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 	// bottom panel
 	bottomPanel.rebuildPeakListSelector();
 
-	MZmineCore.getDesktop().addProjectTreeListener(bottomPanel);
+	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
 	pack();
 
@@ -83,7 +83,7 @@ public class TwoDVisualizerWindow extends JInternalFrame implements
 
     public void dispose() {
 	super.dispose();
-	MZmineCore.getDesktop().removeProjectTreeListener(bottomPanel);
+	MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
     void updateTitle() {

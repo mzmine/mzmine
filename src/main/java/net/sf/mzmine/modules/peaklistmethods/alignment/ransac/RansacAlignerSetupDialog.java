@@ -85,13 +85,13 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 				peakListsPanel.setVisible(true);
 				updateMinimumSize();
 				pack();
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 			} else {
 				mainPanel.remove(pnlPlotXY);
 				peakListsPanel.setVisible(false);
 				updateMinimumSize();
 				pack();
-				setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+				setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 			}
 		}
 
@@ -169,7 +169,7 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 
 		updateMinimumSize();
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainFrame());
+		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 
 	}
 

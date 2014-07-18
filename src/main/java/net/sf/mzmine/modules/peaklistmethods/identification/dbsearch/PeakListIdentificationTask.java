@@ -230,7 +230,7 @@ public class PeakListIdentificationTask extends AbstractTask {
 
 	    // Notify the GUI about the change in the project
 	    MZmineCore.getCurrentProject().notifyObjectChanged(row, false);
-	    MZmineCore.getDesktop().getMainFrame().repaint();
+	    MZmineCore.getDesktop().getMainWindow().repaint();
 	}
     }
 }

@@ -130,7 +130,7 @@ class CustomDBSearchTask extends AbstractTask {
 		parameters));
 
 	// Repaint the window to reflect the changes in the peak list
-	MZmineCore.getDesktop().getMainFrame().repaint();
+	MZmineCore.getDesktop().getMainWindow().repaint();
 
 	setStatus(TaskStatus.FINISHED);
 
