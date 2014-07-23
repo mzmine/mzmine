@@ -21,6 +21,7 @@ package net.sf.mzmine.parameters.dialogs;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -88,7 +89,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
     public ParameterSetupDialog(ParameterSet parameters) {
 
 	// Make dialog modal
-	super(MZmineCore.getDesktop().getMainWindow(),
+	super((Frame) null,
 		"Please set the parameters", true);
 
 	this.parameterSet = parameters;
