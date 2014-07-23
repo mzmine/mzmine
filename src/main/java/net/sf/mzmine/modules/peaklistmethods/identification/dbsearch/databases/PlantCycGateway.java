@@ -56,10 +56,10 @@ public class PlantCycGateway implements DBGateway {
         final String queryResult = InetUtils.retrieveData(queryURL);
 
         final List<String> results = new ArrayList<String>();
-
+        
         // Find IDs in the HTML data
         Pattern pat = Pattern
-                .compile("/PLANT/NEW-IMAGE\\?type=COMPOUND&amp;object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
+                .compile("/PLANT/NEW-IMAGE\\?type=COMPOUND&object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
         Matcher matcher = pat.matcher(queryResult);
         while (matcher.find()) {
             String id = matcher.group(1);

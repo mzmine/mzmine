@@ -22,8 +22,16 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.databases;
 import java.io.IOException;
 import java.net.URL;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
 
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBCompound;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
@@ -33,97 +41,106 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
 import net.sf.mzmine.util.Range;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 public class HMDBGateway implements DBGateway {
 
-    private static final String hmdbSeachAddress = "http://www.hmdb.ca/chemquery/mass?";
-    private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
-    private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
+	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-    public String[] findCompounds(double mass, MZTolerance mzTolerance,
-	    int numOfResults, ParameterSet parameters) throws IOException {
+	private static final String hmdbSeachAddress = "http://www.hmdb.ca/structures/search/metabolites/mass?";
+	private static final String hmdbStructureAddress = "http://structures.wishartlab.com/molecules/";
+	private static final String hmdbEntryAddress = "http://www.hmdb.ca/metabolites/";
 
-	Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	public String[] findCompounds(double mass, MZTolerance mzTolerance,
+			int numOfResults, ParameterSet parameters) throws IOException {
 
-	String queryAddress = hmdbSeachAddress + "&query_from="
-		+ toleranceRange.getMin() + "&query_to="
-		+ toleranceRange.getMax();
+		Range toleranceRange = mzTolerance.getToleranceRange(mass);
 
-	URL queryURL = new URL(queryAddress);
+		String queryAddress = hmdbSeachAddress + "&query_from="
+				+ toleranceRange.getMin() + "&query_to="
+				+ toleranceRange.getMax();
 
-	// Submit the query
-	String queryResult = InetUtils.retrieveData(queryURL);
+		URL queryURL = new URL(queryAddress);
 
-	// Organize the IDs as a TreeSet to keep them sorted
-	TreeSet<String> results = new TreeSet<String>();
+		// Submit the query
+		String queryResult = InetUtils.retrieveData(queryURL);
 
-	// Find IDs in the HTML data
-	Pattern pat = Pattern.compile("metabolites/(HMDB[0-9]{5})");
-	Matcher matcher = pat.matcher(queryResult);
-	while (matcher.find()) {
-	    String hmdbID = matcher.group(1);
-	    results.add(hmdbID);
-	}
+		// Organize the IDs as a TreeSet to keep them sorted
+		TreeSet<String> results = new TreeSet<String>();
 
-	// Remove all except first numOfResults IDs. The reason why we first
-	// retrieve all results and then remove those above numOfResults is to
-	// keep the lowest HDMB IDs - these may be the most interesting ones.
-	while (results.size() > numOfResults) {
-	    String lastItem = results.last();
-	    results.remove(lastItem);
-	}
-
-	return results.toArray(new String[0]);
-
-    }
-
-    /**
-     * This method retrieves the details about HMDB compound
-     * 
-     */
-    public DBCompound getCompound(String ID, ParameterSet parameters)
-	    throws IOException {
-
-	final URL entryURL = new URL(hmdbEntryAddress + ID);
-
-	String metaboCard = InetUtils.retrieveData(entryURL);
-	String lines[] = metaboCard.split("\n");
-
-	String compoundName = null;
-	String compoundFormula = null;
-	final URL structure2DURL = new URL(hmdbStructureAddress + ID + ".sdf");
-	final URL structure3DURL = new URL(hmdbStructureAddress + ID + ".pdb");
-
-	for (int i = 0; i < lines.length - 1; i++) {
-
-	    if (lines[i].contains("<td>Common Name</td>")) {
-		Pattern pat = Pattern
-			.compile("<td><strong>([^<]+)</strong></td>");
-		Matcher matcher = pat.matcher(lines[i + 1]);
-		if (matcher.find()) {
-		    compoundName = matcher.group(1);
+		// Find IDs in the HTML data
+		Pattern pat = Pattern.compile("metabolites/(HMDB[0-9]{5})");
+		Matcher matcher = pat.matcher(queryResult);
+		while (matcher.find()) {
+			String hmdbID = matcher.group(1);
+			results.add(hmdbID);
 		}
-	    }
 
-	    if (lines[i].contains("<td>Chemical Formula</td>")) {
-		Pattern pat = Pattern.compile("<td>(.+)</td>");
-		Matcher matcher = pat.matcher(lines[i + 1]);
-		if (matcher.find()) {
-		    String htmlFormula = matcher.group(1);
-		    compoundFormula = htmlFormula.replaceAll("<[^>]+>", "");
+		// Remove all except first numOfResults IDs. The reason why we first
+		// retrieve all results and then remove those above numOfResults is to
+		// keep the lowest HDMB IDs - these may be the most interesting ones.
+		while (results.size() > numOfResults) {
+			String lastItem = results.last();
+			results.remove(lastItem);
 		}
-	    }
+
+		return results.toArray(new String[0]);
 
 	}
 
-	if (compoundName == null) {
-	    throw (new IOException("Could not parse compound name"));
+	/**
+	 * This method retrieves the details about HMDB compound
+	 * 
+	 */
+	public DBCompound getCompound(String ID, ParameterSet parameters)
+			throws IOException {
+
+		logger.finest("Obtaining information about HMDB compound id " + ID);
+
+		Element nameElement, formulaElement;
+
+		try {
+
+			final String url = hmdbEntryAddress + ID + ".xml";
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = dbf.newDocumentBuilder();
+			Document parsedResult = builder.parse(url);
+
+			XPathFactory factory = XPathFactory.newInstance();
+			XPath xpath = factory.newXPath();
+
+			XPathExpression expr = xpath.compile("//metabolite/name");
+			NodeList nameElementNL = (NodeList) expr.evaluate(parsedResult,
+					XPathConstants.NODESET);
+			nameElement = (Element) nameElementNL.item(0);
+
+			if (nameElement == null)
+				throw new IOException("Could not parse compound name");
+
+			expr = xpath.compile("//metabolite/chemical_formula");
+			NodeList formulaElementNL = (NodeList) expr.evaluate(parsedResult,
+					XPathConstants.NODESET);
+			formulaElement = (Element) formulaElementNL.item(0);
+			if (formulaElement == null)
+				throw new IOException("Could not parse compound formula");
+
+		} catch (Exception e) {
+			throw new IOException(e);
+		}
+
+		final String compoundName = nameElement.getTextContent();
+		final String compoundFormula = formulaElement.getTextContent();
+		final URL structure2DURL = new URL(hmdbStructureAddress + ID + ".sdf");
+		final URL structure3DURL = new URL(hmdbStructureAddress + ID + ".pdb");
+		final URL entryURL = new URL(hmdbEntryAddress + ID);
+
+		DBCompound newCompound = new DBCompound(OnlineDatabase.HMDB, ID,
+				compoundName, compoundFormula, entryURL, structure2DURL,
+				structure3DURL);
+
+		return newCompound;
+
 	}
-
-	DBCompound newCompound = new DBCompound(OnlineDatabase.HMDB, ID,
-		compoundName, compoundFormula, entryURL, structure2DURL,
-		structure3DURL);
-
-	return newCompound;
-
-    }
 }
