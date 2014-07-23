@@ -39,7 +39,7 @@ public class IsotopesDataSet extends AbstractXYDataset implements
 
 		dataPoints = isotopePattern.getDataPoints();
 
-		label = "Isotopes (" + isotopePattern.getNumberOfIsotopes() + ") "
+		label = "Isotopes (" + isotopePattern.getNumberOfDataPoints() + ") "
 				+ isotopePattern.getDescription();
 
 		this.isotopePattern = isotopePattern;

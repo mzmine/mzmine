@@ -62,8 +62,8 @@ public class IsotopePatternScoreCalculator {
 
         assert mzTolerance != null;
 
-        final double patternIntensity = Math.max(ip1.getHighestIsotope()
-                .getIntensity(), ip2.getHighestIsotope().getIntensity());
+        final double patternIntensity = Math.max(ip1.getHighestDataPoint()
+                .getIntensity(), ip2.getHighestDataPoint().getIntensity());
         final double noiseIntensity = parameters.getParameter(
                 IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 

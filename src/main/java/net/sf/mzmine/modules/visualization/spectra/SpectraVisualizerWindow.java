@@ -210,7 +210,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 
 	subTitle += ", RT " + rtFormat.format(currentScan.getRetentionTime());
 
-	DataPoint basePeak = currentScan.getBasePeak();
+	DataPoint basePeak = currentScan.getHighestDataPoint();
 	if (basePeak != null) {
 	    subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
 		    + " m/z ("
@@ -262,7 +262,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 
 	// We need to find a normalization factor for the new isotope
 	// pattern, to show meaningful intensity range
-	double mz = newPattern.getHighestIsotope().getMZ();
+	double mz = newPattern.getHighestDataPoint().getMZ();
 	Range searchMZRange = new Range(mz - 0.5, mz + 0.5);
 	ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
 	double normalizationFactor = scanDataSet

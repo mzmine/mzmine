@@ -91,7 +91,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 				return;
 
 			Scan scan = rawDataFile.getScan(scanNumbers[index]);
-			DataPoint scanBasePeak = scan.getBasePeak();
+			DataPoint scanBasePeak = scan.getHighestDataPoint();
 			retentionTimes[index] = scan.getRetentionTime();
 			basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
 					.getIntensity());

@@ -130,7 +130,7 @@ public class IsotopePatternCalculator implements MZmineModule {
     public static IsotopePattern normalizeIsotopePattern(
 	    IsotopePattern pattern, double normalizedValue) {
 
-	DataPoint highestIsotope = pattern.getHighestIsotope();
+	DataPoint highestIsotope = pattern.getHighestDataPoint();
 	DataPoint dataPoints[] = pattern.getDataPoints();
 
 	double maxIntensity = highestIsotope.getIntensity();

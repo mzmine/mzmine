@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * This interface defines an isotope pattern which can be attached to a peak
  */
-public interface IsotopePattern {
+public interface IsotopePattern extends Spectrum {
 
 	public enum IsotopePatternStatus {
 
@@ -45,24 +45,6 @@ public interface IsotopePattern {
 	 */
 	@Nonnull
 	public IsotopePatternStatus getStatus();
-
-	/**
-	 * Returns the number of isotopes in this pattern
-	 */
-	public int getNumberOfIsotopes();
-
-	/**
-	 * Returns an array of m/z values and intensities of the isotopes. The size
-	 * of the array is same as returned by getNumberOfIsotopes()
-	 */
-	@Nonnull
-	public DataPoint[] getDataPoints();
-
-	/**
-	 * Returns the highest (in terms of intensity) isotope of this pattern.
-	 */
-	@Nonnull
-	public DataPoint getHighestIsotope();
 
 	/**
 	 * Returns a description of this isotope pattern (formula, etc.)

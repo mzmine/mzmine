@@ -96,7 +96,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	String subTitle = "MS" + currentScan.getMSLevel() + ", RT "
 		+ rtFormat.format(currentScan.getRetentionTime());
 
-	DataPoint basePeak = currentScan.getBasePeak();
+	DataPoint basePeak = currentScan.getHighestDataPoint();
 	if (basePeak != null) {
 	    subTitle += ", base peak: " + mzFormat.format(basePeak.getMZ())
 		    + " m/z ("

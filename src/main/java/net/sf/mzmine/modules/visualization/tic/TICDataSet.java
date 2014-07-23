@@ -357,7 +357,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 
             // Determine base peak value.
             final DataPoint basePeak =
-                    scan.getMZRange().isWithin(mzRange) ? scan.getBasePeak() : ScanUtils.findBasePeak(scan, mzRange);
+                    scan.getMZRange().isWithin(mzRange) ? scan.getHighestDataPoint() : ScanUtils.findBasePeak(scan, mzRange);
             if (basePeak != null) {
 
                 basePeakValues[index] = basePeak.getMZ();

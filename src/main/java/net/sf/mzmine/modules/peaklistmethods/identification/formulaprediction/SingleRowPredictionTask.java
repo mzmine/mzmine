@@ -261,7 +261,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 					IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
 			final double detectedPatternHeight = detectedPattern
-					.getHighestIsotope().getIntensity();
+					.getHighestDataPoint().getIntensity();
 
 			final double minPredictedAbundance = isotopeNoiseLevel
 					/ detectedPatternHeight;

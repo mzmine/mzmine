@@ -211,9 +211,9 @@ public class RowsFilterTask extends AbstractTask {
                         for (final Feature p : peaks) {
 
                                 final IsotopePattern pattern = p.getIsotopePattern();
-                                if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfIsotopes()) {
+                                if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
 
-                                        maxIsotopePatternSizeOnRow = pattern.getNumberOfIsotopes();
+                                        maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
                                 }
 
                                 avgDuration += p.getRawDataPointsRTRange().getSize();

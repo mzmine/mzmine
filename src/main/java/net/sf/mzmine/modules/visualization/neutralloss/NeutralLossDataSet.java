@@ -110,7 +110,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
             DataPoint scanDataPoints[] = scan.getDataPoints();
 
             // skip empty scans
-            if (scan.getBasePeak() == null) {
+            if (scan.getHighestDataPoint() == null) {
                 processedScans++;
                 continue;
             }

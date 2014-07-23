@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 /**
@@ -30,49 +31,81 @@ import net.sf.mzmine.util.ScanUtils;
  */
 public class SimpleIsotopePattern implements IsotopePattern {
 
-    private DataPoint dataPoints[], highestIsotope;
-    private IsotopePatternStatus status;
-    private String description;
+	private DataPoint dataPoints[], highestIsotope;
+	private IsotopePatternStatus status;
+	private String description;
+	private Range mzRange;
 
-    public SimpleIsotopePattern(DataPoint dataPoints[],
-	    IsotopePatternStatus status, String description) {
+	public SimpleIsotopePattern(DataPoint dataPoints[],
+			IsotopePatternStatus status, String description) {
 
-	assert dataPoints.length > 0;
+		assert dataPoints.length > 0;
 
-	highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
-	this.dataPoints = dataPoints;
-	this.status = status;
-	this.description = description;
-    }
+		highestIsotope = ScanUtils.findTopDataPoint(dataPoints);
+		this.dataPoints = dataPoints;
+		this.status = status;
+		this.description = description;
+		this.mzRange = ScanUtils.findMzRange(dataPoints);
+	}
 
-    @Override
-    public @Nonnull DataPoint[] getDataPoints() {
-	return dataPoints;
-    }
+	@Override
+	public @Nonnull DataPoint[] getDataPoints() {
+		return dataPoints;
+	}
 
-    @Override
-    public int getNumberOfIsotopes() {
-	return dataPoints.length;
-    }
+	@Override
+	public int getNumberOfDataPoints() {
+		return dataPoints.length;
+	}
 
-    @Override
-    public @Nonnull IsotopePatternStatus getStatus() {
-	return status;
-    }
+	@Override
+	public @Nonnull IsotopePatternStatus getStatus() {
+		return status;
+	}
 
-    @Override
-    public @Nonnull DataPoint getHighestIsotope() {
-	return highestIsotope;
-    }
+	@Override
+	public @Nonnull DataPoint getHighestDataPoint() {
+		return highestIsotope;
+	}
 
-    @Override
-    public @Nonnull String getDescription() {
-	return description;
-    }
+	@Override
+	public @Nonnull String getDescription() {
+		return description;
+	}
 
-    @Override
-    public String toString() {
-	return "Isotope pattern: " + description;
-    }
+	@Override
+	public String toString() {
+		return "Isotope pattern: " + description;
+	}
+
+	@Override
+	@Nonnull
+	public Range getMZRange() {
+		return mzRange;
+	}
+
+	@Override
+	public double getTIC() {
+		return 0;
+	}
+
+	@Override
+	public boolean isCentroided() {
+		return false;
+	}
+
+	@Override
+	@Nonnull
+	public DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	@Nonnull
+	public DataPoint[] getDataPointsOverIntensity(double intensity) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

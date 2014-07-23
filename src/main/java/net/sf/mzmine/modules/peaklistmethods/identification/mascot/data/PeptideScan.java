@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.CollectionUtils;
@@ -252,7 +253,7 @@ public class PeptideScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
 	 */
-	public DataPoint getBasePeak() {
+	public DataPoint getHighestDataPoint() {
 		return basePeak;
 	}
 
@@ -414,6 +415,12 @@ public class PeptideScan implements Scan {
 	public void removeMassList(@Nonnull MassList massList) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public @Nonnull Polarity getPolarity() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	

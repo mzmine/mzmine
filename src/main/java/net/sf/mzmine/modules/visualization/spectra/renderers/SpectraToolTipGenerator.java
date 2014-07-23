@@ -76,7 +76,7 @@ class SpectraToolTipGenerator implements XYToolTipGenerator {
 
 			IsotopePattern pattern = isotopeDataSet.getIsotopePattern();
 			double relativeIntensity = intValue
-					/ pattern.getHighestIsotope().getIntensity() * 100;
+					/ pattern.getHighestDataPoint().getIntensity() * 100;
 
 			String tooltip = "Isotope pattern: " + pattern.getDescription()
 					+ "\nStatus: " + pattern.getStatus() + "\nData point m/z: "

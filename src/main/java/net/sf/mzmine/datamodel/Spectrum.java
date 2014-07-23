@@ -44,7 +44,7 @@ public interface Spectrum {
      * @return Base peak
      */
     @Nullable
-    public DataPoint getBasePeak();
+    public DataPoint getHighestDataPoint();
 
     /**
      * Returns the sum of intensities of all data points.

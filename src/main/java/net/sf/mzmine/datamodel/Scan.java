@@ -67,6 +67,8 @@ public interface Scan extends Spectrum {
 	 */
 	public double getPrecursorMZ();
 
+	public @Nonnull Polarity getPolarity();
+	
 	/**
 	 * 
 	 * @return Precursor charge or 0 if this is not MSn scan or charge is

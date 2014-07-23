@@ -264,7 +264,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
             final double isotopeNoiseLevel = isotopeParameters.getParameter(
                     IsotopePatternScoreParameters.isotopeNoiseLevel).getValue();
 
-            final double detectedPatternHeight = detectedPattern.getHighestIsotope().getIntensity();
+            final double detectedPatternHeight = detectedPattern.getHighestDataPoint().getIntensity();
 
             final double minPredictedAbundance = isotopeNoiseLevel
                     / detectedPatternHeight;

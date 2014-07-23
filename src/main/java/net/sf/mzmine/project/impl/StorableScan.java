@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
@@ -78,7 +79,7 @@ public class StorableScan implements Scan {
 		this.fragmentScans = originalScan.getFragmentScanNumbers();
 		this.centroided = originalScan.isCentroided();
 		this.mzRange = originalScan.getMZRange();
-		this.basePeak = originalScan.getBasePeak();
+		this.basePeak = originalScan.getHighestDataPoint();
 		this.totalIonCurrent = originalScan.getTIC();
 
 	}
@@ -257,7 +258,7 @@ public class StorableScan implements Scan {
 	/**
 	 * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
 	 */
-	public DataPoint getBasePeak() {
+	public DataPoint getHighestDataPoint() {
 		if ((basePeak == null) && (numberOfDataPoints > 0))
 			updateValues();
 		return basePeak;
@@ -411,6 +412,12 @@ public class StorableScan implements Scan {
 				return ml;
 		}
 		return null;
+	}
+
+	@Override
+	public @Nonnull Polarity getPolarity() {
+		// TODO
+		return Polarity.UNKNOWN;
 	}
 
 }
