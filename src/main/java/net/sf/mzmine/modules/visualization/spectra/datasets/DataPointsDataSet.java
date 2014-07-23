@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;

@@ -33,8 +33,8 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
@@ -76,8 +76,8 @@ public class TICVisualizerWindow extends JFrame implements
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
                                int msLevel, Range rtRange, Range mzRange,
-                               ChromatographicPeak[] peaks,
-                               Map<ChromatographicPeak, String> peakLabels) {
+                               Feature[] peaks,
+                               Map<Feature, String> peakLabels) {
 
         super("");
 
@@ -104,7 +104,7 @@ public class TICVisualizerWindow extends JFrame implements
         // add all peaks
         if (peaks != null) {
 
-            for (ChromatographicPeak peak : peaks) {
+            for (Feature peak : peaks) {
 
                 if (peakLabels != null && peakLabels.containsKey(peak)) {
 

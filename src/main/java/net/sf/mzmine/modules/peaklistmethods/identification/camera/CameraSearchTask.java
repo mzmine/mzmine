@@ -23,9 +23,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.camera;
 
-import net.sf.mzmine.data.*;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -36,6 +36,7 @@ import net.sf.mzmine.util.RUtilities;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 
@@ -199,7 +200,7 @@ public class CameraSearchTask extends AbstractTask {
             rEngine.eval("colnames(peaks) <- columnHeadings", false);
 
             // Initialize.
-            final ChromatographicPeak[] peaks = peakList.getPeaks(rawFile);
+            final Feature[] peaks = peakList.getPeaks(rawFile);
             progress = 0.0;
 
             // Initialize scan map.
@@ -221,7 +222,7 @@ public class CameraSearchTask extends AbstractTask {
 
             // Add peaks.
             double progressInc = 1.0 / (double) peaks.length;
-            for (final ChromatographicPeak peak : peaks) {
+            for (final Feature peak : peaks) {
 
                 // Get peak data.
                 Range rtRange = null;
@@ -391,7 +392,7 @@ public class CameraSearchTask extends AbstractTask {
      * @param spectraExp the pseudo-spectra ids vector.
      * @param isotopeExp the isotopes vector.
      */
-    private void addPseudoSpectraIdentities(final ChromatographicPeak[] peaks,
+    private void addPseudoSpectraIdentities(final Feature[] peaks,
                                             final REXP spectraExp,
                                             final REXP isotopeExp) {
 
@@ -401,7 +402,7 @@ public class CameraSearchTask extends AbstractTask {
 
         // Add identities for each peak.
         int peakIndex = 0;
-        for (final ChromatographicPeak peak : peaks) {
+        for (final Feature peak : peaks) {
 
             // Create pseudo-spectrum identity
             final SimplePeakIdentity identity =  new SimplePeakIdentity(

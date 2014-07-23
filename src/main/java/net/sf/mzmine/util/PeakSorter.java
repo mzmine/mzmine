@@ -21,12 +21,12 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 
 /**
  * This is a helper class required for sorting peaks
  */
-public class PeakSorter implements Comparator<ChromatographicPeak> {
+public class PeakSorter implements Comparator<Feature> {
 
 	private SortingProperty property;
 	private SortingDirection direction;
@@ -36,7 +36,7 @@ public class PeakSorter implements Comparator<ChromatographicPeak> {
 		this.direction = direction;
 	}
 
-	public int compare(ChromatographicPeak peak1, ChromatographicPeak peak2) {
+	public int compare(Feature peak1, Feature peak2) {
 
 		Double peak1Value = getValue(peak1);
 		Double peak2Value = getValue(peak2);
@@ -48,7 +48,7 @@ public class PeakSorter implements Comparator<ChromatographicPeak> {
 
 	}
 
-	private double getValue(ChromatographicPeak peak) {
+	private double getValue(Feature peak) {
 		switch (property) {
 		case Area:
 			return peak.getArea();

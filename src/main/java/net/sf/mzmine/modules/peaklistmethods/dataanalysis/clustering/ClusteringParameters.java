@@ -19,9 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.em.EMClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.farthestfirst.FarthestFirstClusterer;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering.hierarchical.HierarClusterer;

@@ -33,9 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.ExitCode;

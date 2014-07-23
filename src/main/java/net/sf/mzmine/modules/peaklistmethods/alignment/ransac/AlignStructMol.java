@@ -20,8 +20,8 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 public class AlignStructMol implements Comparator<AlignStructMol> {
 

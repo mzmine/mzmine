@@ -38,11 +38,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableRowSorter;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.molstructure.MolStructureViewer;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
@@ -183,7 +183,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 			if (predictedPattern == null)
 				return;
 
-			ChromatographicPeak peak = peakListRow.getBestPeak();
+			Feature peak = peakListRow.getBestPeak();
 
 			RawDataFile dataFile = peak.getDataFile();
 			int scanNumber = peak.getRepresentativeScanNumber();

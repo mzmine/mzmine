@@ -26,14 +26,14 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.RUtilities;
@@ -368,7 +368,7 @@ public class HeatMapTask extends AbstractTask {
 					double value = Double.NaN;
 					if (rowPeak.getPeak(shownDataFiles.get(column)) != null) {
 
-						ChromatographicPeak peak = rowPeak
+						Feature peak = rowPeak
 								.getPeak(shownDataFiles.get(column));
 						if (area) {
 
@@ -537,7 +537,7 @@ public class HeatMapTask extends AbstractTask {
 							if (rowPeak.getPeak(shownDataFiles.get(dataColumn)) != null
 									&& String.valueOf(paramValue).equals(group)) {
 
-								ChromatographicPeak peak = rowPeak
+								Feature peak = rowPeak
 										.getPeak(shownDataFiles.get(dataColumn));
 
 								if (!Double.isInfinite(peak.getArea())

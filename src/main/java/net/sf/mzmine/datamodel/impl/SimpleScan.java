@@ -17,17 +17,17 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
@@ -168,14 +168,14 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getNumberOfDataPoints()
+	 * @see net.sf.mzmine.datamodel.Scan#getNumberOfDataPoints()
 	 */
 	public int getNumberOfDataPoints() {
 		return dataPoints.length;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getScanNumber()
+	 * @see net.sf.mzmine.datamodel.Scan#getScanNumber()
 	 */
 	public int getScanNumber() {
 		return scanNumber;
@@ -190,7 +190,7 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getMSLevel()
+	 * @see net.sf.mzmine.datamodel.Scan#getMSLevel()
 	 */
 	public int getMSLevel() {
 		return msLevel;
@@ -205,7 +205,7 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getPrecursorMZ()
+	 * @see net.sf.mzmine.datamodel.Scan#getPrecursorMZ()
 	 */
 	public double getPrecursorMZ() {
 		return precursorMZ;
@@ -235,7 +235,7 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getScanAcquisitionTime()
+	 * @see net.sf.mzmine.datamodel.Scan#getScanAcquisitionTime()
 	 */
 	public double getRetentionTime() {
 		return retentionTime;
@@ -250,21 +250,21 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getMZRangeMax()
+	 * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
 	 */
 	public @Nonnull Range getMZRange() {
 		return mzRange;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getBasePeakMZ()
+	 * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
 	 */
 	public DataPoint getBasePeak() {
 		return basePeak;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getParentScanNumber()
+	 * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
 	 */
 	public int getParentScanNumber() {
 		return parentScan;
@@ -279,7 +279,7 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#getFragmentScanNumbers()
+	 * @see net.sf.mzmine.datamodel.Scan#getFragmentScanNumbers()
 	 */
 	public int[] getFragmentScanNumbers() {
 		return fragmentScans;
@@ -304,7 +304,7 @@ public class SimpleScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.Scan#isCentroided()
+	 * @see net.sf.mzmine.datamodel.Scan#isCentroided()
 	 */
 	public boolean isCentroided() {
 		return centroided;

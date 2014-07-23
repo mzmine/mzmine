@@ -29,8 +29,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -46,7 +46,7 @@ public class CombinedXICComponent extends JComponent{
             new Color(0, 192, 0), // green
             Color.magenta, Color.cyan, Color.orange };
 
-    private ChromatographicPeak[] peaks;
+    private Feature[] peaks;
 
     private Range rtRange;
     private double maxIntensity;
@@ -54,7 +54,7 @@ public class CombinedXICComponent extends JComponent{
     /**
      * @param ChromatographicPeak[] Picked peaks to plot
      */
-    public CombinedXICComponent(ChromatographicPeak[] peaks, int id) {
+    public CombinedXICComponent(Feature[] peaks, int id) {
 
     	// We use the tool tip text as a id for customTooltipProvider
     	if (id >= 0)
@@ -64,7 +64,7 @@ public class CombinedXICComponent extends JComponent{
     	this.peaks = peaks;
 
         // find data boundaries
-        for (ChromatographicPeak peak : peaks) {
+        for (Feature peak : peaks) {
         	if (peak == null)
         		continue;
         	
@@ -98,7 +98,7 @@ public class CombinedXICComponent extends JComponent{
 
         int colorIndex = 0;
 
-        for (ChromatographicPeak peak : peaks) {
+        for (Feature peak : peaks) {
 
             // set color for current XIC
             g2.setColor(plotColors[colorIndex]);

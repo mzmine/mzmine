@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
 
 public enum CommonColumnType {
 

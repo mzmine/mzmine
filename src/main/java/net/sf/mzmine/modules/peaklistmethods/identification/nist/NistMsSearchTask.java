@@ -23,8 +23,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
-import net.sf.mzmine.data.*;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -624,7 +624,7 @@ public class NistMsSearchTask
             writer.newLine();
 
             for (final PeakListRow row : neighbourRows) {
-                final ChromatographicPeak peak = row.getBestPeak();
+                final Feature peak = row.getBestPeak();
                 final int charge = peak.getCharge();
                 final double mass = (peak.getMZ() - ionType.getAddedMass()) *
                                     (charge == 0 ? 1.0 : (double) charge);

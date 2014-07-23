@@ -25,7 +25,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
 import net.sf.mzmine.util.Range;

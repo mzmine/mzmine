@@ -17,13 +17,12 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.util.ScanUtils;
 
 /**

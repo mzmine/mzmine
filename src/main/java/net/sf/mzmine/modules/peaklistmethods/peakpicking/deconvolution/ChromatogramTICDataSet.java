@@ -19,19 +19,19 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 import org.jfree.data.xy.AbstractXYDataset;
 
 public class ChromatogramTICDataSet extends AbstractXYDataset {
 
-	private ChromatographicPeak chromatogram;
+	private Feature chromatogram;
     private RawDataFile dataFile;
     private int scanNumbers[];
 
-	public ChromatogramTICDataSet(ChromatographicPeak chromatogram) {
+	public ChromatogramTICDataSet(Feature chromatogram) {
 		this.chromatogram = chromatogram;
         this.dataFile = chromatogram.getDataFile();
         this.scanNumbers = dataFile.getScanNumbers(1);

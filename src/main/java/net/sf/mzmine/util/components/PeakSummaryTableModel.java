@@ -25,7 +25,7 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.main.MZmineCore;
 
 public class PeakSummaryTableModel extends AbstractTableModel {
@@ -37,7 +37,7 @@ public class PeakSummaryTableModel extends AbstractTableModel {
     private static NumberFormat intensityFormat = MZmineCore.getConfiguration()
 	    .getIntensityFormat();
 
-    private Vector<ChromatographicPeak> peaks = new Vector<ChromatographicPeak>();
+    private Vector<Feature> peaks = new Vector<Feature>();
     private Vector<Color> peakColors = new Vector<Color>();
 
     private static String[] columnNames = { "File Name", "Mass", "RT",
@@ -57,7 +57,7 @@ public class PeakSummaryTableModel extends AbstractTableModel {
 
     public Object getValueAt(int row, int col) {
 	Object value = null;
-	ChromatographicPeak peak = peaks.get(row);
+	Feature peak = peaks.get(row);
 	switch (col) {
 	case (0):
 	    value = peak.getDataFile().getName();
@@ -79,7 +79,7 @@ public class PeakSummaryTableModel extends AbstractTableModel {
 	return value;
     }
 
-    public ChromatographicPeak getElementAt(int row) {
+    public Feature getElementAt(int row) {
 	return peaks.get(row);
     }
 
@@ -91,7 +91,7 @@ public class PeakSummaryTableModel extends AbstractTableModel {
 	return peakColors.get(row);
     }
 
-    public void addElement(ChromatographicPeak peak, Color peakColor) {
+    public void addElement(Feature peak, Color peakColor) {
 	peaks.add(peak);
 	peakColors.add(peakColor);
 	fireTableRowsInserted(0, peaks.size() - 1);

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 

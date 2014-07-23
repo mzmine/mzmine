@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.threed;
 
 import java.rmi.RemoteException;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.util.Range;
 import visad.CellImpl;
 import visad.ConstantMap;
@@ -42,7 +42,7 @@ import visad.bom.PickManipulationRendererJ3D;
 public class ThreeDPeakCells extends CellImpl {
 
     private final DisplayImpl display;
-    private ChromatographicPeak[] peaks;
+    private Feature[] peaks;
     private DataReference[] references;
     private final MathType pointTupleType;
     private final PickManipulationRendererJ3D picker;
@@ -73,7 +73,7 @@ public class ThreeDPeakCells extends CellImpl {
      * @throws VisADException  if there are VisAD problems.
      * @throws RemoteException if there are VisAD problems.
      */
-    public void setPeaks(final ChromatographicPeak[] thePeaks) throws VisADException,
+    public void setPeaks(final Feature[] thePeaks) throws VisADException,
                                                                       RemoteException {
         synchronized (display) {
 
@@ -134,7 +134,7 @@ public class ThreeDPeakCells extends CellImpl {
      * @return the bounding box as a gridded set.
      * @throws VisADException if there are VisAD problems.
      */
-    private Data createPeakBox(final ChromatographicPeak peak) throws VisADException {
+    private Data createPeakBox(final Feature peak) throws VisADException {
 
         // Get the extents.
         final Range rtRange = peak.getRawDataPointsRTRange();

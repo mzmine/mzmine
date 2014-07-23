@@ -31,7 +31,7 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;

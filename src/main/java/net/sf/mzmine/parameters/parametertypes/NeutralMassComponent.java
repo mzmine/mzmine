@@ -29,7 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.components.GridBagPanel;
 

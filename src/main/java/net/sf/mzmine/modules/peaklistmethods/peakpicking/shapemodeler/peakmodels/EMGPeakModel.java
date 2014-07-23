@@ -25,17 +25,16 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
-public class EMGPeakModel implements ChromatographicPeak {
+public class EMGPeakModel implements Feature {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -50,7 +49,7 @@ public class EMGPeakModel implements ChromatographicPeak {
     private double rt, height, mz, area;
     private int[] scanNumbers;
     private RawDataFile rawDataFile;
-    private PeakStatus status;
+    private FeatureStatus status;
     private int representativeScan = -1, fragmentScan = -1;
     private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
@@ -61,7 +60,7 @@ public class EMGPeakModel implements ChromatographicPeak {
     private IsotopePattern isotopePattern;
     private int charge = 0;
 
-    public EMGPeakModel(ChromatographicPeak originalDetectedShape,
+    public EMGPeakModel(Feature originalDetectedShape,
 	    int[] scanNumbers, double[] intensities, double[] retentionTimes,
 	    double resolution) {
 
@@ -79,7 +78,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 		originalDetectedShape.getRawDataPointsMZRange());
 
 	dataPointsMap = new TreeMap<Integer, DataPoint>();
-	status = originalDetectedShape.getPeakStatus();
+	status = originalDetectedShape.getFeatureStatus();
 
 	// Initialize EMG parameters base on intensities and retention times
 	initializEMGParameters(intensities, retentionTimes, rt, height);
@@ -152,7 +151,7 @@ public class EMGPeakModel implements ChromatographicPeak {
 	return dataPointsMap.get(scanNumber);
     }
 
-    public @Nonnull PeakStatus getPeakStatus() {
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return status;
     }
 

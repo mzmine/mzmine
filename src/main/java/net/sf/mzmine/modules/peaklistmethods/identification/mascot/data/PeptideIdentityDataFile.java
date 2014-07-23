@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MascotParserUtils;
 

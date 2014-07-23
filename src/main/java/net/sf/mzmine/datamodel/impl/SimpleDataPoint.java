@@ -17,11 +17,11 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 /**

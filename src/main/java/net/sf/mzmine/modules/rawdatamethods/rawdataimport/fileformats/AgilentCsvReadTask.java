@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats;
 import java.io.File;
 import java.util.Scanner;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;

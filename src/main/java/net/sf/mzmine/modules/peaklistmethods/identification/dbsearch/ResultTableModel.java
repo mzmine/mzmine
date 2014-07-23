@@ -24,7 +24,7 @@ import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
-import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.FormulaUtils;
 

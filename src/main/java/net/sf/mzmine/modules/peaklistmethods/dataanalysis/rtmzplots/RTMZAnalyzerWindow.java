@@ -25,7 +25,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaintScale;

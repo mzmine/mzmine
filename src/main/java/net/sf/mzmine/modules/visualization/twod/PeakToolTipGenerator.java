@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.visualization.twod;
 
 import java.text.NumberFormat;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
@@ -48,7 +48,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         PeakDataPoint dataPoint = peakDataSet.getDataPoint(series, item);
 
         PeakList peakList = peakDataSet.getPeakList();
-        ChromatographicPeak peak = peakDataSet.getPeak(series);
+        Feature peak = peakDataSet.getPeak(series);
         PeakListRow row = peakList.getPeakRow(peak);
         double rtValue = dataPoint.getRT();
         double intValue = dataPoint.getIntensity();
@@ -56,7 +56,7 @@ class PeakToolTipGenerator implements XYToolTipGenerator {
         int scanNumber = dataPoint.getScanNumber();
 
         String toolTip = "Peak: " + peak + "\nStatus: "
-                + peak.getPeakStatus() + "\nPeak list row: " + row
+                + peak.getFeatureStatus() + "\nPeak list row: " + row
                 + "\nScan #" + scanNumber + "\nRetention time: "
                 + rtFormat.format(rtValue) + "\nm/z: "
                 + mzFormat.format(mzValue) + "\nIntensity: "

@@ -23,7 +23,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.camera;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -31,6 +31,7 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
 import javax.annotation.Nonnull;
+
 import java.util.Collection;
 
 /**

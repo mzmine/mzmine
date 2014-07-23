@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleMassList;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;

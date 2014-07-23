@@ -27,15 +27,15 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.impl.projecttree.PeakListTreeModel;
 import net.sf.mzmine.desktop.impl.projecttree.ProjectTree;
 import net.sf.mzmine.desktop.impl.projecttree.RawDataTreeModel;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.project.MZmineProject;
 
 /**
  * This class represents a MZmine project. That includes raw data files, peak

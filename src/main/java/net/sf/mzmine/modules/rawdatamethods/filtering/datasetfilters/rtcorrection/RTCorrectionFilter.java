@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.rtcorrecti
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 

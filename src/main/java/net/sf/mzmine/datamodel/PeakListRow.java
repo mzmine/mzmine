@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
 public interface PeakListRow {
 
@@ -39,22 +39,22 @@ public interface PeakListRow {
     /**
      * Return peaks assigned to this row
      */
-    public ChromatographicPeak[] getPeaks();
+    public Feature[] getPeaks();
 
     /**
      * Returns peak for given raw data file
      */
-    public ChromatographicPeak getPeak(RawDataFile rawData);
+    public Feature getPeak(RawDataFile rawData);
 
     /**
      * Add a peak
      */
-    public void addPeak(RawDataFile rawData, ChromatographicPeak peak);
+    public void addPeak(RawDataFile rawData, Feature peak);
 
     /**
      * Has a peak?
      */
-    public boolean hasPeak(ChromatographicPeak peak);
+    public boolean hasPeak(Feature peak);
 
     /**
      * Has a peak?
@@ -141,7 +141,7 @@ public interface PeakListRow {
     /**
      * Returns the most intense peak in this row
      */
-    public ChromatographicPeak getBestPeak();
+    public Feature getBestPeak();
 
     /**
      * Returns the most intense isotope pattern in this row. If there are no

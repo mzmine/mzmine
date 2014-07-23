@@ -23,13 +23,12 @@ import java.util.Arrays;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
@@ -39,7 +38,7 @@ import net.sf.mzmine.util.ScanUtils;
  * ResolvedPeak
  * 
  */
-public class ResolvedPeak implements ChromatographicPeak {
+public class ResolvedPeak implements Feature {
 
     // Data file of this chromatogram
     private RawDataFile dataFile;
@@ -74,7 +73,7 @@ public class ResolvedPeak implements ChromatographicPeak {
      * selected region MUST NOT contain any zero-intensity data points,
      * otherwise exception is thrown.
      */
-    public ResolvedPeak(ChromatographicPeak chromatogram, int regionStart,
+    public ResolvedPeak(Feature chromatogram, int regionStart,
 	    int regionEnd) {
 
 	assert regionEnd > regionStart;
@@ -209,8 +208,8 @@ public class ResolvedPeak implements ChromatographicPeak {
 	return fragmentScan;
     }
 
-    public @Nonnull PeakStatus getPeakStatus() {
-	return PeakStatus.DETECTED;
+    public @Nonnull FeatureStatus getFeatureStatus() {
+	return FeatureStatus.DETECTED;
     }
 
     public double getRT() {

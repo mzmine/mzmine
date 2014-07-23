@@ -19,9 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
+
 import org.jfree.data.xy.AbstractXYDataset;
 
 /**
@@ -30,7 +31,7 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class PeakDataSet extends AbstractXYDataset {
 
-    private final ChromatographicPeak peak;
+    private final Feature peak;
     private final double[] retentionTimes;
     private final double[] intensities;
     private final double[] mzValues;
@@ -43,7 +44,7 @@ public class PeakDataSet extends AbstractXYDataset {
      * @param p  the peak.
      * @param id peak identity to use as a label.
      */
-    public PeakDataSet(final ChromatographicPeak p, final String id) {
+    public PeakDataSet(final Feature p, final String id) {
 
         peak = p;
         name = id;
@@ -92,7 +93,7 @@ public class PeakDataSet extends AbstractXYDataset {
      *
      * @param p the peak.
      */
-    public PeakDataSet(final ChromatographicPeak p) {
+    public PeakDataSet(final Feature p) {
         this(p, null);
     }
 

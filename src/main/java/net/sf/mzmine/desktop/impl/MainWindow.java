@@ -41,8 +41,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.helpsystem.HelpImpl;
 import net.sf.mzmine.desktop.impl.helpsystem.MZmineHelpSet;

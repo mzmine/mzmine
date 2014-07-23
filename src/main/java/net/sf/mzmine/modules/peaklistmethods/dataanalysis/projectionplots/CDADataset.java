@@ -26,14 +26,14 @@ import java.util.logging.Logger;
 import jmprojection.CDA;
 import jmprojection.Preprocess;
 import jmprojection.ProjectionStatus;
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -217,7 +217,7 @@ public class CDADataset extends AbstractXYDataset implements
 			PeakListRow peakListRow = selectedRows[rowIndex];
 			for (int fileIndex = 0; fileIndex < selectedRawDataFiles.length; fileIndex++) {
 				RawDataFile rawDataFile = selectedRawDataFiles[fileIndex];
-				ChromatographicPeak p = peakListRow.getPeak(rawDataFile);
+				Feature p = peakListRow.getPeak(rawDataFile);
 				if (p != null) {
 					if (useArea)
 						rawData[fileIndex][rowIndex] = p.getArea();

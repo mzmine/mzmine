@@ -26,20 +26,20 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.smoothing;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -124,7 +124,7 @@ public class SmoothingTask extends AbstractTask {
                     final PeakListRow newRow = new SimplePeakListRow(peakID++);
 
                     // Process each peak.
-                    for (final ChromatographicPeak peak : row.getPeaks()) {
+                    for (final Feature peak : row.getPeaks()) {
 
                         if (!isCanceled()) {
 
@@ -195,7 +195,7 @@ public class SmoothingTask extends AbstractTask {
 
                                 // Create a new peak.
                                 newRow.addPeak(dataFile,
-                                               new SimpleChromatographicPeak(
+                                               new SimpleFeature(
                                                        dataFile,
                                                        maxDataPoint.getMZ(),
                                                        peak.getRT(),
@@ -203,7 +203,7 @@ public class SmoothingTask extends AbstractTask {
                                                        area,
                                                        scanNumbers,
                                                        newDataPoints,
-                                                       peak.getPeakStatus(),
+                                                       peak.getFeatureStatus(),
                                                        maxScanNumber,
                                                        peak.getMostIntenseFragmentScanNumber(),
                                                        new Range(peak.getRawDataPointsRTRange()),

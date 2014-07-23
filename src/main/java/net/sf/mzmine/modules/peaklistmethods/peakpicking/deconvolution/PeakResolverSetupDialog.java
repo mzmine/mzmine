@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import net.sf.mzmine.data.*;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PeakDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -27,9 +27,11 @@ import net.sf.mzmine.modules.visualization.tic.TICToolBar;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.GUIUtils;
+
 import org.jfree.data.xy.XYDataset;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -178,7 +180,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                 if (parameterSet.checkUserParameterValues(new ArrayList<String>(0))) {
 
                     // Load the intensities and RTs into array.
-                    final ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
+                    final Feature previewPeak = previewRow.getPeaks()[0];
                     final RawDataFile dataFile = previewPeak.getDataFile();
                     final int[] scanNumbers = dataFile.getScanNumbers(1);
                     final int scanCount = scanNumbers.length;
@@ -193,7 +195,7 @@ public class PeakResolverSetupDialog extends ParameterSetupDialog {
                     }
 
                     // Resolve peaks.
-                    ChromatographicPeak[] resolvedPeaks = {};
+                    Feature[] resolvedPeaks = {};
                     try {
                         resolvedPeaks = peakResolver
                                 .resolvePeaks(previewPeak, scanNumbers, retentionTimes, intensities, parameters);

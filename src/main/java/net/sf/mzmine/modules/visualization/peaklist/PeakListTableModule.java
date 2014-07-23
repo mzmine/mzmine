@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.peaklist;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;

@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.msms.msmsscore;
 
 import java.util.Map;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 
 /**
  * 

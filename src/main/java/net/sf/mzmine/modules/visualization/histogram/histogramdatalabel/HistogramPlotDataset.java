@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.visualization.histogram.HistogramDataType;
 import net.sf.mzmine.util.Range;
 
@@ -70,7 +70,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
     public void updateHistogramDataset() {
 	this.list.clear();
-	ChromatographicPeak[] peaks;
+	Feature[] peaks;
 	double[] values = null;
 	for (RawDataFile dataFile : rawDataFiles) {
 	    peaks = peakList.getPeaks(dataFile);

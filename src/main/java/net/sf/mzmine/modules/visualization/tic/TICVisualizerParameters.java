@@ -22,8 +22,8 @@ package net.sf.mzmine.modules.visualization.tic;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -72,12 +72,12 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     /**
      * Peaks to display.
      */
-    public static final MultiChoiceParameter<ChromatographicPeak> PEAKS = new MultiChoiceParameter<ChromatographicPeak>(
+    public static final MultiChoiceParameter<Feature> PEAKS = new MultiChoiceParameter<Feature>(
 	    "Peaks", "Please choose peaks to visualize",
-	    new ChromatographicPeak[0], null, 0);
+	    new Feature[0], null, 0);
 
     // Maps peaks to their labels - not a user configurable parameter.
-    private Map<ChromatographicPeak, String> peakLabelMap;
+    private Map<Feature, String> peakLabelMap;
 
     /**
      * Create the parameter set.
@@ -93,10 +93,10 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * 
      * @return the map.
      */
-    public Map<ChromatographicPeak, String> getPeakLabelMap() {
+    public Map<Feature, String> getPeakLabelMap() {
 
 	return peakLabelMap == null ? null
-		: new HashMap<ChromatographicPeak, String>(peakLabelMap);
+		: new HashMap<Feature, String>(peakLabelMap);
     }
 
     /**
@@ -105,10 +105,10 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * @param map
      *            the new map.
      */
-    public void setPeakLabelMap(final Map<ChromatographicPeak, String> map) {
+    public void setPeakLabelMap(final Map<Feature, String> map) {
 
 	peakLabelMap = map == null ? null
-		: new HashMap<ChromatographicPeak, String>(map);
+		: new HashMap<Feature, String>(map);
     }
 
     /**
@@ -121,7 +121,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 
 	return showSetupDialog(MZmineCore.getCurrentProject().getDataFiles(),
 		MZmineCore.getDesktop().getSelectedDataFiles(),
-		new ChromatographicPeak[0], new ChromatographicPeak[0]);
+		new Feature[0], new Feature[0]);
     }
 
     /**
@@ -139,8 +139,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public ExitCode showSetupDialog(final RawDataFile[] allFiles,
 	    final RawDataFile[] selectedFiles,
-	    final ChromatographicPeak[] allPeaks,
-	    final ChromatographicPeak[] selectedPeaks) {
+	    final Feature[] allPeaks,
+	    final Feature[] selectedPeaks) {
 
 	getParameter(DATA_FILES).setChoices(allFiles);
 	getParameter(DATA_FILES).setValue(selectedFiles);

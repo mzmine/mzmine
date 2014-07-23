@@ -13,20 +13,25 @@
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with
- * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
- * St, Fifth Floor, Boston, MA 02110-1301 USA
+ * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+ * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
-import javax.annotation.Nonnull;
+public enum Polarity {
 
-public interface PeakListAppliedMethod {
+    Positive(+1), //
+    Negative(-1), //
+    Neutral(0);
 
-    @Nonnull
-    public String getDescription();
+    private final int sign;
 
-    @Nonnull
-    public String getParameters();
+    Polarity(int sign) {
+	this.sign = sign;
+    }
 
+    public int getSign() {
+	return sign;
+    }
 }

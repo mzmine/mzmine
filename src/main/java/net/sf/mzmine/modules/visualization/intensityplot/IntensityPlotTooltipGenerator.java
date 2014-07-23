@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.visualization.intensityplot;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.chart.labels.CategoryToolTipGenerator;
@@ -42,7 +42,7 @@ class IntensityPlotTooltipGenerator implements CategoryToolTipGenerator,
      */
     public String generateToolTip(CategoryDataset dataset, int row, int column) {
         Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
-        ChromatographicPeak peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
+        Feature peaks[] = ((IntensityPlotDataset) dataset).getPeaks(row, column);
         RawDataFile files[] = ((IntensityPlotDataset) dataset).getFiles(column);
 
         StringBuffer sb = new StringBuffer();

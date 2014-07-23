@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -32,7 +32,7 @@ public interface PeakResolver extends MZmineModule {
      * chromatogram itself. The size of these arrays must be same, and must be
      * equal to the number of scans covered by given chromatogram.
      */
-    public ChromatographicPeak[] resolvePeaks(ChromatographicPeak chromatogram,
+    public Feature[] resolvePeaks(Feature chromatogram,
 	    int scanNumbers[], double retentionTimes[], double intensities[],
 	    ParameterSet parameters);
 

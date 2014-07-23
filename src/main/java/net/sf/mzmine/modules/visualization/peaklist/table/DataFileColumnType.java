@@ -19,13 +19,13 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakStatus;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 
 public enum DataFileColumnType {
 
-    STATUS("Status", PeakStatus.class), 
-    PEAKSHAPE("Peak shape", ChromatographicPeak.class),
+    STATUS("Status", FeatureStatus.class), 
+    PEAKSHAPE("Peak shape", Feature.class),
     MZ("m/z", Double.class), 
     RT("Ret.time", Double.class),
     DURATION("Duration", Double.class),

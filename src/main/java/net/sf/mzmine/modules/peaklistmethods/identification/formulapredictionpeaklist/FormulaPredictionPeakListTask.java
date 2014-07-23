@@ -21,8 +21,9 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpe
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import net.sf.mzmine.data.*;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+
+import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
@@ -41,6 +42,7 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.FormulaUtils;
 import net.sf.mzmine.util.Range;
+
 import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
@@ -285,7 +287,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
 
         // MS/MS evaluation is slowest, so let's do it last
         Double msmsScore = null;
-        ChromatographicPeak bestPeak = peakListRow.getBestPeak();
+        Feature bestPeak = peakListRow.getBestPeak();
         RawDataFile dataFile = bestPeak.getDataFile();
         Map<DataPoint, String> msmsAnnotations = null;
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();

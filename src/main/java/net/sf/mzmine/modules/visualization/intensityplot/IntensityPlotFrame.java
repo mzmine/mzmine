@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;

@@ -17,13 +17,13 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 
 /**
  * This class represent detected masses (ions) in one mass spectrum. Each ion is
- * represented by MzPeak
+ * represented by a DataPoint
  */
 public interface MassList {
 

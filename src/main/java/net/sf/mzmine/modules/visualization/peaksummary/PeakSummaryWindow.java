@@ -23,7 +23,7 @@ import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.util.components.PeakSummaryComponent;
 
 /**

@@ -19,8 +19,10 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist;
 
 import java.util.Collection;
+
 import javax.annotation.Nonnull;
-import net.sf.mzmine.data.PeakList;
+
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.ParameterSet;

@@ -25,8 +25,8 @@ import javax.annotation.Nonnull;
 import javax.swing.JFrame;
 import javax.swing.event.TreeModelListener;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.util.ExitCode;
 

@@ -19,17 +19,19 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.*;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
 import org.jfree.data.xy.AbstractXYZDataset;
 
 import javax.swing.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

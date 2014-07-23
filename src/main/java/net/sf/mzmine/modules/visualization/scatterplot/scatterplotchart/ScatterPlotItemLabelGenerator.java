@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
 
 import org.jfree.chart.labels.XYItemLabelGenerator;
 import org.jfree.data.xy.XYDataset;

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
  * This class represents a score between peak list row and aligned peak list row

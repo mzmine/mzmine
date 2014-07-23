@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.awt.Color;
 
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;

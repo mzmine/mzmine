@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.util.components;
 
-import net.sf.mzmine.data.*;
+import net.sf.mzmine.datamodel.*;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
@@ -35,6 +35,7 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -94,7 +95,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
         this.row = row;
 
         // Get info
-        ChromatographicPeak[] peaks = new ChromatographicPeak[rawDataFiles.length];
+        Feature[] peaks = new Feature[rawDataFiles.length];
         for (int i = 0; i < peaks.length; i++) {
             peaks[i] = row.getPeak(rawDataFiles[i]);
         }
@@ -184,7 +185,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
         int colorIndex = 0;
         Color peakColor;
 
-        for (ChromatographicPeak peak : peaks) {
+        for (Feature peak : peaks) {
             // set color for current XIC
             if (peak != null) {
                 peakColor = CombinedXICComponent.plotColors[colorIndex];
@@ -331,7 +332,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 
             String visualizerType = (String) comboShow.getSelectedItem();
             int[] indexesRow = peaksInfoList.getSelectedRows();
-            ChromatographicPeak[] selectedPeaks = new ChromatographicPeak[indexesRow.length];
+            Feature[] selectedPeaks = new Feature[indexesRow.length];
             RawDataFile[] dataFiles = new RawDataFile[indexesRow.length];
             Range rtRange = null, mzRange = null;
             for (int i = 0; i < indexesRow.length; i++) {
@@ -355,9 +356,9 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
             if (visualizerType.equals("Chromatogram")) {
 
                 // Label best peak with preferred identity.
-                final ChromatographicPeak bestPeak = row.getBestPeak();
+                final Feature bestPeak = row.getBestPeak();
                 final PeakIdentity peakIdentity = row.getPreferredPeakIdentity();
-                final Map<ChromatographicPeak, String> labelMap = new HashMap<ChromatographicPeak, String>(1);
+                final Map<Feature, String> labelMap = new HashMap<Feature, String>(1);
                 if (bestPeak != null && peakIdentity != null) {
 
                     labelMap.put(bestPeak, peakIdentity.getName());
@@ -444,7 +445,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
             if (indexRow == -1) {
                 return;
             }
-            ChromatographicPeak selectedPeak = listElementModel
+            Feature selectedPeak = listElementModel
                     .getElementAt(indexRow);
             ManualPeakPickerModule.runManualDetection(
                     selectedPeak.getDataFile(), row);

@@ -24,8 +24,8 @@ import java.util.TreeSet;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
@@ -35,7 +35,7 @@ import net.sf.mzmine.util.SortingProperty;
 public class ExactMassDetector implements MassDetector {
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.data.Scan)
+     * @see net.sf.mzmine.modules.peakpicking.threestep.massdetection.MassDetector#getMassValues(net.sf.mzmine.datamodel.Scan)
      */
     public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 

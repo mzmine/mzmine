@@ -18,7 +18,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.alignment.path.functions;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 
 public interface Aligner {
 

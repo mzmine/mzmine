@@ -17,33 +17,17 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
+
 
 /**
- * This enum defines the detection status of a picked peak (one cell of a
- * PeakList table).
- * 
+ * This interface represents one data point of a spectra (m/z and intensity).
+ * Data point is immutable once created, to make things simple.
  */
-public enum PeakStatus {
+public interface DataPoint {
 
-    /**
-     * Peak was not found
-     */
-    UNKNOWN,
+    public double getMZ();
 
-    /**
-     * Peak was found in primary peak picking
-     */
-    DETECTED,
-
-    /**
-     * Peak was estimated in secondary peak picking
-     */
-    ESTIMATED,
-
-    /**
-     * Peak was defined manually
-     */
-    MANUAL
+    public double getIntensity();
 
 }

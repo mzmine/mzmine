@@ -23,12 +23,11 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -38,7 +37,7 @@ import net.sf.mzmine.util.ScanUtils;
 /**
  * This class represents a manually picked chromatographic peak.
  */
-class ManualPeak implements ChromatographicPeak {
+class ManualPeak implements Feature {
 
     private RawDataFile dataFile;
 
@@ -70,8 +69,8 @@ class ManualPeak implements ChromatographicPeak {
     /**
      * This peak is always a result of manual peak detection, therefore MANUAL
      */
-    public @Nonnull PeakStatus getPeakStatus() {
-	return PeakStatus.MANUAL;
+    public @Nonnull FeatureStatus getFeatureStatus() {
+	return FeatureStatus.MANUAL;
     }
 
     /**
@@ -130,7 +129,7 @@ class ManualPeak implements ChromatographicPeak {
     }
 
     /**
-     * @see net.sf.mzmine.data.ChromatographicPeak#getDataFile()
+     * @see net.sf.mzmine.datamodel.Feature#getDataFile()
      */
     public @Nonnull RawDataFile getDataFile() {
 	return dataFile;

@@ -30,8 +30,8 @@ import java.text.NumberFormat;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 

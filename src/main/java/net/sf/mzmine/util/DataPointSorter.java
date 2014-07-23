@@ -21,7 +21,7 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 
 /**
  * This class implements Comparator class to provide a comparison between two

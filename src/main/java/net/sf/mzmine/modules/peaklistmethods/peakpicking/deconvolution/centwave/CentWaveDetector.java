@@ -23,16 +23,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RUtilities;
 import net.sf.mzmine.util.Range;
+
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 
 import javax.annotation.Nonnull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,7 +77,7 @@ public class CentWaveDetector implements PeakResolver {
     }
 
     @Override
-    public ChromatographicPeak[] resolvePeaks(final ChromatographicPeak chromatogram,
+    public Feature[] resolvePeaks(final Feature chromatogram,
                                               final int[] scanNumbers,
                                               final double[] retentionTimes,
                                               final double[] intensities,

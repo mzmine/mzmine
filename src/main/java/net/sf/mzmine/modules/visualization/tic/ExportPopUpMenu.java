@@ -23,11 +23,12 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 

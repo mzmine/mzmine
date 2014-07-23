@@ -29,7 +29,7 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakIdentity;
 
 /**
  * Table cell renderer

@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.alignment.path.scorer;
 
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.PathAlignerParameters;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.AlignmentPath;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.ScoreCalculator;

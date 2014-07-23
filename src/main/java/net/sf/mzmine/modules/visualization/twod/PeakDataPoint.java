@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 
 /**
  * This class represents one peak datapoint (retention time and m/z)

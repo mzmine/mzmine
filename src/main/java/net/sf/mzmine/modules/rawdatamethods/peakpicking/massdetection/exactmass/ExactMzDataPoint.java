@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass
 
 import java.text.Format;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 /**

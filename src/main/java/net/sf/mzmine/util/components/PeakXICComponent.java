@@ -30,9 +30,9 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.border.Border;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.Range;
 
 /**
@@ -43,7 +43,7 @@ public class PeakXICComponent extends JComponent {
     public static final Color XICColor = Color.blue;
     public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
 
-    private ChromatographicPeak peak;
+    private Feature peak;
 
     private Range rtRange;
     private double maxIntensity;
@@ -51,14 +51,14 @@ public class PeakXICComponent extends JComponent {
     /**
      * @param peak Picked peak to plot
      */
-    public PeakXICComponent(ChromatographicPeak peak) {
+    public PeakXICComponent(Feature peak) {
         this(peak, peak.getRawDataPointsIntensityRange().getMax());
     }
 
     /**
      * @param peak Picked peak to plot
      */
-    public PeakXICComponent(ChromatographicPeak peak, double maxIntensity) {
+    public PeakXICComponent(Feature peak, double maxIntensity) {
 
         this.peak = peak;
 

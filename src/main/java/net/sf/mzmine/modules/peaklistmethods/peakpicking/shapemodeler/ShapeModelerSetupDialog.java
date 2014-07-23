@@ -39,11 +39,11 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ChromatogramTICDataSet;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakPreviewComboRenderer;
@@ -176,7 +176,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 		if (previewRow == null)
 			return;
 		logger.finest("Loading new preview peak " + previewRow);
-		ChromatographicPeak previewPeak = previewRow.getPeaks()[0];
+		Feature previewPeak = previewRow.getPeaks()[0];
 
 		ticPlot.removeAllTICDataSets();
 
@@ -211,7 +211,7 @@ public class ShapeModelerSetupDialog extends ParameterSetupDialog implements
 			// shapePeakModel(ChromatographicPeak originalDetectedShape, int[]
 			// scanNumbers,
 			// double[] intensities, double[] retentionTimes, double resolution)
-			ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct
+			Feature shapePeak = (Feature) shapeModelConstruct
 					.newInstance(previewPeak, scanNumbers, intensities,
 							retentionTimes, resolution);
 

@@ -21,7 +21,7 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
-import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;

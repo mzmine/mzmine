@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart;
 
 import java.util.ArrayList;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotAxisSelection;
 import net.sf.mzmine.util.SearchDefinition;
 

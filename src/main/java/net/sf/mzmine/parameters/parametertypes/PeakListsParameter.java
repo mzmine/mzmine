@@ -21,7 +21,7 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.parameters.Parameter;
 
 import org.w3c.dom.Element;

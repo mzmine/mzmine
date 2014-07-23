@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.RawDataFileWriter;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;

@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.tools.mzrangecalculator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;

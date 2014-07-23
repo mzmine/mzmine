@@ -22,19 +22,19 @@ package net.sf.mzmine.modules.peaklistmethods.normalization.linear;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
@@ -103,7 +103,7 @@ class LinearNormalizerTask extends AbstractTask {
 		double maxOriginalHeight = 0.0;
 		for (RawDataFile file : originalPeakList.getRawDataFiles()) {
 			for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-				ChromatographicPeak p = originalpeakListRow.getPeak(file);
+				Feature p = originalpeakListRow.getPeak(file);
 				if (p != null) {
 					if (maxOriginalHeight <= p.getHeight())
 						maxOriginalHeight = p.getHeight();
@@ -127,7 +127,7 @@ class LinearNormalizerTask extends AbstractTask {
 				double intensitySum = 0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
-					ChromatographicPeak p = peakListRow.getPeak(file);
+					Feature p = peakListRow.getPeak(file);
 					if (p != null) {
 						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							intensitySum += p.getHeight();
@@ -145,7 +145,7 @@ class LinearNormalizerTask extends AbstractTask {
 				double intensitySum = 0.0;
 				int intensityCount = 0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
-					ChromatographicPeak p = peakListRow.getPeak(file);
+					Feature p = peakListRow.getPeak(file);
 					if (p != null) {
 						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							intensitySum += (p.getHeight() * p.getHeight());
@@ -162,7 +162,7 @@ class LinearNormalizerTask extends AbstractTask {
 			if (normalizationType == NormalizationType.MaximumPeakHeight) {
 				double maximumIntensity = 0.0;
 				for (PeakListRow peakListRow : originalPeakList.getRows()) {
-					ChromatographicPeak p = peakListRow.getPeak(file);
+					Feature p = peakListRow.getPeak(file);
 					if (p != null) {
 						if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 							if (maximumIntensity < p.getHeight())
@@ -202,11 +202,11 @@ class LinearNormalizerTask extends AbstractTask {
 					return;
 				}
 
-				ChromatographicPeak originalPeak = originalpeakListRow
+				Feature originalPeak = originalpeakListRow
 						.getPeak(file);
 				if (originalPeak != null) {
 
-					SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
+					SimpleFeature normalizedPeak = new SimpleFeature(
 							originalPeak);
 					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
 

@@ -18,7 +18,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.alignment.path.functions;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.parameters.ParameterSet;
 
 public interface ScoreCalculator {

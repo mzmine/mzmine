@@ -21,10 +21,10 @@ package net.sf.mzmine.util;
 
 import java.text.Format;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 
 /**
@@ -41,7 +41,7 @@ public class PeakUtils {
      *            Peak to be converted to String
      * @return String representation of the peak
      */
-    public static String peakToString(ChromatographicPeak peak) {
+    public static String peakToString(Feature peak) {
 	StringBuffer buf = new StringBuffer();
 	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
 	Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -171,8 +171,8 @@ public class PeakUtils {
      * Copies properties such as isotope pattern and charge from the source peak
      * to the target peak
      */
-    public static void copyPeakProperties(ChromatographicPeak source,
-	    ChromatographicPeak target) {
+    public static void copyPeakProperties(Feature source,
+	    Feature target) {
 
 	// Copy isotope pattern
 	IsotopePattern originalPattern = source.getIsotopePattern();

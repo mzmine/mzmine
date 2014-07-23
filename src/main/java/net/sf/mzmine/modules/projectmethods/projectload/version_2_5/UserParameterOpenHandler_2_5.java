@@ -29,13 +29,13 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.projectmethods.projectload.UserParameterOpenHandler;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
-import net.sf.mzmine.project.MZmineProject;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;

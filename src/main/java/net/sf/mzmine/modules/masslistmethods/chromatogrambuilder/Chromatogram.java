@@ -25,12 +25,11 @@ import java.util.Vector;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -42,7 +41,7 @@ import net.sf.mzmine.util.ScanUtils;
  * returns all scans in the data file MS level 1, which means the Chromatogram
  * always covers the whole retention time range.
  */
-public class Chromatogram implements ChromatographicPeak {
+public class Chromatogram implements Feature {
 
     // Data file of this chromatogram
     private RawDataFile dataFile;
@@ -143,8 +142,8 @@ public class Chromatogram implements ChromatographicPeak {
     }
 
     public @Nonnull
-    PeakStatus getPeakStatus() {
-	return PeakStatus.DETECTED;
+    FeatureStatus getFeatureStatus() {
+	return FeatureStatus.DETECTED;
     }
 
     public double getRT() {

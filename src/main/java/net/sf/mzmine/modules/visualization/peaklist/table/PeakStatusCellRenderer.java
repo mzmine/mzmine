@@ -29,7 +29,7 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-import net.sf.mzmine.data.PeakStatus;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.util.components.ColorCircle;
 
 /**
@@ -83,7 +83,7 @@ class PeakStatusCellRenderer implements TableCellRenderer {
 		}
 
 		if (value != null) {
-			PeakStatus status = (PeakStatus) value;
+			FeatureStatus status = (FeatureStatus) value;
 
 			switch (status) {
 			case DETECTED:

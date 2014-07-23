@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.project;
 
+import net.sf.mzmine.datamodel.MZmineProject;
+
 /**
  * Project manager
  */

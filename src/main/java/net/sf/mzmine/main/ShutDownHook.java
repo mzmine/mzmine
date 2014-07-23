@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.main;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 
 /**
  * Shutdown hook - invoked on JRE shutdown. This method saves current

@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleScan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;

@@ -43,7 +43,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import net.sf.mzmine.util.GUIUtils;

@@ -21,9 +21,9 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -51,7 +51,7 @@ public class ManualPeakPickerModule implements MZmineModule {
 
 	// Check the peaks for selected data files
 	for (RawDataFile dataFile : dataFiles) {
-	    ChromatographicPeak peak = peakListRow.getPeak(dataFile);
+	    Feature peak = peakListRow.getPeak(dataFile);
 	    if (peak == null)
 		continue;
 	    if ((mzRange == null) || (rtRange == null)) {
@@ -66,7 +66,7 @@ public class ManualPeakPickerModule implements MZmineModule {
 
 	// If none of the data files had a peak, check the whole row
 	if (mzRange == null) {
-	    for (ChromatographicPeak peak : peakListRow.getPeaks()) {
+	    for (Feature peak : peakListRow.getPeaks()) {
 		if (peak == null)
 		    continue;
 		if ((mzRange == null) || (rtRange == null)) {

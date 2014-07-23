@@ -31,7 +31,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.ChromatographicPeak;
+import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -51,8 +51,8 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     }
 
     @Override
-    public ChromatographicPeak[] resolvePeaks(
-	    final ChromatographicPeak chromatogram, final int[] scanNumbers,
+    public Feature[] resolvePeaks(
+	    final Feature chromatogram, final int[] scanNumbers,
 	    final double[] retentionTimes, final double[] intensities,
 	    ParameterSet parameters) {
 
@@ -199,7 +199,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 	    }
 	}
 
-	return resolvedPeaks.toArray(new ChromatographicPeak[resolvedPeaks
+	return resolvedPeaks.toArray(new Feature[resolvedPeaks
 		.size()]);
     }
 

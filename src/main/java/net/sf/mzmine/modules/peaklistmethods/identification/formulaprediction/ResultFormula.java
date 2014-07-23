@@ -21,8 +21,8 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import java.util.Map;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.IsotopePattern;
 
 import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IMolecularFormula;

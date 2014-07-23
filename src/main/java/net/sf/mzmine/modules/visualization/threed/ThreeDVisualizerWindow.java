@@ -19,8 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.Range;
@@ -29,6 +29,7 @@ import visad.VisADException;
 import visad.java3d.MouseBehaviorJ3D;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

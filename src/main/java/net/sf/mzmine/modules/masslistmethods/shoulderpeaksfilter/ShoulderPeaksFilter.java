@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.PeakModel;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;

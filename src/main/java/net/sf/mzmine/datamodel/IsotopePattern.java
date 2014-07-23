@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 
@@ -26,34 +26,48 @@ import javax.annotation.Nonnull;
  */
 public interface IsotopePattern {
 
-    /**
-     * Returns the isotope pattern status.
-     */
-    @Nonnull
-    public IsotopePatternStatus getStatus();
+	public enum IsotopePatternStatus {
 
-    /**
-     * Returns the number of isotopes in this pattern
-     */
-    public int getNumberOfIsotopes();
+		/**
+		 * Isotope pattern was detected by isotope grouper
+		 */
+		DETECTED,
 
-    /**
-     * Returns an array of m/z values and intensities of the isotopes. The size
-     * of the array is same as returned by getNumberOfIsotopes()
-     */
-    @Nonnull
-    public DataPoint[] getDataPoints();
+		/**
+		 * Isotope pattern was predicted by Isotope pattern calculator
+		 */
+		PREDICTED;
 
-    /**
-     * Returns the highest (in terms of intensity) isotope of this pattern.
-     */
-    @Nonnull
-    public DataPoint getHighestIsotope();
+	}
 
-    /**
-     * Returns a description of this isotope pattern (formula, etc.)
-     */
-    @Nonnull
-    public String getDescription();
+	/**
+	 * Returns the isotope pattern status.
+	 */
+	@Nonnull
+	public IsotopePatternStatus getStatus();
+
+	/**
+	 * Returns the number of isotopes in this pattern
+	 */
+	public int getNumberOfIsotopes();
+
+	/**
+	 * Returns an array of m/z values and intensities of the isotopes. The size
+	 * of the array is same as returned by getNumberOfIsotopes()
+	 */
+	@Nonnull
+	public DataPoint[] getDataPoints();
+
+	/**
+	 * Returns the highest (in terms of intensity) isotope of this pattern.
+	 */
+	@Nonnull
+	public DataPoint getHighestIsotope();
+
+	/**
+	 * Returns a description of this isotope pattern (formula, etc.)
+	 */
+	@Nonnull
+	public String getDescription();
 
 }

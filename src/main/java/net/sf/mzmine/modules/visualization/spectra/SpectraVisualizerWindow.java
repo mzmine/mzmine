@@ -33,13 +33,13 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
@@ -248,7 +248,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 
     }
 
-    public void loadSinglePeak(ChromatographicPeak peak) {
+    public void loadSinglePeak(Feature peak) {
 
 	SinglePeakDataSet peakDataSet = new SinglePeakDataSet(
 		currentScan.getScanNumber(), peak);

@@ -17,18 +17,30 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
-public enum IsotopePatternStatus {
+import java.io.IOException;
+
+/**
+ * This interface represents a raw data file which is being modified. Scans can
+ * be added to the file by calling the addScan() method. Final RawDataFile
+ * instance is obtained by calling finishWriting() method.
+ */
+public interface RawDataFileWriter {
 
     /**
-     * Isotope pattern was detected by isotope grouper
+     * Adds a new scan to the file.
+     * 
+     * @param newScan
+     *            Scan to add
      */
-    DETECTED,
+    public void addScan(Scan newScan) throws IOException;
 
     /**
-     * Isotope pattern was predicted by Isotope pattern calculator
+     * Finishes writing of the file
+     * 
+     * @return newly written file as RawDataFile
      */
-    PREDICTED;
-    
+    public RawDataFile finishWriting() throws IOException;
+
 }

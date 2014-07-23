@@ -23,24 +23,24 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakSorter;
@@ -142,7 +142,7 @@ class IsotopeGrouperTask extends AbstractTask {
 			charges[i] = i + 1;
 
 		// Sort peaks by descending height
-		ChromatographicPeak[] sortedPeaks = peakList.getPeaks(dataFile);
+		Feature[] sortedPeaks = peakList.getPeaks(dataFile);
 		Arrays.sort(sortedPeaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 
@@ -154,7 +154,7 @@ class IsotopeGrouperTask extends AbstractTask {
 			if (isCanceled())
 				return;
 
-			ChromatographicPeak aPeak = sortedPeaks[ind];
+			Feature aPeak = sortedPeaks[ind];
 
 			// Check if peak was already deleted
 			if (aPeak == null) {
@@ -165,10 +165,10 @@ class IsotopeGrouperTask extends AbstractTask {
 			// Check which charge state fits best around this peak
 			int bestFitCharge = 0;
 			int bestFitScore = -1;
-			Vector<ChromatographicPeak> bestFitPeaks = null;
+			Vector<Feature> bestFitPeaks = null;
 			for (int charge : charges) {
 
-				Vector<ChromatographicPeak> fittedPeaks = new Vector<ChromatographicPeak>();
+				Vector<Feature> fittedPeaks = new Vector<Feature>();
 				fittedPeaks.add(aPeak);
 				fitPattern(fittedPeaks, aPeak, charge, sortedPeaks);
 
@@ -195,13 +195,13 @@ class IsotopeGrouperTask extends AbstractTask {
 			}
 
 			// Convert the peak pattern to array
-			ChromatographicPeak originalPeaks[] = bestFitPeaks
-					.toArray(new ChromatographicPeak[0]);
+			Feature originalPeaks[] = bestFitPeaks
+					.toArray(new Feature[0]);
 
 			// Create a new SimpleIsotopePattern
 			DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
 			for (int i = 0; i < isotopes.length; i++) {
-				ChromatographicPeak p = originalPeaks[i];
+				Feature p = originalPeaks[i];
 				isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
 
 			}
@@ -218,7 +218,7 @@ class IsotopeGrouperTask extends AbstractTask {
 						SortingDirection.Ascending));
 			}
 
-			ChromatographicPeak newPeak = new SimpleChromatographicPeak(
+			Feature newPeak = new SimpleFeature(
 					originalPeaks[0]);
 			newPeak.setIsotopePattern(newPattern);
 			newPeak.setCharge(bestFitCharge);
@@ -272,8 +272,8 @@ class IsotopeGrouperTask extends AbstractTask {
 	 * @param charge
 	 *            Charge state of the fitted pattern
 	 */
-	private void fitPattern(Vector<ChromatographicPeak> fittedPeaks,
-			ChromatographicPeak p, int charge, ChromatographicPeak[] sortedPeaks) {
+	private void fitPattern(Vector<Feature> fittedPeaks,
+			Feature p, int charge, Feature[] sortedPeaks) {
 
 		if (charge == 0) {
 			return;
@@ -302,9 +302,9 @@ class IsotopeGrouperTask extends AbstractTask {
 	 * @param fittedPeaks
 	 *            All matching peaks will be added to this set
 	 */
-	private void fitHalfPattern(ChromatographicPeak p, int charge,
-			int direction, Vector<ChromatographicPeak> fittedPeaks,
-			ChromatographicPeak[] sortedPeaks) {
+	private void fitHalfPattern(Feature p, int charge,
+			int direction, Vector<Feature> fittedPeaks,
+			Feature[] sortedPeaks) {
 
 		// Use M/Z and RT of the strongest peak of the pattern (peak 'p')
 		double mainMZ = p.getMZ();
@@ -322,10 +322,10 @@ class IsotopeGrouperTask extends AbstractTask {
 
 			// Loop through all peaks, and collect candidates for the n:th peak
 			// in the pattern
-			Vector<ChromatographicPeak> goodCandidates = new Vector<ChromatographicPeak>();
+			Vector<Feature> goodCandidates = new Vector<Feature>();
 			for (int ind = 0; ind < sortedPeaks.length; ind++) {
 
-				ChromatographicPeak candidatePeak = sortedPeaks[ind];
+				Feature candidatePeak = sortedPeaks[ind];
 
 				if (candidatePeak == null)
 					continue;

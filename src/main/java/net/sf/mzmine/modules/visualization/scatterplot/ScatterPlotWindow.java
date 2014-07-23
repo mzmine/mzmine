@@ -30,7 +30,7 @@ import javax.swing.JFrame;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 
 /**

@@ -22,18 +22,18 @@ package net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler;
 import java.lang.reflect.Constructor;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -119,7 +119,7 @@ class ShapeModelerTask extends AbstractTask {
 			newRow = new SimplePeakListRow(newPeakID);
 
 			try {
-				for (ChromatographicPeak peak : row.getPeaks()) {
+				for (Feature peak : row.getPeaks()) {
 
 					// Load the intensities into array
 					dataFile = peak.getDataFile();
@@ -138,7 +138,7 @@ class ShapeModelerTask extends AbstractTask {
 							intensities[i] = 0;
 					}
 
-					ChromatographicPeak shapePeak = (ChromatographicPeak) shapeModelConstruct
+					Feature shapePeak = (Feature) shapeModelConstruct
 							.newInstance(peak, scanNumbers, intensities,
 									retentionTimes, resolution);
 

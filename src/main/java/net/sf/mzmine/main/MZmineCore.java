@@ -34,7 +34,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.data.RawDataFileWriter;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
@@ -43,7 +44,6 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;

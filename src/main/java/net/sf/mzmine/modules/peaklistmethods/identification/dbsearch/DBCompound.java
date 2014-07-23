@@ -23,8 +23,8 @@ import java.net.URL;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 
 public class DBCompound extends SimplePeakIdentity {
 

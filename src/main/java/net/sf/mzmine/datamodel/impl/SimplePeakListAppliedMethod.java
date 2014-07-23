@@ -17,11 +17,11 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.parameters.ParameterSet;
 
 public class SimplePeakListAppliedMethod implements PeakListAppliedMethod {

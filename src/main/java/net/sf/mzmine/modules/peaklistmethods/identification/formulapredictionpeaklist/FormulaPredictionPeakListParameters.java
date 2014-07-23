@@ -18,7 +18,7 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist;
 
-import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementsParameter;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicParameters;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.rdbe.RDBERestrictionParameters;

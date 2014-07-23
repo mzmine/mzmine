@@ -28,14 +28,14 @@ import java.util.logging.Logger;
 
 import javax.swing.SwingUtilities;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IonizationType;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicChecker;
@@ -286,7 +286,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 
 		// MS/MS evaluation is slowest, so let's do it last
 		Double msmsScore = null;
-		ChromatographicPeak bestPeak = peakListRow.getBestPeak();
+		Feature bestPeak = peakListRow.getBestPeak();
 		RawDataFile dataFile = bestPeak.getDataFile();
 		Map<DataPoint, String> msmsAnnotations = null;
 		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();

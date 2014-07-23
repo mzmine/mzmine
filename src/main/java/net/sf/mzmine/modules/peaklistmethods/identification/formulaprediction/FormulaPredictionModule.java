@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots;
 
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakListRow;
 
 import org.jfree.data.xy.XYZDataset;
 

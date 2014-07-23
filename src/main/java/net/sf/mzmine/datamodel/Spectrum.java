@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data;
+package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,34 +25,9 @@ import javax.annotation.Nullable;
 import net.sf.mzmine.util.Range;
 
 /**
- * This class represent one spectrum of a raw data file.
+ * This class represent one mass spectrum.
  */
-public interface Scan {
-
-    /**
-     * 
-     * @return RawDataFile containing this Scan
-     */
-    @Nonnull
-    public RawDataFile getDataFile();
-
-    /**
-     * 
-     * @return Scan number
-     */
-    public int getScanNumber();
-
-    /**
-     * 
-     * @return MS level
-     */
-    public int getMSLevel();
-
-    /**
-     * 
-     * @return Retention time of this scan in minutes
-     */
-    public double getRetentionTime();
+public interface Spectrum {
 
     /**
      * Returns the m/z range of this Scan. Never returns null.
@@ -62,9 +37,6 @@ public interface Scan {
     @Nonnull
     public Range getMZRange();
     
-    // TODO: public Range getScanRange(); return the actual scanning range of the instrument
-    
-
     /**
      * Returns the top intensity data point. May return null if there are no
      * data points in this Scan.
@@ -87,30 +59,6 @@ public interface Scan {
      */
     public boolean isCentroided();
 
-    /**
-     * 
-     * @return parent scan number or -1 if there is no parent scan
-     */
-    public int getParentScanNumber();
-
-    /**
-     * 
-     * @return Precursor m/z or 0 if this is not MSn scan
-     */
-    public double getPrecursorMZ();
-
-    /**
-     * 
-     * @return Precursor charge or 0 if this is not MSn scan or charge is
-     *         unknown
-     */
-    public int getPrecursorCharge();
-
-    /**
-     * 
-     * @return array of fragment scan numbers, or null if there are none
-     */
-    public int[] getFragmentScanNumbers();
 
     /**
      * @return Number of m/z and intensity data points
@@ -152,15 +100,5 @@ public interface Scan {
      */
     @Nonnull
     public DataPoint[] getDataPointsOverIntensity(double intensity);
-
-    @Nonnull
-    public MassList[] getMassLists();
-
-    @Nullable
-    public MassList getMassList(@Nonnull String name);
-
-    public void addMassList(@Nonnull MassList massList);
-
-    public void removeMassList(@Nonnull MassList massList);
 
 }

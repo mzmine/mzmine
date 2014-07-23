@@ -24,14 +24,14 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 
@@ -91,13 +91,13 @@ class IntensityPlotDataset extends AbstractDataset implements
 	}
     }
 
-    ChromatographicPeak[] getPeaks(int row, int column) {
+    Feature[] getPeaks(int row, int column) {
 	return getPeaks(xValues[column], selectedRows[row]);
     }
 
-    ChromatographicPeak[] getPeaks(Comparable<?> xValue, PeakListRow row) {
+    Feature[] getPeaks(Comparable<?> xValue, PeakListRow row) {
 	RawDataFile files[] = getFiles(xValue);
-	ChromatographicPeak[] peaks = new ChromatographicPeak[files.length];
+	Feature[] peaks = new Feature[files.length];
 	for (int i = 0; i < files.length; i++) {
 	    peaks[i] = row.getPeak(files[i]);
 	}
@@ -132,7 +132,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public Number getMeanValue(int row, int column) {
-	ChromatographicPeak[] peaks = getPeaks(xValues[column],
+	Feature[] peaks = getPeaks(xValues[column],
 		selectedRows[row]);
 	HashSet<Double> values = new HashSet<Double>();
 	for (int i = 0; i < peaks.length; i++) {
@@ -157,7 +157,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public Number getStdDevValue(int row, int column) {
-	ChromatographicPeak[] peaks = getPeaks(xValues[column],
+	Feature[] peaks = getPeaks(xValues[column],
 		selectedRows[row]);
 
 	// if we have only 1 peak, there is no standard deviation

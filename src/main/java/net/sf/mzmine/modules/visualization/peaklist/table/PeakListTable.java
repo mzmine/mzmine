@@ -19,9 +19,9 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.event.RowSorterEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

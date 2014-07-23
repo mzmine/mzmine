@@ -19,9 +19,9 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import visad.*;
 import visad.bom.PickManipulationRendererJ3D;
@@ -357,7 +357,7 @@ public class ThreeDDisplay extends DisplayImplJ3D {
      *             if there are VisAD problems.
      */
     public void setPeaks(final PeakList peakList,
-            final ChromatographicPeak[] peaks, final boolean showCompoundName)
+            final Feature[] peaks, final boolean showCompoundName)
             throws RemoteException, VisADException {
 
         final int peakCount = peaks.length;

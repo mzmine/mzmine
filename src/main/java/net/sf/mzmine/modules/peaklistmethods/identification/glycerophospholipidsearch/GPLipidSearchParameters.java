@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch;
 
-import net.sf.mzmine.data.IonizationType;
+import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;

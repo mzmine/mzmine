@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import java.text.Format;
 import java.util.Arrays;
@@ -25,11 +25,11 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.PeakSorter;
 import net.sf.mzmine.util.SortingDirection;
@@ -40,7 +40,7 @@ import net.sf.mzmine.util.SortingProperty;
  */
 public class SimplePeakListRow implements PeakListRow {
 
-	private Hashtable<RawDataFile, ChromatographicPeak> peaks;
+	private Hashtable<RawDataFile, Feature> peaks;
 	private Vector<PeakIdentity> identities;
 	private PeakIdentity preferredIdentity;
 	private String comment;
@@ -55,12 +55,12 @@ public class SimplePeakListRow implements PeakListRow {
 
 	public SimplePeakListRow(int myID) {
 		this.myID = myID;
-		peaks = new Hashtable<RawDataFile, ChromatographicPeak>();
+		peaks = new Hashtable<RawDataFile, Feature>();
 		identities = new Vector<PeakIdentity>();
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getID()
+	 * @see net.sf.mzmine.datamodel.PeakListRow#getID()
 	 */
 	public int getID() {
 		return myID;
@@ -69,8 +69,8 @@ public class SimplePeakListRow implements PeakListRow {
 	/**
 	 * Return peaks assigned to this row
 	 */
-	public ChromatographicPeak[] getPeaks() {
-		return peaks.values().toArray(new ChromatographicPeak[0]);
+	public Feature[] getPeaks() {
+		return peaks.values().toArray(new Feature[0]);
 	}
 
 	public void removePeak(RawDataFile file) {
@@ -88,12 +88,12 @@ public class SimplePeakListRow implements PeakListRow {
 	/**
 	 * Returns peak for given raw data file
 	 */
-	public ChromatographicPeak getPeak(RawDataFile rawData) {
+	public Feature getPeak(RawDataFile rawData) {
 		return peaks.get(rawData);
 	}
 
 	public synchronized void addPeak(RawDataFile rawData,
-			ChromatographicPeak peak) {
+			Feature peak) {
 
 		if (peak == null)
 			throw new IllegalArgumentException(
@@ -125,9 +125,9 @@ public class SimplePeakListRow implements PeakListRow {
 
 	private synchronized void calculateAverageValues() {
 		double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
-		Enumeration<ChromatographicPeak> peakEnum = peaks.elements();
+		Enumeration<Feature> peakEnum = peaks.elements();
 		while (peakEnum.hasMoreElements()) {
-			ChromatographicPeak p = peakEnum.nextElement();
+			Feature p = peakEnum.nextElement();
 			rtSum += p.getRT();
 			mzSum += p.getMZ();
 			heightSum += p.getHeight();
@@ -162,21 +162,21 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getComment()
+	 * @see net.sf.mzmine.datamodel.PeakListRow#getComment()
 	 */
 	public String getComment() {
 		return comment;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#setComment(java.lang.String)
+	 * @see net.sf.mzmine.datamodel.PeakListRow#setComment(java.lang.String)
 	 */
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+	 * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
 	 */
 	public synchronized void addPeakIdentity(PeakIdentity identity,
 			boolean preferred) {
@@ -195,7 +195,7 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#addCompoundIdentity(net.sf.mzmine.data.PeakIdentity)
+	 * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
 	 */
 	public synchronized void removePeakIdentity(PeakIdentity identity) {
 		identities.remove(identity);
@@ -210,21 +210,21 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getPeakIdentities()
+	 * @see net.sf.mzmine.datamodel.PeakListRow#getPeakIdentities()
 	 */
 	public PeakIdentity[] getPeakIdentities() {
 		return identities.toArray(new PeakIdentity[0]);
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getPreferredPeakIdentity()
+	 * @see net.sf.mzmine.datamodel.PeakListRow#getPreferredPeakIdentity()
 	 */
 	public PeakIdentity getPreferredPeakIdentity() {
 		return preferredIdentity;
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.data.PeakIdentity)
+	 * @see net.sf.mzmine.datamodel.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.datamodel.PeakIdentity)
 	 */
 	public void setPreferredPeakIdentity(PeakIdentity identity) {
 
@@ -240,13 +240,13 @@ public class SimplePeakListRow implements PeakListRow {
 	}
 
 	/**
-	 * @see net.sf.mzmine.data.PeakListRow#getDataPointMaxIntensity()
+	 * @see net.sf.mzmine.datamodel.PeakListRow#getDataPointMaxIntensity()
 	 */
 	public double getDataPointMaxIntensity() {
 		return maxDataPointIntensity;
 	}
 
-	public boolean hasPeak(ChromatographicPeak peak) {
+	public boolean hasPeak(Feature peak) {
 		return peaks.containsValue(peak);
 	}
 
@@ -258,11 +258,11 @@ public class SimplePeakListRow implements PeakListRow {
 	 * Returns the highest isotope pattern of a peak in this row
 	 */
 	public IsotopePattern getBestIsotopePattern() {
-		ChromatographicPeak peaks[] = getPeaks();
+		Feature peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 
-		for (ChromatographicPeak peak : peaks) {
+		for (Feature peak : peaks) {
 			IsotopePattern ip = peak.getIsotopePattern();
 			if (ip != null)
 				return ip;
@@ -274,8 +274,8 @@ public class SimplePeakListRow implements PeakListRow {
 	/**
 	 * Returns the highest peak in this row
 	 */
-	public ChromatographicPeak getBestPeak() {
-		ChromatographicPeak peaks[] = getPeaks();
+	public Feature getBestPeak() {
+		Feature peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
 		return peaks[0];

@@ -31,21 +31,21 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePatternStatus;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimpleDataPoint;
-import net.sf.mzmine.data.impl.SimpleIsotopePattern;
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.modules.projectmethods.projectload.PeakListOpenHandler;
 import net.sf.mzmine.util.Range;
 
@@ -361,9 +361,9 @@ public class PeakListOpenHandler_2_0 extends DefaultHandler implements
 				}
 			}
 
-			PeakStatus status = PeakStatus.valueOf(peakStatus);
+			FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
-			SimpleChromatographicPeak peak = new SimpleChromatographicPeak(
+			SimpleFeature peak = new SimpleFeature(
 					dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
 					status, representativeScan, fragmentScan, peakRTRange,
 					peakMZRange, peakIntensityRange);

@@ -22,12 +22,12 @@ package net.sf.mzmine.modules.peaklistmethods.io.csvexport;
 import java.io.File;
 import java.io.FileWriter;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.PeakStatus;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -191,8 +191,8 @@ class CSVExportTask extends AbstractTask {
 		    break;
 		case ROW_PEAK_NUMBER:
 		    int numDetected = 0;
-		    for (ChromatographicPeak p : peakListRow.getPeaks()) {
-			if (p.getPeakStatus() == PeakStatus.DETECTED) {
+		    for (Feature p : peakListRow.getPeaks()) {
+			if (p.getFeatureStatus() == FeatureStatus.DETECTED) {
 			    numDetected++;
 			}
 		    }
@@ -231,11 +231,11 @@ class CSVExportTask extends AbstractTask {
 	    length = dataFileElements.length;
 	    for (RawDataFile dataFile : rawDataFiles) {
 		for (int i = 0; i < length; i++) {
-		    ChromatographicPeak peak = peakListRow.getPeak(dataFile);
+		    Feature peak = peakListRow.getPeak(dataFile);
 		    if (peak != null) {
 			switch (dataFileElements[i]) {
 			case PEAK_STATUS:
-			    line.append(peak.getPeakStatus() + fieldSeparator);
+			    line.append(peak.getFeatureStatus() + fieldSeparator);
 			    break;
 			case PEAK_MZ:
 			    line.append(peak.getMZ() + fieldSeparator);
@@ -256,7 +256,7 @@ class CSVExportTask extends AbstractTask {
 		    } else {
 			switch (dataFileElements[i]) {
 			case PEAK_STATUS:
-			    line.append(PeakStatus.UNKNOWN + fieldSeparator);
+			    line.append(FeatureStatus.UNKNOWN + fieldSeparator);
 			    break;
 			default:
 			    line.append("0" + fieldSeparator);

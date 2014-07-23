@@ -37,15 +37,15 @@ import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.IsotopePattern;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
@@ -237,8 +237,8 @@ public class PeakListSaveHandler {
 	}
 
 	// <PEAK>
-	ChromatographicPeak[] peaks = row.getPeaks();
-	for (ChromatographicPeak p : peaks) {
+	Feature[] peaks = row.getPeaks();
+	for (Feature p : peaks) {
 	    if (canceled)
 		return;
 
@@ -261,7 +261,7 @@ public class PeakListSaveHandler {
 		    PeakListElementName.AREA.getElementName(), "CDATA",
 		    String.valueOf(p.getArea()));
 	    atts.addAttribute("", "", PeakListElementName.STATUS
-		    .getElementName(), "CDATA", p.getPeakStatus().toString());
+		    .getElementName(), "CDATA", p.getFeatureStatus().toString());
 	    atts.addAttribute("", "",
 		    PeakListElementName.CHARGE.getElementName(), "CDATA",
 		    String.valueOf(p.getCharge()));
@@ -312,7 +312,7 @@ public class PeakListSaveHandler {
      * @param dataFileID
      * @throws IOException
      */
-    private void fillPeakElement(ChromatographicPeak peak, TransformerHandler hd)
+    private void fillPeakElement(Feature peak, TransformerHandler hd)
 	    throws SAXException, IOException {
 	AttributesImpl atts = new AttributesImpl();
 

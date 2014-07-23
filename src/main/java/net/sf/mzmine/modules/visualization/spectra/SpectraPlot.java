@@ -29,7 +29,7 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;

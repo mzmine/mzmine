@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import net.sf.mzmine.data.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 
 public class MascotPeakIdentity extends SimplePeakIdentity {
 

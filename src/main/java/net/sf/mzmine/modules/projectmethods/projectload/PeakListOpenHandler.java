@@ -24,7 +24,7 @@ import java.io.InputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import net.sf.mzmine.data.PeakList;
+import net.sf.mzmine.datamodel.PeakList;
 
 import org.xml.sax.SAXException;
 

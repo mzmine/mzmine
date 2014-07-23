@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;

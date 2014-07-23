@@ -22,20 +22,20 @@ package net.sf.mzmine.modules.peaklistmethods.gapfilling.peakfinder;
 import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakIdentity;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.Scan;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -133,7 +133,7 @@ class PeakFinderTask extends AbstractTask {
 					PeakListRow sourceRow = peakList.getRow(row);
 					PeakListRow newRow = processedPeakList.getRow(row);
 
-					ChromatographicPeak sourcePeak = sourceRow
+					Feature sourcePeak = sourceRow
 							.getPeak(dataFile);
 
 					if (sourcePeak == null) {
@@ -227,8 +227,8 @@ class PeakFinderTask extends AbstractTask {
 				RegressionInfo info = new RegressionInfo();
 
 				for (PeakListRow row : peakList.getRows()) {
-					ChromatographicPeak peaki = row.getPeak(datafile1);
-					ChromatographicPeak peake = row.getPeak(datafile2);
+					Feature peaki = row.getPeak(datafile1);
+					Feature peake = row.getPeak(datafile2);
 					if (peaki != null && peake != null) {
 						info.addData(peake.getRT(), peaki.getRT());
 					}
@@ -250,7 +250,7 @@ class PeakFinderTask extends AbstractTask {
 					PeakListRow sourceRow = peakList.getRow(row);
 					PeakListRow newRow = processedPeakList.getRow(row);
 
-					ChromatographicPeak sourcePeak = sourceRow
+					Feature sourcePeak = sourceRow
 							.getPeak(datafile1);
 
 					if (sourcePeak == null) {

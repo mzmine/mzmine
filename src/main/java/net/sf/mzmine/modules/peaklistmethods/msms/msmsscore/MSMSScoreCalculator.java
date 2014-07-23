@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
-import net.sf.mzmine.data.DataPoint;
-import net.sf.mzmine.data.MassList;
-import net.sf.mzmine.data.Scan;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.parameters.ParameterSet;

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
 
-import net.sf.mzmine.data.DataPoint;
+import net.sf.mzmine.datamodel.DataPoint;
 
 /**
  * DataPoint implementation extended with retention time and scan number

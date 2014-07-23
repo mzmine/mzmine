@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.spectra.datasets;
 
-import net.sf.mzmine.data.MassList;
+import net.sf.mzmine.datamodel.MassList;
 
 /**
  * Data set for MassList

@@ -20,13 +20,13 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.path;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.Aligner;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.ScoreAligner;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 

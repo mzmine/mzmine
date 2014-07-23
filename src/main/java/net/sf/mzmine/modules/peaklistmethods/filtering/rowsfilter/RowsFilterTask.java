@@ -18,27 +18,40 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.AUTO_REMOVE;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.GROUPSPARAMETER;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.HAS_IDENTITIES;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.MIN_ISOTOPE_PATTERN_COUNT;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.MIN_PEAK_COUNT;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.MZ_RANGE;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.PEAK_DURATION;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.RT_RANGE;
+import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.SUFFIX;
+
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.HashMap;
-import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.data.*;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
+import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.*;
 
 /**
  * Filters out peak list rows.
@@ -194,8 +207,8 @@ public class RowsFilterTask extends AbstractTask {
                         // Calculate average duration and isotope pattern count.
                         int maxIsotopePatternSizeOnRow = 1;
                         double avgDuration = 0.0;
-                        final ChromatographicPeak[] peaks = row.getPeaks();
-                        for (final ChromatographicPeak p : peaks) {
+                        final Feature[] peaks = row.getPeaks();
+                        for (final Feature p : peaks) {
 
                                 final IsotopePattern pattern = p.getIsotopePattern();
                                 if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfIsotopes()) {
@@ -242,9 +255,9 @@ public class RowsFilterTask extends AbstractTask {
                 PeakUtils.copyPeakListRowProperties(row, newRow);
 
                 // Copy the peaks.
-                for (final ChromatographicPeak peak : row.getPeaks()) {
+                for (final Feature peak : row.getPeaks()) {
 
-                        final ChromatographicPeak newPeak = new SimpleChromatographicPeak(peak);
+                        final Feature newPeak = new SimpleFeature(peak);
                         PeakUtils.copyPeakProperties(peak, newPeak);
                         newRow.addPeak(peak.getDataFile(), newPeak);
                 }

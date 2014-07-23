@@ -19,6 +19,7 @@
 package net.sf.mzmine.modules.peaklistmethods.alignment.path.functions;
 
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.scorer.RTScore;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,10 +32,11 @@ import java.util.Vector;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CyclicBarrier;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimplePeakList;
+
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.PathAlignerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 

@@ -27,7 +27,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 
-import net.sf.mzmine.data.RawDataFile;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;

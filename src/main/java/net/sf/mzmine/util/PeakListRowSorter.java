@@ -21,8 +21,8 @@ package net.sf.mzmine.util;
 
 import java.util.Comparator;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakListRow;
 
 /**
  * Compare peak list rows either by ID, average m/z or median area of peaks
@@ -54,14 +54,14 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
 	private double getValue(PeakListRow row) {
 		switch (property) {
 		case Area:
-			ChromatographicPeak[] areaPeaks = row.getPeaks();
+			Feature[] areaPeaks = row.getPeaks();
 			double[] peakAreas = new double[areaPeaks.length];
 			for (int i = 0; i < peakAreas.length; i++)
 				peakAreas[i] = areaPeaks[i].getArea();
 			double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
 			return medianArea;
 		case Intensity:
-			ChromatographicPeak[] intensityPeaks = row.getPeaks();
+			Feature[] intensityPeaks = row.getPeaks();
 			double[] peakIntensities = new double[intensityPeaks.length];
 			for (int i = 0; i < intensityPeaks.length; i++)
 				peakIntensities[i] = intensityPeaks[i].getArea();
@@ -69,7 +69,7 @@ public class PeakListRowSorter implements Comparator<PeakListRow> {
 					0.5);
 			return medianIntensity;
 		case Height:
-			ChromatographicPeak[] heightPeaks = row.getPeaks();
+			Feature[] heightPeaks = row.getPeaks();
 			double[] peakHeights = new double[heightPeaks.length];
 			for (int i = 0; i < peakHeights.length; i++)
 				peakHeights[i] = heightPeaks[i].getHeight();

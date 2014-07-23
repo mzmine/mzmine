@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.data.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.data.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakIdentity;
 
 /**
  * Simple PeakIdentity implementation;

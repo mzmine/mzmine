@@ -21,19 +21,19 @@ package net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound;
 
 import java.util.logging.Logger;
 
-import net.sf.mzmine.data.ChromatographicPeak;
-import net.sf.mzmine.data.PeakList;
-import net.sf.mzmine.data.PeakListAppliedMethod;
-import net.sf.mzmine.data.PeakListRow;
-import net.sf.mzmine.data.RawDataFile;
-import net.sf.mzmine.data.impl.SimpleChromatographicPeak;
-import net.sf.mzmine.data.impl.SimplePeakList;
-import net.sf.mzmine.data.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.data.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.project.MZmineProject;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakMeasurementType;
@@ -160,7 +160,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 					// Calc and store a single normalization factor
 					normalizationFactors = new double[1];
 					normalizationFactorWeights = new double[1];
-					ChromatographicPeak standardPeak = nearestStandardRow
+					Feature standardPeak = nearestStandardRow
 							.getPeak(file);
 					if (peakMeasurementType == PeakMeasurementType.HEIGHT) {
 						normalizationFactors[0] = standardPeak.getHeight();
@@ -188,7 +188,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 						double distance = MZvsRTBalance * Math.abs(mz - stdMZ)
 								+ Math.abs(rt - stdRT);
 
-						ChromatographicPeak standardPeak = standardRow
+						Feature standardPeak = standardRow
 								.getPeak(file);
 						if (standardPeak == null) {
 							// What to do if standard peak is not
@@ -236,10 +236,10 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 					normalizationFactor = Double.MIN_VALUE;
 
 				// Normalize peak
-				ChromatographicPeak originalPeak = row.getPeak(file);
+				Feature originalPeak = row.getPeak(file);
 				if (originalPeak != null) {
 
-					SimpleChromatographicPeak normalizedPeak = new SimpleChromatographicPeak(
+					SimpleFeature normalizedPeak = new SimpleFeature(
 							originalPeak);
 
 					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
