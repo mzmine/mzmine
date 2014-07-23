@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
+import java.util.ArrayList;
+
 import net.sf.mzmine.data.RawDataFile;
 import net.sf.mzmine.data.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
@@ -29,92 +31,95 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class DataSetFilteringTask extends AbstractTask {
 
-    private RawDataFile[] dataFiles;
+	private RawDataFile[] dataFiles;
 
-    // User parameters
-    private String suffix;
-    private boolean removeOriginal;
+	// User parameters
+	private String suffix;
+	private boolean removeOriginal;
 
-    // Raw Data Filter
-    private MZmineProcessingStep<RawDataSetFilter> rawDataFilter;
-    private RawDataFile filteredRawDataFile;
+	// Raw Data Filter
+	private MZmineProcessingStep<RawDataSetFilter> rawDataFilter;
+	private ArrayList<RawDataFile> filteredRawDataFiles;
 
-    /**
-     * @param dataFiles
-     * @param parameters
-     */
-    @SuppressWarnings("unchecked")
-    DataSetFilteringTask(ParameterSet parameters) {
+	/**
+	 * @param dataFiles
+	 * @param parameters
+	 */
+	@SuppressWarnings("unchecked")
+	DataSetFilteringTask(ParameterSet parameters) {
 
-	this.dataFiles = parameters.getParameter(
-		DataSetFiltersParameters.dataFiles).getValue();
+		this.dataFiles = parameters.getParameter(
+				DataSetFiltersParameters.dataFiles).getValue();
+		this.filteredRawDataFiles = new ArrayList<RawDataFile>();
 
-	rawDataFilter = parameters
-		.getParameter(DataSetFiltersParameters.filter).getValue();
+		rawDataFilter = parameters
+				.getParameter(DataSetFiltersParameters.filter).getValue();
 
-	this.removeOriginal = parameters.getParameter(
-		DataSetFiltersParameters.autoRemove).getValue();
+		this.removeOriginal = parameters.getParameter(
+				DataSetFiltersParameters.autoRemove).getValue();
 
-	suffix = parameters.getParameter(DataSetFiltersParameters.suffix)
-		.getValue();
+		suffix = parameters.getParameter(DataSetFiltersParameters.suffix)
+				.getValue();
 
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-     */
-    public String getTaskDescription() {
-	return "Filtering raw data";
-    }
-
-    /**
-     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-     */
-    public double getFinishedPercentage() {
-	if (rawDataFilter != null) {
-	    return rawDataFilter.getModule().getProgress();
-	} else {
-	    return 0;
 	}
-    }
 
-    /**
-     * @see Runnable#run()
-     */
-    public void run() {
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+	 */
+	public String getTaskDescription() {
+		return "Filtering raw data";
+	}
 
-	setStatus(TaskStatus.PROCESSING);
-
-	try {
-	    for (RawDataFile dataFile : dataFiles) {
-		RawDataFileWriter rawDataFileWriter = MZmineCore
-			.createNewFile(dataFile.getName() + " " + suffix);
-		filteredRawDataFile = rawDataFilter.getModule().filterDatafile(
-			dataFile, rawDataFileWriter,
-			rawDataFilter.getParameterSet());
-		if (filteredRawDataFile != null) {
-		    MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
-
-		    // Remove the original file if requested
-		    if (removeOriginal) {
-			MZmineCore.getCurrentProject().removeFile(dataFile);
-		    }
+	/**
+	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+	 */
+	public double getFinishedPercentage() {
+		if (rawDataFilter != null) {
+			return rawDataFilter.getModule().getProgress();
+		} else {
+			return 0;
 		}
-	    }
-
-	    setStatus(TaskStatus.FINISHED);
-
-	} catch (Exception e) {
-	    setStatus(TaskStatus.ERROR);
-	    errorMessage = e.toString();
-	    return;
 	}
 
-    }
+	/**
+	 * @see Runnable#run()
+	 */
+	public void run() {
 
-    public Object[] getCreatedObjects() {
-	if (filteredRawDataFile == null)
-	    return null;
-	return new Object[] { filteredRawDataFile };
-    }
+		setStatus(TaskStatus.PROCESSING);
+
+		try {
+			for (RawDataFile dataFile : dataFiles) {
+				RawDataFileWriter rawDataFileWriter = MZmineCore
+						.createNewFile(dataFile.getName() + " " + suffix);
+				RawDataFile filteredRawDataFile = rawDataFilter.getModule()
+						.filterDatafile(dataFile, rawDataFileWriter,
+								rawDataFilter.getParameterSet());
+				if (filteredRawDataFile != null) {
+					MZmineCore.getCurrentProject().addFile(filteredRawDataFile);
+					filteredRawDataFiles.add(filteredRawDataFile);
+
+					// Remove the original file if requested
+					if (removeOriginal) {
+						MZmineCore.getCurrentProject().removeFile(dataFile);
+					}
+				}
+			}
+
+			setStatus(TaskStatus.FINISHED);
+
+		} catch (Exception e) {
+			setStatus(TaskStatus.ERROR);
+			errorMessage = e.toString();
+			return;
+		}
+
+	}
+
+	public Object[] getCreatedObjects() {
+		if (filteredRawDataFiles == null)
+			return null;
+		return filteredRawDataFiles.toArray();
+
+	}
 }
