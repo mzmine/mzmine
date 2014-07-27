@@ -44,6 +44,7 @@ public class TwoDVisualizerWindow extends JFrame implements
     private RawDataFile dataFile;
     private int msLevel;
     private boolean tooltipMode;
+    private boolean logScale;
 
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
 	    Range rtRange, Range mzRange, ParameterSet parameters) {
@@ -143,6 +144,13 @@ public class TwoDVisualizerWindow extends JFrame implements
 		toolBar.setTooltipButton(true);
 		tooltipMode = true;
 	    }
+	}
+	
+	if (command.equals("SWITCH_LOG_SCALE")) {
+		if (twoDPlot != null) {
+			logScale = !logScale;
+			twoDPlot.setLogScale(logScale);
+		}
 	}
 
     }

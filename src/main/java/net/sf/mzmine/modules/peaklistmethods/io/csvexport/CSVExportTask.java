@@ -252,6 +252,9 @@ class CSVExportTask extends AbstractTask {
 			case PEAK_CHARGE:
 			    line.append(peak.getCharge() + fieldSeparator);
 			    break;
+			case PEAK_DURATION:
+			    line.append(peak.getRawDataPointsRTRange().getSize() + fieldSeparator);
+			    break;				
 			}
 		    } else {
 			switch (dataFileElements[i]) {

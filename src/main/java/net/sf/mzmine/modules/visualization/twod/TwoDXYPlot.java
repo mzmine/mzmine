@@ -24,6 +24,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
+import java.util.Random;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.util.Range;
@@ -49,6 +50,9 @@ class TwoDXYPlot extends XYPlot {
 	private TwoDPaletteType paletteType = TwoDPaletteType.PALETTE_GRAY20;
 
 	private PlotMode plotMode = PlotMode.UNDEFINED;
+	
+	private boolean logScale;
+	private double maxValue = 0;
 
 	TwoDXYPlot(TwoDDataSet dataset, Range rtRange, Range mzRange, ValueAxis domainAxis, ValueAxis rangeAxis) {
 
@@ -95,7 +99,8 @@ class TwoDXYPlot extends XYPlot {
 
 		// prepare a double array of summed intensities
 		double values[][] = new double[width][height];
-		double maxValue = 0;
+		maxValue = 0; // now this is an instance variable
+		Random r = new Random();
 
 		for (int i = 0; i < width; i++)
 			for (int j = 0; j < height; j++) {
@@ -104,12 +109,21 @@ class TwoDXYPlot extends XYPlot {
 				double pointRTMax = pointRTMin + imageRTStep;
 				double pointMZMin = imageMZMin + (j * imageMZStep);
 				double pointMZMax = pointMZMin + imageMZStep;
-
-				values[i][j] = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
+				
+				double lv = dataset.getMaxIntensity(new Range(pointRTMin, pointRTMax),
 						new Range(pointMZMin, pointMZMax), plotMode);
+				
+				if (logScale) {
+					lv = Math.log10(lv);
+					if (lv < 0 || Double.isInfinite(lv)) lv = 0;
+					values[i][j] = lv;
+					//values[r.nextInt(width)][r.nextInt(height)] = lv;
+				} else {
+					values[i][j] = lv;				
+				}
 
-				if (values[i][j] > maxValue)
-					maxValue = values[i][j];
+				if (lv > maxValue)
+					maxValue = lv;
 
 			}
 
@@ -177,6 +191,15 @@ class TwoDXYPlot extends XYPlot {
 
 	void setPlotMode(PlotMode plotMode) {
 		this.plotMode = plotMode;
+
+		// clear the zoom out image cache
+		zoomOutBitmap = null;
+		
+		datasetChanged(new DatasetChangeEvent(dataset, dataset));
+	}
+	
+	void setLogScale(boolean logscale) {
+		logScale = logscale;
 
 		// clear the zoom out image cache
 		zoomOutBitmap = null;

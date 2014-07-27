@@ -55,9 +55,9 @@ public class PeakSorter implements Comparator<Feature> {
 		case Height:
 			return peak.getHeight();
 		case MZ:
-			return peak.getMZ();
+			return peak.getMZ()+peak.getRT()/1000000.0;
 		case RT:
-			return peak.getRT();
+			return peak.getRT()+peak.getMZ()/1000000.0;
 		}
 
 		// We should never get here, so throw exception

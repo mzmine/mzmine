@@ -74,7 +74,7 @@ class TwoDPlot extends ChartPanel {
 
 	private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-
+	
 	// private TwoDItemRenderer renderer;
 
 	TwoDPlot(RawDataFile rawDataFile, TwoDVisualizerWindow visualizer,
@@ -220,6 +220,12 @@ class TwoDPlot extends ChartPanel {
 			this.peakDataRenderer.setBaseToolTipGenerator(toolTipGenerator);
 		} else {
 			this.peakDataRenderer.setBaseToolTipGenerator(null);
+		}
+	}
+	
+	public void setLogScale(boolean logscale) {
+		if (plot != null) {
+			plot.setLogScale(logscale);
 		}
 	}
 

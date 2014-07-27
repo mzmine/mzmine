@@ -76,6 +76,12 @@ class TwoDToolBar extends JToolBar {
 
 		toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon, masterFrame, "SWITCH_TOOLTIPS",
 		"Toggle displaying of tool tips on the peaks");
+		
+		addSeparator();
+
+		GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+				"SWITCH_LOG_SCALE", "Set Log Scale");
+
 
 	}
 

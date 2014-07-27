@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.masslistmethods.chromatogrambuilder;
 
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import javax.annotation.Nonnull;
@@ -73,6 +74,14 @@ public class Chromatogram implements Feature {
     // method.
     private IsotopePattern isotopePattern;
     private int charge = 0;
+    
+    // Victor Trevino
+    private int minScan = Integer.MAX_VALUE;
+    private int maxScan = 0;
+    private double minTime = 0;
+    private double maxTime = 0;
+    private double mzSum = 0;
+    private int mzN = 0;
 
     /**
      * Initializes this Chromatogram
@@ -96,7 +105,21 @@ public class Chromatogram implements Feature {
     public void addMzPeak(int scanNumber, DataPoint mzValue) {
 	dataPointsMap.put(scanNumber, mzValue);
 	lastMzPeak = mzValue;
+	mzSum += mzValue.getMZ();
+	mzN++;
+	mz = mzSum / mzN;
 	buildingSegment.add(scanNumber);
+
+	// Victor Treviño
+	if (scanNumber < minScan) {
+		minScan = scanNumber;
+		minTime = dataFile.getScan(minScan).getRetentionTime();
+	}
+	if (scanNumber > maxScan) {
+		maxScan = scanNumber;
+		maxTime = dataFile.getScan(maxScan).getRetentionTime();
+	}
+	rt = (maxTime+minTime)/2;
     }
 
     public DataPoint getDataPoint(int scanNumber) {
@@ -254,6 +277,11 @@ public class Chromatogram implements Feature {
 		this.charge = precursorCharge;
 	}
 
+	// Victor Treviño
+	//using allScanNumbers : rawDataPointsRTRange = new Range(dataFile.getScan(allScanNumbers[0]).getRetentionTime(), dataFile.getScan(allScanNumbers[allScanNumbers.length-1]).getRetentionTime());
+	rawDataPointsRTRange = new Range(minTime, maxTime); // using the "cached" values 
+
+	
 	// Discard the fields we don't need anymore
 	buildingSegment = null;
 	lastMzPeak = null;
@@ -270,6 +298,14 @@ public class Chromatogram implements Feature {
 	return (lastRT - firstRT);
     }
 
+    public double getBuildingFirstTime() {
+    	return minTime;
+    }
+
+    public double getBuildingLastTime() {
+    	return maxTime;
+    }
+
     public int getNumberOfCommittedSegments() {
 	return numOfCommittedSegments;
     }
@@ -283,6 +319,12 @@ public class Chromatogram implements Feature {
     public void commitBuildingSegment() {
 	buildingSegment.clear();
 	numOfCommittedSegments++;
+    }
+    
+    public void addDataPointsFromChromatogram(Chromatogram ch) {
+    	for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
+    		addMzPeak(dp.getKey(), dp.getValue());
+    	}
     }
 
     public int getCharge() {
