@@ -23,7 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.ResultFormula;
@@ -214,7 +214,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
             }
 
             for (ResultFormula f : this.ResultingFormulas) {
-                SimplePeakIdentity newIdentity = new SimplePeakIdentity(
+                PeakListRowAnnotationImpl newIdentity = new PeakListRowAnnotationImpl(
                         f.getFormulaAsString());
                 row.addPeakIdentity(newIdentity, false);
             }
@@ -293,7 +293,7 @@ public class FormulaPredictionPeakListTask extends AbstractTask {
         int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
         if ((checkMSMS) && (msmsScanNumber > 0)) {
-            Scan msmsScan = dataFile.getScan(msmsScanNumber);
+            MsScan msmsScan = dataFile.getScan(msmsScanNumber);
             String massListName = msmsParameters.getParameter(
                     MSMSScoreParameters.massList).getValue();
             MassList ms2MassList = msmsScan.getMassList(massListName);

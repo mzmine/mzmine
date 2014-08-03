@@ -40,7 +40,7 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -79,9 +79,9 @@ public abstract class ParameterSetupDialogWithScanPreview extends
      * data sets into the spectrumPlot
      */
     protected abstract void loadPreview(SpectraPlot spectrumPlot,
-	    Scan previewScan);
+	    MsScan previewScan);
 
-    private void updateTitle(Scan currentScan) {
+    private void updateTitle(MsScan currentScan) {
 
 	// Formats
 	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
@@ -175,7 +175,7 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	Integer scanNumber = (Integer) comboScanNumber.getSelectedItem();
 	if (scanNumber == null)
 	    return;
-	Scan currentScan = previewDataFile.getScan(scanNumber);
+	MsScan currentScan = previewDataFile.getScan(scanNumber);
 
 	updateParameterSetFromComponents();
 

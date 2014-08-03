@@ -24,22 +24,22 @@ package net.sf.mzmine.datamodel;
  */
 public enum Polarity {
 
-	POSITIVE(+1), //
-	NEGATIVE(-1), //
-	NEUTRAL(0), //
-	UNKNOWN(0);
+    POSITIVE(+1), //
+    NEGATIVE(-1), //
+    NEUTRAL(0), //
+    UNKNOWN(0);
 
-	private final int sign;
+    private final int sign;
 
-	Polarity(int sign) {
-		this.sign = sign;
-	}
+    Polarity(int sign) {
+	this.sign = sign;
+    }
 
-	/**
-	 * @return +1 for positive polarity, -1 for negative polarity, and 0 for
-	 *         neutral or unknown polarity.
-	 */
-	public int getSign() {
-		return sign;
-	}
+    /**
+     * @return +1 for positive polarity, -1 for negative polarity, and 0 for
+     *         neutral or unknown polarity.
+     */
+    public int getSign() {
+	return sign;
+    }
 }

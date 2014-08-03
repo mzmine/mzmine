@@ -31,11 +31,11 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -86,7 +86,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
 
                 // Create new peak list
-                processedPeakList = new SimplePeakList(dataFile.getName() + " " + suffix,
+                processedPeakList = new PeakListImpl(dataFile.getName() + " " + suffix,
                         dataFile);
 
                 List<PeakInformation> peaks = this.readFile();
@@ -98,7 +98,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
                 }
                 // Fill new peak list with empty rows
                 for (int row = 0; row < peaks.size(); row++) {
-                        PeakListRow newRow = new SimplePeakListRow(ID++);
+                        PeakListRow newRow = new PeakListRowImpl(ID++);
                         processedPeakList.addRow(newRow);
                 }
 
@@ -121,7 +121,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 
                         Range mzRange = mzTolerance.getToleranceRange(peaks.get(row).getMZ());
                         Range rtRange = rtTolerance.getToleranceRange(peaks.get(row).getRT());
-                        newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row).getName()), true);
+                        newRow.addPeakIdentity(new PeakListRowAnnotationImpl(peaks.get(row).getName()), true);
 
                         Gap newGap = new Gap(newRow, dataFile, mzRange,
                                 rtRange, intTolerance);
@@ -147,7 +147,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
                         }
 
                         // Get the scan
-                        Scan scan = dataFile.getScan(scanNumber);
+                        MsScan scan = dataFile.getScan(scanNumber);
 
                         // Feed this scan to all gaps
                         for (Gap gap : gaps) {
@@ -169,7 +169,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
                 currentProject.addPeakList(processedPeakList);
 
                 // Add task description to peakList
-                processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+                processedPeakList.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
                         "Targeted peak detection ", parameters));
 
 

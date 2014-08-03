@@ -24,16 +24,16 @@ import java.util.Vector;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 
 public class MeanFilter implements ScanFilter {
 
     @Override
-    public Scan filterScan(Scan sc, ParameterSet parameters) {
+    public MsScan filterScan(MsScan sc, ParameterSet parameters) {
 
 	double windowLength = parameters.getParameter(
 		MeanFilterParameters.oneSidedWindowLength).getValue();
@@ -88,13 +88,13 @@ public class MeanFilter implements ScanFilter {
 		elSum += ((Double) (intensityWindow.get(j))).doubleValue();
 	    }
 
-	    newDataPoints[i] = new SimpleDataPoint(currentMass, elSum
+	    newDataPoints[i] = MZmineObjectBuilder.getDataPoint(currentMass, elSum
 		    / (double) intensityWindow.size());
 
 	}
 
 	// Create filtered scan
-	Scan newScan = new SimpleScan(sc.getDataFile(), sc.getScanNumber(),
+	MsScan newScan = new MsScanImpl(sc.getDataFile(), sc.getScanNumber(),
 		sc.getMSLevel(), sc.getRetentionTime(),
 		sc.getParentScanNumber(), sc.getPrecursorMZ(),
 		sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),

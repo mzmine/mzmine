@@ -19,77 +19,82 @@
 
 package net.sf.mzmine.datamodel;
 
+/**
+ * 
+ * 
+ *
+ */
 public interface PeakListRow {
 
     /**
      * Return raw data with peaks on this row
      */
-    public RawDataFile[] getRawDataFiles();
+    RawDataFile[] getRawDataFiles();
 
     /**
      * Returns ID of this row
      */
-    public int getID();
+    int getID();
 
     /**
      * Returns number of peaks assigned to this row
      */
-    public int getNumberOfPeaks();
+    int getNumberOfPeaks();
 
     /**
      * Return peaks assigned to this row
      */
-    public Feature[] getPeaks();
+    Feature[] getPeaks();
 
     /**
      * Returns peak for given raw data file
      */
-    public Feature getPeak(RawDataFile rawData);
+    Feature getPeak(RawDataFile rawData);
 
     /**
      * Add a peak
      */
-    public void addPeak(RawDataFile rawData, Feature peak);
+    void addPeak(RawDataFile rawData, Feature peak);
 
     /**
      * Has a peak?
      */
-    public boolean hasPeak(Feature peak);
+    boolean hasPeak(Feature peak);
 
     /**
      * Has a peak?
      */
-    public boolean hasPeak(RawDataFile rawData);
+    boolean hasPeak(RawDataFile rawData);
 
     /**
      * Returns average M/Z for peaks on this row
      */
-    public double getAverageMZ();
+    double getAverageMZ();
 
     /**
      * Returns average RT for peaks on this row
      */
-    public double getAverageRT();
+    double getAverageRT();
 
     /**
      * Returns average height for peaks on this row
      */
-    public double getAverageHeight();
+    double getAverageHeight();
 
     /**
      * Returns average area for peaks on this row
      */
-    public double getAverageArea();
+    double getAverageArea();
 
     /**
      * Returns comment for this row
      */
-    public String getComment();
+    String getComment();
 
     /**
      * Sets comment for this row
      */
-    public void setComment(String comment);
+    void setComment(String comment);
 
     /**
      * Add a new identity candidate (result of identification method)
@@ -99,7 +104,7 @@ public interface PeakListRow {
      * @param preffered
      *            boolean value to define this identity as preferred identity
      */
-    public void addPeakIdentity(PeakIdentity identity, boolean preffered);
+    void addPeakIdentity(PeakListRowAnnotation identity, boolean preffered);
 
     /**
      * Remove identity candidate
@@ -107,21 +112,21 @@ public interface PeakListRow {
      * @param identity
      *            Peak identity
      */
-    public void removePeakIdentity(PeakIdentity identity);
+    void removePeakIdentity(PeakListRowAnnotation identity);
 
     /**
      * Returns all candidates for this peak's identity
      * 
      * @return Identity candidates
      */
-    public PeakIdentity[] getPeakIdentities();
+    PeakListRowAnnotation[] getPeakIdentities();
 
     /**
      * Returns preferred peak identity among candidates
      * 
      * @return Preferred identity
      */
-    public PeakIdentity getPreferredPeakIdentity();
+    PeakListRowAnnotation getPreferredPeakIdentity();
 
     /**
      * Sets a preferred peak identity among candidates
@@ -129,24 +134,24 @@ public interface PeakListRow {
      * @param identity
      *            Preferred identity
      */
-    public void setPreferredPeakIdentity(PeakIdentity identity);
+    void setPreferredPeakIdentity(PeakListRowAnnotation identity);
 
     /**
      * Returns maximum raw data point intensity among all peaks in this row
      * 
      * @return Maximum intensity
      */
-    public double getDataPointMaxIntensity();
+    double getDataPointMaxIntensity();
 
     /**
      * Returns the most intense peak in this row
      */
-    public Feature getBestPeak();
+    Feature getBestPeak();
 
     /**
      * Returns the most intense isotope pattern in this row. If there are no
      * isotope patterns present in the row, returns null.
      */
-    public IsotopePattern getBestIsotopePattern();
+    IsotopePattern getBestIsotopePattern();
 
 }

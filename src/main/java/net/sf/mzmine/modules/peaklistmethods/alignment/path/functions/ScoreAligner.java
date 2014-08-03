@@ -36,7 +36,7 @@ import java.util.concurrent.CyclicBarrier;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.PathAlignerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -243,7 +243,7 @@ public class ScoreAligner implements Aligner {
                         for (int i = 0; i < peakList.size(); i++) {
                                 peaksTotal += peakList.get(i).size();
                         }
-                        alignment = new SimplePeakList(params.getParameter(PathAlignerParameters.peakListName).getValue(),
+                        alignment = new PeakListImpl(params.getParameter(PathAlignerParameters.peakListName).getValue(),
                                 allDataFiles.toArray(new RawDataFile[0]));
 
                         List<AlignmentPath> addedPaths = getAlignmentPaths();

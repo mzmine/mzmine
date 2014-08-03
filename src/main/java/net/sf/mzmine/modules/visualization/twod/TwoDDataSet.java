@@ -24,15 +24,15 @@ import java.util.Arrays;
 import java.util.LinkedList;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
@@ -90,7 +90,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 			if (status == TaskStatus.CANCELED)
 				return;
 
-			Scan scan = rawDataFile.getScan(scanNumbers[index]);
+			MsScan scan = rawDataFile.getScan(scanNumbers[index]);
 			DataPoint scanBasePeak = scan.getHighestDataPoint();
 			retentionTimes[index] = scan.getRetentionTime();
 			basePeaks[index] = (scanBasePeak == null ? 0 : scanBasePeak
@@ -210,7 +210,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 			PlotMode plotMode) {
 		DataPoint dataPoints[] = dataPointMatrix[dataPointMatrixIndex].get();
 		if (dataPoints == null) {
-			Scan scan = rawDataFile.getScan(scanNumbers[dataPointMatrixIndex]);
+			MsScan scan = rawDataFile.getScan(scanNumbers[dataPointMatrixIndex]);
 			dataPoints = scan.getDataPoints();
 			dataPointMatrix[dataPointMatrixIndex] = new SoftReference<DataPoint[]>(
 					dataPoints);
@@ -223,7 +223,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
 		double maxIntensity = 0;
 
-		DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
+		DataPoint searchMZ = MZmineObjectBuilder.getDataPoint(mzRange.getMin(), 0);
 		int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
 				new DataPointSorter(SortingProperty.MZ,
 						SortingDirection.Ascending));

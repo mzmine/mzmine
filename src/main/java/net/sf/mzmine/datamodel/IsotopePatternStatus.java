@@ -19,28 +19,16 @@
 
 package net.sf.mzmine.datamodel;
 
-import java.io.IOException;
-
-/**
- * This interface represents a raw data file which is being modified. Scans can
- * be added to the file by calling the addScan() method. Final RawDataFile
- * instance is obtained by calling finishWriting() method.
- */
-public interface RawDataFileWriter {
+public enum IsotopePatternStatus {
 
     /**
-     * Adds a new scan to the file.
-     * 
-     * @param newScan
-     *            Scan to add
+     * Isotope pattern was detected by isotope grouper
      */
-    public void addScan(Scan newScan) throws IOException;
+    DETECTED,
 
     /**
-     * Finishes writing of the file
-     * 
-     * @return newly written file as RawDataFile
+     * Isotope pattern was predicted by Isotope pattern calculator
      */
-    public RawDataFile finishWriting() throws IOException;
+    PREDICTED;
 
 }

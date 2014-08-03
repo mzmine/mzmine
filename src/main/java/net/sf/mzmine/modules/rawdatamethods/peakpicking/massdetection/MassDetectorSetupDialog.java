@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 import java.util.ArrayList;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -60,7 +60,7 @@ public class MassDetectorSetupDialog extends
 		}
 	}
 
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+	protected void loadPreview(SpectraPlot spectrumPlot, MsScan previewScan) {
 
 		ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
 

@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.project.impl;
+package net.sf.mzmine.datamodel.impl;
 
 import java.io.File;
 import java.util.Hashtable;
@@ -172,7 +172,7 @@ public class MZmineProjectImpl implements MZmineProject {
 		}
 
 		// Close the data file, which also removed the temporary data
-		file.close();
+		file.dispose();
 
 	}
 

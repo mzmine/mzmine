@@ -26,7 +26,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -60,7 +60,7 @@ public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScan
 	 * 
 	 * @param scanNumber
 	 */
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+	protected void loadPreview(SpectraPlot spectrumPlot, MsScan previewScan) {
 
 		// Remove previous data sets
 		spectrumPlot.removeAllDataSets();

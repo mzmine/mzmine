@@ -25,11 +25,11 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -47,7 +47,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 	private double binTime;
 	private int msLevel;
 
-	private SimplePeakList newPeakList;
+	private PeakListImpl newPeakList;
 
 	public MsMsPeakPickingTask(RawDataFile dataFile,
 			ParameterSet parameters) {
@@ -59,7 +59,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
 		msLevel = parameters.getParameter(MsMsPeakPickerParameters.msLevel)
 				.getValue();
-		newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks",
+		newPeakList = new PeakListImpl(dataFile.getName() + " MS/MS peaks",
 				dataFile);
 	}
 
@@ -88,7 +88,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 				return;
 
 			// Get next MS/MS scan
-			Scan scan = dataFile.getScan(scanNumber);
+			MsScan scan = dataFile.getScan(scanNumber);
 
 			// no parents scan for this msms scan
 			if (scan.getParentScanNumber() <= 0) {
@@ -96,7 +96,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 			}
 
 			// Get the MS Scan
-			Scan bestScan = null;
+			MsScan bestScan = null;
 			Range rtWindow = new Range(scan.getRetentionTime()
 					- (binTime / 2.0f), scan.getRetentionTime()
 					+ (binTime / 2.0f));
@@ -107,7 +107,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 			DataPoint maxPoint = null;
 			int[] regionScanNumbers = dataFile.getScanNumbers(1, rtWindow);
 			for (int regionScanNumber : regionScanNumbers) {
-				Scan regionScan = dataFile.getScan(regionScanNumber);
+				MsScan regionScan = dataFile.getScan(regionScanNumber);
 				point = ScanUtils.findBasePeak(regionScan, mzWindow);
 				// no datapoint found
 				if (point == null) {
@@ -132,7 +132,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 			
 			assert maxPoint != null;
 
-			SimpleFeature c = new SimpleFeature(
+			FeatureImpl c = new FeatureImpl(
 					dataFile, scan.getPrecursorMZ(),
 					bestScan.getRetentionTime(), maxPoint.getIntensity(),
 					maxPoint.getIntensity(),
@@ -143,7 +143,7 @@ public class MsMsPeakPickingTask extends AbstractTask {
 							scan.getPrecursorMZ()), new Range(
 							maxPoint.getIntensity()));
 
-			PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
+			PeakListRow entry = new PeakListRowImpl(scan.getScanNumber());
 			entry.addPeak(dataFile, c);
 
 			newPeakList.addRow(entry);

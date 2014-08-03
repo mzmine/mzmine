@@ -20,10 +20,10 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch;
 
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 
-public class FragmentIdentity extends SimplePeakIdentity {
+public class FragmentIdentity extends PeakListRowAnnotationImpl {
 
     public FragmentIdentity(final PeakListRow mainPeakListRow) {
 

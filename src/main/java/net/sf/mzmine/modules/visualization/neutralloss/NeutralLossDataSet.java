@@ -27,7 +27,7 @@ import java.util.Vector;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.taskcontrol.TaskListener;
@@ -99,7 +99,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
             if (status == TaskStatus.CANCELED)
                 return;
 
-            Scan scan = rawDataFile.getScan(scanNumber);
+            MsScan scan = rawDataFile.getScan(scanNumber);
 
             // check parent m/z
             if (!totalMZRange.contains(scan.getPrecursorMZ())) {

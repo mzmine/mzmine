@@ -23,9 +23,23 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.camera;
 
-import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -39,15 +53,6 @@ import net.sf.mzmine.util.SortingProperty;
 
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A task to perform a CAMERA search.
@@ -204,8 +209,8 @@ public class CameraSearchTask extends AbstractTask {
             progress = 0.0;
 
             // Initialize scan map.
-            final Map<Scan, Set<DataPoint>> peakDataPointsByScan =
-                    new HashMap<Scan, Set<DataPoint>>(rawFile.getNumOfScans(MS_LEVEL));
+            final Map<MsScan, Set<DataPoint>> peakDataPointsByScan =
+                    new HashMap<MsScan, Set<DataPoint>>(rawFile.getNumOfScans(MS_LEVEL));
             int dataPointCount = 0;
             for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
 
@@ -213,7 +218,7 @@ public class CameraSearchTask extends AbstractTask {
                 final Set<DataPoint> dataPoints = new TreeSet<DataPoint>(ASCENDING_MASS_SORTER);
 
                 // Add a dummy data point.
-                dataPoints.add(new SimpleDataPoint(0.0, 0.0));
+                dataPoints.add(MZmineObjectBuilder.getDataPoint());
                 dataPointCount++;
 
                 // Map the set.
@@ -232,7 +237,7 @@ public class CameraSearchTask extends AbstractTask {
                 // Get the peak's data points per scan.
                 for (final int scanNumber : peak.getScanNumbers()) {
 
-                    final Scan scan = rawFile.getScan(scanNumber);
+                    final MsScan scan = rawFile.getScan(scanNumber);
                     if (scan.getMSLevel() != MS_LEVEL) {
 
                         throw new IllegalStateException(
@@ -244,7 +249,7 @@ public class CameraSearchTask extends AbstractTask {
                     if (dataPoint != null) {
 
                         final double intensity = dataPoint.getIntensity();
-                        peakDataPointsByScan.get(scan).add(new SimpleDataPoint(mz, intensity));
+                        peakDataPointsByScan.get(scan).add(MZmineObjectBuilder.getDataPoint(mz, intensity));
                         dataPointCount++;
 
                         // Update RT range.
@@ -303,7 +308,7 @@ public class CameraSearchTask extends AbstractTask {
             int pointIndex = 0;
             for (final int scanNumber : rawFile.getScanNumbers(MS_LEVEL)) {
 
-                final Scan scan = rawFile.getScan(scanNumber);
+                final MsScan scan = rawFile.getScan(scanNumber);
                 scanTimes[scanIndex] = scan.getRetentionTime();
                 scanIndices[scanIndex] = pointIndex + 1;
                 scanIndex++;
@@ -405,7 +410,7 @@ public class CameraSearchTask extends AbstractTask {
         for (final Feature peak : peaks) {
 
             // Create pseudo-spectrum identity
-            final SimplePeakIdentity identity =  new SimplePeakIdentity(
+            final PeakListRowAnnotationImpl identity =  new PeakListRowAnnotationImpl(
                     "Pseudo-spectrum #" + String.format("%03d", spectra[peakIndex]));
             identity.setPropertyValue(PeakIdentity.PROPERTY_METHOD, "Bioconductor CAMERA");
 

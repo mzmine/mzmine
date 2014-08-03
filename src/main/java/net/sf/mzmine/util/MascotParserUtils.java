@@ -28,7 +28,7 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.IonSignificance;
 import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.ModificationPeptide;
 import net.sf.mzmine.modules.peaklistmethods.identification.mascot.data.Peptide;
@@ -491,7 +491,7 @@ public class MascotParserUtils {
 		int rawScanNumber = Integer.parseInt(tokens[1]);
 		
 		PeptideScan scan = new PeptideScan(pepDataFile, rawFileName, queryNumber, rawScanNumber);
-		Vector<SimpleDataPoint> dataPoints = new Vector<SimpleDataPoint>();
+		Vector<DataPoint> dataPoints = new Vector<DataPoint>();
 		double mass,intensity;
 		String ions = (String) sectionMap.get("Ions1");
 		StringTokenizer tokenizer = new StringTokenizer(ions,",");
@@ -499,10 +499,10 @@ public class MascotParserUtils {
 			tokens = tokenizer.nextToken().split(":");
 			mass = Double.parseDouble(tokens[0]);
 			intensity = Double.parseDouble(tokens[1]);
-			dataPoints.add(new SimpleDataPoint(mass,intensity));
+			dataPoints.add(MZmineObjectBuilder.getDataPoint(mass,intensity));
 		}
 		
-		scan.setDataPoints(dataPoints.toArray(new SimpleDataPoint[0]));
+		scan.setDataPoints(dataPoints.toArray(new DataPoint[0]));
 
 		return scan;
 	}

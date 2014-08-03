@@ -41,10 +41,10 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
@@ -148,7 +148,7 @@ public class RowsFilterTask extends AbstractTask {
         private PeakList filterPeakListRows(final PeakList peakList) {
 
                 // Create new peak list.
-                final PeakList newPeakList = new SimplePeakList(
+                final PeakList newPeakList = new PeakListImpl(
                         peakList.getName() + ' ' + parameters.getParameter(SUFFIX).getValue(), peakList.getRawDataFiles());
 
                 // Copy previous applied methods.
@@ -158,7 +158,7 @@ public class RowsFilterTask extends AbstractTask {
                 }
 
                 // Add task description to peakList.
-                newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(getTaskDescription(), parameters));
+                newPeakList.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(getTaskDescription(), parameters));
 
                 // Get parameters.
                 final boolean identified = parameters.getParameter(HAS_IDENTITIES).getValue();
@@ -251,13 +251,13 @@ public class RowsFilterTask extends AbstractTask {
         private static PeakListRow copyPeakRow(final PeakListRow row) {
 
                 // Copy the peak list row.
-                final PeakListRow newRow = new SimplePeakListRow(row.getID());
+                final PeakListRow newRow = new PeakListRowImpl(row.getID());
                 PeakUtils.copyPeakListRowProperties(row, newRow);
 
                 // Copy the peaks.
                 for (final Feature peak : row.getPeaks()) {
 
-                        final Feature newPeak = new SimpleFeature(peak);
+                        final Feature newPeak = new FeatureImpl(peak);
                         PeakUtils.copyPeakProperties(peak, newPeak);
                         newRow.addPeak(peak.getDataFile(), newPeak);
                 }

@@ -32,7 +32,7 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 
 /**
  * Project tree model implementation
@@ -85,7 +85,7 @@ public class PeakListTreeModel extends DefaultTreeModel {
 		}
 
 		if (object instanceof MassList) {
-			Scan scan = ((MassList) object).getScan();
+			MsScan scan = ((MassList) object).getScan();
 
 			final DefaultMutableTreeNode scNode = treeObjects.get(scan);
 			assert scNode != null;

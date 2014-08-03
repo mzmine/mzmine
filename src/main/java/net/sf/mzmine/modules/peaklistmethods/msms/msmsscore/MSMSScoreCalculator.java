@@ -25,7 +25,7 @@ import java.util.Map;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -43,7 +43,7 @@ public class MSMSScoreCalculator {
      * Returns a calculated similarity score of
      */
     public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula,
-	    Scan msmsScan, ParameterSet parameters) {
+	    MsScan msmsScan, ParameterSet parameters) {
 
 	MZTolerance msmsTolerance = parameters.getParameter(
 		MSMSScoreParameters.msmsTolerance).getValue();

@@ -24,32 +24,18 @@ import javax.annotation.Nonnull;
 /**
  * This interface defines an isotope pattern which can be attached to a peak
  */
-public interface IsotopePattern extends Spectrum {
+public interface IsotopePattern extends MassSpectrum {
 
-	public enum IsotopePatternStatus {
+    /**
+     * Returns the isotope pattern status.
+     */
+    @Nonnull
+    IsotopePatternStatus getStatus();
 
-		/**
-		 * Isotope pattern was detected by isotope grouper
-		 */
-		DETECTED,
-
-		/**
-		 * Isotope pattern was predicted by Isotope pattern calculator
-		 */
-		PREDICTED;
-
-	}
-
-	/**
-	 * Returns the isotope pattern status.
-	 */
-	@Nonnull
-	public IsotopePatternStatus getStatus();
-
-	/**
-	 * Returns a description of this isotope pattern (formula, etc.)
-	 */
-	@Nonnull
-	public String getDescription();
+    /**
+     * Returns a description of this isotope pattern (formula, etc.)
+     */
+    @Nonnull
+    String getDescription();
 
 }

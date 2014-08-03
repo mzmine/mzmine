@@ -111,10 +111,16 @@ public class ExactMzDataPoint implements DataPoint {
 
 	public String getName() {
 		Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-		Format intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+		Format intensityFormat = MZmineCore.getConfiguration()
+				.getIntensityFormat();
 		String str = "m/z: " + mzFormat.format(mz) + ", intensity: "
 				+ intensityFormat.format(intensity);
 		return str;
+	}
+
+	@Override
+	public void setIntensity(double intensity) {
+		this.intensity = intensity;
 	}
 
 }

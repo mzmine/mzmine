@@ -22,9 +22,9 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
@@ -32,7 +32,7 @@ import net.sf.mzmine.util.ScanUtils;
 
 public class ResampleFilter implements ScanFilter {
 
-    public Scan filterScan(Scan scan, ParameterSet parameters) {
+    public MsScan filterScan(MsScan scan, ParameterSet parameters) {
 
 	double binSize = parameters.getParameter(
 		ResampleFilterParameters.binSize).getValue();
@@ -55,18 +55,18 @@ public class ResampleFilter implements ScanFilter {
 	// the new intensity values
 	double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins,
 		!scan.isCentroided(), ScanUtils.BinningType.AVG);
-	SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
+	DataPoint[] newPoints = new DataPoint[newY.length];
 
 	// set the new m/z value in the middle of the bin
 	double newX = mzRange.getMin() + binSize / 2.0;
 	// creates new DataPoints
 	for (int i = 0; i < newY.length; i++) {
-	    newPoints[i] = new SimpleDataPoint(newX, newY[i]);
+	    newPoints[i] = MZmineObjectBuilder.getDataPoint(newX, newY[i]);
 	    newX += binSize;
 	}
 
 	// Create updated scan
-	SimpleScan newScan = new SimpleScan(scan);
+	MsScanImpl newScan = new MsScanImpl(scan);
 	newScan.setDataPoints(newPoints);
 	newScan.setCentroided(true);
 

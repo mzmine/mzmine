@@ -20,10 +20,10 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 
-public class AdductIdentity extends SimplePeakIdentity {
+public class AdductIdentity extends PeakListRowAnnotationImpl {
 
     /**
      * Create the identity.

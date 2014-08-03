@@ -21,10 +21,10 @@ package net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipid
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.util.FormulaUtils;
 
-public class GPLipidIdentity extends SimplePeakIdentity {
+public class GPLipidIdentity extends PeakListRowAnnotationImpl {
 
     private final double mass;
 

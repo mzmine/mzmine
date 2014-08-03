@@ -29,10 +29,10 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -97,9 +97,9 @@ class RTNormalizerTask extends AbstractTask {
 	totalRows = originalPeakLists[0].getNumberOfRows();
 
 	// Create new peak lists
-	normalizedPeakLists = new SimplePeakList[originalPeakLists.length];
+	normalizedPeakLists = new PeakListImpl[originalPeakLists.length];
 	for (int i = 0; i < originalPeakLists.length; i++) {
-	    normalizedPeakLists[i] = new SimplePeakList(originalPeakLists[i]
+	    normalizedPeakLists[i] = new PeakListImpl(originalPeakLists[i]
 		    + " " + suffix, originalPeakLists[i].getRawDataFiles());
 
 	    // Remember how many rows we need to normalize
@@ -217,7 +217,7 @@ class RTNormalizerTask extends AbstractTask {
 
 	    // Add task description to peakList
 	    normalizedPeakLists[i]
-		    .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+		    .addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
 			    "Retention time normalization", parameters));
 
 	    // Remove the original peaklists if requested
@@ -292,7 +292,7 @@ class RTNormalizerTask extends AbstractTask {
     private PeakListRow normalizeRow(PeakListRow originalRow,
 	    PeakListRow standards[], double normalizedStdRTs[]) {
 
-	PeakListRow normalizedRow = new SimplePeakListRow(originalRow.getID());
+	PeakListRow normalizedRow = new PeakListRowImpl(originalRow.getID());
 
 	// Standard rows preceding and following this row
 	int prevStdIndex = -1, nextStdIndex = -1;
@@ -346,7 +346,7 @@ class RTNormalizerTask extends AbstractTask {
 	for (RawDataFile file : originalRow.getRawDataFiles()) {
 	    Feature originalPeak = originalRow.getPeak(file);
 	    if (originalPeak != null) {
-		SimpleFeature normalizedPeak = new SimpleFeature(
+		FeatureImpl normalizedPeak = new FeatureImpl(
 			originalPeak);
 		PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
 		normalizedPeak.setRT(normalizedRT);

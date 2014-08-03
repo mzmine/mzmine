@@ -35,7 +35,7 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.restrictions.elements.ElementalHeuristicChecker;
@@ -292,7 +292,7 @@ public class SingleRowPredictionTask extends AbstractTask {
 		int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 
 		if ((checkMSMS) && (msmsScanNumber > 0)) {
-			Scan msmsScan = dataFile.getScan(msmsScanNumber);
+			MsScan msmsScan = dataFile.getScan(msmsScanNumber);
 			String massListName = msmsParameters.getParameter(
 					MSMSScoreParameters.massList).getValue();
 			MassList ms2MassList = msmsScan.getMassList(massListName);

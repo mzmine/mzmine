@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -33,7 +33,7 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 public class LocalMaxMassDetector implements MassDetector {
 
-    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+    public DataPoint[] getMassValues(MsScan scan, ParameterSet parameters) {
 
 	double noiseLevel = parameters.getParameter(
 		LocalMaxMassDetectorParameters.noiseLevel).getValue();

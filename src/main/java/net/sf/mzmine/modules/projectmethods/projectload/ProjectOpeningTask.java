@@ -36,6 +36,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.MZmineProjectImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.PeakListOpenHandler_2_0;
 import net.sf.mzmine.modules.projectmethods.projectload.version_2_0.RawDataFileOpenHandler_2_0;
@@ -48,7 +49,6 @@ import net.sf.mzmine.modules.projectmethods.projectload.version_2_5.UserParamete
 import net.sf.mzmine.modules.projectmethods.projectsave.ProjectSavingTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectManager;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;

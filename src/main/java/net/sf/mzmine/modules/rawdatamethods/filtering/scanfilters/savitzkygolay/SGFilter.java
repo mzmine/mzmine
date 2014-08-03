@@ -24,9 +24,9 @@ import java.util.Hashtable;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -76,7 +76,7 @@ public class SGFilter implements ScanFilter {
 
     }
 
-    public Scan filterScan(Scan scan, ParameterSet parameters) {
+    public MsScan filterScan(MsScan scan, ParameterSet parameters) {
 
         int numOfDataPoints = parameters.getParameter(
                 SGFilterParameters.datapoints).getValue();
@@ -127,12 +127,12 @@ public class SGFilter implements ScanFilter {
             if (sumOfInts < 0) {
                 sumOfInts = 0;
             }
-            newDataPoints[spectrumInd - marginSize] = new SimpleDataPoint(
+            newDataPoints[spectrumInd - marginSize] = MZmineObjectBuilder.getDataPoint(
                     oldDataPoints[spectrumInd].getMZ(), sumOfInts);
 
         }
 
-        SimpleScan newScan = new SimpleScan(scan);
+        MsScanImpl newScan = new MsScanImpl(scan);
         newScan.setDataPoints(newDataPoints);
         return newScan;
 

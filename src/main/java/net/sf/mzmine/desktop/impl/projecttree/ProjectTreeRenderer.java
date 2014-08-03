@@ -35,7 +35,7 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.util.RawDataFileUtils;
 
 class ProjectTreeRenderer extends DefaultTreeCellRenderer {
@@ -102,8 +102,8 @@ class ProjectTreeRenderer extends DefaultTreeCellRenderer {
 				label.setIcon(fileIcon);
 		}
 
-		if (embeddedObject instanceof Scan) {
-			Scan s = (Scan) embeddedObject;
+		if (embeddedObject instanceof MsScan) {
+			MsScan s = (MsScan) embeddedObject;
 			label.setIcon(spectrumIcon);
 			label.setFont(smallFont);
 

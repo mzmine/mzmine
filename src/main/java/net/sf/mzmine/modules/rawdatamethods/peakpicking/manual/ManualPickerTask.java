@@ -23,10 +23,10 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -92,7 +92,7 @@ class ManualPickerTask extends AbstractTask {
 					return;
 
 				// Get next scan
-				Scan scan = dataFile.getScan(scanNumber);
+				MsScan scan = dataFile.getScan(scanNumber);
 
 				// Find most intense m/z peak
 				DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
@@ -102,7 +102,7 @@ class ManualPickerTask extends AbstractTask {
 						dataPointFound = true;
 					newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 				} else {
-					DataPoint fakeDataPoint = new SimpleDataPoint(
+					DataPoint fakeDataPoint = MZmineObjectBuilder.getDataPoint(
 							mzRange.getAverage(), 0);
 					newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 				}

@@ -19,15 +19,21 @@
 
 package net.sf.mzmine.datamodel;
 
-
 /**
- * This interface represents one data point of a spectra (m/z and intensity).
- * Data point is immutable once created, to make things simple.
+ * A single data point of a mass spectrum (a pair of m/z and intensity values).
+ * DataPoints are immutable once created, to allow passing them by reference,
+ * instead of cloning each data point instance when passing them as parameters.
  */
 public interface DataPoint {
 
-    public double getMZ();
+    /**
+     * @return m/z value of this data point.
+     */
+    double getMZ();
 
-    public double getIntensity();
+    /**
+     * @return Intensity value of this data point.
+     */
+    double getIntensity();
 
 }

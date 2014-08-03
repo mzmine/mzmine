@@ -33,9 +33,9 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -165,7 +165,7 @@ public class DeconvolutionTask extends AbstractTask {
 
         // Create new peak list.
         final PeakList resolvedPeaks =
-                new SimplePeakList(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
+                new PeakListImpl(peakList + " " + parameters.getParameter(SUFFIX).getValue(), dataFile);
 
         // Load previous applied methods.
         for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
@@ -175,7 +175,7 @@ public class DeconvolutionTask extends AbstractTask {
 
         // Add task description to peak list.
         resolvedPeaks
-                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod("Peak deconvolution by " + resolver,
+                .addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl("Peak deconvolution by " + resolver,
                                                                              resolver.getParameterSet()));
 
         // Initialise counters.
@@ -207,7 +207,7 @@ public class DeconvolutionTask extends AbstractTask {
             // Add peaks to the new peak list.
             for (final Feature peak : peaks) {
 
-                final PeakListRow newRow = new SimplePeakListRow(peakId++);
+                final PeakListRow newRow = new PeakListRowImpl(peakId++);
                 newRow.addPeak(dataFile, peak);
                 resolvedPeaks.addRow(newRow);
             }

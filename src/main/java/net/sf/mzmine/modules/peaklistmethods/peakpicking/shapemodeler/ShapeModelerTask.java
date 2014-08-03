@@ -29,9 +29,9 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -54,7 +54,7 @@ class ShapeModelerTask extends AbstractTask {
 	private ShapeModel shapeModelerType;
 	private double resolution;
 
-	private SimplePeakList newPeakList;
+	private PeakListImpl newPeakList;
 
 	private ParameterSet parameters;
 
@@ -103,20 +103,20 @@ class ShapeModelerTask extends AbstractTask {
 		RawDataFile dataFile = originalPeakList.getRawDataFile(0);
 
 		// Create new peak list
-		newPeakList = new SimplePeakList(originalPeakList + " " + suffix,
+		newPeakList = new PeakListImpl(originalPeakList + " " + suffix,
 				dataFile);
 
 		totalRows = originalPeakList.getNumberOfRows();
 		int[] scanNumbers;
 		double[] retentionTimes, intensities;
-		SimplePeakListRow newRow;
+		PeakListRowImpl newRow;
 
 		for (PeakListRow row : originalPeakList.getRows()) {
 
 			if (isCanceled())
 				return;
 
-			newRow = new SimplePeakListRow(newPeakID);
+			newRow = new PeakListRowImpl(newPeakID);
 
 			try {
 				for (Feature peak : row.getPeaks()) {
@@ -173,7 +173,7 @@ class ShapeModelerTask extends AbstractTask {
 
 		// Add task description to peakList
 		newPeakList
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
 						"Peaks shaped by " + shapeModelerType + " function",
 						parameters));
 

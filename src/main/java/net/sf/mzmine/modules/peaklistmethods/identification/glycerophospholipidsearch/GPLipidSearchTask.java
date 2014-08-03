@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -148,8 +148,8 @@ public class GPLipidSearchTask extends AbstractTask {
 		}
 
 		// Add task description to peakList
-		((SimplePeakList) peakList)
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+		((PeakListImpl) peakList)
+				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
 						"Identification of glycerophospholipids", parameters));
 
 		// Repaint the window to reflect the change in the peak list

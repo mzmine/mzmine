@@ -30,7 +30,7 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 /**
  * Simple PeakIdentity implementation;
  */
-public class SimplePeakIdentity implements PeakIdentity {
+public class PeakListRowAnnotationImpl implements PeakListRowAnnotation {
 
     private Hashtable<String, String> properties;
 
@@ -38,12 +38,11 @@ public class SimplePeakIdentity implements PeakIdentity {
      * This constructor is protected so only derived classes can use it. Other
      * modules using this class should always set the name by default.
      */
-    protected SimplePeakIdentity() {
-
+    PeakListRowAnnotationImpl() {
         this("Unknown name");
     }
 
-    public SimplePeakIdentity(final String name) {
+    public PeakListRowAnnotationImpl(final String name) {
 
         // Check name.
         if (name == null) {
@@ -56,7 +55,7 @@ public class SimplePeakIdentity implements PeakIdentity {
 
     }
 
-    public SimplePeakIdentity(final String name, final String formula, final String method, final String id, final String url) {
+    public PeakListRowAnnotationImpl(final String name, final String formula, final String method, final String id, final String url) {
 
         // Check name
         if (name == null) {
@@ -81,7 +80,7 @@ public class SimplePeakIdentity implements PeakIdentity {
         }
     }
 
-    public SimplePeakIdentity(final Hashtable<String, String> prop) {
+    public PeakListRowAnnotationImpl(final Hashtable<String, String> prop) {
 
         // Check for name .
         if (prop.get(PROPERTY_NAME) == null) {
@@ -151,6 +150,6 @@ public class SimplePeakIdentity implements PeakIdentity {
     @SuppressWarnings("unchecked")
     @Override
     public synchronized @Nonnull Object clone() {
-        return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
+        return new PeakListRowAnnotationImpl((Hashtable<String, String>) properties.clone());
     }
 }

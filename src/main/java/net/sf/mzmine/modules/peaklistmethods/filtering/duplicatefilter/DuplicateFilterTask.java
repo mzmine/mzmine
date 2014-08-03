@@ -28,10 +28,10 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -195,7 +195,7 @@ public class DuplicateFilterTask extends AbstractTask {
         }
 
         // Create the new peak list.
-        final PeakList newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+        final PeakList newPeakList = new PeakListImpl(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
 
         // Add all remaining rows to a new peak list.
         for (int i = 0;
@@ -207,13 +207,13 @@ public class DuplicateFilterTask extends AbstractTask {
             if (row != null) {
 
                 // Copy the peak list row.
-                final PeakListRow newRow = new SimplePeakListRow(row.getID());
+                final PeakListRow newRow = new PeakListRowImpl(row.getID());
                 PeakUtils.copyPeakListRowProperties(row, newRow);
 
                 // Copy the peaks.
                 for (final Feature peak : row.getPeaks()) {
 
-                    final Feature newPeak = new SimpleFeature(peak);
+                    final Feature newPeak = new FeatureImpl(peak);
                     PeakUtils.copyPeakProperties(peak, newPeak);
                     newRow.addPeak(peak.getDataFile(), newPeak);
                 }
@@ -232,7 +232,7 @@ public class DuplicateFilterTask extends AbstractTask {
 
             // Add task description to peakList
             newPeakList.addDescriptionOfAppliedTask(
-                    new SimplePeakListAppliedMethod("Duplicate peak list rows filter", parameters));
+                    new PeakListAppliedMethodImpl("Duplicate peak list rows filter", parameters));
         }
 
         return newPeakList;

@@ -48,89 +48,88 @@ import net.sf.mzmine.parameters.UserParameter;
  */
 public interface MZmineProject {
 
-	/**
-	 * Return the filename of the project file
-	 */
-	public File getProjectFile();
+    /**
+     * Return the filename of the project file
+     */
+    File getProjectFile();
 
-	/**
-	 * Adds a new experimental parameter to the project
-	 * 
-	 * @param parameter
-	 */
-	public void addParameter(UserParameter parameter);
+    /**
+     * Adds a new experimental parameter to the project
+     * 
+     * @param parameter
+     */
+    void addParameter(UserParameter parameter);
 
-	/**
-	 * Removes an experimental parameter from the project
-	 * 
-	 * @param parameter
-	 */
-	public void removeParameter(UserParameter parameter);
+    /**
+     * Removes an experimental parameter from the project
+     * 
+     * @param parameter
+     */
+    void removeParameter(UserParameter parameter);
 
-	/**
-	 * Returns true if project contains the experimental parameter
-	 */
-	public boolean hasParameter(UserParameter parameter);
+    /**
+     * Returns true if project contains the experimental parameter
+     */
+    boolean hasParameter(UserParameter parameter);
 
-	/**
-	 * Returns all experimental parameter of the project
-	 */
-	public UserParameter[] getParameters();
+    /**
+     * Returns all experimental parameter of the project
+     */
+    UserParameter[] getParameters();
 
-	/**
-	 * Sets experimental parameter's value corresponding to a RawDataFile.
-	 * <p>
-	 * If the parameter does not exists in the project, it is added to the
-	 * project. If parameter already has a value corresponding the given file,
-	 * previous value is replaced.
-	 * 
-	 */
-	public void setParameterValue(UserParameter parameter,
-			RawDataFile rawDataFile, Object value);
+    /**
+     * Sets experimental parameter's value corresponding to a RawDataFile.
+     * <p>
+     * If the parameter does not exists in the project, it is added to the
+     * project. If parameter already has a value corresponding the given file,
+     * previous value is replaced.
+     * 
+     */
+    void setParameterValue(UserParameter parameter, RawDataFile rawDataFile,
+	    Object value);
 
-	/**
-	 * Returns experimental parameter's value corresponding to a RawDataFile.
-	 * 
-	 */
-	public Object getParameterValue(UserParameter parameter,
-			RawDataFile rawDataFile);
+    /**
+     * Returns experimental parameter's value corresponding to a RawDataFile.
+     * 
+     */
+    Object getParameterValue(UserParameter parameter, RawDataFile rawDataFile);
 
-	/**
-	 * Adds a new RawDataFile to the project.
-	 */
-	public void addFile(RawDataFile newFile);
+    /**
+     * Adds a new RawDataFile to the project.
+     */
+    void addFile(RawDataFile newFile);
 
-	/**
-	 * Removes a RawDataFile from the project.
-	 */
-	public void removeFile(RawDataFile file);
+    /**
+     * Removes a RawDataFile from the project.
+     */
+    void removeFile(RawDataFile file);
 
-	/**
-	 * Returns all RawDataFiles of the project.
-	 * 
-	 */
-	public RawDataFile[] getDataFiles();
+    /**
+     * Returns all RawDataFiles of the project.
+     * 
+     */
+    RawDataFile[] getDataFiles();
 
-	/**
-	 * Adds a peak list to the project
-	 */
-	public void addPeakList(PeakList peaklist);
+    /**
+     * Adds a peak list to the project
+     */
+    void addPeakList(PeakList peaklist);
 
-	/**
-	 * Removes a peak list from the project
-	 */
-	public void removePeakList(PeakList peaklist);
+    /**
+     * Removes a peak list from the project
+     */
+    void removePeakList(PeakList peaklist);
 
-	/**
-	 * Returns all peak lists of the project
-	 */
-	public PeakList[] getPeakLists();
+    /**
+     * Returns all peak lists of the project
+     */
+    PeakList[] getPeakLists();
 
-	/**
-	 * Returns all peak lists which contain given data file
-	 */
-	public PeakList[] getPeakLists(RawDataFile file);
+    /**
+     * Returns all peak lists which contain given data file
+     */
+    PeakList[] getPeakLists(RawDataFile file);
 
-	public void notifyObjectChanged(Object object, boolean structureChanged);
+    void notifyObjectChanged(Object object, boolean structureChanged);
 
 }

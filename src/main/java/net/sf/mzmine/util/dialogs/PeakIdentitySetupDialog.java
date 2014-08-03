@@ -35,7 +35,7 @@ import javax.swing.JTextField;
 
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.ExitCode;
@@ -173,7 +173,7 @@ public class PeakIdentitySetupDialog extends JDialog implements ActionListener {
 				return;
 			}
 
-			SimplePeakIdentity compound = new SimplePeakIdentity(name, formula,
+			PeakListRowAnnotationImpl compound = new PeakListRowAnnotationImpl(name, formula,
 					"User defined", id, null);
 
 			if (editIdentity != null)

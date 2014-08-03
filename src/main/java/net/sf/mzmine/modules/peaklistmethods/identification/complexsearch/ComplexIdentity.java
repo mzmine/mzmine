@@ -20,10 +20,10 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.complexsearch;
 
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 
-public class ComplexIdentity extends SimplePeakIdentity {
+public class ComplexIdentity extends PeakListRowAnnotationImpl {
 
     public ComplexIdentity(final PeakListRow peak1, final PeakListRow peak2) {
 

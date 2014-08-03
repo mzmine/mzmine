@@ -24,7 +24,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
 import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
@@ -295,7 +295,7 @@ public class NistMsSearchTask
 
                             // Copy the identity.
                             final PeakIdentity id =
-                                    new SimplePeakIdentity((Hashtable<String, String>) identity.getAllProperties());
+                                    new PeakListRowAnnotationImpl((Hashtable<String, String>) identity.getAllProperties());
 
                             // Best match factor?
                             final boolean isPreferred;
@@ -532,7 +532,7 @@ public class NistMsSearchTask
                             Integer.parseInt(reverseMatchFactor) >= minReverseMatchFactor) {
 
                             // Extract identity from hit information.
-                            final SimplePeakIdentity id = new SimplePeakIdentity(hitMatcher.group(1),
+                            final PeakListRowAnnotationImpl id = new PeakListRowAnnotationImpl(hitMatcher.group(1),
                                                                                  hitMatcher.group(2),
                                                                                  SEARCH_METHOD,
                                                                                  hitMatcher.group(7),

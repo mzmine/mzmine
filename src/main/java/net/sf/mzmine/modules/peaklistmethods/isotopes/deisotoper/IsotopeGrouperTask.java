@@ -25,18 +25,18 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.IsotopePatternImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -133,7 +133,7 @@ class IsotopeGrouperTask extends AbstractTask {
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
 		// Create a new deisotoped peakList
-		deisotopedPeakList = new SimplePeakList(peakList + " " + suffix,
+		deisotopedPeakList = new PeakListImpl(peakList + " " + suffix,
 				peakList.getRawDataFiles());
 
 		// Collect all selected charge states
@@ -202,10 +202,10 @@ class IsotopeGrouperTask extends AbstractTask {
 			DataPoint isotopes[] = new DataPoint[bestFitPeaks.size()];
 			for (int i = 0; i < isotopes.length; i++) {
 				Feature p = originalPeaks[i];
-				isotopes[i] = new SimpleDataPoint(p.getMZ(), p.getHeight());
+				isotopes[i] = MZmineObjectBuilder.getDataPoint(p.getMZ(), p.getHeight());
 
 			}
-			SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+			IsotopePatternImpl newPattern = new IsotopePatternImpl(
 					isotopes, IsotopePatternStatus.DETECTED, aPeak.toString());
 
 			// Depending on user's choice, we leave either the most intenst, or
@@ -218,14 +218,14 @@ class IsotopeGrouperTask extends AbstractTask {
 						SortingDirection.Ascending));
 			}
 
-			Feature newPeak = new SimpleFeature(
+			Feature newPeak = new FeatureImpl(
 					originalPeaks[0]);
 			newPeak.setIsotopePattern(newPattern);
 			newPeak.setCharge(bestFitCharge);
 
 			// Keep old ID
 			int oldID = oldRow.getID();
-			SimplePeakListRow newRow = new SimplePeakListRow(oldID);
+			PeakListRowImpl newRow = new PeakListRowImpl(oldID);
 			PeakUtils.copyPeakListRowProperties(oldRow, newRow);
 			newRow.addPeak(dataFile, newPeak);
 			deisotopedPeakList.addRow(newRow);
@@ -252,7 +252,7 @@ class IsotopeGrouperTask extends AbstractTask {
 
 		// Add task description to peakList
 		deisotopedPeakList
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
 						"Isotopic peaks grouper", parameters));
 
 		// Remove the original peakList if requested

@@ -22,21 +22,26 @@ package net.sf.mzmine.datamodel.impl;
 import java.util.Arrays;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.FeatureRawData;
+import net.sf.mzmine.datamodel.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class is a simple implementation of the peak interface.
  */
-public class SimpleFeature implements Feature {
+public class FeatureImpl implements Feature {
 
     private FeatureStatus peakStatus;
     private RawDataFile dataFile;
+    private FeatureRawData featureRawData;
 
     // Scan numbers
     private int scanNumbers[];
@@ -47,7 +52,7 @@ public class SimpleFeature implements Feature {
     private double mz, rt, height, area;
 
     // Boundaries of the peak raw data points
-    private Range rtRange, mzRange, intensityRange;
+    private Range<Double> rtRange, mzRange, intensityRange;
 
     // Number of representative scan
     private int representativeScan;
@@ -60,15 +65,18 @@ public class SimpleFeature implements Feature {
     private IsotopePattern isotopePattern;
     private int charge = 0;
 
+    FeatureImpl() {
+    }
+
     /**
      * Initializes a new peak using given values
      * 
      */
-    public SimpleFeature(RawDataFile dataFile, double MZ,
-	    double RT, double height, double area, int[] scanNumbers,
+    public FeatureImpl(RawDataFile dataFile, double MZ, double RT,
+	    double height, double area, int[] scanNumbers,
 	    DataPoint[] dataPointsPerScan, FeatureStatus peakStatus,
-	    int representativeScan, int fragmentScanNumber, Range rtRange,
-	    Range mzRange, Range intensityRange) {
+	    int representativeScan, int fragmentScanNumber, Range<Double> rtRange,
+	    Range<Double> mzRange, Range<Double> intensityRange) {
 
 	if (dataPointsPerScan.length == 0) {
 	    throw new IllegalArgumentException(
@@ -92,56 +100,27 @@ public class SimpleFeature implements Feature {
     }
 
     /**
-     * Copy constructor
-     */
-    public SimpleFeature(Feature p) {
-
-	this.dataFile = p.getDataFile();
-
-	this.mz = p.getMZ();
-	this.rt = p.getRT();
-	this.height = p.getHeight();
-	this.area = p.getArea();
-
-	// Create a copy of the mutable properties, not a reference
-	this.rtRange = new Range(p.getRawDataPointsRTRange());
-	this.mzRange = new Range(p.getRawDataPointsMZRange());
-	this.intensityRange = new Range(p.getRawDataPointsIntensityRange());
-
-	this.scanNumbers = p.getScanNumbers();
-
-	this.dataPointsPerScan = new DataPoint[scanNumbers.length];
-
-	for (int i = 0; i < scanNumbers.length; i++) {
-	    dataPointsPerScan[i] = p.getDataPoint(scanNumbers[i]);
-	}
-
-	this.peakStatus = p.getFeatureStatus();
-
-	this.representativeScan = p.getRepresentativeScanNumber();
-	this.fragmentScanNumber = p.getMostIntenseFragmentScanNumber();
-
-    }
-
-    /**
      * This method returns the status of the peak
      */
-    public @Nonnull
-    FeatureStatus getFeatureStatus() {
+    @Override
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return peakStatus;
     }
 
     /**
      * This method returns M/Z value of the peak
      */
+    @Override
     public double getMZ() {
 	return mz;
     }
 
+    @Override
     public void setMZ(double mz) {
 	this.mz = mz;
     }
 
+    @Override
     public void setRT(double rt) {
 	this.rt = rt;
     }
@@ -149,6 +128,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns retention time of the peak
      */
+    @Override
     public double getRT() {
 	return rt;
     }
@@ -156,6 +136,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns the raw height of the peak
      */
+    @Override
     public double getHeight() {
 	return height;
     }
@@ -164,6 +145,7 @@ public class SimpleFeature implements Feature {
      * @param height
      *            The height to set.
      */
+    @Override
     public void setHeight(double height) {
 	this.height = height;
     }
@@ -171,6 +153,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns the raw area of the peak
      */
+    @Override
     public double getArea() {
 	return area;
     }
@@ -179,6 +162,7 @@ public class SimpleFeature implements Feature {
      * @param area
      *            The area to set.
      */
+    @Override
     public void setArea(double area) {
 	this.area = area;
     }
@@ -186,8 +170,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns numbers of scans that contain this peak
      */
-    public @Nonnull
-    int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 	return scanNumbers;
     }
 
@@ -205,8 +188,7 @@ public class SimpleFeature implements Feature {
     /**
      * @see net.sf.mzmine.datamodel.Feature#getDataFile()
      */
-    public @Nonnull
-    RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -228,24 +210,21 @@ public class SimpleFeature implements Feature {
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsIntensityRange()
      */
-    public @Nonnull
-    Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsMZRange()
      */
-    public @Nonnull
-    Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return mzRange;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsRTRange()
      */
-    public @Nonnull
-    Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rtRange;
     }
 
@@ -260,20 +239,41 @@ public class SimpleFeature implements Feature {
 	return fragmentScanNumber;
     }
 
+    @Override
     public IsotopePattern getIsotopePattern() {
 	return isotopePattern;
     }
 
+    @Override
     public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern) {
 	this.isotopePattern = isotopePattern;
     }
 
+    @Override
     public int getCharge() {
 	return charge;
     }
 
+    @Override
     public void setCharge(int charge) {
 	this.charge = charge;
+    }
+
+    @Override
+    public void setFeatureStatus(@Nonnull FeatureStatus newStatus) {
+	this.peakStatus = newStatus;
+    }
+
+    @Override
+    @Nullable
+    public FeatureRawData getRawData() {
+	return featureRawData;
+    }
+
+    @Override
+    public void setRawData(@Nullable FeatureRawData dataFile) {
+	this.featureRawData = dataFile;
+
     }
 
 }

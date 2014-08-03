@@ -32,11 +32,11 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
+import net.sf.mzmine.datamodel.impl.StorableMassList;
+import net.sf.mzmine.datamodel.impl.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
-import net.sf.mzmine.project.impl.RawDataFileImpl;
-import net.sf.mzmine.project.impl.StorableMassList;
-import net.sf.mzmine.project.impl.StorableScan;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.Attributes;
@@ -279,20 +279,20 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 
         if (qName.equals(RawDataElementName_2_5.SCAN.getElementName())) {
 
-            StorableScan storableScan = new StorableScan(newRawDataFile,
+            MsScan MsScan = new MsScan(newRawDataFile,
                     currentStorageID, dataPointsNumber, scanNumber, msLevel,
                     retentionTime, parentScan, precursorMZ, precursorCharge,
                     fragmentScan, centroided);
 
             try {
-                newRawDataFile.addScan(storableScan);
+                newRawDataFile.addScan(MsScan);
             } catch (IOException e) {
                 throw new SAXException(e);
             }
 
             for (StorableMassList newML : massLists) {
-                newML.setScan(storableScan);
-                storableScan.addMassList(newML);
+                newML.setScan(MsScan);
+                MsScan.addMassList(newML);
             }
             massLists.clear();
 

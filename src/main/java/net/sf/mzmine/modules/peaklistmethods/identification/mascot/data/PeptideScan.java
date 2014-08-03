@@ -20,23 +20,27 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.openscience.cdk.interfaces.IAtomContainer;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.PeptideSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
 
-public class PeptideScan implements Scan {
+public class PeptideScan implements MsScan {
 	
 	private PeptideIdentityDataFile dataFile;
 	private RawDataFile rawDataFile;
@@ -162,14 +166,14 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getNumberOfDataPoints()
+	 * @see net.sf.mzmine.datamodel.MsScan#getNumberOfDataPoints()
 	 */
 	public int getNumberOfDataPoints() {
 		return dataPoints.length;
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getScanNumber()
+	 * @see net.sf.mzmine.datamodel.MsScan#getScanNumber()
 	 */
 	public int getScanNumber() {
 		return rawScanNumber;
@@ -184,7 +188,7 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getMSLevel()
+	 * @see net.sf.mzmine.datamodel.MsScan#getMSLevel()
 	 */
 	public int getMSLevel() {
 		return msLevel;
@@ -199,7 +203,7 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getPrecursorMZ()
+	 * @see net.sf.mzmine.datamodel.MsScan#getPrecursorMZ()
 	 */
 	public double getPrecursorMZ() {
 		return precursorMZ;
@@ -229,7 +233,7 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getScanAcquisitionTime()
+	 * @see net.sf.mzmine.datamodel.MsScan#getScanAcquisitionTime()
 	 */
 	public double getRetentionTime() {
 		return retentionTime;
@@ -244,21 +248,21 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
+	 * @see net.sf.mzmine.datamodel.MsScan#getMZRangeMax()
 	 */
 	public @Nonnull Range getMZRange() {
 		return mzRange;
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
+	 * @see net.sf.mzmine.datamodel.MsScan#getBasePeakMZ()
 	 */
 	public DataPoint getHighestDataPoint() {
 		return basePeak;
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
+	 * @see net.sf.mzmine.datamodel.MsScan#getParentScanNumber()
 	 */
 	public int getParentScanNumber() {
 		return parentScan;
@@ -273,7 +277,7 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getFragmentScanNumbers()
+	 * @see net.sf.mzmine.datamodel.MsScan#getFragmentScanNumbers()
 	 */
 	public int[] getFragmentScanNumbers() {
 		return fragmentScans;
@@ -303,7 +307,7 @@ public class PeptideScan implements Scan {
 	}
 
 	/**
-	 * @see net.sf.mzmine.datamodel.Scan#isCentroided()
+	 * @see net.sf.mzmine.datamodel.MsScan#isCentroided()
 	 */
 	public boolean isCentroided() {
 		return centroided;
@@ -421,6 +425,34 @@ public class PeptideScan implements Scan {
 	public @Nonnull Polarity getPolarity() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	@Nullable
+	public Map<DataPoint, IAtomContainer> getStructureAnnotations() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addStructureAnnotation(@Nonnull DataPoint dp,
+			@Nonnull IAtomContainer structure) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	@Nullable
+	public Map<DataPoint, String> getTextAnnotations() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addTextAnnotation(@Nonnull DataPoint dp,
+			@Nonnull String annotation) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	

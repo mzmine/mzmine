@@ -25,7 +25,7 @@ import java.util.Vector;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
@@ -34,7 +34,7 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class RecursiveMassDetector implements MassDetector {
 
-	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
+	public DataPoint[] getMassValues(MsScan scan, ParameterSet parameters) {
 
 		double noiseLevel = parameters.getParameter(
 				RecursiveMassDetectorParameters.noiseLevel).getValue();

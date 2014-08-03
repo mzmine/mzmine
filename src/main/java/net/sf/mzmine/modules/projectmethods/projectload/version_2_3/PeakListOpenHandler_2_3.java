@@ -32,19 +32,19 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.IsotopePatternImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.modules.projectmethods.projectload.PeakListOpenHandler;
 import net.sf.mzmine.util.Range;
 
@@ -59,8 +59,8 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private SimplePeakListRow buildingRow;
-	private SimplePeakList buildingPeakList;
+	private PeakListRowImpl buildingRow;
+	private PeakListImpl buildingPeakList;
 
 	private int numOfMZpeaks, representativeScan, fragmentScan;
 	private String peakColumnID;
@@ -152,7 +152,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 			}
 			int rowID = Integer.parseInt(attrs
 					.getValue(PeakListElementName_2_3.ID.getElementName()));
-			buildingRow = new SimplePeakListRow(rowID);
+			buildingRow = new PeakListRowImpl(rowID);
 			String comment = attrs.getValue(PeakListElementName_2_3.COMMENT
 					.getElementName());
 			buildingRow.setComment(comment);
@@ -338,7 +338,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 
 			for (int i = 0; i < numOfMZpeaks; i++) {
 
-				Scan sc = dataFile.getScan(scanNumbers[i]);
+				MsScan sc = dataFile.getScan(scanNumbers[i]);
 				double retentionTime = sc.getRetentionTime();
 
 				double mz = masses[i];
@@ -352,7 +352,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 					peakIntensityRange.extendRange(intensity);
 				}
 				if (mz > 0.0) {
-					mzPeaks[i] = new SimpleDataPoint(mz, intensity);
+					mzPeaks[i] = MZmineObjectBuilder.getDataPoint(mz, intensity);
 					if (peakMZRange == null)
 						peakMZRange = new Range(mz);
 					else
@@ -362,7 +362,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 
 			FeatureStatus status = FeatureStatus.valueOf(peakStatus);
 
-			SimpleFeature peak = new SimpleFeature(
+			FeatureImpl peak = new FeatureImpl(
 					dataFile, mass, rt, height, area, scanNumbers, mzPeaks,
 					status, representativeScan, fragmentScan, peakRTRange,
 					peakMZRange, peakIntensityRange);
@@ -370,7 +370,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 			peak.setCharge(currentPeakCharge);
 
 			if (currentIsotopes.size() > 0) {
-				SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
+				IsotopePatternImpl newPattern = new IsotopePatternImpl(
 						currentIsotopes.toArray(new DataPoint[0]),
 						currentIsotopePatternStatus,
 						currentIsotopePatternDescription);
@@ -390,7 +390,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 		// <PEAK_IDENTITY>
 		if (qName
 				.equals(PeakListElementName_2_3.PEAK_IDENTITY.getElementName())) {
-			SimplePeakIdentity identity = new SimplePeakIdentity(
+			PeakListRowAnnotationImpl identity = new PeakListRowAnnotationImpl(
 					identityProperties);
 			buildingRow.addPeakIdentity(identity, preferred);
 		}
@@ -408,7 +408,7 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 			String items[] = text.split(":");
 			double mz = Double.valueOf(items[0]);
 			double intensity = Double.valueOf(items[1]);
-			DataPoint isotope = new SimpleDataPoint(mz, intensity);
+			DataPoint isotope = MZmineObjectBuilder.getDataPoint(mz, intensity);
 			currentIsotopes.add(isotope);
 		}
 
@@ -455,12 +455,12 @@ public class PeakListOpenHandler_2_3 extends DefaultHandler implements
 		RawDataFile[] dataFiles = currentPeakListDataFiles
 				.toArray(new RawDataFile[0]);
 
-		buildingPeakList = new SimplePeakList(peakListName, dataFiles);
+		buildingPeakList = new PeakListImpl(peakListName, dataFiles);
 
 		for (int i = 0; i < appliedMethods.size(); i++) {
 			String methodName = appliedMethods.elementAt(i);
 			String methodParams = appliedMethodParameters.elementAt(i);
-			PeakListAppliedMethod pam = new SimplePeakListAppliedMethod(
+			PeakListAppliedMethod pam = new PeakListAppliedMethodImpl(
 					methodName, methodParams);
 			buildingPeakList.addDescriptionOfAppliedTask(pam);
 		}

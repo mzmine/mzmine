@@ -24,9 +24,8 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.RawDataFileWriter;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
@@ -36,7 +35,7 @@ public class CropFilter implements RawDataSetFilter {
     private int processedScans, totalScans;
 
     public RawDataFile filterDatafile(RawDataFile dataFile,
-	    RawDataFileWriter rawDataFileWriter, ParameterSet parameters)
+	    RawDataFile rawDataFileWriter, ParameterSet parameters)
 	    throws IOException {
 
 	Range RTRange = parameters.getParameter(
@@ -46,10 +45,10 @@ public class CropFilter implements RawDataSetFilter {
 	totalScans = scanNumbers.length;
 
 	for (processedScans = 0; processedScans < totalScans; processedScans++) {
-	    Scan scan = dataFile.getScan(scanNumbers[processedScans]);
+	    MsScan scan = dataFile.getScan(scanNumbers[processedScans]);
 
 	    if (RTRange.contains(scan.getRetentionTime())) {
-		Scan scanCopy = new SimpleScan(scan);
+		MsScan scanCopy = new MsScanImpl(scan);
 		rawDataFileWriter.addScan(scanCopy);
 	    }
 	}

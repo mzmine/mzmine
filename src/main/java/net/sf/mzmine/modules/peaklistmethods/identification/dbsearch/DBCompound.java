@@ -24,9 +24,9 @@ import java.net.URL;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
 
-public class DBCompound extends SimplePeakIdentity {
+public class DBCompound extends PeakListRowAnnotationImpl {
 
     private final URL compoundUrl;
     private final URL structure2dUrl;

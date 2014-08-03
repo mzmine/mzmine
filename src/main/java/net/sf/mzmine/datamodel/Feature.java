@@ -22,127 +22,101 @@ package net.sf.mzmine.datamodel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.sf.mzmine.util.Range;
-
 /**
- * This interface defines the properties of a detected peak
+ * A detected feature, characterized mainly by its m/z value, retention time,
+ * height and area. A feature can also be called a chromatographic peak, or an
+ * isotope trace. A single compound analyzed by MS can produce many features in
+ * the data (isotopes, adducts, fragments etc.). The feature can be bound to raw
+ * data file, if the raw data is available.
  */
 public interface Feature {
 
-	public enum FeatureStatus {
+    /**
+     * @return The status of this feature.
+     */
+    @Nonnull
+    FeatureStatus getFeatureStatus();
 
-		/**
-		 * Peak was not found
-		 */
-		UNKNOWN,
+    /**
+     * Sets a new status of this feature.
+     */
+    void setFeatureStatus(@Nonnull FeatureStatus newStatus);
 
-		/**
-		 * Peak was found in primary peak picking
-		 */
-		DETECTED,
+    /**
+     * @return m/z value of this feature. The m/z value might be different from
+     *         the raw m/z data points.
+     */
+    double getMZ();
 
-		/**
-		 * Peak was estimated in secondary peak picking
-		 */
-		ESTIMATED,
+    /**
+     * Sets new m/z value of this feature.
+     */
+    void setMZ(double newMZ);
 
-		/**
-		 * Peak was defined manually
-		 */
-		MANUAL
+    /**
+     * @return The retention time of this feature.
+     */
+    double getRT();
 
-	}
+    /**
+     * Sets new retention time to this feature.
+     */
+    void setRT(double newRT);
 
-	/**
-	 * This method returns the status of the peak
-	 */
-	public @Nonnull FeatureStatus getFeatureStatus();
+    /**
+     * @return The height of this feature. The height might be different from
+     *         the raw data point intensities (e.g. normalized).
+     */
+    double getHeight();
 
-	/**
-	 * This method returns raw M/Z value of the peak
-	 */
-	public double getMZ();
+    /**
+     * Sets new height to this feature.
+     */
+    void setHeight(double newHeight);
 
-	/**
-	 * This method returns raw retention time of the peak
-	 */
-	public double getRT();
+    /**
+     * @return The area of this feature. The area might be different from the
+     *         area of the raw data points (e.g. normalized).
+     */
+    double getArea();
 
-	/**
-	 * This method returns the raw height of the peak
-	 */
-	public double getHeight();
+    /**
+     * Sets new area to this feature.
+     */
+    void setArea(double newArea);
 
-	/**
-	 * This method returns the raw area of the peak
-	 */
-	public double getArea();
+    /**
+     * @return Raw data file where this peak is present, or null if this peak is
+     *         not connected to any raw data.
+     */
+    @Nullable
+    FeatureRawData getRawData();
 
-	/**
-	 * Returns raw data file where this peak is present
-	 */
-	public @Nonnull RawDataFile getDataFile();
+    /**
+     * Assigns a raw data file to this feature.
+     */
+    void setRawData(@Nullable FeatureRawData rawData);
 
-	/**
-	 * This method returns numbers of scans that contain this peak
-	 */
-	public @Nonnull int[] getScanNumbers();
+    /**
+     * Returns the isotope pattern of this peak or null if no pattern is
+     * attached
+     */
+    @Nullable
+    IsotopePattern getIsotopePattern();
 
-	/**
-	 * This method returns number of most representative scan of this peak
-	 */
-	public int getRepresentativeScanNumber();
+    /**
+     * Sets the isotope pattern of this peak
+     */
+    void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
 
-	/**
-	 * This method returns m/z and intensity of this peak in a given scan. This
-	 * m/z and intensity does not need to match any actual raw data point. May
-	 * return null, if there is no data point in given scan.
-	 */
-	public @Nullable DataPoint getDataPoint(int scanNumber);
+    /**
+     * Returns the charge of this feature. If the charge is unknown, returns 0.
+     */
+    int getCharge();
 
-	/**
-	 * Returns the retention time range of all raw data points used to detect
-	 * this peak
-	 */
-	public @Nonnull Range getRawDataPointsRTRange();
-
-	/**
-	 * Returns the range of m/z values of all raw data points used to detect
-	 * this peak
-	 */
-	public @Nonnull Range getRawDataPointsMZRange();
-
-	/**
-	 * Returns the range of intensity values of all raw data points used to
-	 * detect this peak
-	 */
-	public @Nonnull Range getRawDataPointsIntensityRange();
-
-	/**
-	 * Returns the number of scan that represents the fragmentation of this peak
-	 * in MS2 level.
-	 */
-	public int getMostIntenseFragmentScanNumber();
-
-	/**
-	 * Returns the isotope pattern of this peak or null if no pattern is
-	 * attached
-	 */
-	public @Nullable IsotopePattern getIsotopePattern();
-
-	/**
-	 * Sets the isotope pattern of this peak
-	 */
-	public void setIsotopePattern(@Nonnull IsotopePattern isotopePattern);
-
-	/**
-	 * Returns the charge of this ion. If the charge is unknown, returns 0.
-	 */
-	public int getCharge();
-
-	/**
-	 * Sets the charge of this ion
-	 */
-	public void setCharge(int charge);
+    /**
+     * Sets the charge of this feature. Unknown charge is represented by 0.
+     */
+    void setCharge(int charge);
 
 }

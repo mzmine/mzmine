@@ -26,11 +26,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.RawDataFileWriter;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -58,7 +57,7 @@ public class NetCDFReadTask extends AbstractTask {
 	private Hashtable<Integer, Double> scansRetentionTimes;
 
 	private File file;
-	private RawDataFileWriter newMZmineFile;
+	private RawDataFile newMZmineFile;
 	private RawDataFile finalRawDataFile;
 
 	private Variable massValueVariable;
@@ -71,7 +70,7 @@ public class NetCDFReadTask extends AbstractTask {
 	/**
      * 
      */
-	public NetCDFReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+	public NetCDFReadTask(File fileToOpen, RawDataFile newMZmineFile) {
 		this.file = fileToOpen;
 		this.newMZmineFile = newMZmineFile;
 	}
@@ -98,7 +97,7 @@ public class NetCDFReadTask extends AbstractTask {
 			this.startReading();
 
 			// Parse scans
-			Scan buildingScan;
+			MsScan buildingScan;
 			while ((buildingScan = this.readNextScan()) != null) {
 
 				// Check if cancel is requested
@@ -380,7 +379,7 @@ public class NetCDFReadTask extends AbstractTask {
 	 * Reads one scan from the file. Requires that general information has
 	 * already been read.
 	 */
-	public Scan readNextScan() throws IOException {
+	public MsScan readNextScan() throws IOException {
 
 		// Get scan starting position and length
 		int[] scanStartPosition = new int[1];
@@ -405,7 +404,7 @@ public class NetCDFReadTask extends AbstractTask {
 		// An empty scan needs some special attention..
 		if (scanLength[0] == 0) {
 			scanNum++;
-			return new SimpleScan(null, scanNum, 1,
+			return new MsScanImpl(null, scanNum, 1,
 					retentionTime.doubleValue(), -1, 0, 0, null,
 					new DataPoint[0], false);
 		}
@@ -442,7 +441,7 @@ public class NetCDFReadTask extends AbstractTask {
 					* massValueScaleFactor;
 			double intensity = intensityValueArray.getDouble(intensityIndex0)
 					* intensityValueScaleFactor;
-			completeDataPoints[j] = new SimpleDataPoint(mz, intensity);
+			completeDataPoints[j] = MZmineObjectBuilder.getDataPoint(mz, intensity);
 
 		}
 
@@ -455,7 +454,7 @@ public class NetCDFReadTask extends AbstractTask {
 		DataPoint optimizedDataPoints[] = ScanUtils.removeZeroDataPoints(
 				completeDataPoints, centroided);
 
-		SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
+		MsScanImpl buildingScan = new MsScanImpl(null, scanNum, 1,
 				retentionTime.doubleValue(), -1, 0, 0, null,
 				optimizedDataPoints, centroided);
 

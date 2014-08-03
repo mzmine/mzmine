@@ -27,10 +27,10 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimpleFeature;
-import net.sf.mzmine.datamodel.impl.SimplePeakList;
-import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
+import net.sf.mzmine.datamodel.impl.FeatureImpl;
+import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.normalization.linear.LinearNormalizerParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -97,7 +97,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 				+ standardRows.length + " standard peaks)");
 
 		// Initialize new alignment result for the normalized result
-		normalizedPeakList = new SimplePeakList(
+		normalizedPeakList = new PeakListImpl(
 				originalPeakList + " " + suffix,
 				originalPeakList.getRawDataFiles());
 
@@ -122,7 +122,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 			}
 
 			// Copy comment and identification
-			SimplePeakListRow normalizedRow = new SimplePeakListRow(row.getID());
+			PeakListRowImpl normalizedRow = new PeakListRowImpl(row.getID());
 			PeakUtils.copyPeakListRowProperties(row, normalizedRow);
 
 			// Get m/z and RT of the current row
@@ -239,7 +239,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 				Feature originalPeak = row.getPeak(file);
 				if (originalPeak != null) {
 
-					SimpleFeature normalizedPeak = new SimpleFeature(
+					FeatureImpl normalizedPeak = new FeatureImpl(
 							originalPeak);
 
 					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
@@ -272,7 +272,7 @@ public class StandardCompoundNormalizerTask extends AbstractTask {
 
 		// Add task description to peakList
 		normalizedPeakList
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
 						"Standard compound normalization", parameters));
 
 		// Remove the original peaklist if requested

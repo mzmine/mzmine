@@ -30,7 +30,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
@@ -271,7 +271,7 @@ public class Chromatogram implements Feature {
 		dataFile.getDataRTRange(1), rawDataPointsMZRange);
 
 	if (fragmentScan > 0) {
-	    Scan fragmentScanObject = dataFile.getScan(fragmentScan);
+	    MsScan fragmentScanObject = dataFile.getScan(fragmentScan);
 	    int precursorCharge = fragmentScanObject.getPrecursorCharge();
 	    if (precursorCharge > 0)
 		this.charge = precursorCharge;

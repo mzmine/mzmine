@@ -35,7 +35,9 @@ import javax.annotation.Nonnull;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.MZmineProject;
-import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.MZmineProjectImpl;
+import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
@@ -45,9 +47,7 @@ import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.project.ProjectManager;
-import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
-import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.ExitCode;
@@ -269,7 +269,7 @@ public final class MZmineCore {
 		return initializedModules.values();
 	}
 
-	public static RawDataFileWriter createNewFile(String name)
+	public static RawDataFile createNewFile(String name)
 			throws IOException {
 		return new RawDataFileImpl(name);
 	}
@@ -284,6 +284,7 @@ public final class MZmineCore {
 				return "0.0";
 			Properties properties = new Properties();
 			properties.load(inStream);
+			inStream.close();
 			return properties.getProperty("version");
 		} catch (Exception e) {
 			e.printStackTrace();

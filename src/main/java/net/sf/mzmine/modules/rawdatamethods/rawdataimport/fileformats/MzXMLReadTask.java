@@ -34,10 +34,9 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.RawDataFileWriter;
-import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.datamodel.impl.MsScanImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CompressionUtils;
@@ -57,7 +56,7 @@ public class MzXMLReadTask extends AbstractTask {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private File file;
-	private RawDataFileWriter newMZmineFile;
+	private RawDataFile newMZmineFile;
 	private RawDataFile finalRawDataFile;
 	private int totalScans = 0, parsedScans;
 	private int peaksCount = 0;
@@ -82,18 +81,18 @@ public class MzXMLReadTask extends AbstractTask {
 	 * information is recover. The logic is FIFO at the moment of write into the
 	 * RawDataFile
 	 */
-	private LinkedList<SimpleScan> parentStack;
+	private LinkedList<MsScanImpl> parentStack;
 
 	/*
 	 * This variable hold the present scan or fragment, it is send to the stack
 	 * when another scan/fragment appears as a parser.startElement
 	 */
-	private SimpleScan buildingScan;
+	private MsScanImpl buildingScan;
 
-	public MzXMLReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+	public MzXMLReadTask(File fileToOpen, RawDataFile newMZmineFile) {
 		// 256 kilo-chars buffer
 		charBuffer = new StringBuilder(1 << 18);
-		parentStack = new LinkedList<SimpleScan>();
+		parentStack = new LinkedList<MsScanImpl>();
 		this.file = fileToOpen;
 		this.newMZmineFile = newMZmineFile;
 	}
@@ -212,7 +211,7 @@ public class MzXMLReadTask extends AbstractTask {
 
 				if (msLevel > 1) {
 					parentScan = parentTreeValue[msLevel - 1];
-					for (SimpleScan p : parentStack) {
+					for (MsScanImpl p : parentStack) {
 						if (p.getScanNumber() == parentScan) {
 							p.addFragmentScan(scanNumber);
 						}
@@ -223,7 +222,7 @@ public class MzXMLReadTask extends AbstractTask {
 				msLevelTree++;
 				parentTreeValue[msLevel] = scanNumber;
 
-				buildingScan = new SimpleScan(null, scanNumber, msLevel,
+				buildingScan = new MsScanImpl(null, scanNumber, msLevel,
 						retentionTime, parentScan, 0, 0, null,
 						new DataPoint[0], false);
 
@@ -279,7 +278,7 @@ public class MzXMLReadTask extends AbstractTask {
 					parentStack.addFirst(buildingScan);
 					buildingScan = null;
 					while (!parentStack.isEmpty()) {
-						SimpleScan currentScan = parentStack.removeLast();
+						MsScanImpl currentScan = parentStack.removeLast();
 						try {
 							newMZmineFile.addScan(currentScan);
 						} catch (IOException e) {
@@ -345,7 +344,7 @@ public class MzXMLReadTask extends AbstractTask {
 						}
 
 						// Copy m/z and intensity data
-						completeDataPoints[i] = new SimpleDataPoint(
+						completeDataPoints[i] = MZmineObjectBuilder.getDataPoint(
 								massOverCharge, intensity);
 
 					}

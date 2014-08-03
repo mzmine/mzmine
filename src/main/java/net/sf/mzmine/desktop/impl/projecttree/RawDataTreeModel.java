@@ -31,7 +31,7 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.MsScan;
 
 /**
  * Project tree model implementation
@@ -77,7 +77,7 @@ public class RawDataTreeModel extends DefaultTreeModel {
 			RawDataFile dataFile = (RawDataFile) object;
 			int scanNumbers[] = dataFile.getScanNumbers();
 			for (int i = 0; i < scanNumbers.length; i++) {
-				Scan scan = dataFile.getScan(scanNumbers[i]);
+				MsScan scan = dataFile.getScan(scanNumbers[i]);
 				DefaultMutableTreeNode scanNode = new DefaultMutableTreeNode(
 						scan);
 				treeObjects.put(scan, scanNode);
@@ -96,7 +96,7 @@ public class RawDataTreeModel extends DefaultTreeModel {
 		}
 
 		if (object instanceof MassList) {
-			Scan scan = ((MassList) object).getScan();
+			MsScan scan = ((MassList) object).getScan();
 
 			final DefaultMutableTreeNode scNode = treeObjects.get(scan);
 			assert scNode != null;
