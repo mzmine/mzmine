@@ -21,6 +21,7 @@ package net.sf.mzmine.util.components;
 
 import javax.swing.*;
 
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -31,23 +32,34 @@ import java.util.Vector;
  */
 public class DragOrderedJList extends JList {
 
+    private Component referent;
     private int dragFrom;
 
     /**
      * Create the list.
      */
-    public DragOrderedJList() {
+    public DragOrderedJList(Component ref) {
 
         // Initialize.
         super(new DefaultListModel());
         dragFrom = -1;
 
+        referent = ref;
+        
         // Add mouse button pressed listener.
         addMouseListener(new MouseAdapter() {
 
             @Override
             public void mousePressed(final MouseEvent e) {
                 dragFrom = getSelectedIndex();
+                // Dispatch event to "referent" component
+                referent.dispatchEvent(e);
+            }
+
+            @Override
+            public void mouseReleased(final MouseEvent e) {
+                // Dispatch event to "referent" component
+                referent.dispatchEvent(e);
             }
         });
 

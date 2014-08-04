@@ -22,14 +22,18 @@ package net.sf.mzmine.modules.batchmode;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JList;
@@ -64,7 +68,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-public class BatchSetupComponent extends JPanel implements ActionListener {
+public class BatchSetupComponent extends JPanel implements ActionListener, MouseListener {
 
     // Logger.
     private static final Logger LOG = Logger
@@ -90,6 +94,8 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
     private final JButton btnClear;
     private final JButton btnLoad;
     private final JButton btnSave;
+    
+    Object[] queueListModel;
 
     // File chooser.
     private LoadSaveFileChooser chooser;
@@ -109,7 +115,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
                 XML_EXTENSION));
 
         // The steps list.
-        currentStepsList = new DragOrderedJList();
+        currentStepsList = new DragOrderedJList(this);
         currentStepsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
         // Methods combo box.
@@ -176,6 +182,8 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
         add(new JScrollPane(currentStepsList), BorderLayout.CENTER);
         add(pnlBottom, BorderLayout.SOUTH);
         add(pnlRight, BorderLayout.EAST);
+        
+        this.addMouseListener(this);
     }
 
     @Override
@@ -417,4 +425,36 @@ public class BatchSetupComponent extends JPanel implements ActionListener {
         currentStepsList.setListData(batchQueue);
         selectStep(index);
     }
+
+    // Handle mouse events
+	@Override
+	public void mousePressed(MouseEvent e) {
+		queueListModel = ((DefaultListModel) currentStepsList.getModel()).toArray();
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		Object[] listModel = ((DefaultListModel) currentStepsList.getModel()).toArray();
+		// Model changed => apply on queue
+		if (!Arrays.deepEquals(listModel, queueListModel)) {
+			for (int i=0; i < listModel.length; ++i) {
+				batchQueue.set(i, (MZmineProcessingStep<MZmineProcessingModule>) listModel[i]);
+			}			
+		}
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+
+	}
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+
+	}
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+
+	}
+
 }
