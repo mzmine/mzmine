@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.Aligner;
 import net.sf.mzmine.modules.peaklistmethods.alignment.path.functions.ScoreAligner;
@@ -85,7 +85,7 @@ class PathAlignerTask extends AbstractTask {
 
 	// Add task description to peakList
 	alignedPeakList
-		.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 			"Path aligner", parameters));
 
 	logger.info("Finished Path aligner");

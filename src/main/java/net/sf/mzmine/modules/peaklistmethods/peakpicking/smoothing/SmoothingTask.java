@@ -28,16 +28,16 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.FeatureImpl;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -46,6 +46,9 @@ import net.sf.mzmine.util.Range;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
+ *
+ * @author $Author$
+ * @version $Revision$
  */
 public class SmoothingTask extends AbstractTask {
 
@@ -54,7 +57,7 @@ public class SmoothingTask extends AbstractTask {
 
     // Peak lists: original and processed.
     private final PeakList origPeakList;
-    private PeakListImpl newPeakList;
+    private SimplePeakList newPeakList;
 
     // Parameters.
     private final ParameterSet parameters;
@@ -109,7 +112,7 @@ public class SmoothingTask extends AbstractTask {
             final double[] filterWeights = SavitzkyGolayFilter.getNormalizedWeights(filterWidth);
 
             // Create new peak list
-            newPeakList = new PeakListImpl(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+            newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
             int peakID = 1;
 
             // Process each row.
@@ -118,7 +121,7 @@ public class SmoothingTask extends AbstractTask {
                 if (!isCanceled()) {
 
                     // Create a new peak-list row.
-                    final PeakListRow newRow = new PeakListRowImpl(peakID++);
+                    final PeakListRow newRow = new SimplePeakListRow(peakID++);
 
                     // Process each peak.
                     for (final Feature peak : row.getPeaks()) {
@@ -156,7 +159,7 @@ public class SmoothingTask extends AbstractTask {
                                     // Create a new data point.
                                     final double mz = dataPoint.getMZ();
                                     final double rt = dataFile.getScan(scanNumber).getRetentionTime();
-                                    final DataPoint newDataPoint = MZmineObjectBuilder.getDataPoint(mz, intensity);
+                                    final DataPoint newDataPoint = new SimpleDataPoint(mz, intensity);
                                     newDataPoints[i] = newDataPoint;
 
                                     // Track maximum intensity data point.
@@ -192,7 +195,7 @@ public class SmoothingTask extends AbstractTask {
 
                                 // Create a new peak.
                                 newRow.addPeak(dataFile,
-                                               new FeatureImpl(
+                                               new SimpleFeature(
                                                        dataFile,
                                                        maxDataPoint.getMZ(),
                                                        peak.getRT(),
@@ -235,7 +238,7 @@ public class SmoothingTask extends AbstractTask {
 
                 // Add task description to peak-list.
                 newPeakList.addDescriptionOfAppliedTask(
-                        new PeakListAppliedMethodImpl("Peaks smoothed by Savitzky-Golay filter", parameters));
+                        new SimplePeakListAppliedMethod("Peaks smoothed by Savitzky-Golay filter", parameters));
 
                 LOG.finest("Finished peak smoothing: " + progress + " rows processed");
 

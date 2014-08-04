@@ -45,7 +45,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
@@ -113,8 +113,8 @@ public class PeakListSaveHandler {
 
 	// <PEAKLIST_DATE>
 	String dateText = "";
-	if (((PeakListImpl) peakList).getDateCreated() == null) {
-	    dateText = ((PeakListImpl) peakList).getDateCreated();
+	if (((SimplePeakList) peakList).getDateCreated() == null) {
+	    dateText = ((SimplePeakList) peakList).getDateCreated();
 	} else {
 	    Date date = new Date();
 	    dateText = dateFormat.format(date);

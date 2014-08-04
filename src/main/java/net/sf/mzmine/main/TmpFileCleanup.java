@@ -40,9 +40,8 @@ class TmpFileCleanup {
 	    // Find all temporary files with the mask mzmine*.scans
 	    File tempDir = new File(System.getProperty("java.io.tmpdir"));
 	    File remainingTmpFiles[] = tempDir.listFiles(new FilenameFilter() {
-		@Override
 		public boolean accept(File dir, String name) {
-		    return name.matches("mzmine.*\\.tmp");
+		    return name.matches("mzmine.*\\.scans");
 		}
 	    });
 

@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
@@ -94,7 +94,7 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 	    RawDataFile dataFile, int scanNumber, Feature peak,
 	    IsotopePattern detectedPattern, IsotopePattern predictedPattern) {
 
-	MsScan scan = dataFile.getScan(scanNumber);
+	Scan scan = dataFile.getScan(scanNumber);
 
 	if (scan == null) {
 	    MZmineCore.getDesktop().displayErrorMessage(

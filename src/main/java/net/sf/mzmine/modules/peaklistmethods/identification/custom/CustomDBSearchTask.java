@@ -26,8 +26,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -125,7 +125,7 @@ class CustomDBSearchTask extends AbstractTask {
 	}
 
 	// Add task description to peakList
-	peakList.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+	peakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 		"Peak identification using database " + dataBaseFile,
 		parameters));
 
@@ -156,7 +156,7 @@ class CustomDBSearchTask extends AbstractTask {
 		lineRT = Double.parseDouble(values[i]);
 	}
 
-	PeakListRowAnnotationImpl newIdentity = new PeakListRowAnnotationImpl(lineName,
+	SimplePeakIdentity newIdentity = new SimplePeakIdentity(lineName,
 		lineFormula, dataBaseFile.getName(), lineID, null);
 
 	for (PeakListRow peakRow : peakList.getRows()) {

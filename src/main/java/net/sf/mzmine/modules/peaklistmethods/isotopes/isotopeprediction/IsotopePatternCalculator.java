@@ -25,10 +25,10 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.Polarity;
-import net.sf.mzmine.datamodel.impl.IsotopePatternImpl;
+import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -102,13 +102,13 @@ public class IsotopePatternCalculator implements MZmineModule {
 
 	    double intensity = isotope.getIntensity();
 
-	    dataPoints[i] = MZmineObjectBuilder.getDataPoint(mass, intensity);
+	    dataPoints[i] = new SimpleDataPoint(mass, intensity);
 	}
 
 	String formulaString = MolecularFormulaManipulator
 		.getString(cdkFormula);
 
-	IsotopePatternImpl newPattern = new IsotopePatternImpl(dataPoints,
+	SimpleIsotopePattern newPattern = new SimpleIsotopePattern(dataPoints,
 		IsotopePatternStatus.PREDICTED, formulaString);
 
 	return newPattern;
@@ -143,10 +143,10 @@ public class IsotopePatternCalculator implements MZmineModule {
 	    double intensity = dataPoints[i].getIntensity() / maxIntensity
 		    * normalizedValue;
 
-	    newDataPoints[i] = MZmineObjectBuilder.getDataPoint(mz, intensity);
+	    newDataPoints[i] = new SimpleDataPoint(mz, intensity);
 	}
 
-	IsotopePatternImpl newPattern = new IsotopePatternImpl(
+	SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
 		newDataPoints, pattern.getStatus(), pattern.getDescription());
 
 	return newPattern;
@@ -173,7 +173,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 			* dataPoints[i].getIntensity() + dataPoints[i + 1]
 			.getMZ() * dataPoints[i + 1].getIntensity())
 			/ newIntensity;
-		dataPoints[i + 1] = MZmineObjectBuilder.getDataPoint(newMZ, newIntensity);
+		dataPoints[i + 1] = new SimpleDataPoint(newMZ, newIntensity);
 		dataPoints[i] = null;
 	    }
 	}
@@ -184,7 +184,7 @@ public class IsotopePatternCalculator implements MZmineModule {
 		newDataPoints.add(dp);
 	}
 
-	IsotopePatternImpl newPattern = new IsotopePatternImpl(
+	SimpleIsotopePattern newPattern = new SimpleIsotopePattern(
 		newDataPoints.toArray(new DataPoint[0]), pattern.getStatus(),
 		pattern.getDescription());
 

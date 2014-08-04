@@ -28,8 +28,8 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -67,7 +67,7 @@ public class IsotopePatternExportModule implements MZmineModule {
 	} else {
 	    isotopes = new DataPoint[1];
 	    Feature bestPeak = row.getBestPeak();
-	    isotopes[0] = MZmineObjectBuilder.getDataPoint(bestPeak.getMZ(),
+	    isotopes[0] = new SimpleDataPoint(bestPeak.getMZ(),
 		    bestPeak.getHeight());
 	}
 

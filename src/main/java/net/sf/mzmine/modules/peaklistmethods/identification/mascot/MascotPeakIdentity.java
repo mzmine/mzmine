@@ -19,41 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import java.util.Map;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 
-import javax.annotation.Nonnull;
-
-import net.sf.mzmine.datamodel.PeakIdentity;
-
-public class MascotPeakIdentity implements PeakIdentity {
-
-	@Override
-	@Nonnull
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	@Nonnull
-	public String getDescription() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	@Nonnull
-	public String getPropertyValue(String property) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	@Nonnull
-	public Map<String, String> getAllProperties() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+public class MascotPeakIdentity extends SimplePeakIdentity {
 
 /*    private static final String PROPERTY_PEPTIDE = "Peptide sequence";
     private static final String PROPERTY_MASS = "Mass (Mr)";
@@ -105,8 +73,5 @@ public class MascotPeakIdentity implements PeakIdentity {
         setPropertyValue(PROPERTY_MODIFICATIONS, modSeqString);
     }
        */
-    @Nonnull
-    public Object clone() {
-    	return this;
-    };
+  
 }

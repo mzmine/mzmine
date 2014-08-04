@@ -19,13 +19,13 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 
 public interface RawDataFilter {
 
 	/**
 	 * Returns a modified scan after being processed by the filter
 	 */
-	public MsScan filterScan(MsScan scan);
+	public Scan filterScan(Scan scan);
 
 }

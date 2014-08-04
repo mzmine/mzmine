@@ -20,7 +20,7 @@
 package net.sf.mzmine.util;
 
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 
 /**
  * Raw data file related utilities
@@ -65,7 +65,7 @@ public class RawDataFileUtils {
 	 */
 	public static boolean hasMassLists(RawDataFile dataFile) {
 		for (int scanNum : dataFile.getScanNumbers(1)) {
-			MsScan scan = dataFile.getScan(scanNum);
+			Scan scan = dataFile.getScan(scanNum);
 			if (scan.getMassLists().length == 0)
 				return false;
 		}

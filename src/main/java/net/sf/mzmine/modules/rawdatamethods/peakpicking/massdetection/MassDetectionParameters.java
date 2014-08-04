@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.centroid.CentroidMassDetector;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.ExactMassDetector;
@@ -82,7 +82,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 	for (RawDataFile file : selectedFiles) {
 	    int scanNums[] = file.getScanNumbers(selectedMSLevel);
 	    for (int scanNum : scanNums) {
-		MsScan s = file.getScan(scanNum);
+		Scan s = file.getScan(scanNum);
 		if (s.isCentroided())
 		    centroidData = true;
 	    }

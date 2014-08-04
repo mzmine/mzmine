@@ -27,9 +27,9 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -57,7 +57,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 	private MZTolerance mzTolerance;
 	private double minimumTimeSpan, minimumHeight;
 
-	private PeakListImpl newPeakList;
+	private SimplePeakList newPeakList;
 
 	/**
 	 * @param dataFile
@@ -116,7 +116,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 		totalScans = scanNumbers.length;
 
 		// Create new peak list
-		newPeakList = new PeakListImpl(dataFile + " " + suffix, dataFile);
+		newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
 		Chromatogram[] chromatograms;
 		HighestDataPointConnector massConnector = new HighestDataPointConnector(
@@ -127,7 +127,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 			if (isCanceled())
 				return;
 
-			MsScan scan = dataFile.getScan(scanNumbers[i]);
+			Scan scan = dataFile.getScan(scanNumbers[i]);
 
 			MassList massList = scan.getMassList(massListName);
 			if (massList == null) {
@@ -159,7 +159,7 @@ public class ChromatogramBuilderTask extends AbstractTask {
 
 		// Add the chromatograms to the new peak list
 		for (Feature finishedPeak : chromatograms) {
-			PeakListRowImpl newRow = new PeakListRowImpl(newPeakID);
+			SimplePeakListRow newRow = new SimplePeakListRow(newPeakID);
 			newPeakID++;
 			newRow.addPeak(dataFile, finishedPeak);
 			newPeakList.addRow(newRow);

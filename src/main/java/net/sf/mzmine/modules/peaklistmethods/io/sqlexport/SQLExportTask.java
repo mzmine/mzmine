@@ -33,7 +33,7 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -188,7 +188,7 @@ class SQLExportTask extends AbstractTask {
 		    break;
 		}
 		RawDataFile dataFile = row.getBestPeak().getDataFile();
-		MsScan msmsScan = dataFile.getScan(msmsScanNum);
+		Scan msmsScan = dataFile.getScan(msmsScanNum);
 		MassList msmsMassList = msmsScan.getMassList(dataValue);
 		// Check if there is a masslist for the scan
 		if (msmsMassList == null) {

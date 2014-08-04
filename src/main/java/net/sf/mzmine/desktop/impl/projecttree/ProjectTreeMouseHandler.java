@@ -34,7 +34,7 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.infovisualizer.InfoVisualizerModule;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableModule;
@@ -178,8 +178,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	// Actions for scans
 
 	if (command.equals("SHOW_SCAN")) {
-	    MsScan selectedScans[] = tree.getSelectedObjects(MsScan.class);
-	    for (MsScan scan : selectedScans) {
+	    Scan selectedScans[] = tree.getSelectedObjects(Scan.class);
+	    for (Scan scan : selectedScans) {
 		SpectraVisualizerModule.showNewSpectrumWindow(
 			scan.getDataFile(), scan.getScanNumber());
 	    }
@@ -189,7 +189,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    MassList selectedMassLists[] = tree
 		    .getSelectedObjects(MassList.class);
 	    for (MassList massList : selectedMassLists) {
-		MsScan scan = massList.getScan();
+		Scan scan = massList.getScan();
 		SpectraVisualizerWindow window = SpectraVisualizerModule
 			.showNewSpectrumWindow(scan.getDataFile(),
 				scan.getScanNumber());
@@ -202,7 +202,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    MassList selectedMassLists[] = tree
 		    .getSelectedObjects(MassList.class);
 	    for (MassList massList : selectedMassLists) {
-		MsScan scan = massList.getScan();
+		Scan scan = massList.getScan();
 		scan.removeMassList(massList);
 	    }
 	}
@@ -217,7 +217,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		for (RawDataFile dataFile : dataFiles) {
 		    int scanNumbers[] = dataFile.getScanNumbers();
 		    for (int scanNum : scanNumbers) {
-			MsScan scan = dataFile.getScan(scanNum);
+			Scan scan = dataFile.getScan(scanNum);
 			MassList ml = scan.getMassList(massListName);
 			if (ml != null)
 			    scan.removeMassList(ml);
@@ -297,7 +297,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 
 	if (clickedObject instanceof RawDataFile)
 	    dataFilePopupMenu.show(e.getComponent(), e.getX(), e.getY());
-	if (clickedObject instanceof MsScan)
+	if (clickedObject instanceof Scan)
 	    scanPopupMenu.show(e.getComponent(), e.getX(), e.getY());
 	if (clickedObject instanceof MassList)
 	    massListPopupMenu.show(e.getComponent(), e.getX(), e.getY());
@@ -326,15 +326,15 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    .showNewPeakListVisualizerWindow(clickedPeakList);
 	}
 
-	if (clickedObject instanceof MsScan) {
-	    MsScan clickedScan = (MsScan) clickedObject;
+	if (clickedObject instanceof Scan) {
+	    Scan clickedScan = (Scan) clickedObject;
 	    SpectraVisualizerModule.showNewSpectrumWindow(
 		    clickedScan.getDataFile(), clickedScan.getScanNumber());
 	}
 
 	if (clickedObject instanceof MassList) {
 	    MassList clickedMassList = (MassList) clickedObject;
-	    MsScan clickedScan = clickedMassList.getScan();
+	    Scan clickedScan = clickedMassList.getScan();
 	    SpectraVisualizerWindow window = SpectraVisualizerModule
 		    .showNewSpectrumWindow(clickedScan.getDataFile(),
 			    clickedScan.getScanNumber());

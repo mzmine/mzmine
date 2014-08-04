@@ -26,8 +26,8 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 
@@ -160,7 +160,7 @@ public class TrianglePeakModel implements Feature {
 	    currentRT = retentionTimes[i] * 60d;
 
 	    shapeHeight = calculateIntensity(currentRT);
-	    DataPoint mzPeak = MZmineObjectBuilder.getDataPoint(mz, shapeHeight);
+	    SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
 	    dataPointsMap.put(scanNumbers[i], mzPeak);
 
 	    area += (currentRT - previousRT) * (shapeHeight + previousHeight)

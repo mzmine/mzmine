@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.main;
 
-import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 
 /**
@@ -28,8 +27,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
  */
 class ShutDownHook extends Thread {
 
-    @Override
-    public synchronized void start() {
+    public void start() {
 
 	// Save configuration
 	try {
@@ -42,11 +40,7 @@ class ShutDownHook extends Thread {
 	// Close all temporary files
 	RawDataFile dataFiles[] = MZmineCore.getCurrentProject().getDataFiles();
 	for (RawDataFile dataFile : dataFiles) {
-	    dataFile.dispose();
-	}
-	PeakList peakLists[] = MZmineCore.getCurrentProject().getPeakLists();
-	for (PeakList peakList : peakLists) {
-	    peakList.dispose();
+	    dataFile.close();
 	}
 
     }

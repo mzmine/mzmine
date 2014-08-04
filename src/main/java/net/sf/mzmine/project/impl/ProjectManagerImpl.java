@@ -23,7 +23,6 @@ import java.io.File;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.MZmineProjectImpl;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoadModule;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
@@ -60,7 +59,7 @@ public class ProjectManagerImpl implements ProjectManager {
 	if (currentProject != null) {
 	    RawDataFile prevDataFiles[] = currentProject.getDataFiles();
 	    for (RawDataFile prevDataFile : prevDataFiles) {
-		prevDataFile.dispose();
+		prevDataFile.close();
 	    }
 	}
 

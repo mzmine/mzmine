@@ -29,7 +29,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -74,7 +74,7 @@ public class MSMSExportModule implements MZmineModule {
 	}
 
 	// MS/MS scan must exist, because msmsScanNumber was > 0
-	MsScan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
+	Scan msmsScan = bestPeak.getDataFile().getScan(msmsScanNumber);
 
 	MassList massList = msmsScan.getMassList(massListName);
 	if (massList == null) {

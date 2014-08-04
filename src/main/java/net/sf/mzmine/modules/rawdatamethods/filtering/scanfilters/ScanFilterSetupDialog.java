@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.awt.Color;
 
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -61,9 +61,9 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
      * 
      * @param scanNumber
      */
-    protected void loadPreview(SpectraPlot spectrumPlot, MsScan previewScan) {
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
 
-	MsScan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
+	Scan newScan = rawDataFilter.filterScan(previewScan, filterParameters);
 
 	ScanDataSet spectraDataSet = new ScanDataSet("Filtered scan", newScan);
 	ScanDataSet spectraOriginalDataSet = new ScanDataSet("Original scan",

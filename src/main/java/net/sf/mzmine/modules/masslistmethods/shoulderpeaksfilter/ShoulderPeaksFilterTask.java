@@ -24,8 +24,8 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.MassListImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -102,7 +102,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 		// Check if we have at least one scan with a mass list of given name
 		boolean haveMassList = false;
 		for (int i = 0; i < totalScans; i++) {
-			MsScan scan = dataFile.getScan(scanNumbers[i]);
+			Scan scan = dataFile.getScan(scanNumbers[i]);
 			MassList massList = scan.getMassList(massListName);
 			if (massList != null) {
 				haveMassList = true;
@@ -122,7 +122,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 			if (isCanceled())
 				return;
 
-			MsScan scan = dataFile.getScan(scanNumbers[i]);
+			Scan scan = dataFile.getScan(scanNumbers[i]);
 
 			MassList massList = scan.getMassList(massListName);
 
@@ -137,7 +137,7 @@ public class ShoulderPeaksFilterTask extends AbstractTask {
 			DataPoint newMzPeaks[] = ShoulderPeaksFilter.filterMassValues(
 					mzPeaks, parameters);
 
-			MassListImpl newMassList = new MassListImpl(massListName + " "
+			SimpleMassList newMassList = new SimpleMassList(massListName + " "
 					+ suffix, scan, newMzPeaks);
 
 			scan.addMassList(newMassList);

@@ -28,15 +28,23 @@ import net.sf.mzmine.main.MZmineCore;
  * This class represents one data point of a spectrum (m/z and intensity pair).
  * Data point is immutable once created, to make things simple.
  */
-class DataPointImpl implements DataPoint {
+public class SimpleDataPoint implements DataPoint {
 
     private double mz, intensity;
+
+    /**
+     * Constructor which copies the data from another DataPoint
+     */
+    public SimpleDataPoint(DataPoint dp) {
+	this.mz = dp.getMZ();
+	this.intensity = dp.getIntensity();
+    }
 
     /**
      * @param mz
      * @param intensity
      */
-    DataPointImpl(double mz, double intensity) {
+    public SimpleDataPoint(double mz, double intensity) {
 	this.mz = mz;
 	this.intensity = intensity;
     }

@@ -23,19 +23,17 @@ import javax.annotation.Nonnull;
 
 /**
  * This class represent detected masses (ions) in one mass spectrum. Each ion is
- * represented by a DataPoint. In other words, the MassList represents a
- * centroided mass spectrum.
+ * represented by a DataPoint
  */
-public interface MassList extends MassSpectrum {
+public interface MassList {
 
     @Nonnull
-    String getName();
-
-    void setName(@Nonnull String name);
+    public String getName();
 
     @Nonnull
-    MsScan getScan();
+    public Scan getScan();
 
-    void setScan(@Nonnull MsScan scan);
+    @Nonnull
+    public DataPoint[] getDataPoints();
 
 }

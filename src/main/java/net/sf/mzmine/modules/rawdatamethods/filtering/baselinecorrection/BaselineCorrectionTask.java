@@ -23,16 +23,13 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.MsScanImpl;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -41,6 +38,10 @@ import net.sf.mzmine.util.RUtilities;
 import net.sf.mzmine.util.Range;
 
 import org.rosuda.JRI.Rengine;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Task that performs baseline correction.
@@ -124,7 +125,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
         try {
             // Create a new file
-            final RawDataFile rawDataFileWriter =
+            final RawDataFileWriter rawDataFileWriter =
                     MZmineCore.createNewFile(origDataFile.getName() + ' ' + suffix);
 
             // Determine number of bins.
@@ -207,7 +208,7 @@ public class BaselineCorrectionTask extends AbstractTask {
      * @param level  MS-level of scans to copy.
      * @throws IOException if there are i/o problems.
      */
-    private void copyScansToWriter(final RawDataFile writer,
+    private void copyScansToWriter(final RawDataFileWriter writer,
                                    final int level)
             throws IOException {
 
@@ -223,7 +224,7 @@ public class BaselineCorrectionTask extends AbstractTask {
              scanIndex++) {
 
             // Get original scan.
-            final MsScan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
             // Get data points (m/z and intensity pairs) of the original scan
             final DataPoint[] origDataPoints = origScan.getDataPoints();
@@ -233,11 +234,11 @@ public class BaselineCorrectionTask extends AbstractTask {
             int i = 0;
             for (final DataPoint dp : origDataPoints) {
 
-                newDataPoints[i++] = MZmineObjectBuilder.getDataPoint(dp.getMZ(),dp.getIntensity());
+                newDataPoints[i++] = new SimpleDataPoint(dp);
             }
 
             // Create new copied scan.
-            final MsScanImpl newScan = new MsScanImpl(origScan);
+            final SimpleScan newScan = new SimpleScan(origScan);
             newScan.setDataPoints(newDataPoints);
             writer.addScan(newScan);
             progress++;
@@ -252,7 +253,7 @@ public class BaselineCorrectionTask extends AbstractTask {
      * @param numBins number of m/z bins.
      * @throws IOException if there are i/o problems.
      */
-    private void correctBasePeakBaselines(final RawDataFile writer, final int level, final int numBins)
+    private void correctBasePeakBaselines(final RawDataFileWriter writer, final int level, final int numBins)
             throws IOException {
 
         // Get scan numbers from original file.
@@ -275,13 +276,13 @@ public class BaselineCorrectionTask extends AbstractTask {
         for (int scanIndex = 0; !isCanceled() && scanIndex < numScans; scanIndex++) {
 
             // Get original scan.
-            final MsScan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
             // Get data points (m/z and intensity pairs) of the original scan
             final DataPoint[] origDataPoints = origScan.getDataPoints();
 
             // Create and write new corrected scan.
-            final MsScanImpl newScan = new MsScanImpl(origScan);
+            final SimpleScan newScan = new SimpleScan(origScan);
             newScan.setDataPoints(subtractBasePeakBaselines(origDataPoints, baseChrom, numBins, scanIndex));
             writer.addScan(newScan);
             progress++;
@@ -296,7 +297,7 @@ public class BaselineCorrectionTask extends AbstractTask {
      * @param numBins number of m/z bins.
      * @throws IOException if there are i/o problems.
      */
-    private void correctTICBaselines(final RawDataFile writer, final int level, final int numBins)
+    private void correctTICBaselines(final RawDataFileWriter writer, final int level, final int numBins)
             throws IOException {
 
         // Get scan numbers from original file.
@@ -329,13 +330,13 @@ public class BaselineCorrectionTask extends AbstractTask {
         for (int scanIndex = 0; !isCanceled() && scanIndex < numScans; scanIndex++) {
 
             // Get original scan.
-            final MsScan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
+            final Scan origScan = origDataFile.getScan(scanNumbers[scanIndex]);
 
             // Get data points (m/z and intensity pairs) of the original scan
             final DataPoint[] origDataPoints = origScan.getDataPoints();
 
             // Create and write new corrected scan.
-            final MsScanImpl newScan = new MsScanImpl(origScan);
+            final SimpleScan newScan = new SimpleScan(origScan);
             newScan.setDataPoints(subtractTICBaselines(origDataPoints, baseChrom, numBins, scanIndex));
             writer.addScan(newScan);
             progress++;
@@ -364,7 +365,7 @@ public class BaselineCorrectionTask extends AbstractTask {
         for (int scanIndex = 0; !isCanceled() && scanIndex < numScans; scanIndex++) {
 
             // Get original scan.
-            final MsScan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+            final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
             // Process data points.
             for (final DataPoint dataPoint : scan.getDataPoints()) {
@@ -401,7 +402,7 @@ public class BaselineCorrectionTask extends AbstractTask {
         for (int scanIndex = 0; !isCanceled() && scanIndex < numScans; scanIndex++) {
 
             // Get original scan.
-            final MsScan scan = origDataFile.getScan(scanNumbers[scanIndex]);
+            final Scan scan = origDataFile.getScan(scanNumbers[scanIndex]);
 
             // Process data points.
             for (final DataPoint dataPoint : scan.getDataPoints()) {
@@ -487,8 +488,8 @@ public class BaselineCorrectionTask extends AbstractTask {
             final int bin = mzRange.binNumber(numBins, mz);
             final double baselineIntenstity = baselines[bin][scanIndex];
             newDataPoints[i++] = baselineIntenstity <= 0.0 ?
-            		MZmineObjectBuilder.getDataPoint(dp.getMZ(), dp.getIntensity()) :
-                                	 MZmineObjectBuilder.getDataPoint(mz, Math.max(0.0, dp.getIntensity() - baselineIntenstity));
+                                 new SimpleDataPoint(dp) :
+                                 new SimpleDataPoint(mz, Math.max(0.0, dp.getIntensity() - baselineIntenstity));
         }
 
         // Return the new data points.
@@ -524,8 +525,8 @@ public class BaselineCorrectionTask extends AbstractTask {
             final int bin = mzRange.binNumber(numBins, mz);
             final double baselineIntenstity = baselines[bin][scanIndex];
             newDataPoints[i++] = baselineIntenstity <= 0.0 ?
-            		MZmineObjectBuilder.getDataPoint(dp.getMZ(), dp.getIntensity()) :
-            			MZmineObjectBuilder.getDataPoint(mz, Math.max(0.0, dp.getIntensity() * (1.0 - baselineIntenstity)));
+                                 new SimpleDataPoint(dp) :
+                                 new SimpleDataPoint(mz, Math.max(0.0, dp.getIntensity() * (1.0 - baselineIntenstity)));
         }
 
         // Return the new data points.

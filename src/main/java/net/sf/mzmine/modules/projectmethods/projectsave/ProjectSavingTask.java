@@ -30,12 +30,12 @@ import javax.xml.transform.TransformerConfigurationException;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.MZmineProjectImpl;
-import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.ProjectLoaderParameters;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.project.impl.MZmineProjectImpl;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;

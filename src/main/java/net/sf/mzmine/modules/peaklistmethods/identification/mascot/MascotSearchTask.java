@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -71,7 +71,7 @@ public class MascotSearchTask extends AbstractTask {
 	 * @param scan
 	 *            the scan
 	 */
-	private void writeMgf(PrintWriter writer, RawDataFile rawFile, MsScan scan, Integer query) {
+	private void writeMgf(PrintWriter writer, RawDataFile rawFile, Scan scan, Integer query) {
 		if (scan.getMSLevel() < MIN_MSMS_LEVEL) {
 			logger.warning("Scan " + scan.getScanNumber()
 					+ " is not a MS/MS scan."+scan.getMSLevel());

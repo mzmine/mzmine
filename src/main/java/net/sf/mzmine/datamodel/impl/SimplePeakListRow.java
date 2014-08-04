@@ -38,7 +38,7 @@ import net.sf.mzmine.util.SortingProperty;
 /**
  * Implementation of PeakListRow
  */
-public class PeakListRowImpl implements PeakListRow {
+public class SimplePeakListRow implements PeakListRow {
 
 	private Hashtable<RawDataFile, Feature> peaks;
 	private Vector<PeakIdentity> identities;
@@ -53,7 +53,7 @@ public class PeakListRowImpl implements PeakListRow {
 	 */
 	private double averageRT, averageMZ, averageHeight, averageArea;
 
-	public PeakListRowImpl(int myID) {
+	public SimplePeakListRow(int myID) {
 		this.myID = myID;
 		peaks = new Hashtable<RawDataFile, Feature>();
 		identities = new Vector<PeakIdentity>();

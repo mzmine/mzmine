@@ -23,10 +23,11 @@ import java.io.File;
 import java.util.Scanner;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
-import net.sf.mzmine.datamodel.impl.MsScanImpl;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -47,7 +48,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 	 * @param file
 	 *            A File instance containing the file to be read
 	 */
-	public AgilentCsvReadTask(File fileToOpen, RawDataFile newMZmineFile) {
+	public AgilentCsvReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
 		this.file = fileToOpen;
 		this.newMZmineFile = (RawDataFileImpl) newMZmineFile;
 	}
@@ -97,10 +98,10 @@ public class AgilentCsvReadTask extends AbstractTask {
 				int spectrumSize = scanner.nextInt();
 				DataPoint[] dataPoints = new DataPoint[spectrumSize];
 				for (int j = 0; j < spectrumSize; j++) {
-					dataPoints[j] = MZmineObjectBuilder.getDataPoint(scanner.nextDouble(),
+					dataPoints[j] = new SimpleDataPoint(scanner.nextDouble(),
 							scanner.nextDouble());
 				}
-				newMZmineFile.addScan(new MsScanImpl(null, parsedScans + 1,
+				newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1,
 						msLevel, retentionTime, -1, 0.0, charge, null,
 						dataPoints, ScanUtils.isCentroided(dataPoints)));
 

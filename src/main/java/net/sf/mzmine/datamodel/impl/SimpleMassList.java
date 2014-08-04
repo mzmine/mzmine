@@ -21,44 +21,51 @@ package net.sf.mzmine.datamodel.impl;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 
 /**
  * This class represent detected masses (ions) in one mass spectrum
  */
-public class MassListImpl extends SpectrumImpl implements MassList {
+public class SimpleMassList implements MassList {
 
-    private String name;
-    private MsScan scan;
+	private String name;
+	private Scan scan;
+	private DataPoint mzPeaks[];
 
-    public MassListImpl(RawDataFileImpl dataFile) {
-	super(dataFile);
-    }
+	public SimpleMassList(String name, Scan scan, DataPoint mzPeaks[]) {
+		this.name = name;
+		this.scan = scan;
+		this.mzPeaks = mzPeaks;
+	}
 
-    @Override
-    public @Nonnull String getName() {
-	return name;
-    }
+	@Override
+	public @Nonnull String getName() {
+		return name;
+	}
 
-    @Override
-    public void setName(@Nonnull String name) {
-	this.name = name;
-    }
+	@Override
+	public @Nonnull Scan getScan() {
+		return scan;
+	}
+	
+	public void setScan(Scan scan) {
+		this.scan = scan;
+	}
 
-    @Override
-    public @Nonnull MsScan getScan() {
-	return scan;
-    }
+	@Override
+	public @Nonnull DataPoint[] getDataPoints() {
+		return mzPeaks;
+	}
 
-    @Override
-    public void setScan(@Nonnull MsScan scan) {
-	this.scan = scan;
-    }
+	public void setDataPoints(DataPoint mzPeaks[]) {
+		this.mzPeaks = mzPeaks;
+	}
 
-    @Override
-    public String toString() {
-	return name;
-    }
+	@Override
+	public String toString() {
+		return name;
+	}
 
 }

@@ -20,7 +20,7 @@
 package net.sf.mzmine.modules.visualization.peaklist;
 
 import net.sf.mzmine.datamodel.*;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaPredictionModule;
@@ -480,7 +480,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
             }
 
             // create a new row
-            final PeakListRow newRow = new PeakListRowImpl(newID);
+            final PeakListRow newRow = new SimplePeakListRow(newID);
             peakList.addRow(newRow);
             final PeakListTableModel tableModel = (PeakListTableModel) table
                     .getModel();

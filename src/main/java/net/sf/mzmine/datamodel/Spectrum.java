@@ -19,18 +19,15 @@
 
 package net.sf.mzmine.datamodel;
 
-import java.io.IOException;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.google.common.collect.Range;
+import net.sf.mzmine.util.Range;
 
 /**
- * Represent one mass spectrum. For example, a scan in a raw data file, a
- * predicted isotope pattern, etc.
+ * This class represent one mass spectrum.
  */
-public interface MassSpectrum {
+public interface Spectrum {
 
     /**
      * Returns the m/z range of this Scan. Never returns null.
@@ -38,30 +35,38 @@ public interface MassSpectrum {
      * @return m/z range of this Scan
      */
     @Nonnull
-    Range<Double> getMZRange();
-
+    public Range getMZRange();
+    
     /**
      * Returns the top intensity data point. May return null if there are no
-     * data points in this spectrum.
+     * data points in this Scan.
      * 
      * @return Base peak
      */
     @Nullable
-    DataPoint getHighestDataPoint();
+    public DataPoint getHighestDataPoint();
+
+    /**
+     * Returns the sum of intensities of all data points.
+     * 
+     * @return Total ion current
+     */
+    public double getTIC();
 
     /**
      * 
-     * @return True if the spectrum is centroided
+     * @return True if the scan data is centroided
      */
-    boolean isCentroided();
+    public boolean isCentroided();
+
 
     /**
-     * @return Number of m/z and intensity data points. 
+     * @return Number of m/z and intensity data points
      */
-    int getNumberOfDataPoints();
+    public int getNumberOfDataPoints();
 
     /**
-     * Returns data points of this spectrum, always sorted in m/z order.
+     * Returns data points of this m/z table sorted in m/z order.
      * 
      * This method may need to read data from disk, therefore it may be quite
      * slow. Modules should be aware of that and cache the data points if
@@ -70,9 +75,7 @@ public interface MassSpectrum {
      * @return Data points (m/z and intensity pairs) of this scan
      */
     @Nonnull
-    DataPoint[] getDataPoints() throws IOException;
-
-    void setDataPoints(@Nonnull DataPoint newDataPoints[]) throws IOException;
+    public DataPoint[] getDataPoints();
 
     /**
      * Returns data points in given m/z range, sorted in m/z order.
@@ -81,10 +84,10 @@ public interface MassSpectrum {
      * slow. Modules should be aware of that and cache the data points if
      * necessary.
      * 
-     * @return Data points (m/z and intensity pairs) of this spectrum
+     * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
     @Nonnull
-    DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange) throws IOException;
+    public DataPoint[] getDataPointsByMass(@Nonnull Range mzRange);
 
     /**
      * Returns data points over given intensity, sorted in m/z order.
@@ -93,9 +96,9 @@ public interface MassSpectrum {
      * slow. Modules should be aware of that and cache the data points if
      * necessary.
      * 
-     * @return Data points (m/z and intensity pairs) of this Spectrum
+     * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
     @Nonnull
-    DataPoint[] getDataPointsOverIntensity(double intensity) throws IOException;
+    public DataPoint[] getDataPointsOverIntensity(double intensity);
 
 }

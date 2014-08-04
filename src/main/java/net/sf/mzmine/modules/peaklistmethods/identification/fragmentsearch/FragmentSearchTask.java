@@ -26,9 +26,9 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -132,8 +132,8 @@ public class FragmentSearchTask extends AbstractTask {
 		}
 
 		// Add task description to peakList
-		((PeakListImpl) peakList)
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+		((SimplePeakList) peakList)
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Identification of fragments", parameters));
 
 		// Repaint the window to reflect the change in the peak list
@@ -172,7 +172,7 @@ public class FragmentSearchTask extends AbstractTask {
 			return false;
 
 		RawDataFile dataFile = mainPeak.getBestPeak().getDataFile();
-		MsScan fragmentScan = dataFile.getScan(fragmentScanNumber);
+		Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
 		if (fragmentScan == null)
 			return false;
 

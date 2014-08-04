@@ -30,9 +30,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.MsScanImpl;
+import net.sf.mzmine.datamodel.RawDataFileWriter;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -51,7 +52,7 @@ public class MzDataReadTask extends AbstractTask {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private File file;
-	private RawDataFile newMZmineFile;
+	private RawDataFileWriter newMZmineFile;
 	private RawDataFile finalRawDataFile;
 	private int totalScans = 0, parsedScans;
 	private int peaksCount = 0;
@@ -80,7 +81,7 @@ public class MzDataReadTask extends AbstractTask {
 	 * This variable hold the current scan or fragment, it is send to the stack
 	 * when another scan/fragment appears as a parser.startElement
 	 */
-	private MsScanImpl buildingScan;
+	private SimpleScan buildingScan;
 
 	/*
 	 * This stack stores at most 10 consecutive scans. This window serves to
@@ -95,12 +96,12 @@ public class MzDataReadTask extends AbstractTask {
 	 * 
 	 * http://sourceforge.net/projects/psidev/
 	 */
-	private LinkedList<MsScanImpl> parentStack;
+	private LinkedList<SimpleScan> parentStack;
 
-	public MzDataReadTask(File fileToOpen, RawDataFile newMZmineFile) {
+	public MzDataReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
 		// 256 kilo-chars buffer
 		charBuffer = new StringBuilder(1 << 18);
-		parentStack = new LinkedList<MsScanImpl>();
+		parentStack = new LinkedList<SimpleScan>();
 		this.file = fileToOpen;
 		this.newMZmineFile = newMZmineFile;
 	}
@@ -295,9 +296,9 @@ public class MzDataReadTask extends AbstractTask {
 
 				// Copy m/z and intensity data
 				for (int i = 0; i < completeDataPoints.length; i++) {
-					completeDataPoints[i] = MZmineObjectBuilder.getDataPoint(
-							mzDataPoints[i],
-							intensityDataPoints[i]);
+					completeDataPoints[i] = new SimpleDataPoint(
+							(double) mzDataPoints[i],
+							(double) intensityDataPoints[i]);
 				}
 
 				// Auto-detect whether this scan is centroided
@@ -307,14 +308,14 @@ public class MzDataReadTask extends AbstractTask {
 				DataPoint optimizedDataPoints[] = ScanUtils
 						.removeZeroDataPoints(completeDataPoints, centroided);
 
-				buildingScan = new MsScanImpl(null, scanNumber, msLevel,
+				buildingScan = new SimpleScan(null, scanNumber, msLevel,
 						retentionTime, parentScan, precursorMz,
 						precursorCharge, null, optimizedDataPoints, centroided);
 
 				/*
 				 * Update of fragmentScanNumbers of each Scan in the parentStack
 				 */
-				for (MsScanImpl s : parentStack) {
+				for (SimpleScan s : parentStack) {
 					if (s.getScanNumber() == buildingScan.getParentScanNumber()) {
 						s.addFragmentScan(buildingScan.getScanNumber());
 					}
@@ -326,7 +327,7 @@ public class MzDataReadTask extends AbstractTask {
 				 * 10 elements.
 				 */
 				if (parentStack.size() > 10) {
-					MsScanImpl scan = parentStack.removeLast();
+					SimpleScan scan = parentStack.removeLast();
 					try {
 						newMZmineFile.addScan(scan);
 					} catch (IOException e) {
@@ -374,7 +375,7 @@ public class MzDataReadTask extends AbstractTask {
 				intensityDataPoints = new double[peaksCount];
 
 				byte[] peakBytes = Base64.decode(charBuffer.toString());
-
+				
 				ByteBuffer currentIntensityBytes = ByteBuffer.wrap(peakBytes);
 
 				if (endian.equals("big")) {
@@ -408,7 +409,7 @@ public class MzDataReadTask extends AbstractTask {
 
 		public void endDocument() throws SAXException {
 			while (!parentStack.isEmpty()) {
-				MsScanImpl scan = parentStack.removeLast();
+				SimpleScan scan = parentStack.removeLast();
 				try {
 					newMZmineFile.addScan(scan);
 				} catch (IOException e) {

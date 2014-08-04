@@ -31,10 +31,10 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
-import net.sf.mzmine.datamodel.impl.MsScan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.project.impl.StorableScan;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.Attributes;
@@ -247,11 +247,11 @@ public class RawDataFileOpenHandler_2_0 extends DefaultHandler implements
 				if (!dataPointsOffsets.isEmpty())
 					newStorageID = dataPointsOffsets.lastKey().intValue() + 1;
 
-				MsScan MsScan = new MsScan(newRawDataFile,
+				StorableScan storableScan = new StorableScan(newRawDataFile,
 						newStorageID, dataPointsNumber, scanNumber, msLevel,
 						retentionTime, parentScan, precursorMZ,
 						precursorCharge, fragmentScan, centroided);
-				newRawDataFile.addScan(MsScan);
+				newRawDataFile.addScan(storableScan);
 
 				dataPointsOffsets.put(newStorageID, storageFileOffset);
 				dataPointsLengths.put(newStorageID, dataPointsNumber);

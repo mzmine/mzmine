@@ -31,14 +31,12 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
-import net.sf.mzmine.datamodel.MsScan;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.apache.axis.encoding.Base64;
-
-import com.google.common.collect.Range;
 
 /**
  * Scan related utilities
@@ -53,7 +51,7 @@ public class ScanUtils {
      *            Scan to be converted to String
      * @return String representation of the scan
      */
-    public static String scanToString(MsScan scan) {
+    public static String scanToString(Scan scan) {
 	StringBuffer buf = new StringBuffer();
 	Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -80,7 +78,7 @@ public class ScanUtils {
      *            m/z range maximum
      * @return double[2] containing base peak m/z and intensity
      */
-    public static DataPoint findBasePeak(MsScan scan, Range<Double> mzRange) {
+    public static DataPoint findBasePeak(Scan scan, Range mzRange) {
 
 	DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
 	DataPoint basePeak = null;
@@ -103,7 +101,7 @@ public class ScanUtils {
      *            mass range.
      * @return the total ion count of the scan within the mass range.
      */
-    public static double calculateTIC(MsScan scan, Range<Double> mzRange) {
+    public static double calculateTIC(Scan scan, Range mzRange) {
 
 	double tic = 0.0;
 	for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
@@ -118,7 +116,7 @@ public class ScanUtils {
      * 
      */
     public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[],
-	    Range<Double> mzRange) {
+	    Range mzRange) {
 	ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
 	for (DataPoint dp : dataPoints) {
 	    if (mzRange.contains(dp.getMZ()))
@@ -419,7 +417,7 @@ public class ScanUtils {
 
 	for (int number : fragmentScanNumbers) {
 
-	    MsScan scan = dataFile.getScan(number);
+	    Scan scan = dataFile.getScan(number);
 
 	    if (mzRange.contains(scan.getPrecursorMZ())) {
 
@@ -523,7 +521,7 @@ public class ScanUtils {
      * Find the m/z range of the data points in the array. We assume there is at
      * least one data point, and the data points are sorted by m/z.
      */
-    public static @Nonnull Range<Double> findMzRange(@Nonnull DataPoint dataPoints[]) {
+    public static @Nonnull Range findMzRange(@Nonnull DataPoint dataPoints[]) {
 
 	assert dataPoints.length > 0;
 
@@ -538,7 +536,7 @@ public class ScanUtils {
 		highMz = dataPoints[i].getMZ();
 	}
 
-	final Range<Double> mzRange = Range.closed(lowMz, highMz);
+	final Range mzRange = new Range(lowMz, highMz);
 
 	return mzRange;
     }
@@ -579,7 +577,7 @@ public class ScanUtils {
 	    try {
 		double mz = peakStream.readDouble();
 		double intensity = peakStream.readDouble();
-		dataPoints[i] = MZmineObjectBuilder.getDataPoint(mz, intensity);
+		dataPoints[i] = new SimpleDataPoint(mz, intensity);
 	    } catch (IOException e) {
 		e.printStackTrace();
 	    }

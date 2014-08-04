@@ -27,12 +27,12 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.FeatureImpl;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.impl.SimpleFeature;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -91,10 +91,10 @@ class LinearNormalizerTask extends AbstractTask {
 
 		// This hashtable maps rows from original alignment result to rows of
 		// the normalized alignment
-		Hashtable<PeakListRow, PeakListRowImpl> rowMap = new Hashtable<PeakListRow, PeakListRowImpl>();
+		Hashtable<PeakListRow, SimplePeakListRow> rowMap = new Hashtable<PeakListRow, SimplePeakListRow>();
 
 		// Create new peak list
-		normalizedPeakList = new PeakListImpl(
+		normalizedPeakList = new SimplePeakList(
 				originalPeakList + " " + suffix,
 				originalPeakList.getRawDataFiles());
 
@@ -181,7 +181,7 @@ class LinearNormalizerTask extends AbstractTask {
 			if (normalizationType == NormalizationType.TotalRawSignal) {
 				normalizationFactor = 0;
 				for (int scanNumber : file.getScanNumbers(1)) {
-					MsScan scan = file.getScan(scanNumber);
+					Scan scan = file.getScan(scanNumber);
 					normalizationFactor += scan.getTIC();
 				}
 			}
@@ -206,7 +206,7 @@ class LinearNormalizerTask extends AbstractTask {
 						.getPeak(file);
 				if (originalPeak != null) {
 
-					FeatureImpl normalizedPeak = new FeatureImpl(
+					SimpleFeature normalizedPeak = new SimpleFeature(
 							originalPeak);
 					PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
 
@@ -217,12 +217,12 @@ class LinearNormalizerTask extends AbstractTask {
 					normalizedPeak.setHeight(normalizedHeight);
 					normalizedPeak.setArea(normalizedArea);
 
-					PeakListRowImpl normalizedRow = rowMap
+					SimplePeakListRow normalizedRow = rowMap
 							.get(originalpeakListRow);
 
 					if (normalizedRow == null) {
 
-						normalizedRow = new PeakListRowImpl(
+						normalizedRow = new SimplePeakListRow(
 								originalpeakListRow.getID());
 
 						PeakUtils.copyPeakListRowProperties(
@@ -244,7 +244,7 @@ class LinearNormalizerTask extends AbstractTask {
 
 		// Finally add all normalized rows to normalized alignment result
 		for (PeakListRow originalpeakListRow : originalPeakList.getRows()) {
-			PeakListRowImpl normalizedRow = rowMap.get(originalpeakListRow);
+			SimplePeakListRow normalizedRow = rowMap.get(originalpeakListRow);
 			normalizedPeakList.addRow(normalizedRow);
 		}
 
@@ -259,7 +259,7 @@ class LinearNormalizerTask extends AbstractTask {
 
 		// Add task description to peakList
 		normalizedPeakList
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Linear normalization of by " + normalizationType,
 						parameters));
 

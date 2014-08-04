@@ -22,7 +22,7 @@ package net.sf.mzmine.modules.visualization.spectra.datasets;
 import java.util.Map;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
@@ -34,7 +34,7 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
     private String label;
-    private MsScan scan;
+    private Scan scan;
     private Map<DataPoint, String> annotation;
 
     /*
@@ -43,11 +43,11 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
      */
     private DataPoint dataPoints[];
 
-    public ScanDataSet(MsScan scan) {
+    public ScanDataSet(Scan scan) {
 	this("Scan #" + scan.getScanNumber(), scan);
     }
 
-    public ScanDataSet(String label, MsScan scan) {
+    public ScanDataSet(String label, Scan scan) {
 	this.dataPoints = scan.getDataPoints();
 	this.scan = scan;
 	this.label = label;
@@ -123,7 +123,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
 	return maxIntensity;
     }
 
-    public MsScan getScan() {
+    public Scan getScan() {
 	return scan;
     }
 

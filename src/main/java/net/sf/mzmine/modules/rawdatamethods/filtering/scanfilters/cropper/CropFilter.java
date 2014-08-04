@@ -22,15 +22,15 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.cropper;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.MsScanImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
 public class CropFilter implements ScanFilter {
 
-    public MsScan filterScan(MsScan scan, ParameterSet parameters) {
+    public Scan filterScan(Scan scan, ParameterSet parameters) {
 
 	Range mzRange = parameters.getParameter(CropFilterParameters.mzRange)
 		.getValue();
@@ -48,7 +48,7 @@ public class CropFilter implements ScanFilter {
 	DataPoint croppedDataPoints[] = scan.getDataPointsByMass(mzRange);
 
 	// Create updated scan
-	MsScanImpl newScan = new MsScanImpl(scan);
+	SimpleScan newScan = new SimpleScan(scan);
 	newScan.setDataPoints(croppedDataPoints);
 
 	return newScan;

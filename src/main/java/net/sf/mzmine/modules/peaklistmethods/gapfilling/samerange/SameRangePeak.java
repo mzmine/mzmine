@@ -27,7 +27,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
@@ -245,7 +245,7 @@ class SameRangePeak implements Feature {
 		mzRange);
 
 	if (fragmentScan > 0) {
-	    MsScan fragmentScanObject = dataFile.getScan(fragmentScan);
+	    Scan fragmentScanObject = dataFile.getScan(fragmentScan);
 	    int precursorCharge = fragmentScanObject.getPrecursorCharge();
 	    if ((precursorCharge > 0) && (this.charge == 0))
 		this.charge = precursorCharge;

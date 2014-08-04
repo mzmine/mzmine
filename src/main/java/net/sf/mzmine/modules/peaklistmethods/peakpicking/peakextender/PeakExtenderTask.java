@@ -28,11 +28,11 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -105,7 +105,7 @@ public class PeakExtenderTask extends AbstractTask {
 		RawDataFile dataFile = peakList.getRawDataFile(0);
 
 		// Create a new deisotoped peakList
-		extendedPeakList = new PeakListImpl(peakList + " " + suffix,
+		extendedPeakList = new SimplePeakList(peakList + " " + suffix,
 				peakList.getRawDataFiles());
 
 		// Sort peaks by descending height
@@ -131,7 +131,7 @@ public class PeakExtenderTask extends AbstractTask {
 
 				// keep old ID
 				int oldID = oldRow.getID();
-				PeakListRowImpl newRow = new PeakListRowImpl(oldID);
+				SimplePeakListRow newRow = new SimplePeakListRow(oldID);
 				PeakUtils.copyPeakListRowProperties(oldRow, newRow);
 				newRow.addPeak(dataFile, newPeak);
 				extendedPeakList.addRow(newRow);
@@ -153,7 +153,7 @@ public class PeakExtenderTask extends AbstractTask {
 
 		// Add task description to peakList
 		extendedPeakList
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Peak extender", parameters));
 
 		// Remove the original peakList if requested
@@ -173,7 +173,7 @@ public class PeakExtenderTask extends AbstractTask {
 		ExtendedPeak newPeak = new ExtendedPeak(rawFile);
 		int totalScanNumber = rawFile.getNumOfScans();
 		Range mzRange = mzTolerance.getToleranceRange(oldPeak.getMZ());
-		MsScan scan;
+		Scan scan;
 		DataPoint dataPoint;
 
 		// Look for dataPoint related to this peak to the left

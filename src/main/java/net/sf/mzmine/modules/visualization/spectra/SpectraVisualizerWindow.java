@@ -38,7 +38,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
@@ -74,7 +74,7 @@ public class SpectraVisualizerWindow extends JFrame implements
     private RawDataFile dataFile;
 
     // Currently loaded scan
-    private MsScan currentScan;
+    private Scan currentScan;
 
     // Current scan data set
     private ScanDataSet spectrumDataSet;
@@ -112,7 +112,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 	MZmineCore.getDesktop().removePeakListTreeListener(bottomPanel);
     }
 
-    public void loadRawData(MsScan scan) {
+    public void loadRawData(Scan scan) {
 
 	logger.finest("Loading scan #" + scan.getScanNumber() + " from "
 		+ dataFile + " for spectra visualizer");
@@ -153,7 +153,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 	int parentNumber = currentScan.getParentScanNumber();
 	if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {
 
-	    MsScan parentScan = dataFile.getScan(parentNumber);
+	    Scan parentScan = dataFile.getScan(parentNumber);
 	    if (parentScan != null) {
 		String itemText = "Parent scan #" + parentNumber + ", RT: "
 			+ rtFormat.format(parentScan.getRetentionTime())
@@ -173,7 +173,7 @@ public class SpectraVisualizerWindow extends JFrame implements
 	int fragmentScans[] = currentScan.getFragmentScanNumbers();
 	if (fragmentScans != null) {
 	    for (int fragment : fragmentScans) {
-		MsScan fragmentScan = dataFile.getScan(fragment);
+		Scan fragmentScan = dataFile.getScan(fragment);
 		if (fragmentScan == null)
 		    continue;
 		final String itemText = "Fragment scan #" + fragment + ", RT: "

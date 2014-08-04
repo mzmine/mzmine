@@ -34,10 +34,10 @@ import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
 
 import net.sf.mzmine.datamodel.MassList;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.RawDataFileImpl;
-import net.sf.mzmine.datamodel.impl.StorableMassList;
-import net.sf.mzmine.datamodel.impl.MsScan;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.project.impl.RawDataFileImpl;
+import net.sf.mzmine.project.impl.StorableMassList;
+import net.sf.mzmine.project.impl.StorableScan;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
@@ -204,7 +204,7 @@ class RawDataFileSaveHandler {
 	    if (canceled)
 		return;
 
-	    MsScan scan = (MsScan) rawDataFile.getScan(scanNumber);
+	    StorableScan scan = (StorableScan) rawDataFile.getScan(scanNumber);
 	    int storageID = scan.getStorageID();
 	    atts.addAttribute("", "",
 		    RawDataElementName.STORAGE_ID.getElementName(), "CDATA",
@@ -228,7 +228,7 @@ class RawDataFileSaveHandler {
      * @param scan
      * @param element
      */
-    private void fillScanElement(MsScan scan, TransformerHandler hd)
+    private void fillScanElement(Scan scan, TransformerHandler hd)
 	    throws SAXException, IOException {
 	// <SCAN_ID>
 	AttributesImpl atts = new AttributesImpl();

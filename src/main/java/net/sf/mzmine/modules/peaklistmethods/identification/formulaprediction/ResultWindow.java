@@ -52,7 +52,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.PeakListRowAnnotationImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
@@ -203,7 +203,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
 	if (command.equals("ADD")) {
 
-	    PeakListRowAnnotationImpl newIdentity = new PeakListRowAnnotationImpl(
+	    SimplePeakIdentity newIdentity = new SimplePeakIdentity(
 		    formula.getFormulaAsString());
 	    peakListRow.addPeakIdentity(newIdentity, false);
 

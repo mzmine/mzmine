@@ -23,16 +23,16 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -81,7 +81,7 @@ class SameRangeTask extends AbstractTask {
 		RawDataFile columns[] = peakList.getRawDataFiles();
 
 		// Create new peak list
-		processedPeakList = new PeakListImpl(peakList + " " + suffix, columns);
+		processedPeakList = new SimplePeakList(peakList + " " + suffix, columns);
 
 		// Fill gaps in given column
 		for (int row = 0; row < totalRows; row++) {
@@ -91,7 +91,7 @@ class SameRangeTask extends AbstractTask {
 				return;
 
 			PeakListRow sourceRow = peakList.getRow(row);
-			PeakListRow newRow = new PeakListRowImpl(sourceRow.getID());
+			PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
 
 			// Copy comment
 			newRow.setComment(sourceRow.getComment());
@@ -135,7 +135,7 @@ class SameRangeTask extends AbstractTask {
 
 		// Add task description to peakList
 		processedPeakList
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling using RT and m/z range", parameters));
 
 		// Remove the original peaklist if requested
@@ -184,7 +184,7 @@ class SameRangeTask extends AbstractTask {
 				return null;
 
 			// Get next scan
-			MsScan scan = column.getScan(scanNumber);
+			Scan scan = column.getScan(scanNumber);
 
 			// Find most intense m/z peak
 			DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRangeWithTol);
@@ -194,7 +194,7 @@ class SameRangeTask extends AbstractTask {
 					dataPointFound = true;
 				newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 			} else {
-				DataPoint fakeDataPoint = MZmineObjectBuilder.getDataPoint(
+				DataPoint fakeDataPoint = new SimpleDataPoint(
 						mzRangeWithTol.getAverage(), 0);
 				newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 			}

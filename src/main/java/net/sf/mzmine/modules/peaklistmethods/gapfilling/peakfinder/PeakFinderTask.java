@@ -28,10 +28,10 @@ import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
@@ -84,13 +84,13 @@ class PeakFinderTask extends AbstractTask {
 		}
 
 		// Create new peak list
-		processedPeakList = new PeakListImpl(peakList + " " + suffix,
+		processedPeakList = new SimplePeakList(peakList + " " + suffix,
 				peakList.getRawDataFiles());
 
 		// Fill new peak list with empty rows
 		for (int row = 0; row < peakList.getNumberOfRows(); row++) {
 			PeakListRow sourceRow = peakList.getRow(row);
-			PeakListRow newRow = new PeakListRowImpl(sourceRow.getID());
+			PeakListRow newRow = new SimplePeakListRow(sourceRow.getID());
 			newRow.setComment(sourceRow.getComment());
 			for (PeakIdentity ident : sourceRow.getPeakIdentities()) {
 				newRow.addPeakIdentity(ident, false);
@@ -174,7 +174,7 @@ class PeakFinderTask extends AbstractTask {
 					}
 
 					// Get the scan
-					MsScan scan = dataFile.getScan(scanNumber);
+					Scan scan = dataFile.getScan(scanNumber);
 
 					// Feed this scan to all gaps
 					for (Gap gap : gaps) {
@@ -198,7 +198,7 @@ class PeakFinderTask extends AbstractTask {
 
 		// Add task description to peakList
 		processedPeakList
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Gap filling ", parameters));
 
 		// Remove the original peaklist if requested
@@ -314,7 +314,7 @@ class PeakFinderTask extends AbstractTask {
 					}
 
 					// Get the scan
-					MsScan scan = datafile1.getScan(scanNumber);
+					Scan scan = datafile1.getScan(scanNumber);
 
 					// Feed this scan to all gaps
 					for (Gap gap : gaps) {

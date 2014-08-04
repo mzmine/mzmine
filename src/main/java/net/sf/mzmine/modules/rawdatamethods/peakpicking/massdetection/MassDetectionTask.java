@@ -23,8 +23,8 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
-import net.sf.mzmine.datamodel.impl.MassListImpl;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -104,13 +104,13 @@ public class MassDetectionTask extends AbstractTask {
 	    if (isCanceled())
 		return;
 
-	    MsScan scan = dataFile.getScan(scanNumbers[i]);
+	    Scan scan = dataFile.getScan(scanNumbers[i]);
 
 	    MassDetector detector = massDetector.getModule();
 	    DataPoint mzPeaks[] = detector.getMassValues(scan,
 		    massDetector.getParameterSet());
 
-	    MassListImpl newMassList = new MassListImpl(name, scan, mzPeaks);
+	    SimpleMassList newMassList = new SimpleMassList(name, scan, mzPeaks);
 
 	    // Add new mass list to the scan
 	    scan.addMassList(newMassList);

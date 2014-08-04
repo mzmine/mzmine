@@ -26,9 +26,9 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
@@ -158,7 +158,7 @@ public class ResolvedPeak implements Feature {
 		rawDataPointsRTRange, rawDataPointsMZRange);
 
 	if (fragmentScan > 0) {
-	    MsScan fragmentScanObject = dataFile.getScan(fragmentScan);
+	    Scan fragmentScanObject = dataFile.getScan(fragmentScan);
 	    int precursorCharge = fragmentScanObject.getPrecursorCharge();
 	    if (precursorCharge > 0)
 		this.charge = precursorCharge;
@@ -174,7 +174,7 @@ public class ResolvedPeak implements Feature {
 	int index = Arrays.binarySearch(scanNumbers, scanNumber);
 	if (index < 0)
 	    return null;
-	DataPoint dp = MZmineObjectBuilder.getDataPoint(dataPointMZValues[index],
+	SimpleDataPoint dp = new SimpleDataPoint(dataPointMZValues[index],
 		dataPointIntensityValues[index]);
 	return dp;
     }

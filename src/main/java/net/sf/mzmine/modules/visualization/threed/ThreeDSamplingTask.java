@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -122,7 +122,7 @@ class ThreeDSamplingTask extends AbstractTask {
                 if (isCanceled())
                     return;
 
-                MsScan scan = dataFile.getScan(scanNumbers[scanIndex]);
+                Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
 
                 DataPoint dataPoints[] = scan.getDataPoints();
                 double[] scanMZValues = new double[dataPoints.length];

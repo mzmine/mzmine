@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
 
@@ -28,6 +28,6 @@ public interface ScanFilter extends MZmineModule {
     /**
      * Returns a modified scan after being processed by the filter
      */
-    public MsScan filterScan(MsScan scan, ParameterSet parameters);
+    public Scan filterScan(Scan scan, ParameterSet parameters);
 
 }

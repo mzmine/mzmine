@@ -29,7 +29,7 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
@@ -316,7 +316,7 @@ public class SpectraPlot extends ChartPanel {
 
 		if (dataSet instanceof ScanDataSet) {
 			ScanDataSet scanDataSet = (ScanDataSet) dataSet;
-			MsScan scan = scanDataSet.getScan();
+			Scan scan = scanDataSet.getScan();
 			if (scan.isCentroided())
 				newRenderer = new PeakRenderer(color, transparency);
 			else {

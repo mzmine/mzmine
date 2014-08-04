@@ -20,7 +20,7 @@ package net.sf.mzmine.modules.peaklistmethods.alignment.path.functions;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 
 public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
 
@@ -160,7 +160,7 @@ public class AlignmentPath implements Comparable<AlignmentPath>, Cloneable {
         }
 
         public PeakListRow convertToAlignmentRow(int ID) {
-                PeakListRow newRow = new PeakListRowImpl(ID);
+                PeakListRow newRow = new SimplePeakListRow(ID);
                 try {
                         for (PeakListRow row : this.peaks) {
                                 if (row != null) {

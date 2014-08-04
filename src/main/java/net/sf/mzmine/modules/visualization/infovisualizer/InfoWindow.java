@@ -36,7 +36,7 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.Range;
 
@@ -113,7 +113,7 @@ class InfoWindow extends JFrame {
 		c.gridy = 1;
 		pnlGrid.add(new JLabel(
 				"<html>Created (yyyy/MM/dd HH:mm:ss): <font color=\"blue\">"
-						+ ((PeakListImpl) peakList).getDateCreated()
+						+ ((SimplePeakList) peakList).getDateCreated()
 						+ "</font></html>"), c);
 		c.gridx = 0;
 		c.gridy = 2;

@@ -35,29 +35,28 @@ public enum IonizationType {
     private final double addedMass;
 
     IonizationType(String name, String adductFormula, double addedMass,
-	    Polarity polarity) {
+            Polarity polarity) {
 
-	this.name = name;
-	this.adductFormula = adductFormula;
-	this.addedMass = addedMass;
-	this.polarity = polarity;
+        this.name = name;
+        this.adductFormula = adductFormula;
+        this.addedMass = addedMass;
+        this.polarity = polarity;
     }
 
     public String getAdduct() {
-	return this.adductFormula;
+        return adductFormula;
     }
 
     public double getAddedMass() {
-	return this.addedMass;
+        return addedMass;
     }
 
     public Polarity getPolarity() {
-	return this.polarity;
+        return polarity;
     }
 
-    @Override
     public String toString() {
-	return this.name;
+        return name;
     }
 
 }

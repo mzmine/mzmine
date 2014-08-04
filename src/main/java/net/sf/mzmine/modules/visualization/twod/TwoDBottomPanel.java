@@ -43,7 +43,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
@@ -161,7 +161,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 		.getSelectedItem();
 	if (selectedPeakList == null)
 	    return null;
-	PeakListImpl newList = new PeakListImpl(selectedPeakList.getName(),
+	SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
 		selectedPeakList.getRawDataFiles());
 
 	for (PeakListRow peakRow : selectedPeakList.getRows()) {
@@ -185,7 +185,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 		.getSelectedItem();
 	if (selectedPeakList == null)
 	    return null;
-	PeakListImpl newList = new PeakListImpl(selectedPeakList.getName(),
+	SimplePeakList newList = new SimplePeakList(selectedPeakList.getName(),
 		selectedPeakList.getRawDataFiles());
 
 	Vector<PeakListRow> peakRows = new Vector<PeakListRow>();

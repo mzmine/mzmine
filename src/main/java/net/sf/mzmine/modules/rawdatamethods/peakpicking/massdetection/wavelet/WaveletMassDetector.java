@@ -25,8 +25,8 @@ import java.util.Vector;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.MZmineObjectBuilder;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetector;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.DataPointSorter;
@@ -49,7 +49,7 @@ public class WaveletMassDetector implements MassDetector {
     private static final int WAVELET_ESL = -5;
     private static final int WAVELET_ESR = 5;
 
-    public DataPoint[] getMassValues(MsScan scan, ParameterSet parameters) {
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters) {
 	double noiseLevel = parameters.getParameter(
 		WaveletMassDetectorParameters.noiseLevel).getValue();
 	int scaleLevel = parameters.getParameter(
@@ -73,10 +73,10 @@ public class WaveletMassDetector implements MassDetector {
      * 
      * @param dataPoints
      */
-    private DataPoint[] performCWT(DataPoint[] dataPoints,
+    private SimpleDataPoint[] performCWT(DataPoint[] dataPoints,
 	    double waveletWindow, int scaleLevel) {
 	int length = dataPoints.length;
-	DataPoint[] cwtDataPoints = new DataPoint[length];
+	SimpleDataPoint[] cwtDataPoints = new SimpleDataPoint[length];
 	double wstep = ((WAVELET_ESR - WAVELET_ESL) / NPOINTS);
 	double[] W = new double[(int) NPOINTS];
 
@@ -119,7 +119,7 @@ public class WaveletMassDetector implements MassDetector {
 	    // Eliminate the negative part of the wavelet map
 	    if (intensity < 0)
 		intensity = 0;
-	    cwtDataPoints[dx] = MZmineObjectBuilder.getDataPoint(dataPoints[dx].getMZ(),
+	    cwtDataPoints[dx] = new SimpleDataPoint(dataPoints[dx].getMZ(),
 		    (double) intensity);
 	}
 
@@ -190,7 +190,7 @@ public class WaveletMassDetector implements MassDetector {
 	    rawDataPoints.add(originalDataPoints[ind]);
 
 	    if (originalDataPoints[peakMaxInd].getIntensity() > noiseLevel) {
-		DataPoint peakDataPoint = MZmineObjectBuilder.getDataPoint(
+		SimpleDataPoint peakDataPoint = new SimpleDataPoint(
 			originalDataPoints[peakMaxInd].getMZ(),
 			calcAproxIntensity(rawDataPoints));
 

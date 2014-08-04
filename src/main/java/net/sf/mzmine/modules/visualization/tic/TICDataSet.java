@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.*;
 import net.sf.mzmine.util.CollectionUtils;
@@ -353,7 +353,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
              index++) {
 
             // Current scan.
-            final MsScan scan = dataFile.getScan(scanNumbers[index]);
+            final Scan scan = dataFile.getScan(scanNumbers[index]);
 
             // Determine base peak value.
             final DataPoint basePeak =

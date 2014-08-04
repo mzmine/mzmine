@@ -24,12 +24,12 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.parameters.ParameterSet;
 
-public class PeakListAppliedMethodImpl implements PeakListAppliedMethod {
+public class SimplePeakListAppliedMethod implements PeakListAppliedMethod {
 
 	private String description;
 	private String parameters;
 
-	public PeakListAppliedMethodImpl(String description,
+	public SimplePeakListAppliedMethod(String description,
 			ParameterSet parameters) {
 		this.description = description;
 		if (parameters != null) {
@@ -39,12 +39,12 @@ public class PeakListAppliedMethodImpl implements PeakListAppliedMethod {
 		}
 	}
 
-	public PeakListAppliedMethodImpl(String description, String parameters) {
+	public SimplePeakListAppliedMethod(String description, String parameters) {
 		this.description = description;
 		this.parameters = parameters;
 	}
 
-	public PeakListAppliedMethodImpl(String description) {
+	public SimplePeakListAppliedMethod(String description) {
 		this.description = description;
 	}
 

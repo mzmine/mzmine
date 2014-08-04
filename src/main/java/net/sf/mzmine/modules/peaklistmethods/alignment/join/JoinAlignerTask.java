@@ -30,9 +30,9 @@ import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.impl.PeakListImpl;
-import net.sf.mzmine.datamodel.impl.PeakListAppliedMethodImpl;
-import net.sf.mzmine.datamodel.impl.PeakListRowImpl;
+import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.datamodel.impl.SimplePeakListAppliedMethod;
+import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreCalculator;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -150,7 +150,7 @@ class JoinAlignerTask extends AbstractTask {
 		}
 
 		// Create a new aligned peak list
-		alignedPeakList = new PeakListImpl(peakListName,
+		alignedPeakList = new SimplePeakList(peakListName,
 				allDataFiles.toArray(new RawDataFile[0]));
 
 		// Iterate source peak lists
@@ -248,7 +248,7 @@ class JoinAlignerTask extends AbstractTask {
 
 				// If we have no mapping for this row, add a new one
 				if (targetRow == null) {
-					targetRow = new PeakListRowImpl(newRowID);
+					targetRow = new SimplePeakListRow(newRowID);
 					newRowID++;
 					alignedPeakList.addRow(targetRow);
 				}
@@ -274,7 +274,7 @@ class JoinAlignerTask extends AbstractTask {
 
 		// Add task description to peakList
 		alignedPeakList
-				.addDescriptionOfAppliedTask(new PeakListAppliedMethodImpl(
+				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
 						"Join aligner", parameters));
 
 		logger.info("Finished join aligner");

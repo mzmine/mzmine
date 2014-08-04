@@ -32,7 +32,7 @@ import javax.swing.JTextField;
 
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.MsScan;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 
 public class MassListComponent extends JPanel implements ActionListener {
@@ -77,7 +77,7 @@ public class MassListComponent extends JPanel implements ActionListener {
 	    for (RawDataFile dataFile : dataFiles) {
 		int scanNums[] = dataFile.getScanNumbers();
 		for (int scanNum : scanNums) {
-		    MsScan scan = dataFile.getScan(scanNum);
+		    Scan scan = dataFile.getScan(scanNum);
 		    MassList massLists[] = scan.getMassLists();
 		    for (MassList massList : massLists) {
 			String name = massList.getName();
