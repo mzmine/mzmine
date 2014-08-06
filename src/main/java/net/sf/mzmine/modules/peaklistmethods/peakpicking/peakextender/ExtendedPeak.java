@@ -243,12 +243,4 @@ public class ExtendedPeak implements Feature {
 		this.charge = charge;
 	}
 
-	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return PeakUtils.peakToString(this);
-	}
-
 }
