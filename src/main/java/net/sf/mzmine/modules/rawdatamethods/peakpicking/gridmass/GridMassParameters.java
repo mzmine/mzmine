@@ -22,71 +22,68 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class GridMassParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-    public static final DoubleParameter minimumTimeSpan = new DoubleParameter(
-	    "Minimum width (min)",
-	    "Minimum time to be recognized as a 'mass'. "
-		    + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
-	    MZmineCore.getConfiguration().getRTFormat(), 0.1);
+	public static final RangeParameter timeSpan = new RangeParameter(
+			"Min-Max width time (min)",
+			"Time range for a peak to be recognized as a 'mass'.\n"
+					+ "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
+			MZmineCore.getConfiguration().getRTFormat(),
+			new net.sf.mzmine.util.Range(0.1, 3.0));
 
-    public static final DoubleParameter maximumTimeSpan = new DoubleParameter(
-	    "Maximum width (min)",
-	    "Maximum time to be recognized as a true positive. "
-		    + "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
-	    MZmineCore.getConfiguration().getRTFormat(), 3.0);
+	public static final DoubleParameter minimumHeight = new DoubleParameter(
+			"Minimum height",
+			"Minimum GLOBAL intensity of the highest data point in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
+			MZmineCore.getConfiguration().getMZFormat(), 20.0);
 
-    public static final DoubleParameter minimumHeight = new DoubleParameter(
-	    "Minimum height",
-	    "Minimum GLOBAL intensity of the highest data point in the mass. A value closer to 95% of the baseline-corrected distribution is recommended.",
-	    MZmineCore.getConfiguration().getMZFormat(), 20.0);
+	public static final DoubleParameter mzTolerance = new DoubleParameter(
+			"M/Z Tolerance",
+			"Maximum difference in m/z to recognize features/peaks as the same.",
+			MZmineCore.getConfiguration().getMZFormat(), 0.10);
 
-    public static final DoubleParameter mzTolerance = // new
-						      // MZToleranceParameter();
-    new DoubleParameter(
-	    "M/Z Tolerance",
-	    "Maximum difference in m/z to recognize features/peaks as the same.",
-	    MZmineCore.getConfiguration().getMZFormat(), 0.10);
+	public static final StringParameter suffix = new StringParameter("Suffix",
+			"This string is added to filename as suffix", "chromatograms");
 
-    public static final StringParameter suffix = new StringParameter("Suffix",
-	    "This string is added to filename as suffix", "chromatograms");
+	public static final DoubleParameter smoothingTimeSpan = new DoubleParameter(
+			"Smoothing time (min)",
+			"Time to perform intensity smoothing in time space. \nA value close to minimum time span is recomended. \nSee 2D plot to use at least 3 scans.",
+			MZmineCore.getConfiguration().getRTFormat(), 0.05);
 
-    public static final DoubleParameter smoothingTimeSpan = new DoubleParameter(
-	    "Smoothing time (min)",
-	    "Time to perform intensity smoothing in time space. \nA value close to minimum time span is recomended. \nSee 2D plot to use at least 3 scans.",
-	    MZmineCore.getConfiguration().getRTFormat(), 0.05);
+	public static final DoubleParameter smoothingTimeMZ = new DoubleParameter(
+			"Smoothing m/z",
+			"MZ tolerance to perform intensity smoothing in time space. \nA value smaller than m/z tolerance is recommended. \nSee 2D plot to observe closer values.",
+			MZmineCore.getConfiguration().getMZFormat(), 0.05);
 
-    public static final DoubleParameter smoothingTimeMZ = new DoubleParameter(
-	    "Smoothing m/z",
-	    "MZ tolerance to perform intensity smoothing in time space. \nA value smaller than m/z tolerance is recommended. \nSee 2D plot to observe closer values.",
-	    MZmineCore.getConfiguration().getMZFormat(), 0.05);
+	public static final DoubleParameter intensitySimilarity = new DoubleParameter(
+			"False+: Intensity similarity ratio",
+			"To reduce false positives removing similarly joint masses crowed along time (solvents or artifacts) > max time span.",
+			MZmineCore.getConfiguration().getMZFormat(), 0.50);
 
-    public static final DoubleParameter intensitySimilarity = new DoubleParameter(
-	    "False+: Intensity similarity ratio",
-	    "To reduce false positives removing similarly joint masses crowed along time (solvents or artifacts) > max time span.",
-	    MZmineCore.getConfiguration().getMZFormat(), 0.50);
+	public static final String[] debugLevels = new String[] { "No debug",
+			"Basic information", "Final peak information", "All information" };
 
-    public static final IntegerParameter showDebug = new IntegerParameter(
-	    "Debugging Level",
-	    "Shows details of the process. Useful to optimize parameters.\nLevel 0 = No debug.\nLevel 1 = Basic Information,\nLevel 2 = Final Peak Information.\nLevel 3 = All Information.",
-	    0, 0, 3);
+	public static final ComboParameter<String> showDebug = new ComboParameter<String>(
+			"Debugging level",
+			"Shows details of the process. Useful to optimize parameters.",
+			debugLevels, debugLevels[0]);
 
-    public static final StringParameter ignoreTimes = new StringParameter(
-	    "False+: Ignore times",
-	    "To avoid estimation of features at specific times in minutes. Use 0-0 to ignore. Format: time1-time2, time3-time4, ... ",
-	    "0-0");
+	public static final StringParameter ignoreTimes = new StringParameter(
+			"False+: Ignore times",
+			"To avoid estimation of features at specific times in minutes. Use 0-0 to ignore. Format: time1-time2, time3-time4, ... ",
+			"0-0");
 
-    public GridMassParameters() {
-	super(new Parameter[] { dataFiles, suffix, minimumHeight, mzTolerance,
-		minimumTimeSpan, maximumTimeSpan, smoothingTimeSpan,
-		smoothingTimeMZ, intensitySimilarity, ignoreTimes, showDebug });
-    }
+	public GridMassParameters() {
+		super(new Parameter[] { dataFiles, suffix, minimumHeight, mzTolerance,
+				timeSpan, smoothingTimeSpan, smoothingTimeMZ,
+				intensitySimilarity, ignoreTimes, showDebug });
+	}
 
 }

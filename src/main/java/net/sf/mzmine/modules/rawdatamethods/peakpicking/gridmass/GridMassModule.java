@@ -33,44 +33,44 @@ import net.sf.mzmine.util.ExitCode;
 
 public class GridMassModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "GridMass - 2D Mass Detection Module";
-    private static final String MODULE_DESCRIPTION = "This module detect masses based in a 2D peak recognition procedure. v0.99";
+	private static final String MODULE_NAME = "GridMass - 2D peak detection";
+	private static final String MODULE_DESCRIPTION = "This module detect peaks based on a 2D peak recognition procedure.";
 
-    @Override
-    public @Nonnull String getName() {
-	return MODULE_NAME;
-    }
-
-    @Override
-    public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
-    }
-
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-
-	RawDataFile[] dataFiles = parameters.getParameter(
-		new RawDataFilesParameter()).getValue();
-
-	for (int i = 0; i < dataFiles.length; i++) {
-	    Task newTask = new GridMassTask(dataFiles[i],
-		    parameters.cloneParameter());
-	    tasks.add(newTask);
+	@Override
+	public @Nonnull String getName() {
+		return MODULE_NAME;
 	}
 
-	return ExitCode.OK;
-    }
+	@Override
+	public @Nonnull String getDescription() {
+		return MODULE_DESCRIPTION;
+	}
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.PEAKPICKING;
-    }
+	@Override
+	@Nonnull
+	public ExitCode runModule(@Nonnull ParameterSet parameters,
+			@Nonnull Collection<Task> tasks) {
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return GridMassParameters.class;
-    }
+		RawDataFile[] dataFiles = parameters.getParameter(
+				new RawDataFilesParameter()).getValue();
+
+		for (int i = 0; i < dataFiles.length; i++) {
+			Task newTask = new GridMassTask(dataFiles[i],
+					parameters.cloneParameter());
+			tasks.add(newTask);
+		}
+
+		return ExitCode.OK;
+	}
+
+	@Override
+	public @Nonnull MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.PEAKPICKING;
+	}
+
+	@Override
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+		return GridMassParameters.class;
+	}
 
 }
