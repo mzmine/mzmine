@@ -33,7 +33,7 @@ public class GridMassParameters extends SimpleParameterSet {
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
 	public static final RangeParameter timeSpan = new RangeParameter(
-			"Min-Max width time (min)",
+			"Min-max width time (min)",
 			"Time range for a peak to be recognized as a 'mass'.\n"
 					+ "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
 			MZmineCore.getConfiguration().getRTFormat(),
