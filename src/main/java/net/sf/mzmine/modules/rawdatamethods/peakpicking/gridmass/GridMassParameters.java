@@ -27,6 +27,7 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.Range;
 
 public class GridMassParameters extends SimpleParameterSet {
 
@@ -36,8 +37,7 @@ public class GridMassParameters extends SimpleParameterSet {
 			"Min-max width time (min)",
 			"Time range for a peak to be recognized as a 'mass'.\n"
 					+ "The optimal value depends on the chromatography system setup.\nSee 2D raw data to determine typical time spans.",
-			MZmineCore.getConfiguration().getRTFormat(),
-			new net.sf.mzmine.util.Range(0.1, 3.0));
+			MZmineCore.getConfiguration().getRTFormat(), new Range(0.1, 3.0));
 
 	public static final DoubleParameter minimumHeight = new DoubleParameter(
 			"Minimum height",
