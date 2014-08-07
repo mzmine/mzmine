@@ -56,7 +56,7 @@ import net.sf.mzmine.util.components.HelpButton;
  * component can be obtained by calling getComponentForParameter(). Type of
  * component depends on parameter type:
  * 
- * 
+ * TODO: parameter setup dialog should show the name of the module in the title
  * 
  */
 public class ParameterSetupDialog extends JDialog implements ActionListener,
