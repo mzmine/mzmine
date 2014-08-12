@@ -25,6 +25,7 @@ import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
@@ -87,7 +88,7 @@ class ProjectTreeDnDHandler extends TransferHandler {
 		}
 
 		ProjectTree projectTree = (ProjectTree) info.getComponent();
-		PeakListTreeModel treeModel = (PeakListTreeModel) projectTree.getModel();
+		DefaultTreeModel treeModel = (DefaultTreeModel) projectTree.getModel();
 
 		MZmineProject project = MZmineCore.getCurrentProject();
 
