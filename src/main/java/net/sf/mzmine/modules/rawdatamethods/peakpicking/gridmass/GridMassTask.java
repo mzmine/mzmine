@@ -56,7 +56,6 @@ public class GridMassTask extends AbstractTask {
 	// User parameters
 	private String suffix;
 	private double mzTol;
-	private double mzResolution; // 1/40 = 0.025
 	private double intensitySimilarity;
 	private double minimumTimeSpan, maximumTimeSpan;
 	private double smoothTimeSpan, smoothTimeMZ, smoothMZ;
@@ -142,27 +141,7 @@ public class GridMassTask extends AbstractTask {
 		// Create new peak list
 		newPeakList = new SimplePeakList(dataFile + " " + suffix, dataFile);
 
-		DataPoint mzV[] = dataFile.getScan(scanNumbers[0]).getDataPoints();
-		double dif[] = new double[mzV.length + 1];
-		minMasa = mzV[0].getMZ();
-		maxMasa = minMasa;
 		int j;
-		double masaAnt = mzV[0].getMZ();
-		for (j = 0; j < mzV.length; j++) {
-			double masa = mzV[j].getMZ();
-			dif[j] = masa - masaAnt;
-			if (masa < minMasa)
-				minMasa = masa;
-			if (masa > maxMasa)
-				maxMasa = masa;
-			masaAnt = masa;
-		}
-		Arrays.sort(dif);
-		if (mzResolution < 0.0001) {
-			mzResolution = Math.min(dif[dif.length / 10], (maxMasa - minMasa)
-					/ j);
-		}
-		dif = null;// free memory
 		// minimumTimeSpan
 		Scan scan = dataFile.getScan(scanNumbers[0]);
 		double minRT = scan.getRetentionTime();
@@ -794,7 +773,8 @@ public class GridMassTask extends AbstractTask {
 										break;
 									}
 								}
-								if (Math.abs(mzValuesJ[f].getMZ() - mz) <= timeSmoothingMZtol
+								if (f > 0 && f < mzValuesJ.length
+										&& Math.abs(mzValuesJ[f].getMZ() - mz) <= timeSmoothingMZtol
 										&& mzValuesJ[f].getIntensity() > 0) { // >=
 									// minimumHeight
 									// ?
