@@ -1,0 +1,14 @@
+
+To start MZmine development, please follow the tutorial available at MZmine website.
+ 
+To build the MZmine package from the sources, run the following command in this directory:
+
+mvn clean package
+
+Apache Maven must be installed.
+
+The final MZmine distribution will be placed in target/MZmine-2.**.zip
+
+If you encounter any problems, please contact the developers mailing list:
+mzmine-devel@lists.sourceforge.net
+
