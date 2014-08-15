@@ -20,6 +20,8 @@
 			<directory>src/main/conf</directory>
 			<outputDirectory>conf</outputDirectory>
 			<excludes>
+				<!-- Exclude the current configuration file, if it exists - initial MZmine 
+					distribution should be provided with empty configuration -->
 				<exclude>*</exclude>
 			</excludes>
 		</fileSet>
@@ -31,6 +33,7 @@
 		<fileSet>
 			<directory>src/main/lib</directory>
 			<includes>
+				<!-- Include the RAWdump.exe and its source codes -->
 				<include>RAWdump.*</include>
 			</includes>
 			<outputDirectory>lib</outputDirectory>
