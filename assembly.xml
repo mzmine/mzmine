@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <assembly>
 	<formats>
-		<format>dir</format>
+		<format>zip</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<dependencySets>
@@ -19,7 +19,9 @@
 		<fileSet>
 			<directory>src/main/conf</directory>
 			<outputDirectory>conf</outputDirectory>
-			<fileMode>0644</fileMode>
+			<excludes>
+				<exclude>*</exclude>
+			</excludes>
 		</fileSet>
 		<fileSet>
 			<directory>src/main/icons</directory>
