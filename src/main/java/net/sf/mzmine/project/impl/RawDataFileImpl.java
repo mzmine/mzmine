@@ -434,7 +434,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	// check if we have this value already cached
 	Range mzRange = dataMZRange.get(msLevel);
 	if (mzRange != null)
-	    return mzRange;
+	    return new Range(mzRange);
 
 	// find the value
 	for (Scan scan : scans.values()) {
@@ -456,7 +456,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	else
 	    mzRange = new Range(0);
 
-	return mzRange;
+	return new Range(mzRange);
 
     }
 
@@ -471,7 +471,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	// check if we have this value already cached
 	Range rtRange = dataRTRange.get(msLevel);
 	if (rtRange != null)
-	    return rtRange;
+	    return new Range(rtRange);
 
 	// find the value
 	for (Scan scan : scans.values()) {
@@ -493,7 +493,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	else
 	    rtRange = new Range(0);
 
-	return rtRange;
+	// clone the range, because it is mutable
+	return new Range(rtRange);
 
     }
 
