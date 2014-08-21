@@ -1,7 +1,14 @@
 @echo off
 
 rem Obtain the physical memory size
-for /f "skip=1" %%p in ('wmic os get totalvisiblememorysize') do if not defined TOTAL_MEMORY set TOTAL_MEMORY=%%p 
+IF EXIST 'C:\Windows\System32\wbem\wmic os get totalvisiblememorysize' (
+  rem Get physical memory size from OS
+  for /f "skip=1" %%p in ('C:\Windows\System32\wbem\wmic os get totalvisiblememorysize') do if not defined TOTAL_MEMORY set TOTAL_MEMORY=%%p 
+) ELSE (
+  rem Set 2GB as default - heap size will be set to 1G
+  set TOTAL_MEMORY=2000000
+)
+
 
 rem The HEAP_SIZE variable defines the Java heap size in MB. 
 rem That is the total amount of memory available to MZmine 2.
