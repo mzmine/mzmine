@@ -160,7 +160,7 @@ class Gap {
 
                                 // X axis interval length
                                 double rtDifference = bestPeakDataPoints.get(i + 1).getRT()
-                                        - bestPeakDataPoints.get(i).getRT() * 60;
+                                        - bestPeakDataPoints.get(i).getRT();
                                 
                                 // Convert the RT scale to seconds
                                 rtDifference *= 60d;
