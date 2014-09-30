@@ -24,8 +24,6 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.SwingUtilities;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.PeakList;

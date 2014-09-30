@@ -19,11 +19,12 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
+
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
-
-import java.text.NumberFormat;
 
 /**
  * Tooltip generator for TIC visualizer

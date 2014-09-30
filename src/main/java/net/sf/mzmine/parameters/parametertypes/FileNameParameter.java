@@ -22,9 +22,9 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.io.File;
 import java.util.Collection;
 
-import org.w3c.dom.Element;
-
 import net.sf.mzmine.parameters.UserParameter;
+
+import org.w3c.dom.Element;
 
 /**
  * Simple Parameter implementation

@@ -23,14 +23,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import com.Ostermiller.util.CSVParser;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
-import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileReader;
@@ -39,6 +32,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
+import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
+
+import com.Ostermiller.util.CSVParser;
 
 /**
  * An action to handle importing adducts from a file.

@@ -19,7 +19,40 @@
 
 package net.sf.mzmine.util.components;
 
-import net.sf.mzmine.datamodel.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.Format;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
@@ -28,21 +61,6 @@ import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.Range;
-
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.text.DecimalFormat;
-import java.text.Format;
-import java.util.HashMap;
-import java.util.Map;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
 

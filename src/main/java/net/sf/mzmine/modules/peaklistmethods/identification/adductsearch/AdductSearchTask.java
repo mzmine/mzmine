@@ -18,6 +18,11 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
+import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.ADDUCTS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.MAX_ADDUCT_HEIGHT;
+import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.MZ_TOLERANCE;
+import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.RT_TOLERANCE;
+
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +39,6 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
-import static net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductSearchParameters.*;
 
 public class AdductSearchTask extends AbstractTask {
 

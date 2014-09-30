@@ -23,9 +23,11 @@
 
 package net.sf.mzmine.util.dialogs;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.io.File;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 /**
  * A JFileChooser with convenience functions for loading and saving files.

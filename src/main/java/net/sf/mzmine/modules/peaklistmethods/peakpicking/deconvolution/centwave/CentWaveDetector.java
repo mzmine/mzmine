@@ -23,24 +23,28 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave;
 
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.RUtilities;
-import net.sf.mzmine.util.Range;
-
-import org.rosuda.JRI.REXP;
-import org.rosuda.JRI.Rengine;
-
-import javax.annotation.Nonnull;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.INTEGRATION_METHOD;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_DURATION;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PEAK_SCALES;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.SN_THRESHOLD;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.*;
+import javax.annotation.Nonnull;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave.CentWaveDetectorParameters.PeakIntegrationMethod;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.RUtilities;
+import net.sf.mzmine.util.Range;
+
+import org.rosuda.JRI.REXP;
+import org.rosuda.JRI.Rengine;
 
 /**
  * Use XCMS findPeaks.centWave to identify peaks.

@@ -21,11 +21,11 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.Collection;
 
+import net.sf.mzmine.parameters.UserParameter;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
-import net.sf.mzmine.parameters.UserParameter;
 
 public class MZToleranceParameter implements
 	UserParameter<MZTolerance, MZToleranceComponent> {

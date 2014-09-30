@@ -19,9 +19,28 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Ellipse2D;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.swing.JFrame;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -39,15 +58,6 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Ellipse2D;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * TIC plot.

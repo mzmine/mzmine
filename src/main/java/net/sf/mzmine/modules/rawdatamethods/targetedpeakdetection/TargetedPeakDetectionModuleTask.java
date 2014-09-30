@@ -18,8 +18,6 @@
  */
 package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
 
-import com.Ostermiller.util.CSVParser;
-
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
@@ -43,6 +41,8 @@ import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
+
+import com.Ostermiller.util.CSVParser;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 

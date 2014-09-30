@@ -23,8 +23,8 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.jfree.chart.renderer.PaintScale;
 import org.jfree.util.PublicCloneable;

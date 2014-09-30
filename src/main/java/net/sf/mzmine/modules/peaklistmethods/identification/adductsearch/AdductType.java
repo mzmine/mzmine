@@ -19,9 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import net.sf.mzmine.main.MZmineCore;
-
 import java.util.Arrays;
+
+import net.sf.mzmine.main.MZmineCore;
 
 public class AdductType {
 

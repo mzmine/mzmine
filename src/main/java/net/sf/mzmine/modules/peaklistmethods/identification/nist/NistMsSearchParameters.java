@@ -23,13 +23,18 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
+import java.io.File;
+import java.util.Collection;
+
 import net.sf.mzmine.datamodel.IonizationType;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
-
-import java.io.File;
-import java.util.Collection;
+import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.DirectoryParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 
 /**
  * Holds NIST MS Search parameters.

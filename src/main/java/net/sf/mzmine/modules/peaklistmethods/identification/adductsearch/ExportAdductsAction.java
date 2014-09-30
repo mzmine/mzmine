@@ -23,20 +23,23 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import com.Ostermiller.util.CSVPrinter;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
-import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
+import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
+
+import com.Ostermiller.util.CSVPrinter;
 
 /**
  * An action to handle exporting adducts to a file.

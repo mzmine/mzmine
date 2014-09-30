@@ -21,7 +21,9 @@
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
+
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 

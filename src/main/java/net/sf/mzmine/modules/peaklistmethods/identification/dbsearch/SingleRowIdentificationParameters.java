@@ -22,7 +22,11 @@ package net.sf.mzmine.modules.peaklistmethods.identification.dbsearch;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.IsotopePatternScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
+import net.sf.mzmine.parameters.parametertypes.NeutralMassParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
 
 public class SingleRowIdentificationParameters extends SimpleParameterSet {
 

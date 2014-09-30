@@ -19,6 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
+
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.plot.CrosshairState;
 import org.jfree.chart.plot.PlotRenderingInfo;
@@ -26,9 +31,6 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYAreaRenderer;
 import org.jfree.chart.renderer.xy.XYItemRendererState;
 import org.jfree.data.xy.XYDataset;
-
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
 
 public class PeakTICPlotRenderer extends XYAreaRenderer {
 

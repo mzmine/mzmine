@@ -22,8 +22,8 @@ package net.sf.mzmine.parameters.parametertypes;
 import java.util.Collection;
 
 import net.sf.mzmine.parameters.Parameter;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
 

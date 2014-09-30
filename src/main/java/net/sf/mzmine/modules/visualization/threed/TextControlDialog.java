@@ -19,15 +19,20 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import visad.TextControl;
-import visad.VisADException;
-import visad.util.TextControlWidget;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+
+import visad.TextControl;
+import visad.VisADException;
+import visad.util.TextControlWidget;
 
 /**
  * A dialog that holds a VisAD TextControlWidget.

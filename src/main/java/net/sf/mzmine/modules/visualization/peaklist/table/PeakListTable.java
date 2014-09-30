@@ -19,6 +19,24 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+
+import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.UIManager;
+import javax.swing.event.RowSorterEvent;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableRowSorter;
+
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -26,18 +44,12 @@ import net.sf.mzmine.modules.visualization.peaklist.PeakListTableParameters;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTablePopupMenu;
 import net.sf.mzmine.modules.visualization.peaklist.PeakListTableWindow;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.components.*;
+import net.sf.mzmine.util.components.ComponentToolTipManager;
+import net.sf.mzmine.util.components.ComponentToolTipProvider;
+import net.sf.mzmine.util.components.GroupableTableHeader;
+import net.sf.mzmine.util.components.PeakSummaryComponent;
+import net.sf.mzmine.util.components.PopupListener;
 import net.sf.mzmine.util.dialogs.PeakIdentitySetupDialog;
-
-import javax.swing.*;
-import javax.swing.event.RowSorterEvent;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableRowSorter;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
 
 public class PeakListTable extends JTable implements ComponentToolTipProvider {
 

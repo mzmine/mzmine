@@ -19,18 +19,11 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.taskcontrol.*;
-import net.sf.mzmine.util.CollectionUtils;
-import net.sf.mzmine.util.Range;
-import net.sf.mzmine.util.ScanUtils;
-
-import org.jfree.data.xy.AbstractXYZDataset;
-
-import javax.swing.*;
+import static net.sf.mzmine.taskcontrol.TaskStatus.CANCELED;
+import static net.sf.mzmine.taskcontrol.TaskStatus.ERROR;
+import static net.sf.mzmine.taskcontrol.TaskStatus.FINISHED;
+import static net.sf.mzmine.taskcontrol.TaskStatus.PROCESSING;
+import static net.sf.mzmine.taskcontrol.TaskStatus.WAITING;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +32,22 @@ import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static net.sf.mzmine.taskcontrol.TaskStatus.*;
+import javax.swing.SwingUtilities;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.taskcontrol.Task;
+import net.sf.mzmine.taskcontrol.TaskEvent;
+import net.sf.mzmine.taskcontrol.TaskListener;
+import net.sf.mzmine.taskcontrol.TaskPriority;
+import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.CollectionUtils;
+import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.ScanUtils;
+
+import org.jfree.data.xy.AbstractXYZDataset;
 
 /**
  * TIC visualizer data set.  One data set is created per file shown in this visualizer.  We need to create separate

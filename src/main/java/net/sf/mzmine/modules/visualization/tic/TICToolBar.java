@@ -19,11 +19,16 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
-import net.sf.mzmine.util.GUIUtils;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Insets;
 import java.awt.event.ActionListener;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+
+import net.sf.mzmine.util.GUIUtils;
 
 /**
  * TIC visualizer's toolbar.

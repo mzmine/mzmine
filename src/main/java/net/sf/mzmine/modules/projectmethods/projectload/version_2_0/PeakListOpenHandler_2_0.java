@@ -32,13 +32,13 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
-import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;

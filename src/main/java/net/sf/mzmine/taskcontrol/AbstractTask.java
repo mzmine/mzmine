@@ -21,9 +21,6 @@ package net.sf.mzmine.taskcontrol;
 
 import java.util.LinkedList;
 
-import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskStatus;
-
 /**
  * An abstract implementation of task which defines common methods to make Task
  * implementation easier

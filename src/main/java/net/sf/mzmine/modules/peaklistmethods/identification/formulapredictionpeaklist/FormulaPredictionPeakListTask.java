@@ -18,11 +18,23 @@
  */
 package net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpeaklist;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.datamodel.*;
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;

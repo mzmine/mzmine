@@ -35,12 +35,12 @@ import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 
-import org.jfree.data.general.DatasetChangeEvent;
-
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
+
+import org.jfree.data.general.DatasetChangeEvent;
 
 /**
  * Dialog for selection of highlighted precursor m/z range

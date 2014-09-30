@@ -23,11 +23,15 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.camera;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
-
-import java.text.NumberFormat;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 
 /**
  * Parameters for a <code>CameraSearchTask</code>.

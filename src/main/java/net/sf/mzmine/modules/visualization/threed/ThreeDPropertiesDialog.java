@@ -19,16 +19,17 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.GUIUtils;
-import visad.*;
-import visad.util.ColorMapWidget;
-import visad.util.GMCWidget;
+import static java.awt.GridBagConstraints.CENTER;
+import static java.awt.GridBagConstraints.EAST;
+import static java.awt.GridBagConstraints.HORIZONTAL;
+import static java.awt.GridBagConstraints.NONE;
+import static java.awt.GridBagConstraints.WEST;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -38,7 +39,28 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static java.awt.GridBagConstraints.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.util.GUIUtils;
+import visad.Display;
+import visad.DisplayRealType;
+import visad.ScalarMap;
+import visad.TextControl;
+import visad.VisADException;
+import visad.util.ColorMapWidget;
+import visad.util.GMCWidget;
 
 /**
  * 3D visualizer properties dialog

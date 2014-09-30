@@ -22,11 +22,12 @@
  */
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.parameters.UserParameter;
-import org.w3c.dom.Element;
-
 import java.io.File;
 import java.util.Collection;
+
+import net.sf.mzmine.parameters.UserParameter;
+
+import org.w3c.dom.Element;
 
 /**
  * A parameter that represents a file system directory.

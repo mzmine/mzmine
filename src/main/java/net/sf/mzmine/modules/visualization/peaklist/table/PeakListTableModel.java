@@ -22,11 +22,11 @@ package net.sf.mzmine.modules.visualization.peaklist.table;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 
 public class PeakListTableModel extends AbstractTableModel {
 

@@ -23,23 +23,47 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.nist;
 
-import net.sf.mzmine.datamodel.*;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.IONIZATION_METHOD;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.MAX_NUM_PEAKS;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.MIN_MATCH_FACTOR;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.MIN_REVERSE_MATCH_FACTOR;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.NIST_MS_SEARCH_DIR;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.SAME_IDENTITIES;
+import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.SPECTRUM_RT_WIDTH;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.IonizationType;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-
-import java.io.*;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchParameters.*;
 
 /**
  * Performs NIST MS Search.

@@ -42,9 +42,9 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 
 import org.xml.sax.SAXException;

@@ -19,23 +19,54 @@
 
 package net.sf.mzmine.modules.visualization.threed;
 
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.datamodel.PeakIdentity;
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.main.MZmineCore;
-import visad.*;
-import visad.bom.PickManipulationRendererJ3D;
-import visad.java3d.DisplayImplJ3D;
-import visad.java3d.DisplayRendererJ3D;
-import visad.java3d.KeyboardBehaviorJ3D;
-import visad.java3d.MouseBehaviorJ3D;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.rmi.RemoteException;
 import java.text.NumberFormat;
 import java.util.Hashtable;
 import java.util.Iterator;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.main.MZmineCore;
+import visad.AxisScale;
+import visad.BaseColorControl;
+import visad.CommonUnit;
+import visad.ConstantMap;
+import visad.Data;
+import visad.DataReference;
+import visad.DataReferenceImpl;
+import visad.Display;
+import visad.FieldImpl;
+import visad.FlatField;
+import visad.FunctionType;
+import visad.GraphicsModeControl;
+import visad.Gridded2DSet;
+import visad.KeyboardBehavior;
+import visad.LogCoordinateSystem;
+import visad.MathType;
+import visad.MouseHelper;
+import visad.ProjectionControl;
+import visad.RealTuple;
+import visad.RealTupleType;
+import visad.RealType;
+import visad.ReferenceException;
+import visad.SI;
+import visad.ScalarMap;
+import visad.Set;
+import visad.Text;
+import visad.TextControl;
+import visad.TextType;
+import visad.Tuple;
+import visad.TupleType;
+import visad.VisADException;
+import visad.bom.PickManipulationRendererJ3D;
+import visad.java3d.DisplayImplJ3D;
+import visad.java3d.DisplayRendererJ3D;
+import visad.java3d.KeyboardBehaviorJ3D;
+import visad.java3d.MouseBehaviorJ3D;
 
 /**
  * VisAD's DisplayImplJ3D modified for our purposes.

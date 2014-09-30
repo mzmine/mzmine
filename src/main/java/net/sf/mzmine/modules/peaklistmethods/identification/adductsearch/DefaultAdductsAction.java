@@ -23,11 +23,13 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
-import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
+
+import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
 
 /**
  * An action to handle resetting the adducts list.

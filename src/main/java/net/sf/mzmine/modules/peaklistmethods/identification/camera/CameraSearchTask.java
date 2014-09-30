@@ -23,7 +23,21 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.camera;
 
-import net.sf.mzmine.datamodel.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimplePeakIdentity;
 import net.sf.mzmine.main.MZmineCore;
@@ -39,15 +53,6 @@ import net.sf.mzmine.util.SortingProperty;
 
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A task to perform a CAMERA search.

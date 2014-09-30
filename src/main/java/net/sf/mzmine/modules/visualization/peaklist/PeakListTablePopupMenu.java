@@ -19,7 +19,26 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import net.sf.mzmine.datamodel.*;
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.table.AbstractTableModel;
+
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakIdentity;
+import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDBSearchModule;
@@ -29,7 +48,11 @@ import net.sf.mzmine.modules.rawdatamethods.peakpicking.manual.ManualPeakPickerM
 import net.sf.mzmine.modules.visualization.intensityplot.IntensityPlotModule;
 import net.sf.mzmine.modules.visualization.peaklist.export.IsotopePatternExportModule;
 import net.sf.mzmine.modules.visualization.peaklist.export.MSMSExportModule;
-import net.sf.mzmine.modules.visualization.peaklist.table.*;
+import net.sf.mzmine.modules.visualization.peaklist.table.CommonColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.table.DataFileColumnType;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableModel;
 import net.sf.mzmine.modules.visualization.peaksummary.PeakSummaryVisualizerModule;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
@@ -38,15 +61,6 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
-
-import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.*;
-import java.util.List;
 
 /**
  * Peak-list table pop-up menu.

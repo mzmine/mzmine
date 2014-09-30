@@ -23,6 +23,15 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+
+import javax.swing.AbstractAction;
+import javax.swing.SwingUtilities;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -32,13 +41,6 @@ import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * An action to add custom adducts.

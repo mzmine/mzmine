@@ -25,7 +25,6 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzerWindow;

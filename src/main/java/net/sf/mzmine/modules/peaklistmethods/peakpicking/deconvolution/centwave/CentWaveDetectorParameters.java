@@ -23,6 +23,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.centwave;
 
+import java.text.NumberFormat;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -32,8 +34,6 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
-
-import java.text.NumberFormat;
 
 /**
  * Parameters used by CentWaveDetector.

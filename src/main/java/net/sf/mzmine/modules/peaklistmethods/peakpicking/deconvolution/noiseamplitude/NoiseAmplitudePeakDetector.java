@@ -19,11 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
-import net.sf.mzmine.datamodel.Feature;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
-import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
-import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.MIN_PEAK_HEIGHT;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.NOISE_AMPLITUDE;
+import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.PEAK_DURATION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,11 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
-import static net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude.NoiseAmplitudePeakDetectorParameters.*;
+import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
+import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.Range;
 
 /**
  *

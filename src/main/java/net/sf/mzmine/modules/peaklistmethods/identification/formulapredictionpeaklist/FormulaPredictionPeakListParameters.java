@@ -26,7 +26,11 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopepatternscore.Isotop
 import net.sf.mzmine.modules.peaklistmethods.msms.msmsscore.MSMSScoreParameters;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
-import net.sf.mzmine.parameters.parametertypes.*;
+import net.sf.mzmine.parameters.parametertypes.ComboParameter;
+import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
+import net.sf.mzmine.parameters.parametertypes.MZToleranceParameter;
+import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class FormulaPredictionPeakListParameters extends SimpleParameterSet {
 

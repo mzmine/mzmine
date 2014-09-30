@@ -23,9 +23,13 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.*;
+import javax.swing.JButton;
 
-import javax.swing.*;
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AddAdductsAction;
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductType;
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.DefaultAdductsAction;
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.ExportAdductsAction;
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.ImportAdductsAction;
 
 /**
  * A component for selecting adducts.

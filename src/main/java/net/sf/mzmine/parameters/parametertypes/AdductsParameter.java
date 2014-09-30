@@ -23,13 +23,18 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductType;
-import org.w3c.dom.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+
+import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.AdductType;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Adducts parameter.

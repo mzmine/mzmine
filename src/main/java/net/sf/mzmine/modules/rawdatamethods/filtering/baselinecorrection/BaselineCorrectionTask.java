@@ -23,6 +23,10 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -38,10 +42,6 @@ import net.sf.mzmine.util.RUtilities;
 import net.sf.mzmine.util.Range;
 
 import org.rosuda.JRI.Rengine;
-
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Task that performs baseline correction.
