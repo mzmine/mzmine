@@ -257,7 +257,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
                     double intensity = dis.readDouble();
                     completeDataPoints[i] = new SimpleDataPoint(mz, intensity);
                 }
-                dis.close()
+                dis.close();
 
                 boolean centroided = ScanUtils.isCentroided(completeDataPoints);
 
