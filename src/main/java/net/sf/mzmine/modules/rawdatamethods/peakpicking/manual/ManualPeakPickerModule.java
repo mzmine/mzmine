@@ -39,12 +39,12 @@ public class ManualPeakPickerModule implements MZmineModule {
 	return "Manual peak detector";
     }
 
-    public static void runManualDetection(RawDataFile dataFile,
+    public static ExitCode runManualDetection(RawDataFile dataFile,
 	    PeakListRow peakListRow) {
-	runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
+	return runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
     }
 
-    public static void runManualDetection(RawDataFile dataFiles[],
+    public static ExitCode runManualDetection(RawDataFile dataFiles[],
 	    PeakListRow peakListRow) {
 
 	Range mzRange = null, rtRange = null;
@@ -92,13 +92,13 @@ public class ManualPeakPickerModule implements MZmineModule {
 	ExitCode exitCode = parameters.showSetupDialog();
 
 	if (exitCode != ExitCode.OK)
-	    return;
+	    return exitCode;
 
 	ManualPickerTask task = new ManualPickerTask(peakListRow, dataFiles,
 		parameters);
 
 	MZmineCore.getTaskController().addTask(task);
-
+	return exitCode;
     }
 
     @Override

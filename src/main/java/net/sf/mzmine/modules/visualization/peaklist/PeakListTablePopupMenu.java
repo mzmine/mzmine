@@ -59,6 +59,7 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
+import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.Range;
 
@@ -495,13 +496,18 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 
             // create a new row
             final PeakListRow newRow = new SimplePeakListRow(newID);
-            peakList.addRow(newRow);
             final PeakListTableModel tableModel = (PeakListTableModel) table
                     .getModel();
             tableModel.fireTableDataChanged();
-            ManualPeakPickerModule.runManualDetection(
+            ExitCode exitCode = ManualPeakPickerModule.runManualDetection(
                     peakList.getRawDataFiles(), newRow);
-
+            if (exitCode == ExitCode.OK) {
+            	peakList.addRow(newRow);
+            	
+            	 // Notify the GUI that peaklist contents have changed
+                updateTableGUI();
+            }
+            
             // Notify the GUI that peaklist contents have changed
             MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
         }
