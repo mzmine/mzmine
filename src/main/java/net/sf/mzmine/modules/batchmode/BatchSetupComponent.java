@@ -56,7 +56,6 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.modules.impl.MZmineModuleWrapper;
 import net.sf.mzmine.modules.impl.MZmineProcessingStepImpl;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
@@ -120,6 +119,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
 
         // Methods combo box.
         methodsCombo = new JComboBox();
+        methodsCombo.setMaximumRowCount(14);
 
         // Add processing modules to combo box by category.
         final Collection<MZmineModule> allModules = MZmineCore.getAllModules();
@@ -141,14 +141,14 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
 
                         // Add category item?
                         if (!categoryItemAdded) {
-                            methodsCombo.addItem("--- " + category + " ---");
+                            methodsCombo.addItem(category);
                             categoryItemAdded = true;
                         }
 
                         // Add method item.
-                        MZmineModuleWrapper wrappedModule = new MZmineModuleWrapper(
+                        BatchModuleWrapper wrappedModule = new BatchModuleWrapper(
                                 step);
-                        methodsCombo.addItem(wrappedModule);
+                        methodsCombo.addItem(wrappedModule);                 
                     }
                 }
             }
@@ -170,7 +170,7 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
                 "REMOVE", "Remove the selected batch step");
         btnClear = GUIUtils.addButton(pnlRight, "Clear", null, this, "CLEAR",
                 "Removes all batch steps");
-
+        
         final JPanel pnlBottom = new JPanel(new BorderLayout());
         btnAdd = GUIUtils.addButton(pnlBottom, "Add", null, this, "ADD",
                 "Adds the selected method to the batch queue");
@@ -192,13 +192,12 @@ public class BatchSetupComponent extends JPanel implements ActionListener, Mouse
         final Object src = e.getSource();
 
         if (btnAdd.equals(src)) {
-
+        	
             // Processing module selected?
             final Object selectedItem = methodsCombo.getSelectedItem();
-            if (selectedItem instanceof MZmineModuleWrapper) {
-
+            if (selectedItem instanceof BatchModuleWrapper) {
                 // Show method's set-up dialog.
-                final MZmineModuleWrapper wrappedModule = (MZmineModuleWrapper) selectedItem;
+                final BatchModuleWrapper wrappedModule = (BatchModuleWrapper) selectedItem;
                 final MZmineProcessingModule selectedMethod = (MZmineProcessingModule) wrappedModule
                         .getModule();
                 final ParameterSet methodParams = MZmineCore.getConfiguration()

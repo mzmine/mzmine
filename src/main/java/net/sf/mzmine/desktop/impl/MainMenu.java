@@ -33,6 +33,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.KeyStroke;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -92,19 +93,19 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	projectMenu.addSeparator();
 
 	projectSampleParameters = GUIUtils.addMenuItem(projectMenu,
-		"Set sample parameters...", this, KeyEvent.VK_P);
-
+		"Set sample parameters", this, KeyEvent.VK_P);
+	
 	projectMenu.addSeparator();
 
 	projectPreferences = GUIUtils.addMenuItem(projectMenu,
-		"Set preferences...", this, KeyEvent.VK_S);
+		"Set preferences", this, KeyEvent.VK_S);
 
 	projectMenu.addSeparator();
 
 	projectSaveParameters = GUIUtils.addMenuItem(projectMenu,
-		"Save MZmine parameters...", this);
+		"Save MZmine parameters", this);
 	projectLoadParameters = GUIUtils.addMenuItem(projectMenu,
-		"Load MZmine parameters...", this);
+		"Load MZmine parameters", this);
 
 	projectMenu.addSeparator();
 
@@ -197,7 +198,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	helpMenu.setMnemonic(KeyEvent.VK_H);
 	this.add(helpMenu);
 
-	showAbout = new JMenuItem("About MZmine 2 ...");
+	showAbout = new JMenuItem("About MZmine 2");
 	showAbout.addActionListener(this);
 	addMenuItem(MZmineModuleCategory.HELPSYSTEM, showAbout);
 
@@ -274,7 +275,14 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	JMenuItem newItem = new JMenuItem(menuItemText);
 	newItem.setToolTipText(menuItemToolTip);
 	newItem.addActionListener(this);
-
+	
+	/*
+	 * Shortcuts keys to open, save and close a project. Implementation will be changed with JavaFX. 
+	 */
+	if (menuItemText == "Open project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));}
+	if (menuItemText == "Save project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));}
+	if (menuItemText == "Close project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));}
+	
 	moduleMenuItems.put(newItem, module);
 
 	addMenuItem(parentMenu, newItem);
