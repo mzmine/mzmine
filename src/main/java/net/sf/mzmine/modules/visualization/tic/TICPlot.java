@@ -29,7 +29,10 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Ellipse2D;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,14 +59,15 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
+import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleInsets;
 
 /**
  * TIC plot.
  */
-public class TICPlot extends ChartPanel {
-
+public class TICPlot extends ChartPanel implements MouseWheelListener {
+	
     // Logger.
     private static final Logger LOG = Logger.getLogger(TICPlot.class.getName());
 
@@ -257,6 +261,7 @@ public class TICPlot extends ChartPanel {
         GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke("SPACE"), listener, "SHOW_SPECTRUM");
         GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('+'), this, "ZOOM_IN");
         GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('-'), this, "ZOOM_OUT");
+        GUIUtils.registerKeyHandler(this, KeyStroke.getKeyStroke('*'), this, "ZOOM_AUTO");
 
         // Add items to popup menu.
         final JPopupMenu popupMenu = getPopupMenu();
@@ -288,6 +293,9 @@ public class TICPlot extends ChartPanel {
 
             GUIUtils.addMenuItem(popupMenu, "Set same range to all windows", this, "SET_SAME_RANGE");
         }
+        
+        // Register for mouse-wheel events
+        addMouseWheelListener(this);
     }
 
     @Override public void actionPerformed(final ActionEvent event) {
@@ -314,11 +322,32 @@ public class TICPlot extends ChartPanel {
         if ("ZOOM_IN".equals(command)) {
 
             getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
+            getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        }
+
+        // Set tick size to auto when zooming
+        String[] zoomList = new String[] {"ZOOM_IN_BOTH","ZOOM_IN_DOMAIN","ZOOM_IN_RANGE","ZOOM_OUT_BOTH",
+        		"ZOOM_DOMAIN_BOTH","ZOOM_RANGE_BOTH","ZOOM_RESET_BOTH","ZOOM_RESET_DOMAIN","ZOOM_RESET_RANGE"};
+        if (Arrays.asList(zoomList).contains(command)) {
+        	getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        	getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
         }
 
         if ("ZOOM_OUT".equals(command)) {
-
+        	
             getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
+            getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        //	if (getXYPlot().getDomainAxis().getRange().contains(0.0000001)) {
+    	//		getXYPlot().getDomainAxis().setAutoRange(true);
+    	//		getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        //	}
+        }
+
+        if ("ZOOM_AUTO".equals(command)) {
+        	getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        	getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+        	restoreAutoDomainBounds();
+        	restoreAutoRangeBounds();
         }
 
         if ("SET_SAME_RANGE".equals(command)) {
@@ -355,6 +384,22 @@ public class TICPlot extends ChartPanel {
             legend.setVisible(!legend.isVisible());
         }
     }
+    
+    public void mouseWheelMoved(MouseWheelEvent event) {
+        int notches = event.getWheelRotation();
+        if (notches < 0) {
+        	getXYPlot().getDomainAxis().resizeRange(1.0 / ZOOM_FACTOR);
+        } else {
+        	getXYPlot().getDomainAxis().resizeRange(ZOOM_FACTOR);
+        }
+    }
+    
+    public void restoreAutoBounds(){
+    	getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+    	getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+    	restoreAutoDomainBounds();
+    	restoreAutoRangeBounds();
+    }  
 
     @Override public void mouseClicked(final MouseEvent event) {
 
@@ -363,12 +408,31 @@ public class TICPlot extends ChartPanel {
 
         // Request focus to receive key events.
         requestFocus();
-
-        // If user double-clicked left button, place a request to open a spectrum.
-        if (event.getButton() == MouseEvent.BUTTON1 && event.getClickCount() == 2) {
-
-            showSpectrumRequest = true;
+        
+        // Handle mouse click events
+        if (event.getButton() == MouseEvent.BUTTON1) {
+        	
+        	if (event.getX() < 70) { // User clicked on Y-axis
+        		if (event.getClickCount() == 2) { // Reset zoom on Y-axis
+        			XYDataset data = ((XYPlot) getChart().getPlot()).getDataset();
+            		Number maximum = DatasetUtilities.findMaximumRangeValue(data);
+            		getXYPlot().getRangeAxis().setRange(0, 1.05*maximum.floatValue());
+        		}
+        		else if (event.getClickCount() == 1) { // Auto range on Y-axis
+        			getXYPlot().getRangeAxis().setAutoTickUnitSelection(true);
+            		getXYPlot().getRangeAxis().setAutoRange(true);
+            	}
+        	}
+        	else if (event.getY() > this.getChartRenderingInfo().getPlotInfo().getPlotArea().getMaxY()-41 && event.getClickCount() == 2) {
+        		// Reset zoom on X-axis
+        		getXYPlot().getDomainAxis().setAutoTickUnitSelection(true);
+        		restoreAutoDomainBounds();
+        	}
+        	else if (event.getClickCount() == 2) { // If user double-clicked left button, place a request to open a spectrum.
+        		showSpectrumRequest = true;
+        	}
         }
+        
     }
 
     @Override public void chartProgress(final ChartProgressEvent event) {
