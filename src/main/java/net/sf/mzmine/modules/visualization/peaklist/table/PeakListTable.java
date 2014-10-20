@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.peaklist.table;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -35,6 +36,8 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.event.RowSorterEvent;
 import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableRowSorter;
 
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -102,7 +105,37 @@ public class PeakListTable extends JTable implements ComponentToolTipProvider {
 
         ttm = new ComponentToolTipManager();
         ttm.registerComponent(this);
-
+        
+        // Auto size column width based on data
+        for (int column = 0; column < this.getColumnCount(); column++)
+        {
+            TableColumn tableColumn = this.getColumnModel().getColumn(column);
+            if(tableColumn.getHeaderValue() != "Peak shape" && tableColumn.getHeaderValue() != "Status") {
+	            TableCellRenderer renderer = tableColumn.getHeaderRenderer();
+	            if (renderer == null) {
+	                renderer = getTableHeader().getDefaultRenderer();
+	            }
+	            Component component = renderer.getTableCellRendererComponent(this, tableColumn.getHeaderValue(), false, false, -1, column);
+	            int preferredWidth = component.getPreferredSize().width+20;
+	            int maxWidth = tableColumn.getMaxWidth();
+	         
+	            for (int row = 0; row < this.getRowCount(); row++)
+	            {
+	                TableCellRenderer cellRenderer = this.getCellRenderer(row, column);
+	                Component c = this.prepareRenderer(cellRenderer, row, column);
+	                int width = c.getPreferredSize().width + this.getIntercellSpacing().width + 10;
+	                preferredWidth = Math.max(preferredWidth, width);
+	         
+	                //  We've exceeded the maximum width, no need to check other rows
+	                if (preferredWidth >= maxWidth)
+	                {
+	                    preferredWidth = maxWidth;
+	                    break;
+	                }
+	            }
+	            tableColumn.setPreferredWidth( preferredWidth );
+            }
+        }
     }
 
     public JComponent getCustomToolTipComponent(MouseEvent event) {

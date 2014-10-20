@@ -19,6 +19,10 @@
 
 package net.sf.mzmine.modules.visualization.peaksummary;
 
+import java.awt.Dimension;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.PeakListRow;
@@ -43,8 +47,15 @@ public class PeakSummaryVisualizerModule implements MZmineModule {
 	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
 	 */
 	public static void showNewPeakSummaryWindow(PeakListRow row) {
-		PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
+		final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
 		newWindow.setVisible(true);
+		newWindow.setLocation(20, 20);
+		newWindow.setSize(new Dimension(1000, 600));
+		
+		//Hack to show the new window in front of the main window
+		Timer timer = new Timer();
+		timer.schedule(new TimerTask() { public void run() { newWindow.toFront(); } }, 200); //msecs
+		timer.schedule(new TimerTask() { public void run() { newWindow.toFront(); } }, 400); //msecs
 	}
 
 	@Override

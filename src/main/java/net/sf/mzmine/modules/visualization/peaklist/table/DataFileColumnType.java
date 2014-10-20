@@ -27,7 +27,7 @@ public enum DataFileColumnType {
     STATUS("Status", FeatureStatus.class), 
     PEAKSHAPE("Peak shape", Feature.class),
     MZ("m/z", Double.class), 
-    RT("Ret.time", Double.class),
+    RT("RT", Double.class),
     DURATION("Duration", Double.class),
     HEIGHT("Height", Double.class),
     AREA("Area", Double.class),

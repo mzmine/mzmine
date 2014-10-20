@@ -54,7 +54,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 	private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;
 	private TableCellRenderer peakShapeRenderer, identityRenderer,
 			peakStatusRenderer;
-	private DefaultTableCellRenderer defaultRenderer;
+	private DefaultTableCellRenderer defaultRenderer, defaultRendererLeft;
 
 	private ParameterSet parameters;
 	private PeakList peakList;
@@ -89,8 +89,10 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		identityRenderer = new CompoundIdentityCellRenderer();
 		peakStatusRenderer = new PeakStatusCellRenderer();
 		defaultRenderer = new DefaultTableCellRenderer();
-		defaultRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-
+		defaultRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+		defaultRendererLeft = new DefaultTableCellRenderer();
+		defaultRendererLeft.setHorizontalAlignment(SwingConstants.LEFT);
+		
 	}
 
 	public void createColumns() {
@@ -146,7 +148,7 @@ public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 				newColumn.setCellRenderer(identityRenderer);
 				break;
 			case COMMENT:
-				newColumn.setCellRenderer(defaultRenderer);
+				newColumn.setCellRenderer(defaultRendererLeft);
 				newColumn.setCellEditor(defaultEditor);
 				break;
 			case PEAKSHAPE:

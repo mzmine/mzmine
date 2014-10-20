@@ -71,6 +71,13 @@ public class PeakListTableWindow extends JFrame implements
 		pack();
 
 	}
+	
+    public int getJScrollSizeWidth() {
+        return table.getPreferredSize().width;  
+    } 
+    public int getJScrollSizeHeight() {
+    	return table.getPreferredSize().height;  
+    } 
 
 	/**
 	 * Methods for ActionListener interface implementation

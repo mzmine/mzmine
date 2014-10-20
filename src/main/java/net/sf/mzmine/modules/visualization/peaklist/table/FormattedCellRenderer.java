@@ -27,7 +27,6 @@ import java.text.NumberFormat;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
-import javax.swing.OverlayLayout;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
@@ -62,7 +61,6 @@ class FormattedCellRenderer implements TableCellRenderer {
 			boolean isSelected, boolean hasFocus, int row, int column) {
 
 		JPanel newPanel = new JPanel();
-		newPanel.setLayout(new OverlayLayout(newPanel));
 		Color bgColor;
 
 		if (isSelected)
@@ -100,7 +98,7 @@ class FormattedCellRenderer implements TableCellRenderer {
 			else
 				text = value.toString();
 
-			JLabel newLabel = new JLabel(text, JLabel.LEFT);
+			JLabel newLabel = new JLabel(text, JLabel.CENTER);
 
 			if (font != null)
 				newLabel.setFont(font);

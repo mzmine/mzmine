@@ -26,7 +26,7 @@ public enum CommonColumnType {
 
     ROWID("ID", Integer.class),
     AVERAGEMZ("m/z", Double.class),
-    AVERAGERT("Ret.time", Double.class),
+    AVERAGERT("RT", Double.class),
     IDENTITY("Identity", PeakIdentity.class),
     COMMENT("Comment", String.class),
     PEAKSHAPE("Peak shape", PeakListRow.class);
