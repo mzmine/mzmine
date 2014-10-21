@@ -46,6 +46,7 @@ public class ProjectTree extends JTree {
 				renderer, new ProjectTreeEditor(this));
 		setCellEditor(editor);
 		setEditable(true);
+		setInvokesStopCellEditing(true);
 
 		setRootVisible(true);
 		setShowsRootHandles(false);
