@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.visualization.peaklist;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
@@ -28,6 +29,8 @@ import java.awt.print.PrinterException;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable.PrintMode;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -65,13 +68,13 @@ public class PeakListTableWindow extends JFrame implements
 		table = new PeakListTable(this, parameters, peakList);
 
 		scrollPane = new JScrollPane(table);
-
+		
 		add(scrollPane, BorderLayout.CENTER);
 
 		pack();
 
 	}
-	
+
     public int getJScrollSizeWidth() {
         return table.getPreferredSize().width;  
     } 
@@ -99,6 +102,23 @@ public class PeakListTableWindow extends JFrame implements
 				cm.createColumns();
 
 			}
+		}
+		
+		if (command.equals("AUTOCOLUMNWIDTH")) {
+	        // Auto size column width based on data
+	        for (int column = 0; column < table.getColumnCount(); column++)
+	        {
+	            TableColumn tableColumn = table.getColumnModel().getColumn(column);
+	            if(tableColumn.getHeaderValue() != "Peak shape" && tableColumn.getHeaderValue() != "Status") {
+		            TableCellRenderer renderer = tableColumn.getHeaderRenderer();
+		            if (renderer == null) {
+		                renderer = table.getTableHeader().getDefaultRenderer();
+		            }
+		            Component component = renderer.getTableCellRendererComponent(table, tableColumn.getHeaderValue(), false, false, -1, column);
+		            int preferredWidth = component.getPreferredSize().width+20;
+		            tableColumn.setPreferredWidth( preferredWidth );
+	            }
+	        }
 		}
 
 		if (command.equals("PRINT")) {

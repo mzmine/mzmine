@@ -32,6 +32,7 @@ import java.util.Map;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.AbstractTableModel;
 
 import net.sf.mzmine.datamodel.Feature;
@@ -76,6 +77,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenu showMenu;
     private final JMenu searchMenu;
     private final JMenu idsMenu;
+    private final JMenu exportMenu;
     private final JMenuItem deleteRowsItem;
     private final JMenuItem addNewRowItem;
     private final JMenuItem plotRowsItem;
@@ -143,7 +145,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         formulaItem = GUIUtils.addMenuItem(searchMenu,
                 "Predict molecular formula", this);
 
-        final JMenu exportMenu = new JMenu("Export");
+        exportMenu = new JMenu("Export");
         add(exportMenu);
         exportIsotopesItem = GUIUtils.addMenuItem(exportMenu,
                 "Isotope pattern", this);
@@ -161,13 +163,22 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                 "Plot using Intensity Plot module", this);
         manuallyDefineItem = GUIUtils.addMenuItem(this, "Manually define peak",
                 this);
-        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected rows",
+        deleteRowsItem = GUIUtils.addMenuItem(this, "Delete selected row(s)",
                 this);
         addNewRowItem = GUIUtils.addMenuItem(this, "Add new row", this);
     }
 
     @Override
     public void show(final Component invoker, final int x, final int y) {
+    	
+    	// Select the row where clicked?
+        final Point clickedPoint = new Point(x, y);
+        final int clickedRow = table.rowAtPoint(clickedPoint);
+    	if (table.getSelectedRowCount() < 2) {
+    		ListSelectionModel selectionModel = 
+    				  table.getSelectionModel();
+    				selectionModel.setSelectionInterval(clickedRow, clickedRow);
+    	}
 
         // First, disable all the Show... items
         show2DItem.setEnabled(false);
@@ -176,7 +187,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         showMSMSItem.setEnabled(false);
         showIsotopePatternItem.setEnabled(false);
         showPeakRowSummaryItem.setEnabled(false);
+        exportIsotopesItem.setEnabled(false);
         exportMSMSItem.setEnabled(false);
+        exportMenu.setEnabled(false);
 
         // Enable row items if applicable
         final int[] selectedRows = table.getSelectedRows();
@@ -187,14 +200,14 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         plotRowsItem.setEnabled(rowsSelected);
         showMenu.setEnabled(rowsSelected);
         idsMenu.setEnabled(rowsSelected);
+        exportIsotopesItem.setEnabled(rowsSelected);
+        exportMenu.setEnabled(rowsSelected);
 
         final boolean oneRowSelected = selectedRows.length == 1;
         searchMenu.setEnabled(oneRowSelected);
 
         // Find the row and column where the user clicked
         clickedDataFile = null;
-        final Point clickedPoint = new Point(x, y);
-        final int clickedRow = table.rowAtPoint(clickedPoint);
         final int clickedColumn = columnModel.getColumn(
                 table.columnAtPoint(clickedPoint)).getModelIndex();
         if (clickedRow >= 0 && clickedColumn >= 0) {

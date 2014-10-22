@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.modules.visualization.peaklist;
 
-import java.awt.Color;
 import java.awt.Insets;
 
 import javax.swing.Icon;
@@ -30,8 +29,8 @@ import net.sf.mzmine.util.GUIUtils;
 
 class PeakListTableToolBar extends JToolBar {
 
-	private static final Icon propertiesIcon = new ImageIcon(
-			"icons/propertiesicon.png");
+	private static final Icon propertiesIcon = new ImageIcon("icons/propertiesicon.png");
+	private static final Icon widthIcon = new ImageIcon("icons/widthicon.png");
 	private static final Icon printIcon = new ImageIcon("icons/printicon.png");
 
 	PeakListTableToolBar(PeakListTableWindow masterFrame) {
@@ -40,13 +39,10 @@ class PeakListTableToolBar extends JToolBar {
 
 		setFloatable(false);
 		setMargin(new Insets(5, 5, 5, 5));
-		setBackground(Color.white);
 
-		GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
-				"PROPERTIES", "Set table properties");
-
+		GUIUtils.addButton(this, null, propertiesIcon, masterFrame, "PROPERTIES", "Set table properties");
+		GUIUtils.addButton(this, null, widthIcon, masterFrame, "AUTOCOLUMNWIDTH", "Set auto column width");
 		addSeparator();
-
 		GUIUtils.addButton(this, null, printIcon, masterFrame, "PRINT", "Print");
 
 	}
