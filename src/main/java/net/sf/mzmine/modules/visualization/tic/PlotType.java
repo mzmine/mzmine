@@ -21,7 +21,7 @@ package net.sf.mzmine.modules.visualization.tic;
 
 public enum PlotType {
 
-	TIC("Total ion intensity"), 
+	TIC("Total ion current"), 
 	BASEPEAK("Base peak intensity");
 
 	private String type;

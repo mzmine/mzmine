@@ -88,5 +88,9 @@ class RemoveFilePopupMenu extends JMenu implements MenuListener,
         RawDataFile file = menuItemFiles.get(src);
         if (file != null)
             visualizer.removeRawDataFile(file);
+        
+        // Disable menu?
+        RawDataFile[] files = visualizer.getRawDataFiles();
+        if (files.length == 1) { this.setEnabled(false); }
     }
 }

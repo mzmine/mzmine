@@ -21,6 +21,8 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -29,6 +31,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.JFrame;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -100,6 +104,13 @@ public class TICVisualizerWindow extends JFrame implements
         // toolBar = new TICToolBar(this);
         toolBar = new TICToolBar(ticPlot);
         add(toolBar, BorderLayout.EAST);
+
+        // auto size window
+        this.setLocation(20, 20);
+        final int screenWidth = (int)Math.round(Toolkit.getDefaultToolkit().getScreenSize().getWidth()-40);
+        final int screenHeight = (int)Math.round(Toolkit.getDefaultToolkit().getScreenSize().getHeight()-80);
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() { public void run() { setSize(screenWidth,screenHeight); } }, 200); //msecs
 
         // add all peaks
         if (peaks != null) {

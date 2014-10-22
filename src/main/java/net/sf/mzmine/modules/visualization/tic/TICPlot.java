@@ -37,6 +37,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
@@ -130,6 +131,8 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
     // Counters.
     private int numOfDataSets;
     private int numOfPeaks;
+    
+    public JMenuItem RemoveFilePopupMenu;
 
     /**
      * Indicates whether we have a request to show spectra visualizer for
@@ -166,7 +169,7 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 
             yAxisLabel = ((TICVisualizerWindow) listener).getPlotType() == PlotType.BASEPEAK ?
                          "Base peak intensity" :
-                         "Total ion intensity";
+                         "Total ion current";
         } else {
 
             yAxisLabel = "Base peak intensity";
@@ -272,9 +275,10 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
             popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
             popupMenu.addSeparator();
             popupMenu.add(new AddFilePopupMenu((TICVisualizerWindow) listener));
-            popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
+            RemoveFilePopupMenu = popupMenu.add(new RemoveFilePopupMenu((TICVisualizerWindow) listener));
             popupMenu.add(new ExportPopUpMenu((TICVisualizerWindow) listener));
             popupMenu.addSeparator();
+            RemoveFilePopupMenu.setEnabled(false);
         }
 
         GUIUtils.addMenuItem(popupMenu, "Toggle showing peak values", this, "SHOW_ANNOTATIONS");
@@ -513,6 +517,9 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
             renderer.setBaseItemLabelsVisible(labelsVisible == 1);
             addDataSetRenderer(dataSet, renderer);
             numOfDataSets++;
+
+            // Enable remove plot menu
+            if (numOfDataSets > 1) {RemoveFilePopupMenu.setEnabled(true);}
         }
         catch (CloneNotSupportedException e) {
             LOG.log(Level.WARNING, "Unable to clone renderer", e);
