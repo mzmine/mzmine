@@ -33,6 +33,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.datamodel.PeakList;
@@ -67,7 +68,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
     private JMenuItem projectSampleParameters, projectPreferences,
 	    projectSaveParameters, projectLoadParameters, projectExit,
-	    showAbout;
+	    showAbout, checkUpdate;
 
     private int projectIOMenuIndex = 0, projectMenuIndex = 1,
 	    rawDataMenuIndex = 0, visualizationMenuIndex = 0;
@@ -202,6 +203,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	showAbout.addActionListener(this);
 	addMenuItem(MZmineModuleCategory.HELPSYSTEM, showAbout);
 
+	checkUpdate = GUIUtils.addMenuItem(helpMenu, "Check for update", this);
     }
 
     public synchronized void addMenuItem(MZmineModuleCategory parentMenu,
@@ -397,6 +399,31 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	if (src == showAbout) {
 	    MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 	    mainWindow.showAboutDialog();
+	}
+	
+	if (src == checkUpdate) {
+		logger.info("Check for update ...");
+
+		String currentVersion = "", newestVersion = "", msg = "";
+		currentVersion = MZmineCore.getMZmineVersion();
+		newestVersion = MZmineCore.newestMZmineVersion();
+
+		System.out.println(newestVersion);
+		if (newestVersion == "0") {
+			msg = "An error occured. Please make sure that you are connected to the internet or try again later.";
+			logger.info(msg);
+			JOptionPane.showMessageDialog(null, msg, "Update", JOptionPane.INFORMATION_MESSAGE);
+		}
+		else if (currentVersion == newestVersion || currentVersion == "0.0") {
+			msg = "No updated version of MZmine is available";
+			logger.info(msg);
+			JOptionPane.showMessageDialog(null, msg, "Update", JOptionPane.INFORMATION_MESSAGE);
+		}
+		else {
+			msg = "An updated version is available: MZmine "+newestVersion;
+			logger.info(msg);
+			JOptionPane.showMessageDialog(null, msg +"\nPlease download the newest version from: http://mzmine.sourceforge.net", "Update", JOptionPane.INFORMATION_MESSAGE);
+		}
 	}
 
     }

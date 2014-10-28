@@ -19,9 +19,12 @@
 
 package net.sf.mzmine.main;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Locale;
@@ -205,8 +208,19 @@ public final class MZmineCore {
 			logger.info("Showing main window");
 			desktop.getMainWindow().setVisible(true);
 
-			// show the welcome message
-			desktop.setStatusBarText("Welcome to MZmine 2!");
+			// Check for updated version
+			String currentVersion = "", newestVersion = "";
+			currentVersion = getMZmineVersion();
+			newestVersion = newestMZmineVersion();
+
+			if (currentVersion == newestVersion || currentVersion == "0.0" || newestVersion == "0") {
+				// show the welcome message
+				desktop.setStatusBarText("Welcome to MZmine 2!");
+			}
+			else {
+				// show the welcome message
+				desktop.setStatusBarText("Welcome to MZmine 2! An updated version is available: MZmine "+newestVersion);
+			}
 
 			// register shutdown hook only if we have GUI - we don't want to
 			// save configuration on exit if we only run a batch
@@ -288,6 +302,22 @@ public final class MZmineCore {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return "0.0";
+		}
+	}
+
+	@Nonnull
+	public static String newestMZmineVersion() {
+		try {
+			URL url = new URL("http://mzmine.sourceforge.net/version.txt");
+			// Open the stream and put it into BufferedReader
+			BufferedReader buffer = new BufferedReader(new InputStreamReader(url.openStream()));
+			String newestVersion = "";
+
+			newestVersion = buffer.readLine();
+			buffer.close();
+			return newestVersion;
+		} catch (Exception e) {
+			return "0";
 		}
 	}
 
