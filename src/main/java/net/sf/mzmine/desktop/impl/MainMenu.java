@@ -408,7 +408,6 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		currentVersion = MZmineCore.getMZmineVersion();
 		newestVersion = MZmineCore.newestMZmineVersion();
 
-		System.out.println(newestVersion);
 		if (newestVersion == "0") {
 			msg = "An error occured. Please make sure that you are connected to the internet or try again later.";
 			logger.info(msg);
