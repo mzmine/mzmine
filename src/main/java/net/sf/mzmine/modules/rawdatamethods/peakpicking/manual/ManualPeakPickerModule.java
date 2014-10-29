@@ -22,10 +22,12 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.Feature;
+import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModule;
+import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.Range;
@@ -40,12 +42,12 @@ public class ManualPeakPickerModule implements MZmineModule {
     }
 
     public static ExitCode runManualDetection(RawDataFile dataFile,
-	    PeakListRow peakListRow) {
-	return runManualDetection(new RawDataFile[] { dataFile }, peakListRow);
+	    PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
+	return runManualDetection(new RawDataFile[] { dataFile }, peakListRow, peakList, table);
     }
 
     public static ExitCode runManualDetection(RawDataFile dataFiles[],
-	    PeakListRow peakListRow) {
+	    PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
 
 	Range mzRange = null, rtRange = null;
 
@@ -95,7 +97,7 @@ public class ManualPeakPickerModule implements MZmineModule {
 	    return exitCode;
 
 	ManualPickerTask task = new ManualPickerTask(peakListRow, dataFiles,
-		parameters);
+		parameters, peakList, table);
 
 	MZmineCore.getTaskController().addTask(task);
 	return exitCode;

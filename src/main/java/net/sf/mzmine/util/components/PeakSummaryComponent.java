@@ -466,7 +466,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
             Feature selectedPeak = listElementModel
                     .getElementAt(indexRow);
             ManualPeakPickerModule.runManualDetection(
-                    selectedPeak.getDataFile(), row);
+                    selectedPeak.getDataFile(), row, null, null);
 
             return;
         }

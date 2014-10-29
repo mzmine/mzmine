@@ -433,7 +433,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
         if (manuallyDefineItem.equals(src)) {
 
             ManualPeakPickerModule.runManualDetection(clickedDataFile,
-                    clickedPeakListRow);
+                    clickedPeakListRow, peakList, table);
         }
 
         if (showSpectrumItem.equals(src)) {
@@ -513,12 +513,9 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
                     .getModel();
             tableModel.fireTableDataChanged();
             ExitCode exitCode = ManualPeakPickerModule.runManualDetection(
-                    peakList.getRawDataFiles(), newRow);
+                    peakList.getRawDataFiles(), newRow, peakList, table);
             if (exitCode == ExitCode.OK) {
             	peakList.addRow(newRow);
-            	
-            	 // Notify the GUI that peaklist contents have changed
-                updateTableGUI();
             }
             
             // Notify the GUI that peaklist contents have changed
