@@ -331,10 +331,12 @@ public class SimplePeakList implements PeakList {
 	}
 
 	public Range getRowsMZRange() {
+		updateMaxIntensity(); // Update range before returning value
 		return mzRange;
 	}
 
 	public Range getRowsRTRange() {
+		updateMaxIntensity(); // Update range before returning value
 		return rtRange;
 	}
 

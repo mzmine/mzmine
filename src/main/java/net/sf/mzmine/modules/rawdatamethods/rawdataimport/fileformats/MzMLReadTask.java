@@ -251,7 +251,7 @@ public class MzMLReadTask extends AbstractTask {
                 if ((accession == null) || (value == null))
                     continue;
 
-                // Retention time (actually "Scan start time") MS:100001
+                // Retention time (actually "Scan start time") MS:1000016
                 if (accession.equals("MS:1000016")) {
                     // MS:1000038 is used in mzML 1.0, while UO:0000031
                     // is used in mzML 1.1.0 :-/
