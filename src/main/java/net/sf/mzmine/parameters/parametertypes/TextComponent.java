@@ -18,15 +18,20 @@
  */
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.awt.Font;
+
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class TextComponent extends JScrollPane {
 
-    private JTextArea textArea;
+    public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+
+    private final JTextArea textArea;
 
     public TextComponent() {
 	textArea = new JTextArea(5, 30);
+	textArea.setFont(smallFont);
 	getViewport().add(textArea);
     }
 

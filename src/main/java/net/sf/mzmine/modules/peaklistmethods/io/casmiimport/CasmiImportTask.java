@@ -29,6 +29,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -37,6 +38,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleFeature;
 import net.sf.mzmine.datamodel.impl.SimpleIsotopePattern;
+import net.sf.mzmine.datamodel.impl.SimpleMassList;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.datamodel.impl.SimplePeakListRow;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
@@ -113,6 +115,16 @@ class CasmiImportTask extends AbstractTask {
 	    dataFileWriter.addScan(msMsScan);
 	    newDataFile = dataFileWriter.finishWriting();
 
+	    // Add mass lists to scans
+	    Scan finalMsScan = newDataFile.getScan(msScanNumber);
+	    final MassList msScanMassList = new SimpleMassList(
+		    casmiProblemName, finalMsScan, msSpectrumDataPoints);
+	    finalMsScan.addMassList(msScanMassList);
+	    Scan finalMsMsScan = newDataFile.getScan(msMsScanNumber);
+	    final MassList msMsScanMassList = new SimpleMassList(
+		    casmiProblemName, finalMsMsScan, msMsSpectrumDataPoints);
+	    finalMsMsScan.addMassList(msMsScanMassList);
+
 	    // Generate the peak
 	    double mz = topDataPoint.getMZ();
 	    double rt = msScan.getRetentionTime();
@@ -162,7 +174,7 @@ class CasmiImportTask extends AbstractTask {
 	final Scanner scanner = new Scanner(textSpectrum);
 	while (scanner.hasNextLine()) {
 	    final String line = scanner.nextLine();
-	    final String items[] = line.split("\\s");
+	    final String items[] = line.split("\\s+");
 	    if (items.length != 2)
 		continue;
 	    final double mz = Double.parseDouble(items[0]);
