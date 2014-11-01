@@ -36,11 +36,12 @@ public class ResultTableModel extends AbstractTableModel {
     private double searchedMass;
     private Vector<DBCompound> compounds = new Vector<DBCompound>();
 
-    final NumberFormat percentFormat = NumberFormat.getPercentInstance();
-    final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
+    private final NumberFormat percentFormat = NumberFormat.getPercentInstance();
+    private final NumberFormat massFormat = MZmineCore.getConfiguration().getMZFormat();
 
     ResultTableModel(double searchedMass) {
 	this.searchedMass = searchedMass;
+	percentFormat.setMaximumFractionDigits(1);
     }
 
     public String getColumnName(int col) {
