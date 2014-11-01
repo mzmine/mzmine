@@ -11,7 +11,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.8</cdk.version>
+		<cdk.version>1.5.7</cdk.version>
+		<!-- Note: CDK version 1.5.8 breaks the molecular structure viewer of JChemPaint 
+			3.4, due to missing GeometryTools class -->
 	</properties>
 	<build>
 		<plugins>
