@@ -45,6 +45,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.formulapredictionpea
 import net.sf.mzmine.modules.peaklistmethods.identification.fragmentsearch.FragmentSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipidsearch.GPLipidSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
+import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
@@ -123,6 +124,7 @@ public class MZmineModulesList {
 	    XMLExportModule.class,
 	    XMLImportModule.class,
 	    SQLExportModule.class,
+	    CasmiImportModule.class,
 	    // Gap filling
 	    PeakFinderModule.class,
 	    SameRangeGapFillerModule.class,
