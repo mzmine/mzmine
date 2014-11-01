@@ -117,12 +117,12 @@ class CasmiImportTask extends AbstractTask {
 
 	    // Add mass lists to scans
 	    Scan finalMsScan = newDataFile.getScan(msScanNumber);
-	    final MassList msScanMassList = new SimpleMassList(
-		    "CASMI", finalMsScan, msSpectrumDataPoints);
+	    final MassList msScanMassList = new SimpleMassList("CASMI",
+		    finalMsScan, msSpectrumDataPoints);
 	    finalMsScan.addMassList(msScanMassList);
 	    Scan finalMsMsScan = newDataFile.getScan(msMsScanNumber);
-	    final MassList msMsScanMassList = new SimpleMassList(
-		    casmiProblemName, finalMsMsScan, msMsSpectrumDataPoints);
+	    final MassList msMsScanMassList = new SimpleMassList("CASMI",
+		    finalMsMsScan, msMsSpectrumDataPoints);
 	    finalMsMsScan.addMassList(msMsScanMassList);
 
 	    // Generate the peak
