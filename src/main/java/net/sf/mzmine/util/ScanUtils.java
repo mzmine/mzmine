@@ -254,10 +254,9 @@ public class ScanUtils {
 
 	}
 
-	assert noOfEntries != null;
-
 	// calculate the AVG
 	if (binningType.equals(BinningType.AVG)) {
+	    assert noOfEntries != null;
 	    for (int binIndex = 0; binIndex < binValues.length; binIndex++) {
 		if (binValues[binIndex] != null) {
 		    binValues[binIndex] /= noOfEntries[binIndex];
