@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.manual;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.table.AbstractTableModel;
@@ -39,108 +40,119 @@ import net.sf.mzmine.util.ScanUtils;
 
 class ManualPickerTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private int processedScans, totalScans;
+    private int processedScans, totalScans;
 
-	private PeakListTable table;
-	private PeakList peakList;
-	private PeakListRow peakListRow;
-	private RawDataFile dataFiles[];
-	private Range rtRange, mzRange;
+    private PeakListTable table;
+    private PeakList peakList;
+    private PeakListRow peakListRow;
+    private RawDataFile dataFiles[];
+    private Range rtRange, mzRange;
 
-	ManualPickerTask(PeakListRow peakListRow, RawDataFile dataFiles[],
-			ManualPickerParameters parameters, PeakList peakList, PeakListTable table) {
+    ManualPickerTask(PeakListRow peakListRow, RawDataFile dataFiles[],
+	    ManualPickerParameters parameters, PeakList peakList,
+	    PeakListTable table) {
 
-		this.peakListRow = peakListRow;
-		this.dataFiles = dataFiles;
-		this.peakList = peakList;
-		this.table = table;
+	this.peakListRow = peakListRow;
+	this.dataFiles = dataFiles;
+	this.peakList = peakList;
+	this.table = table;
 
-		rtRange = parameters.getParameter(
-				ManualPickerParameters.retentionTimeRange).getValue();
-		mzRange = parameters.getParameter(ManualPickerParameters.mzRange)
-				.getValue();
+	rtRange = parameters.getParameter(
+		ManualPickerParameters.retentionTimeRange).getValue();
+	mzRange = parameters.getParameter(ManualPickerParameters.mzRange)
+		.getValue();
 
+    }
+
+    public double getFinishedPercentage() {
+	if (totalScans == 0)
+	    return 0;
+	return (double) processedScans / totalScans;
+    }
+
+    public String getTaskDescription() {
+	return "Manually picking peaks from " + Arrays.toString(dataFiles);
+    }
+
+    public void run() {
+
+	setStatus(TaskStatus.PROCESSING);
+
+	logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: "
+		+ mzRange);
+
+	// Calculate total number of scans to process
+	for (RawDataFile dataFile : dataFiles) {
+	    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
+	    totalScans += scanNumbers.length;
 	}
 
-	public double getFinishedPercentage() {
-		if (totalScans == 0)
-			return 0;
-		return (double) processedScans / totalScans;
-	}
+	// Find peak in each data file
+	for (RawDataFile dataFile : dataFiles) {
 
-	public String getTaskDescription() {
-		return "Manually picking peaks from " + Arrays.toString(dataFiles);
-	}
+	    ManualPeak newPeak = new ManualPeak(dataFile);
+	    boolean dataPointFound = false;
 
-	public void run() {
+	    int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
 
-		setStatus(TaskStatus.PROCESSING);
+	    for (int scanNumber : scanNumbers) {
 
-		logger.finest("Starting manual peak picker, RT: " + rtRange + ", m/z: "
-				+ mzRange);
+		if (isCanceled())
+		    return;
 
-		// Calculate total number of scans to process
-		for (RawDataFile dataFile : dataFiles) {
-			int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-			totalScans += scanNumbers.length;
+		// Get next scan
+		Scan scan = dataFile.getScan(scanNumber);
+
+		// Find most intense m/z peak
+		DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
+
+		if (basePeak != null) {
+		    if (basePeak.getIntensity() > 0)
+			dataPointFound = true;
+		    newPeak.addDatapoint(scan.getScanNumber(), basePeak);
+		} else {
+		    DataPoint fakeDataPoint = new SimpleDataPoint(
+			    mzRange.getAverage(), 0);
+		    newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 		}
 
-		// Find peak in each data file
-		for (RawDataFile dataFile : dataFiles) {
+		processedScans++;
 
-			ManualPeak newPeak = new ManualPeak(dataFile);
-			boolean dataPointFound = false;
+	    }
 
-			int[] scanNumbers = dataFile.getScanNumbers(1, rtRange);
-
-			for (int scanNumber : scanNumbers) {
-
-				if (isCanceled())
-					return;
-
-				// Get next scan
-				Scan scan = dataFile.getScan(scanNumber);
-
-				// Find most intense m/z peak
-				DataPoint basePeak = ScanUtils.findBasePeak(scan, mzRange);
-
-				if (basePeak != null) {
-					if (basePeak.getIntensity() > 0)
-						dataPointFound = true;
-					newPeak.addDatapoint(scan.getScanNumber(), basePeak);
-				} else {
-					DataPoint fakeDataPoint = new SimpleDataPoint(
-							mzRange.getAverage(), 0);
-					newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
-				}
-
-				processedScans++;
-
-			}
-
-			if (dataPointFound) {
-				newPeak.finalizePeak();
-				if (newPeak.getArea() > 0)
-					peakListRow.addPeak(dataFile, newPeak);
-			}
-
-		}
-
-		// Notify the GUI that peaklist contents have changed
-		if (peakList != null) { MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true); }
-        if (table != null) { ((AbstractTableModel) table.getModel()).fireTableDataChanged(); }
-
-		logger.finest("Finished manual peak picker" + processedScans
-				+ " scans processed");
-
-		setStatus(TaskStatus.FINISHED);
+	    if (dataPointFound) {
+		newPeak.finalizePeak();
+		if (newPeak.getArea() > 0)
+		    peakListRow.addPeak(dataFile, newPeak);
+	    }
 
 	}
 
-	public Object[] getCreatedObjects() {
-		return null;
+	// Notify the GUI that peaklist contents have changed
+	if (peakList != null) {
+	    // Check if the peak list row has been added to the peak list, and
+	    // if it has not, add it
+	    List<PeakListRow> rows = Arrays.asList(peakList.getRows());
+	    if (! rows.contains(peakListRow)) {
+		peakList.addRow(peakListRow);
+	    }
+	    MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
 	}
+	if (table != null) {
+	    ((AbstractTableModel) table.getModel()).fireTableDataChanged();
+	}
+
+	logger.finest("Finished manual peak picker, " + processedScans
+		+ " scans processed");
+
+	setStatus(TaskStatus.FINISHED);
+
+    }
+
+    public Object[] getCreatedObjects() {
+	return null;
+    }
 
 }
