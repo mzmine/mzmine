@@ -278,6 +278,7 @@ public class SimplePeakListRow implements PeakListRow {
 		Feature peaks[] = getPeaks();
 		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
 				SortingDirection.Descending));
+		if (peaks.length == 0) return null;
 		return peaks[0];
 	}
 
