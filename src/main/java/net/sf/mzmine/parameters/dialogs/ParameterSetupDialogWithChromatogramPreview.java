@@ -94,10 +94,16 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
     public void actionPerformed(ActionEvent event) {
 
-	super.actionPerformed(event);
-
 	Object src = event.getSource();
+	
+	// Avoid calling twice "parametersChanged()" for the 
+	// widgets specific to this inherited dialog class
+	if (src != comboDataFileName && src != previewCheckBox) { 
+		super.actionPerformed(event); 
+	}
 
+	// Specific widgets:
+	
 	if (src == comboDataFileName) {
 	    int ind = comboDataFileName.getSelectedIndex();
 	    if (ind >= 0) {
