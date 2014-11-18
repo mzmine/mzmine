@@ -33,13 +33,13 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.main.NewVersionCheck;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.Parameter;
@@ -401,28 +401,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    mainWindow.showAboutDialog();
 	}
 	
-	if (src == checkUpdate) {
-		logger.info("Check for update ...");
-
-		String currentVersion = "", newestVersion = "", msg = "";
-		currentVersion = MZmineCore.getMZmineVersion();
-		newestVersion = MZmineCore.newestMZmineVersion();
-
-		if (newestVersion == "0") {
-			msg = "An error occured. Please make sure that you are connected to the internet or try again later.";
-			logger.info(msg);
-			JOptionPane.showMessageDialog(null, msg, "Update", JOptionPane.INFORMATION_MESSAGE);
-		}
-		else if (currentVersion == newestVersion || currentVersion == "0.0") {
-			msg = "No updated version of MZmine is available";
-			logger.info(msg);
-			JOptionPane.showMessageDialog(null, msg, "Update", JOptionPane.INFORMATION_MESSAGE);
-		}
-		else {
-			msg = "An updated version is available: MZmine "+newestVersion;
-			logger.info(msg);
-			JOptionPane.showMessageDialog(null, msg +"\nPlease download the newest version from: http://mzmine.sourceforge.net", "Update", JOptionPane.INFORMATION_MESSAGE);
-		}
+	if (src == checkUpdate) { // Check for updated version
+		NewVersionCheck NVC = new NewVersionCheck();
+		new Thread(NVC).start();
+		NVC.run("menu");
 	}
 
     }
