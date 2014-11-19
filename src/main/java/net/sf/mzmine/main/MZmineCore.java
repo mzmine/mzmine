@@ -52,6 +52,7 @@ import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.main.NewVersionCheck;
+import net.sf.mzmine.main.NewVersionCheck.CheckType;
 
 /**
  * MZmine main class
@@ -210,9 +211,8 @@ public final class MZmineCore {
 			desktop.setStatusBarText("Welcome to MZmine 2!");
 
 			// Check for updated version
-			NewVersionCheck NVC = new NewVersionCheck();
+			NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
 			new Thread(NVC).start();
-			NVC.run("desktop");
 
 			// register shutdown hook only if we have GUI - we don't want to
 			// save configuration on exit if we only run a batch

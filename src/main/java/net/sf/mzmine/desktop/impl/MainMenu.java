@@ -40,6 +40,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.NewVersionCheck;
+import net.sf.mzmine.main.NewVersionCheck.CheckType;
 import net.sf.mzmine.modules.MZmineModuleCategory;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.parameters.Parameter;
@@ -402,9 +403,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	}
 	
 	if (src == checkUpdate) { // Check for updated version
-		NewVersionCheck NVC = new NewVersionCheck();
-		new Thread(NVC).start();
-		NVC.run("menu");
+	    NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
+	    new Thread(NVC).start();
 	}
 
     }
