@@ -47,6 +47,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.glycerophospholipids
 import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchModule;
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -89,18 +90,21 @@ import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 
 /**
- * List of modules included in MZmine
+ * List of modules included in MZmine 2
  */
 public class MZmineModulesList {
 
     public static final Class<?> MODULES[] = new Class<?>[] {
+
 	    // Project methods
 	    ProjectLoadModule.class,
 	    ProjectSaveModule.class,
 	    ProjectSaveAsModule.class,
 	    ProjectCloseModule.class,
+
 	    // Batch mode
 	    BatchModeModule.class,
+
 	    // Raw data methods
 	    RawDataImportModule.class,
 	    MassDetectionModule.class,
@@ -114,6 +118,7 @@ public class MZmineModulesList {
 	    BaselineCorrectionModule.class,
 	    AlignScansModule.class,
 	    ScanSmoothingModule.class,
+
 	    // Alignment
 	    JoinAlignerModule.class,
 	    RansacAlignerModule.class,
@@ -121,29 +126,36 @@ public class MZmineModulesList {
 
 	    // I/O
 	    CSVExportModule.class,
+	    MetaboAnalystExportModule.class,
 	    XMLExportModule.class,
 	    XMLImportModule.class,
 	    SQLExportModule.class,
 	    CasmiImportModule.class,
+
 	    // Gap filling
 	    PeakFinderModule.class,
 	    SameRangeGapFillerModule.class,
+
 	    // Isotopes
 	    IsotopeGrouperModule.class,
 	    IsotopePatternCalculator.class,
+
 	    // Peak detection
 	    SmoothingModule.class,
 	    DeconvolutionModule.class,
 	    ShapeModelerModule.class,
 	    PeakExtenderModule.class,
 	    TargetedPeakDetectionModule.class,
+
 	    // Peak list filtering
 	    DuplicateFilterModule.class,
 	    RowsFilterModule.class,
+
 	    // Normalization
 	    RTNormalizerModule.class,
 	    LinearNormalizerModule.class,
 	    StandardCompoundNormalizerModule.class,
+
 	    // Data analysis
 	    CVPlotModule.class,
 	    LogratioPlotModule.class,
@@ -152,6 +164,7 @@ public class MZmineModulesList {
 	    SammonsPlotModule.class,
 	    ClusteringModule.class,
 	    HeatMapModule.class,
+
 	    // Identification
 	    CustomDBSearchModule.class, FormulaPredictionModule.class,
 	    FragmentSearchModule.class,
@@ -162,13 +175,18 @@ public class MZmineModulesList {
 	    CameraSearchModule.class,
 	    NistMsSearchModule.class,
 	    FormulaPredictionPeakListModule.class,
+
 	    // Visualizers
+
 	    TICVisualizerModule.class, SpectraVisualizerModule.class,
 	    TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
 	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
 	    IsotopePatternExportModule.class, MSMSExportModule.class,
 	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
 	    InfoVisualizerModule.class, IntensityPlotModule.class,
+
 	    // Tools
-	    MzRangeCalculatorModule.class };
+	    MzRangeCalculatorModule.class
+
+    };
 }
