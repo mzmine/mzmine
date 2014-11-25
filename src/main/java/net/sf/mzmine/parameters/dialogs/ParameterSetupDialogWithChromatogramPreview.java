@@ -38,6 +38,7 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RangeComponent;
@@ -46,6 +47,8 @@ import net.sf.mzmine.util.Range;
 /**
  * This class extends ParameterSetupDialog class, including a TICPlot. This is
  * used to preview how the selected raw data filters work.
+ * 
+ * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	ParameterSetupDialog {
@@ -58,6 +61,9 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
     private JComboBox comboDataFileName;
     private RangeComponent rtRangeBox, mzRangeBox;
     private JCheckBox previewCheckBox;
+
+	// Show as TIC
+	private JComboBox ticViewComboBox;
 
     // XYPlot
     private TICPlot ticPlot;
@@ -96,13 +102,12 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	Object src = event.getSource();
 	
-	// Avoid calling twice "parametersChanged()" for the 
-	// widgets specific to this inherited dialog class
-	if (src != comboDataFileName && src != previewCheckBox) { 
+		// Avoid calling twice "parametersChanged()" for the widgets specific to this inherited dialog class
+		if (src != comboDataFileName && src != previewCheckBox && src != ticViewComboBox) { 
 		super.actionPerformed(event); 
 	}
 
-	// Specific widgets:
+		// Specific widgets
 	
 	if (src == comboDataFileName) {
 	    int ind = comboDataFileName.getSelectedIndex();
@@ -114,6 +119,18 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	if (src == previewCheckBox) {
 	    if (previewCheckBox.isSelected()) {
+				showPreview();
+			} else {
+				hidePreview();
+			}
+		}
+		
+		if (src == ticViewComboBox) {
+			parametersChanged();
+		}
+
+	}
+	public void showPreview() {
 		// Set the height of the preview to 200 cells, so it will span
 		// the whole vertical length of the dialog (buttons are at row
 		// no 100). Also, we set the weight to 10, so the preview
@@ -125,15 +142,27 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 		pack();
 		parametersChanged();
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-	    } else {
+		//previewCheckBox.setSelected(true);
+	}
+	public void hidePreview() {
 		mainPanel.remove(ticPlot);
 		pnlPreviewFields.setVisible(false);
 		updateMinimumSize();
 		pack();
 		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-	    }
+		previewCheckBox.setSelected(false);
+    }
+
+	public PlotType getPlotType() {
+		return (PlotType) (ticViewComboBox.getSelectedItem());
 	}
 
+	public void setPlotType(PlotType plotType) {
+		ticViewComboBox.setSelectedItem(plotType);
+	}
+
+	public RawDataFile getPreviewDataFile() {
+		return this.previewDataFile;
     }
 
     protected void parametersChanged() {
@@ -187,10 +216,13 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	pnlLab.setLayout(new BoxLayout(pnlLab, BoxLayout.Y_AXIS));
 	pnlLab.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+	pnlLab.add(Box.createVerticalStrut(5));
 	pnlLab.add(new JLabel("Data file "));
-	pnlLab.add(Box.createVerticalStrut(30));
-	pnlLab.add(new JLabel("RT range "));
+	pnlLab.add(Box.createVerticalStrut(20));
+	pnlLab.add(new JLabel("Plot Type "));
 	pnlLab.add(Box.createVerticalStrut(25));
+	pnlLab.add(new JLabel("RT range "));
+	pnlLab.add(Box.createVerticalStrut(15));
 	pnlLab.add(new JLabel("m/z range "));
 
 	// Elements of pnlFlds
@@ -202,6 +234,10 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	comboDataFileName.setSelectedItem(previewDataFile);
 	comboDataFileName.addActionListener(this);
 
+	ticViewComboBox = new JComboBox(PlotType.values());
+	ticViewComboBox.setSelectedItem(PlotType.TIC);
+	ticViewComboBox.addActionListener(this);
+
 	rtRangeBox = new RangeComponent(MZmineCore.getConfiguration()
 		.getRTFormat());
 	rtRangeBox.setValue(previewDataFile.getDataRTRange(1));
@@ -212,7 +248,10 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	pnlFlds.add(comboDataFileName);
 	pnlFlds.add(Box.createVerticalStrut(10));
+	pnlFlds.add(ticViewComboBox);
+	pnlFlds.add(Box.createVerticalStrut(20));
 	pnlFlds.add(rtRangeBox);
+	pnlFlds.add(Box.createVerticalStrut(5));
 	pnlFlds.add(mzRangeBox);
 
 	// Put all together

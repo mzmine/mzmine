@@ -23,28 +23,40 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
-import java.text.DecimalFormat;
 
 import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
+//import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.AsymmetryCorrector;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.LocMinLoessCorrector;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.PeakDetectionCorrector;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.RollingBallCorrector;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors.RubberBandCorrector;
 import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
+import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
+import net.sf.mzmine.parameters.parametertypes.ModuleComboParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
+import net.sf.mzmine.util.ExitCode;
 
 /**
- * Holds baseline correction module parameters.
+ * Holds baseline correction module COMMON parameters.
+ * See "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors" sub-package
+ * for method specific parameters.
  * 
  * @author $Author$
  * @version $Revision$
+ * 
+ * Reduced strictly to the parameters common to all the BaselineCorrectors.
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
 
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
-
+	
 	/**
 	 * Raw data file suffix.
 	 */
@@ -53,7 +65,15 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 			"baseline-corrected");
 
 	/**
-	 * Smoothing factor.
+	 * R engine type.
+	 */
+	public static final ComboParameter<RengineType> RENGINE_TYPE = new ComboParameter<RengineType>(
+			"R engine type",
+			"The type of R engine to be used for computing.",
+			RengineType.values(), RengineType.JRIengine);
+	
+	/**
+	 * Chromatogram type.
 	 */
 	public static final ComboParameter<ChromatogramType> CHROMOTAGRAM_TYPE = new ComboParameter<ChromatogramType>(
 			"Chromatogram type",
@@ -61,20 +81,18 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 			ChromatogramType.values(), ChromatogramType.TIC);
 
 	/**
-	 * Smoothing factor.
+	 * List of available baseline correctors 
 	 */
-	public static final DoubleParameter SMOOTHING = new DoubleParameter(
-			"Smoothing",
-			"The smoothing factor (>= 0), generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
-			DecimalFormat.getNumberInstance(), null, 0.0, null);
+	public static final BaselineCorrector baselineCorrectors[] = { 
+		/*new AsymmetryCorrector(),		// (Package R "ptw"				- http://cran.r-project.org/web/packages/ptw/ptw.pdf)*/
+		new RollingBallCorrector(),		// (Package R "baseline"		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+		new PeakDetectionCorrector(), 	// (Package R "baseline" 		- http://cran.r-project.org/web/packages/baseline/baseline.pdf)
+		new RubberBandCorrector(),  	// (Package R "hyperSpec" 		- http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf)
+		new LocMinLoessCorrector()		// (Package R/Bioc. "PROcess" 	- http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf)
+	};
 
-	/**
-	 * Asymmetry.
-	 */
-	public static final DoubleParameter ASYMMETRY = new DoubleParameter(
-			"Asymmetry",
-			"The weight (0 <= p <= 1) for points above the trend line, whereas 1-p is the weight for points below it.  Naturally, p should be small for estimating baselines.",
-			DecimalFormat.getNumberInstance(), 0.001, 0.0, 1.0);
+	public static final ModuleComboParameter<BaselineCorrector> BASELINE_CORRECTORS = new ModuleComboParameter<BaselineCorrector>(
+			"Correction method", "Alternative baseline correction methods", baselineCorrectors);
 
 	/**
 	 * Apply in bins.
@@ -90,7 +108,7 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 	public static final DoubleParameter MZ_BIN_WIDTH = new DoubleParameter(
 			"m/z bin width", "The m/z bin size (>= 0.001) to use when the \""
 					+ USE_MZ_BINS.getName() + "\" option is enabled.",
-			MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
+					MZmineCore.getConfiguration().getMZFormat(), 1.0, 0.001, null);
 
 	/**
 	 * MS-level.
@@ -105,12 +123,30 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 			"If checked, original file will be replaced by the corrected version",
 			true);
 
+
 	/**
 	 * Create the parameter set.
 	 */
 	public BaselineCorrectionParameters() {
-		super(new Parameter[] { dataFiles, SUFFIX, CHROMOTAGRAM_TYPE, MS_LEVEL,
-				SMOOTHING, ASYMMETRY, USE_MZ_BINS, MZ_BIN_WIDTH,
+		super(new Parameter[] { dataFiles, SUFFIX, 
+				//RENGINE_TYPE,
+				CHROMOTAGRAM_TYPE, MS_LEVEL,
+				USE_MZ_BINS, MZ_BIN_WIDTH,
+				BASELINE_CORRECTORS,
 				REMOVE_ORIGINAL });
 	}
+
+	/**
+	 * Use an InstantUpdateSetupDialog setup dialog instead of the regular one.
+	 */
+	@Override
+	public ExitCode showSetupDialog() {
+		Parameter[] parameters = this.getParameters();
+		if ((parameters == null) || (parameters.length == 0))
+			return ExitCode.OK;
+		ParameterSetupDialog dialog = new InstantUpdateSetupDialog(this);
+		dialog.setVisible(true);
+		return dialog.getExitCode();
+	}
+
 }

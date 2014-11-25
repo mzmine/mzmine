@@ -52,6 +52,9 @@ import org.jfree.data.xy.AbstractXYZDataset;
 /**
  * TIC visualizer data set.  One data set is created per file shown in this visualizer.  We need to create separate
  * data set for each file because the user may add/remove files later.
+ * 
+ * Added the possibility to switch to TIC plot type from a 
+ * "non-TICVisualizerWindow" context.
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
 
@@ -85,6 +88,10 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     private final LinkedList<TaskListener> taskListeners;
     private String errorMessage;
 
+	// Plot type
+	private PlotType plotType;
+
+
     /**
      * Create the data set.
      *
@@ -97,6 +104,25 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
                       final int[] theScanNumbers,
                       final Range rangeMZ,
                       final TICVisualizerWindow window) {
+		this(file, theScanNumbers, rangeMZ, window, 
+				((window != null) ? window.getPlotType() : PlotType.BASEPEAK));
+	}
+
+	/**
+	 * Create the data set + possibility to specify a plot type,
+	 * even outside a "TICVisualizerWindow" context.
+	 *
+	 * @param file           data file to plot.
+	 * @param theScanNumbers scans to plot.
+	 * @param rangeMZ        range of m/z to plot.
+	 * @param window         visualizer window.
+	 * @param plotType       plot type.
+	 */
+	public TICDataSet(final RawDataFile file,
+			final int[] theScanNumbers,
+			final Range rangeMZ,
+			final TICVisualizerWindow window,
+			PlotType plotType) {
 
         // Initialize.
         visualizer = window;
@@ -113,6 +139,8 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         taskListeners = new LinkedList<TaskListener>();
         status = WAITING;
         errorMessage = null;
+
+		this.plotType = plotType;
 
         // Start-up the refresh task.
         MZmineCore.getTaskController().addTask(this, TaskPriority.HIGH);
@@ -350,15 +378,16 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
         return intensityMin;
     }
 
+	public PlotType getPlotType() {
+		return this.plotType;
+	}
     private void calculateValues() {
 
-        // Determine plot type.
-        final PlotType plotType = visualizer != null ? visualizer.getPlotType() : PlotType.BASEPEAK;
+		// Determine plot type (now done from constructor).
+		final PlotType plotType = this.plotType; 
 
         // Process each scan.
-        for (int index = 0;
-             status != CANCELED && index < totalScans;
-             index++) {
+		for (int index = 0; status != CANCELED && index < totalScans; index++) {
 
             // Current scan.
             final Scan scan = dataFile.getScan(scanNumbers[index]);
@@ -376,8 +405,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
             if (plotType == PlotType.TIC) {
 
                 // Total ion count.
-                intensity =
-                        scan.getMZRange().isWithin(mzRange) ? scan.getTIC() : ScanUtils.calculateTIC(scan, mzRange);
+						intensity = scan.getMZRange().isWithin(mzRange) ? scan.getTIC() : ScanUtils.calculateTIC(scan, mzRange);
 
             } else if (plotType == PlotType.BASEPEAK && basePeak != null) {
 

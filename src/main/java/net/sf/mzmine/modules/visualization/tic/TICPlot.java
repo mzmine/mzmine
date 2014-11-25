@@ -66,6 +66,9 @@ import org.jfree.ui.RectangleInsets;
 
 /**
  * TIC plot.
+ * 
+ * Added the possibility to switch to TIC plot type from a 
+ * "non-TICVisualizerWindow" context.
  */
 public class TICPlot extends ChartPanel implements MouseWheelListener {
 	
@@ -115,6 +118,8 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
     // Title margin.
     private static final double TITLE_TOP_MARGIN = 5.0;
 
+	// Plot type.
+	private PlotType plotType;
     // The plot.
     private final XYPlot plot;
 
@@ -163,17 +168,15 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
         // Set cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 
-        // Y-axis label.
-        final String yAxisLabel;
-        if (listener instanceof TICVisualizerWindow) {
-
-            yAxisLabel = ((TICVisualizerWindow) listener).getPlotType() == PlotType.BASEPEAK ?
-                         "Base peak intensity" :
-                         "Total ion current";
+		// Plot type
+		if (visualizer instanceof TICVisualizerWindow) {
+			this.plotType = ((TICVisualizerWindow) visualizer).getPlotType();
         } else {
 
-            yAxisLabel = "Base peak intensity";
+			this.plotType = PlotType.BASEPEAK;
         }
+		// Y-axis label.
+		final String yAxisLabel = (this.plotType == PlotType.BASEPEAK) ? "Base peak intensity": "Total ion intensity";
 
         // Initialize the chart by default time series chart from factory.
         final JFreeChart chart = ChartFactory.createXYLineChart("", // title
@@ -508,6 +511,12 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
     }
 
     public synchronized void addTICDataset(final XYDataset dataSet) {
+		// Check if the dataSet to be added is compatible with the type of plot.
+		if ((dataSet instanceof TICDataSet) && (((TICDataSet)dataSet).getPlotType() != this.plotType))
+		    throw new IllegalArgumentException("Added dataset of class '"
+				    + dataSet.getClass()
+				    + "' does not have a compatible plotType. Expected '" + this.plotType.toString()
+				    + "'");
         try {
             final TICPlotRenderer renderer = (TICPlotRenderer) defaultRenderer.clone();
             final Color rendererColor = PLOT_COLORS[numOfDataSets % PLOT_COLORS.length];
@@ -519,7 +528,8 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
             numOfDataSets++;
 
             // Enable remove plot menu
-            if (numOfDataSets > 1) {RemoveFilePopupMenu.setEnabled(true);}
+            if (visualizer instanceof TICVisualizerWindow && 
+					numOfDataSets > 1) {RemoveFilePopupMenu.setEnabled(true);}
         }
         catch (CloneNotSupportedException e) {
             LOG.log(Level.WARNING, "Unable to clone renderer", e);
@@ -577,6 +587,21 @@ public class TICPlot extends ChartPanel implements MouseWheelListener {
 
         chartTitle.setText(titleText);
         chartSubTitle.setText(subTitleText);
+	}
+
+	public void setPlotType(final PlotType plotType) {
+
+		if (this.plotType != plotType) {
+			// Plot type
+			if (visualizer instanceof TICVisualizerWindow) {
+				this.plotType = ((TICVisualizerWindow) visualizer).getPlotType();
+			} else {
+				this.plotType = plotType;
+			}
+			// Y-axis label.
+			String yAxisLabel = (this.plotType == PlotType.BASEPEAK) ? "Base peak intensity": "Total ion intensity";
+			getXYPlot().getRangeAxis().setLabel(yAxisLabel);
+		}
     }
 
     private void addDataSetRenderer(final XYDataset dataSet, final XYItemRenderer renderer) {

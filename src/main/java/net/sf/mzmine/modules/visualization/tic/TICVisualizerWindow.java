@@ -271,8 +271,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
     /**
      * Export a file's chromatogram.
      *
-     * @param file
-     *            the file.
+     * @param file the file.
      */
     public void exportChromatogram(RawDataFile file) {
 

@@ -21,6 +21,7 @@
  * pre-existing code or project. Syngenta does not assert ownership or copyright any over pre-existing work.
  */
 
+
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
 import java.util.Collection;
@@ -41,44 +42,44 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class BaselineCorrectionModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Baseline correction";
-    private static final String MODULE_DESCRIPTION = "This module performs a baseline correction on raw data files.";
+	private static final String MODULE_NAME = "Baseline correction";
+	private static final String MODULE_DESCRIPTION = "This module performs a baseline correction on raw data files.";
 
-    @Override
-    public @Nonnull String getName() {
-	return MODULE_NAME;
-    }
-
-    @Override
-    public @Nonnull String getDescription() {
-	return MODULE_DESCRIPTION;
-    }
-
-    @Override
-    @Nonnull
-    public ExitCode runModule(@Nonnull ParameterSet parameters,
-	    @Nonnull Collection<Task> tasks) {
-
-	RawDataFile dataFiles[] = parameters.getParameter(
-		BaselineCorrectionParameters.dataFiles).getValue();
-
-	for (final RawDataFile dataFile : dataFiles) {
-
-	    Task newTask = new BaselineCorrectionTask(dataFile, parameters);
-	    tasks.add(newTask);
+	@Override
+	public @Nonnull String getName() {
+		return MODULE_NAME;
 	}
 
-	return ExitCode.OK;
-    }
+	@Override
+	public @Nonnull String getDescription() {
+		return MODULE_DESCRIPTION;
+	}
 
-    @Override
-    public @Nonnull MZmineModuleCategory getModuleCategory() {
-	return MZmineModuleCategory.RAWDATAFILTERING;
-    }
+	@Override
+	@Nonnull
+	public ExitCode runModule(@Nonnull ParameterSet parameters,
+			@Nonnull Collection<Task> tasks) {
 
-    @Override
-    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return BaselineCorrectionParameters.class;
-    }
+		RawDataFile dataFiles[] = parameters.getParameter(
+				BaselineCorrectionParameters.dataFiles).getValue();
+
+		for (final RawDataFile dataFile : dataFiles) {
+
+			Task newTask = new BaselineCorrectionTask(dataFile, parameters);
+			tasks.add(newTask);
+		}
+
+		return ExitCode.OK;
+	}
+
+	@Override
+	public @Nonnull MZmineModuleCategory getModuleCategory() {
+		return MZmineModuleCategory.RAWDATAFILTERING;
+	}
+
+	@Override
+	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+		return BaselineCorrectionParameters.class;
+	}
 
 }
