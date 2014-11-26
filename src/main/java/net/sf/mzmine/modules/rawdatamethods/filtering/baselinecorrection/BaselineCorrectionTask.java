@@ -65,7 +65,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
 	
 	private final RengineType rEngineType;
-	private final RSession rSession;
+	private RSession rSession;
 
 	/**
 	 * Creates the task.
@@ -85,18 +85,6 @@ public class BaselineCorrectionTask extends AbstractTask {
 		this.removeOriginal = parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
 		this.baselineCorrectorProcStep = parameters.getParameter(BaselineCorrectionParameters.BASELINE_CORRECTORS).getValue();
 
-
-		// Check R availability, by trying to open the connection
-		try {
-			String[] reqPackages = this.baselineCorrectorProcStep.getModule().getRequiredRPackages();
-			this.rSession = new RSession(this.rEngineType, reqPackages);
-			this.rSession.open();
-			//this.rSession.close();
-		}
-		catch (Throwable t) {
-			throw new IllegalStateException(
-					"Baseline correction requires R but it couldn't be loaded (" + t.getMessage() + ')');
-		}
 	}
 
 
@@ -122,6 +110,16 @@ public class BaselineCorrectionTask extends AbstractTask {
 		setStatus(TaskStatus.PROCESSING);
 
 		try {
+
+			// Check R availability, by trying to open the connection
+			try {
+				String[] reqPackages = this.baselineCorrectorProcStep.getModule().getRequiredRPackages();
+				this.rSession = new RSession(this.rEngineType, reqPackages);
+				this.rSession.open();
+			}
+			catch (Throwable t) {
+				throw new IllegalStateException(t.getMessage());
+			}
 
 			// Check & load required R packages
 			String missingPackage = null;
@@ -159,7 +157,7 @@ public class BaselineCorrectionTask extends AbstractTask {
 
 			this.baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile, true);
 
-			LOG.log(Level.SEVERE, "Unknown baseline correction error.", t);
+			LOG.log(Level.SEVERE, "Baseline correction error.", t);
 			errorMessage = t.getMessage();
 			setStatus(TaskStatus.ERROR);
 		}

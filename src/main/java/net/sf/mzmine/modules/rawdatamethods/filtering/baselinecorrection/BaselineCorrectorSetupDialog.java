@@ -35,6 +35,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import net.sf.mzmine.main.MZmineCore;
 
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -160,7 +161,7 @@ implements TaskListener {
 		private BaselineCorrectorSetupDialog dialog;
 		private ProgressThread progressThread;
 
-		private final RSession rSession;
+		private RSession rSession;
 
 		public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile, Range rtRange, Range mzRange) {
 			
@@ -170,17 +171,7 @@ implements TaskListener {
 			this.rtRange = rtRange;
 			this.mzRange = mzRange;
 			
-			// Check R availability, by trying to open the connection
-			try {
-				String[] reqPackages = baselineCorrector.getRequiredRPackages();
-				this.rSession = new RSession(baselineCorrector.getRengineType(), reqPackages);
-				this.rSession.open();
-				//this.rSession.close();
-			}
-			catch (Throwable t) {
-				throw new IllegalStateException(
-						"Baseline correction requires R but it couldn't be loaded (" + t.getMessage() + ')');
-			}
+			addTaskListener(dialog);
 		}
 
 		public RawDataFile getDataFile() {
@@ -196,6 +187,21 @@ implements TaskListener {
 			// Update the status of this task
 			setStatus(TaskStatus.PROCESSING);
 
+			// Check R availability, by trying to open the connection
+			try {
+				String[] reqPackages = baselineCorrector.getRequiredRPackages();
+				this.rSession = new RSession(baselineCorrector.getRengineType(), reqPackages);
+				this.rSession.open();
+			}
+			catch (Throwable t) {
+				String msg = t.getMessage();
+				LOG.log(Level.SEVERE, "Baseline correction error", msg);
+				errorMessage = msg;
+				setStatus(TaskStatus.ERROR);
+				this.rSession = null;
+				return;
+			}
+
 			// Check & load required R packages
 			String missingPackage = null;
 			missingPackage = this.rSession.loadRequiredPackages();
@@ -205,6 +211,7 @@ implements TaskListener {
 				LOG.log(Level.SEVERE, "Baseline correction error", msg);
 				errorMessage = msg;
 				setStatus(TaskStatus.ERROR);
+				return;
 			}
 
 
@@ -290,7 +297,6 @@ implements TaskListener {
 			return baselineCorrector.getFinishedPercentage(dataFile);
 		}
 
-
 	}
 
 	class ProgressThread extends Thread {
@@ -363,7 +369,7 @@ implements TaskListener {
 
 		boolean ready = true;
 		// Abort previous task. 
-		if (previewTask != null && previewTask.getStatus() != TaskStatus.FINISHED) {
+		if (previewTask != null && (previewTask.getStatus() == TaskStatus.PROCESSING)) {
 			ready = false;
 			previewTask.kill();
 			try {
@@ -389,7 +395,7 @@ implements TaskListener {
 
 
 	/**
-	 * Quick way to recover the baseline plot (by subtracting the corrected file to the original one).
+	 * Quick way to recover the baseline plot (by subtracting the corrected file from the original one).
 	 * @param dataFile      original datafile
 	 * @param newDataFile   corrected datafile
 	 * @param plotType      expected plot type
@@ -437,18 +443,9 @@ implements TaskListener {
 	@Override
 	public void statusChanged(TaskEvent e) {
 		if (e.getStatus() == TaskStatus.ERROR) {
-			JOptionPane.showMessageDialog(BaselineCorrectorSetupDialog.this, 
-					e.getSource().getErrorMessage(), "Error of preview task", JOptionPane.ERROR_MESSAGE);
+			MZmineCore.getDesktop().displayErrorMessage( "Error of preview task ", e.getSource().getErrorMessage());
 			hidePreview();
 		} 
-		else if (e.getStatus() == TaskStatus.CANCELED) 
-		{
-			// Kill correction task
-			if (previewTask != null) { 
-				previewTask.kill();
-			}
-			hidePreview();
-		}
 	}
 
 }
