@@ -54,6 +54,12 @@ import net.sf.mzmine.util.ExitCode;
  * Reduced strictly to the parameters common to all the BaselineCorrectors.
  */
 public class BaselineCorrectionParameters extends SimpleParameterSet {
+	
+	// Keep access to those parameters (use only from ParametersDialogs).
+	private static BaselineCorrectionParameters baselineCorrectionParameters = null;
+	protected static BaselineCorrectionParameters getBaselineCorrectionParameters() {
+		return baselineCorrectionParameters;
+	}
 
 	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 	
@@ -144,6 +150,8 @@ public class BaselineCorrectionParameters extends SimpleParameterSet {
 		Parameter[] parameters = this.getParameters();
 		if ((parameters == null) || (parameters.length == 0))
 			return ExitCode.OK;
+		
+		baselineCorrectionParameters = this;
 		ParameterSetupDialog dialog = new InstantUpdateSetupDialog(this);
 		dialog.setVisible(true);
 		return dialog.getExitCode();

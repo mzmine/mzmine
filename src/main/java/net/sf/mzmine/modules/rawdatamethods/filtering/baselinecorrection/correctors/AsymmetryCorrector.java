@@ -24,6 +24,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.util.RUtilities;
 
 /**
  * @description Asymmetric baseline corrector. Estimates a trend based on asymmetric least squares.
@@ -49,7 +50,7 @@ public class AsymmetryCorrector extends BaselineCorrector {
 
 		// Compute baseline.
 		final double[] baseline;
-		//synchronized (RUtilities.R_SEMAPHORE) {
+		synchronized (RUtilities.R_SEMAPHORE) {
 
 			try {
 				// Set chromatogram.
@@ -59,10 +60,10 @@ public class AsymmetryCorrector extends BaselineCorrector {
 				baseline = rSession.collectDoubleArray("baseline");
 			}
 			catch (Throwable t) {
-				t.printStackTrace();
-				throw new IllegalStateException("R error during baseline correction: ", t);
+				//t.printStackTrace();
+				throw new IllegalStateException("R error during baseline correction (" + this.getName() + ").", t);
 			}
-		//}
+		}
 		return baseline;
 	}
 

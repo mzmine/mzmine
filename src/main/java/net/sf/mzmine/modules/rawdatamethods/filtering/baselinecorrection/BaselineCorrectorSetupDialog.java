@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
-import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
@@ -43,7 +42,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
@@ -53,7 +52,13 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskEvent;
 import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;
+import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession.RengineType;
 import net.sf.mzmine.util.Range;
+
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 
 
@@ -145,6 +150,8 @@ implements TaskListener {
 			e.printStackTrace();
 		}
 
+		this.baselineCorrector.collectCommonParameters();
+		
 		// Default plot type. Initialized according to the chosen chromatogram type.
 		this.setPlotType( (this.baselineCorrector.getChromatogramType() == ChromatogramType.TIC) ? 
 				PlotType.TIC : PlotType.BASEPEAK );
@@ -162,6 +169,7 @@ implements TaskListener {
 		private ProgressThread progressThread;
 
 		private RSession rSession;
+		private boolean userCanceled;
 
 		public PreviewTask(BaselineCorrectorSetupDialog dialog, TICPlot ticPlot, RawDataFile dataFile, Range rtRange, Range mzRange) {
 			
@@ -171,7 +179,9 @@ implements TaskListener {
 			this.rtRange = rtRange;
 			this.mzRange = mzRange;
 			
-			addTaskListener(dialog);
+			this.userCanceled = false;
+			
+			this.addTaskListener(dialog);
 		}
 
 		public RawDataFile getDataFile() {
@@ -186,6 +196,9 @@ implements TaskListener {
 
 			// Update the status of this task
 			setStatus(TaskStatus.PROCESSING);
+			
+			// Get parent module parameters
+			baselineCorrector.collectCommonParameters();
 
 			// Check R availability, by trying to open the connection
 			try {
@@ -195,7 +208,7 @@ implements TaskListener {
 			}
 			catch (Throwable t) {
 				String msg = t.getMessage();
-				LOG.log(Level.SEVERE, "Baseline correction error", msg);
+				LOG.log(Level.SEVERE, "Baseline correction error", t);
 				errorMessage = msg;
 				setStatus(TaskStatus.ERROR);
 				this.rSession = null;
@@ -208,7 +221,7 @@ implements TaskListener {
 			if (missingPackage != null) {
 				String msg = "The \"" + baselineCorrector.getName() + "\" requires " +
 						"the \"" + missingPackage + "\" R package, which couldn't be loaded - is it installed in R?";
-				LOG.log(Level.SEVERE, "Baseline correction error", msg);
+				LOG.log(Level.SEVERE, "Baseline correction error", new Throwable(msg));
 				errorMessage = msg;
 				setStatus(TaskStatus.ERROR);
 				return;
@@ -251,8 +264,11 @@ implements TaskListener {
 				e.printStackTrace();
 				//baselineCorrector.initProgress(dataFile);
 			} catch (IllegalStateException e) {		// R computing error
+				if (!this.userCanceled)
 				e.printStackTrace();
 			}
+			// Turn off R instance
+			this.rSession.close();
 
 			// Task is over: Restore "parametersChanged" listeners
 			unset_VK_ESCAPE_KeyListener();
@@ -266,6 +282,7 @@ implements TaskListener {
 			RawDataFile dataFile = getPreviewDataFile();
 			if (baselineCorrector != null && dataFile != null) { 
 
+					this.userCanceled = true;
 					// Turn off R instance
 					this.rSession.close();
 				
@@ -315,9 +332,7 @@ implements TaskListener {
 		@Override
 		public void run() {
 
-			//			progressBar.setVisible(true);
 			addProgessBar();
-			//double val = 0.0;
 			while ((this.previewTask != null && this.previewTask.getStatus() == TaskStatus.PROCESSING)) 
 			{
 
@@ -368,21 +383,20 @@ implements TaskListener {
 	protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile, Range rtRange, Range mzRange) {
 
 		boolean ready = true;
-		// Abort previous task. 
-		if (previewTask != null && (previewTask.getStatus() == TaskStatus.PROCESSING)) {
+		// Abort previous preview task. 
+		if (previewTask != null && previewTask.getStatus() == TaskStatus.PROCESSING) {
 			ready = false;
 			previewTask.kill();
 			try {
 				previewThread.join();
 				ready = true;
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				ready = false;
 			}
 		}
 
-		ready = (ready || previewTask.getRengineType() == RengineType.RCaller);
-		// Start processing preview task.
+		//**ready = (ready || previewTask.getRengineType() == RengineType.RCaller);
+		// Start processing new preview task.
 		if (ready && (previewTask == null || previewTask.getStatus() != TaskStatus.PROCESSING)) {
 
 			baselineCorrector.initProgress(dataFile);

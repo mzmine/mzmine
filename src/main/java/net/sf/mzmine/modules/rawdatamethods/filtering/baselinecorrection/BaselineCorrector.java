@@ -58,7 +58,7 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 	private String suffix;
 
 	// General parameters (common to all baseline correction methods).
-//	private RengineType engineType;
+	private RengineType rEngineType;
 	private ChromatogramType chromatogramType;
 	private double binWidth;
 	private boolean useBins;
@@ -78,10 +78,17 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 	 * Getting general parameters (common to all the correctors).
 	 * @param generalParameters The parameters common to all methods (grabbed from "BaselineCorrectionParameters")
 	 */
-	public void setGeneralParameters(final ParameterSet generalParameters) {
+	public void collectCommonParameters(/*final ParameterSet generalParameters*/) {
+		
+		ParameterSet generalParameters;
+		if (BaselineCorrectionParameters.getBaselineCorrectionParameters() == null) {
+			generalParameters = MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class);
+		} else {
+			generalParameters = BaselineCorrectionParameters.getBaselineCorrectionParameters();
+		}
 		// Get common parameters.
 		suffix = generalParameters.getParameter(BaselineCorrectionParameters.SUFFIX).getValue();
-		//engineType = generalParameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
+		rEngineType = RengineType.JRIengine;
 		chromatogramType = generalParameters.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
 		binWidth = generalParameters.getParameter(BaselineCorrectionParameters.MZ_BIN_WIDTH).getValue();
 		useBins = generalParameters.getParameter(BaselineCorrectionParameters.USE_MZ_BINS).getValue();
@@ -93,7 +100,8 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 			throws IOException
 	{
 		// Get very last information from root module setup
-		this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
+		//this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
+		this.collectCommonParameters();
 		RawDataFile correctedDataFile = null;
 
 		try {
@@ -524,12 +532,13 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 	public RengineType getRengineType() {
 //		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
 //				.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-		return RengineType.JRIengine;
+		return this.rEngineType;
 	}
 	// Chromatogram type
 	public ChromatogramType getChromatogramType() {
-		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
-				.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
+//		return MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class)
+//				.getParameter(BaselineCorrectionParameters.CHROMOTAGRAM_TYPE).getValue();
+		return this.chromatogramType;
 	}
 
 	// Cancel processing features
