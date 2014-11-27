@@ -25,10 +25,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
+import com.google.common.primitives.Ints;
 
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -103,6 +108,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		"SHOW_PEAKLIST_INFO");
 	GUIUtils.addMenuItem(peakListPopupMenu, "Show scatter plot", this,
 		"SHOW_SCATTER_PLOT");
+	GUIUtils.addMenuItem(peakListPopupMenu, "Sort alphabetically", this,
+		"SORT_PEAKLISTS");
 	GUIUtils.addMenuItem(peakListPopupMenu, "Remove", this,
 		"REMOVE_PEAKLIST");
 
@@ -249,6 +256,50 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    .getSelectedObjects(PeakList.class);
 	    for (PeakList peakList : selectedPeakLists) {
 		ScatterPlotVisualizerModule.showNewScatterPlotWindow(peakList);
+	    }
+	}
+
+	if (command.equals("SORT_PEAKLISTS")) {
+	    final int selectedRows[] = tree.getSelectionRows();
+
+	    // getSelectionRows() may return null or empty array, depending on
+	    // TreeModel implementation
+	    if ((selectedRows == null) || (selectedRows.length == 0))
+		return;
+
+	    // Get all tree nodes that represent selected peak lists, and remove
+	    // them from
+	    final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
+	    for (int row : selectedRows) {
+		TreePath path = tree.getPathForRow(row);
+		DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
+			.getLastPathComponent();
+		Object selectedObject = selectedNode.getUserObject();
+		if (selectedObject instanceof PeakList) {
+
+		    selectedNodes.add(selectedNode);
+		}
+	    }
+
+	    // Sort the peak lists by name
+	    Collections.sort(selectedNodes,
+		    new Comparator<DefaultMutableTreeNode>() {
+			@Override
+			public int compare(DefaultMutableTreeNode o1,
+				DefaultMutableTreeNode o2) {
+			    return o1.getUserObject().toString()
+				    .compareTo(o2.getUserObject().toString());
+			}
+		    });
+
+	    // Reorder the nodes in the tree model
+	    final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
+	    final DefaultMutableTreeNode peakListsNode = model.getRoot();
+	    int insertPosition = Ints.min(selectedRows) - 1;
+	    for (DefaultMutableTreeNode node : selectedNodes) {
+		model.removeNodeFromParent(node);
+		model.insertNodeInto(node, peakListsNode, insertPosition);
+		insertPosition++;
 	    }
 	}
 
