@@ -30,12 +30,6 @@ import java.util.logging.Logger;
 import org.rosuda.JRI.RMainLoopCallbacks;
 import org.rosuda.JRI.Rengine;
 
-/**
- * Utilities for interfacing with R.
- * 
- * @author $Author$
- * @version $Revision$
- */
 public class RUtilities {
 
     // Logger.
