@@ -78,10 +78,12 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 	 * Getting general parameters (common to all the correctors).
 	 * @param generalParameters The parameters common to all methods (grabbed from "BaselineCorrectionParameters")
 	 */
-	public void collectCommonParameters(/*final ParameterSet generalParameters*/) {
+	public void collectCommonParameters(final ParameterSet parameters) {
 		
 		ParameterSet generalParameters;
-		if (BaselineCorrectionParameters.getBaselineCorrectionParameters() == null) {
+		if (parameters != null) {
+			generalParameters = parameters;
+		} else if (BaselineCorrectionParameters.getBaselineCorrectionParameters() == null) {
 			generalParameters = MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class);
 		} else {
 			generalParameters = BaselineCorrectionParameters.getBaselineCorrectionParameters();
@@ -96,12 +98,13 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 	}
 
 
-	public final RawDataFile correctDatafile(final RSession rSession, final RawDataFile dataFile, final ParameterSet parameters) 
+	public final RawDataFile correctDatafile(final RSession rSession, final RawDataFile dataFile, final ParameterSet parameters, 
+			final ParameterSet commonParameters) 
 			throws IOException
 	{
 		// Get very last information from root module setup
 		//this.setGeneralParameters(MZmineCore.getConfiguration().getModuleParameters(BaselineCorrectionModule.class));
-		this.collectCommonParameters();
+		this.collectCommonParameters(commonParameters);
 		RawDataFile correctedDataFile = null;
 
 		try {
@@ -170,8 +173,6 @@ public abstract class BaselineCorrector implements BaselineProvider, MZmineModul
 		catch (Throwable t) {
 			throw new IllegalStateException("Error during baseline correction: ", t);			
 		}
-
-		//if (this.rConnection != null) { this.rConnection.close(); }
 
 		return correctedDataFile;
 	}

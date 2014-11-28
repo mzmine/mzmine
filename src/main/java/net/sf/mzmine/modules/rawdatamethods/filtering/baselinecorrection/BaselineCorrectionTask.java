@@ -63,9 +63,12 @@ public class BaselineCorrectionTask extends AbstractTask {
 	// Baseline corrector processing step
 	private final MZmineProcessingStep<BaselineCorrector> baselineCorrectorProcStep;
 
+	// Common parameters.
+	private final ParameterSet commonParameters;
 	
 	private final RengineType rEngineType;
 	private RSession rSession;
+	private boolean userCanceled;
 
 	/**
 	 * Creates the task.
@@ -85,6 +88,9 @@ public class BaselineCorrectionTask extends AbstractTask {
 		this.removeOriginal = parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
 		this.baselineCorrectorProcStep = parameters.getParameter(BaselineCorrectionParameters.BASELINE_CORRECTORS).getValue();
 
+		this.commonParameters = parameters;
+
+		this.userCanceled = false;
 	}
 
 
@@ -133,7 +139,8 @@ public class BaselineCorrectionTask extends AbstractTask {
 			this.baselineCorrectorProcStep.getModule().initProgress(origDataFile);
 
 			final RawDataFile correctedDataFile = 
-					this.baselineCorrectorProcStep.getModule().correctDatafile(this.rSession, origDataFile, baselineCorrectorProcStep.getParameterSet());
+					this.baselineCorrectorProcStep.getModule().correctDatafile(this.rSession, origDataFile, 
+							baselineCorrectorProcStep.getParameterSet(), this.commonParameters);
 
 			// If this task was canceled, stop processing
 			if (!isCanceled() && correctedDataFile != null) {
@@ -152,23 +159,31 @@ public class BaselineCorrectionTask extends AbstractTask {
 
 				LOG.info("Baseline corrected " + origDataFile.getName());
 			}
+			// Turn off R instance
+			this.rSession.close();
 
 		} catch (Throwable t) {
 
 			this.baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile, true);
 
-			LOG.log(Level.SEVERE, "Baseline correction error.", t);
-			errorMessage = t.getMessage();
-			setStatus(TaskStatus.ERROR);
+			if (!this.userCanceled) {
+				LOG.log(Level.SEVERE, "Unknown baseline correction error.", t);
+				errorMessage = t.getMessage();
+				setStatus(TaskStatus.ERROR);
+				// Turn off R instance
+				this.rSession.close();
+			} else {
+				this.rSession.close();
+			}
 		}
 
 		this.baselineCorrectorProcStep.getModule().clearProgress(origDataFile);
-		// Turn off R instance
-		this.rSession.close();
 	}
 
 	@Override
 	public void cancel() {
+		
+		this.userCanceled = true;
 		
 		// Turn off R instance
 		this.rSession.close();
