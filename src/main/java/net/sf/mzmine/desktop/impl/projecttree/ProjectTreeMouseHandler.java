@@ -25,15 +25,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
-
-import com.google.common.primitives.Ints;
 
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.PeakList;
@@ -83,6 +80,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		"SHOW_2D");
 	GUIUtils.addMenuItem(dataFilePopupMenu, "Show 3D visualizer", this,
 		"SHOW_3D");
+	GUIUtils.addMenuItem(dataFilePopupMenu, "Sort alphabetically", this,
+		"SORT_FILES");
 	GUIUtils.addMenuItem(dataFilePopupMenu, "Remove", this, "REMOVE_FILE");
 
 	scanPopupMenu = new JPopupMenu();
@@ -161,6 +160,59 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	    if (selectedFiles.length == 0)
 		return;
 	    ThreeDVisualizerModule.setupNew3DVisualizer(selectedFiles[0]);
+	}
+
+	if (command.equals("SORT_FILES")) {
+	    final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
+	    final DefaultMutableTreeNode rootNode = model.getRoot();
+	    final int selectedRows[] = tree.getSelectionRows();
+
+	    // getSelectionRows() may return null or empty array, depending on
+	    // TreeModel implementation
+	    if ((selectedRows == null) || (selectedRows.length == 0))
+		return;
+
+	    // Get all tree nodes that represent selected peak lists, and remove
+	    // them from
+	    final ArrayList<DefaultMutableTreeNode> selectedNodes = new ArrayList<DefaultMutableTreeNode>();
+	    for (int row : selectedRows) {
+		TreePath path = tree.getPathForRow(row);
+		DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path
+			.getLastPathComponent();
+		Object selectedObject = selectedNode.getUserObject();
+		if (selectedObject instanceof RawDataFile) {
+		    selectedNodes.add(selectedNode);
+		}
+	    }
+
+	    // Get the index of the first selected item
+	    final ArrayList<Integer> positions = new ArrayList<Integer>();
+	    for (DefaultMutableTreeNode node : selectedNodes) {
+		int nodeIndex = rootNode.getIndex(node);
+		if (nodeIndex != -1)
+		    positions.add(nodeIndex);
+	    }
+	    if (positions.isEmpty())
+		return;
+	    int insertPosition = Collections.min(positions);
+
+	    // Sort the peak lists by name
+	    Collections.sort(selectedNodes,
+		    new Comparator<DefaultMutableTreeNode>() {
+			@Override
+			public int compare(DefaultMutableTreeNode o1,
+				DefaultMutableTreeNode o2) {
+			    return o1.getUserObject().toString()
+				    .compareTo(o2.getUserObject().toString());
+			}
+		    });
+
+	    // Reorder the nodes in the tree model
+	    for (DefaultMutableTreeNode node : selectedNodes) {
+		model.removeNodeFromParent(node);
+		model.insertNodeInto(node, rootNode, insertPosition);
+		insertPosition++;
+	    }
 	}
 
 	if (command.equals("REMOVE_FILE")) {
@@ -260,6 +312,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_PEAKLISTS")) {
+	    final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
+	    final DefaultMutableTreeNode rootNode = model.getRoot();
 	    final int selectedRows[] = tree.getSelectionRows();
 
 	    // getSelectionRows() may return null or empty array, depending on
@@ -276,10 +330,20 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			.getLastPathComponent();
 		Object selectedObject = selectedNode.getUserObject();
 		if (selectedObject instanceof PeakList) {
-
 		    selectedNodes.add(selectedNode);
 		}
 	    }
+
+	    // Get the index of the first selected item
+	    final ArrayList<Integer> positions = new ArrayList<Integer>();
+	    for (DefaultMutableTreeNode node : selectedNodes) {
+		int nodeIndex = rootNode.getIndex(node);
+		if (nodeIndex != -1)
+		    positions.add(nodeIndex);
+	    }
+	    if (positions.isEmpty())
+		return;
+	    int insertPosition = Collections.min(positions);
 
 	    // Sort the peak lists by name
 	    Collections.sort(selectedNodes,
@@ -293,12 +357,9 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    });
 
 	    // Reorder the nodes in the tree model
-	    final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
-	    final DefaultMutableTreeNode peakListsNode = model.getRoot();
-	    int insertPosition = Ints.min(selectedRows) - 1;
 	    for (DefaultMutableTreeNode node : selectedNodes) {
 		model.removeNodeFromParent(node);
-		model.insertNodeInto(node, peakListsNode, insertPosition);
+		model.insertNodeInto(node, rootNode, insertPosition);
 		insertPosition++;
 	    }
 	}
