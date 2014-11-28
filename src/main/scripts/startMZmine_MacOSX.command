@@ -4,7 +4,13 @@
 # That is the total amount of memory available to MZmine 2.
 # By default we set this to the half of the physical memory 
 # size, but feel free to adjust according to your needs. 
-HEAP_SIZE=`sysctl hw.memsize | awk '{print int($2 / 1024^2 / 2)}'`
+
+echo "Checking physical memory size..."
+TOTAL_MEMORY=`sysctl hw.memsize | awk '{print $2}'`
+echo "Found $TOTAL_MEMORY bytes memory"
+
+HEAP_SIZE=`expr $TOTAL_MEMORY / 1024 / 1024 / 2`
+echo Java heap size set to $HEAP_SIZE MB
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
 # files (parsed raw data) will be placed. Default is /tmp.
@@ -23,7 +29,7 @@ JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
 JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
-CLASS_PATH=lib/${project.artifactId}-${project.version}.jar
+CLASS_PATH="lib/*"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory
