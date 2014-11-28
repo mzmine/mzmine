@@ -23,6 +23,8 @@
 
 package net.sf.mzmine.util;
 
+import java.io.File;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.rosuda.JRI.RMainLoopCallbacks;
@@ -66,6 +68,23 @@ public class RUtilities {
         synchronized (R_SEMAPHORE) {
 
             if (rEngine == null) {
+        	
+        	// Check if R is installed
+        	File f = new File(System.getenv().get("R_HOME"));
+        	String ErrorMsg;
+        	if(f.exists() && f.isDirectory()) {
+        	    ErrorMsg = "\nPlease check if the path to the R libraries is set properly in the startMZmine script."
+        		+ "\nCurrent values:"
+        		+ "\n R_HOME="+System.getenv().get("R_HOME")
+        	    	+ "\n R_SHARE_DIR="+System.getenv().get("R_SHARE_DIR")
+        	    	+ "\n R_INCLUDE_DIR="+System.getenv().get("R_INCLUDE_DIR")
+        	    	+ "\n R_DOC_DIR="+System.getenv().get("R_DOC_DIR")
+        	    	+ "\n R_LIBS_USER="+System.getenv().get("R_LIBS_USER")
+        	    	+ "\n PATH="+System.getenv().get("PATH")+"\n";
+        	} else {
+        	     ErrorMsg = "Could not start R. Please check if R is installed and path to the "
+                             + "libraries is set properly in the startMZmine script. (R_HOME="+System.getenv().get("R_HOME")+")";
+        	}
 
                 try {
 
@@ -86,9 +105,7 @@ public class RUtilities {
                     }
 
                 } catch (UnsatisfiedLinkError error) {
-                    throw new IllegalStateException(
-                            "Could not start R. Please check if R is installed and path to the "
-                                    + "libraries is set properly in the startMZmine script.");
+                    throw new IllegalStateException(ErrorMsg);
                 }
 
                 LOG.finest("Creating R Engine.");
