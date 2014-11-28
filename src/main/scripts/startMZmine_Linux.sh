@@ -36,7 +36,7 @@ JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
 JAVA_PARAMETERS="-XX:+UseParallelGC -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
-CLASS_PATH="lib/*"
+CLASS_PATH="lib/\*"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore
 
 # Make sure we are in the correct directory

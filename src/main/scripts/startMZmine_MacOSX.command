@@ -29,7 +29,7 @@ JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
 JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
-CLASS_PATH="lib/*"
+CLASS_PATH="lib/\*"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory
