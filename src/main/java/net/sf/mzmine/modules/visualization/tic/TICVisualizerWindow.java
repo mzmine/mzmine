@@ -21,17 +21,16 @@ package net.sf.mzmine.modules.visualization.tic;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -53,7 +52,7 @@ import org.jfree.chart.axis.NumberTickUnit;
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
-public class TICVisualizerWindow extends JFrame implements ActionListener {
+public class TICVisualizerWindow extends JFrame implements ComponentListener, ActionListener {
 
     // CSV extension.
     private static final String CSV_EXTENSION = "csv";
@@ -102,16 +101,19 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	toolBar = new TICToolBar(ticPlot);
 	add(toolBar, BorderLayout.EAST);
 
-	// auto size window
+	// Listen for size or location changes
+	this.addComponentListener(this);
+
+	// Set window size and position
+	/**
+	  * TO DO: Get size and position from ParameterSet
+	  */
+	//MZmineCore.getConfiguration().getModuleParameters(TICVisualizerParameters.class);
 	this.setLocation(20, 20);
-	final int screenWidth = (int) Math.round(Toolkit.getDefaultToolkit()
-		.getScreenSize().getWidth() - 40);
-	final int screenHeight = (int) Math.round(Toolkit.getDefaultToolkit()
-		.getScreenSize().getHeight() - 80);
 	SwingUtilities.invokeLater(new Runnable() {
 	    @Override
 	    public void run() {
-		setSize(screenWidth, screenHeight);
+		setSize(800, 500);
 	    }
 	});
 
@@ -405,6 +407,24 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	}
 	super.dispose();
 
+    }
+
+    public void componentHidden(ComponentEvent e) {}
+    public void componentShown(ComponentEvent e) {}
+
+    public void componentMoved(ComponentEvent e) {
+	/**
+	  * TO DO: Set position to WindowSettings
+	  */
+	//System.out.println(e.getComponent().getLocation());
+	
+    }
+
+    public void componentResized(ComponentEvent e) {
+	/**
+	  * TO DO: Set size to WindowSettings
+	  */
+	//System.out.println(e.getComponent().getSize());
     }
 
 }

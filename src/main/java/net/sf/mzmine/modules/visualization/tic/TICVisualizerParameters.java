@@ -34,6 +34,7 @@ import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.RawDataFileUtils;
 
@@ -80,11 +81,16 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     private Map<Feature, String> peakLabelMap;
 
     /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter WINDOWSETTINGSPARAMETER = new WindowSettingsParameter(null,null);
+
+    /**
      * Create the parameter set.
      */
     public TICVisualizerParameters() {
 	super(new Parameter[] { DATA_FILES, MS_LEVEL, PLOT_TYPE, RT_RANGE,
-		MZ_RANGE, PEAKS });
+		MZ_RANGE, PEAKS, WINDOWSETTINGSPARAMETER });
 	peakLabelMap = null;
     }
 
