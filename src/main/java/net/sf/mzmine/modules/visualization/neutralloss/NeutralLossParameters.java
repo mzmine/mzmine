@@ -26,6 +26,7 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class NeutralLossParameters extends SimpleParameterSet {
 
@@ -37,19 +38,24 @@ public class NeutralLossParameters extends SimpleParameterSet {
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
     public static final ComboParameter<String> xAxisType = new ComboParameter<String>(
-            "X axis", "X axis type", xAxisTypes);
+	    "X axis", "X axis type", xAxisTypes);
 
     public static final RTRangeParameter retentionTimeRange = new RTRangeParameter();
 
     public static final MZRangeParameter mzRange = new MZRangeParameter(
-            "Precursor m/z", "Range of precursor m/z values");
+	    "Precursor m/z", "Range of precursor m/z values");
 
     public static final IntegerParameter numOfFragments = new IntegerParameter(
-            "Fragments", "Number of most intense fragments");
+	    "Fragments", "Number of most intense fragments");
+
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public NeutralLossParameters() {
-        super(new Parameter[] { dataFiles, xAxisType, retentionTimeRange,
-                mzRange, numOfFragments });
+	super(new Parameter[] { dataFiles, xAxisType, retentionTimeRange,
+		mzRange, numOfFragments, windowSettings });
     }
 
 }

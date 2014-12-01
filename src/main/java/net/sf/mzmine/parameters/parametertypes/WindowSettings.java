@@ -21,31 +21,68 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 
-public class WindowSettings {
+import javax.swing.JFrame;
 
-    private Point windowPosition;
-    private Dimension windowDimension;
+/**
+ * This class records a position and size of a window.
+ */
+public class WindowSettings implements ComponentListener {
 
-    WindowSettings(Point pos, Dimension dim) {
-	windowPosition = pos;
-	windowDimension = dim;
-    }
+    private Point position;
+    private Dimension dimension;
 
     public Point getPosition() {
-	return windowPosition;
+	return position;
+    }
+
+    public void setPosition(Point position) {
+	this.position = position;
     }
 
     public Dimension getDimension() {
-	return windowDimension;
+	return dimension;
     }
 
-    public void setPosition(Point pos) {
-	windowPosition = pos;
+    public void setDimension(Dimension dimension) {
+	this.dimension = dimension;
     }
 
-    public void setDimension(Dimension dim) {
-	windowDimension = dim;
+    /**
+     * Set window size and position according to the values in this instance
+     */
+    public void applySettingsToWindow(JFrame window) {
+	if (position != null) {
+	    position.translate(20, 20);
+	    window.setLocation(position);
+	}
+	if (dimension != null) {
+	    window.setSize(dimension);
+	}
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+	position = e.getComponent().getLocation();
+
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+	dimension = e.getComponent().getSize();
+
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+	// ignore
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+	// ignore
     }
 
 }

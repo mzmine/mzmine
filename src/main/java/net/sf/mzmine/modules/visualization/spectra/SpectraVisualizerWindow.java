@@ -46,6 +46,9 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.WindowSettings;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -56,8 +59,7 @@ import org.jfree.data.xy.XYDataset;
 /**
  * Spectrum visualizer using JFreeChart library
  */
-public class SpectraVisualizerWindow extends JFrame implements
-	ActionListener {
+public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -105,6 +107,16 @@ public class SpectraVisualizerWindow extends JFrame implements
 
 	pack();
 
+	// get the window settings parameter
+	ParameterSet paramSet = MZmineCore.getConfiguration()
+		.getModuleParameters(SpectraVisualizerModule.class);
+	WindowSettings settings = paramSet.getParameter(
+		SpectraVisualizerParameters.windowSettings).getValue();
+
+	// update the window and listen for changes
+	settings.applySettingsToWindow(this);
+	this.addComponentListener(settings);
+
     }
 
     public void dispose() {
@@ -148,7 +160,8 @@ public class SpectraVisualizerWindow extends JFrame implements
 
 	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
-	NumberFormat intensityFormat = MZmineCore.getConfiguration().getIntensityFormat();
+	NumberFormat intensityFormat = MZmineCore.getConfiguration()
+		.getIntensityFormat();
 
 	int parentNumber = currentScan.getParentScanNumber();
 	if ((currentScan.getMSLevel() > 1) && (parentNumber > 0)) {

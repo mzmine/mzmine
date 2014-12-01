@@ -26,35 +26,41 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakLists = new PeakListsParameter();
 
     public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
-            "Common columns", "Visible common columns",
-            CommonColumnType.values());
+	    "Common columns", "Visible common columns",
+	    CommonColumnType.values());
 
     public static final ColumnSettingParameter<DataFileColumnType> dataFileColumns = new ColumnSettingParameter<DataFileColumnType>(
-            "Data file columns", "Visible common columns",
-            DataFileColumnType.values());
+	    "Data file columns", "Visible common columns",
+	    DataFileColumnType.values());
 
     public static final IntegerParameter rowHeight = new IntegerParameter(
-            "Row height", "Row height", 30);
+	    "Row height", "Row height", 30);
 
     public static final ComboParameter<PeakShapeNormalization> peakShapeNormalization = new ComboParameter<PeakShapeNormalization>(
-            "Peak shape normalization", "Peak shape normalization",
-            PeakShapeNormalization.values());
+	    "Peak shape normalization", "Peak shape normalization",
+	    PeakShapeNormalization.values());
+
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public PeakListTableParameters() {
-        super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
-                rowHeight, peakShapeNormalization });
+	super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
+		rowHeight, peakShapeNormalization, windowSettings });
 
-        // Set the default settings for data file columns
-        DataFileColumnType[] defaultColumns = new DataFileColumnType[] {
-                DataFileColumnType.STATUS, DataFileColumnType.HEIGHT,
-                DataFileColumnType.AREA };
-        getParameter(dataFileColumns).setValue(defaultColumns);
+	// Set the default settings for data file columns
+	DataFileColumnType[] defaultColumns = new DataFileColumnType[] {
+		DataFileColumnType.STATUS, DataFileColumnType.HEIGHT,
+		DataFileColumnType.AREA };
+	getParameter(dataFileColumns).setValue(defaultColumns);
     }
 
 }

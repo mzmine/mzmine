@@ -25,6 +25,7 @@ import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 /**
  * 2D visualizer parameter set
@@ -41,9 +42,14 @@ public class TwoDParameters extends SimpleParameterSet {
 
     public static final PeakThresholdParameter peakThresholdSettings = new PeakThresholdParameter();
 
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
     public TwoDParameters() {
 	super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
-		mzRange, peakThresholdSettings });
+		mzRange, peakThresholdSettings, windowSettings });
     }
 
 }

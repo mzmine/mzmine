@@ -27,38 +27,45 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class HistogramParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakList = new PeakListsParameter(1,
-			1);
+    public static final PeakListsParameter peakList = new PeakListsParameter(1,
+	    1);
 
-	public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
-			"Raw data files", "Column of peaks to be plotted",
-			new RawDataFile[0]);
+    public static final MultiChoiceParameter<RawDataFile> dataFiles = new MultiChoiceParameter<RawDataFile>(
+	    "Raw data files", "Column of peaks to be plotted",
+	    new RawDataFile[0]);
 
-	public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();
+    public static final HistogramRangeParameter dataRange = new HistogramRangeParameter();
 
-	public static final IntegerParameter numOfBins = new IntegerParameter(
-			"Number of bins", "The plot is divides into this number of bins",
-			10);
+    public static final IntegerParameter numOfBins = new IntegerParameter(
+	    "Number of bins", "The plot is divides into this number of bins",
+	    10);
 
-	public HistogramParameters() {
-		super(new Parameter[] { peakList, dataFiles, dataRange, numOfBins });
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
+    public HistogramParameters() {
+	super(new Parameter[] { peakList, dataFiles, dataRange, numOfBins,
+		windowSettings });
+    }
+
+    public ExitCode showSetupDialog() {
+	PeakList selectedPeaklists[] = getParameter(
+		HistogramParameters.peakList).getValue();
+	RawDataFile dataFiles[];
+	if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
+	    dataFiles = MZmineCore.getCurrentProject().getDataFiles();
+	} else {
+	    dataFiles = selectedPeaklists[0].getRawDataFiles();
 	}
-
-	public ExitCode showSetupDialog() {
-		PeakList selectedPeaklists[] = getParameter(
-				HistogramParameters.peakList).getValue();
-		RawDataFile dataFiles[];
-		if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
-			dataFiles = MZmineCore.getCurrentProject().getDataFiles();
-		} else {
-			dataFiles = selectedPeaklists[0].getRawDataFiles();
-		}
-		getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
-		return super.showSetupDialog();
-	}
+	getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
+	return super.showSetupDialog();
+    }
 
 }

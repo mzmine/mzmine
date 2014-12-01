@@ -28,14 +28,14 @@ import javax.swing.JFrame;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.WindowSettings;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 /**
  * 2D visualizer using JFreeChart library
  */
-public class TwoDVisualizerWindow extends JFrame implements
-	ActionListener {
+public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
@@ -79,6 +79,16 @@ public class TwoDVisualizerWindow extends JFrame implements
 	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
 	pack();
+
+	// get the window settings parameter
+	ParameterSet paramSet = MZmineCore.getConfiguration()
+		.getModuleParameters(TwoDVisualizerModule.class);
+	WindowSettings settings = paramSet.getParameter(
+		TwoDParameters.windowSettings).getValue();
+
+	// update the window and listen for changes
+	settings.applySettingsToWindow(this);
+	this.addComponentListener(settings);
 
     }
 
@@ -145,12 +155,12 @@ public class TwoDVisualizerWindow extends JFrame implements
 		tooltipMode = true;
 	    }
 	}
-	
+
 	if (command.equals("SWITCH_LOG_SCALE")) {
-		if (twoDPlot != null) {
-			logScale = !logScale;
-			twoDPlot.setLogScale(logScale);
-		}
+	    if (twoDPlot != null) {
+		logScale = !logScale;
+		twoDPlot.setLogScale(logScale);
+	    }
 	}
 
     }

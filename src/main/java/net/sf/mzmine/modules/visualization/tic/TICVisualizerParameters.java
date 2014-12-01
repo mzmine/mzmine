@@ -74,8 +74,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * Peaks to display.
      */
     public static final MultiChoiceParameter<Feature> PEAKS = new MultiChoiceParameter<Feature>(
-	    "Peaks", "Please choose peaks to visualize",
-	    new Feature[0], null, 0);
+	    "Peaks", "Please choose peaks to visualize", new Feature[0], null,
+	    0);
 
     // Maps peaks to their labels - not a user configurable parameter.
     private Map<Feature, String> peakLabelMap;
@@ -83,7 +83,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     /**
      * Windows size and position
      */
-    public static final WindowSettingsParameter WINDOWSETTINGSPARAMETER = new WindowSettingsParameter(null,null);
+    public static final WindowSettingsParameter WINDOWSETTINGSPARAMETER = new WindowSettingsParameter();
 
     /**
      * Create the parameter set.
@@ -101,8 +101,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public Map<Feature, String> getPeakLabelMap() {
 
-	return peakLabelMap == null ? null
-		: new HashMap<Feature, String>(peakLabelMap);
+	return peakLabelMap == null ? null : new HashMap<Feature, String>(
+		peakLabelMap);
     }
 
     /**
@@ -113,8 +113,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      */
     public void setPeakLabelMap(final Map<Feature, String> map) {
 
-	peakLabelMap = map == null ? null
-		: new HashMap<Feature, String>(map);
+	peakLabelMap = map == null ? null : new HashMap<Feature, String>(map);
     }
 
     /**
@@ -126,8 +125,8 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     public ExitCode showSetupDialog() {
 
 	return showSetupDialog(MZmineCore.getCurrentProject().getDataFiles(),
-		MZmineCore.getDesktop().getSelectedDataFiles(),
-		new Feature[0], new Feature[0]);
+		MZmineCore.getDesktop().getSelectedDataFiles(), new Feature[0],
+		new Feature[0]);
     }
 
     /**
@@ -144,8 +143,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * @return an ExitCode indicating the user's action.
      */
     public ExitCode showSetupDialog(final RawDataFile[] allFiles,
-	    final RawDataFile[] selectedFiles,
-	    final Feature[] allPeaks,
+	    final RawDataFile[] selectedFiles, final Feature[] allPeaks,
 	    final Feature[] selectedPeaks) {
 
 	getParameter(DATA_FILES).setChoices(allFiles);

@@ -31,7 +31,11 @@ import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
+import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.WindowSettings;
 
 /**
  * Main window of the scatter plot visualizer.
@@ -39,38 +43,49 @@ import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterP
  */
 public class ScatterPlotWindow extends JFrame {
 
-	private ScatterPlotToolBar toolbar;
-	private ScatterPlotChart chart;
-	private ScatterPlotTopPanel topPanel;
-	private ScatterPlotBottomPanel bottomPanel;
+    private ScatterPlotToolBar toolbar;
+    private ScatterPlotChart chart;
+    private ScatterPlotTopPanel topPanel;
+    private ScatterPlotBottomPanel bottomPanel;
 
-	public ScatterPlotWindow(PeakList peakList) {
+    public ScatterPlotWindow(PeakList peakList) {
 
-		super("Scatter plot of " + peakList);
+	super("Scatter plot of " + peakList);
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-		topPanel = new ScatterPlotTopPanel();
-		add(topPanel, BorderLayout.NORTH);
+	topPanel = new ScatterPlotTopPanel();
+	add(topPanel, BorderLayout.NORTH);
 
-		chart = new ScatterPlotChart(topPanel, peakList);
-		Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-		chart.setBorder(border);
-		chart.setBackground(Color.white);
-		add(chart, BorderLayout.CENTER);
+	chart = new ScatterPlotChart(topPanel, peakList);
+	Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+	chart.setBorder(border);
+	chart.setBackground(Color.white);
+	add(chart, BorderLayout.CENTER);
 
-		toolbar = new ScatterPlotToolBar(chart);
-		add(toolbar, BorderLayout.EAST);
+	toolbar = new ScatterPlotToolBar(chart);
+	add(toolbar, BorderLayout.EAST);
 
-		JComponent leftMargin = (JComponent) Box.createRigidArea(new Dimension(10,10));
-		leftMargin.setOpaque(false);
-		add(leftMargin, BorderLayout.WEST);
-		
-		bottomPanel = new ScatterPlotBottomPanel(chart, peakList);
-		add(bottomPanel, BorderLayout.SOUTH);
+	JComponent leftMargin = (JComponent) Box.createRigidArea(new Dimension(
+		10, 10));
+	leftMargin.setOpaque(false);
+	add(leftMargin, BorderLayout.WEST);
 
-		pack();
+	bottomPanel = new ScatterPlotBottomPanel(chart, peakList);
+	add(bottomPanel, BorderLayout.SOUTH);
 
-	}
+	pack();
+
+	// get the window settings parameter
+	ParameterSet paramSet = MZmineCore.getConfiguration()
+		.getModuleParameters(ScatterPlotVisualizerModule.class);
+	WindowSettings settings = paramSet.getParameter(
+		ScatterPlotParameters.windowSettings).getValue();
+
+	// update the window and listen for changes
+	settings.applySettingsToWindow(this);
+	this.addComponentListener(settings);
+
+    }
 
 }

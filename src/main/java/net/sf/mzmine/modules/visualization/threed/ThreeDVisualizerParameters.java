@@ -26,6 +26,7 @@ import net.sf.mzmine.parameters.parametertypes.MSLevelParameter;
 import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 /**
  * 3D visualizer parameter set
@@ -47,9 +48,14 @@ public class ThreeDVisualizerParameters extends SimpleParameterSet {
     public static final IntegerParameter mzResolution = new IntegerParameter(
 	    "m/z resolution", "Number of data points on m/z axis", 500);
 
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
     public ThreeDVisualizerParameters() {
 	super(new Parameter[] { dataFiles, msLevel, retentionTimeRange,
-		rtResolution, mzRange, mzResolution });
+		rtResolution, mzRange, mzResolution, windowSettings });
     }
 
 }

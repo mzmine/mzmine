@@ -31,7 +31,11 @@ import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
+import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.WindowSettings;
 import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JFrame {
@@ -72,6 +76,16 @@ public class HistogramWindow extends JFrame {
 
         add(pnlPlot, BorderLayout.CENTER);
         pack();
+        
+	// get the window settings parameter
+	ParameterSet paramSet = MZmineCore.getConfiguration()
+		.getModuleParameters(HistogramVisualizerModule.class);
+	WindowSettings settings = paramSet.getParameter(
+		HistogramParameters.windowSettings).getValue();
+
+	// update the window and listen for changes
+	settings.applySettingsToWindow(this);
+	this.addComponentListener(settings);
 
         if (peakList != null) {
             HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,

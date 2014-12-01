@@ -23,16 +23,22 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class SpectraVisualizerParameters extends SimpleParameterSet {
 
-	public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
 
-	public static final IntegerParameter scanNumber = new IntegerParameter(
-			"Scan number", "Scan number");
+    public static final IntegerParameter scanNumber = new IntegerParameter(
+	    "Scan number", "Scan number");
 
-	public SpectraVisualizerParameters() {
-		super(new Parameter[] { dataFiles, scanNumber });
-	}
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
+    public SpectraVisualizerParameters() {
+	super(new Parameter[] { dataFiles, scanNumber, windowSettings });
+    }
 
 }

@@ -30,26 +30,19 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class WindowSettingsParameter implements Parameter<WindowSettings> {
-    
-    private Point pos;
-    private Dimension dim;
-    private WindowSettings value;
 
-    public WindowSettingsParameter(final Point pos, final Dimension dim) {
-	this.pos = pos;
-	this.dim = dim;
-    }
+    // Since this is a special parameter (cannot be directly set by the user),
+    // we can use a singleton for the value and declare it as final
+    private final WindowSettings value = new WindowSettings();
 
     @Override
     public String getName() {
-	return null;
+	return "Window state";
     }
 
     @Override
     public WindowSettingsParameter cloneParameter() {
-	WindowSettingsParameter copy = new WindowSettingsParameter(pos, dim);
-	copy.setValue(this.getValue());
-	return copy;
+	return this;
     }
 
     @Override
@@ -59,33 +52,42 @@ public class WindowSettingsParameter implements Parameter<WindowSettings> {
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
+
 	// Window position
-	int posX = 10, posY = 10; // Default values
 	NodeList posElement = xmlElement.getElementsByTagName("position");
 	if (posElement.getLength() == 1) {
-		String posString = posElement.item(0).getTextContent();
-		String posArray[] = posString.split(":");
-		posX = Integer.valueOf(posArray[0]);
-		posY = Integer.valueOf(posArray[1]);
+	    String posString = posElement.item(0).getTextContent();
+	    String posArray[] = posString.split(":");
+	    int posX = Integer.valueOf(posArray[0]);
+	    int posY = Integer.valueOf(posArray[1]);
+	    Point pos = new Point(posX, posY);
+	    value.setPosition(pos);
 	}
 
 	// Window size
-	int width = 800, height = 500; // Default values
 	NodeList sizeElement = xmlElement.getElementsByTagName("size");
 	if (sizeElement.getLength() == 1) {
-		String sizeString = sizeElement.item(0).getTextContent();
-		String sizeArray[] = sizeString.split(":");
-		width = Integer.parseInt(sizeArray[0]);
-		height = Integer.parseInt(sizeArray[1]);
+	    String sizeString = sizeElement.item(0).getTextContent();
+	    String sizeArray[] = sizeString.split(":");
+	    int width = Integer.parseInt(sizeArray[0]);
+	    int height = Integer.parseInt(sizeArray[1]);
+	    Dimension dim = new Dimension(width, height);
+	    value.setDimension(dim);
 	}
-
-	System.out.println("LOAD parameter information:");
-	System.out.println("Position: "+ posX+'x'+posY);
-	System.out.println("Size: "+width+'x'+height);
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
+
+	if (value == null)
+	    return;
+
+	Point pos = value.getPosition();
+	Dimension dim = value.getDimension();
+
+	if (pos == null || dim == null)
+	    return;
+
 	// Add elements
 	Document doc = xmlElement.getOwnerDocument();
 	Element positionElement = doc.createElement("position");
@@ -94,10 +96,6 @@ public class WindowSettingsParameter implements Parameter<WindowSettings> {
 	Element sizeElement = doc.createElement("size");
 	xmlElement.appendChild(sizeElement);
 	sizeElement.setTextContent(dim.width + ":" + dim.height);
-
-	System.out.println("SAVE parameter information:");
-	System.out.println("Position: "+ pos.x+'x'+pos.y);
-	System.out.println("Size: "+dim.width+'x'+dim.height);
     }
 
     @Override
@@ -107,7 +105,8 @@ public class WindowSettingsParameter implements Parameter<WindowSettings> {
 
     @Override
     public void setValue(WindowSettings newValue) {
-	this.value = newValue;
+	throw new IllegalArgumentException(
+		"Please use getValue() to update the value");
     }
 
 }

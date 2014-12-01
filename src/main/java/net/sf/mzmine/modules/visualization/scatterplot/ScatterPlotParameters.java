@@ -22,18 +22,24 @@ package net.sf.mzmine.modules.visualization.scatterplot;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class ScatterPlotParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public ScatterPlotParameters() {
-		super(new Parameter[] { peakLists });
-	}
-	
-	public ExitCode showSetupDialog() {
-		return ExitCode.OK;
-	}
+    /**
+     * Windows size and position
+     */
+    public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
+
+    public ScatterPlotParameters() {
+	super(new Parameter[] { peakLists, windowSettings });
+    }
+
+    public ExitCode showSetupDialog() {
+	return ExitCode.OK;
+    }
 
 }
