@@ -43,4 +43,4 @@ SCRIPTDIR=`dirname "$0"`
 cd "$SCRIPTDIR"
 
 # This command starts the Java Virtual Machine
-echo "$JAVA_PARAMETERS" -classpath $MAIN_CLASS "$@" | xargs $JAVA_COMMAND
+echo "$JAVA_PARAMETERS" $MAIN_CLASS "$@" | xargs $JAVA_COMMAND
