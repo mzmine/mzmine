@@ -6,10 +6,10 @@
 # size, but feel free to adjust according to your needs. 
 
 echo "Checking physical memory size..."
-TOTAL_MEMORY=`sysctl hw.memsize | awk '{print $2}'`
-echo "Found $TOTAL_MEMORY bytes memory"
+TOTAL_MEMORY=`sysctl hw.memsize | awk '{ print int($2 / 1024^2) }'`
+echo "Found $TOTAL_MEMORY MB memory"
 
-HEAP_SIZE=`expr $TOTAL_MEMORY / 1024 / 1024 / 2`
+HEAP_SIZE=`expr $TOTAL_MEMORY / 2`
 echo Java heap size set to $HEAP_SIZE MB
 
 # The TMP_FILE_DIRECTORY parameter defines the location where temporary 
@@ -28,17 +28,12 @@ JRI_LIB_PATH=${R_HOME}/library/rJava/jri
 JAVA_COMMAND=java
 
 # It is not necessary to modify the following section
-JAVA_PARAMETERS="-XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
-CLASS_PATH="lib/\*"
+JAVA_PARAMETERS="-showversion -classpath lib/\* -XX:+UseParallelGC -Xdock:name='MZmine 2' -Xdock:icon=icons/MZmineIcon.png -Djava.io.tmpdir=$TMP_FILE_DIRECTORY -Dapple.laf.useScreenMenuBar=true -Xms${HEAP_SIZE}m -Xmx${HEAP_SIZE}m -Djava.library.path=${JRI_LIB_PATH}"
 MAIN_CLASS=net.sf.mzmine.main.MZmineCore 
 
 # Make sure we are in the correct directory
 SCRIPTDIR=`dirname "$0"`
 cd "$SCRIPTDIR"
 
-# Show java version, in case a problem occurs
-echo "-version" | xargs $JAVA_COMMAND
-
 # This command starts the Java Virtual Machine
-echo "$JAVA_PARAMETERS" -classpath $CLASS_PATH $MAIN_CLASS "$@" | xargs $JAVA_COMMAND
-
+echo "$JAVA_PARAMETERS" $MAIN_CLASS "$@" | xargs $JAVA_COMMAND
