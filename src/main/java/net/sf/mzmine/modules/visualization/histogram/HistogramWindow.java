@@ -21,7 +21,6 @@ package net.sf.mzmine.modules.visualization.histogram;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -66,8 +65,6 @@ public class HistogramWindow extends JFrame {
 
 	// Creates plot and toolbar
 	histogram = new HistogramChart();
-	HistogramToolBar toolbar = new HistogramToolBar(
-		((ActionListener) histogram));
 
 	Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
 	Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
@@ -76,7 +73,6 @@ public class HistogramWindow extends JFrame {
 	pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
 	pnlPlot.setBackground(Color.white);
 
-	pnlPlot.add(toolbar, BorderLayout.EAST);
 	pnlPlot.add(histogram, BorderLayout.CENTER);
 
 	add(pnlPlot, BorderLayout.CENTER);
@@ -104,6 +100,10 @@ public class HistogramWindow extends JFrame {
 	    histogram.addDataset(dataSet, dataType);
 	}
 
+    }
+
+    HistogramChart getChart() {
+	return histogram;
     }
 
 }

@@ -58,7 +58,7 @@ public class ScatterPlotWindow extends JFrame {
 	topPanel = new ScatterPlotTopPanel();
 	add(topPanel, BorderLayout.NORTH);
 
-	chart = new ScatterPlotChart(topPanel, peakList);
+	chart = new ScatterPlotChart(this, topPanel, peakList);
 	Border border = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
 	chart.setBorder(border);
 	chart.setBackground(Color.white);

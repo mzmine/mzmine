@@ -30,54 +30,53 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.PeakMeasurementType;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
-public class ProjectionPlotWindow extends JFrame implements
-		ActionListener {
+public class ProjectionPlotWindow extends JFrame implements ActionListener {
 
-	private ProjectionPlotToolbar toolbar;
-	private ProjectionPlotPanel plot;
+    private ProjectionPlotToolbar toolbar;
+    private ProjectionPlotPanel plot;
 
-	public ProjectionPlotWindow(PeakList peakList,
-			ProjectionPlotDataset dataset, ParameterSet parameters) {
+    public ProjectionPlotWindow(PeakList peakList,
+	    ProjectionPlotDataset dataset, ParameterSet parameters) {
 
-		toolbar = new ProjectionPlotToolbar(this);
-		add(toolbar, BorderLayout.EAST);
+	toolbar = new ProjectionPlotToolbar(this);
+	add(toolbar, BorderLayout.EAST);
 
-		plot = new ProjectionPlotPanel(this, dataset, parameters);
-		add(plot, BorderLayout.CENTER);
+	plot = new ProjectionPlotPanel(this, dataset, parameters);
+	add(plot, BorderLayout.CENTER);
 
-		String title = peakList.getName();
-		title = title.concat(" : ");
-		title = title.concat(dataset.toString());
-		if (parameters.getParameter(
-				ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.HEIGHT)
-			title = title.concat(" (using peak heights)");
-		else
-			title = title.concat(" (using peak areas)");
+	String title = peakList.getName();
+	title = title.concat(" : ");
+	title = title.concat(dataset.toString());
+	if (parameters.getParameter(
+		ProjectionPlotParameters.peakMeasurementType).getValue() == PeakMeasurementType.HEIGHT)
+	    title = title.concat(" (using peak heights)");
+	else
+	    title = title.concat(" (using peak areas)");
 
-		this.setTitle(title);
+	this.setTitle(title);
 
-		pack();
+	pack();
 
+    }
+
+    public void actionPerformed(ActionEvent event) {
+
+	String command = event.getActionCommand();
+
+	if (command.equals("SETUP_AXES")) {
+	    AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart()
+		    .getXYPlot());
+	    dialog.setVisible(true);
 	}
 
-	public void actionPerformed(ActionEvent event) {
-
-		String command = event.getActionCommand();
-
-		if (command.equals("SETUP_AXES")) {
-			AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart()
-					.getXYPlot());
-			dialog.setVisible(true);
-		}
-
-		if (command.equals("TOGGLE_LABELS")) {
-			/*
-			 * XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
-			 * rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
-			 */
-			plot.cycleItemLabelMode();
-		}
-
+	if (command.equals("TOGGLE_LABELS")) {
+	    /*
+	     * XYItemRenderer rend = plot.getChart().getXYPlot().getRenderer();
+	     * rend.setBaseItemLabelsVisible(!rend.getBaseItemLabelsVisible());
+	     */
+	    plot.cycleItemLabelMode();
 	}
+
+    }
 
 }

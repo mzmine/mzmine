@@ -35,61 +35,67 @@ import net.sf.mzmine.util.Range;
  */
 public class HistogramRangeEditor extends JPanel implements ActionListener {
 
-	private JComboBox dataTypeCombo;
-	private RangeComponent dataRangeComponent;
+    private JComboBox dataTypeCombo;
+    private RangeComponent dataRangeComponent;
 
-	public HistogramRangeEditor() {
+    public HistogramRangeEditor() {
 
-		super(new BorderLayout());
+	super(new BorderLayout());
 
-		dataTypeCombo = new JComboBox(HistogramDataType.values());
-		add(dataTypeCombo, BorderLayout.WEST);
+	dataTypeCombo = new JComboBox(HistogramDataType.values());
+	add(dataTypeCombo, BorderLayout.WEST);
 
-		dataRangeComponent = new RangeComponent(NumberFormat.getNumberInstance());
-		add(dataRangeComponent, BorderLayout.CENTER);
+	dataRangeComponent = new RangeComponent(
+		NumberFormat.getNumberInstance());
+	add(dataRangeComponent, BorderLayout.CENTER);
 
-	}
+    }
 
-	public void setValue(Range value) {
-	}
-	
-	public void setValue(HistogramDataType type, Range value) {
+    public void setValue(Range value) {
+    }
 
-		dataRangeComponent.setValue(value);
+    public void setValue(HistogramDataType type, Range value) {
 
-	}
+	dataRangeComponent.setValue(value);
 
-	public HistogramDataType getSelectedType() {
+    }
+
+    public HistogramDataType getSelectedType() {
 	return (HistogramDataType) dataTypeCombo.getSelectedItem();
-	}
-	
-	public Range getValue() {
-		return dataRangeComponent.getValue();
+    }
+
+    public Range getValue() {
+	return dataRangeComponent.getValue();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+
+	Object src = event.getSource();
+
+	if (src == dataTypeCombo) {
+	    HistogramDataType selectedType = (HistogramDataType) dataTypeCombo
+		    .getSelectedItem();
+	    if (selectedType == null)
+		return;
+
+	    switch (selectedType) {
+	    case MASS:
+		dataRangeComponent.setNumberFormat(MZmineCore
+			.getConfiguration().getMZFormat());
+		return;
+	    case HEIGHT:
+	    case AREA:
+		dataRangeComponent.setNumberFormat(MZmineCore
+			.getConfiguration().getIntensityFormat());
+		return;
+	    case RT:
+		dataRangeComponent.setNumberFormat(MZmineCore
+			.getConfiguration().getRTFormat());
+		return;
+	    }
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent event) {
-		
-		Object src = event.getSource();
-		
-		if (src == dataTypeCombo) {
-			HistogramDataType selectedType = (HistogramDataType) dataTypeCombo.getSelectedItem();
-			if (selectedType == null) return;
-			
-			switch (selectedType) {
-			case MASS:
-				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getMZFormat());
-				return;
-			case HEIGHT:
-			case AREA:
-				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getIntensityFormat());
-				return;
-			case RT:
-				dataRangeComponent.setNumberFormat(MZmineCore.getConfiguration().getRTFormat());
-				return;
-			}
-		}
-		
-	}
+    }
 
 }

@@ -33,8 +33,7 @@ import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaint
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class RTMZAnalyzerWindow extends JFrame implements
-	ActionListener {
+public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
 
     private RTMZToolbar toolbar;
     private RTMZPlot plot;
@@ -63,7 +62,7 @@ public class RTMZAnalyzerWindow extends JFrame implements
 	String command = event.getActionCommand();
 
 	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(plot.getChart()
+	    AxesSetupDialog dialog = new AxesSetupDialog(this, plot.getChart()
 		    .getXYPlot());
 	    dialog.setVisible(true);
 	}

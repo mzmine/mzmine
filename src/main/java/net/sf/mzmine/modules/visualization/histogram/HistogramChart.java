@@ -41,156 +41,158 @@ import org.jfree.chart.title.LegendTitle;
 import org.jfree.chart.title.TextTitle;
 import org.jfree.ui.RectangleInsets;
 
-public class HistogramChart extends ChartPanel{
+public class HistogramChart extends ChartPanel {
 
-	// grid color
-	private static final Color gridColor = Color.lightGray;
+    // grid color
+    private static final Color gridColor = Color.lightGray;
 
-	// titles
-	private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
-	private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
-			11);
-	private TextTitle chartTitle, chartSubTitle;
-	
-	// legend
-	private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
-	
-	//margin
-	private static final double marginSize = 0.05;
+    // titles
+    private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
+    private static final Font subTitleFont = new Font("SansSerif", Font.PLAIN,
+	    11);
+    private TextTitle chartTitle, chartSubTitle;
 
-	private JFreeChart chart;
-	private XYPlot plot;
-	private HistogramPlotDataset dataSet;
-	
-	public HistogramChart() {
+    // legend
+    private static final Font legendFont = new Font("SansSerif", Font.PLAIN, 11);
 
-		super(null, true);
+    // margin
+    private static final double marginSize = 0.05;
 
-		// initialize the chart by default time series chart from factory
-		chart = ChartFactory.createHistogram("", // title
-				"", // x-axis label
-				"", // y-axis label
-				null, // data set
-				PlotOrientation.VERTICAL, // orientation
-				true, // create legend
-				false, // generate tooltips
-				false // generate URLs
-				);
-		
-		// title
-		chartTitle = chart.getTitle();
-		chartTitle.setFont(titleFont);
-		chartTitle.setMargin(5, 0, 0, 0);
+    private JFreeChart chart;
+    private XYPlot plot;
+    private HistogramPlotDataset dataSet;
 
-		chartSubTitle = new TextTitle();
-		chartSubTitle.setFont(subTitleFont);
-		chartSubTitle.setMargin(5, 0, 0, 0);
-		chart.addSubtitle(chartSubTitle);
-		
-		// legend constructed by ChartFactory
-		LegendTitle legend = chart.getLegend();
-		legend.setItemFont(legendFont);
-		legend.setFrame(BlockBorder.NONE);
+    public HistogramChart() {
 
+	super(null, true);
 
-		chart.setBackgroundPaint(Color.white);
-		setChart(chart);
+	// initialize the chart by default time series chart from factory
+	chart = ChartFactory.createHistogram("", // title
+		"", // x-axis label
+		"", // y-axis label
+		null, // data set
+		PlotOrientation.VERTICAL, // orientation
+		true, // create legend
+		false, // generate tooltips
+		false // generate URLs
+		);
 
-		// disable maximum size (we don't want scaling)
-		setMaximumDrawWidth(Integer.MAX_VALUE);
-		setMaximumDrawHeight(Integer.MAX_VALUE);
+	// title
+	chartTitle = chart.getTitle();
+	chartTitle.setFont(titleFont);
+	chartTitle.setMargin(5, 0, 0, 0);
 
-		// set the plot properties
-		plot = chart.getXYPlot();
-		plot.setBackgroundPaint(Color.white);
-		plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-		plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE);
-		plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
+	chartSubTitle = new TextTitle();
+	chartSubTitle.setFont(subTitleFont);
+	chartSubTitle.setMargin(5, 0, 0, 0);
+	chart.addSubtitle(chartSubTitle);
 
-		// set grid properties
-		plot.setDomainGridlinePaint(gridColor);
-		plot.setRangeGridlinePaint(gridColor);
+	// legend constructed by ChartFactory
+	LegendTitle legend = chart.getLegend();
+	legend.setItemFont(legendFont);
+	legend.setFrame(BlockBorder.NONE);
 
-		// set crosshair (selection) properties
-		plot.setDomainCrosshairVisible(false);
-		plot.setRangeCrosshairVisible(true);
+	chart.setBackgroundPaint(Color.white);
+	setChart(chart);
 
-		// set the logarithmic axis
-		NumberAxis axisDomain = new HistogramDomainAxis();
-		axisDomain.setMinorTickCount(1);
-		axisDomain.setAutoRange(true);
+	// disable maximum size (we don't want scaling)
+	setMaximumDrawWidth(Integer.MAX_VALUE);
+	setMaximumDrawHeight(Integer.MAX_VALUE);
 
-		NumberAxis axisRange = new NumberAxis();
-		axisRange.setMinorTickCount(1);
-		axisRange.setAutoRange(true);
+	// set the plot properties
+	plot = chart.getXYPlot();
+	plot.setBackgroundPaint(Color.white);
+	plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+	plot.setDatasetRenderingOrder(DatasetRenderingOrder.REVERSE);
+	plot.setSeriesRenderingOrder(SeriesRenderingOrder.FORWARD);
 
-		plot.setDomainAxis(axisDomain);
-		plot.setRangeAxis(axisRange);
-		
-		ClusteredXYBarRenderer renderer = new ClusteredXYBarRenderer();
-		renderer.setMargin(marginSize);
-		renderer.setShadowVisible(false);
-		plot.setRenderer(renderer);
+	// set grid properties
+	plot.setDomainGridlinePaint(gridColor);
+	plot.setRangeGridlinePaint(gridColor);
 
+	// set crosshair (selection) properties
+	plot.setDomainCrosshairVisible(false);
+	plot.setRangeCrosshairVisible(true);
 
-		this.setMinimumSize(new Dimension(400, 400));
-		this.setDismissDelay(Integer.MAX_VALUE);
-		this.setInitialDelay(0);
+	// set the logarithmic axis
+	NumberAxis axisDomain = new HistogramDomainAxis();
+	axisDomain.setMinorTickCount(1);
+	axisDomain.setAutoRange(true);
 
+	NumberAxis axisRange = new NumberAxis();
+	axisRange.setMinorTickCount(1);
+	axisRange.setAutoRange(true);
+
+	plot.setDomainAxis(axisDomain);
+	plot.setRangeAxis(axisRange);
+
+	ClusteredXYBarRenderer renderer = new ClusteredXYBarRenderer();
+	renderer.setMargin(marginSize);
+	renderer.setShadowVisible(false);
+	plot.setRenderer(renderer);
+
+	this.setMinimumSize(new Dimension(400, 400));
+	this.setDismissDelay(Integer.MAX_VALUE);
+	this.setInitialDelay(0);
+
+    }
+
+    synchronized public void addDataset(HistogramPlotDataset newSet,
+	    HistogramDataType dataType) {
+	dataSet = newSet;
+	setAxisNumberFormat(dataType);
+
+	double lower = dataSet.getMinimum();
+	double upper = dataSet.getMaximum();
+
+	HistogramDomainAxis axis = (HistogramDomainAxis) plot.getDomainAxis();
+	axis.setAutoRange(true);
+	axis.setAutoRangeIncludesZero(false);
+	axis.setLabel(dataType.toString());
+	axis.setRange(lower, upper);
+	axis.setLowerTickValue(lower);
+	axis.setUpperTickValue(upper);
+	axis.setVisibleTickCount(dataSet.getNumberOfBins() + 1);
+	axis.setAutoTickUnitSelection(false);
+	axis.setTickUnit(new NumberTickUnit(dataSet.getBinWidth()));
+
+	if (dataSet.getItemCount(0) > 6)
+	    axis.setVerticalTickLabels(true);
+
+	plot.getRangeAxis().setLabel("Number of peaks");
+	plot.setDataset(0, newSet);
+	setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's "
+		+ dataType);
+    }
+
+    public void setAxisNumberFormat(HistogramDataType dataType) {
+
+	NumberFormat formatter = null;
+	switch (dataType) {
+	case AREA:
+	    formatter = MZmineCore.getConfiguration().getIntensityFormat();
+	    break;
+	case MASS:
+	    formatter = MZmineCore.getConfiguration().getMZFormat();
+	    break;
+	case HEIGHT:
+	    formatter = MZmineCore.getConfiguration().getIntensityFormat();
+	    break;
+	case RT:
+	    formatter = MZmineCore.getConfiguration().getRTFormat();
+	    break;
 	}
+	((NumberAxis) plot.getDomainAxis()).setNumberFormatOverride(formatter);
 
-	synchronized public void addDataset(HistogramPlotDataset newSet, HistogramDataType dataType) {
-		dataSet = newSet;
-		setAxisNumberFormat(dataType);
-		
-		double lower = dataSet.getMinimum();
-		double upper = dataSet.getMaximum();
-		
-		HistogramDomainAxis axis = (HistogramDomainAxis) plot.getDomainAxis();
-		axis.setAutoRange(true);
-		axis.setAutoRangeIncludesZero(false);
-		axis.setLabel(dataType.toString());
-		axis.setRange(lower, upper);
-		axis.setLowerTickValue(lower);
-		axis.setUpperTickValue(upper);
-		axis.setVisibleTickCount(dataSet.getNumberOfBins()+1);
-		axis.setAutoTickUnitSelection(false);
-		axis.setTickUnit(new NumberTickUnit(dataSet.getBinWidth()));
-		
-		if (dataSet.getItemCount(0) > 6)
-		axis.setVerticalTickLabels(true);
+    }
 
-		plot.getRangeAxis().setLabel("Number of peaks");
-		plot.setDataset(0, newSet);
-		setTitle(dataSet.getPeakList().getName(), "Histogram of peaks's " + dataType);
-	}
-	
-	public void setAxisNumberFormat(HistogramDataType dataType){
-		
-		NumberFormat formatter = null;
-		switch (dataType){
-		case AREA:
-			formatter = MZmineCore.getConfiguration().getIntensityFormat();
-			break;
-		case MASS:
-			formatter = MZmineCore.getConfiguration().getMZFormat();
-			break;
-		case HEIGHT:
-			formatter = MZmineCore.getConfiguration().getIntensityFormat();
-			break;
-		case RT:
-			formatter = MZmineCore.getConfiguration().getRTFormat();
-			break;
-		}
-		((NumberAxis)plot.getDomainAxis()).setNumberFormatOverride(formatter);
-		
-	}
-	
-	void setTitle(String titleText, String subTitleText) {
-		chartTitle.setText(titleText);
-		chartSubTitle.setText(subTitleText);
-	}
+    void setTitle(String titleText, String subTitleText) {
+	chartTitle.setText(titleText);
+	chartSubTitle.setText(subTitleText);
+    }
 
-
+    XYPlot getXYPlot() {
+	return plot;
+    }
 
 }

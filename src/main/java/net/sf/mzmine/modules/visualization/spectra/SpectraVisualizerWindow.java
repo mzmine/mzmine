@@ -431,7 +431,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(
+	    AxesSetupDialog dialog = new AxesSetupDialog(this,
 		    spectrumPlot.getXYPlot());
 	    dialog.setVisible(true);
 	}

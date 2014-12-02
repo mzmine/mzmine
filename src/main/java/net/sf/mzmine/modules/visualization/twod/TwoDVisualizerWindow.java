@@ -84,7 +84,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 	JMenuBar menuBar = new JMenuBar();
 	menuBar.add(new WindowsMenu());
 	setJMenuBar(menuBar);
-	
+
 	pack();
 
 	// get the window settings parameter
@@ -136,7 +136,8 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	if (command.equals("SETUP_AXES")) {
-	    AxesSetupDialog dialog = new AxesSetupDialog(twoDPlot.getXYPlot());
+	    AxesSetupDialog dialog = new AxesSetupDialog(this,
+		    twoDPlot.getXYPlot());
 	    dialog.setVisible(true);
 	}
 
