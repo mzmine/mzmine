@@ -26,6 +26,7 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.OptionalModuleParameter;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 import org.w3c.dom.Element;
@@ -50,11 +51,11 @@ public class MZminePreferences extends SimpleParameterSet {
 	    "Use proxy", "Use proxy for internet connection?",
 	    new ProxySettings());
 
-    public static final WindowStateParameter windowState = new WindowStateParameter();
+    public static final WindowSettingsParameter windowSetttings = new WindowSettingsParameter();
 
     public MZminePreferences() {
 	super(new Parameter[] { mzFormat, rtFormat, intensityFormat,
-		numOfThreads, proxySettings, windowState });
+		numOfThreads, proxySettings, windowSetttings });
     }
 
     public ExitCode showSetupDialog() {

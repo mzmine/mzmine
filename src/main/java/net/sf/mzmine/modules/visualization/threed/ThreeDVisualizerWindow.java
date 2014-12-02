@@ -43,7 +43,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.Range;
 import visad.ProjectionControl;
@@ -142,8 +142,8 @@ public class ThreeDVisualizerWindow extends JFrame implements
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(ThreeDVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		ThreeDVisualizerParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(ThreeDVisualizerParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

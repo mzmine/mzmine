@@ -20,8 +20,13 @@
 package net.sf.mzmine.parameters.parametertypes;
 
 import java.awt.Dimension;
+import java.awt.Frame;
 import java.awt.Point;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.Collection;
+
+import javax.swing.JFrame;
 
 import net.sf.mzmine.parameters.Parameter;
 
@@ -29,11 +34,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class WindowSettingsParameter implements Parameter<WindowSettings> {
+public class WindowSettingsParameter implements Parameter<Object>,
+	ComponentListener {
 
-    // Since this is a special parameter (cannot be directly set by the user),
-    // we can use a singleton for the value and declare it as final
-    private final WindowSettings value = new WindowSettings();
+    private static final String SIZE_ELEMENT = "size";
+    private static final String POSITION_ELEMENT = "position";
+    private static final String MAXIMIZED_ELEMENT = "maximized";
+
+    private Point position;
+    private Dimension dimension;
+    private boolean isMaximized = false;
 
     @Override
     public String getName() {
@@ -54,59 +64,125 @@ public class WindowSettingsParameter implements Parameter<WindowSettings> {
     public void loadValueFromXML(Element xmlElement) {
 
 	// Window position
-	NodeList posElement = xmlElement.getElementsByTagName("position");
+	NodeList posElement = xmlElement.getElementsByTagName(POSITION_ELEMENT);
 	if (posElement.getLength() == 1) {
 	    String posString = posElement.item(0).getTextContent();
 	    String posArray[] = posString.split(":");
-	    int posX = Integer.valueOf(posArray[0]);
-	    int posY = Integer.valueOf(posArray[1]);
-	    Point pos = new Point(posX, posY);
-	    value.setPosition(pos);
+	    if (posArray.length == 2) {
+		int posX = Integer.valueOf(posArray[0]);
+
+		int posY = Integer.valueOf(posArray[1]);
+		position = new Point(posX, posY);
+	    }
 	}
 
 	// Window size
-	NodeList sizeElement = xmlElement.getElementsByTagName("size");
+	NodeList sizeElement = xmlElement.getElementsByTagName(SIZE_ELEMENT);
 	if (sizeElement.getLength() == 1) {
 	    String sizeString = sizeElement.item(0).getTextContent();
 	    String sizeArray[] = sizeString.split(":");
-	    int width = Integer.parseInt(sizeArray[0]);
-	    int height = Integer.parseInt(sizeArray[1]);
-	    Dimension dim = new Dimension(width, height);
-	    value.setDimension(dim);
+	    if (sizeArray.length == 2) {
+		int width = Integer.parseInt(sizeArray[0]);
+		int height = Integer.parseInt(sizeArray[1]);
+		dimension = new Dimension(width, height);
+	    }
 	}
+
+	// Window maximized
+	NodeList maximizedElement = xmlElement
+		.getElementsByTagName(MAXIMIZED_ELEMENT);
+	if (maximizedElement.getLength() == 1) {
+	    String maximizedString = maximizedElement.item(0).getTextContent();
+	    isMaximized = Boolean.valueOf(maximizedString);
+	}
+
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
 
-	if (value == null)
-	    return;
-
-	Point pos = value.getPosition();
-	Dimension dim = value.getDimension();
-
-	if (pos == null || dim == null)
-	    return;
-
 	// Add elements
 	Document doc = xmlElement.getOwnerDocument();
-	Element positionElement = doc.createElement("position");
-	xmlElement.appendChild(positionElement);
-	positionElement.setTextContent(pos.x + ":" + pos.y);
-	Element sizeElement = doc.createElement("size");
-	xmlElement.appendChild(sizeElement);
-	sizeElement.setTextContent(dim.width + ":" + dim.height);
+
+	if (position != null) {
+	    Element positionElement = doc.createElement(POSITION_ELEMENT);
+	    xmlElement.appendChild(positionElement);
+	    positionElement.setTextContent(position.x + ":" + position.y);
+	}
+
+	if (dimension != null) {
+	    Element sizeElement = doc.createElement(SIZE_ELEMENT);
+	    xmlElement.appendChild(sizeElement);
+	    sizeElement
+		    .setTextContent(dimension.width + ":" + dimension.height);
+	}
+
+	Element maximizedElement = doc.createElement(MAXIMIZED_ELEMENT);
+	xmlElement.appendChild(maximizedElement);
+	maximizedElement.setTextContent(String.valueOf(isMaximized));
+
     }
 
     @Override
-    public WindowSettings getValue() {
-	return value;
+    public Object getValue() {
+	return null;
     }
 
     @Override
-    public void setValue(WindowSettings newValue) {
-	throw new IllegalArgumentException(
-		"Please use getValue() to update the value");
+    public void setValue(Object newValue) {
+	// ignore
+    }
+
+    /**
+     * Set window size and position according to the values in this instance
+     */
+    public void applySettingsToWindow(JFrame frame) {
+	if (isMaximized) {
+	    frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
+	} else {
+	    if (position != null) {
+		if (!isMaximized)
+		    position.translate(20, 20);
+		frame.setLocation(position);
+	    }
+	    if (dimension != null) {
+		frame.setSize(dimension);
+	    }
+	}
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+	if (!(e.getComponent() instanceof JFrame))
+	    return;
+	JFrame frame = (JFrame) e.getComponent();
+	int state = frame.getExtendedState();
+	isMaximized = (state & Frame.MAXIMIZED_HORIZ & Frame.MAXIMIZED_VERT) != 0;
+	if (!isMaximized) {
+	    position = frame.getLocation();
+	}
+    }
+
+    @Override
+    public void componentResized(ComponentEvent e) {
+	if (!(e.getComponent() instanceof JFrame))
+	    return;
+	JFrame frame = (JFrame) e.getComponent();
+	int state = frame.getExtendedState();
+	isMaximized = (state & Frame.MAXIMIZED_HORIZ & Frame.MAXIMIZED_VERT) != 0;
+	if (!isMaximized) {
+	    dimension = frame.getSize();
+	}
+    }
+
+    @Override
+    public void componentHidden(ComponentEvent e) {
+	// ignore
+    }
+
+    @Override
+    public void componentShown(ComponentEvent e) {
+	// ignore
     }
 
 }

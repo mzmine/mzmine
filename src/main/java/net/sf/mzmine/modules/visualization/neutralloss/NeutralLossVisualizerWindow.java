@@ -30,9 +30,8 @@ import javax.swing.JFrame;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.util.Range;
 
@@ -89,8 +88,8 @@ public class NeutralLossVisualizerWindow extends JFrame implements
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(NeutralLossVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		NeutralLossParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(NeutralLossParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

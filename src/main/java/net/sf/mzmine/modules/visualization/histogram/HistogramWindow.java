@@ -32,10 +32,8 @@ import javax.swing.border.EtchedBorder;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerParameters;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JFrame {
@@ -44,54 +42,59 @@ public class HistogramWindow extends JFrame {
 
     public HistogramWindow(ParameterSet parameters) {
 
-        super("");
-        
-        PeakList peakList = parameters.getParameter(HistogramParameters.peakList).getValue()[0];
-        
-        this.setTitle("Histogram of " + peakList.getName());
+	super("");
 
-        RawDataFile rawDataFiles[] = parameters.getParameter(HistogramParameters.dataFiles).getValue();
+	PeakList peakList = parameters.getParameter(
+		HistogramParameters.peakList).getValue()[0];
 
-        HistogramDataType dataType = parameters.getParameter(HistogramParameters.dataRange).getType();
-        int numOfBins =  parameters.getParameter(HistogramParameters.numOfBins).getValue();
-        Range range = parameters.getParameter(HistogramParameters.dataRange).getValue();
+	this.setTitle("Histogram of " + peakList.getName());
 
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setBackground(Color.white);
+	RawDataFile rawDataFiles[] = parameters.getParameter(
+		HistogramParameters.dataFiles).getValue();
 
-        // Creates plot and toolbar
-        histogram = new HistogramChart();
-        HistogramToolBar toolbar = new HistogramToolBar(
-                ((ActionListener) histogram));
+	HistogramDataType dataType = parameters.getParameter(
+		HistogramParameters.dataRange).getType();
+	int numOfBins = parameters.getParameter(HistogramParameters.numOfBins)
+		.getValue();
+	Range range = parameters.getParameter(HistogramParameters.dataRange)
+		.getValue();
 
-        Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
-        Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
+	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	setBackground(Color.white);
 
-        JPanel pnlPlot = new JPanel(new BorderLayout());
-        pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
-        pnlPlot.setBackground(Color.white);
+	// Creates plot and toolbar
+	histogram = new HistogramChart();
+	HistogramToolBar toolbar = new HistogramToolBar(
+		((ActionListener) histogram));
 
-        pnlPlot.add(toolbar, BorderLayout.EAST);
-        pnlPlot.add(histogram, BorderLayout.CENTER);
+	Border one = BorderFactory.createEtchedBorder(EtchedBorder.RAISED);
+	Border two = BorderFactory.createEmptyBorder(5, 5, 5, 5);
 
-        add(pnlPlot, BorderLayout.CENTER);
-        pack();
-        
+	JPanel pnlPlot = new JPanel(new BorderLayout());
+	pnlPlot.setBorder(BorderFactory.createCompoundBorder(one, two));
+	pnlPlot.setBackground(Color.white);
+
+	pnlPlot.add(toolbar, BorderLayout.EAST);
+	pnlPlot.add(histogram, BorderLayout.CENTER);
+
+	add(pnlPlot, BorderLayout.CENTER);
+	pack();
+
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(HistogramVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		HistogramParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(HistogramParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);
 	this.addComponentListener(settings);
 
-        if (peakList != null) {
-            HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,
-                    rawDataFiles, numOfBins, dataType, range);
-            histogram.addDataset(dataSet, dataType);
-        }
+	if (peakList != null) {
+	    HistogramPlotDataset dataSet = new HistogramPlotDataset(peakList,
+		    rawDataFiles, numOfBins, dataType, range);
+	    histogram.addDataset(dataSet, dataType);
+	}
 
     }
 

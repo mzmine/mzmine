@@ -39,11 +39,13 @@ import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
+import net.sf.mzmine.desktop.preferences.MZminePreferences;
 import net.sf.mzmine.main.impl.MZmineConfigurationImpl;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.project.ProjectManager;
 import net.sf.mzmine.project.impl.MZmineProjectImpl;
 import net.sf.mzmine.project.impl.ProjectManagerImpl;
@@ -59,242 +61,249 @@ import net.sf.mzmine.main.NewVersionCheck.CheckType;
  */
 public final class MZmineCore {
 
-	private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
+    private static Logger logger = Logger.getLogger(MZmineCore.class.getName());
 
-	private static TaskControllerImpl taskController;
-	private static MZmineConfiguration configuration;
-	private static Desktop desktop;
-	private static ProjectManagerImpl projectManager;
+    private static TaskControllerImpl taskController;
+    private static MZmineConfiguration configuration;
+    private static Desktop desktop;
+    private static ProjectManagerImpl projectManager;
 
-	private static Map<Class<?>, MZmineModule> initializedModules = new Hashtable<Class<?>, MZmineModule>();
+    private static Map<Class<?>, MZmineModule> initializedModules = new Hashtable<Class<?>, MZmineModule>();
 
-	/**
-	 * Main method
-	 */
-	@SuppressWarnings("unchecked")
-	public static void main(String args[]) {
+    /**
+     * Main method
+     */
+    @SuppressWarnings("unchecked")
+    public static void main(String args[]) {
 
-		// In the beginning, set the default locale to English, to avoid
-		// problems with conversion of numbers etc. (e.g. decimal separator may
-		// be . or , depending on the locale)
-		Locale.setDefault(new Locale("en", "US"));
+	// In the beginning, set the default locale to English, to avoid
+	// problems with conversion of numbers etc. (e.g. decimal separator may
+	// be . or , depending on the locale)
+	Locale.setDefault(new Locale("en", "US"));
 
-		// Configure the logging properties before we start logging
-		try {
-			ClassLoader cl = MZmineCore.class.getClassLoader();
-			InputStream loggingProperties = cl
-					.getResourceAsStream("logging.properties");
-			LogManager logMan = LogManager.getLogManager();
-			logMan.readConfiguration(loggingProperties);
-			loggingProperties.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	// Configure the logging properties before we start logging
+	try {
+	    ClassLoader cl = MZmineCore.class.getClassLoader();
+	    InputStream loggingProperties = cl
+		    .getResourceAsStream("logging.properties");
+	    LogManager logMan = LogManager.getLogManager();
+	    logMan.readConfiguration(loggingProperties);
+	    loggingProperties.close();
+	} catch (Exception e) {
+	    e.printStackTrace();
+	}
 
-		logger.info("Starting MZmine " + getMZmineVersion());
+	logger.info("Starting MZmine " + getMZmineVersion());
 
-		// Remove old temporary files, if we find any
-		TmpFileCleanup.removeOldTemporaryFiles();
+	// Remove old temporary files, if we find any
+	TmpFileCleanup.removeOldTemporaryFiles();
 
-		logger.fine("Loading core classes..");
+	logger.fine("Loading core classes..");
 
-		// create instance of configuration
-		configuration = new MZmineConfigurationImpl();
+	// create instance of configuration
+	configuration = new MZmineConfigurationImpl();
 
-		// create instances of core modules
-		projectManager = new ProjectManagerImpl();
-		taskController = new TaskControllerImpl();
+	// create instances of core modules
+	projectManager = new ProjectManagerImpl();
+	taskController = new TaskControllerImpl();
 
-		logger.fine("Initializing core classes..");
+	logger.fine("Initializing core classes..");
 
-		projectManager.initModule();
-		taskController.initModule();
+	projectManager.initModule();
+	taskController.initModule();
 
-		logger.fine("Loading modules");
+	logger.fine("Loading modules");
 
-		for (Class<?> moduleClass : MZmineModulesList.MODULES) {
+	for (Class<?> moduleClass : MZmineModulesList.MODULES) {
 
-			try {
+	    try {
 
-				logger.finest("Loading module " + moduleClass.getName());
+		logger.finest("Loading module " + moduleClass.getName());
 
-				// Create instance and init module
-				MZmineModule moduleInstance = (MZmineModule) moduleClass
-						.newInstance();
+		// Create instance and init module
+		MZmineModule moduleInstance = (MZmineModule) moduleClass
+			.newInstance();
 
-				// Add to the module list
-				initializedModules.put(moduleClass, moduleInstance);
+		// Add to the module list
+		initializedModules.put(moduleClass, moduleInstance);
 
-				// Create an instance of parameter set
-				Class<? extends ParameterSet> parameterSetClass = moduleInstance
-						.getParameterSetClass();
-				ParameterSet parameterSetInstance = parameterSetClass
-						.newInstance();
+		// Create an instance of parameter set
+		Class<? extends ParameterSet> parameterSetClass = moduleInstance
+			.getParameterSetClass();
+		ParameterSet parameterSetInstance = parameterSetClass
+			.newInstance();
 
-				// Add the parameter set to the configuration
-				configuration
-						.setModuleParameters((Class<MZmineModule>) moduleClass,
-								parameterSetInstance);
+		// Add the parameter set to the configuration
+		configuration
+			.setModuleParameters((Class<MZmineModule>) moduleClass,
+				parameterSetInstance);
 
-			} catch (Throwable e) {
-				logger.log(Level.SEVERE,
-						"Could not load module " + moduleClass, e);
-				e.printStackTrace();
-				continue;
-			}
-
-		}
-
-		// If we have no arguments, run in GUI mode, otherwise run in batch mode
-		if (args.length == 0) {
-
-			// Create the Swing GUI in the event-dispatching thread, as is
-			// generally recommended
-			Runnable desktopInit = new Runnable() {
-				public void run() {
-
-					logger.fine("Initializing GUI");
-					MainWindow mainWindow = new MainWindow();
-					desktop = mainWindow;
-					mainWindow.initModule();
-
-					// Activate project - bind it to the desktop's project tree
-					MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
-							.getCurrentProject();
-					currentProject.activateProject();
-
-					// add desktop menu icon
-					for (Class<?> moduleClass : MZmineModulesList.MODULES) {
-						MZmineModule module = initializedModules
-								.get(moduleClass);
-						if (module == null)
-							continue;
-						if (!(module instanceof MZmineProcessingModule))
-							continue;
-						mainWindow.getMainMenu().addMenuItemForModule(
-								(MZmineProcessingModule) module);
-
-					}
-				};
-
-			};
-
-			try {
-				SwingUtilities.invokeAndWait(desktopInit);
-			} catch (Exception e) {
-				logger.log(Level.SEVERE, "Could not initialize GUI", e);
-				System.exit(1);
-			}
-
-		} else {
-			desktop = new HeadLessDesktop();
-		}
-
-		// load configuration
-		if (MZmineConfiguration.CONFIG_FILE.exists()
-				&& MZmineConfiguration.CONFIG_FILE.canRead()) {
-			try {
-				configuration
-						.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-		// if we have GUI, show it now
-		if (desktop.getMainWindow() != null) {
-			// show the GUI
-			logger.info("Showing main window");
-			desktop.getMainWindow().setVisible(true);
-
-			// show the welcome message
-			desktop.setStatusBarText("Welcome to MZmine 2!");
-
-			// Check for updated version
-			NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
-			new Thread(NVC).start();
-
-			// register shutdown hook only if we have GUI - we don't want to
-			// save configuration on exit if we only run a batch
-			ShutDownHook shutDownHook = new ShutDownHook();
-			Runtime.getRuntime().addShutdownHook(shutDownHook);
-		}
-
-		// if arguments were specified (= running without GUI), run the batch
-		// mode
-		if (args.length > 0) {
-			File batchFile = new File(args[0]);
-			if ((!batchFile.exists()) || (!batchFile.canRead())) {
-				logger.severe("Cannot read batch file " + batchFile);
-				System.exit(1);
-			}
-			ExitCode exitCode = BatchModeModule.runBatch(batchFile);
-			if (exitCode == ExitCode.OK)
-				System.exit(0);
-			else
-				System.exit(1);
-		}
+	    } catch (Throwable e) {
+		logger.log(Level.SEVERE,
+			"Could not load module " + moduleClass, e);
+		e.printStackTrace();
+		continue;
+	    }
 
 	}
 
-	@Nonnull
-	public static TaskController getTaskController() {
-		return taskController;
+	// If we have no arguments, run in GUI mode, otherwise run in batch mode
+	if (args.length == 0) {
+
+	    // Create the Swing GUI in the event-dispatching thread, as is
+	    // generally recommended
+	    Runnable desktopInit = new Runnable() {
+		public void run() {
+
+		    logger.fine("Initializing GUI");
+		    MainWindow mainWindow = new MainWindow();
+		    desktop = mainWindow;
+		    mainWindow.initModule();
+
+		    // Activate project - bind it to the desktop's project tree
+		    MZmineProjectImpl currentProject = (MZmineProjectImpl) projectManager
+			    .getCurrentProject();
+		    currentProject.activateProject();
+
+		    // add desktop menu icon
+		    for (Class<?> moduleClass : MZmineModulesList.MODULES) {
+			MZmineModule module = initializedModules
+				.get(moduleClass);
+			if (module == null)
+			    continue;
+			if (!(module instanceof MZmineProcessingModule))
+			    continue;
+			mainWindow.getMainMenu().addMenuItemForModule(
+				(MZmineProcessingModule) module);
+
+		    }
+		};
+
+	    };
+
+	    try {
+		SwingUtilities.invokeAndWait(desktopInit);
+	    } catch (Exception e) {
+		logger.log(Level.SEVERE, "Could not initialize GUI", e);
+		System.exit(1);
+	    }
+
+	} else {
+	    desktop = new HeadLessDesktop();
 	}
 
-	@Nonnull
-	public static Desktop getDesktop() {
-		return desktop;
+	// load configuration
+	if (MZmineConfiguration.CONFIG_FILE.exists()
+		&& MZmineConfiguration.CONFIG_FILE.canRead()) {
+	    try {
+		configuration
+			.loadConfiguration(MZmineConfiguration.CONFIG_FILE);
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
 	}
 
-	@Nonnull
-	public static ProjectManager getProjectManager() {
-		return projectManager;
+	// if we have GUI, show it now
+	if (desktop.getMainWindow() != null) {
+
+	    // update the size and position of the main window
+	    ParameterSet paramSet = configuration.getPreferences();
+	    WindowSettingsParameter settings = paramSet
+		    .getParameter(MZminePreferences.windowSetttings);
+	    settings.applySettingsToWindow(desktop.getMainWindow());
+
+	    // show the GUI
+	    logger.info("Showing main window");
+	    desktop.getMainWindow().setVisible(true);
+
+	    // show the welcome message
+	    desktop.setStatusBarText("Welcome to MZmine 2!");
+
+	    // Check for updated version
+	    NewVersionCheck NVC = new NewVersionCheck(CheckType.DESKTOP);
+	    new Thread(NVC).start();
+
+	    // register shutdown hook only if we have GUI - we don't want to
+	    // save configuration on exit if we only run a batch
+	    ShutDownHook shutDownHook = new ShutDownHook();
+	    Runtime.getRuntime().addShutdownHook(shutDownHook);
 	}
 
-	@Nonnull
-	public static MZmineProject getCurrentProject() {
-		return projectManager.getCurrentProject();
+	// if arguments were specified (= running without GUI), run the batch
+	// mode
+	if (args.length > 0) {
+	    File batchFile = new File(args[0]);
+	    if ((!batchFile.exists()) || (!batchFile.canRead())) {
+		logger.severe("Cannot read batch file " + batchFile);
+		System.exit(1);
+	    }
+	    ExitCode exitCode = BatchModeModule.runBatch(batchFile);
+	    if (exitCode == ExitCode.OK)
+		System.exit(0);
+	    else
+		System.exit(1);
 	}
 
-	@Nonnull
-	public static MZmineConfiguration getConfiguration() {
-		return configuration;
-	}
+    }
 
-	/**
-	 * Returns the instance of a module of given class
-	 */
-	@SuppressWarnings("unchecked")
-	public static <ModuleType> ModuleType getModuleInstance(
-			Class<ModuleType> moduleClass) {
-		return (ModuleType) initializedModules.get(moduleClass);
-	}
+    @Nonnull
+    public static TaskController getTaskController() {
+	return taskController;
+    }
 
-	public static Collection<MZmineModule> getAllModules() {
-		return initializedModules.values();
-	}
+    @Nonnull
+    public static Desktop getDesktop() {
+	return desktop;
+    }
 
-	public static RawDataFileWriter createNewFile(String name)
-			throws IOException {
-		return new RawDataFileImpl(name);
-	}
+    @Nonnull
+    public static ProjectManager getProjectManager() {
+	return projectManager;
+    }
 
-	@Nonnull
-	public static String getMZmineVersion() {
-		try {
-			ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
-			InputStream inStream = myClassLoader
-					.getResourceAsStream("META-INF/maven/net.sf.mzmine/MZmine/pom.properties");
-			if (inStream == null)
-				return "0.0";
-			Properties properties = new Properties();
-			properties.load(inStream);
-			return properties.getProperty("version");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return "0.0";
-		}
+    @Nonnull
+    public static MZmineProject getCurrentProject() {
+	return projectManager.getCurrentProject();
+    }
+
+    @Nonnull
+    public static MZmineConfiguration getConfiguration() {
+	return configuration;
+    }
+
+    /**
+     * Returns the instance of a module of given class
+     */
+    @SuppressWarnings("unchecked")
+    public static <ModuleType> ModuleType getModuleInstance(
+	    Class<ModuleType> moduleClass) {
+	return (ModuleType) initializedModules.get(moduleClass);
+    }
+
+    public static Collection<MZmineModule> getAllModules() {
+	return initializedModules.values();
+    }
+
+    public static RawDataFileWriter createNewFile(String name)
+	    throws IOException {
+	return new RawDataFileImpl(name);
+    }
+
+    @Nonnull
+    public static String getMZmineVersion() {
+	try {
+	    ClassLoader myClassLoader = MZmineCore.class.getClassLoader();
+	    InputStream inStream = myClassLoader
+		    .getResourceAsStream("META-INF/maven/net.sf.mzmine/MZmine/pom.properties");
+	    if (inStream == null)
+		return "0.0";
+	    Properties properties = new Properties();
+	    properties.load(inStream);
+	    return properties.getProperty("version");
+	} catch (Exception e) {
+	    e.printStackTrace();
+	    return "0.0";
 	}
+    }
 
 }

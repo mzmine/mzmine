@@ -32,7 +32,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -176,8 +176,8 @@ public class IntensityPlotFrame extends JFrame {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(IntensityPlotModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		IntensityPlotParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(IntensityPlotParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

@@ -39,7 +39,7 @@ import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.Range;
 
 class InfoVisualizerWindow extends JFrame {
@@ -154,8 +154,8 @@ class InfoVisualizerWindow extends JFrame {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(InfoVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		InfoVisualizerParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(InfoVisualizerParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

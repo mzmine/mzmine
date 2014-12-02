@@ -37,7 +37,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 
 public class PeakListTableWindow extends JFrame implements ActionListener {
@@ -76,8 +76,8 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(PeakListTableModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		PeakListTableParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(PeakListTableParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

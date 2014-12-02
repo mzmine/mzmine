@@ -28,7 +28,7 @@ import javax.swing.JFrame;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -83,8 +83,8 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(TwoDVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		TwoDParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(TwoDParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

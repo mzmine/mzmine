@@ -39,7 +39,7 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
@@ -128,8 +128,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(TICVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		TICVisualizerParameters.WINDOWSETTINGSPARAMETER).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(TICVisualizerParameters.WINDOWSETTINGSPARAMETER);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);

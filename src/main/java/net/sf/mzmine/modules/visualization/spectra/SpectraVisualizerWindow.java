@@ -46,9 +46,8 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.PeakListDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
-import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.WindowSettings;
+import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
@@ -110,8 +109,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	// get the window settings parameter
 	ParameterSet paramSet = MZmineCore.getConfiguration()
 		.getModuleParameters(SpectraVisualizerModule.class);
-	WindowSettings settings = paramSet.getParameter(
-		SpectraVisualizerParameters.windowSettings).getValue();
+	WindowSettingsParameter settings = paramSet
+		.getParameter(SpectraVisualizerParameters.windowSettings);
 
 	// update the window and listen for changes
 	settings.applySettingsToWindow(this);
