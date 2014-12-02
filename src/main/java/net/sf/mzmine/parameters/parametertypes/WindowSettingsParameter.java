@@ -137,17 +137,16 @@ public class WindowSettingsParameter implements Parameter<Object>,
      * Set window size and position according to the values in this instance
      */
     public void applySettingsToWindow(JFrame frame) {
+	if (position != null) {
+	    if (!isMaximized)
+		position.translate(20, 20);
+	    frame.setLocation(position);
+	}
+	if (dimension != null) {
+	    frame.setSize(dimension);
+	}
 	if (isMaximized) {
 	    frame.setExtendedState(Frame.MAXIMIZED_HORIZ | Frame.MAXIMIZED_VERT);
-	} else {
-	    if (position != null) {
-		if (!isMaximized)
-		    position.translate(20, 20);
-		frame.setLocation(position);
-	    }
-	    if (dimension != null) {
-		frame.setSize(dimension);
-	    }
 	}
     }
 
