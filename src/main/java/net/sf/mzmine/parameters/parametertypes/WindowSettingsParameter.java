@@ -25,6 +25,7 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Collection;
+import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
@@ -157,7 +158,8 @@ public class WindowSettingsParameter implements Parameter<Object>,
 	    return;
 	JFrame frame = (JFrame) e.getComponent();
 	int state = frame.getExtendedState();
-	isMaximized = (state & Frame.MAXIMIZED_HORIZ & Frame.MAXIMIZED_VERT) != 0;
+	isMaximized = ((state & Frame.MAXIMIZED_HORIZ) != 0)
+		&& ((state & Frame.MAXIMIZED_VERT) != 0);
 	if (!isMaximized) {
 	    position = frame.getLocation();
 	}
@@ -169,7 +171,8 @@ public class WindowSettingsParameter implements Parameter<Object>,
 	    return;
 	JFrame frame = (JFrame) e.getComponent();
 	int state = frame.getExtendedState();
-	isMaximized = (state & Frame.MAXIMIZED_HORIZ & Frame.MAXIMIZED_VERT) != 0;
+	isMaximized = ((state & Frame.MAXIMIZED_HORIZ) != 0)
+		&& ((state & Frame.MAXIMIZED_VERT) != 0);
 	if (!isMaximized) {
 	    dimension = frame.getSize();
 	}
