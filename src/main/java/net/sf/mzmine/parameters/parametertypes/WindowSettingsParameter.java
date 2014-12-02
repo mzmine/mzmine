@@ -25,7 +25,6 @@ import java.awt.Point;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.util.Collection;
-import java.util.logging.Logger;
 
 import javax.swing.JFrame;
 
