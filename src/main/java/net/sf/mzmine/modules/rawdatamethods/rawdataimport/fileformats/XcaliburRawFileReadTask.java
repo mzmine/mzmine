@@ -250,14 +250,14 @@ public class XcaliburRawFileReadTask extends AbstractTask {
                 // Because Intel CPU is using little endian natively, we
                 // need to use LittleEndianDataInputStream instead of normal
                 // Java DataInputStream, which is big-endian.
-                LittleEndianDataInputStream dis = new LittleEndianDataInputStream(
+                @SuppressWarnings("resource")
+		LittleEndianDataInputStream dis = new LittleEndianDataInputStream(
                         dumpStream);
                 for (int i = 0; i < numOfDataPoints; i++) {
                     double mz = dis.readDouble();
                     double intensity = dis.readDouble();
                     completeDataPoints[i] = new SimpleDataPoint(mz, intensity);
                 }
-                dis.close();
 
                 boolean centroided = ScanUtils.isCentroided(completeDataPoints);
 
