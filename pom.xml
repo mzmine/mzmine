@@ -100,7 +100,7 @@
 		<dependency>
 			<groupId>de.schlichtherle.truezip</groupId>
 			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.7.6</version>
+			<version>7.7.7</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>truezip-swing</artifactId>
@@ -126,7 +126,7 @@
 		<dependency>
 			<groupId>edu.ucar</groupId>
 			<artifactId>netcdf</artifactId>
-			<version>4.2.20</version>
+			<version>4.3.22</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ostermiller</groupId>
