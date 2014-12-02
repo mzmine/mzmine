@@ -19,7 +19,7 @@
 			<outputDirectory>/</outputDirectory>
 			<fileMode>0755</fileMode>
 			<directoryMode>0755</directoryMode>
-			<filtered>true</filtered>
+			<filtered>false</filtered>
 		</fileSet>
 		<fileSet>
 			<directory>src/main/conf</directory>
