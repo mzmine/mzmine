@@ -312,7 +312,7 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 	}
 
 	if (command.equals("SORT_PEAKLISTS")) {
-	    final RawDataTreeModel model = (RawDataTreeModel) tree.getModel();
+	    final PeakListTreeModel model = (PeakListTreeModel) tree.getModel();
 	    final DefaultMutableTreeNode rootNode = model.getRoot();
 	    final int selectedRows[] = tree.getSelectionRows();
 
