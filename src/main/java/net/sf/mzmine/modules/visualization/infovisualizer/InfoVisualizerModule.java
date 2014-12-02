@@ -24,7 +24,6 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 
 public class InfoVisualizerModule implements MZmineModule {
 
@@ -36,13 +35,13 @@ public class InfoVisualizerModule implements MZmineModule {
     }
 
     public static void showNewPeakListInfo(PeakList peakList) {
-	InfoWindow newWindow = new InfoWindow(peakList);
+	InfoVisualizerWindow newWindow = new InfoVisualizerWindow(peakList);
 	newWindow.setVisible(true);
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-	return SimpleParameterSet.class;
+	return InfoVisualizerParameters.class;
     }
 
 }
