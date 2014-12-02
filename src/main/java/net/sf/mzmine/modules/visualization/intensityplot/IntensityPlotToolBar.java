@@ -47,10 +47,10 @@ class IntensityPlotToolBar extends JToolBar implements ActionListener {
     static final Icon linesIcon = new ImageIcon("icons/linesicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
-    private IntensityPlotFrame frame;
+    private IntensityPlotWindow frame;
     private JButton linesVisibleButton, setupAxesButton;
 
-    IntensityPlotToolBar(IntensityPlotFrame frame) {
+    IntensityPlotToolBar(IntensityPlotWindow frame) {
 
         super(JToolBar.VERTICAL);
 

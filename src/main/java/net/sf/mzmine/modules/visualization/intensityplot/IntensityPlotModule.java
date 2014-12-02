@@ -55,7 +55,7 @@ public class IntensityPlotModule implements MZmineProcessingModule {
     @Nonnull
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
-	IntensityPlotFrame newFrame = new IntensityPlotFrame(parameters);
+	IntensityPlotWindow newFrame = new IntensityPlotWindow(parameters);
 	newFrame.setVisible(true);
 	return ExitCode.OK;
     }
@@ -94,7 +94,7 @@ public class IntensityPlotModule implements MZmineProcessingModule {
 	ExitCode exitCode = parameters.showSetupDialog();
 
 	if (exitCode == ExitCode.OK) {
-	    IntensityPlotFrame newFrame = new IntensityPlotFrame(
+	    IntensityPlotWindow newFrame = new IntensityPlotWindow(
 		    parameters.cloneParameter());
 	    newFrame.setVisible(true);
 	}

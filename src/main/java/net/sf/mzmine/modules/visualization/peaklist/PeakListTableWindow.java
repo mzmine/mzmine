@@ -27,12 +27,14 @@ import java.awt.event.ActionListener;
 import java.awt.print.PrinterException;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable.PrintMode;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTableColumnModel;
@@ -70,6 +72,11 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 	scrollPane = new JScrollPane(table);
 
 	add(scrollPane, BorderLayout.CENTER);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

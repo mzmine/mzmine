@@ -30,6 +30,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
@@ -37,6 +38,7 @@ import javax.swing.ListSelectionModel;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -148,6 +150,11 @@ class InfoVisualizerWindow extends JFrame {
 
 	add(pnlGrid);
 	setResizable(false);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

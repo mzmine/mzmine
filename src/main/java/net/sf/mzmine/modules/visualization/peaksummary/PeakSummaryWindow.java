@@ -22,8 +22,10 @@ package net.sf.mzmine.modules.visualization.peaksummary;
 import java.awt.BorderLayout;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.util.components.PeakSummaryComponent;
 
 /**
@@ -33,17 +35,22 @@ public class PeakSummaryWindow extends JFrame {
 
     public PeakSummaryWindow(PeakListRow row) {
 
-        super(row.toString());
+	super(row.toString());
 
-        setLayout(new BorderLayout());
+	setLayout(new BorderLayout());
 
-        PeakSummaryComponent peakRowSummary = new PeakSummaryComponent(row,
-                row.getRawDataFiles(), true, false, true, true, true,
-                this.getBackground());
+	PeakSummaryComponent peakRowSummary = new PeakSummaryComponent(row,
+		row.getRawDataFiles(), true, false, true, true, true,
+		this.getBackground());
 
-        add(peakRowSummary, BorderLayout.CENTER);
+	add(peakRowSummary, BorderLayout.CENTER);
 
-        pack();
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
+
+	pack();
 
     }
 

@@ -36,11 +36,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuBar;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -137,6 +139,12 @@ public class ThreeDVisualizerWindow extends JFrame implements
 	add(createTitleLabel(msLevel, text), BorderLayout.NORTH);
 	add(new ThreeDToolBar(this), BorderLayout.EAST);
 	add(bottomPanel, BorderLayout.SOUTH);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
+
 	pack();
 
 	// get the window settings parameter

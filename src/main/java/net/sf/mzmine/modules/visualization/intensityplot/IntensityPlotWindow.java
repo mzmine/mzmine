@@ -27,8 +27,10 @@ import java.text.NumberFormat;
 import java.util.logging.Logger;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -54,7 +56,7 @@ import org.jfree.chart.title.TextTitle;
 /**
  * 
  */
-public class IntensityPlotFrame extends JFrame {
+public class IntensityPlotWindow extends JFrame {
 
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
     static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
@@ -64,7 +66,7 @@ public class IntensityPlotFrame extends JFrame {
     private IntensityPlotDataset dataset;
     private JFreeChart chart;
 
-    public IntensityPlotFrame(ParameterSet parameters) {
+    public IntensityPlotWindow(ParameterSet parameters) {
 
 	PeakList peakList = parameters.getParameter(
 		IntensityPlotParameters.peakList).getValue()[0];
@@ -171,6 +173,12 @@ public class IntensityPlotFrame extends JFrame {
 	setTitle(title);
 	setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
+
 	pack();
 
 	// get the window settings parameter

@@ -31,11 +31,13 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -122,6 +124,11 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	for (RawDataFile dataFile : dataFiles) {
 	    addRawDataFile(dataFile);
 	}
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

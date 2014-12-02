@@ -27,10 +27,12 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 
 import net.sf.mzmine.datamodel.PeakList;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -72,6 +74,11 @@ public class ScatterPlotWindow extends JFrame {
 
 	bottomPanel = new ScatterPlotBottomPanel(chart, peakList);
 	add(bottomPanel, BorderLayout.SOUTH);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

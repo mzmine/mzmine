@@ -26,8 +26,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -82,6 +84,11 @@ public class NeutralLossVisualizerWindow extends JFrame implements
 	MZmineCore.getTaskController().addTask(dataset, TaskPriority.HIGH);
 
 	updateTitle();
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.DataPoint;
@@ -40,6 +41,7 @@ import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopePatternCalculator;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
@@ -103,6 +105,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	add(bottomPanel, BorderLayout.SOUTH);
 
 	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
+
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
 
 	pack();
 

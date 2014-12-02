@@ -24,8 +24,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 
 import net.sf.mzmine.datamodel.RawDataFile;
+import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -78,6 +80,11 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
 	MZmineCore.getDesktop().addPeakListTreeListener(bottomPanel);
 
+	// Add the Windows menu
+	JMenuBar menuBar = new JMenuBar();
+	menuBar.add(new WindowsMenu());
+	setJMenuBar(menuBar);
+	
 	pack();
 
 	// get the window settings parameter

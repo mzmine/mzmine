@@ -35,64 +35,63 @@ import javax.swing.event.MenuListener;
  */
 public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
-	/**
-	 * Create the "Windows" menu for a MDI view
-	 */
-	public WindowsMenu() {
+    /**
+     * Create the "Windows" menu for a MDI view
+     */
+    public WindowsMenu() {
+	super("Windows");
+	this.addMenuListener(this);
 
-		super("Windows");
-		this.addMenuListener(this);
+    }
 
+    public void actionPerformed(ActionEvent event) {
+
+	Object src = event.getSource();
+
+	if (src instanceof FrameMenuItem) {
+	    FrameMenuItem item = (FrameMenuItem) src;
+	    Window frame = item.getFrame();
+	    frame.toFront();
+	    frame.requestFocus();
 	}
 
-	public void actionPerformed(ActionEvent event) {
+    }
 
-		Object src = event.getSource();
+    class FrameMenuItem extends JRadioButtonMenuItem {
 
-		if (src instanceof FrameMenuItem) {
-			FrameMenuItem item = (FrameMenuItem) src;
-			Window frame = item.getFrame();
-			frame.toFront();
-			frame.requestFocus();
-		}
+	private Frame window;
 
+	FrameMenuItem(Frame window, ActionListener listener) {
+	    super(window.getTitle());
+	    addActionListener(listener);
+	    this.window = window;
 	}
 
-	class FrameMenuItem extends JRadioButtonMenuItem {
-
-		private Frame window;
-
-		FrameMenuItem(Frame window, ActionListener listener) {
-			super(window.getTitle());
-			addActionListener(listener);
-			this.window = window;
-		}
-
-		Window getFrame() {
-			return window;
-		}
-
+	Window getFrame() {
+	    return window;
 	}
 
-	public void menuCanceled(MenuEvent event) {
+    }
+
+    public void menuCanceled(MenuEvent event) {
+    }
+
+    public void menuDeselected(MenuEvent event) {
+    }
+
+    public void menuSelected(MenuEvent event) {
+
+	// Remove all previous items
+	removeAll();
+
+	// Create a menu item for each window
+	for (Frame window : Frame.getFrames()) {
+
+	    if (window.isVisible()) {
+		FrameMenuItem newItem = new FrameMenuItem(window, this);
+		add(newItem);
+	    }
 	}
-
-	public void menuDeselected(MenuEvent event) {
-	}
-
-	public void menuSelected(MenuEvent event) {
-
-		// Remove all previous items
-		removeAll();
-
-		// Create a menu item for each window
-		for (Frame window : Frame.getFrames()) {
-
-			if (window.isVisible()) {
-				FrameMenuItem newItem = new FrameMenuItem(window, this);
-				add(newItem);
-			}
-		}
-	}
+    }
 
 }
