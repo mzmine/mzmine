@@ -21,22 +21,45 @@ package net.sf.mzmine.modules.peaklistmethods.io.sqlexport;
 
 public enum SQLExportDataType {
 
-    CONSTANT("Constant value", true), //
-    MZ("m/z", false), //
-    RT("Retention time", false), //
-    HEIGHT("Peak height", false), //
-    AREA("Peak area", false), //
-    COMMENT("Comment", false), //
-    IDENTITY("Identity", false), //
-    MSMS("MS/MS pattern (BLOB)", true), //
-    ISOTOPEPATTERN("Isotope pattern (BLOB)", false);
+	// Common row elements
+	TITLE1("Common row elements", false, false, ""), //
+	ID("      ID", false, true, "INT"), //
+	MZ("      Average m/z", false, true, "DOUBLE"), //
+	RT("      Average retention time", false, true, "DOUBLE"), //
+	HEIGHT("      Average peak height", false, true, "DOUBLE"), //
+	AREA("      Average peak area", false, true, "DOUBLE"), //
+	COMMENT("      Comment", false, true, "STRING"), //
+
+	// Identity elements
+	TITLE2("Identity elements", false, false, ""), //
+	IDENTITY("      Identity name", false, true, "STRING"), //
+	ISOTOPEPATTERN("      Isotope pattern", false, true, "BLOB"), //
+	MSMS("      MS/MS pattern", false, true, "BLOB"), //
+
+	// Data file elements
+	TITLE3("Data file elements", false, false, ""), //
+	PEAKSTATUS("      Status", false, true, "STRING"), //
+	PEAKMZ("      m/z", false, true, "DOUBLE"), //
+	PEAKRT("      Retention time", false, true, "DOUBLE"), //
+	PEAKDURATION("      Duration", false, true, "DOUBLE"), //
+	PEAKHEIGHT("      Height", false, true, "DOUBLE"), //
+	PEAKAREA("      Area", false, true, "DOUBLE"), //
+	PEAKCHARGE("      Charge", false, true, "INT"), //
+	RAWFILE("      Raw data file name", false, true, "STRING"), //
+
+	TITLE4("Other", false, false, ""), //
+	CONSTANT("      Constant value", true, true, "");
 
     private final String name;
     private final boolean hasAdditionalValue;
+    private final boolean isSelectableValue;
+    private final String valueType;
 
-    SQLExportDataType(String name, boolean hasAdditionalValue) {
+    SQLExportDataType(String name, boolean hasAdditionalValue,  boolean isSelectableValue, String valueType) {
 	this.name = name;
 	this.hasAdditionalValue = hasAdditionalValue;
+	this.isSelectableValue = isSelectableValue;
+	this.valueType = valueType;
     }
 
     public String toString() {
@@ -46,5 +69,12 @@ public enum SQLExportDataType {
     public boolean hasAdditionalValue() {
 	return hasAdditionalValue;
     }
+    
+    public boolean isSelectableValue() {
+	return isSelectableValue;
+    }
 
+    public String valueType() {
+	return this.valueType;
+    }
 }

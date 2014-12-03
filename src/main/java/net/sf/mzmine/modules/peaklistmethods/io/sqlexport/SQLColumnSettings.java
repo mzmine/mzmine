@@ -112,7 +112,7 @@ public class SQLColumnSettings extends AbstractTableModel {
 	    SQLExportDataType dataTypeVal = (SQLExportDataType) val;
 	    columnTypes.set(row, dataTypeVal);
 	    if (!dataTypeVal.hasAdditionalValue())
-		columnValues.set(row, "");
+	    	columnValues.set(row, dataTypeVal.valueType());
 	    break;
 	case 2:
 	    columnValues.set(row, (String) val);

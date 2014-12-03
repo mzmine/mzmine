@@ -30,9 +30,16 @@ import org.w3c.dom.Element;
 public class StringParameter implements UserParameter<String, JTextField> {
 
     private String name, description, value;
+    private int inputsize = 20;
 
     public StringParameter(String name, String description) {
 	this(name, description, null);
+    }
+
+    public StringParameter(String name, String description, int inputsize) {
+	this.name = name;
+	this.description = description;
+	this.inputsize = inputsize;
     }
 
     public StringParameter(String name, String description, String defaultValue) {
@@ -59,7 +66,7 @@ public class StringParameter implements UserParameter<String, JTextField> {
 
     @Override
     public JTextField createEditingComponent() {
-	return new JTextField(20);
+    return new JTextField(inputsize);
     }
 
     public String getValue() {

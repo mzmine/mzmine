@@ -31,11 +31,13 @@ public class SQLExportParameters extends SimpleParameterSet {
 
     public static final StringParameter connectionString = new StringParameter(
 	    "JDBC connection string",
-	    "JDBC connection string to identify the database, e.g. jdbc:mysql://localhost/dbname?user=sqluser&password=sqluserpw");
+	    "JDBC connection string to identify the database, e.g.:\njdbc:mysql://localhost/dbname?user=sqluser&password=sqluserpw",
+	    50);
 
     public static final StringParameter tableName = new StringParameter(
 	    "Database table",
-	    "Name of the table into which the peak list is going to be exported");
+	    "Name of the table into which the peak list is going to be exported",
+	    50);
 
     public static final SQLColumnSettingsParameter exportColumns = new SQLColumnSettingsParameter();
 

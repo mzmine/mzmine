@@ -20,9 +20,14 @@
 package net.sf.mzmine.modules.peaklistmethods.io.sqlexport;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.Font;
 
 import javax.annotation.Nonnull;
 import javax.swing.BoxLayout;
@@ -33,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.TableCellRenderer;
 
 import net.sf.mzmine.util.GUIUtils;
 
@@ -51,17 +57,60 @@ public class SQLColumnSettingsComponent extends JPanel implements
 
 	value = new SQLColumnSettings();
 
-	columnsTable = new JTable(value);
+	//columnsTable = new JTable(value);
+	columnsTable = new JTable(value) {
+	public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+		Component c = super.prepareRenderer(renderer, row, column);
+		if (!isCellEditable(row, column)) {
+			if (isCellSelected(row, column)) {
+				c.setBackground(Color.decode("#3399FF"));
+				c.setForeground(Color.white);				
+			}
+			else {
+				c.setBackground(Color.decode("#E3E3E3"));
+			}
+		}
+		else{
+			if (isCellSelected(row, column)) {
+				c.setBackground(Color.decode("#3399FF"));
+				c.setForeground(Color.white);
+			}
+			else {
+				c.setBackground(Color.white);
+				c.setForeground(Color.black);
+			}
+		}
+		return c;
+		}
+	};
+	
 	columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	columnsTable.setRowSelectionAllowed(true);
 	columnsTable.setColumnSelectionAllowed(false);
 	columnsTable.getTableHeader().setReorderingAllowed(false);
-	columnsTable.getTableHeader().setResizingAllowed(true);
-	columnsTable.setPreferredScrollableViewportSize(new Dimension(400, 80));
+	columnsTable.getTableHeader().setResizingAllowed(false);
+	columnsTable.setPreferredScrollableViewportSize(new Dimension(550, 220));
 
+	columnsTable.setRowHeight(columnsTable.getRowHeight()+5);
+	columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
+	
 	JComboBox dataTypeCombo = new JComboBox(SQLExportDataType.values());
+	dataTypeCombo.setMaximumRowCount(22);
 	DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
 	columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
+
+	// Create an ItemListener for the JComboBox component.
+	dataTypeCombo.addItemListener(new ItemListener() {
+	     @Override
+	     public void itemStateChanged(ItemEvent e) {
+	    	 JComboBox dataTypeCombo = (JComboBox) e.getSource();
+	    	 Boolean selected = ((SQLExportDataType) dataTypeCombo.getSelectedItem()).isSelectableValue();
+	    	 if(!selected && e.getStateChange() == 1) {
+	    		 // Invalid selection - selection of title rows in JComboBox is not allowed
+	    		 dataTypeCombo.setSelectedIndex(dataTypeCombo.getSelectedIndex()+1);
+	    	 }
+	     }
+	 });
 
 	JScrollPane elementsScroll = new JScrollPane(columnsTable);
 	add(elementsScroll, BorderLayout.CENTER);
