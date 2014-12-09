@@ -31,7 +31,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -41,7 +41,7 @@ import visad.VisADException;
 /**
  * 3D visualizer module
  */
-public class ThreeDVisualizerModule implements MZmineProcessingModule {
+public class ThreeDVisualizerModule implements MZmineRunnableModule {
 
     private static final Logger LOG = Logger
 	    .getLogger(ThreeDVisualizerModule.class.getName());

@@ -29,7 +29,7 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -38,7 +38,7 @@ import net.sf.mzmine.util.Range;
 /**
  * TIC/XIC visualizer using JFreeChart library
  */
-public class TICVisualizerModule implements MZmineProcessingModule {
+public class TICVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "TIC/XIC visualizer";
     private static final String MODULE_DESCRIPTION = "TIC/XIC visualizer."; // TODO

@@ -24,7 +24,8 @@ import javax.annotation.Nonnull;
 import net.sf.mzmine.parameters.ParameterSet;
 
 /**
- * This interface represents MZmine module.
+ * This interface represents any component of MZmine that has a ParameterSet,
+ * and therfore can store its settings.
  */
 public interface MZmineModule {
 

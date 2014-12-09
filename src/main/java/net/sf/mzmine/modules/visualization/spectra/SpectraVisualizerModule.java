@@ -29,7 +29,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -37,7 +37,7 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Spectrum visualizer
  */
-public class SpectraVisualizerModule implements MZmineProcessingModule {
+public class SpectraVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Spectra visualizer";
     private static final String MODULE_DESCRIPTION = "Spectra visualizer."; // TODO

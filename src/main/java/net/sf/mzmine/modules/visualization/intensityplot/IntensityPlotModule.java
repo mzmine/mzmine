@@ -27,7 +27,7 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.Task;
@@ -36,7 +36,7 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Peak intensity plot module
  */
-public class IntensityPlotModule implements MZmineProcessingModule {
+public class IntensityPlotModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Peak intensity plot";
     private static final String MODULE_DESCRIPTION = "Peak intensity plot."; // TODO

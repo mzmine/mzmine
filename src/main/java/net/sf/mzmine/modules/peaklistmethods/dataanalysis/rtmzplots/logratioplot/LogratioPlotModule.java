@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.RTMZAnalyzerWindow;
 import net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.cvplot.CVParameters;
 import net.sf.mzmine.parameters.ParameterSet;
@@ -36,7 +36,7 @@ import net.sf.mzmine.util.interpolatinglookuppaintscale.InterpolatingLookupPaint
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
-public class LogratioPlotModule implements MZmineProcessingModule {
+public class LogratioPlotModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Logratio analysis";
     private static final String MODULE_DESCRIPTION = "Logratio analysis"; // TODO

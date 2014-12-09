@@ -41,7 +41,7 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.main.NewVersionCheck;
 import net.sf.mzmine.main.NewVersionCheck.CheckType;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
@@ -78,7 +78,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
     private int projectIOMenuIndex = 0, projectMenuIndex = 1,
 	    rawDataMenuIndex = 0, visualizationMenuIndex = 0;
 
-    private Map<JMenuItem, MZmineProcessingModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineProcessingModule>();
+    private Map<JMenuItem, MZmineRunnableModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineRunnableModule>();
 
     MainMenu() {
 
@@ -273,7 +273,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	}
     }
 
-    public void addMenuItemForModule(MZmineProcessingModule module) {
+    public void addMenuItemForModule(MZmineRunnableModule module) {
 
 	MZmineModuleCategory parentMenu = module.getModuleCategory();
 	String menuItemText = module.getName();
@@ -313,7 +313,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	Object src = e.getSource();
 
-	MZmineProcessingModule module = moduleMenuItems.get(src);
+	MZmineRunnableModule module = moduleMenuItems.get(src);
 	if (module != null) {
 	    ParameterSet moduleParameters = MZmineCore.getConfiguration()
 		    .getModuleParameters(module.getClass());

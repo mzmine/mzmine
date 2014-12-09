@@ -40,9 +40,10 @@ import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.desktop.impl.HeadLessDesktop;
 import net.sf.mzmine.desktop.impl.MainWindow;
 import net.sf.mzmine.desktop.preferences.MZminePreferences;
+import net.sf.mzmine.main.NewVersionCheck.CheckType;
 import net.sf.mzmine.main.impl.MZmineConfigurationImpl;
 import net.sf.mzmine.modules.MZmineModule;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.modules.batchmode.BatchModeModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
@@ -53,8 +54,6 @@ import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.TaskController;
 import net.sf.mzmine.taskcontrol.impl.TaskControllerImpl;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.main.NewVersionCheck;
-import net.sf.mzmine.main.NewVersionCheck.CheckType;
 
 /**
  * MZmine main class
@@ -169,12 +168,11 @@ public final class MZmineCore {
 		    for (Class<?> moduleClass : MZmineModulesList.MODULES) {
 			MZmineModule module = initializedModules
 				.get(moduleClass);
-			if (module == null)
-			    continue;
-			if (!(module instanceof MZmineProcessingModule))
-			    continue;
-			mainWindow.getMainMenu().addMenuItemForModule(
-				(MZmineProcessingModule) module);
+			if (module instanceof MZmineRunnableModule) {
+
+			    mainWindow.getMainMenu().addMenuItemForModule(
+				    (MZmineRunnableModule) module);
+			}
 
 		    }
 		};

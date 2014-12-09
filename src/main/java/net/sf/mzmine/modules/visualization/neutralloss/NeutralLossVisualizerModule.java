@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
@@ -33,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Neutral loss (MS/MS) visualizer
  */
-public class NeutralLossVisualizerModule implements MZmineProcessingModule {
+public class NeutralLossVisualizerModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Neutral loss visualizer";
     private static final String MODULE_DESCRIPTION = "This visualizer plots neutral losses from MS/MS scans.";

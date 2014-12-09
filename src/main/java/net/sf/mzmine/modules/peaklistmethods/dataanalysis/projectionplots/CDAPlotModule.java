@@ -24,12 +24,12 @@ import java.util.Collection;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.modules.MZmineModuleCategory;
-import net.sf.mzmine.modules.MZmineProcessingModule;
+import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
 
-public class CDAPlotModule implements MZmineProcessingModule {
+public class CDAPlotModule implements MZmineRunnableModule {
 
     private static final String MODULE_NAME = "Curvilinear distance analysis (CDA)";
     private static final String MODULE_DESCRIPTION = "Curvilinear distance analysis (CDA)"; // TODO
