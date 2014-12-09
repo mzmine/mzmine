@@ -32,6 +32,10 @@ import net.sf.mzmine.util.Range;
 
 public class MZRangeComponent extends RangeComponent implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final JButton setAutoButton, fromFormulaButton;
 
     public MZRangeComponent() {

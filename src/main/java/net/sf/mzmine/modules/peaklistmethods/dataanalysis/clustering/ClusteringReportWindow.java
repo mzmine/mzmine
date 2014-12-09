@@ -25,6 +25,10 @@ import javax.swing.JTable;
 
 public class ClusteringReportWindow extends JFrame {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JTable table;
 
 	public ClusteringReportWindow(String[] samplesOrVariables,

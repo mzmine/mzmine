@@ -35,6 +35,10 @@ import org.jfree.data.xy.XYDataset;
 
 public class TICPlotRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private double transparency = 1.0f;
 
 	public TICPlotRenderer() {

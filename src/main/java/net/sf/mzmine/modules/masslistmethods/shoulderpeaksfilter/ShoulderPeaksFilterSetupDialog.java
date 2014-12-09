@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter;
 
 import java.awt.Color;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Vector;
@@ -40,74 +41,83 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  * is used to preview how the selected mass detector and his parameters works
  * over the raw data file.
  */
-public class ShoulderPeaksFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
+public class ShoulderPeaksFilterSetupDialog extends
+	ParameterSetupDialogWithScanPreview {
 
-	private static final Color removedPeaksColor = Color.orange;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-	private ParameterSet parameters;
+    private static final Color removedPeaksColor = Color.orange;
 
-	/**
-	 * @param parameters
-	 * @param massFilterTypeNumber
-	 */
-	public ShoulderPeaksFilterSetupDialog(ParameterSet parameters) {
-		super(parameters);
-		this.parameters = parameters;
+    private ParameterSet parameters;
+
+    /**
+     * @param parameters
+     * @param massFilterTypeNumber
+     */
+    public ShoulderPeaksFilterSetupDialog(Window parent,
+	    boolean valueCheckRequired, ParameterSet parameters) {
+	super(parent, valueCheckRequired, parameters);
+	this.parameters = parameters;
+    }
+
+    /**
+     * This function set all the information into the plot chart
+     * 
+     * @param scanNumber
+     */
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+
+	// Remove previous data sets
+	spectrumPlot.removeAllDataSets();
+
+	// Add scan data set
+	ScanDataSet scanDataSet = new ScanDataSet(previewScan);
+	spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor,
+		false);
+
+	// If the scan is centroided, switch to centroid mode
+	if (previewScan.isCentroided()) {
+	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
+	} else {
+	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
 	}
 
-	/**
-	 * This function set all the information into the plot chart
-	 * 
-	 * @param scanNumber
-	 */
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+	// If the parameters are not complete, exit
+	ArrayList<String> errors = new ArrayList<String>();
+	boolean paramsOK = parameters.checkParameterValues(errors);
+	if (!paramsOK)
+	    return;
 
-		// Remove previous data sets
-		spectrumPlot.removeAllDataSets();
+	// Get mass list
+	String massListName = parameters.getParameter(
+		ShoulderPeaksFilterParameters.massList).getValue();
+	MassList massList = previewScan.getMassList(massListName);
+	if (massList == null)
+	    return;
 
-		// Add scan data set
-		ScanDataSet scanDataSet = new ScanDataSet(previewScan);
-		spectrumPlot.addDataSet(scanDataSet, SpectraVisualizerWindow.scanColor,
-				false);
+	// Perform filtering
+	DataPoint mzValues[] = massList.getDataPoints();
+	DataPoint remainingMzValues[] = ShoulderPeaksFilter.filterMassValues(
+		mzValues, parameters);
 
-		// If the scan is centroided, switch to centroid mode
-		if (previewScan.isCentroided()) {
-			spectrumPlot.setPlotMode(PlotMode.CENTROID);
-		} else {
-			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-		}
-		
-		// If the parameters are not complete, exit
-		ArrayList<String> errors = new ArrayList<String>();
-		boolean paramsOK = parameters.checkUserParameterValues(errors);
-		if (! paramsOK) return;
-		
-		// Get mass list
-		String massListName = parameters.getParameter(ShoulderPeaksFilterParameters.massList).getValue();
-		MassList massList = previewScan.getMassList(massListName);
-		if (massList == null)
-			return;
+	Vector<DataPoint> removedPeaks = new Vector<DataPoint>();
+	removedPeaks.addAll(Arrays.asList(mzValues));
+	removedPeaks.removeAll(Arrays.asList(remainingMzValues));
+	DataPoint removedMzValues[] = removedPeaks.toArray(new DataPoint[0]);
 
-		// Perform filtering
-		DataPoint mzValues[] = massList.getDataPoints();
-		DataPoint remainingMzValues[] = ShoulderPeaksFilter.filterMassValues(
-				mzValues, parameters);
+	// Add mass list data sets
+	DataPointsDataSet removedPeaksDataSet = new DataPointsDataSet(
+		"Removed peaks", removedMzValues);
+	DataPointsDataSet remainingPeaksDataSet = new DataPointsDataSet(
+		"Remaining peaks", remainingMzValues);
 
-		Vector<DataPoint> removedPeaks = new Vector<DataPoint>();
-		removedPeaks.addAll(Arrays.asList(mzValues));
-		removedPeaks.removeAll(Arrays.asList(remainingMzValues));
-		DataPoint removedMzValues[] = removedPeaks.toArray(new DataPoint[0]);
+	spectrumPlot.addDataSet(removedPeaksDataSet, removedPeaksColor, false);
+	spectrumPlot.addDataSet(remainingPeaksDataSet,
+		SpectraVisualizerWindow.peaksColor, false);
 
-		// Add mass list data sets
-		DataPointsDataSet removedPeaksDataSet = new DataPointsDataSet(
-				"Removed peaks", removedMzValues);
-		DataPointsDataSet remainingPeaksDataSet = new DataPointsDataSet(
-				"Remaining peaks", remainingMzValues);
-
-		spectrumPlot.addDataSet(removedPeaksDataSet, removedPeaksColor, false);
-		spectrumPlot.addDataSet(remainingPeaksDataSet,
-				SpectraVisualizerWindow.peaksColor, false);
-
-	}
+    }
 
 }

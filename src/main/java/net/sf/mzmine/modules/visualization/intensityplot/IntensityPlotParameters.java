@@ -19,12 +19,12 @@
 
 package net.sf.mzmine.modules.visualization.intensityplot;
 
+import java.awt.Window;
 import java.util.Arrays;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -67,16 +67,10 @@ public class IntensityPlotParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakLists[] = getParameter(peakList).getValue();
-
-	if (selectedPeakLists.length != 1) {
-	    MZmineCore.getDesktop().displayErrorMessage(
-		    "Please select a single peak list");
-	    return ExitCode.CANCEL;
-	}
-
+	PeakList selectedPeakLists[] = getParameter(peakList)
+		.getMatchingPeakLists();
 	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
 	PeakListRow plRows[] = selectedPeakLists[0].getRows();
 	Arrays.sort(plRows, new PeakListRowSorter(SortingProperty.MZ,
@@ -87,7 +81,7 @@ public class IntensityPlotParameters extends SimpleParameterSet {
 
 	getParameter(selectedRows).setChoices(plRows);
 
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

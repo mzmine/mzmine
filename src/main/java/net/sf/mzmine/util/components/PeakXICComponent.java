@@ -40,6 +40,10 @@ import net.sf.mzmine.util.Range;
  */
 public class PeakXICComponent extends JComponent {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     public static final Color XICColor = Color.blue;
     public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
 

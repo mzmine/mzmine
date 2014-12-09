@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
 import static net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter.RowsFilterParameters.AUTO_REMOVE;
@@ -58,249 +59,266 @@ import net.sf.mzmine.util.Range;
  */
 public class RowsFilterTask extends AbstractTask {
 
-        // Logger.
-        private static final Logger LOG = Logger.getLogger(RowsFilterTask.class.getName());
-        // Peak lists.
-        private final PeakList origPeakList;
-        private PeakList filteredPeakList;
-        // Processed rows counter
-        private int processedRows;
-        private int totalRows;
-        // Parameters.
-        private final ParameterSet parameters;
+    // Logger.
+    private static final Logger LOG = Logger.getLogger(RowsFilterTask.class
+	    .getName());
+    // Peak lists.
+    private final PeakList origPeakList;
+    private PeakList filteredPeakList;
+    // Processed rows counter
+    private int processedRows;
+    private int totalRows;
+    // Parameters.
+    private final ParameterSet parameters;
 
-        /**
-         * Create the task.
-         *
-         * @param list         peak list to process.
-         * @param parameterSet task parameters.
-         */
-        public RowsFilterTask(final PeakList list, final ParameterSet parameterSet) {
+    /**
+     * Create the task.
+     *
+     * @param list
+     *            peak list to process.
+     * @param parameterSet
+     *            task parameters.
+     */
+    public RowsFilterTask(final PeakList list, final ParameterSet parameterSet) {
 
-                // Initialize.
-                parameters = parameterSet;
-                origPeakList = list;
-                filteredPeakList = null;
-                processedRows = 0;
-                totalRows = 0;
-        }
+	// Initialize.
+	parameters = parameterSet;
+	origPeakList = list;
+	filteredPeakList = null;
+	processedRows = 0;
+	totalRows = 0;
+    }
 
-        @Override
-        public Object[] getCreatedObjects() {
+    @Override
+    public double getFinishedPercentage() {
 
-                return new Object[]{filteredPeakList};
-        }
+	return totalRows == 0 ? 0.0 : (double) processedRows
+		/ (double) totalRows;
+    }
 
-        @Override
-        public double getFinishedPercentage() {
+    @Override
+    public String getTaskDescription() {
 
-                return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
-        }
+	return "Filtering peak list rows";
+    }
 
-        @Override
-        public String getTaskDescription() {
+    @Override
+    public void run() {
 
-                return "Filtering peak list rows";
-        }
+	if (!isCanceled()) {
 
-        @Override
-        public void run() {
+	    try {
+		setStatus(TaskStatus.PROCESSING);
+		LOG.info("Filtering peak list rows");
 
-                if (!isCanceled()) {
+		// Filter the peak list.
+		filteredPeakList = filterPeakListRows(origPeakList);
 
-                        try {
-                                setStatus(TaskStatus.PROCESSING);
-                                LOG.info("Filtering peak list rows");
+		if (!isCanceled()) {
 
-                                // Filter the peak list.
-                                filteredPeakList = filterPeakListRows(origPeakList);
+		    // Add new peaklist to the project
+		    final MZmineProject currentProject = MZmineCore
+			    .getCurrentProject();
+		    currentProject.addPeakList(filteredPeakList);
 
-                                if (!isCanceled()) {
+		    // Remove the original peaklist if requested
+		    if (parameters.getParameter(AUTO_REMOVE).getValue()) {
 
-                                        // Add new peaklist to the project
-                                        final MZmineProject currentProject = MZmineCore.getCurrentProject();
-                                        currentProject.addPeakList(filteredPeakList);
+			currentProject.removePeakList(origPeakList);
+		    }
 
-                                        // Remove the original peaklist if requested
-                                        if (parameters.getParameter(AUTO_REMOVE).getValue()) {
+		    setStatus(TaskStatus.FINISHED);
+		    LOG.info("Finished peak list rows filter");
+		}
+	    } catch (Throwable t) {
 
-                                                currentProject.removePeakList(origPeakList);
-                                        }
+		setErrorMessage(t.getMessage());
+		setStatus(TaskStatus.ERROR);
+		LOG.log(Level.SEVERE, "Peak list row filter error", t);
+	    }
+	}
+    }
 
-                                        setStatus(TaskStatus.FINISHED);
-                                        LOG.info("Finished peak list rows filter");
-                                }
-                        } catch (Throwable t) {
+    /**
+     * Filter the peak list rows.
+     *
+     * @param peakList
+     *            peak list to filter.
+     * @return a new peak list with rows of the original peak list that pass the
+     *         filtering.
+     */
+    private PeakList filterPeakListRows(final PeakList peakList) {
 
-                                errorMessage = t.getMessage();
-                                setStatus(TaskStatus.ERROR);
-                                LOG.log(Level.SEVERE, "Peak list row filter error", t);
-                        }
-                }
-        }
+	// Create new peak list.
+	final PeakList newPeakList = new SimplePeakList(peakList.getName()
+		+ ' ' + parameters.getParameter(SUFFIX).getValue(),
+		peakList.getRawDataFiles());
 
-        /**
-         * Filter the peak list rows.
-         *
-         * @param peakList peak list to filter.
-         * @return a new peak list with rows of the original peak list that pass the filtering.
-         */
-        private PeakList filterPeakListRows(final PeakList peakList) {
+	// Copy previous applied methods.
+	for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
 
-                // Create new peak list.
-                final PeakList newPeakList = new SimplePeakList(
-                        peakList.getName() + ' ' + parameters.getParameter(SUFFIX).getValue(), peakList.getRawDataFiles());
+	    newPeakList.addDescriptionOfAppliedTask(method);
+	}
 
-                // Copy previous applied methods.
-                for (final PeakListAppliedMethod method : peakList.getAppliedMethods()) {
+	// Add task description to peakList.
+	newPeakList
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			getTaskDescription(), parameters));
 
-                        newPeakList.addDescriptionOfAppliedTask(method);
-                }
+	// Get parameters.
+	final boolean identified = parameters.getParameter(HAS_IDENTITIES)
+		.getValue();
+	final String groupingParameter = (String) parameters.getParameter(
+		GROUPSPARAMETER).getValue();
+	final int minPresent = parameters.getParameter(MIN_PEAK_COUNT)
+		.getValue();
+	final int minIsotopePatternSize = parameters.getParameter(
+		MIN_ISOTOPE_PATTERN_COUNT).getValue();
+	final Range mzRange = parameters.getParameter(MZ_RANGE).getValue();
+	final Range rtRange = parameters.getParameter(RT_RANGE).getValue();
+	final Range durationRange = parameters.getParameter(PEAK_DURATION)
+		.getValue();
 
-                // Add task description to peakList.
-                newPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(getTaskDescription(), parameters));
+	// Filter rows.
+	final PeakListRow[] rows = peakList.getRows();
+	totalRows = rows.length;
+	for (processedRows = 0; !isCanceled() && processedRows < totalRows; processedRows++) {
 
-                // Get parameters.
-                final boolean identified = parameters.getParameter(HAS_IDENTITIES).getValue();
-                final String groupingParameter = (String) parameters.getParameter(GROUPSPARAMETER).getValue();
-                final int minPresent = parameters.getParameter(MIN_PEAK_COUNT).getValue();
-                final int minIsotopePatternSize = parameters.getParameter(MIN_ISOTOPE_PATTERN_COUNT).getValue();
-                final Range mzRange = parameters.getParameter(MZ_RANGE).getValue();
-                final Range rtRange = parameters.getParameter(RT_RANGE).getValue();
-                final Range durationRange = parameters.getParameter(PEAK_DURATION).getValue();
+	    final PeakListRow row = rows[processedRows];
+	    boolean rowIsGood = true;
 
-                // Filter rows.
-                final PeakListRow[] rows = peakList.getRows();
-                totalRows = rows.length;
-                for (processedRows = 0;
-                        !isCanceled() && processedRows < totalRows;
-                        processedRows++) {
+	    // Check number of peaks.
+	    final int peakCount = getPeakCount(row, groupingParameter);
+	    if (peakCount < minPresent) {
 
-                        final PeakListRow row = rows[processedRows];
-                        boolean rowIsGood = true;
+		rowIsGood = false;
+	    }
 
-                        // Check number of peaks.
-                        final int peakCount = getPeakCount(row, groupingParameter);
-                        if (peakCount < minPresent) {
+	    // Check identities.
+	    if (identified && row.getPreferredPeakIdentity() == null) {
 
-                                rowIsGood = false;
-                        }
+		rowIsGood = false;
+	    }
 
-                        // Check identities.
-                        if (identified && row.getPreferredPeakIdentity() == null) {
+	    // Check average m/z.
+	    if (!mzRange.contains(row.getAverageMZ())) {
 
-                                rowIsGood = false;
-                        }
+		rowIsGood = false;
+	    }
 
-                        // Check average m/z.
-                        if (!mzRange.contains(row.getAverageMZ())) {
+	    // Check average RT.
+	    if (!rtRange.contains(row.getAverageRT())) {
 
-                                rowIsGood = false;
-                        }
+		rowIsGood = false;
+	    }
 
-                        // Check average RT.
-                        if (!rtRange.contains(row.getAverageRT())) {
+	    // Calculate average duration and isotope pattern count.
+	    int maxIsotopePatternSizeOnRow = 1;
+	    double avgDuration = 0.0;
+	    final Feature[] peaks = row.getPeaks();
+	    for (final Feature p : peaks) {
 
-                                rowIsGood = false;
-                        }
+		final IsotopePattern pattern = p.getIsotopePattern();
+		if (pattern != null
+			&& maxIsotopePatternSizeOnRow < pattern
+				.getNumberOfDataPoints()) {
 
-                        // Calculate average duration and isotope pattern count.
-                        int maxIsotopePatternSizeOnRow = 1;
-                        double avgDuration = 0.0;
-                        final Feature[] peaks = row.getPeaks();
-                        for (final Feature p : peaks) {
+		    maxIsotopePatternSizeOnRow = pattern
+			    .getNumberOfDataPoints();
+		}
 
-                                final IsotopePattern pattern = p.getIsotopePattern();
-                                if (pattern != null && maxIsotopePatternSizeOnRow < pattern.getNumberOfDataPoints()) {
+		avgDuration += p.getRawDataPointsRTRange().getSize();
+	    }
 
-                                        maxIsotopePatternSizeOnRow = pattern.getNumberOfDataPoints();
-                                }
+	    // Check isotope pattern count.
+	    if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
 
-                                avgDuration += p.getRawDataPointsRTRange().getSize();
-                        }
+		rowIsGood = false;
+	    }
 
-                        // Check isotope pattern count.
-                        if (maxIsotopePatternSizeOnRow < minIsotopePatternSize) {
+	    // Check average duration.
+	    avgDuration /= (double) peakCount;
+	    if (!durationRange.contains(avgDuration)) {
 
-                                rowIsGood = false;
-                        }
+		rowIsGood = false;
+	    }
 
-                        // Check average duration.
-                        avgDuration /= (double) peakCount;
-                        if (!durationRange.contains(avgDuration)) {
+	    // Good row?
+	    if (rowIsGood) {
 
-                                rowIsGood = false;
-                        }
+		newPeakList.addRow(copyPeakRow(row));
+	    }
+	}
 
-                        // Good row?
-                        if (rowIsGood) {
+	return newPeakList;
+    }
 
-                                newPeakList.addRow(copyPeakRow(row));
-                        }
-                }
+    /**
+     * Create a copy of a peak list row.
+     *
+     * @param row
+     *            the row to copy.
+     * @return the newly created copy.
+     */
+    private static PeakListRow copyPeakRow(final PeakListRow row) {
 
-                return newPeakList;
-        }
+	// Copy the peak list row.
+	final PeakListRow newRow = new SimplePeakListRow(row.getID());
+	PeakUtils.copyPeakListRowProperties(row, newRow);
 
-        /**
-         * Create a copy of a peak list row.
-         *
-         * @param row the row to copy.
-         * @return the newly created copy.
-         */
-        private static PeakListRow copyPeakRow(final PeakListRow row) {
+	// Copy the peaks.
+	for (final Feature peak : row.getPeaks()) {
 
-                // Copy the peak list row.
-                final PeakListRow newRow = new SimplePeakListRow(row.getID());
-                PeakUtils.copyPeakListRowProperties(row, newRow);
+	    final Feature newPeak = new SimpleFeature(peak);
+	    PeakUtils.copyPeakProperties(peak, newPeak);
+	    newRow.addPeak(peak.getDataFile(), newPeak);
+	}
 
-                // Copy the peaks.
-                for (final Feature peak : row.getPeaks()) {
+	return newRow;
+    }
 
-                        final Feature newPeak = new SimpleFeature(peak);
-                        PeakUtils.copyPeakProperties(peak, newPeak);
-                        newRow.addPeak(peak.getDataFile(), newPeak);
-                }
+    private int getPeakCount(PeakListRow row, String groupingParameter) {
+	if (groupingParameter.contains("Filtering by ")) {
+	    HashMap<String, Integer> groups = new HashMap<String, Integer>();
+	    for (RawDataFile file : MZmineCore.getCurrentProject()
+		    .getDataFiles()) {
+		UserParameter<?, ?> params[] = MZmineCore.getCurrentProject()
+			.getParameters();
+		for (UserParameter<?, ?> p : params) {
+		    groupingParameter = groupingParameter.replace(
+			    "Filtering by ", "");
+		    if (groupingParameter.equals(p.getName())) {
+			String parameterValue = String
+				.valueOf(MZmineCore.getCurrentProject()
+					.getParameterValue(p, file));
+			if (row.hasPeak(file)) {
+			    if (groups.containsKey(parameterValue)) {
+				groups.put(parameterValue,
+					groups.get(parameterValue) + 1);
+			    } else {
+				groups.put(parameterValue, 1);
+			    }
+			} else {
+			    groups.put(parameterValue, 0);
+			}
+		    }
+		}
+	    }
 
-                return newRow;
-        }
+	    Set<String> ref = groups.keySet();
+	    Iterator<String> it = ref.iterator();
+	    int min = Integer.MAX_VALUE;
+	    while (it.hasNext()) {
+		String name = (String) it.next();
+		int val = groups.get(name);
+		if (val < min) {
+		    min = val;
+		}
+	    }
+	    return min;
 
-        private int getPeakCount(PeakListRow row, String groupingParameter) {
-                if (groupingParameter.contains("Filtering by ")) {
-                        HashMap<String, Integer> groups = new HashMap<String, Integer>();
-                        for (RawDataFile file : MZmineCore.getCurrentProject().getDataFiles()) {
-                                UserParameter params[] = MZmineCore.getCurrentProject().getParameters();
-                                for (UserParameter p : params) {
-                                        groupingParameter = groupingParameter.replace("Filtering by ", "");
-                                        if (groupingParameter.equals(p.getName())) {
-                                                String parameterValue = String.valueOf(MZmineCore.getCurrentProject().getParameterValue(p, file));
-                                                if (row.hasPeak(file)) {
-                                                        if (groups.containsKey(parameterValue)) {
-                                                                groups.put(parameterValue, groups.get(parameterValue) + 1);
-                                                        } else {
-                                                                groups.put(parameterValue, 1);
-                                                        }
-                                                } else {
-                                                        groups.put(parameterValue, 0);
-                                                }
-                                        }
-                                }
-                        }
-
-                        Set ref = groups.keySet();
-                        Iterator it = ref.iterator();
-                        int min = Integer.MAX_VALUE;
-                        while (it.hasNext()) {
-                                String name = (String) it.next();
-                                int val = groups.get(name);
-                                if (val < min) {
-                                        min = val;
-                                }
-                        }
-                        return min;
-
-                } else {
-                        return row.getNumberOfPeaks();
-                }
-        }
+	} else {
+	    return row.getNumberOfPeaks();
+	}
+    }
 }

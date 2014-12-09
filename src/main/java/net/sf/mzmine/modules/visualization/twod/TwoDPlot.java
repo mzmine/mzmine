@@ -47,6 +47,11 @@ import org.jfree.ui.RectangleEdge;
  */
 class TwoDPlot extends ChartPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	// crosshair (selection) color
 	private static final Color crossHairColor = Color.gray;
 

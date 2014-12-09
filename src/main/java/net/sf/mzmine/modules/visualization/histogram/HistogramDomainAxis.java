@@ -24,6 +24,10 @@ import org.jfree.chart.axis.NumberAxis;
 
 public class HistogramDomainAxis extends NumberAxis{
 	
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private int visibleCount;
 	private double lowerTickValue, upperTickValue;
 	

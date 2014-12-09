@@ -16,6 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 package net.sf.mzmine.modules.visualization.twod;
 
 import java.awt.BorderLayout;
@@ -39,6 +40,10 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
  */
 public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
     private TwoDBottomPanel bottomPanel;
@@ -51,7 +56,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
 	    Range rtRange, Range mzRange, ParameterSet parameters) {
 
-	super(dataFile.getName());
+	super("2D view: [" + dataFile.getName() + "]");
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	setBackground(Color.white);
@@ -105,17 +110,12 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     }
 
     void updateTitle() {
-
 	StringBuffer title = new StringBuffer();
 	title.append("[");
 	title.append(dataFile.getName());
 	title.append("]: 2D view");
-
-	setTitle(title.toString());
-
 	title.append(", MS");
 	title.append(msLevel);
-
 	twoDPlot.setTitle(title.toString());
 
     }

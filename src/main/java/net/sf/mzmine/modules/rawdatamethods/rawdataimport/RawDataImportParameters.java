@@ -19,65 +19,65 @@
 
 package net.sf.mzmine.modules.rawdatamethods.rawdataimport;
 
+import java.awt.Window;
 import java.io.File;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.util.ExitCode;
 
 public class RawDataImportParameters extends SimpleParameterSet {
 
-	private static final FileFilter filters[] = new FileFilter[] {
-			new FileNameExtensionFilter("All raw data files", "cdf", "nc",
-					"mzData", "mzML", "mzXML", "xml", "raw", "csv"),
-			new FileNameExtensionFilter("All XML files", "xml"),
-			new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
-			new FileNameExtensionFilter("mzData files", "mzData"),
-			new FileNameExtensionFilter("mzML files", "mzML"),
-			new FileNameExtensionFilter("XCalibur RAW files", "raw"),
-			new FileNameExtensionFilter("mzXML files", "mzXML"),
-			new FileNameExtensionFilter("Agilent CSV files", "csv") };
+    private static final FileFilter filters[] = new FileFilter[] {
+	    new FileNameExtensionFilter("All raw data files", "cdf", "nc",
+		    "mzData", "mzML", "mzXML", "xml", "raw", "csv"),
+	    new FileNameExtensionFilter("All XML files", "xml"),
+	    new FileNameExtensionFilter("NetCDF files", "cdf", "nc"),
+	    new FileNameExtensionFilter("mzData files", "mzData"),
+	    new FileNameExtensionFilter("mzML files", "mzML"),
+	    new FileNameExtensionFilter("XCalibur RAW files", "raw"),
+	    new FileNameExtensionFilter("mzXML files", "mzXML"),
+	    new FileNameExtensionFilter("Agilent CSV files", "csv") };
 
-	public static final FileNamesParameter fileNames = new FileNamesParameter();
+    public static final FileNamesParameter fileNames = new FileNamesParameter();
 
-	public RawDataImportParameters() {
-		super(new Parameter[] { fileNames });
+    public RawDataImportParameters() {
+	super(new Parameter[] { fileNames });
+    }
+
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+
+	JFileChooser chooser = new JFileChooser();
+
+	for (FileFilter filter : filters)
+	    chooser.setFileFilter(filter);
+	chooser.setFileFilter(filters[0]);
+
+	File lastFiles[] = getParameter(fileNames).getValue();
+	if ((lastFiles != null) && (lastFiles.length > 0)) {
+	    File currentDir = lastFiles[0].getParentFile();
+	    if ((currentDir != null) && (currentDir.exists()))
+		chooser.setCurrentDirectory(currentDir);
 	}
 
-	public ExitCode showSetupDialog() {
+	chooser.setMultiSelectionEnabled(true);
 
-		JFileChooser chooser = new JFileChooser();
+	int returnVal = chooser.showOpenDialog(parent);
 
-		for (FileFilter filter : filters)
-			chooser.setFileFilter(filter);
-		chooser.setFileFilter(filters[0]);
+	if (returnVal != JFileChooser.APPROVE_OPTION)
+	    return ExitCode.CANCEL;
 
-		File lastFiles[] = getParameter(fileNames).getValue();
-		if ((lastFiles != null) && (lastFiles.length > 0)) {
-			File currentDir = lastFiles[0].getParentFile();
-			if ((currentDir != null) && (currentDir.exists()))
-				chooser.setCurrentDirectory(currentDir);
-		}
+	File selectedFiles[] = chooser.getSelectedFiles();
 
-		chooser.setMultiSelectionEnabled(true);
-		
-		int returnVal = chooser.showOpenDialog(MZmineCore.getDesktop()
-				.getMainWindow());
+	getParameter(fileNames).setValue(selectedFiles);
 
-		if (returnVal != JFileChooser.APPROVE_OPTION)
-			return ExitCode.CANCEL;
+	return ExitCode.OK;
 
-		File selectedFiles[] = chooser.getSelectedFiles();
-
-		getParameter(fileNames).setValue(selectedFiles);
-
-		return ExitCode.OK;
-
-	}
+    }
 
 }

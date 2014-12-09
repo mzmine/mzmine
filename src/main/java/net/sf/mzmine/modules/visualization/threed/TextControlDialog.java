@@ -42,6 +42,10 @@ import visad.util.TextControlWidget;
  */
 public class TextControlDialog extends JDialog {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private static final String TITLE = "Label Font";
 
     /**

@@ -25,6 +25,10 @@ import javax.swing.JTextField;
 
 public class MZToleranceComponent extends JPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final JTextField mzToleranceField, ppmToleranceField;
 
     public MZToleranceComponent() {

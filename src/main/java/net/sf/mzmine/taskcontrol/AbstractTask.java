@@ -19,7 +19,6 @@
 
 package net.sf.mzmine.taskcontrol;
 
-import java.util.LinkedList;
 
 /**
  * An abstract implementation of task which defines common methods to make Task
@@ -27,91 +26,62 @@ import java.util.LinkedList;
  */
 public abstract class AbstractTask implements Task {
 
-	private TaskStatus status = TaskStatus.WAITING;
-	private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
-	protected String errorMessage = null;
+    private TaskStatus status = TaskStatus.WAITING;
+    private String errorMessage = null;
 
-	/**
-	 * Adds a TaskListener to this Task
-	 * 
-	 * @param t
-	 *            The TaskListener to add
-	 */
-	public void addTaskListener(TaskListener t) {
-		taskListeners.add(t);
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#setStatus()
+     */
+    public final void setStatus(TaskStatus newStatus) {
+	this.status = newStatus;
+    }
 
-	/**
-	 * Returns all of the TaskListeners which are listening to this task.
-	 * 
-	 * @return An array containing the TaskListeners
-	 */
-	public TaskListener[] getTaskListeners() {
-		return taskListeners.toArray(new TaskListener[0]);
-	}
+    /**
+     * Convenience method for determining if this task has been canceled. Also
+     * returns true if the task encountered an error.
+     * 
+     * @return true if this task has been canceled or stopped due to an error
+     */
+    public final boolean isCanceled() {
+	return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
+    }
 
-	/**
-	 * Triggers a TaskEvent and notifies the listeners
-	 */
-	private void fireTaskEvent() {
-		TaskEvent event = new TaskEvent(this);
-		for (TaskListener t : this.taskListeners) {
-			t.statusChanged(event);
-		}
-	}
+    /**
+     * Convenience method for determining if this task has been completed
+     * 
+     * @return true if this task is finished
+     */
+    public final boolean isFinished() {
+	return status == TaskStatus.FINISHED;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#setStatus()
-	 */
-	public final void setStatus(TaskStatus newStatus) {
-		this.status = newStatus;
-		this.fireTaskEvent();
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#cancel()
+     */
+    public void cancel() {
+	setStatus(TaskStatus.CANCELED);
+    }
 
-	/**
-	 * Convenience method for determining if this task has been canceled. Also
-	 * returns true if the task encountered an error.
-	 * 
-	 * @return true if this task has been canceled or stopped due to an error
-	 */
-	public final boolean isCanceled() {
-		return (status == TaskStatus.CANCELED) || (status == TaskStatus.ERROR);
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
+     */
+    public final String getErrorMessage() {
+	return errorMessage;
+    }
+    
+    /**
+     */
+    public final void setErrorMessage(String errorMessage) {
+	this.errorMessage = errorMessage;
+    }
 
-	/**
-	 * Convenience method for determining if this task has been completed
-	 * 
-	 * @return true if this task is finished
-	 */
-	public final boolean isFinished() {
-		return status == TaskStatus.FINISHED;
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#cancel()
-	 */
-	public void cancel() {
-		setStatus(TaskStatus.CANCELED);
-	}
-
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getErrorMessage()
-	 */
-	public final String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * Returns the TaskStatus of this Task
-	 * 
-	 * @return The current status of this task
-	 */
-	public final TaskStatus getStatus() {
-		return this.status;
-	}
-
-	public Object[] getCreatedObjects() {
-		return null;
-	}
+    /**
+     * Returns the TaskStatus of this Task
+     * 
+     * @return The current status of this task
+     */
+    public final TaskStatus getStatus() {
+	return this.status;
+    }
 
 }

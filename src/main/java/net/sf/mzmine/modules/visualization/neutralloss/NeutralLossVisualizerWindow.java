@@ -43,6 +43,10 @@ import net.sf.mzmine.util.Range;
 public class NeutralLossVisualizerWindow extends JFrame implements
 	ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private NeutralLossToolBar toolBar;
     private NeutralLossPlot neutralLossPlot;
 

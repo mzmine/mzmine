@@ -120,7 +120,7 @@ class CustomDBSearchTask extends AbstractTask {
 	} catch (Exception e) {
 	    logger.log(Level.WARNING, "Could not read file " + dataBaseFile, e);
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = e.toString();
+	    setErrorMessage(e.toString());
 	    return;
 	}
 
@@ -185,9 +185,4 @@ class CustomDBSearchTask extends AbstractTask {
 	}
 
     }
-
-    public Object[] getCreatedObjects() {
-	return null;
-    }
-
 }

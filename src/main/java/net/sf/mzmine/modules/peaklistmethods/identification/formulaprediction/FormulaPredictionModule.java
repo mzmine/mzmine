@@ -46,12 +46,13 @@ public class FormulaPredictionModule implements MZmineModule {
 		    .setCharge(charge);
 	}
 
-	ExitCode exitCode = parameters.showSetupDialog();
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
 	if (exitCode != ExitCode.OK)
 	    return;
 
 	SingleRowPredictionTask newTask = new SingleRowPredictionTask(
-		parameters.cloneParameter(), row);
+		parameters.cloneParameterSet(), row);
 
 	// execute the sequence
 	MZmineCore.getTaskController().addTask(newTask);

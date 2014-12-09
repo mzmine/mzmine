@@ -33,44 +33,44 @@ import net.sf.mzmine.util.ExitCode;
 
 public class GridMassModule implements MZmineProcessingModule {
 
-	private static final String MODULE_NAME = "GridMass - 2D peak detection";
-	private static final String MODULE_DESCRIPTION = "This module detect peaks based on a 2D peak recognition procedure.";
+    private static final String MODULE_NAME = "GridMass - 2D peak detection";
+    private static final String MODULE_DESCRIPTION = "This module detect peaks based on a 2D peak recognition procedure.";
 
-	@Override
-	public @Nonnull String getName() {
-		return MODULE_NAME;
+    @Override
+    public @Nonnull String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public @Nonnull String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
+
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
+
+	RawDataFile[] dataFiles = parameters.getParameter(
+		new RawDataFilesParameter()).getMatchingRawDataFiles();
+
+	for (int i = 0; i < dataFiles.length; i++) {
+	    Task newTask = new GridMassTask(dataFiles[i],
+		    parameters.cloneParameterSet());
+	    tasks.add(newTask);
 	}
 
-	@Override
-	public @Nonnull String getDescription() {
-		return MODULE_DESCRIPTION;
-	}
+	return ExitCode.OK;
+    }
 
-	@Override
-	@Nonnull
-	public ExitCode runModule(@Nonnull ParameterSet parameters,
-			@Nonnull Collection<Task> tasks) {
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PEAKPICKING;
+    }
 
-		RawDataFile[] dataFiles = parameters.getParameter(
-				new RawDataFilesParameter()).getValue();
-
-		for (int i = 0; i < dataFiles.length; i++) {
-			Task newTask = new GridMassTask(dataFiles[i],
-					parameters.cloneParameter());
-			tasks.add(newTask);
-		}
-
-		return ExitCode.OK;
-	}
-
-	@Override
-	public @Nonnull MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PEAKPICKING;
-	}
-
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return GridMassParameters.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return GridMassParameters.class;
+    }
 
 }

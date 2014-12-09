@@ -50,7 +50,8 @@ public class MSMSExportModule implements MZmineModule {
 	ParameterSet parameters = MZmineCore.getConfiguration()
 		.getModuleParameters(MSMSExportModule.class);
 
-	ExitCode exitCode = parameters.showSetupDialog();
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
 	if (exitCode != ExitCode.OK)
 	    return;
 
@@ -69,6 +70,7 @@ public class MSMSExportModule implements MZmineModule {
 	int msmsScanNumber = bestPeak.getMostIntenseFragmentScanNumber();
 	if (msmsScanNumber < 1) {
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "There is no MS/MS scan for peak " + bestPeak);
 	    return;
 	}
@@ -79,6 +81,7 @@ public class MSMSExportModule implements MZmineModule {
 	MassList massList = msmsScan.getMassList(massListName);
 	if (massList == null) {
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "There is no mass list called " + massListName
 			    + " for MS/MS scan #" + msmsScanNumber + " ("
 			    + bestPeak.getDataFile() + ")");
@@ -99,7 +102,9 @@ public class MSMSExportModule implements MZmineModule {
 	    writer.close();
 
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "Error writing to file " + outputFile + ": "
 			    + ExceptionUtils.exceptionToString(e));
 	}

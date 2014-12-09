@@ -34,6 +34,10 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TwoDToolBar extends JToolBar {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
 	static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");

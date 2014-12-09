@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.wavelet;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -30,27 +32,27 @@ import net.sf.mzmine.util.ExitCode;
 
 public class WaveletMassDetectorParameters extends SimpleParameterSet {
 
-	public static final DoubleParameter noiseLevel = new DoubleParameter(
-			"Noise level",
-			"Intensities less than this value are interpreted as noise",
-			MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+	    "Noise level",
+	    "Intensities less than this value are interpreted as noise",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
-	public static final IntegerParameter scaleLevel = new IntegerParameter(
-			"Scale level",
-			"Number of wavelet'scale (coeficients) to use in m/z peak detection");
+    public static final IntegerParameter scaleLevel = new IntegerParameter(
+	    "Scale level",
+	    "Number of wavelet'scale (coeficients) to use in m/z peak detection");
 
-	public static final PercentParameter waveletWindow = new PercentParameter(
-			"Wavelet window size (%)",
-			"Size in % of wavelet window to apply in m/z peak detection");
+    public static final PercentParameter waveletWindow = new PercentParameter(
+	    "Wavelet window size (%)",
+	    "Size in % of wavelet window to apply in m/z peak detection");
 
-	public WaveletMassDetectorParameters() {
-		super(new Parameter[] { noiseLevel, scaleLevel, waveletWindow });
-	}
+    public WaveletMassDetectorParameters() {
+	super(new Parameter[] { noiseLevel, scaleLevel, waveletWindow });
+    }
 
-	public ExitCode showSetupDialog() {
-		MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-				WaveletMassDetector.class, this);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(parent,
+		valueCheckRequired, WaveletMassDetector.class, this);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
 }

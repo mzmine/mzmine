@@ -28,40 +28,41 @@ import net.sf.mzmine.datamodel.Feature;
  */
 public class PeakSorter implements Comparator<Feature> {
 
-	private SortingProperty property;
-	private SortingDirection direction;
+    private SortingProperty property;
+    private SortingDirection direction;
 
-	public PeakSorter(SortingProperty property, SortingDirection direction) {
-		this.property = property;
-		this.direction = direction;
+    public PeakSorter(SortingProperty property, SortingDirection direction) {
+	this.property = property;
+	this.direction = direction;
+    }
+
+    public int compare(Feature peak1, Feature peak2) {
+
+	Double peak1Value = getValue(peak1);
+	Double peak2Value = getValue(peak2);
+
+	if (direction == SortingDirection.Ascending)
+	    return peak1Value.compareTo(peak2Value);
+	else
+	    return peak2Value.compareTo(peak1Value);
+
+    }
+
+    private double getValue(Feature peak) {
+	switch (property) {
+	case Area:
+	    return peak.getArea();
+	case Height:
+	    return peak.getHeight();
+	case MZ:
+	    return peak.getMZ() + peak.getRT() / 1000000.0;
+	case RT:
+	    return peak.getRT() + peak.getMZ() / 1000000.0;
+	default:
+	    // We should never get here, so throw exception
+	    throw (new IllegalStateException());
 	}
 
-	public int compare(Feature peak1, Feature peak2) {
-
-		Double peak1Value = getValue(peak1);
-		Double peak2Value = getValue(peak2);
-
-		if (direction == SortingDirection.Ascending)
-			return peak1Value.compareTo(peak2Value);
-		else
-			return peak2Value.compareTo(peak1Value);
-
-	}
-
-	private double getValue(Feature peak) {
-		switch (property) {
-		case Area:
-			return peak.getArea();
-		case Height:
-			return peak.getHeight();
-		case MZ:
-			return peak.getMZ()+peak.getRT()/1000000.0;
-		case RT:
-			return peak.getRT()+peak.getMZ()/1000000.0;
-		}
-
-		// We should never get here, so throw exception
-		throw (new IllegalStateException());
-	}
+    }
 
 }

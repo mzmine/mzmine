@@ -39,6 +39,11 @@ import org.w3c.dom.NodeList;
 public class BatchQueue extends
 	Vector<MZmineProcessingStep<MZmineProcessingModule>> {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Batch step element name.
     private static final String BATCH_STEP_ELEMENT = "batchstep";
 
@@ -53,7 +58,7 @@ public class BatchQueue extends
 	for (final MZmineProcessingStep<MZmineProcessingModule> step : this) {
 	    final ParameterSet parameters = step.getParameterSet();
 	    final MZmineProcessingStepImpl<MZmineProcessingModule> stepCopy = new MZmineProcessingStepImpl<MZmineProcessingModule>(
-		    step.getModule(), parameters.cloneParameter());
+		    step.getModule(), parameters.cloneParameterSet());
 	    clonedQueue.add(stepCopy);
 	}
 	return clonedQueue;
@@ -93,7 +98,7 @@ public class BatchQueue extends
 		    final ParameterSet parameterSet = MZmineCore
 			    .getConfiguration().getModuleParameters(
 				    module.getClass());
-		    final ParameterSet methodParams = parameterSet.cloneParameter();
+		    final ParameterSet methodParams = parameterSet.cloneParameterSet();
 		    methodParams.loadValuesFromXML(stepElement);
 		    queue.add(new MZmineProcessingStepImpl<MZmineProcessingModule>(
 			    (MZmineProcessingModule) module, methodParams));
@@ -116,7 +121,7 @@ public class BatchQueue extends
 	final Document document = xmlElement.getOwnerDocument();
 
 	// Process each step.
-	for (final MZmineProcessingStep step : this) {
+	for (final MZmineProcessingStep<?> step : this) {
 
 	    // Append a new batch step element.
 	    final Element stepElement = document

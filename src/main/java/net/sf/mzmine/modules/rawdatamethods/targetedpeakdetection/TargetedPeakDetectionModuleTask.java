@@ -46,181 +46,188 @@ import com.Ostermiller.util.CSVParser;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
-        private Logger logger = Logger.getLogger(this.getClass().getName());
-        private PeakList processedPeakList;
-        private RawDataFile dataFile;
-        private String suffix;
-        private MZTolerance mzTolerance;
-        private RTTolerance rtTolerance;
-        private double intTolerance;
-        private ParameterSet parameters;
-        private int processedScans, totalScans;
-        private File peakListFile;
-        private String fieldSeparator;
-        private boolean ignoreFirstLine;
-        private int finishedLines = 0;
-        private int ID = 0;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
+    private PeakList processedPeakList;
+    private RawDataFile dataFile;
+    private String suffix;
+    private MZTolerance mzTolerance;
+    private RTTolerance rtTolerance;
+    private double intTolerance;
+    private ParameterSet parameters;
+    private int processedScans, totalScans;
+    private File peakListFile;
+    private String fieldSeparator;
+    private boolean ignoreFirstLine;
+    private int finishedLines = 0;
+    private int ID = 0;
 
-        TargetedPeakDetectionModuleTask(ParameterSet parameters, RawDataFile dataFile) {
-                this.parameters = parameters;
+    TargetedPeakDetectionModuleTask(ParameterSet parameters,
+	    RawDataFile dataFile) {
+	this.parameters = parameters;
 
-                suffix = parameters.getParameter(TargetedPeakDetectionParameters.suffix).getValue();
-                peakListFile = parameters.getParameter(TargetedPeakDetectionParameters.peakListFile).getValue();
-                fieldSeparator = parameters.getParameter(TargetedPeakDetectionParameters.fieldSeparator).getValue();
-                ignoreFirstLine = parameters.getParameter(TargetedPeakDetectionParameters.ignoreFirstLine).getValue();
+	suffix = parameters
+		.getParameter(TargetedPeakDetectionParameters.suffix)
+		.getValue();
+	peakListFile = parameters.getParameter(
+		TargetedPeakDetectionParameters.peakListFile).getValue();
+	fieldSeparator = parameters.getParameter(
+		TargetedPeakDetectionParameters.fieldSeparator).getValue();
+	ignoreFirstLine = parameters.getParameter(
+		TargetedPeakDetectionParameters.ignoreFirstLine).getValue();
 
-                intTolerance = parameters.getParameter(TargetedPeakDetectionParameters.intTolerance).getValue();
-                mzTolerance = parameters.getParameter(TargetedPeakDetectionParameters.MZTolerance).getValue();
-                rtTolerance = parameters.getParameter(TargetedPeakDetectionParameters.RTTolerance).getValue();
+	intTolerance = parameters.getParameter(
+		TargetedPeakDetectionParameters.intTolerance).getValue();
+	mzTolerance = parameters.getParameter(
+		TargetedPeakDetectionParameters.MZTolerance).getValue();
+	rtTolerance = parameters.getParameter(
+		TargetedPeakDetectionParameters.RTTolerance).getValue();
 
-                this.dataFile = dataFile;
-        }
+	this.dataFile = dataFile;
+    }
 
-        public void run() {
+    public void run() {
 
-                setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
+	// Calculate total number of scans in all files
+	totalScans = dataFile.getNumOfScans(1);
 
-                // Calculate total number of scans in all files                
-                totalScans = dataFile.getNumOfScans(1);
+	// Create new peak list
+	processedPeakList = new SimplePeakList(dataFile.getName() + " "
+		+ suffix, dataFile);
 
+	List<PeakInformation> peaks = this.readFile();
 
-                // Create new peak list
-                processedPeakList = new SimplePeakList(dataFile.getName() + " " + suffix,
-                        dataFile);
+	if (peaks == null || peaks.isEmpty()) {
+	    setStatus(TaskStatus.ERROR);
+	    setErrorMessage("Could not read file or the file is empty ");
+	    return;
+	}
+	// Fill new peak list with empty rows
+	for (int row = 0; row < peaks.size(); row++) {
+	    PeakListRow newRow = new SimplePeakListRow(ID++);
+	    processedPeakList.addRow(newRow);
+	}
 
-                List<PeakInformation> peaks = this.readFile();
+	// Process all raw data files
 
-                if(peaks == null || peaks.isEmpty()){
-                        setStatus(TaskStatus.ERROR);
-                        errorMessage = "Could not read file or the file is empty ";
-                        return;
-                }
-                // Fill new peak list with empty rows
-                for (int row = 0; row < peaks.size(); row++) {
-                        PeakListRow newRow = new SimplePeakListRow(ID++);
-                        processedPeakList.addRow(newRow);
-                }
+	// Canceled?
+	if (isCanceled()) {
+	    return;
+	}
 
-                // Process all raw data files
+	List<Gap> gaps = new ArrayList<Gap>();
 
+	// Fill each row of this raw data file column, create new empty
+	// gaps
+	// if necessary
+	for (int row = 0; row < peaks.size(); row++) {
+	    PeakListRow newRow = processedPeakList.getRow(row);
+	    // Create a new gap
 
-                // Canceled?
-                if (isCanceled()) {
-                        return;
-                }
+	    Range mzRange = mzTolerance.getToleranceRange(peaks.get(row)
+		    .getMZ());
+	    Range rtRange = rtTolerance.getToleranceRange(peaks.get(row)
+		    .getRT());
+	    newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row)
+		    .getName()), true);
 
-                List<Gap> gaps = new ArrayList<Gap>();
+	    Gap newGap = new Gap(newRow, dataFile, mzRange, rtRange,
+		    intTolerance);
 
-                // Fill each row of this raw data file column, create new empty
-                // gaps
-                // if necessary
-                for (int row = 0; row < peaks.size(); row++) {
-                        PeakListRow newRow = processedPeakList.getRow(row);
-                        // Create a new gap
+	    gaps.add(newGap);
 
-                        Range mzRange = mzTolerance.getToleranceRange(peaks.get(row).getMZ());
-                        Range rtRange = rtTolerance.getToleranceRange(peaks.get(row).getRT());
-                        newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row).getName()), true);
+	}
 
-                        Gap newGap = new Gap(newRow, dataFile, mzRange,
-                                rtRange, intTolerance);
+	// Stop processing this file if there are no gaps
+	if (gaps.isEmpty()) {
+	    processedScans += dataFile.getNumOfScans();
+	}
 
-                        gaps.add(newGap);
+	// Get all scans of this data file
+	int scanNumbers[] = dataFile.getScanNumbers(1);
 
-                }
+	// Process each scan
+	for (int scanNumber : scanNumbers) {
 
-                // Stop processing this file if there are no gaps
-                if (gaps.isEmpty()) {
-                        processedScans += dataFile.getNumOfScans();
-                }
+	    // Canceled?
+	    if (isCanceled()) {
+		return;
+	    }
 
-                // Get all scans of this data file
-                int scanNumbers[] = dataFile.getScanNumbers(1);
+	    // Get the scan
+	    Scan scan = dataFile.getScan(scanNumber);
 
-                // Process each scan
-                for (int scanNumber : scanNumbers) {
+	    // Feed this scan to all gaps
+	    for (Gap gap : gaps) {
+		gap.offerNextScan(scan);
+	    }
 
-                        // Canceled?
-                        if (isCanceled()) {
-                                return;
-                        }
+	    processedScans++;
+	}
 
-                        // Get the scan
-                        Scan scan = dataFile.getScan(scanNumber);
+	// Finalize gaps
+	for (Gap gap : gaps) {
+	    gap.noMoreOffers();
+	}
 
-                        // Feed this scan to all gaps
-                        for (Gap gap : gaps) {
-                                gap.offerNextScan(scan);
-                        }
+	// Append processed peak list to the project
+	MZmineProject currentProject = MZmineCore.getCurrentProject();
+	currentProject.addPeakList(processedPeakList);
 
-                        processedScans++;
-                }
+	// Add task description to peakList
+	processedPeakList
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			"Targeted peak detection ", parameters));
 
-                // Finalize gaps
-                for (Gap gap : gaps) {
-                        gap.noMoreOffers();
-                }
+	logger.log(Level.INFO, "Targeted peak detection on {0}", this.dataFile);
+	setStatus(TaskStatus.FINISHED);
 
+    }
 
+    public List<PeakInformation> readFile() {
+	FileReader dbFileReader = null;
+	try {
+	    List<PeakInformation> list = new ArrayList<PeakInformation>();
+	    dbFileReader = new FileReader(peakListFile);
+	    String[][] peakListValues = CSVParser.parse(dbFileReader,
+		    fieldSeparator.charAt(0));
+	    if (ignoreFirstLine) {
+		finishedLines++;
+	    }
+	    for (; finishedLines < peakListValues.length; finishedLines++) {
+		try {
+		    double mz = Double
+			    .parseDouble(peakListValues[finishedLines][0]);
+		    double rt = Double
+			    .parseDouble(peakListValues[finishedLines][1]);
+		    String name = peakListValues[finishedLines][2];
+		    list.add(new PeakInformation(mz, rt, name));
+		} catch (Exception e) {
+		    // ingore incorrect lines
+		}
+	    }
+	    dbFileReader.close();
+	    return list;
+	} catch (Exception e) {
+	    logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
+	    setStatus(TaskStatus.ERROR);
+	    setErrorMessage(e.toString());
+	    return null;
+	}
 
-                // Append processed peak list to the project
-                MZmineProject currentProject = MZmineCore.getCurrentProject();
-                currentProject.addPeakList(processedPeakList);
+    }
 
-                // Add task description to peakList
-                processedPeakList.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                        "Targeted peak detection ", parameters));
+    public double getFinishedPercentage() {
+	if (totalScans == 0) {
+	    return 0;
+	}
+	return (double) processedScans / (double) totalScans;
 
+    }
 
-                logger.log(Level.INFO, "Targeted peak detection on {0}", this.dataFile);
-                setStatus(TaskStatus.FINISHED);
+    public String getTaskDescription() {
+	return "Targeted peak detection " + this.dataFile;
+    }
 
-        }
-
-        public List<PeakInformation> readFile() {
-                FileReader dbFileReader = null;
-                try {
-                        List<PeakInformation> list = new ArrayList<PeakInformation>();
-                        dbFileReader = new FileReader(peakListFile);
-                        String[][] peakListValues = CSVParser.parse(dbFileReader, fieldSeparator.charAt(0));
-                        if (ignoreFirstLine) {
-                                finishedLines++;
-                        }
-                        for (; finishedLines < peakListValues.length; finishedLines++) {
-                                try {
-                                        double mz = Double.parseDouble(peakListValues[finishedLines][0]);
-                                        double rt = Double.parseDouble(peakListValues[finishedLines][1]);
-                                        String name = peakListValues[finishedLines][2];
-                                        list.add(new PeakInformation(mz, rt, name));
-                                } catch (Exception e) {
-                                        // ingore incorrect lines
-                                }
-                        }
-                        dbFileReader.close();
-                        return list;
-                } catch (Exception e) {
-                        logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
-                        setStatus(TaskStatus.ERROR);
-                        errorMessage = e.toString();
-                        return null;
-                }
-
-        }
-
-        public double getFinishedPercentage() {
-                if (totalScans == 0) {
-                        return 0;
-                }
-                return (double) processedScans / (double) totalScans;
-
-        }
-
-        public String getTaskDescription() {
-                return "Targeted peak detection " + this.dataFile;
-        }
-
-        public Object[] getCreatedObjects() {
-                return new Object[]{processedPeakList};
-        }
 }

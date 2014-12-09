@@ -249,10 +249,6 @@ public class AlignScansTask extends AbstractTask {
 
     }
 
-    public Object[] getCreatedObjects() {
-	return new Object[] { newRDF };
-    }
-
     int findFirstMass(double mass, DataPoint mzValues[]) {
 	int l = 0;
 	int r = mzValues.length - 1;

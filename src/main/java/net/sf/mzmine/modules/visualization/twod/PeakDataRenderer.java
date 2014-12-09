@@ -31,6 +31,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
  */
 class PeakDataRenderer extends XYLineAndShapeRenderer {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final Color peakColor = Color.green;
 
     // data points shape

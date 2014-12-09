@@ -74,286 +74,275 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
  */
 public class ProjectParametersImporter {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private ProjectParametersSetupDialog mainDialog;
-	private Desktop desktop;
+    private ProjectParametersSetupDialog mainDialog;
+    private Desktop desktop;
 
-	public ProjectParametersImporter(ProjectParametersSetupDialog mainDialog) {
-		this.mainDialog = mainDialog;
+    public ProjectParametersImporter(ProjectParametersSetupDialog mainDialog) {
+	this.mainDialog = mainDialog;
 
-		desktop = MZmineCore.getDesktop();
+	desktop = MZmineCore.getDesktop();
 
+    }
+
+    public boolean importParameters() {
+
+	// Let user choose a CSV file for importing
+	File parameterFile = chooseFile();
+	if (parameterFile == null) {
+	    logger.info("Parameter importing cancelled.");
+	    return false;
 	}
 
-	public boolean importParameters() {
+	// Read and interpret parameters
+	UserParameter<?,?>[] parameters = processParameters(parameterFile);
 
-		// Let user choose a CSV file for importing
-		File parameterFile = chooseFile();
-		if (parameterFile == null) {
-			logger.info("Parameter importing cancelled.");
-			return false;
-		}
+	if (parameters == null)
+	    return false;
 
-		// Read and interpret parameters
-		UserParameter[] parameters = processParameters(parameterFile);
+	// TODO: Show a dialog for selecting which parameters to import and edit
+	// their types
 
-		if (parameters == null)
-			return false;
+	// Read values of parameters and store them in the project
+	processParameterValues(parameterFile, parameters);
 
-		// TODO: Show a dialog for selecting which parameters to import and edit
-		// their types
+	return true;
 
-		// Read values of parameters and store them in the project
-		processParameterValues(parameterFile, parameters);
+    }
 
-		return true;
+    private File chooseFile() {
+	JFileChooser chooser = new JFileChooser();
 
+	FileNameExtensionFilter filter = new FileNameExtensionFilter(
+		"TXT & CSV files", "txt", "csv");
+	chooser.setDialogTitle("Please select a file containing project parameter values for files.");
+	chooser.setFileFilter(filter);
+	int returnVal = chooser.showOpenDialog(desktop.getMainWindow());
+	if (returnVal == JFileChooser.CANCEL_OPTION) {
+	    return null;
 	}
 
-	private File chooseFile() {
-		JFileChooser chooser = new JFileChooser();
+	return chooser.getSelectedFile();
+    }
 
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"TXT & CSV files", "txt", "csv");
-		chooser
-				.setDialogTitle("Please select a file containing project parameter values for files.");
-		chooser.setFileFilter(filter);
-		int returnVal = chooser.showOpenDialog(desktop.getMainWindow());
-		if (returnVal == JFileChooser.CANCEL_OPTION) {
-			return null;
+    private UserParameter<?,?>[] processParameters(File parameterFile) {
+
+	ArrayList<UserParameter<?,?>> parameters = new ArrayList<UserParameter<?,?>>();
+
+	// Open reader
+	BufferedReader parameterFileReader;
+	try {
+	    parameterFileReader = new BufferedReader(new FileReader(
+		    parameterFile));
+
+	    // Read column headers which are used as parameter names
+	    String firstRow = parameterFileReader.readLine();
+	    StringTokenizer st = new StringTokenizer(firstRow, ",");
+	    st.nextToken(); // Assume first column contains file names
+	    ArrayList<String> parameterNames = new ArrayList<String>();
+	    Hashtable<String, ArrayList<String>> parameterValues = new Hashtable<String, ArrayList<String>>();
+	    while (st.hasMoreTokens()) {
+		String paramName = st.nextToken();
+		if (parameterValues.containsKey(paramName)) {
+		    logger.severe("Did not import parameters because of a non-unique parameter name: "
+			    + paramName);
+		    desktop.displayErrorMessage(MZmineCore.getDesktop()
+			    .getMainWindow(), "Could not open file "
+			    + parameterFile);
+		    parameterFileReader.close();
+		    return null;
 		}
+		parameterNames.add(paramName);
+		parameterValues.put(paramName, new ArrayList<String>());
+	    }
 
-		return chooser.getSelectedFile();
-	}
+	    // Read rest of the rows which contain file name in the first column
+	    // and parameter values in the rest of the columns
+	    String nextRow = parameterFileReader.readLine();
+	    int rowNumber = 2;
+	    while (nextRow != null) {
+		st = new StringTokenizer(nextRow, ",");
+		st.nextToken(); // Skip first column (File name)
+		Iterator<String> parameterNameIterator = parameterNames
+			.iterator();
+		while (st.hasMoreTokens()) {
 
-	private UserParameter[] processParameters(File parameterFile) {
-
-		ArrayList<UserParameter> parameters = new ArrayList<UserParameter>();
-
-		// Open reader
-		BufferedReader parameterFileReader;
-		try {
-			parameterFileReader = new BufferedReader(new FileReader(
-					parameterFile));
-		} catch (FileNotFoundException ex) {
-			logger.severe("Could not open file " + parameterFile);
-			desktop.displayErrorMessage("Could not open file " + parameterFile);
-			return null;
-		}
-
-		try {
-
-			// Read column headers which are used as parameter names
-			String firstRow = parameterFileReader.readLine();
-			StringTokenizer st = new StringTokenizer(firstRow, ",");
-			st.nextToken(); // Assume first column contains file names
-			ArrayList<String> parameterNames = new ArrayList<String>();
-			Hashtable<String, ArrayList<String>> parameterValues = new Hashtable<String, ArrayList<String>>();
-			while (st.hasMoreTokens()) {
-				String paramName = st.nextToken();
-				if (parameterValues.containsKey(paramName)) {
-					logger
-							.severe("Did not import parameters because of a non-unique parameter name: "
-									+ paramName);
-					desktop.displayErrorMessage("Could not open file "
-							+ parameterFile);
-					return null;
-				}
-				parameterNames.add(paramName);
-				parameterValues.put(paramName, new ArrayList<String>());
-			}
-
-			// Read rest of the rows which contain file name in the first column
-			// and parameter values in the rest of the columns
-			String nextRow = parameterFileReader.readLine();
-			int rowNumber = 2;
-			while (nextRow != null) {
-				st = new StringTokenizer(nextRow, ",");
-				st.nextToken(); // Skip first column (File name)
-				Iterator<String> parameterNameIterator = parameterNames
-						.iterator();
-				while (st.hasMoreTokens()) {
-
-					if (st.hasMoreTokens() ^ parameterNameIterator.hasNext()) {
-						logger
-								.severe("Incorrect number of parameter values on row "
-										+ rowNumber);
-						desktop
-								.displayErrorMessage("Incorrect number of parameter values on row "
-										+ rowNumber);
-						return null;
-					}
-					parameterValues.get(parameterNameIterator.next()).add(
-							st.nextToken());
-				}
-				nextRow = parameterFileReader.readLine();
-				rowNumber++;
-			}
-
-			// Decide parameter types (all numeric => Double, all unique string
-			// => String, at least one duplicate string => Object with possible
-			// values
-
-			Iterator<String> parameterNameIterator = parameterNames.iterator();
-			while (parameterNameIterator.hasNext()) {
-				String name = parameterNameIterator.next();
-				ArrayList<String> vals = parameterValues.get(name);
-
-				// Test for all numeric
-				Iterator<String> valIterator = vals.iterator();
-				boolean isAllNumeric = true;
-				while (valIterator.hasNext()) {
-					try {
-						Double.valueOf(valIterator.next());
-					} catch (NumberFormatException ex) {
-						isAllNumeric = false;
-						break;
-					}
-				}
-				if (isAllNumeric) {
-					parameters.add(new DoubleParameter(
-							name, null));
-					continue;
-				}
-
-				// Test for "set of values"
-				ArrayList<String> uniqueValues = new ArrayList<String>();
-				valIterator = vals.iterator();
-				while (valIterator.hasNext()) {
-					String val = valIterator.next();
-					if (!uniqueValues.contains(val))
-						uniqueValues.add(val);
-				}
-				if (uniqueValues.size() < vals.size()) {
-					parameters.add(new ComboParameter<String>(
-							name, null, uniqueValues
-									.toArray(new String[0])));
-					continue;
-				}
-
-				// Otherwise it is a free text parameter
-				parameters.add(new StringParameter(name,
-						null));
-
-			}
-
-		} catch (IOException ex) {
-			logger.severe("Could not read file " + parameterFile);
-			desktop.displayErrorMessage("Could not open file " + parameterFile);
-			return null;
-		}
-
-		// Close reader
-		try {
+		    if (st.hasMoreTokens() ^ parameterNameIterator.hasNext()) {
+			logger.severe("Incorrect number of parameter values on row "
+				+ rowNumber);
+			desktop.displayErrorMessage(MZmineCore.getDesktop()
+				.getMainWindow(),
+				"Incorrect number of parameter values on row "
+					+ rowNumber);
 			parameterFileReader.close();
-		} catch (IOException ex) {
-			logger.severe("Could not close file " + parameterFile);
-			desktop
-					.displayErrorMessage("Could not close file "
-							+ parameterFile);
 			return null;
+		    }
+		    parameterValues.get(parameterNameIterator.next()).add(
+			    st.nextToken());
+		}
+		nextRow = parameterFileReader.readLine();
+		rowNumber++;
+	    }
+
+	    // Decide parameter types (all numeric => Double, all unique string
+	    // => String, at least one duplicate string => Object with possible
+	    // values
+
+	    Iterator<String> parameterNameIterator = parameterNames.iterator();
+	    while (parameterNameIterator.hasNext()) {
+		String name = parameterNameIterator.next();
+		ArrayList<String> vals = parameterValues.get(name);
+
+		// Test for all numeric
+		Iterator<String> valIterator = vals.iterator();
+		boolean isAllNumeric = true;
+		while (valIterator.hasNext()) {
+		    try {
+			Double.valueOf(valIterator.next());
+		    } catch (NumberFormatException ex) {
+			isAllNumeric = false;
+			break;
+		    }
+		}
+		if (isAllNumeric) {
+		    parameters.add(new DoubleParameter(name, null));
+		    continue;
 		}
 
-		return parameters.toArray(new UserParameter[0]);
+		// Test for "set of values"
+		ArrayList<String> uniqueValues = new ArrayList<String>();
+		valIterator = vals.iterator();
+		while (valIterator.hasNext()) {
+		    String val = valIterator.next();
+		    if (!uniqueValues.contains(val))
+			uniqueValues.add(val);
+		}
+		if (uniqueValues.size() < vals.size()) {
+		    parameters.add(new ComboParameter<String>(name, null,
+			    uniqueValues.toArray(new String[0])));
+		    continue;
+		}
 
+		// Otherwise it is a free text parameter
+		parameters.add(new StringParameter(name, null));
+
+	    }
+	    
+	    // Close reader
+	    parameterFileReader.close();
+
+	} catch (IOException ex) {
+	    logger.severe("Could not read file " + parameterFile);
+	    desktop.displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
+		    "Could not open file " + parameterFile);
+	    return null;
+	}	
+
+	return parameters.toArray(new UserParameter[0]);
+
+    }
+
+    private boolean processParameterValues(File parameterFile,
+	    UserParameter<?,?>[] parameters) {
+
+	// Warn user if main dialog already contains a parameter with same name
+	for (UserParameter<?, ?> parameter : parameters) {
+	    UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+	    if (p != null) {
+		int res = JOptionPane.showConfirmDialog(mainDialog,
+			"Overwrite previous parameter(s) with same name?",
+			"Overwrite?", JOptionPane.OK_CANCEL_OPTION);
+		if (res == JOptionPane.CANCEL_OPTION)
+		    return false;
+		else
+		    break;
+	    }
 	}
 
-	private boolean processParameterValues(File parameterFile,
-			UserParameter[] parameters) {
-
-		// Warn user if main dialog already contains a parameter with same name
-		for (UserParameter parameter : parameters) {
-			UserParameter p = mainDialog.getParameter(parameter.getName());
-			if (p != null) {
-				int res = JOptionPane.showConfirmDialog(mainDialog,
-						"Overwrite previous parameter(s) with same name?",
-						"Overwrite?", JOptionPane.OK_CANCEL_OPTION);
-				if (res == JOptionPane.CANCEL_OPTION)
-					return false;
-				else
-					break;
-			}
-		}
-
-		// Remove parameters with same name
-		for (UserParameter parameter : parameters) {
-			UserParameter p = mainDialog.getParameter(parameter.getName());
-			if (p != null) {
-				mainDialog.removeParameter(p);
-			}
-		}
-
-		// Add new parameters to the main dialog
-		for (UserParameter parameter : parameters) {
-			mainDialog.addParameter(parameter);
-		}
-
-		// Open reader
-		BufferedReader parameterFileReader;
-		try {
-			parameterFileReader = new BufferedReader(new FileReader(
-					parameterFile));
-		} catch (FileNotFoundException ex) {
-			logger.severe("Could not open file " + parameterFile);
-			desktop.displayErrorMessage("Could not open file " + parameterFile);
-			return false;
-		}
-
-		try {
-
-			// Skip first row
-			parameterFileReader.readLine();
-
-			// Read rest of the rows which contain file name in the first column
-			// and parameter values in the rest of the columns
-			String nextRow = parameterFileReader.readLine();
-			while (nextRow != null) {
-				StringTokenizer st = new StringTokenizer(nextRow, ",");
-
-				nextRow = parameterFileReader.readLine();
-
-				// Get raw data file for this row
-				String fileName = st.nextToken();
-
-				// Set parameter values to project
-				int parameterIndex = 0;
-				while (st.hasMoreTokens()) {
-					String parameterValue = st.nextToken();
-					UserParameter parameter = parameters[parameterIndex];
-
-					if (parameter instanceof DoubleParameter)
-						mainDialog.setParameterValue(parameter, fileName,
-								Double.parseDouble(parameterValue));
-					else
-						mainDialog.setParameterValue(parameter, fileName,
-								parameterValue);
-
-					parameterIndex++;
-
-				}
-
-			}
-
-		} catch (IOException ex) {
-			logger.severe("Could not read file " + parameterFile);
-			desktop.displayErrorMessage("Could not open file " + parameterFile);
-			return false;
-		}
-
-		// Close reader
-		try {
-			parameterFileReader.close();
-		} catch (IOException ex) {
-			logger.severe("Could not close file " + parameterFile);
-			desktop
-					.displayErrorMessage("Could not close file "
-							+ parameterFile);
-			return false;
-		}
-
-		return true;
-
+	// Remove parameters with same name
+	for (UserParameter<?, ?> parameter : parameters) {
+	    UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+	    if (p != null) {
+		mainDialog.removeParameter(p);
+	    }
 	}
+
+	// Add new parameters to the main dialog
+	for (UserParameter<?, ?> parameter : parameters) {
+	    mainDialog.addParameter(parameter);
+	}
+
+	// Open reader
+	BufferedReader parameterFileReader;
+	try {
+	    parameterFileReader = new BufferedReader(new FileReader(
+		    parameterFile));
+	} catch (FileNotFoundException ex) {
+	    logger.severe("Could not open file " + parameterFile);
+	    desktop.displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
+		    "Could not open file " + parameterFile);
+	    return false;
+	}
+
+	try {
+
+	    // Skip first row
+	    parameterFileReader.readLine();
+
+	    // Read rest of the rows which contain file name in the first column
+	    // and parameter values in the rest of the columns
+	    String nextRow = parameterFileReader.readLine();
+	    while (nextRow != null) {
+		StringTokenizer st = new StringTokenizer(nextRow, ",");
+
+		nextRow = parameterFileReader.readLine();
+
+		// Get raw data file for this row
+		String fileName = st.nextToken();
+
+		// Set parameter values to project
+		int parameterIndex = 0;
+		while (st.hasMoreTokens()) {
+		    String parameterValue = st.nextToken();
+		    UserParameter<?, ?> parameter = parameters[parameterIndex];
+
+		    if (parameter instanceof DoubleParameter)
+			mainDialog.setParameterValue(parameter, fileName,
+				Double.parseDouble(parameterValue));
+		    else
+			mainDialog.setParameterValue(parameter, fileName,
+				parameterValue);
+
+		    parameterIndex++;
+
+		}
+
+	    }
+
+	} catch (IOException ex) {
+	    logger.severe("Could not read file " + parameterFile);
+	    desktop.displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
+		    "Could not open file " + parameterFile);
+	    return false;
+	}
+
+	// Close reader
+	try {
+	    parameterFileReader.close();
+	} catch (IOException ex) {
+	    logger.severe("Could not close file " + parameterFile);
+	    desktop.displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
+		    "Could not close file " + parameterFile);
+	    return false;
+	}
+
+	return true;
+
+    }
 
 }

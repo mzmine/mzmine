@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.parameters;
 
+import java.awt.Window;
 import java.util.Collection;
 
 import net.sf.mzmine.util.ExitCode;
@@ -33,25 +34,23 @@ import org.w3c.dom.Element;
  */
 public interface ParameterSet {
 
-	public Parameter[] getParameters();
+    public Parameter<?>[] getParameters();
 
-	public <T extends Parameter> T getParameter(T parameter);
+    public <T extends Parameter<?>> T getParameter(T parameter);
 
-	public void loadValuesFromXML(Element element);
+    public void loadValuesFromXML(Element element);
 
-	public void saveValuesToXML(Element element);
+    public void saveValuesToXML(Element element);
 
-	public boolean checkUserParameterValues(Collection<String> errorMessages);
+    public boolean checkParameterValues(Collection<String> errorMessages);
 
-	public boolean checkAllParameterValues(Collection<String> errorMessages);
-	
-	public ParameterSet cloneParameter();
+    public ParameterSet cloneParameterSet();
 
-	/**
-	 * Represent method's parameters and their values in human-readable format
-	 */
-	public String toString();
+    /**
+     * Represent method's parameters and their values in human-readable format
+     */
+    public String toString();
 
-	public ExitCode showSetupDialog();
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired);
 
 }

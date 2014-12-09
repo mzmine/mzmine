@@ -43,6 +43,11 @@ import org.jfree.ui.RectangleInsets;
 
 public class HistogramChart extends ChartPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // grid color
     private static final Color gridColor = Color.lightGray;
 

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -29,15 +31,16 @@ import net.sf.mzmine.util.ExitCode;
 public class ResampleFilterParameters extends SimpleParameterSet {
 
     public static final DoubleParameter binSize = new DoubleParameter(
-	    "m/z bin length", "The length of m/z bin", MZmineCore.getConfiguration().getMZFormat());
+	    "m/z bin length", "The length of m/z bin", MZmineCore
+		    .getConfiguration().getMZFormat());
 
     public ResampleFilterParameters() {
 	super(new Parameter[] { binSize });
     }
 
-    public ExitCode showSetupDialog() {
-	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(this,
-		ResampleFilter.class);
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+		valueCheckRequired, this, ResampleFilter.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

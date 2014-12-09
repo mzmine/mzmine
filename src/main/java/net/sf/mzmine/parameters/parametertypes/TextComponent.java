@@ -25,6 +25,11 @@ import javax.swing.JTextArea;
 
 public class TextComponent extends JScrollPane {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private final JTextArea textArea;

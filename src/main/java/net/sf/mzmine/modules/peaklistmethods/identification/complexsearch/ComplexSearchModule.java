@@ -51,7 +51,7 @@ public class ComplexSearchModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		ComplexSearchParameters.peakLists).getValue();
+		ComplexSearchParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new ComplexSearchTask(parameters, peakList);

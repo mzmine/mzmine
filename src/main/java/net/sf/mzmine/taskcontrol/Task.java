@@ -25,29 +25,17 @@ package net.sf.mzmine.taskcontrol;
  */
 public interface Task extends Runnable {
 
-	public String getTaskDescription();
+    public String getTaskDescription();
 
-	public double getFinishedPercentage();
+    public double getFinishedPercentage();
 
-	public TaskStatus getStatus();
+    public TaskStatus getStatus();
 
-	public String getErrorMessage();
+    public String getErrorMessage();
 
-	/**
-	 * Cancel a running task by user request.
-	 */
-	public void cancel();
-
-	/**
-	 * After the task is finished, this method returns an array of all objects
-	 * newly created by this task (peak lists, raw data files). This is used for
-	 * batch processing. Tasks which are never used in batch steps can return
-	 * null.
-	 */
-	public Object[] getCreatedObjects();
-
-	public void addTaskListener( TaskListener t );
-
-	public TaskListener[] getTaskListeners( );
+    /**
+     * Cancel a running task by user request.
+     */
+    public void cancel();
 
 }

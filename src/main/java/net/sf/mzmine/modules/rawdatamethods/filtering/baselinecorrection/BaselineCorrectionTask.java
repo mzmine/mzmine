@@ -23,7 +23,6 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection;
 
-
 import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -35,164 +34,168 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
  * Task that performs baseline correction.
  *
- * @author $Author$
- * @version $Revision$
- * 
- * Deeply modified to delegate baseline correction to various correctors (whose implement specific
- * methods by themselves). 
- * Those correctors all share a common behavior by inheriting from the base class "BaselineCorrector", 
- * and apply there specific way of building the baselines via the various algorithms implemented in
- * the sub-package "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors".
+ * Deeply modified to delegate baseline correction to various correctors (whose
+ * implement specific methods by themselves). Those correctors all share a
+ * common behavior by inheriting from the base class "BaselineCorrector", and
+ * apply there specific way of building the baselines via the various algorithms
+ * implemented in the sub-package
+ * "net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors"
+ * .
  */
 public class BaselineCorrectionTask extends AbstractTask {
 
-	// Logger.
-	private static final Logger LOG = Logger.getLogger(BaselineCorrectionTask.class.getName());
+    // Logger.
+    private static final Logger LOG = Logger
+	    .getLogger(BaselineCorrectionTask.class.getName());
 
-	// Original data file and newly created baseline corrected file.
-	private final RawDataFile origDataFile;
-	private RawDataFile correctedDataFile;
+    // Original data file and newly created baseline corrected file.
+    private final RawDataFile origDataFile;
 
-	// Remove original data file.
-	private final boolean removeOriginal;
+    // Remove original data file.
+    private final boolean removeOriginal;
 
-	// Baseline corrector processing step
-	private final MZmineProcessingStep<BaselineCorrector> baselineCorrectorProcStep;
+    // Baseline corrector processing step
+    private final MZmineProcessingStep<BaselineCorrector> baselineCorrectorProcStep;
 
-	// Common parameters.
-	private final ParameterSet commonParameters;
-	
-	private final RengineType rEngineType;
-	private RSession rSession;
-	private boolean userCanceled;
+    // Common parameters.
+    private final ParameterSet commonParameters;
 
-	/**
-	 * Creates the task.
-	 *
-	 * @param dataFile   raw data file on which to perform correction.
-	 * @param parameters correction parameters.
-	 */
-	public BaselineCorrectionTask(final RawDataFile dataFile, final ParameterSet parameters) {
+    private final RengineType rEngineType;
+    private RSession rSession;
+    private boolean userCanceled;
 
+    /**
+     * Creates the task.
+     *
+     * @param dataFile
+     *            raw data file on which to perform correction.
+     * @param parameters
+     *            correction parameters.
+     */
+    public BaselineCorrectionTask(final RawDataFile dataFile,
+	    final ParameterSet parameters) {
 
-		// Initialize.
-		//this.rEngineType = parameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
-		this.rEngineType = RengineType.JRIengine;
-		
-		this.origDataFile = dataFile;
-		this.correctedDataFile = null;
-		this.removeOriginal = parameters.getParameter(BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
-		this.baselineCorrectorProcStep = parameters.getParameter(BaselineCorrectionParameters.BASELINE_CORRECTORS).getValue();
+	// Initialize.
+	// this.rEngineType =
+	// parameters.getParameter(BaselineCorrectionParameters.RENGINE_TYPE).getValue();
+	this.rEngineType = RengineType.JRIengine;
 
-		this.commonParameters = parameters;
+	this.origDataFile = dataFile;
+	this.removeOriginal = parameters.getParameter(
+		BaselineCorrectionParameters.REMOVE_ORIGINAL).getValue();
+	this.baselineCorrectorProcStep = parameters.getParameter(
+		BaselineCorrectionParameters.BASELINE_CORRECTORS).getValue();
 
-		this.userCanceled = false;
-	}
+	this.commonParameters = parameters;
 
+	this.userCanceled = false;
+    }
 
-	@Override
-	public String getTaskDescription() {
-		return "Correcting baseline for " + origDataFile;
-	}
+    @Override
+    public String getTaskDescription() {
+	return "Correcting baseline for " + origDataFile;
+    }
 
-	@Override
-	public double getFinishedPercentage() {
-		return baselineCorrectorProcStep.getModule().getFinishedPercentage(origDataFile);
-	}
+    @Override
+    public double getFinishedPercentage() {
+	return baselineCorrectorProcStep.getModule().getFinishedPercentage(
+		origDataFile);
+    }
 
-	@Override
-	public Object[] getCreatedObjects() {
-		return new Object[]{correctedDataFile};
-	}
+    @Override
+    public void run() {
 
-	@Override
-	public void run() {
+	// Update the status of this task
+	setStatus(TaskStatus.PROCESSING);
 
-		// Update the status of this task
-		setStatus(TaskStatus.PROCESSING);
+	try {
 
-		try {
+	    // Check R availability, by trying to open the connection
+	    try {
+		String[] reqPackages = this.baselineCorrectorProcStep
+			.getModule().getRequiredRPackages();
+		this.rSession = new RSession(this.rEngineType, reqPackages);
+		this.rSession.open();
+	    } catch (Throwable t) {
+		throw new IllegalStateException(t.getMessage());
+	    }
 
-			// Check R availability, by trying to open the connection
-			try {
-				String[] reqPackages = this.baselineCorrectorProcStep.getModule().getRequiredRPackages();
-				this.rSession = new RSession(this.rEngineType, reqPackages);
-				this.rSession.open();
-			}
-			catch (Throwable t) {
-				throw new IllegalStateException(t.getMessage());
-			}
+	    // Check & load required R packages
+	    String missingPackage = null;
+	    missingPackage = this.rSession.loadRequiredPackages();
+	    if (missingPackage != null) {
+		String msg = "The \""
+			+ this.baselineCorrectorProcStep.getModule().getName()
+			+ "\" requires "
+			+ "the \""
+			+ missingPackage
+			+ "\" R package, which couldn't be loaded - is it installed in R?";
+		throw new IllegalStateException(msg);
+	    }
 
-			// Check & load required R packages
-			String missingPackage = null;
-			missingPackage = this.rSession.loadRequiredPackages();
-			if (missingPackage != null) {
-				String msg = "The \"" + this.baselineCorrectorProcStep.getModule().getName() + "\" requires " +
-						"the \"" + missingPackage + "\" R package, which couldn't be loaded - is it installed in R?";
-				throw new IllegalStateException(msg);
-			}
+	    this.baselineCorrectorProcStep.getModule().initProgress(
+		    origDataFile);
 
-			this.baselineCorrectorProcStep.getModule().initProgress(origDataFile);
+	    final RawDataFile correctedDataFile = this.baselineCorrectorProcStep
+		    .getModule().correctDatafile(this.rSession, origDataFile,
+			    baselineCorrectorProcStep.getParameterSet(),
+			    this.commonParameters);
 
-			final RawDataFile correctedDataFile = 
-					this.baselineCorrectorProcStep.getModule().correctDatafile(this.rSession, origDataFile, 
-							baselineCorrectorProcStep.getParameterSet(), this.commonParameters);
+	    // If this task was canceled, stop processing
+	    if (!isCanceled() && correctedDataFile != null) {
 
-			// If this task was canceled, stop processing
-			if (!isCanceled() && correctedDataFile != null) {
+		// Add the newly created file to the project
+		final MZmineProject project = MZmineCore.getCurrentProject();
+		project.addFile(correctedDataFile);
 
-				// Add the newly created file to the project
-				final MZmineProject project = MZmineCore.getCurrentProject();
-				project.addFile(correctedDataFile);
-
-				// Remove the original data file if requested
-				if (removeOriginal) {
-					project.removeFile(origDataFile);
-				}
-
-				// Set task status to FINISHED
-				setStatus(TaskStatus.FINISHED);
-
-				LOG.info("Baseline corrected " + origDataFile.getName());
-			}
-			// Turn off R instance
-			this.rSession.close();
-
-		} catch (Throwable t) {
-
-			this.baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile, true);
-
-			if (!this.userCanceled) {
-				LOG.log(Level.SEVERE, "Unknown baseline correction error.", t);
-				errorMessage = t.getMessage();
-				setStatus(TaskStatus.ERROR);
-				// Turn off R instance
-				this.rSession.close();
-			} else {
-				this.rSession.close();
-			}
+		// Remove the original data file if requested
+		if (removeOriginal) {
+		    project.removeFile(origDataFile);
 		}
 
-		this.baselineCorrectorProcStep.getModule().clearProgress(origDataFile);
-	}
+		// Set task status to FINISHED
+		setStatus(TaskStatus.FINISHED);
 
-	@Override
-	public void cancel() {
-		
-		this.userCanceled = true;
-		
+		LOG.info("Baseline corrected " + origDataFile.getName());
+	    }
+	    // Turn off R instance
+	    this.rSession.close();
+
+	} catch (Throwable t) {
+
+	    this.baselineCorrectorProcStep.getModule().setAbortProcessing(
+		    origDataFile, true);
+
+	    if (!this.userCanceled) {
+		LOG.log(Level.SEVERE, "Unknown baseline correction error.", t);
+		setErrorMessage(t.getMessage());
+		setStatus(TaskStatus.ERROR);
 		// Turn off R instance
 		this.rSession.close();
-		
-		// Ask running module to stop
-		baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile, true);
-
-		super.cancel();
+	    } else {
+		this.rSession.close();
+	    }
 	}
 
+	this.baselineCorrectorProcStep.getModule().clearProgress(origDataFile);
+    }
+
+    @Override
+    public void cancel() {
+
+	this.userCanceled = true;
+
+	// Turn off R instance
+	this.rSession.close();
+
+	// Ask running module to stop
+	baselineCorrectorProcStep.getModule().setAbortProcessing(origDataFile,
+		true);
+
+	super.cancel();
+    }
 
 }

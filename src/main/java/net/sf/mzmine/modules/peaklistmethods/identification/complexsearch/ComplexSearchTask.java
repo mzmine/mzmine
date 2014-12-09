@@ -57,17 +57,17 @@ public class ComplexSearchTask extends AbstractTask {
      */
     public ComplexSearchTask(ParameterSet parameters, PeakList peakList) {
 
-        this.peakList = peakList;
-        this.parameters = parameters;
+	this.peakList = peakList;
+	this.parameters = parameters;
 
-        ionType = parameters.getParameter(
-                ComplexSearchParameters.ionizationMethod).getValue();
-        rtTolerance = parameters.getParameter(
-                ComplexSearchParameters.rtTolerance).getValue();
-        mzTolerance = parameters.getParameter(
-                ComplexSearchParameters.mzTolerance).getValue();
-        maxComplexHeight = parameters.getParameter(
-                ComplexSearchParameters.maxComplexHeight).getValue();
+	ionType = parameters.getParameter(
+		ComplexSearchParameters.ionizationMethod).getValue();
+	rtTolerance = parameters.getParameter(
+		ComplexSearchParameters.rtTolerance).getValue();
+	mzTolerance = parameters.getParameter(
+		ComplexSearchParameters.mzTolerance).getValue();
+	maxComplexHeight = parameters.getParameter(
+		ComplexSearchParameters.maxComplexHeight).getValue();
 
     }
 
@@ -75,16 +75,16 @@ public class ComplexSearchTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        if (totalRows == 0)
-            return 0;
-        return ((double) finishedRows) / totalRows;
+	if (totalRows == 0)
+	    return 0;
+	return ((double) finishedRows) / totalRows;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Identification of complexes in " + peakList;
+	return "Identification of complexes in " + peakList;
     }
 
     /**
@@ -92,61 +92,61 @@ public class ComplexSearchTask extends AbstractTask {
      */
     public void run() {
 
-        setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
-        logger.info("Starting complex search in " + peakList);
+	logger.info("Starting complex search in " + peakList);
 
-        PeakListRow rows[] = peakList.getRows();
-        totalRows = rows.length;
+	PeakListRow rows[] = peakList.getRows();
+	totalRows = rows.length;
 
-        // Sort the array by m/z so we start with biggest peak (possible
-        // complex)
-        Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
-                SortingDirection.Descending));
+	// Sort the array by m/z so we start with biggest peak (possible
+	// complex)
+	Arrays.sort(rows, new PeakListRowSorter(SortingProperty.MZ,
+		SortingDirection.Descending));
 
-        // Compare each three rows against each other
-        for (int i = 0; i < totalRows; i++) {
+	// Compare each three rows against each other
+	for (int i = 0; i < totalRows; i++) {
 
-            Range testRTRange = rtTolerance.getToleranceRange(rows[i]
-                    .getAverageRT());
-            PeakListRow testRows[] = peakList
-                    .getRowsInsideScanRange(testRTRange);
+	    Range testRTRange = rtTolerance.getToleranceRange(rows[i]
+		    .getAverageRT());
+	    PeakListRow testRows[] = peakList
+		    .getRowsInsideScanRange(testRTRange);
 
-            for (int j = 0; j < testRows.length; j++) {
+	    for (int j = 0; j < testRows.length; j++) {
 
-                for (int k = j; k < testRows.length; k++) {
+		for (int k = j; k < testRows.length; k++) {
 
-                    // Task canceled?
-                    if (isCanceled())
-                        return;
+		    // Task canceled?
+		    if (isCanceled())
+			return;
 
-                    // To avoid finding a complex of the peak itself and another
-                    // very small m/z peak
-                    if ((rows[i] == testRows[j]) || (rows[i] == testRows[k]))
-                        continue;
+		    // To avoid finding a complex of the peak itself and another
+		    // very small m/z peak
+		    if ((rows[i] == testRows[j]) || (rows[i] == testRows[k]))
+			continue;
 
-                    if (checkComplex(rows[i], testRows[j], testRows[k]))
-                        addComplexInfo(rows[i], testRows[j], testRows[k]);
+		    if (checkComplex(rows[i], testRows[j], testRows[k]))
+			addComplexInfo(rows[i], testRows[j], testRows[k]);
 
-                }
+		}
 
-            }
+	    }
 
-            finishedRows++;
+	    finishedRows++;
 
-        }
+	}
 
-        // Add task description to peakList
-        ((SimplePeakList) peakList)
-                .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-                        "Identification of complexes", parameters));
+	// Add task description to peakList
+	((SimplePeakList) peakList)
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			"Identification of complexes", parameters));
 
-        // Repaint the window to reflect the change in the peak list
-        MZmineCore.getDesktop().getMainWindow().repaint();
+	// Repaint the window to reflect the change in the peak list
+	MZmineCore.getDesktop().getMainWindow().repaint();
 
-        setStatus(TaskStatus.FINISHED);
+	setStatus(TaskStatus.FINISHED);
 
-        logger.info("Finished complexes search in " + peakList);
+	logger.info("Finished complexes search in " + peakList);
 
     }
 
@@ -155,33 +155,33 @@ public class ComplexSearchTask extends AbstractTask {
      * 
      */
     private boolean checkComplex(PeakListRow complexRow, PeakListRow row1,
-            PeakListRow row2) {
+	    PeakListRow row2) {
 
-        // Check retention time condition
-        Range rtRange = rtTolerance
-                .getToleranceRange(complexRow.getAverageRT());
-        if (!rtRange.contains(row1.getAverageRT()))
-            return false;
-        if (!rtRange.contains(row2.getAverageRT()))
-            return false;
+	// Check retention time condition
+	Range rtRange = rtTolerance
+		.getToleranceRange(complexRow.getAverageRT());
+	if (!rtRange.contains(row1.getAverageRT()))
+	    return false;
+	if (!rtRange.contains(row2.getAverageRT()))
+	    return false;
 
-        // Check mass condition
-        double expectedMass = row1.getAverageMZ() + row2.getAverageMZ()
-                - (2 * ionType.getAddedMass());
-        double detectedMass = complexRow.getAverageMZ()
-                - ionType.getAddedMass();
-        Range mzRange = mzTolerance.getToleranceRange(detectedMass);
-        if (!mzRange.contains(expectedMass))
-            return false;
+	// Check mass condition
+	double expectedMass = row1.getAverageMZ() + row2.getAverageMZ()
+		- (2 * ionType.getAddedMass());
+	double detectedMass = complexRow.getAverageMZ()
+		- ionType.getAddedMass();
+	Range mzRange = mzTolerance.getToleranceRange(detectedMass);
+	if (!mzRange.contains(expectedMass))
+	    return false;
 
-        // Check height condition
-        if ((complexRow.getAverageHeight() > row1.getAverageHeight()
-                * maxComplexHeight)
-                || (complexRow.getAverageHeight() > row2.getAverageHeight()
-                        * maxComplexHeight))
-            return false;
+	// Check height condition
+	if ((complexRow.getAverageHeight() > row1.getAverageHeight()
+		* maxComplexHeight)
+		|| (complexRow.getAverageHeight() > row2.getAverageHeight()
+			* maxComplexHeight))
+	    return false;
 
-        return true;
+	return true;
 
     }
 
@@ -192,16 +192,12 @@ public class ComplexSearchTask extends AbstractTask {
      * @param fragmentRow
      */
     private void addComplexInfo(PeakListRow complexRow, PeakListRow row1,
-            PeakListRow row2) {
-        ComplexIdentity newIdentity = new ComplexIdentity(row1, row2);
-        complexRow.addPeakIdentity(newIdentity, false);
+	    PeakListRow row2) {
+	ComplexIdentity newIdentity = new ComplexIdentity(row1, row2);
+	complexRow.addPeakIdentity(newIdentity, false);
 
-        // Notify the GUI about the change in the project
-        MZmineCore.getCurrentProject().notifyObjectChanged(complexRow, false);
-    }
-
-    public Object[] getCreatedObjects() {
-        return null;
+	// Notify the GUI about the change in the project
+	MZmineCore.getCurrentProject().notifyObjectChanged(complexRow, false);
     }
 
 }

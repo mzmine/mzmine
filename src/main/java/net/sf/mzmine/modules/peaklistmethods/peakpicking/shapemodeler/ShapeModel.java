@@ -25,24 +25,24 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.shapemodeler.peakmodels
 
 public enum ShapeModel {
 
-	Gaussian("Gaussian", GaussianPeakModel.class),
-	EMG("Exponentially modified Gaussian", EMGPeakModel.class), 
-	Triangle("Triangle", TrianglePeakModel.class);
+    Gaussian("Gaussian", GaussianPeakModel.class), //
+    EMG("Exponentially modified Gaussian", EMGPeakModel.class), //
+    Triangle("Triangle", TrianglePeakModel.class);
 
-	private final String modelName;
-	private final Class modelClass;
+    private final String modelName;
+    private final Class<?> modelClass;
 
-	ShapeModel(String modelName, Class modelClass) {
-		this.modelName = modelName;
-		this.modelClass = modelClass;
-	}
+    ShapeModel(String modelName, Class<?> modelClass) {
+	this.modelName = modelName;
+	this.modelClass = modelClass;
+    }
 
-	public String getModelName() {
-		return modelName;
-	}
+    public String getModelName() {
+	return modelName;
+    }
 
-	public Class getModelClass() {
-		return modelClass;
-	}
+    public Class<?> getModelClass() {
+	return modelClass;
+    }
 
 }

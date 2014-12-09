@@ -58,6 +58,11 @@ import visad.java3d.MouseBehaviorJ3D;
 public class ThreeDVisualizerWindow extends JFrame implements
 	MouseWheelListener, ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger.
     private static final Logger LOG = Logger
 	    .getLogger(ThreeDVisualizerWindow.class.getName());
@@ -109,7 +114,7 @@ public class ThreeDVisualizerWindow extends JFrame implements
 	    final Range rt, final int rtRes, final Range mz, final int mzRes)
 	    throws VisADException, RemoteException {
 
-	super(file.getName());
+	super("3D view: [" + file.getName() + "]");
 
 	// Configure.
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -119,10 +124,6 @@ public class ThreeDVisualizerWindow extends JFrame implements
 	dataFile = file;
 	rtRange = rt;
 	mzRange = mz;
-
-	// Set title.
-	final String text = "[" + file + "]: 3D view";
-	setTitle(text);
 
 	// Create 3D display and configure its component.
 	display = new ThreeDDisplay();
@@ -136,7 +137,7 @@ public class ThreeDVisualizerWindow extends JFrame implements
 	// Layout panel.
 	setLayout(new BorderLayout());
 	add(plot3D, BorderLayout.CENTER);
-	add(createTitleLabel(msLevel, text), BorderLayout.NORTH);
+	add(createTitleLabel(msLevel, file.getName()), BorderLayout.NORTH);
 	add(new ThreeDToolBar(this), BorderLayout.EAST);
 	add(bottomPanel, BorderLayout.SOUTH);
 

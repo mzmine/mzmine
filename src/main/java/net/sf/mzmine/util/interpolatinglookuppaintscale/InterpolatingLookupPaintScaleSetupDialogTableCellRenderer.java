@@ -29,6 +29,10 @@ import javax.swing.table.DefaultTableCellRenderer;
 public class InterpolatingLookupPaintScaleSetupDialogTableCellRenderer extends
 		DefaultTableCellRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private TreeMap<Double, Color> lookupTable;
 
 	public InterpolatingLookupPaintScaleSetupDialogTableCellRenderer(

@@ -39,6 +39,11 @@ import net.sf.mzmine.main.MZmineCore;
 public class HelpButton extends JButton {
 
 	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+	/**
 	 * This constructor receives as parameter a help ID stored in HelpSet.
 	 * 
 	 * @param helpID

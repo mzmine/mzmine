@@ -46,7 +46,7 @@ public class ShoulderPeaksFilter {
 					ShoulderPeaksFilterParameters.peakModel).getValue();
 			if (type == null)
 				type = PeakModelType.GAUSS;
-			Class modelClass = type.getModelClass();
+			Class<?> modelClass = type.getModelClass();
 			peakModel = (PeakModel) modelClass.newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();

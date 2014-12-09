@@ -19,79 +19,146 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.parameters.Parameter;
+import net.sf.mzmine.main.MZmineCore;
+import net.sf.mzmine.parameters.UserParameter;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * 
  */
-public class PeakListsParameter implements Parameter<PeakList[]> {
+public class PeakListsParameter implements
+	UserParameter<String[], PeakListsComponent> {
 
-	private int minCount, maxCount;
-	private PeakList value[];
+    private int minCount, maxCount;
+    private String values[];
 
-	public PeakListsParameter() {
-		this(1, Integer.MAX_VALUE);
-	}
+    public PeakListsParameter() {
+	this(1, Integer.MAX_VALUE);
+    }
 
-	public PeakListsParameter(int minCount) {
-		this(minCount, Integer.MAX_VALUE);
-	}
+    public PeakListsParameter(int minCount) {
+	this(minCount, Integer.MAX_VALUE);
+    }
 
-	public PeakListsParameter(int minCount, int maxCount) {
-		this.minCount = minCount;
-		this.maxCount = maxCount;
-	}
+    public PeakListsParameter(int minCount, int maxCount) {
+	this.minCount = minCount;
+	this.maxCount = maxCount;
+    }
 
-	public PeakList[] getValue() {
-		return value;
-	}
+    @Override
+    public String[] getValue() {
+	return values;
+    }
 
-	public void setValue(PeakList newValue[]) {
-		this.value = newValue;
-	}
-
-	@Override
-	public PeakListsParameter cloneParameter() {
-		PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
-		copy.value = value;
-		return copy;
-	}
-
-	@Override
-	public String getName() {
-		return "Peak lists";
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-	}
-
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if (value == null) {
-			errorMessages.add("No peak list is selected");
-			return false;
+    public PeakList[] getMatchingPeakLists() {
+	if (values == null)
+	    return new PeakList[0];
+	PeakList allPeakLists[] = MZmineCore.getCurrentProject().getPeakLists();
+	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
+	plCheck: for (PeakList file : allPeakLists) {
+	    for (String singleValue : values) {
+		final String fileName = file.getName();
+		final String regex = "^" + singleValue.replace("*", ".*") + "$";
+		if (fileName.matches(regex)) {
+		    matchingPeakLists.add(file);
+		    continue plCheck;
 		}
-		if (value.length < minCount) {
-			errorMessages.add("At least " + minCount
-					+ " peak lists must be selected");
-			return false;
-		}
-		if (value.length > maxCount) {
-			errorMessages.add("Maximum " + maxCount
-					+ " peak lists may be selected");
-			return false;
-		}
-		return true;
+
+	    }
 	}
+	return matchingPeakLists.toArray(new PeakList[0]);
+    }
+
+    @Override
+    public void setValue(String newValue[]) {
+	this.values = newValue;
+    }
+
+    public void setValue(PeakList newValue[]) {
+	this.values = new String[newValue.length];
+	for (int i = 0; i < newValue.length; i++) {
+	    this.values[i] = newValue[i].getName();
+	}
+    }
+
+    @Override
+    public PeakListsParameter cloneParameter() {
+	PeakListsParameter copy = new PeakListsParameter(minCount, maxCount);
+	copy.values = values;
+	return copy;
+    }
+
+    @Override
+    public String getName() {
+	return "Peak lists (input)";
+    }
+
+    @Override
+    public String getDescription() {
+	return "Peak lists that this module will take as its input.";
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	PeakList matchingFiles[] = getMatchingPeakLists();
+	if (matchingFiles.length < minCount) {
+	    errorMessages.add("At least " + minCount
+		    + " peak lists must be selected");
+	    return false;
+	}
+	if (matchingFiles.length > maxCount) {
+	    errorMessages.add("Maximum " + maxCount
+		    + " peak lists may be selected");
+	    return false;
+	}
+	return true;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	ArrayList<String> newValues = new ArrayList<String>();
+	NodeList items = xmlElement.getElementsByTagName("item");
+	for (int i = 0; i < items.getLength(); i++) {
+	    String itemString = items.item(i).getTextContent();
+	    newValues.add(itemString);
+	}
+	this.values = newValues.toArray(new String[0]);
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (values == null)
+	    return;
+	Document parentDocument = xmlElement.getOwnerDocument();
+	for (String item : values) {
+	    Element newElement = parentDocument.createElement("item");
+	    newElement.setTextContent(item.toString());
+	    xmlElement.appendChild(newElement);
+	}
+    }
+
+    @Override
+    public PeakListsComponent createEditingComponent() {
+	final int rows = Math.min(4, maxCount);
+	return new PeakListsComponent(rows);
+    }
+
+    @Override
+    public void setValueFromComponent(PeakListsComponent component) {
+	values = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(PeakListsComponent component,
+	    String[] newValue) {
+	component.setValue(newValue);
+    }
 
 }

@@ -57,7 +57,7 @@ public class LogratioPlotModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(CVParameters.peakLists)
-		.getValue();
+		.getMatchingPeakLists();
 
 	for (PeakList pl : peakLists) {
 

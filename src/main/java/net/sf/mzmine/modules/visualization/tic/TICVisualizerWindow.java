@@ -25,6 +25,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
@@ -45,15 +46,23 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.SimpleSorter;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 
+import com.google.common.base.Joiner;
+
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
 public class TICVisualizerWindow extends JFrame implements ActionListener {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     // CSV extension.
     private static final String CSV_EXTENSION = "csv";
@@ -80,7 +89,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	    int msLevel, Range rtRange, Range mzRange, Feature[] peaks,
 	    Map<Feature, String> peakLabels) {
 
-	super("");
+	super("Chromatogram loading...");
 
 	assert mzRange != null;
 	assert rtRange != null;
@@ -192,7 +201,12 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	// update window title
-	setTitle(ticDataSets.keySet().toString() + " chromatogram");
+	RawDataFile files[] = ticDataSets.keySet().toArray(new RawDataFile[0]);
+	Arrays.sort(files, new SimpleSorter());
+	String dataFileNames = Joiner.on(",").join(files);
+	setTitle("Chromatogram: [" + dataFileNames + "; "
+		+ mzFormat.format(mzRange.getMin()) + " - "
+		+ mzFormat.format(mzRange.getMax()) + " m/z" + "]");
 
 	// update plot title
 	ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
@@ -246,8 +260,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
 	int scanNumbers[] = newFile.getScanNumbers(msLevel, rtRange);
 	if (scanNumbers.length == 0) {
-	    desktop.displayErrorMessage("No scans found at MS level " + msLevel
-		    + " within given retention time range.");
+	    desktop.displayErrorMessage(this, "No scans found at MS level "
+		    + msLevel + " within given retention time range.");
 	    return;
 	}
 

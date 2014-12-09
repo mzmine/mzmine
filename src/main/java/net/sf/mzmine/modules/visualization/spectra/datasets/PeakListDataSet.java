@@ -35,6 +35,11 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class PeakListDataSet extends AbstractXYDataset implements
 	IntervalXYDataset {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private PeakList peakList;
 
     private Feature displayedPeaks[];

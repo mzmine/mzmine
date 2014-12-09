@@ -48,12 +48,17 @@ import org.jfree.data.xy.IntervalXYDataset;
 class IntensityPlotDataset extends AbstractDataset implements
 	StatisticalCategoryDataset, IntervalXYDataset {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private Object xAxisValueSource;
     private YAxisValueSource yAxisValueSource;
     private Comparable<?> xValues[];
     private RawDataFile selectedFiles[];
     private PeakListRow selectedRows[];
 
+    @SuppressWarnings("rawtypes")
     IntensityPlotDataset(ParameterSet parameters) {
 
 	this.xAxisValueSource = parameters.getParameter(
@@ -115,7 +120,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	}
 	if (xAxisValueSource instanceof ParameterWrapper) {
 	    HashSet<RawDataFile> files = new HashSet<RawDataFile>();
-	    UserParameter xAxisParameter = ((ParameterWrapper) xAxisValueSource)
+	    UserParameter<?, ?> xAxisParameter = ((ParameterWrapper) xAxisValueSource)
 		    .getParameter();
 	    MZmineProject project = MZmineCore.getCurrentProject();
 	    for (RawDataFile file : selectedFiles) {
@@ -132,8 +137,7 @@ class IntensityPlotDataset extends AbstractDataset implements
     }
 
     public Number getMeanValue(int row, int column) {
-	Feature[] peaks = getPeaks(xValues[column],
-		selectedRows[row]);
+	Feature[] peaks = getPeaks(xValues[column], selectedRows[row]);
 	HashSet<Double> values = new HashSet<Double>();
 	for (int i = 0; i < peaks.length; i++) {
 	    if (peaks[i] == null)
@@ -152,13 +156,13 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return mean;
     }
 
+    @SuppressWarnings("rawtypes")
     public Number getMeanValue(Comparable rowKey, Comparable columnKey) {
 	throw (new UnsupportedOperationException("Unsupported"));
     }
 
     public Number getStdDevValue(int row, int column) {
-	Feature[] peaks = getPeaks(xValues[column],
-		selectedRows[row]);
+	Feature[] peaks = getPeaks(xValues[column], selectedRows[row]);
 
 	// if we have only 1 peak, there is no standard deviation
 	if (peaks.length == 1)
@@ -180,10 +184,12 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return std;
     }
 
+    @SuppressWarnings("rawtypes")
     public Number getStdDevValue(Comparable rowKey, Comparable columnKey) {
 	throw (new UnsupportedOperationException("Unsupported"));
     }
 
+    @SuppressWarnings("rawtypes")
     public int getColumnIndex(Comparable column) {
 	for (int i = 0; i < selectedFiles.length; i++) {
 	    if (selectedFiles[i].getName().equals(column))
@@ -196,10 +202,12 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return xValues[column];
     }
 
+    @SuppressWarnings("rawtypes")
     public List getColumnKeys() {
 	return Arrays.asList(xValues);
     }
 
+    @SuppressWarnings("rawtypes")
     public int getRowIndex(Comparable row) {
 	for (int i = 0; i < selectedRows.length; i++) {
 	    if (selectedRows[i].toString().equals(row))
@@ -212,10 +220,12 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return selectedRows[row].toString();
     }
 
+    @SuppressWarnings("rawtypes")
     public List getRowKeys() {
 	return Arrays.asList(selectedRows);
     }
 
+    @SuppressWarnings("rawtypes")
     public Number getValue(Comparable rowKey, Comparable columnKey) {
 	return getMeanValue(rowKey, columnKey);
 
@@ -300,6 +310,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	return getRowKey(series);
     }
 
+    @SuppressWarnings("rawtypes")
     public int indexOf(Comparable value) {
 	return getRowIndex(value);
     }

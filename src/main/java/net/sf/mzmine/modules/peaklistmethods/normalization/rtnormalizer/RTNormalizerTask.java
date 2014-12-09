@@ -61,7 +61,7 @@ class RTNormalizerTask extends AbstractTask {
     public RTNormalizerTask(ParameterSet parameters) {
 
 	this.originalPeakLists = parameters.getParameter(
-		RTNormalizerParameters.peakLists).getValue();
+		RTNormalizerParameters.peakLists).getMatchingPeakLists();
 	this.parameters = parameters;
 
 	suffix = parameters.getParameter(RTNormalizerParameters.suffix)
@@ -169,7 +169,7 @@ class RTNormalizerTask extends AbstractTask {
 	// Check if we have any standards
 	if (goodStandards.size() == 0) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "No good standard peak was found";
+	    setErrorMessage("No good standard peak was found");
 	    return;
 	}
 
@@ -346,8 +346,7 @@ class RTNormalizerTask extends AbstractTask {
 	for (RawDataFile file : originalRow.getRawDataFiles()) {
 	    Feature originalPeak = originalRow.getPeak(file);
 	    if (originalPeak != null) {
-		SimpleFeature normalizedPeak = new SimpleFeature(
-			originalPeak);
+		SimpleFeature normalizedPeak = new SimpleFeature(originalPeak);
 		PeakUtils.copyPeakProperties(originalPeak, normalizedPeak);
 		normalizedPeak.setRT(normalizedRT);
 		normalizedRow.addPeak(file, normalizedPeak);
@@ -356,10 +355,6 @@ class RTNormalizerTask extends AbstractTask {
 
 	return normalizedRow;
 
-    }
-
-    public Object[] getCreatedObjects() {
-	return normalizedPeakLists;
     }
 
 }

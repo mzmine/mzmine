@@ -32,6 +32,10 @@ import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 public class ProjectionPlotWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private ProjectionPlotToolbar toolbar;
     private ProjectionPlotPanel plot;
 

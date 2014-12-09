@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters;
 
+import java.awt.Window;
 import java.io.IOException;
 
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -38,6 +39,10 @@ import net.sf.mzmine.util.Range;
 public class DataSetFilterSetupDialog extends
 	ParameterSetupDialogWithChromatogramPreview {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private ParameterSet filterParameters;
     private RawDataSetFilter rawDataFilter;
 
@@ -45,10 +50,11 @@ public class DataSetFilterSetupDialog extends
      * @param parameters
      * @param rawDataFilterTypeNumber
      */
-    public DataSetFilterSetupDialog(ParameterSet filterParameters,
+    public DataSetFilterSetupDialog(Window parent, boolean valueCheckRequired,
+	    ParameterSet filterParameters,
 	    Class<? extends RawDataSetFilter> filterClass) {
 
-	super(filterParameters);
+	super(parent, valueCheckRequired, filterParameters);
 	this.filterParameters = filterParameters;
 
 	try {

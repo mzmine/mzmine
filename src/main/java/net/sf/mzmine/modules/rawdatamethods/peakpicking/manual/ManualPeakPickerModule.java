@@ -43,7 +43,8 @@ public class ManualPeakPickerModule implements MZmineModule {
 
     public static ExitCode runManualDetection(RawDataFile dataFile,
 	    PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
-	return runManualDetection(new RawDataFile[] { dataFile }, peakListRow, peakList, table);
+	return runManualDetection(new RawDataFile[] { dataFile }, peakListRow,
+		peakList, table);
     }
 
     public static ExitCode runManualDetection(RawDataFile dataFiles[],
@@ -91,7 +92,8 @@ public class ManualPeakPickerModule implements MZmineModule {
 		    mzRange);
 	}
 
-	ExitCode exitCode = parameters.showSetupDialog();
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
 
 	if (exitCode != ExitCode.OK)
 	    return exitCode;

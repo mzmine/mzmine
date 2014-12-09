@@ -22,15 +22,12 @@ package net.sf.mzmine.modules.visualization.neutralloss;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Vector;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskEvent;
-import net.sf.mzmine.taskcontrol.TaskListener;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.Range;
 
@@ -42,10 +39,14 @@ import org.jfree.data.xy.XYDataset;
  * 
  */
 class NeutralLossDataSet extends AbstractXYDataset implements Task,
-        XYToolTipGenerator {
+	XYToolTipGenerator {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     private RawDataFile rawDataFile;
-    private LinkedList<TaskListener> taskListeners = new LinkedList<TaskListener>();
 
     private Range totalMZRange;
     private int numOfFragments;
@@ -63,176 +64,176 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
     private static int NEUTRALLOSS_LEVEL = 2;
 
     NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType,
-            Range rtRange, Range mzRange, int numOfFragments,
-            NeutralLossVisualizerWindow visualizer) {
+	    Range rtRange, Range mzRange, int numOfFragments,
+	    NeutralLossVisualizerWindow visualizer) {
 
-        this.rawDataFile = rawDataFile;
+	this.rawDataFile = rawDataFile;
 
-        totalMZRange = mzRange;
-        this.numOfFragments = numOfFragments;
-        this.xAxisType = xAxisType;
-        this.visualizer = visualizer;
+	totalMZRange = mzRange;
+	this.numOfFragments = numOfFragments;
+	this.xAxisType = xAxisType;
+	this.visualizer = visualizer;
 
-        // get MS/MS scans
-        scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
+	// get MS/MS scans
+	scanNumbers = rawDataFile.getScanNumbers(2, rtRange);
 
-        totalScans = scanNumbers.length;
+	totalScans = scanNumbers.length;
 
-        dataSeries = new HashMap<Integer, Vector<NeutralLossDataPoint>>();
+	dataSeries = new HashMap<Integer, Vector<NeutralLossDataPoint>>();
 
-        dataSeries.put(RAW_LEVEL, new Vector<NeutralLossDataPoint>(totalScans));
-        dataSeries.put(PRECURSOR_LEVEL, new Vector<NeutralLossDataPoint>(
-                totalScans));
-        dataSeries.put(NEUTRALLOSS_LEVEL, new Vector<NeutralLossDataPoint>(
-                totalScans));
+	dataSeries.put(RAW_LEVEL, new Vector<NeutralLossDataPoint>(totalScans));
+	dataSeries.put(PRECURSOR_LEVEL, new Vector<NeutralLossDataPoint>(
+		totalScans));
+	dataSeries.put(NEUTRALLOSS_LEVEL, new Vector<NeutralLossDataPoint>(
+		totalScans));
 
     }
 
     public void run() {
 
-        setStatus(TaskStatus.PROCESSING);
-        processedScans = 0;
+	setStatus(TaskStatus.PROCESSING);
+	processedScans = 0;
 
-        for (int scanNumber : scanNumbers) {
+	for (int scanNumber : scanNumbers) {
 
-            // Cancel?
-            if (status == TaskStatus.CANCELED)
-                return;
+	    // Cancel?
+	    if (status == TaskStatus.CANCELED)
+		return;
 
-            Scan scan = rawDataFile.getScan(scanNumber);
+	    Scan scan = rawDataFile.getScan(scanNumber);
 
-            // check parent m/z
-            if (!totalMZRange.contains(scan.getPrecursorMZ())) {
-                continue;
-            }
+	    // check parent m/z
+	    if (!totalMZRange.contains(scan.getPrecursorMZ())) {
+		continue;
+	    }
 
-            // get m/z and intensity values
-            DataPoint scanDataPoints[] = scan.getDataPoints();
+	    // get m/z and intensity values
+	    DataPoint scanDataPoints[] = scan.getDataPoints();
 
-            // skip empty scans
-            if (scan.getHighestDataPoint() == null) {
-                processedScans++;
-                continue;
-            }
+	    // skip empty scans
+	    if (scan.getHighestDataPoint() == null) {
+		processedScans++;
+		continue;
+	    }
 
-            // topPeaks will contain indexes to mzValues peaks of top intensity
-            int topPeaks[] = new int[numOfFragments];
-            Arrays.fill(topPeaks, -1);
+	    // topPeaks will contain indexes to mzValues peaks of top intensity
+	    int topPeaks[] = new int[numOfFragments];
+	    Arrays.fill(topPeaks, -1);
 
-            for (int i = 0; i < scanDataPoints.length; i++) {
+	    for (int i = 0; i < scanDataPoints.length; i++) {
 
-                fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
+		fragmentsCycle: for (int j = 0; j < numOfFragments; j++) {
 
-                    // Cancel?
-                    if (status == TaskStatus.CANCELED)
-                        return;
+		    // Cancel?
+		    if (status == TaskStatus.CANCELED)
+			return;
 
-                    if ((topPeaks[j] < 0)
-                            || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]]
-                                    .getIntensity()) {
+		    if ((topPeaks[j] < 0)
+			    || (scanDataPoints[i].getIntensity()) > scanDataPoints[topPeaks[j]]
+				    .getIntensity()) {
 
-                        // shift the top peaks array
-                        for (int k = numOfFragments - 1; k > j; k--)
-                            topPeaks[k] = topPeaks[k - 1];
+			// shift the top peaks array
+			for (int k = numOfFragments - 1; k > j; k--)
+			    topPeaks[k] = topPeaks[k - 1];
 
-                        // add the peak to the appropriate place
-                        topPeaks[j] = i;
+			// add the peak to the appropriate place
+			topPeaks[j] = i;
 
-                        break fragmentsCycle;
-                    }
-                }
+			break fragmentsCycle;
+		    }
+		}
 
-            }
+	    }
 
-            // add the data points
-            for (int i = 0; i < topPeaks.length; i++) {
+	    // add the data points
+	    for (int i = 0; i < topPeaks.length; i++) {
 
-                int peakIndex = topPeaks[i];
+		int peakIndex = topPeaks[i];
 
-                // if we have a very few peaks, the array may not be full
-                if (peakIndex < 0)
-                    break;
+		// if we have a very few peaks, the array may not be full
+		if (peakIndex < 0)
+		    break;
 
-                NeutralLossDataPoint newPoint = new NeutralLossDataPoint(
-                        scanDataPoints[peakIndex].getMZ(),
-                        scan.getScanNumber(), scan.getParentScanNumber(),
-                        scan.getPrecursorMZ(), scan.getPrecursorCharge(),
-                        scan.getRetentionTime());
+		NeutralLossDataPoint newPoint = new NeutralLossDataPoint(
+			scanDataPoints[peakIndex].getMZ(),
+			scan.getScanNumber(), scan.getParentScanNumber(),
+			scan.getPrecursorMZ(), scan.getPrecursorCharge(),
+			scan.getRetentionTime());
 
-                dataSeries.get(0).add(newPoint);
+		dataSeries.get(0).add(newPoint);
 
-            }
+	    }
 
-            processedScans++;
+	    processedScans++;
 
-        }
+	}
 
-        fireDatasetChanged();
-        setStatus(TaskStatus.FINISHED);
+	fireDatasetChanged();
+	setStatus(TaskStatus.FINISHED);
 
     }
 
     public void updateOnRangeDataPoints(String rangeType) {
 
-        NeutralLossPlot plot = visualizer.getPlot();
-        Range prRange = plot.getHighlightedPrecursorRange();
-        Range nlRange = plot.getHighlightedNeutralLossRange();
+	NeutralLossPlot plot = visualizer.getPlot();
+	Range prRange = plot.getHighlightedPrecursorRange();
+	Range nlRange = plot.getHighlightedNeutralLossRange();
 
-        // Set type of search
-        int level = NEUTRALLOSS_LEVEL;
-        if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
-            level = PRECURSOR_LEVEL;
+	// Set type of search
+	int level = NEUTRALLOSS_LEVEL;
+	if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
+	    level = PRECURSOR_LEVEL;
 
-        // Clean previous selection
-        dataSeries.get(level).clear();
+	// Clean previous selection
+	dataSeries.get(level).clear();
 
-        NeutralLossDataPoint point;
-        boolean b = false;
-        for (int i = 0; i < dataSeries.get(RAW_LEVEL).size(); i++) {
-            point = dataSeries.get(RAW_LEVEL).get(i);
-            // Verify if the point is on range
-            if (level == PRECURSOR_LEVEL)
-                b = prRange.contains(point.getPrecursorMass());
-            else
-                b = nlRange.contains(point.getNeutralLoss());
-            if (b)
-                dataSeries.get(level).add(point);
-        }
+	NeutralLossDataPoint point;
+	boolean b = false;
+	for (int i = 0; i < dataSeries.get(RAW_LEVEL).size(); i++) {
+	    point = dataSeries.get(RAW_LEVEL).get(i);
+	    // Verify if the point is on range
+	    if (level == PRECURSOR_LEVEL)
+		b = prRange.contains(point.getPrecursorMass());
+	    else
+		b = nlRange.contains(point.getNeutralLoss());
+	    if (b)
+		dataSeries.get(level).add(point);
+	}
 
-        fireDatasetChanged();
+	fireDatasetChanged();
     }
 
     /**
      * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesCount()
      */
     public int getSeriesCount() {
-        return dataSeries.size();
+	return dataSeries.size();
     }
 
     /**
      * @see org.jfree.data.general.AbstractSeriesDataset#getSeriesKey(int)
      */
     public Comparable<Integer> getSeriesKey(int series) {
-        return series;
+	return series;
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getItemCount(int)
      */
     public int getItemCount(int series) {
-        return dataSeries.get(series).size();
+	return dataSeries.get(series).size();
     }
 
     /**
      * @see org.jfree.data.xy.XYDataset#getX(int, int)
      */
     public Number getX(int series, int item) {
-        NeutralLossDataPoint point = dataSeries.get(series).get(item);
-        if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
-            double mz = point.getPrecursorMass();
-            return mz;
-        } else
-            return point.getRetentionTime();
+	NeutralLossDataPoint point = dataSeries.get(series).get(item);
+	if (xAxisType.equals(NeutralLossParameters.xAxisPrecursor)) {
+	    double mz = point.getPrecursorMass();
+	    return mz;
+	} else
+	    return point.getRetentionTime();
 
     }
 
@@ -240,32 +241,32 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
      * @see org.jfree.data.xy.XYDataset#getY(int, int)
      */
     public Number getY(int series, int item) {
-        NeutralLossDataPoint point = dataSeries.get(series).get(item);
-        return point.getNeutralLoss();
+	NeutralLossDataPoint point = dataSeries.get(series).get(item);
+	return point.getNeutralLoss();
     }
 
     public NeutralLossDataPoint getDataPoint(int item) {
-        return dataSeries.get(RAW_LEVEL).get(item);
+	return dataSeries.get(RAW_LEVEL).get(item);
     }
 
     public NeutralLossDataPoint getDataPoint(double xValue, double yValue) {
-        Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(
-                dataSeries.get(RAW_LEVEL));
-        Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
-        double currentX, currentY;
-        while (it.hasNext()) {
-            NeutralLossDataPoint point = it.next();
-            if (xAxisType == NeutralLossParameters.xAxisPrecursor)
-                currentX = point.getPrecursorMass();
-            else
-                currentX = point.getRetentionTime();
-            currentY = point.getNeutralLoss();
-            // check for equality
-            if ((Math.abs(currentX - xValue) < 0.00000001)
-                    && (Math.abs(currentY - yValue) < 0.00000001))
-                return point;
-        }
-        return null;
+	Vector<NeutralLossDataPoint> dataCopy = new Vector<NeutralLossDataPoint>(
+		dataSeries.get(RAW_LEVEL));
+	Iterator<NeutralLossDataPoint> it = dataCopy.iterator();
+	double currentX, currentY;
+	while (it.hasNext()) {
+	    NeutralLossDataPoint point = it.next();
+	    if (xAxisType == NeutralLossParameters.xAxisPrecursor)
+		currentX = point.getPrecursorMass();
+	    else
+		currentX = point.getRetentionTime();
+	    currentY = point.getNeutralLoss();
+	    // check for equality
+	    if ((Math.abs(currentX - xValue) < 0.00000001)
+		    && (Math.abs(currentY - yValue) < 0.00000001))
+		return point;
+	}
+	return null;
     }
 
     /**
@@ -273,73 +274,41 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
      *      int, int)
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
-        return dataSeries.get(series).get(item).getName();
+	return dataSeries.get(series).get(item).getName();
     }
 
     public void cancel() {
-        setStatus(TaskStatus.CANCELED);
+	setStatus(TaskStatus.CANCELED);
     }
 
     public String getErrorMessage() {
-        return null;
+	return null;
     }
 
     public double getFinishedPercentage() {
-        if (totalScans == 0)
-            return 0;
-        else
-            return ((double) processedScans / totalScans);
+	if (totalScans == 0)
+	    return 0;
+	else
+	    return ((double) processedScans / totalScans);
     }
 
     public TaskStatus getStatus() {
-        return status;
+	return status;
     }
 
     public String getTaskDescription() {
-        return "Updating neutral loss visualizer of " + rawDataFile;
-    }
-
-    public Object[] getCreatedObjects() {
-        return null;
-    }
-
-    /**
-     * Adds a TaskListener to this Task
-     * 
-     * @param t
-     *            The TaskListener to add
-     */
-    public void addTaskListener(TaskListener t) {
-        this.taskListeners.add(t);
-    }
-
-    /**
-     * Returns all of the TaskListeners which are listening to this task.
-     * 
-     * @return An array containing the TaskListeners
-     */
-    public TaskListener[] getTaskListeners() {
-        return this.taskListeners.toArray(new TaskListener[this.taskListeners
-                .size()]);
-    }
-
-    private void fireTaskEvent() {
-        TaskEvent event = new TaskEvent(this);
-        for (TaskListener t : this.taskListeners) {
-            t.statusChanged(event);
-        }
+	return "Updating neutral loss visualizer of " + rawDataFile;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#setStatus()
      */
     public void setStatus(TaskStatus newStatus) {
-        this.status = newStatus;
-        this.fireTaskEvent();
+	this.status = newStatus;
     }
 
     public boolean isCanceled() {
-        return status == TaskStatus.CANCELED;
+	return status == TaskStatus.CANCELED;
     }
 
 }

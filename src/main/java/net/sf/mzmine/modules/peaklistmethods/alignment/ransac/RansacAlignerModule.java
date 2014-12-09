@@ -51,7 +51,7 @@ public class RansacAlignerModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
-		RansacAlignerParameters.peakLists).getValue();
+		RansacAlignerParameters.peakLists).getMatchingPeakLists();
 
 	Task task = new RansacAlignerTask(peakLists, parameters);
 

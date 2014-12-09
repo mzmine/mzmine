@@ -57,13 +57,8 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
 	RawDataFile dataFiles[] = parameters.getParameter(
-		SpectraVisualizerParameters.dataFiles).getValue();
-
-	if ((dataFiles == null) || (dataFiles.length == 0)) {
-	    MZmineCore.getDesktop().displayErrorMessage(
-		    "Please select raw data file");
-	    return ExitCode.ERROR;
-	}
+		SpectraVisualizerParameters.dataFiles)
+		.getMatchingRawDataFiles();
 
 	int scanNumber = parameters.getParameter(
 		SpectraVisualizerParameters.scanNumber).getValue();
@@ -73,7 +68,6 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 	return ExitCode.OK;
     }
 
-    
     public static SpectraVisualizerWindow showNewSpectrumWindow(
 	    RawDataFile dataFile, int scanNumber) {
 	return showNewSpectrumWindow(dataFile, scanNumber, null, null, null);
@@ -98,6 +92,7 @@ public class SpectraVisualizerModule implements MZmineProcessingModule {
 
 	if (scan == null) {
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "Raw data file " + dataFile + " does not contain scan #"
 			    + scanNumber);
 	    return null;

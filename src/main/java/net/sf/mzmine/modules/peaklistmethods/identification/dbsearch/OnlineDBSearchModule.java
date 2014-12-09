@@ -56,7 +56,8 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	final PeakList[] peakLists = parameters.getParameter(
-		PeakListIdentificationParameters.peakLists).getValue();
+		PeakListIdentificationParameters.peakLists)
+		.getMatchingPeakLists();
 	for (final PeakList peakList : peakLists) {
 	    Task newTask = new PeakListIdentificationTask(parameters, peakList);
 	    tasks.add(newTask);
@@ -89,10 +90,12 @@ public class OnlineDBSearchModule implements MZmineProcessingModule {
 	}
 
 	// Run task.
-	if (parameters.showSetupDialog() == ExitCode.OK) {
+	if (parameters.showSetupDialog(MZmineCore.getDesktop().getMainWindow(),
+		true) == ExitCode.OK) {
 
 	    MZmineCore.getTaskController().addTask(
-		    new SingleRowIdentificationTask(parameters.cloneParameter(), row));
+		    new SingleRowIdentificationTask(parameters
+			    .cloneParameterSet(), row));
 	}
     }
 

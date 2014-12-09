@@ -34,7 +34,7 @@ import org.w3c.dom.Element;
  * Batch queue parameter.
  */
 public class BatchQueueParameter implements
-	UserParameter<BatchQueue, BatchSetupComponent>, Cloneable {
+	UserParameter<BatchQueue, BatchSetupComponent> {
 
     private BatchQueue value;
 
@@ -101,7 +101,7 @@ public class BatchQueueParameter implements
 	} else {
 
 	    // Check each step.
-	    for (final MZmineProcessingStep batchStep : value) {
+	    for (final MZmineProcessingStep<?> batchStep : value) {
 
 		// Check step's parameters.
 		final ParameterSet params = batchStep.getParameterSet();
@@ -124,13 +124,11 @@ public class BatchQueueParameter implements
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
-
 	value = BatchQueue.loadFromXml(xmlElement);
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
-
 	if (value != null) {
 	    value.saveToXml(xmlElement);
 	}

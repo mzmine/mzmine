@@ -52,12 +52,12 @@ public class GroupableTableHeaderUI extends BasicTableHeaderUI {
         Hashtable<ColumnGroup, Rectangle> h = new Hashtable<ColumnGroup, Rectangle>();
         int columnMargin = header.getColumnModel().getColumnMargin();
 
-        Enumeration enumeration = header.getColumnModel().getColumns();
+        Enumeration<?> enumeration = header.getColumnModel().getColumns();
         while (enumeration.hasMoreElements()) {
             cellRect.height = size.height;
             cellRect.y = 0;
             TableColumn aColumn = (TableColumn) enumeration.nextElement();
-            Enumeration cGroups = ((GroupableTableHeader) header).getColumnGroups(aColumn);
+            Enumeration<?> cGroups = ((GroupableTableHeader) header).getColumnGroups(aColumn);
             if (cGroups != null) {
                 int groupHeight = 0;
                 while (cGroups.hasMoreElements()) {
@@ -118,7 +118,7 @@ public class GroupableTableHeaderUI extends BasicTableHeaderUI {
         header.getTable(), 
         aColumn.getHeaderValue(), false, false,-1, column);
       int cHeight = comp.getPreferredSize().height;
-      Enumeration en = ((GroupableTableHeader)header).getColumnGroups(aColumn);      
+      Enumeration<?> en = ((GroupableTableHeader)header).getColumnGroups(aColumn);      
       if (en != null) {
         while (en.hasMoreElements()) {
           ColumnGroup cGroup = (ColumnGroup)en.nextElement();
@@ -141,7 +141,7 @@ public class GroupableTableHeaderUI extends BasicTableHeaderUI {
 
     public Dimension getPreferredSize(JComponent c) {
         long width = 0;
-        Enumeration enumeration = header.getColumnModel().getColumns();
+        Enumeration<?> enumeration = header.getColumnModel().getColumns();
         while (enumeration.hasMoreElements()) {
             TableColumn aColumn = (TableColumn) enumeration.nextElement();
             width = width + aColumn.getPreferredWidth();

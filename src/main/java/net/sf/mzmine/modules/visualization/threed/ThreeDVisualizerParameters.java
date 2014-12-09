@@ -33,7 +33,7 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
  */
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
 
     public static final MSLevelParameter msLevel = new MSLevelParameter();
 

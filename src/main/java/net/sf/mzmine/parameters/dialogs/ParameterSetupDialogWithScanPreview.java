@@ -22,6 +22,7 @@ package net.sf.mzmine.parameters.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 
@@ -55,12 +56,17 @@ import net.sf.mzmine.util.GUIUtils;
 public abstract class ParameterSetupDialogWithScanPreview extends
 	ParameterSetupDialog {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private RawDataFile[] dataFiles;
     private RawDataFile previewDataFile;
 
     // Dialog components
     private JPanel pnlPreviewFields;
-    private JComboBox comboDataFileName, comboScanNumber;
+    private JComboBox<RawDataFile> comboDataFileName;
+    private JComboBox<Integer> comboScanNumber;
     private JCheckBox previewCheckBox;
 
     // XYPlot
@@ -70,8 +76,9 @@ public abstract class ParameterSetupDialogWithScanPreview extends
      * @param parameters
      * @param massDetectorTypeNumber
      */
-    public ParameterSetupDialogWithScanPreview(ParameterSet parameters) {
-	super(parameters);
+    public ParameterSetupDialogWithScanPreview(Window parent,
+	    boolean valueCheckRequired, ParameterSet parameters) {
+	super(parent, valueCheckRequired, parameters);
     }
 
     /**
@@ -123,7 +130,8 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		int scanNumbers[] = previewDataFile.getScanNumbers();
 		Integer scanNumbersObj[] = CollectionUtils
 			.toIntegerArray(scanNumbers);
-		ComboBoxModel model = new DefaultComboBoxModel(scanNumbersObj);
+		ComboBoxModel<Integer> model = new DefaultComboBoxModel<Integer>(
+			scanNumbersObj);
 		comboScanNumber.setModel(model);
 		comboScanNumber.setSelectedIndex(0);
 		parametersChanged();
@@ -142,13 +150,11 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 		updateMinimumSize();
 		pack();
 		parametersChanged();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    } else {
 		mainPanel.remove(spectrumPlot);
 		pnlPreviewFields.setVisible(false);
 		updateMinimumSize();
 		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
 	    }
 	}
 
@@ -231,14 +237,14 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 	pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
 	pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-	comboDataFileName = new JComboBox(dataFiles);
+	comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
 	comboDataFileName.setSelectedItem(previewDataFile);
 	comboDataFileName.addActionListener(this);
 
 	int scanNumbers[] = previewDataFile.getScanNumbers();
 	Integer scanNumbersObj[] = CollectionUtils.toIntegerArray(scanNumbers);
 
-	comboScanNumber = new JComboBox(scanNumbersObj);
+	comboScanNumber = new JComboBox<Integer>(scanNumbersObj);
 	comboScanNumber.setSelectedIndex(0);
 	comboScanNumber.addActionListener(this);
 
@@ -279,8 +285,6 @@ public abstract class ParameterSetupDialogWithScanPreview extends
 
 	updateMinimumSize();
 	pack();
-
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
     }
 
 }

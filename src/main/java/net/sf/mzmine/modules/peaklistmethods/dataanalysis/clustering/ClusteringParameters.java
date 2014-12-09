@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
+import java.awt.Window;
+
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -61,9 +63,10 @@ public class ClusteringParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakList[] = getParameter(peakLists).getValue();
+	PeakList selectedPeakList[] = getParameter(peakLists)
+		.getMatchingPeakLists();
 
 	RawDataFile dataFileChoices[];
 	if (selectedPeakList.length == 1) {
@@ -83,6 +86,6 @@ public class ClusteringParameters extends SimpleParameterSet {
 		dataFileChoices);
 	getParameter(ProjectionPlotParameters.rows).setChoices(rowChoices);
 
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 }

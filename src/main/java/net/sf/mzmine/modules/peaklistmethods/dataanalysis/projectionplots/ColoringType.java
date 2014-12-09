@@ -31,13 +31,13 @@ public class ColoringType {
 			"Color by file");
 
 	private String name;
-	private UserParameter parameter;
+	private UserParameter<?, ?> parameter;
 
 	public ColoringType(String name) {
 		this.name = name;
 	}
 
-	public ColoringType(UserParameter parameter) {
+	public ColoringType(UserParameter<?, ?> parameter) {
 		this("Color by parameter " + parameter.getName());
 		this.parameter = parameter;
 	}
@@ -46,7 +46,7 @@ public class ColoringType {
 		return parameter != null;
 	}
 
-	public UserParameter getParameter() {
+	public UserParameter<?, ?> getParameter() {
 		return parameter;
 	}
 

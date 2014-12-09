@@ -30,6 +30,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private Paint[] paintsForGroups;
 
 	private final Color[] avoidColors = { new Color(255, 255, 85)};

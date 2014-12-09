@@ -36,6 +36,11 @@ import net.sf.mzmine.util.components.LabeledProgressBar;
  */
 public class TaskQueue extends AbstractTableModel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static final int DEFAULT_CAPACITY = 64;

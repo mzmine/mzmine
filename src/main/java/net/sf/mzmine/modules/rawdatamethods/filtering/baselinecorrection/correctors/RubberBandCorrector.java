@@ -21,8 +21,6 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correc
 
 import javax.annotation.Nonnull;
 
-import org.rosuda.JRI.Rengine;
-
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrector;
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.RSession;

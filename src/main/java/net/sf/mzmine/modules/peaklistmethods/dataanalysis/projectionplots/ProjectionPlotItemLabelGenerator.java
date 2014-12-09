@@ -28,6 +28,11 @@ import org.jfree.data.xy.XYZDataset;
 public class ProjectionPlotItemLabelGenerator extends
 		StandardXYItemLabelGenerator {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private enum LabelMode {
 		None, FileName, ParameterValue
 	}

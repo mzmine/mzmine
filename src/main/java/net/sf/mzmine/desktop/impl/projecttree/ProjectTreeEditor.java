@@ -33,6 +33,10 @@ import net.sf.mzmine.datamodel.RawDataFile;
 
 class ProjectTreeEditor extends DefaultCellEditor {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JTree projectTree;
 
 	ProjectTreeEditor(JTree projectTree) {

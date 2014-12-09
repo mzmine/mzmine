@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.localmaxima;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.MassDetectorSetupDialog;
 import net.sf.mzmine.parameters.UserParameter;
@@ -28,19 +30,19 @@ import net.sf.mzmine.util.ExitCode;
 
 public class LocalMaxMassDetectorParameters extends SimpleParameterSet {
 
-	public static final DoubleParameter noiseLevel = new DoubleParameter(
-			"Noise level",
-			"Intensities less than this value are interpreted as noise.",
-			MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter noiseLevel = new DoubleParameter(
+	    "Noise level",
+	    "Intensities less than this value are interpreted as noise.",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
-	public LocalMaxMassDetectorParameters() {
-		super(new UserParameter[] { noiseLevel });
-	}
+    public LocalMaxMassDetectorParameters() {
+	super(new UserParameter[] { noiseLevel });
+    }
 
-	public ExitCode showSetupDialog() {
-		MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(
-				LocalMaxMassDetector.class, this);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	MassDetectorSetupDialog dialog = new MassDetectorSetupDialog(parent,
+		valueCheckRequired, LocalMaxMassDetector.class, this);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
 }

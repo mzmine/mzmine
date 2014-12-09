@@ -35,6 +35,11 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class TICToolBar extends JToolBar {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Margins.
     private static final Insets MARGIN = new Insets(5, 5, 5, 5);
 

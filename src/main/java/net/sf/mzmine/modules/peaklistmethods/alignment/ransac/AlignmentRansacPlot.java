@@ -53,6 +53,10 @@ import org.jfree.ui.RectangleInsets;
 
 public class AlignmentRansacPlot extends ChartPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     // peak labels color
     private static final Color labelsColor = Color.darkGray;
     // grid color

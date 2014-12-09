@@ -33,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class AlignScansModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Align Scans (LC/MS or MS level 1)";
+    private static final String MODULE_NAME = "Align scans (LC/MS or MS level 1)";
     private static final String MODULE_DESCRIPTION = "This module align scans for small fluctuations correlating consecutive scans.";
 
     public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter();
@@ -54,11 +54,11 @@ public class AlignScansModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		new RawDataFilesParameter()).getValue();
+		new RawDataFilesParameter()).getMatchingRawDataFiles();
 
 	for (int i = 0; i < dataFiles.length; i++) {
 	    Task newTask = new AlignScansTask(dataFiles[i],
-		    parameters.cloneParameter());
+		    parameters.cloneParameterSet());
 	    tasks.add(newTask);
 	}
 

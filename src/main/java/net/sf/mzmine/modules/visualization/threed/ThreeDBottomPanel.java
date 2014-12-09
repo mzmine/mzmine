@@ -44,11 +44,16 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class ThreeDBottomPanel extends JPanel implements TreeModelListener {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
 	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-	private JComboBox peakListSelector;
+	private JComboBox<PeakList> peakListSelector;
 	private JCheckBox showIdChkBox;
 
 	private RawDataFile dataFile;
@@ -66,7 +71,7 @@ class ThreeDBottomPanel extends JPanel implements TreeModelListener {
 
 		GUIUtils.addLabel(this, "Peak list: ", SwingConstants.RIGHT);
 
-		peakListSelector = new JComboBox();
+		peakListSelector = new JComboBox<PeakList>();
 		peakListSelector.setBackground(Color.white);
 		peakListSelector.setFont(smallFont);
 		peakListSelector.addActionListener(masterFrame);

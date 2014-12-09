@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -50,9 +52,10 @@ public class SavitzkyGolayPeakDetectorParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
-		this, SavitzkyGolayPeakDetector.class);
+		parent, valueCheckRequired, this,
+		SavitzkyGolayPeakDetector.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

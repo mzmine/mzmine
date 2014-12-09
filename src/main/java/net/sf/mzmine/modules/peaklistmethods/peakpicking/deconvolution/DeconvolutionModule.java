@@ -65,7 +65,7 @@ public class DeconvolutionModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull final ParameterSet parameters,
                               @Nonnull final Collection<Task> tasks) {
 
-        for (final PeakList peakList : parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getValue()) {
+        for (final PeakList peakList : parameters.getParameter(DeconvolutionParameters.PEAK_LISTS).getMatchingPeakLists()) {
 
             tasks.add(new DeconvolutionTask(peakList, parameters));
         }

@@ -49,6 +49,11 @@ import net.sf.mzmine.util.components.GroupableTableHeader;
 public class PeakListTableColumnModel extends DefaultTableColumnModel implements
 		MouseListener {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private static final Font editFont = new Font("SansSerif", Font.PLAIN, 10);
 
 	private FormattedCellRenderer mzRenderer, rtRenderer, intensityRenderer;

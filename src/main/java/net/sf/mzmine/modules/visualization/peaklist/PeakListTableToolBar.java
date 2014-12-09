@@ -29,6 +29,10 @@ import net.sf.mzmine.util.GUIUtils;
 
 class PeakListTableToolBar extends JToolBar {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private static final Icon propertiesIcon = new ImageIcon("icons/propertiesicon.png");
 	private static final Icon widthIcon = new ImageIcon("icons/widthicon.png");
 	private static final Icon printIcon = new ImageIcon("icons/printicon.png");

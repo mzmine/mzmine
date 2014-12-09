@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.noiseamplitude;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -51,9 +53,10 @@ public class NoiseAmplitudePeakDetectorParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
-		this, NoiseAmplitudePeakDetector.class);
+		parent, valueCheckRequired, this,
+		NoiseAmplitudePeakDetector.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

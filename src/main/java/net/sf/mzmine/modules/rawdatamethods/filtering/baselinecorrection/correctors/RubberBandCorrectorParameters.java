@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors;
 
+import java.awt.Window;
 import java.text.DecimalFormat;
 
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrectorSetupDialog;
@@ -35,53 +36,55 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class RubberBandCorrectorParameters extends SimpleParameterSet {
 
-	/**
-	 * Noise level.
-	 */
-	public static final DoubleParameter NOISE = new DoubleParameter(
-			"noise",
-			"Ignored if \"auto noise\" is checked. Noise level to be taken into account.",
-			DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
+    /**
+     * Noise level.
+     */
+    public static final DoubleParameter NOISE = new DoubleParameter(
+	    "noise",
+	    "Ignored if \"auto noise\" is checked. Noise level to be taken into account.",
+	    DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
 
-	/**
-	 * Determine noise automatically.
-	 */
-	public static final BooleanParameter AUTO_NOISE = new BooleanParameter(
-			"auto noise",
-			"Determine noise level automatically (from lower intensity scan).",
-			false);
-	
-	/**
-	 * Degree of Freedom.
-	 */
-	public static final DoubleParameter DF = new DoubleParameter(
-			"df",
-			"Degree of freedom.",
-			DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
+    /**
+     * Determine noise automatically.
+     */
+    public static final BooleanParameter AUTO_NOISE = new BooleanParameter(
+	    "auto noise",
+	    "Determine noise level automatically (from lower intensity scan).",
+	    false);
 
-	/**
-	 * Interpolating with spline.
-	 */
-	public static final BooleanParameter SPLINE = new BooleanParameter(
-			"spline",
-			"Logical indicating whether the baseline should be an interpolating spline through the support points or piecewise linear.",
-			true);
+    /**
+     * Degree of Freedom.
+     */
+    public static final DoubleParameter DF = new DoubleParameter("df",
+	    "Degree of freedom.", DecimalFormat.getNumberInstance(), 0.0, 0.0,
+	    null);
 
-	/**
-	 * Bend additional feature.
-	 */
-	public static final DoubleParameter BEND_FACTOR = new DoubleParameter(
-			"bend factor",
-			"Does nothing if equals to zero. Helps fitting better with low \"df\". Try with 5^4, to start palying with...",
-			DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
+    /**
+     * Interpolating with spline.
+     */
+    public static final BooleanParameter SPLINE = new BooleanParameter(
+	    "spline",
+	    "Logical indicating whether the baseline should be an interpolating spline through the support points or piecewise linear.",
+	    true);
 
-	public RubberBandCorrectorParameters() {
-		super(new UserParameter[] { NOISE, AUTO_NOISE, DF, SPLINE, BEND_FACTOR});
-	}
+    /**
+     * Bend additional feature.
+     */
+    public static final DoubleParameter BEND_FACTOR = new DoubleParameter(
+	    "bend factor",
+	    "Does nothing if equals to zero. Helps fitting better with low \"df\". Try with 5^4, to start palying with...",
+	    DecimalFormat.getNumberInstance(), 0.0, 0.0, null);
 
-	public ExitCode showSetupDialog() {
-		BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(this, RubberBandCorrector.class);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    public RubberBandCorrectorParameters() {
+	super(
+		new UserParameter[] { NOISE, AUTO_NOISE, DF, SPLINE,
+			BEND_FACTOR });
+    }
+
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
+		parent, valueCheckRequired, this, RubberBandCorrector.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
 }

@@ -19,15 +19,9 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 
@@ -35,25 +29,25 @@ public class MascotSearchTask extends AbstractTask {
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private static int MIN_MSMS_LEVEL = 2;
 
 	private int finishedRows, totalRows;
 
 	private PeakList pp;
-
+	/**
+	private static int MIN_MSMS_LEVEL = 2;
 	private MascotParameters parameters;
 	private String submisionString;
 	private File tmpFile;
 	private String details = null;
 	private static final String MGFIDENT="RowIdx";
 
-	/**
+
 	 * The default constructor
 	 * @param parameters
 	 *            the search parameter
 	 * @param peakList
 	 *            the peak list
-	 */
+	
 	public MascotSearchTask(ParameterSet parameters, PeakList peakList) {
 
 		this.pp = peakList;
@@ -70,8 +64,8 @@ public class MascotSearchTask extends AbstractTask {
 	 *            the raw file
 	 * @param scan
 	 *            the scan
-	 */
-	private void writeMgf(PrintWriter writer, RawDataFile rawFile, Scan scan, Integer query) {
+	
+	public void writeMgf(PrintWriter writer, RawDataFile rawFile, Scan scan, Integer query) {
 		if (scan.getMSLevel() < MIN_MSMS_LEVEL) {
 			logger.warning("Scan " + scan.getScanNumber()
 					+ " is not a MS/MS scan."+scan.getMSLevel());
@@ -102,7 +96,7 @@ public class MascotSearchTask extends AbstractTask {
 			for (int i = 0; i < peaks.length; i++) {
 				writer.println(peaks[i].getMZ() + "\t"
 						+ peaks[i].getIntensity());
-			}*/
+			}
 		} else {
 			for (int k = 0; k < dps.length; k++) {
 				writer.println(dps[k].getMZ() + "\t" + dps[k].getIntensity());
@@ -125,10 +119,8 @@ public class MascotSearchTask extends AbstractTask {
 	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
 	 */
 	public String getTaskDescription() {
-		if (details == null) {
 			return "MS/MS identification of " + pp.getName();
-		}
-		return "MS/MS identification of " + pp.getName() + " (" + details + ")";
+		
 	}
 
 	/**
@@ -309,8 +301,4 @@ public class MascotSearchTask extends AbstractTask {
 		logger.info("Finished peaks search");
 	}
 
-
-	public Object[] getCreatedObjects() {
-		return null;
-	}
 }

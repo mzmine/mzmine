@@ -26,6 +26,10 @@ import javax.swing.table.AbstractTableModel;
 
 public class SQLColumnSettings extends AbstractTableModel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     List<String> columnNames = new ArrayList<String>();
     List<SQLExportDataType> columnTypes = new ArrayList<SQLExportDataType>();
     List<String> columnValues = new ArrayList<String>();

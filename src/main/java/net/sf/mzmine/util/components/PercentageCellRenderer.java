@@ -29,6 +29,10 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public class PercentageCellRenderer extends DefaultTableCellRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private final NumberFormat percentFormat;
 
 	public PercentageCellRenderer() {

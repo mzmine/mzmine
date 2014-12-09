@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.baseline;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolverSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -32,8 +34,8 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
 
     public static final DoubleParameter MIN_PEAK_HEIGHT = new DoubleParameter(
 	    "Min peak height",
-	    "Minimum acceptable peak height (absolute intensity)",
-	    MZmineCore.getConfiguration().getIntensityFormat());
+	    "Minimum acceptable peak height (absolute intensity)", MZmineCore
+		    .getConfiguration().getIntensityFormat());
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",
@@ -51,9 +53,9 @@ public class BaselinePeakDetectorParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	final PeakResolverSetupDialog dialog = new PeakResolverSetupDialog(
-		this, BaselinePeakDetector.class);
+		parent, valueCheckRequired, this, BaselinePeakDetector.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

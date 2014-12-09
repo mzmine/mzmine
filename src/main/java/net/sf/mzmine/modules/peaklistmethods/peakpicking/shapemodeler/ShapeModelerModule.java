@@ -51,7 +51,7 @@ public class ShapeModelerModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		ShapeModelerParameters.peakLists).getValue();
+		ShapeModelerParameters.peakLists).getMatchingPeakLists();
 
 	for (final PeakList peakList : peakLists) {
 	    Task newTask = new ShapeModelerTask(peakList, parameters);

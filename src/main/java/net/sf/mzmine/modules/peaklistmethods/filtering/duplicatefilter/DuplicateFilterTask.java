@@ -49,7 +49,8 @@ import net.sf.mzmine.util.SortingProperty;
 public class DuplicateFilterTask extends AbstractTask {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(DuplicateFilterTask.class.getName());
+    private static final Logger LOG = Logger
+	    .getLogger(DuplicateFilterTask.class.getName());
 
     // Original and resultant peak lists.
     private final PeakList peakList;
@@ -64,177 +65,188 @@ public class DuplicateFilterTask extends AbstractTask {
 
     public DuplicateFilterTask(final PeakList list, final ParameterSet params) {
 
-        // Initialize.
-        parameters = params;
-        peakList = list;
-        filteredPeakList = null;
-        totalRows = 0;
-        processedRows = 0;
+	// Initialize.
+	parameters = params;
+	peakList = list;
+	filteredPeakList = null;
+	totalRows = 0;
+	processedRows = 0;
     }
 
     @Override
     public String getTaskDescription() {
 
-        return "Filtering duplicate peak list rows of " + peakList;
+	return "Filtering duplicate peak list rows of " + peakList;
     }
 
     @Override
     public double getFinishedPercentage() {
 
-        return totalRows == 0 ? 0.0 : (double) processedRows / (double) totalRows;
-    }
-
-    @Override
-    public Object[] getCreatedObjects() {
-
-        return new Object[]{filteredPeakList};
+	return totalRows == 0 ? 0.0 : (double) processedRows
+		/ (double) totalRows;
     }
 
     @Override
     public void run() {
 
-        if (!isCanceled()) {
-            try {
+	if (!isCanceled()) {
+	    try {
 
-                LOG.info("Filtering duplicate peaks list rows of " + peakList);
-                setStatus(TaskStatus.PROCESSING);
+		LOG.info("Filtering duplicate peaks list rows of " + peakList);
+		setStatus(TaskStatus.PROCESSING);
 
-                // Filter out duplicates..
-                filteredPeakList = filterDuplicatePeakListRows(
-                        peakList,
-                        parameters.getParameter(DuplicateFilterParameters.suffix).getValue(),
-                        parameters.getParameter(DuplicateFilterParameters.mzDifferenceMax).getValue(),
-                        parameters.getParameter(DuplicateFilterParameters.rtDifferenceMax).getValue(),
-                        parameters.getParameter(DuplicateFilterParameters.requireSameIdentification).getValue());
+		// Filter out duplicates..
+		filteredPeakList = filterDuplicatePeakListRows(
+			peakList,
+			parameters.getParameter(
+				DuplicateFilterParameters.suffix).getValue(),
+			parameters.getParameter(
+				DuplicateFilterParameters.mzDifferenceMax)
+				.getValue(),
+			parameters.getParameter(
+				DuplicateFilterParameters.rtDifferenceMax)
+				.getValue(),
+			parameters
+				.getParameter(
+					DuplicateFilterParameters.requireSameIdentification)
+				.getValue());
 
-                if (!isCanceled()) {
+		if (!isCanceled()) {
 
-                    // Add new peakList to the project.
-                    final MZmineProject project = MZmineCore.getCurrentProject();
-                    project.addPeakList(filteredPeakList);
+		    // Add new peakList to the project.
+		    final MZmineProject project = MZmineCore
+			    .getCurrentProject();
+		    project.addPeakList(filteredPeakList);
 
-                    // Remove the original peakList if requested.
-                    if (parameters.getParameter(DuplicateFilterParameters.autoRemove).getValue()) {
+		    // Remove the original peakList if requested.
+		    if (parameters.getParameter(
+			    DuplicateFilterParameters.autoRemove).getValue()) {
 
-                        project.removePeakList(peakList);
-                    }
+			project.removePeakList(peakList);
+		    }
 
-                    // Finished.
-                    LOG.info("Finished filtering duplicate peak list rows on " + peakList);
-                    setStatus(TaskStatus.FINISHED);
-                }
-            }
-            catch (Throwable t) {
+		    // Finished.
+		    LOG.info("Finished filtering duplicate peak list rows on "
+			    + peakList);
+		    setStatus(TaskStatus.FINISHED);
+		}
+	    } catch (Throwable t) {
 
-                LOG.log(Level.SEVERE, "Duplicate filter error", t);
-                errorMessage = t.getMessage();
-                setStatus(TaskStatus.ERROR);
-            }
-        }
+		LOG.log(Level.SEVERE, "Duplicate filter error", t);
+		setErrorMessage(t.getMessage());
+		setStatus(TaskStatus.ERROR);
+	    }
+	}
     }
 
     /**
      * Filter our duplicate peak list rows.
      *
-     * @param origPeakList  the original peak list.
-     * @param suffix        the suffix to apply to the new peak list name.
-     * @param mzTolerance   m/z tolerance.
-     * @param rtTolerance   RT tolerance.
-     * @param requireSameId must duplicate peaks have the same identities?
+     * @param origPeakList
+     *            the original peak list.
+     * @param suffix
+     *            the suffix to apply to the new peak list name.
+     * @param mzTolerance
+     *            m/z tolerance.
+     * @param rtTolerance
+     *            RT tolerance.
+     * @param requireSameId
+     *            must duplicate peaks have the same identities?
      * @return the filtered peak list.
      */
     private PeakList filterDuplicatePeakListRows(final PeakList origPeakList,
-                                                 final String suffix,
-                                                 final MZTolerance mzTolerance,
-                                                 final RTTolerance rtTolerance,
-                                                 final boolean requireSameId) {
+	    final String suffix, final MZTolerance mzTolerance,
+	    final RTTolerance rtTolerance, final boolean requireSameId) {
 
-        final PeakListRow[] peakListRows = origPeakList.getRows();
-        final int rowCount = peakListRows.length;
+	final PeakListRow[] peakListRows = origPeakList.getRows();
+	final int rowCount = peakListRows.length;
 
-        Arrays.sort(peakListRows, new PeakListRowSorter(SortingProperty.Area, SortingDirection.Descending));
+	Arrays.sort(peakListRows, new PeakListRowSorter(SortingProperty.Area,
+		SortingDirection.Descending));
 
-        // Loop through all peak list rows
-        processedRows = 0;
-        totalRows = rowCount;
-        for (int firstRowIndex = 0;
-             !isCanceled() && firstRowIndex < rowCount;
-             firstRowIndex++) {
+	// Loop through all peak list rows
+	processedRows = 0;
+	totalRows = rowCount;
+	for (int firstRowIndex = 0; !isCanceled() && firstRowIndex < rowCount; firstRowIndex++) {
 
-            final PeakListRow firstRow = peakListRows[firstRowIndex];
-            if (firstRow != null) {
+	    final PeakListRow firstRow = peakListRows[firstRowIndex];
+	    if (firstRow != null) {
 
-                for (int secondRowIndex = firstRowIndex + 1;
-                     !isCanceled() && secondRowIndex < rowCount;
-                     secondRowIndex++) {
+		for (int secondRowIndex = firstRowIndex + 1; !isCanceled()
+			&& secondRowIndex < rowCount; secondRowIndex++) {
 
-                    final PeakListRow secondRow = peakListRows[secondRowIndex];
-                    if (secondRow != null) {
+		    final PeakListRow secondRow = peakListRows[secondRowIndex];
+		    if (secondRow != null) {
 
-                        // Compare identifications
-                        final boolean sameID = !requireSameId || PeakUtils.compareIdentities(firstRow, secondRow);
+			// Compare identifications
+			final boolean sameID = !requireSameId
+				|| PeakUtils.compareIdentities(firstRow,
+					secondRow);
 
-                        // Compare m/z
-                        final boolean sameMZ = mzTolerance.getToleranceRange(firstRow.getAverageMZ())
-                                .contains(secondRow.getAverageMZ());
+			// Compare m/z
+			final boolean sameMZ = mzTolerance.getToleranceRange(
+				firstRow.getAverageMZ()).contains(
+				secondRow.getAverageMZ());
 
-                        // Compare rt
-                        final boolean sameRT = rtTolerance.getToleranceRange(firstRow.getAverageRT())
-                                .contains(secondRow.getAverageRT());
+			// Compare rt
+			final boolean sameRT = rtTolerance.getToleranceRange(
+				firstRow.getAverageRT()).contains(
+				secondRow.getAverageRT());
 
-                        // Duplicate peaks?
-                        if (sameID && sameMZ && sameRT) {
+			// Duplicate peaks?
+			if (sameID && sameMZ && sameRT) {
 
-                            peakListRows[secondRowIndex] = null;
-                        }
-                    }
-                }
-            }
+			    peakListRows[secondRowIndex] = null;
+			}
+		    }
+		}
+	    }
 
-            processedRows++;
-        }
+	    processedRows++;
+	}
 
-        // Create the new peak list.
-        final PeakList newPeakList = new SimplePeakList(origPeakList + " " + suffix, origPeakList.getRawDataFiles());
+	// Create the new peak list.
+	final PeakList newPeakList = new SimplePeakList(origPeakList + " "
+		+ suffix, origPeakList.getRawDataFiles());
 
-        // Add all remaining rows to a new peak list.
-        for (int i = 0;
-             !isCanceled() && i < rowCount;
-             i++) {
+	// Add all remaining rows to a new peak list.
+	for (int i = 0; !isCanceled() && i < rowCount; i++) {
 
-            final PeakListRow row = peakListRows[i];
+	    final PeakListRow row = peakListRows[i];
 
-            if (row != null) {
+	    if (row != null) {
 
-                // Copy the peak list row.
-                final PeakListRow newRow = new SimplePeakListRow(row.getID());
-                PeakUtils.copyPeakListRowProperties(row, newRow);
+		// Copy the peak list row.
+		final PeakListRow newRow = new SimplePeakListRow(row.getID());
+		PeakUtils.copyPeakListRowProperties(row, newRow);
 
-                // Copy the peaks.
-                for (final Feature peak : row.getPeaks()) {
+		// Copy the peaks.
+		for (final Feature peak : row.getPeaks()) {
 
-                    final Feature newPeak = new SimpleFeature(peak);
-                    PeakUtils.copyPeakProperties(peak, newPeak);
-                    newRow.addPeak(peak.getDataFile(), newPeak);
-                }
+		    final Feature newPeak = new SimpleFeature(peak);
+		    PeakUtils.copyPeakProperties(peak, newPeak);
+		    newRow.addPeak(peak.getDataFile(), newPeak);
+		}
 
-                newPeakList.addRow(newRow);
-            }
-        }
+		newPeakList.addRow(newRow);
+	    }
+	}
 
-        if (!isCanceled()) {
+	if (!isCanceled()) {
 
-            // Load previous applied methods.
-            for (final PeakListAppliedMethod method : origPeakList.getAppliedMethods()) {
+	    // Load previous applied methods.
+	    for (final PeakListAppliedMethod method : origPeakList
+		    .getAppliedMethods()) {
 
-                newPeakList.addDescriptionOfAppliedTask(method);
-            }
+		newPeakList.addDescriptionOfAppliedTask(method);
+	    }
 
-            // Add task description to peakList
-            newPeakList.addDescriptionOfAppliedTask(
-                    new SimplePeakListAppliedMethod("Duplicate peak list rows filter", parameters));
-        }
+	    // Add task description to peakList
+	    newPeakList
+		    .addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			    "Duplicate peak list rows filter", parameters));
+	}
 
-        return newPeakList;
+	return newPeakList;
     }
 }

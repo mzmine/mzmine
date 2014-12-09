@@ -140,7 +140,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 		    .getModuleParameters(SpectraVisualizerModule.class);
 	    parameters.getParameter(SpectraVisualizerParameters.dataFiles)
 		    .setValue(selectedFiles);
-	    ExitCode exitCode = parameters.showSetupDialog();
+	    ExitCode exitCode = parameters.showSetupDialog(MZmineCore
+		    .getDesktop().getMainWindow(), true);
 	    if (exitCode == ExitCode.OK)
 		module.runModule(parameters, new ArrayList<Task>());
 	}
@@ -226,7 +227,8 @@ public class ProjectTreeMouseHandler extends MouseAdapter implements
 			String msg = "Cannot remove file " + file.getName()
 				+ ", because it is present in the peak list "
 				+ peakList.getName();
-			MZmineCore.getDesktop().displayErrorMessage(msg);
+			MZmineCore.getDesktop().displayErrorMessage(
+				MZmineCore.getDesktop().getMainWindow(), msg);
 			return;
 		    }
 		}

@@ -274,7 +274,7 @@ public class ScanSmoothingTask extends AbstractTask {
 		setStatus(TaskStatus.FINISHED);
 
 		if (mzpassed + timepassed < totalScans / 2) {
-		    logger.info("****** WARNING ****** It seems that parameters were not properly set. Scans processed : time="
+		    logger.warning("It seems that parameters were not properly set. Scans processed : time="
 			    + timepassed + ", mz=" + mzpassed);
 		}
 
@@ -286,10 +286,6 @@ public class ScanSmoothingTask extends AbstractTask {
 	    e.printStackTrace();
 	}
 
-    }
-
-    public Object[] getCreatedObjects() {
-	return new Object[] { newRDF };
     }
 
     static int findFirstMass(double mass, DataPoint mzValues[]) {

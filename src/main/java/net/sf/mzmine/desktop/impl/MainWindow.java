@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.Window;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
@@ -63,6 +64,11 @@ import net.sf.mzmine.util.TextUtils;
  */
 public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	WindowListener {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     static final String aboutHelpID = "net/sf/mzmine/desktop/help/AboutMZmine.html";
 
@@ -114,25 +120,25 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 
     /**
      */
-    public void displayMessage(String msg) {
-	displayMessage("Message", msg, JOptionPane.INFORMATION_MESSAGE);
+    public void displayMessage(Window window, String msg) {
+	displayMessage(window, "Message", msg, JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**
      */
-    public void displayMessage(String title, String msg) {
-	displayMessage(title, msg, JOptionPane.INFORMATION_MESSAGE);
+    public void displayMessage(Window window, String title, String msg) {
+	displayMessage(window, title, msg, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public void displayErrorMessage(String msg) {
-	displayMessage("Error", msg);
+    public void displayErrorMessage(Window window, String msg) {
+	displayMessage(window, "Error", msg);
     }
 
-    public void displayErrorMessage(String title, String msg) {
-	displayMessage(title, msg, JOptionPane.ERROR_MESSAGE);
+    public void displayErrorMessage(Window window, String title, String msg) {
+	displayMessage(window, title, msg, JOptionPane.ERROR_MESSAGE);
     }
 
-    public void displayMessage(String title, String msg, int type) {
+    public void displayMessage(Window window, String title, String msg, int type) {
 
 	assert msg != null;
 
@@ -144,7 +150,7 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	else
 	    wrappedMsg = TextUtils.wrapText(msg, 80);
 
-	JOptionPane.showMessageDialog(this, wrappedMsg, title, type);
+	JOptionPane.showMessageDialog(window, wrappedMsg, title, type);
     }
 
     public void addMenuItem(MZmineModuleCategory parentMenu, JMenuItem newItem) {
@@ -247,8 +253,8 @@ public class MainWindow extends JFrame implements MZmineModule, Desktop,
 	statusBar.setStatusText(text, textColor);
     }
 
-    public void displayException(Exception e) {
-	displayErrorMessage(ExceptionUtils.exceptionToString(e));
+    public void displayException(Window window, Exception e) {
+	displayErrorMessage(window, ExceptionUtils.exceptionToString(e));
     }
 
     public MainPanel getMainPanel() {

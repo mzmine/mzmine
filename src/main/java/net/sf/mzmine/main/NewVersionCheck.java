@@ -66,14 +66,16 @@ public class NewVersionCheck implements Runnable {
 	    if (checkType.equals(CheckType.MENU)) {
 		final String msg = "An error occured. Please make sure that you are connected to the internet or try again later.";
 		logger.info(msg);
-		desktop.displayMessage(msg);
+		desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+			msg);
 	    }
 	} else if (currentVersion.equals(newestVersion)
 		|| currentVersion.equals("0.0")) {
 	    if (checkType.equals(CheckType.MENU)) {
 		final String msg = "No updated version of MZmine is available.";
 		logger.info(msg);
-		desktop.displayMessage(msg);
+		desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+			msg);
 	    }
 	} else {
 	    final String msg = "An updated version is available: MZmine "
@@ -81,7 +83,8 @@ public class NewVersionCheck implements Runnable {
 	    final String msg2 = "Please download the newest version from: http://mzmine.sourceforge.net.";
 	    logger.info(msg);
 	    if (checkType.equals(CheckType.MENU)) {
-		desktop.displayMessage(msg + "\n" + msg2);
+		desktop.displayMessage(MZmineCore.getDesktop().getMainWindow(),
+			msg + "\n" + msg2);
 	    } else if (checkType.equals(CheckType.DESKTOP)) {
 		desktop.setStatusBarText(msg + ". " + msg2, Color.red);
 	    }

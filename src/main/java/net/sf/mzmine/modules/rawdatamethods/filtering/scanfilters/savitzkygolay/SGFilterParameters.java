@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.savitzkygolay;
 
+import java.awt.Window;
+
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -37,9 +39,9 @@ public class SGFilterParameters extends SimpleParameterSet {
 	super(new Parameter[] { datapoints });
     }
 
-    public ExitCode showSetupDialog() {
-	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(this,
-		SGFilter.class);
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+		valueCheckRequired, this, SGFilter.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

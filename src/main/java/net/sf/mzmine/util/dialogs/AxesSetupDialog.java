@@ -36,7 +36,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.ExitCode;
 
 import org.jfree.chart.axis.NumberAxis;
@@ -46,6 +45,10 @@ import org.jfree.chart.plot.XYPlot;
 
 public class AxesSetupDialog extends JDialog implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private ValueAxis xAxis;
     private ValueAxis yAxis;
 
@@ -179,7 +182,7 @@ public class AxesSetupDialog extends JDialog implements ActionListener {
 
 	setTitle("Please set ranges for axes");
 	setResizable(false);
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+	setLocationRelativeTo(parent);
 
 	getValuesToControls();
 

@@ -51,7 +51,7 @@ public class SameRangeGapFillerModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
-		SameRangeGapFillerParameters.peakLists).getValue();
+		SameRangeGapFillerParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new SameRangeTask(peakList, parameters);

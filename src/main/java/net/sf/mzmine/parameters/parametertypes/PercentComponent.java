@@ -27,6 +27,10 @@ import javax.swing.JTextField;
  */
 public class PercentComponent extends JPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JTextField percentField;
 
 	public PercentComponent() {

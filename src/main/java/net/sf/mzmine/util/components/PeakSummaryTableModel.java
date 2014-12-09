@@ -30,6 +30,10 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class PeakSummaryTableModel extends AbstractTableModel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private static NumberFormat mzFormat = MZmineCore.getConfiguration()
 	    .getMZFormat();
     private static NumberFormat rtFormat = MZmineCore.getConfiguration()

@@ -35,37 +35,35 @@ public class FormulaPredictionPeakListModule implements MZmineProcessingModule {
     private static final String MODULE_DESCRIPTION = "This method gets the predicted formula for each unknown compound";
 
     @Override
-    public @Nonnull
-    String getName() {
-        return MODULE_NAME;
+    public @Nonnull String getName() {
+	return MODULE_NAME;
     }
 
-    public @Nonnull
-    MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
-    public @Nonnull
-    Class<? extends ParameterSet> getParameterSetClass() {
-        return FormulaPredictionPeakListParameters.class;
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return FormulaPredictionPeakListParameters.class;
     }
 
-    public @Nonnull
-    String getDescription() {
-        return MODULE_DESCRIPTION;
+    public @Nonnull String getDescription() {
+	return MODULE_DESCRIPTION;
     }
 
     @Override
     public ExitCode runModule(@Nonnull ParameterSet parameters,
-            @Nonnull Collection<Task> tasks) {
-        PeakList peakLists[] = parameters.getParameter(
-                FormulaPredictionPeakListParameters.PEAK_LISTS).getValue();
+	    @Nonnull Collection<Task> tasks) {
+	PeakList peakLists[] = parameters.getParameter(
+		FormulaPredictionPeakListParameters.PEAK_LISTS)
+		.getMatchingPeakLists();
 
-        for (PeakList peakList : peakLists) {
-            Task newTask = new FormulaPredictionPeakListTask(peakList, parameters);
-            tasks.add(newTask);
-        }
-        return ExitCode.OK;
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new FormulaPredictionPeakListTask(peakList,
+		    parameters);
+	    tasks.add(newTask);
+	}
+	return ExitCode.OK;
     }
 }

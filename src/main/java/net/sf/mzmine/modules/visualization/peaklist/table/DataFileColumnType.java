@@ -24,32 +24,32 @@ import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 
 public enum DataFileColumnType {
 
-    STATUS("Status", FeatureStatus.class), 
-    PEAKSHAPE("Peak shape", Feature.class),
-    MZ("m/z", Double.class), 
-    RT("RT", Double.class),
-    DURATION("Duration", Double.class),
-    HEIGHT("Height", Double.class),
-    AREA("Area", Double.class),
+    STATUS("Status", FeatureStatus.class), //
+    PEAKSHAPE("Peak shape", Feature.class), //
+    MZ("m/z", Double.class), //
+    RT("RT", Double.class), //
+    DURATION("Duration", Double.class), //
+    HEIGHT("Height", Double.class), //
+    AREA("Area", Double.class), //
     CHARGE("Charge", Integer.class);
 
     private final String columnName;
-    private final Class columnClass;
+    private final Class<?> columnClass;
 
-    DataFileColumnType(String columnName, Class columnClass) {
-        this.columnName = columnName;
-        this.columnClass = columnClass;
+    DataFileColumnType(String columnName, Class<?> columnClass) {
+	this.columnName = columnName;
+	this.columnClass = columnClass;
     }
 
     public String getColumnName() {
-        return columnName;
+	return columnName;
     }
 
-    public Class getColumnClass() {
-        return columnClass;
+    public Class<?> getColumnClass() {
+	return columnClass;
     }
 
     public String toString() {
-    	return columnName;
+	return columnName;
     }
 }

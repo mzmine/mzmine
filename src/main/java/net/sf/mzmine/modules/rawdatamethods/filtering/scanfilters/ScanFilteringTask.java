@@ -52,7 +52,6 @@ class ScanFilteringTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    @SuppressWarnings("unchecked")
     ScanFilteringTask(RawDataFile dataFile, ParameterSet parameters) {
 
 	this.dataFile = dataFile;
@@ -144,15 +143,10 @@ class ScanFilteringTask extends AbstractTask {
 
 	} catch (IOException e) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = e.toString();
+	    setErrorMessage(e.toString());
 	    return;
 	}
 
     }
 
-    public Object[] getCreatedObjects() {
-	if (filteredRawDataFile == null)
-	    return null;
-	return new Object[] { filteredRawDataFile };
-    }
 }

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction;
 
+import java.awt.Window;
 import java.util.ArrayList;
 
 import javax.annotation.Nonnull;
@@ -192,11 +193,13 @@ public class IsotopePatternCalculator implements MZmineModule {
 
     }
 
-    public static IsotopePattern showIsotopePredictionDialog() {
+    public static IsotopePattern showIsotopePredictionDialog(Window parent,
+	    boolean valueCheckRequired) {
 
 	ParameterSet parameters = MZmineCore.getConfiguration()
 		.getModuleParameters(IsotopePatternCalculator.class);
-	ExitCode exitCode = parameters.showSetupDialog();
+	ExitCode exitCode = parameters.showSetupDialog(parent,
+		valueCheckRequired);
 	if (exitCode != ExitCode.OK)
 	    return null;
 
@@ -214,7 +217,8 @@ public class IsotopePatternCalculator implements MZmineModule {
 		    minAbundance, charge, polarity);
 	    return predictedPattern;
 	} catch (Exception e) {
-	    MZmineCore.getDesktop().displayException(e);
+	    MZmineCore.getDesktop().displayException(
+		    MZmineCore.getDesktop().getMainWindow(), e);
 	}
 
 	return null;

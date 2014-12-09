@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.parameters.impl;
 
+import java.awt.Window;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.logging.Level;
@@ -27,7 +28,6 @@ import java.util.logging.Logger;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.util.ExitCode;
 
@@ -49,14 +49,14 @@ public class SimpleParameterSet implements ParameterSet {
     private Parameter<?> parameters[];
 
     public SimpleParameterSet() {
-	this.parameters = new Parameter[0];
+	this.parameters = new Parameter<?>[0];
     }
 
-    public SimpleParameterSet(Parameter parameters[]) {
+    public SimpleParameterSet(Parameter<?> parameters[]) {
 	this.parameters = parameters;
     }
 
-    public Parameter[] getParameters() {
+    public Parameter<?>[] getParameters() {
 	return parameters;
     }
 
@@ -65,7 +65,7 @@ public class SimpleParameterSet implements ParameterSet {
 	for (int i = 0; i < list.getLength(); i++) {
 	    Element nextElement = (Element) list.item(i);
 	    String paramName = nextElement.getAttribute(nameAttribute);
-	    for (Parameter param : parameters) {
+	    for (Parameter<?> param : parameters) {
 		if (param.getName().equals(paramName)) {
 		    try {
 			param.loadValueFromXML(nextElement);
@@ -81,7 +81,7 @@ public class SimpleParameterSet implements ParameterSet {
 
     public void saveValuesToXML(Element xmlElement) {
 	Document parentDocument = xmlElement.getOwnerDocument();
-	for (Parameter param : parameters) {
+	for (Parameter<?> param : parameters) {
 	    Element paramElement = parentDocument
 		    .createElement(parameterElement);
 	    paramElement.setAttribute(nameAttribute, param.getName());
@@ -98,7 +98,7 @@ public class SimpleParameterSet implements ParameterSet {
 	StringBuilder s = new StringBuilder();
 	for (int i = 0; i < parameters.length; i++) {
 
-	    Parameter param = parameters[i];
+	    Parameter<?> param = parameters[i];
 	    Object value = param.getValue();
 
 	    if (value == null)
@@ -120,10 +120,10 @@ public class SimpleParameterSet implements ParameterSet {
     /**
      * Make a deep copy
      */
-    public ParameterSet cloneParameter() {
+    public ParameterSet cloneParameterSet() {
 
 	// Make a deep copy of the parameters
-	Parameter newParameters[] = new Parameter[parameters.length];
+	Parameter<?> newParameters[] = new Parameter[parameters.length];
 	for (int i = 0; i < parameters.length; i++) {
 	    newParameters[i] = parameters[i].cloneParameter();
 	}
@@ -132,7 +132,7 @@ public class SimpleParameterSet implements ParameterSet {
 	    // Do not make a new instance of SimpleParameterSet, but instead
 	    // clone the runtime class of this instance - runtime type may be
 	    // inherited class. This is important in order to keep the proper
-	    // behavior of showSetupDialog() method for cloned classes
+	    // behavior of showSetupDialog(xxx) method for cloned classes
 
 	    SimpleParameterSet newSet = this.getClass().newInstance();
 	    newSet.parameters = newParameters;
@@ -144,8 +144,8 @@ public class SimpleParameterSet implements ParameterSet {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Parameter> T getParameter(T parameter) {
-	for (Parameter p : parameters) {
+    public <T extends Parameter<?>> T getParameter(T parameter) {
+	for (Parameter<?> p : parameters) {
 	    if (p.getName().equals(parameter.getName()))
 		return (T) p;
 	}
@@ -154,31 +154,17 @@ public class SimpleParameterSet implements ParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	if ((parameters == null) || (parameters.length == 0))
 	    return ExitCode.OK;
-	ParameterSetupDialog dialog = new ParameterSetupDialog(this);
+	ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+		valueCheckRequired, this);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }
 
     @Override
-    public boolean checkUserParameterValues(Collection<String> errorMessages) {
-	boolean allParametersOK = true;
-	for (Parameter<?> p : parameters) {
-	    // Only check UserParameter instances, because other parameters
-	    // cannot be influenced by the dialog
-	    if (!(p instanceof UserParameter))
-		continue;
-	    boolean pOK = p.checkValue(errorMessages);
-	    if (!pOK)
-		allParametersOK = false;
-	}
-	return allParametersOK;
-    }
-
-    @Override
-    public boolean checkAllParameterValues(Collection<String> errorMessages) {
+    public boolean checkParameterValues(Collection<String> errorMessages) {
 	boolean allParametersOK = true;
 	for (Parameter<?> p : parameters) {
 	    boolean pOK = p.checkValue(errorMessages);

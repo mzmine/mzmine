@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.molstructure;
 
+import java.io.IOException;
 import java.io.StringReader;
 
 import org.openscience.cdk.ChemModel;
@@ -28,19 +29,25 @@ import org.openscience.jchempaint.JChemPaintViewerPanel;
 
 public class Structure2DComponent extends JChemPaintViewerPanel {
 
-	public Structure2DComponent(String structure) throws CDKException {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-		super(new ChemModel(), 0, 0, true, false, null);
+    public Structure2DComponent(String structure) throws CDKException,
+	    IOException {
 
-		// Load the structure
-		StringReader reader = new StringReader(structure);
+	super(new ChemModel(), 0, 0, true, false, null);
 
-		MDLReader molReader = new MDLReader(reader);
-		ChemModel chemModel = new ChemModel();
-		chemModel = (ChemModel) molReader.read(chemModel);
+	// Load the structure
+	StringReader reader = new StringReader(structure);
 
-		setChemModel(chemModel);
+	MDLReader molReader = new MDLReader(reader);
+	ChemModel chemModel = new ChemModel();
+	chemModel = (ChemModel) molReader.read(chemModel);
+	molReader.close();
+	setChemModel(chemModel);
 
-	}
+    }
 
 }

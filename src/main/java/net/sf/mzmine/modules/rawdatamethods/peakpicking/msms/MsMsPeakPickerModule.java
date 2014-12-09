@@ -51,7 +51,7 @@ public class MsMsPeakPickerModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		MsMsPeakPickerParameters.dataFiles).getValue();
+		MsMsPeakPickerParameters.dataFiles).getMatchingRawDataFiles();
 
 	for (RawDataFile dataFile : dataFiles) {
 	    Task newTask = new MsMsPeakPickingTask(dataFile, parameters);

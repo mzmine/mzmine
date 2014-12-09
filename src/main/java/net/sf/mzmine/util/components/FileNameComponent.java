@@ -40,6 +40,10 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class FileNameComponent extends JPanel implements ActionListener {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	public static final int TEXTFIELD_COLUMNS = 15;
 	public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 

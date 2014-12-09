@@ -37,81 +37,82 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
  */
 public class ScatterPlotAxisSelection {
 
-	private RawDataFile file;
-	private UserParameter parameter;
-	private Object parameterValue;
+    private RawDataFile file;
+    private UserParameter<?, ?> parameter;
+    private Object parameterValue;
 
-	public ScatterPlotAxisSelection(RawDataFile file) {
-		this.file = file;
+    public ScatterPlotAxisSelection(RawDataFile file) {
+	this.file = file;
+    }
+
+    public ScatterPlotAxisSelection(UserParameter<?, ?> parameter,
+	    Object parameterValue) {
+	this.parameter = parameter;
+	this.parameterValue = parameterValue;
+    }
+
+    public String toString() {
+	if (file != null)
+	    return file.getName();
+	return parameter.getName() + ": " + parameterValue;
+    }
+
+    public double getValue(PeakListRow row) {
+	if (file != null) {
+	    Feature peak = row.getPeak(file);
+	    if (peak == null)
+		return 0;
+	    else
+		return peak.getArea();
 	}
 
-	public ScatterPlotAxisSelection(UserParameter parameter,
-			Object parameterValue) {
-		this.parameter = parameter;
-		this.parameterValue = parameterValue;
-	}
-
-	public String toString() {
-		if (file != null)
-			return file.getName();
-		return parameter.getName() + ": " + parameterValue;
-	}
-
-	public double getValue(PeakListRow row) {
-		if (file != null) {
-			Feature peak = row.getPeak(file);
-			if (peak == null)
-				return 0;
-			else
-				return peak.getArea();
+	double totalArea = 0;
+	int numOfFiles = 0;
+	for (RawDataFile dataFile : row.getRawDataFiles()) {
+	    Object fileValue = MZmineCore.getCurrentProject()
+		    .getParameterValue(parameter, dataFile);
+	    if (fileValue == parameterValue) {
+		Feature peak = row.getPeak(dataFile);
+		if ((peak != null) && (peak.getArea() > 0)) {
+		    totalArea += peak.getArea();
+		    numOfFiles++;
 		}
+	    }
+	}
+	if (numOfFiles == 0)
+	    return 0;
+	totalArea /= numOfFiles;
+	return totalArea;
 
-		double totalArea = 0;
-		int numOfFiles = 0;
-		for (RawDataFile dataFile : row.getRawDataFiles()) {
-			Object fileValue = MZmineCore.getCurrentProject()
-					.getParameterValue(parameter, dataFile);
-			if (fileValue == parameterValue) {
-				Feature peak = row.getPeak(dataFile);
-				if ((peak != null) && (peak.getArea() > 0)) {
-					totalArea += peak.getArea();
-					numOfFiles++;
-				}
-			}
-		}
-		if (numOfFiles == 0)
-			return 0;
-		totalArea /= numOfFiles;
-		return totalArea;
+    }
 
+    static ScatterPlotAxisSelection[] generateOptionsForPeakList(
+	    PeakList peakList) {
+
+	Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
+
+	for (RawDataFile dataFile : peakList.getRawDataFiles()) {
+	    ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
+		    dataFile);
+	    options.add(newOption);
 	}
 
-	static ScatterPlotAxisSelection[] generateOptionsForPeakList(
-			PeakList peakList) {
+	for (UserParameter<?, ?> parameter : MZmineCore.getCurrentProject()
+		.getParameters()) {
+	    if (!(parameter instanceof ComboParameter))
+		continue;
 
-		Vector<ScatterPlotAxisSelection> options = new Vector<ScatterPlotAxisSelection>();
-
-		for (RawDataFile dataFile : peakList.getRawDataFiles()) {
-			ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
-					dataFile);
-			options.add(newOption);
-		}
-
-		for (UserParameter parameter : MZmineCore.getCurrentProject()
-				.getParameters()) {
-			if (!(parameter instanceof ComboParameter))
-				continue;
-
-			Object possibleValues[] = ((ComboParameter<Object>) parameter).getChoices();
-			for (Object value : possibleValues) {
-				ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
-						parameter, value);
-				options.add(newOption);
-			}
-		}
-
-		return options.toArray(new ScatterPlotAxisSelection[0]);
-
+	    Object possibleValues[] = ((ComboParameter<?>) parameter)
+		    .getChoices();
+	    for (Object value : possibleValues) {
+		ScatterPlotAxisSelection newOption = new ScatterPlotAxisSelection(
+			parameter, value);
+		options.add(newOption);
+	    }
 	}
+
+	return options.toArray(new ScatterPlotAxisSelection[0]);
+
+    }
 
 }

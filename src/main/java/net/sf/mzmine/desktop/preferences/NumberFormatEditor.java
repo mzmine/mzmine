@@ -28,6 +28,10 @@ import javax.swing.SpinnerNumberModel;
 
 public class NumberFormatEditor extends JPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private SpinnerNumberModel spinnerModel;
 	private JSpinner decimalsSpinner;
 	private JCheckBox exponentCheckbox;

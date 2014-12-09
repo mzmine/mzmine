@@ -22,6 +22,7 @@ package net.sf.mzmine.parameters.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.text.NumberFormat;
 
@@ -48,28 +49,34 @@ import net.sf.mzmine.util.Range;
  * This class extends ParameterSetupDialog class, including a TICPlot. This is
  * used to preview how the selected raw data filters work.
  * 
- * Slightly modified to add the possibility of switching to TIC (versus Base Peak) preview.
+ * Slightly modified to add the possibility of switching to TIC (versus Base
+ * Peak) preview.
  */
 public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	ParameterSetupDialog {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private RawDataFile[] dataFiles;
     private RawDataFile previewDataFile;
 
     // Dialog components
     private JPanel pnlPreviewFields;
-    private JComboBox comboDataFileName;
+    private JComboBox<RawDataFile> comboDataFileName;
     private RangeComponent rtRangeBox, mzRangeBox;
     private JCheckBox previewCheckBox;
 
-	// Show as TIC
-	private JComboBox ticViewComboBox;
+    // Show as TIC
+    private JComboBox<PlotType> ticViewComboBox;
 
     // XYPlot
     private TICPlot ticPlot;
 
-    public ParameterSetupDialogWithChromatogramPreview(ParameterSet parameters) {
-	super(parameters);
+    public ParameterSetupDialogWithChromatogramPreview(Window parent,
+	    boolean valueCheckRequired, ParameterSet parameters) {
+	super(parent, valueCheckRequired, parameters);
     }
 
     /**
@@ -101,14 +108,16 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
     public void actionPerformed(ActionEvent event) {
 
 	Object src = event.getSource();
-	
-		// Avoid calling twice "parametersChanged()" for the widgets specific to this inherited dialog class
-		if (src != comboDataFileName && src != previewCheckBox && src != ticViewComboBox) { 
-		super.actionPerformed(event); 
+
+	// Avoid calling twice "parametersChanged()" for the widgets specific to
+	// this inherited dialog class
+	if (src != comboDataFileName && src != previewCheckBox
+		&& src != ticViewComboBox) {
+	    super.actionPerformed(event);
 	}
 
-		// Specific widgets
-	
+	// Specific widgets
+
 	if (src == comboDataFileName) {
 	    int ind = comboDataFileName.getSelectedIndex();
 	    if (ind >= 0) {
@@ -119,50 +128,49 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	if (src == previewCheckBox) {
 	    if (previewCheckBox.isSelected()) {
-				showPreview();
-			} else {
-				hidePreview();
-			}
-		}
-		
-		if (src == ticViewComboBox) {
-			parametersChanged();
-		}
+		showPreview();
+	    } else {
+		hidePreview();
+	    }
+	}
 
+	if (src == ticViewComboBox) {
+	    parametersChanged();
 	}
-	public void showPreview() {
-		// Set the height of the preview to 200 cells, so it will span
-		// the whole vertical length of the dialog (buttons are at row
-		// no 100). Also, we set the weight to 10, so the preview
-		// component will consume most of the extra available space.
-		mainPanel.add(ticPlot, 3, 0, 1, 200, 10, 10,
-			GridBagConstraints.BOTH);
-		pnlPreviewFields.setVisible(true);
-		updateMinimumSize();
-		pack();
-		parametersChanged();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-		//previewCheckBox.setSelected(true);
-	}
-	public void hidePreview() {
-		mainPanel.remove(ticPlot);
-		pnlPreviewFields.setVisible(false);
-		updateMinimumSize();
-		pack();
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-		previewCheckBox.setSelected(false);
+
     }
 
-	public PlotType getPlotType() {
-		return (PlotType) (ticViewComboBox.getSelectedItem());
-	}
+    public void showPreview() {
+	// Set the height of the preview to 200 cells, so it will span
+	// the whole vertical length of the dialog (buttons are at row
+	// no 100). Also, we set the weight to 10, so the preview
+	// component will consume most of the extra available space.
+	mainPanel.add(ticPlot, 3, 0, 1, 200, 10, 10, GridBagConstraints.BOTH);
+	pnlPreviewFields.setVisible(true);
+	updateMinimumSize();
+	pack();
+	parametersChanged();
+	// previewCheckBox.setSelected(true);
+    }
 
-	public void setPlotType(PlotType plotType) {
-		ticViewComboBox.setSelectedItem(plotType);
-	}
+    public void hidePreview() {
+	mainPanel.remove(ticPlot);
+	pnlPreviewFields.setVisible(false);
+	updateMinimumSize();
+	pack();
+	previewCheckBox.setSelected(false);
+    }
 
-	public RawDataFile getPreviewDataFile() {
-		return this.previewDataFile;
+    public PlotType getPlotType() {
+	return (PlotType) (ticViewComboBox.getSelectedItem());
+    }
+
+    public void setPlotType(PlotType plotType) {
+	ticViewComboBox.setSelectedItem(plotType);
+    }
+
+    public RawDataFile getPreviewDataFile() {
+	return this.previewDataFile;
     }
 
     protected void parametersChanged() {
@@ -230,11 +238,11 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	pnlFlds.setLayout(new BoxLayout(pnlFlds, BoxLayout.Y_AXIS));
 	pnlFlds.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-	comboDataFileName = new JComboBox(dataFiles);
+	comboDataFileName = new JComboBox<RawDataFile>(dataFiles);
 	comboDataFileName.setSelectedItem(previewDataFile);
 	comboDataFileName.addActionListener(this);
 
-	ticViewComboBox = new JComboBox(PlotType.values());
+	ticViewComboBox = new JComboBox<PlotType>(PlotType.values());
 	ticViewComboBox.setSelectedItem(PlotType.TIC);
 	ticViewComboBox.addActionListener(this);
 
@@ -270,9 +278,6 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 
 	updateMinimumSize();
 	pack();
-
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
-
     }
 
 }

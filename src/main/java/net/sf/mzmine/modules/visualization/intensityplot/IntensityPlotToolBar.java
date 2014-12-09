@@ -43,6 +43,10 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
  */
 class IntensityPlotToolBar extends JToolBar implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     static final Icon pointsIcon = new ImageIcon("icons/pointsicon.png");
     static final Icon linesIcon = new ImageIcon("icons/linesicon.png");
     static final Icon axesIcon = new ImageIcon("icons/axesicon.png");

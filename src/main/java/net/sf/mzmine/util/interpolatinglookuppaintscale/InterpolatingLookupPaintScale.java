@@ -32,6 +32,11 @@ import org.jfree.util.PublicCloneable;
 public class InterpolatingLookupPaintScale implements PaintScale,
 		PublicCloneable, Serializable {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private class CompatibleEntry implements Map.Entry<Double, Color> {
 
 		private Double key;
@@ -58,6 +63,11 @@ public class InterpolatingLookupPaintScale implements PaintScale,
 	}
 
 	private class CompatibleTreeMap extends TreeMap<Double, Color> {
+
+		/**
+	     * 
+	     */
+	    private static final long serialVersionUID = 1L;
 
 		public Entry<Double, Color> floorEntry(Double value) {
 

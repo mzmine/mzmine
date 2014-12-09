@@ -24,33 +24,31 @@ import net.sf.mzmine.datamodel.PeakListRow;
 
 public enum CommonColumnType {
 
-    ROWID("ID", Integer.class),
-    AVERAGEMZ("m/z", Double.class),
-    AVERAGERT("RT", Double.class),
-    IDENTITY("Identity", PeakIdentity.class),
-    COMMENT("Comment", String.class),
+    ROWID("ID", Integer.class), //
+    AVERAGEMZ("m/z", Double.class), //
+    AVERAGERT("RT", Double.class), //
+    IDENTITY("Identity", PeakIdentity.class), //
+    COMMENT("Comment", String.class), //
     PEAKSHAPE("Peak shape", PeakListRow.class);
 
     private final String columnName;
-    private final Class columnClass;
+    private final Class<?> columnClass;
 
-    CommonColumnType(String columnName, Class columnClass) {
-        this.columnName = columnName;
-        this.columnClass = columnClass;
+    CommonColumnType(String columnName, Class<?> columnClass) {
+	this.columnName = columnName;
+	this.columnClass = columnClass;
     }
 
     public String getColumnName() {
-        return columnName;
+	return columnName;
     }
 
-    public Class getColumnClass() {
-        return columnClass;
+    public Class<?> getColumnClass() {
+	return columnClass;
     }
-    
+
     public String toString() {
-    	return columnName;
+	return columnName;
     }
 
 }
-
-

@@ -38,6 +38,10 @@ import net.sf.mzmine.main.MZmineCore;
 class AddFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
     private TICVisualizerWindow visualizer;
 

@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.correctors;
 
+import java.awt.Window;
 import java.text.DecimalFormat;
 
 import net.sf.mzmine.modules.rawdatamethods.filtering.baselinecorrection.BaselineCorrectorSetupDialog;
@@ -34,30 +35,30 @@ import net.sf.mzmine.util.ExitCode;
  */
 public class AsymmetryCorrectorParameters extends SimpleParameterSet {
 
-	/**
-	 * Smoothing factor.
-	 */
-	public static final DoubleParameter SMOOTHING = new DoubleParameter(
-			"Smoothing",
-			"The smoothing factor (>= 0), generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
-			DecimalFormat.getNumberInstance(), null, 0.0, null);
+    /**
+     * Smoothing factor.
+     */
+    public static final DoubleParameter SMOOTHING = new DoubleParameter(
+	    "Smoothing",
+	    "The smoothing factor (>= 0), generally 10^5 - 10^8, the larger it is, the smoother the baseline will be.",
+	    DecimalFormat.getNumberInstance(), null, 0.0, null);
 
-	/**
-	 * Asymmetry.
-	 */
-	public static final DoubleParameter ASYMMETRY = new DoubleParameter(
-			"Asymmetry",
-			"The weight (0 <= p <= 1) for points above the trend line, whereas 1-p is the weight for points below it. Naturally, p should be small for estimating baselines.",
-			DecimalFormat.getNumberInstance(), 0.001, 0.0, 1.0);
+    /**
+     * Asymmetry.
+     */
+    public static final DoubleParameter ASYMMETRY = new DoubleParameter(
+	    "Asymmetry",
+	    "The weight (0 <= p <= 1) for points above the trend line, whereas 1-p is the weight for points below it. Naturally, p should be small for estimating baselines.",
+	    DecimalFormat.getNumberInstance(), 0.001, 0.0, 1.0);
 
+    public AsymmetryCorrectorParameters() {
+	super(new UserParameter[] { SMOOTHING, ASYMMETRY });
+    }
 
-	public AsymmetryCorrectorParameters() {
-		super(new UserParameter[] { SMOOTHING, ASYMMETRY });
-	}
-
-	public ExitCode showSetupDialog() {
-		BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(this, AsymmetryCorrector.class);
-		dialog.setVisible(true);
-		return dialog.getExitCode();
-	}
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	BaselineCorrectorSetupDialog dialog = new BaselineCorrectorSetupDialog(
+		parent, valueCheckRequired, this, AsymmetryCorrector.class);
+	dialog.setVisible(true);
+	return dialog.getExitCode();
+    }
 }

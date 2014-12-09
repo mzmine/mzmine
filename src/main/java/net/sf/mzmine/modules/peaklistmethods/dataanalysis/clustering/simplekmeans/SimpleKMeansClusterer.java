@@ -62,7 +62,7 @@ public class SimpleKMeansClusterer implements ClusteringAlgorithm {
 	try {
 	    clusterer.setOptions(options);
 	    clusterer.buildClusterer(dataset);
-	    Enumeration e = dataset.enumerateInstances();
+	    Enumeration<?> e = dataset.enumerateInstances();
 	    while (e.hasMoreElements()) {
 		clusters.add(clusterer.clusterInstance((Instance) e
 			.nextElement()));

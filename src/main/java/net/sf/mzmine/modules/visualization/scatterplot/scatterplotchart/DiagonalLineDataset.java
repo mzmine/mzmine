@@ -23,6 +23,10 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class DiagonalLineDataset extends AbstractXYDataset {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private double min, max;
 	private int fold;
 

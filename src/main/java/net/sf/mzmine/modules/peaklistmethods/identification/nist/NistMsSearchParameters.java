@@ -128,7 +128,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
     }
 
     @Override
-    public boolean checkUserParameterValues(final Collection<String> errorMessages) {
+    public boolean checkParameterValues(final Collection<String> errorMessages) {
 
         // Unsupported OS.
         if (!isWindows()) {
@@ -136,7 +136,7 @@ public class NistMsSearchParameters extends SimpleParameterSet {
             return false;
         }
 
-        boolean result = super.checkUserParameterValues(errorMessages);
+        boolean result = super.checkParameterValues(errorMessages);
 
         // NIST MS Search home directory and executable.
         final File executable = getNistMsSearchExecutable();

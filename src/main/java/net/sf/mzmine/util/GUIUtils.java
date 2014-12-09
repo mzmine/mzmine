@@ -67,6 +67,11 @@ public class GUIUtils {
 		component.getInputMap().put(stroke, actionCommand);
 		component.getActionMap().put(actionCommand, new AbstractAction() {
 
+			/**
+		     * 
+		     */
+		    private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent event) {
 				ActionEvent newEvent = new ActionEvent(event.getSource(),
 						ActionEvent.ACTION_PERFORMED, actionCommand);

@@ -36,6 +36,11 @@ import javax.swing.event.MenuListener;
 public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Create the "Windows" menu for a MDI view
      */
     public WindowsMenu() {
@@ -59,6 +64,10 @@ public class WindowsMenu extends JMenu implements ActionListener, MenuListener {
 
     class FrameMenuItem extends JRadioButtonMenuItem {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Frame window;
 
 	FrameMenuItem(Frame window, ActionListener listener) {

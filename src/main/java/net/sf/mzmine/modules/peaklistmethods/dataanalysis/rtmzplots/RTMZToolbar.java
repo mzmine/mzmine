@@ -31,6 +31,10 @@ import net.sf.mzmine.util.GUIUtils;
 public class RTMZToolbar extends JToolBar {
 
 	
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 	static final Icon colorbarIcon = new ImageIcon("icons/colorbaricon.png");
 	

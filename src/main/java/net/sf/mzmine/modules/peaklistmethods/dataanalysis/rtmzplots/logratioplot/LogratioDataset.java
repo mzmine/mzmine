@@ -36,6 +36,11 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class LogratioDataset extends AbstractXYZDataset implements RTMZDataset  {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	
 	private double[] xCoords = new double[0];

@@ -35,6 +35,10 @@ import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterP
 
 public class ScatterPlotTopPanel extends JPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JLabel itemNameLabel, numOfDisplayedItems;
 
 	public ScatterPlotTopPanel() {

@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -41,16 +40,12 @@ import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.NetCDFRead
 import net.sf.mzmine.modules.rawdatamethods.rawdataimport.fileformats.XcaliburRawFileReadTask;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
-import net.sf.mzmine.taskcontrol.TaskEvent;
-import net.sf.mzmine.taskcontrol.TaskListener;
-import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExitCode;
 
 /**
  * Raw data import module
  */
-public class RawDataImportModule implements MZmineProcessingModule,
-	TaskListener {
+public class RawDataImportModule implements MZmineProcessingModule {
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -79,6 +74,7 @@ public class RawDataImportModule implements MZmineProcessingModule,
 
 	    if ((!fileNames[i].exists()) || (!fileNames[i].canRead())) {
 		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(),
 			"Cannot read file " + fileNames[i]);
 		logger.warning("Cannot read file " + fileNames[i]);
 		return ExitCode.ERROR;
@@ -90,6 +86,7 @@ public class RawDataImportModule implements MZmineProcessingModule,
 			.createNewFile(fileNames[i].getName());
 	    } catch (IOException e) {
 		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(),
 			"Could not create a new temporary file " + e);
 		logger.log(Level.SEVERE,
 			"Could not create a new temporary file ", e);
@@ -154,27 +151,11 @@ public class RawDataImportModule implements MZmineProcessingModule,
 		return ExitCode.ERROR;
 	    }
 
-	    newTask.addTaskListener(this);
 	    tasks.add(newTask);
 
 	}
 
 	return ExitCode.OK;
-    }
-
-    /**
-     * The statusChanged method of the TaskEvent interface
-     * 
-     * @param e
-     *            The TaskEvent which triggered this action
-     */
-    @Override
-    public void statusChanged(TaskEvent e) {
-	if (e.getStatus() == TaskStatus.FINISHED) {
-	    MZmineCore.getCurrentProject().addFile(
-		    (RawDataFile) e.getSource().getCreatedObjects()[0]);
-	}
-
     }
 
     @Override

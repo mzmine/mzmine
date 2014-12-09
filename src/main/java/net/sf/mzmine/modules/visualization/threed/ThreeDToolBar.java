@@ -34,6 +34,10 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class ThreeDToolBar extends JToolBar {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
     static final Icon annotationsIcon = new ImageIcon(
             "icons/annotationsicon.png");

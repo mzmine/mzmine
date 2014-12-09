@@ -75,9 +75,9 @@ public class OptionalModuleParameter implements
 	// If the option is selected, first check that the module has all
 	// parameters set
 	if ((value != null) && (value)) {
-	    for (Parameter p : embeddedParameters.getParameters()) {
+	    for (Parameter<?> p : embeddedParameters.getParameters()) {
 		if (p instanceof UserParameter) {
-		    UserParameter up = (UserParameter) p;
+		    UserParameter<?, ?> up = (UserParameter<?, ?>) p;
 		    Object upValue = up.getValue();
 		    if (upValue == null)
 			return null;
@@ -94,7 +94,7 @@ public class OptionalModuleParameter implements
 
     @Override
     public OptionalModuleParameter cloneParameter() {
-	final ParameterSet embeddedParametersClone = embeddedParameters.cloneParameter();
+	final ParameterSet embeddedParametersClone = embeddedParameters.cloneParameterSet();
 	final OptionalModuleParameter copy = new OptionalModuleParameter(name,
 		description, embeddedParametersClone);
 	copy.setValue(this.getValue());
@@ -133,7 +133,7 @@ public class OptionalModuleParameter implements
 	    return false;
 	}
 	if (value == true) {
-	    return embeddedParameters.checkUserParameterValues(errorMessages);
+	    return embeddedParameters.checkParameterValues(errorMessages);
 	}
 	return true;
     }

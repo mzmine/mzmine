@@ -72,6 +72,7 @@ class WorkerThread extends Thread {
 			+ actualTask.getTaskDescription() + ": " + errorMsg);
 
 		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(),
 			"Error of task " + actualTask.getTaskDescription(),
 			errorMsg);
 	    } else {
@@ -103,6 +104,7 @@ class WorkerThread extends Thread {
 	    e.printStackTrace();
 
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "Unhandled exception in task "
 			    + actualTask.getTaskDescription() + ": "
 			    + ExceptionUtils.exceptionToString(e));

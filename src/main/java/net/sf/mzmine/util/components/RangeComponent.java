@@ -34,6 +34,11 @@ import net.sf.mzmine.util.Range;
  */
 public class RangeComponent extends GridBagPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	public static final int TEXTFIELD_COLUMNS = 8;
 
 	private JFormattedTextField minTxtField, maxTxtField;

@@ -51,7 +51,7 @@ public class PeakFinderModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
-		PeakFinderParameters.peakLists).getValue();
+		PeakFinderParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new PeakFinderTask(peakList, parameters);

@@ -39,6 +39,10 @@ import net.sf.mzmine.util.Range;
 
 public class HistogramWindow extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private HistogramChart histogram;
 
     public HistogramWindow(ParameterSet parameters) {
@@ -46,7 +50,7 @@ public class HistogramWindow extends JFrame {
 	super("");
 
 	PeakList peakList = parameters.getParameter(
-		HistogramParameters.peakList).getValue()[0];
+		HistogramParameters.peakList).getMatchingPeakLists()[0];
 
 	this.setTitle("Histogram of " + peakList.getName());
 

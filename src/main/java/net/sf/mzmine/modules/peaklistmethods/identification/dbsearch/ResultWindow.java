@@ -52,201 +52,206 @@ import net.sf.mzmine.util.GUIUtils;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-	private ResultTableModel listElementModel;
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakListRow peakListRow;
-	private JTable IDList;
-	private Task searchTask;
+    private ResultTableModel listElementModel;
 
-	public ResultWindow(PeakListRow peakListRow, double searchedMass,
-			Task searchTask) {
+    private PeakListRow peakListRow;
+    private JTable IDList;
+    private Task searchTask;
 
-		super("");
+    public ResultWindow(PeakListRow peakListRow, double searchedMass,
+	    Task searchTask) {
 
-		this.peakListRow = peakListRow;
-		this.searchTask = searchTask;
+	super("");
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-		setBackground(Color.white);
+	this.peakListRow = peakListRow;
+	this.searchTask = searchTask;
 
-		JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
-		pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+	setBackground(Color.white);
 
-		pnlLabelsAndList.add(new JLabel("List of possible identities"),
-				BorderLayout.NORTH);
+	JPanel pnlLabelsAndList = new JPanel(new BorderLayout());
+	pnlLabelsAndList.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		listElementModel = new ResultTableModel(searchedMass);
-		IDList = new JTable();
-		IDList.setModel(listElementModel);
-		IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		IDList.getTableHeader().setReorderingAllowed(false);
+	pnlLabelsAndList.add(new JLabel("List of possible identities"),
+		BorderLayout.NORTH);
 
-		TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
-				listElementModel);
-		IDList.setRowSorter(sorter);
+	listElementModel = new ResultTableModel(searchedMass);
+	IDList = new JTable();
+	IDList.setModel(listElementModel);
+	IDList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	IDList.getTableHeader().setReorderingAllowed(false);
 
-		JScrollPane listScroller = new JScrollPane(IDList);
-		listScroller.setPreferredSize(new Dimension(350, 100));
-		listScroller.setAlignmentX(LEFT_ALIGNMENT);
-		JPanel listPanel = new JPanel();
-		listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
-		listPanel.add(listScroller);
-		listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
-		pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
+	TableRowSorter<ResultTableModel> sorter = new TableRowSorter<ResultTableModel>(
+		listElementModel);
+	IDList.setRowSorter(sorter);
 
-		JPanel pnlButtons = new JPanel();
-		pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
-		pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+	JScrollPane listScroller = new JScrollPane(IDList);
+	listScroller.setPreferredSize(new Dimension(350, 100));
+	listScroller.setAlignmentX(LEFT_ALIGNMENT);
+	JPanel listPanel = new JPanel();
+	listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.PAGE_AXIS));
+	listPanel.add(listScroller);
+	listPanel.setBorder(BorderFactory.createEmptyBorder(1, 1, 1, 1));
+	pnlLabelsAndList.add(listPanel, BorderLayout.CENTER);
 
-		GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
-		GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
-		GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
-				"ISOTOPE_VIEWER");
-		GUIUtils.addButton(pnlButtons, "Open browser", null, this, "BROWSER");
+	JPanel pnlButtons = new JPanel();
+	pnlButtons.setLayout(new BoxLayout(pnlButtons, BoxLayout.X_AXIS));
+	pnlButtons.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		setLayout(new BorderLayout());
-		setSize(500, 200);
-		add(pnlLabelsAndList, BorderLayout.CENTER);
-		add(pnlButtons, BorderLayout.SOUTH);
-		pack();
+	GUIUtils.addButton(pnlButtons, "Add identity", null, this, "ADD");
+	GUIUtils.addButton(pnlButtons, "View structure", null, this, "VIEWER");
+	GUIUtils.addButton(pnlButtons, "View isotope pattern", null, this,
+		"ISOTOPE_VIEWER");
+	GUIUtils.addButton(pnlButtons, "Open browser", null, this, "BROWSER");
+
+	setLayout(new BorderLayout());
+	setSize(500, 200);
+	add(pnlLabelsAndList, BorderLayout.CENTER);
+	add(pnlButtons, BorderLayout.SOUTH);
+	pack();
+
+    }
+
+    public void actionPerformed(ActionEvent e) {
+
+	String command = e.getActionCommand();
+
+	if (command.equals("ADD")) {
+
+	    int index = IDList.getSelectedRow();
+
+	    if (index < 0) {
+		MZmineCore.getDesktop().displayMessage(this,
+			"Select one result to add as compound identity");
+		return;
+
+	    }
+	    index = IDList.convertRowIndexToModel(index);
+
+	    peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
+		    false);
+
+	    // Notify the GUI about the change in the project
+	    MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
+		    false);
+
+	    // Repaint the window to reflect the change in the peak list
+	    MZmineCore.getDesktop().getMainWindow().repaint();
+
+	    dispose();
+	}
+
+	if (command.equals("VIEWER")) {
+
+	    int index = IDList.getSelectedRow();
+
+	    if (index < 0) {
+		MZmineCore.getDesktop().displayMessage(this,
+			"Select one result to display molecule structure");
+		return;
+	    }
+	    index = IDList.convertRowIndexToModel(index);
+
+	    DBCompound compound = listElementModel.getCompoundAt(index);
+	    URL url2D = compound.get2DStructureURL();
+	    URL url3D = compound.get3DStructureURL();
+	    String name = compound.getName() + " ("
+		    + compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
+	    MolStructureViewer viewer = new MolStructureViewer(name, url2D,
+		    url3D);
+	    viewer.setVisible(true);
 
 	}
 
-	public void actionPerformed(ActionEvent e) {
+	if (command.equals("ISOTOPE_VIEWER")) {
 
-		String command = e.getActionCommand();
+	    int index = IDList.getSelectedRow();
 
-		if (command.equals("ADD")) {
+	    if (index < 0) {
+		MZmineCore.getDesktop().displayMessage(this,
+			"Select one result to display the isotope pattern");
+		return;
+	    }
 
-			int index = IDList.getSelectedRow();
+	    index = IDList.convertRowIndexToModel(index);
 
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one result to add as compound identity");
-				return;
+	    final IsotopePattern predictedPattern = listElementModel
+		    .getCompoundAt(index).getIsotopePattern();
 
-			}
-			index = IDList.convertRowIndexToModel(index);
+	    if (predictedPattern == null)
+		return;
 
-			peakListRow.addPeakIdentity(listElementModel.getCompoundAt(index),
-					false);
+	    Feature peak = peakListRow.getBestPeak();
 
-			// Notify the GUI about the change in the project
-			MZmineCore.getCurrentProject().notifyObjectChanged(peakListRow,
-					false);
-
-			// Repaint the window to reflect the change in the peak list
-			MZmineCore.getDesktop().getMainWindow().repaint();
-
-			dispose();
-		}
-
-		if (command.equals("VIEWER")) {
-
-			int index = IDList.getSelectedRow();
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one result to display molecule structure");
-				return;
-			}
-			index = IDList.convertRowIndexToModel(index);
-
-			DBCompound compound = listElementModel.getCompoundAt(index);
-			URL url2D = compound.get2DStructureURL();
-			URL url3D = compound.get3DStructureURL();
-			String name = compound.getName() + " ("
-					+ compound.getPropertyValue(PeakIdentity.PROPERTY_ID) + ")";
-			MolStructureViewer viewer = new MolStructureViewer(name, url2D,
-					url3D);
-			viewer.setVisible(true);
-
-		}
-
-		if (command.equals("ISOTOPE_VIEWER")) {
-
-			int index = IDList.getSelectedRow();
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one result to display the isotope pattern");
-				return;
-			}
-
-			index = IDList.convertRowIndexToModel(index);
-
-			final IsotopePattern predictedPattern = listElementModel
-					.getCompoundAt(index).getIsotopePattern();
-
-			if (predictedPattern == null)
-				return;
-
-			Feature peak = peakListRow.getBestPeak();
-
-			RawDataFile dataFile = peak.getDataFile();
-			int scanNumber = peak.getRepresentativeScanNumber();
-			SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
-					null, peak.getIsotopePattern(), predictedPattern);
-
-		}
-
-		if (command.equals("BROWSER")) {
-			int index = IDList.getSelectedRow();
-
-			if (index < 0) {
-				MZmineCore.getDesktop().displayMessage(
-						"Select one compound to display in a web browser");
-				return;
-
-			}
-			index = IDList.convertRowIndexToModel(index);
-
-			logger.finest("Launching default browser to display compound details");
-
-			java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
-
-			DBCompound compound = listElementModel.getCompoundAt(index);
-			String urlString = compound
-					.getPropertyValue(PeakIdentity.PROPERTY_URL);
-
-			if ((urlString == null) || (urlString.length() == 0))
-				return;
-
-			try {
-				URL compoundURL = new URL(urlString);
-				desktop.browse(compoundURL.toURI());
-			} catch (Exception ex) {
-				logger.severe("Error trying to launch default browser: "
-						+ ex.getMessage());
-			}
-
-		}
+	    RawDataFile dataFile = peak.getDataFile();
+	    int scanNumber = peak.getRepresentativeScanNumber();
+	    SpectraVisualizerModule.showNewSpectrumWindow(dataFile, scanNumber,
+		    null, peak.getIsotopePattern(), predictedPattern);
 
 	}
 
-	public void addNewListItem(final DBCompound compound) {
+	if (command.equals("BROWSER")) {
+	    int index = IDList.getSelectedRow();
 
-		// Update the model in swing thread to avoid exceptions
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				listElementModel.addElement(compound);
-			}
-		});
+	    if (index < 0) {
+		MZmineCore.getDesktop().displayMessage(this,
+			"Select one compound to display in a web browser");
+		return;
+
+	    }
+	    index = IDList.convertRowIndexToModel(index);
+
+	    logger.finest("Launching default browser to display compound details");
+
+	    java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+
+	    DBCompound compound = listElementModel.getCompoundAt(index);
+	    String urlString = compound
+		    .getPropertyValue(PeakIdentity.PROPERTY_URL);
+
+	    if ((urlString == null) || (urlString.length() == 0))
+		return;
+
+	    try {
+		URL compoundURL = new URL(urlString);
+		desktop.browse(compoundURL.toURI());
+	    } catch (Exception ex) {
+		logger.severe("Error trying to launch default browser: "
+			+ ex.getMessage());
+	    }
 
 	}
 
-	public void dispose() {
+    }
 
-		// Cancel the search task if it is still running
-		TaskStatus searchStatus = searchTask.getStatus();
-		if ((searchStatus == TaskStatus.WAITING)
-				|| (searchStatus == TaskStatus.PROCESSING))
-			searchTask.cancel();
+    public void addNewListItem(final DBCompound compound) {
 
-		super.dispose();
+	// Update the model in swing thread to avoid exceptions
+	SwingUtilities.invokeLater(new Runnable() {
+	    public void run() {
+		listElementModel.addElement(compound);
+	    }
+	});
 
-	}
+    }
+
+    public void dispose() {
+
+	// Cancel the search task if it is still running
+	TaskStatus searchStatus = searchTask.getStatus();
+	if ((searchStatus == TaskStatus.WAITING)
+		|| (searchStatus == TaskStatus.PROCESSING))
+	    searchTask.cancel();
+
+	super.dispose();
+
+    }
 
 }

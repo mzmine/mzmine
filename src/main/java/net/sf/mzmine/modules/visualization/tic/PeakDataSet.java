@@ -31,6 +31,10 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class PeakDataSet extends AbstractXYDataset {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final Feature peak;
     private final double[] retentionTimes;
     private final double[] intensities;

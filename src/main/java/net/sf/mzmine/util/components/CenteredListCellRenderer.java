@@ -31,16 +31,21 @@ import javax.swing.SwingConstants;
  */
 public class CenteredListCellRenderer extends DefaultListCellRenderer {
 
-	public Component getListCellRendererComponent(JList jList, Object o, int i,
-			boolean b, boolean b1) {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
-		JLabel rendrlbl = (JLabel) super.getListCellRendererComponent(jList, o,
-				i, b, b1);
+    public Component getListCellRendererComponent(JList<?> jList, Object o,
+	    int i, boolean b, boolean b1) {
 
-		rendrlbl.setHorizontalAlignment(SwingConstants.CENTER);
+	JLabel rendrlbl = (JLabel) super.getListCellRendererComponent(jList, o,
+		i, b, b1);
 
-		return rendrlbl;
+	rendrlbl.setHorizontalAlignment(SwingConstants.CENTER);
 
-	}
+	return rendrlbl;
+
+    }
 
 }

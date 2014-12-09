@@ -33,6 +33,10 @@ import org.jfree.data.xy.IntervalXYDataset;
  */
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private String label;
     private Scan scan;
     private Map<DataPoint, String> annotation;

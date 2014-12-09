@@ -25,6 +25,11 @@ import javax.swing.table.AbstractTableModel;
 
 public class ElementsTableModel extends AbstractTableModel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private static final String[] columnNames = { "Element", "Min", "Max" };
 
 	private Vector<ElementRule> elementRules = new Vector<ElementRule>();

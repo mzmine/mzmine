@@ -44,6 +44,11 @@ import net.sf.mzmine.util.ExitCode;
 
 public class PeakListTableWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private JScrollPane scrollPane;
 
     private PeakListTable table;
@@ -55,7 +60,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
      */
     PeakListTableWindow(PeakList peakList, ParameterSet parameters) {
 
-	super(peakList.getName());
+	super("Peak list: " + peakList.getName());
 
 	this.parameters = parameters;
 
@@ -109,7 +114,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 
 	if (command.equals("PROPERTIES")) {
 
-	    ExitCode exitCode = parameters.showSetupDialog();
+	    ExitCode exitCode = parameters.showSetupDialog(this, true);
 	    if (exitCode == ExitCode.OK) {
 		int rowHeight = parameters.getParameter(
 			PeakListTableParameters.rowHeight).getValue();
@@ -148,7 +153,7 @@ public class PeakListTableWindow extends JFrame implements ActionListener {
 	    try {
 		table.print(PrintMode.FIT_WIDTH);
 	    } catch (PrinterException e) {
-		MZmineCore.getDesktop().displayException(e);
+		MZmineCore.getDesktop().displayException(this, e);
 	    }
 	}
     }

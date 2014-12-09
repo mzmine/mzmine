@@ -30,30 +30,30 @@ import net.sf.mzmine.taskcontrol.Task;
  */
 public class FinishedTask extends AbstractTask {
 
-	private String description;
-	private double finishedPercentage;
+    private String description;
+    private double finishedPercentage;
 
-	public FinishedTask(Task task) {
-		setStatus(task.getStatus());
-		description = task.getTaskDescription();
-		errorMessage = task.getErrorMessage();
-		finishedPercentage = task.getFinishedPercentage();
-	}
+    public FinishedTask(Task task) {
+	setStatus(task.getStatus());
+	setErrorMessage(task.getErrorMessage());
+	description = task.getTaskDescription();
+	finishedPercentage = task.getFinishedPercentage();
+    }
 
-	public String getTaskDescription() {
-		return description;
-	}
+    public String getTaskDescription() {
+	return description;
+    }
 
-	public void run() {
-		// ignore any attempt to run this task, because it is finished	
-	}
-	
-	public void cancel() {
-		// ignore any attempt to cancel this task, because it is finished
-	}
+    public void run() {
+	// ignore any attempt to run this task, because it is finished
+    }
 
-	public double getFinishedPercentage() {
-		return finishedPercentage;
-	}
+    public void cancel() {
+	// ignore any attempt to cancel this task, because it is finished
+    }
+
+    public double getFinishedPercentage() {
+	return finishedPercentage;
+    }
 
 }

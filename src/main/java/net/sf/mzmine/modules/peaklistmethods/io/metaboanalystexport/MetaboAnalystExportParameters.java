@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -48,13 +50,13 @@ public class MetaboAnalystExportParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	UserParameter<?, ?> projectParams[] = MZmineCore.getCurrentProject()
 		.getParameters();
 	getParameter(MetaboAnalystExportParameters.groupParameter).setChoices(
 		projectParams);
 
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 }

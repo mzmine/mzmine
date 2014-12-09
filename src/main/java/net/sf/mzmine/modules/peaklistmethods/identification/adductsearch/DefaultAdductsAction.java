@@ -40,6 +40,11 @@ import net.sf.mzmine.parameters.parametertypes.AdductsComponent;
 public class DefaultAdductsAction extends AbstractAction {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Create the action.
      */
     public DefaultAdductsAction() {

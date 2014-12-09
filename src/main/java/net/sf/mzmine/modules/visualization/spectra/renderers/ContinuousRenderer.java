@@ -37,6 +37,11 @@ import org.jfree.data.xy.XYDataset;
 
 public class ContinuousRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	public static final float TRANSPARENCY = 0.8f;
 
 	public static final AlphaComposite alphaComp = AlphaComposite.getInstance(

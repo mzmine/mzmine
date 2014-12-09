@@ -250,6 +250,28 @@ public class PeptideFragmentation {
 				this.zhhIons = zhhDoubleSeries.toArray(new FragmentIon[0]);
 
 				break;
+			case A_DOUBLE_SERIES:
+			    break;
+			case B_DOUBLE_SERIES:
+			    break;
+			case B_SERIES:
+			    break;
+			case C_DOUBLE_SERIES:
+			    break;
+			case X_DOUBLE_SERIES:
+			    break;
+			case Y_DOUBLE_SERIES:
+			    break;
+			case Y_SERIES:
+			    break;
+			case ZHH_DOUBLE_SERIES:
+			    break;
+			case ZH_DOUBLE_SERIES:
+			    break;
+			case Z_DOUBLE_SERIES:
+			    break;
+			default:
+			    break;
 			}
 		}
 		
@@ -436,7 +458,7 @@ public class PeptideFragmentation {
 
 		FragmentIon[] ionFragments = new FragmentIon[0];
 		HashMap<SerieIonType,IonSignificance> fragmentSeries = ionSeriesFound.getFragmentSeries();
-		Iterator it = fragmentSeries.keySet().iterator(); 
+		Iterator<SerieIonType> it = fragmentSeries.keySet().iterator(); 
 		SerieIonType ionType;
 		IonSignificance significanceIon;
 		

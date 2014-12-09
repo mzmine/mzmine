@@ -54,7 +54,8 @@ public class StandardCompoundNormalizerModule implements MZmineProcessingModule 
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		StandardCompoundNormalizerParameters.peakList).getValue();
+		StandardCompoundNormalizerParameters.peakList)
+		.getMatchingPeakLists();
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new StandardCompoundNormalizerTask(peakList,
 		    parameters);

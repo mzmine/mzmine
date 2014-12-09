@@ -36,6 +36,10 @@ import net.sf.mzmine.util.components.LabeledProgressBar;
 
 public class StatusBar extends JPanel implements Runnable, MouseListener {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	// frequency in milliseconds how often to update free memory label
 	public static final int MEMORY_LABEL_UPDATE_FREQUENCY = 1000;
 	public static final int STATUS_BAR_HEIGHT = 20;

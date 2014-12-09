@@ -33,6 +33,11 @@ import net.sf.mzmine.util.components.PeakSummaryComponent;
  */
 public class PeakSummaryWindow extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public PeakSummaryWindow(PeakListRow row) {
 
 	super(row.toString());

@@ -49,6 +49,11 @@ import net.sf.mzmine.util.components.ComponentCellRenderer;
 public class TaskProgressTable extends JPanel implements
 		ActionListener {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private JTable taskTable;
 
 	private JPopupMenu popupMenu;

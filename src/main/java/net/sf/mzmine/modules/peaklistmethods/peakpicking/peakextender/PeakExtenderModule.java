@@ -51,7 +51,7 @@ public class PeakExtenderModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
-		PeakExtenderParameters.peakLists).getValue();
+		PeakExtenderParameters.peakLists).getMatchingPeakLists();
 
 	for (final PeakList peakList : peakLists) {
 	    Task newTask = new PeakExtenderTask(peakList, parameters);

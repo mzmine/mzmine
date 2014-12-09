@@ -30,6 +30,11 @@ import javax.swing.JComponent;
  */
 public class ColorCircle extends JComponent {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final int DEFAULT_MARGIN = 5;
     
     private Color circleColor;

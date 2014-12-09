@@ -37,6 +37,10 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class MassListComponent extends JPanel implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private JTextField nameField;
     private JButton lookupButton;
     private JPopupMenu lookupMenu;

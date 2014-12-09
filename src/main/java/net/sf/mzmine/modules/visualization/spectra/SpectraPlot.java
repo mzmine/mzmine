@@ -58,6 +58,10 @@ import org.jfree.ui.RectangleInsets;
  */
 public class SpectraPlot extends ChartPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JFreeChart chart;
 	private XYPlot plot;
 

@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.cropper;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.DataSetFilterSetupDialog;
 import net.sf.mzmine.parameters.Parameter;
@@ -36,9 +38,9 @@ public class CropFilterParameters extends SimpleParameterSet {
 	super(new Parameter[] { retentionTimeRange });
     }
 
-    public ExitCode showSetupDialog() {
-	DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(this,
-		CropFilter.class);
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	DataSetFilterSetupDialog dialog = new DataSetFilterSetupDialog(parent,
+		valueCheckRequired, this, CropFilter.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

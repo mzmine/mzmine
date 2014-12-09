@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import java.awt.Window;
 import java.util.ArrayList;
 
 import net.sf.mzmine.datamodel.DataPoint;
@@ -37,59 +38,64 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  * over the raw data file.
  */
 public class MassDetectorSetupDialog extends
-		ParameterSetupDialogWithScanPreview {
+	ParameterSetupDialogWithScanPreview {
 
-	private MassDetector massDetector;
-	private ParameterSet parameters;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private MassDetector massDetector;
+    private ParameterSet parameters;
 
-	/**
-	 * @param parameters
-	 * @param massDetectorTypeNumber
-	 */
-	public MassDetectorSetupDialog(Class massDetectorClass,
-			ParameterSet parameters) {
+    /**
+     * @param parameters
+     * @param massDetectorTypeNumber
+     */
+    public MassDetectorSetupDialog(Window parent, boolean valueCheckRequired,
+	    Class<?> massDetectorClass, ParameterSet parameters) {
 
-		super(parameters);
+	super(parent, valueCheckRequired, parameters);
 
-		this.parameters = parameters;
+	this.parameters = parameters;
 
-		for (MassDetector detector : MassDetectionParameters.massDetectors) {
-			if (detector.getClass().equals(massDetectorClass)) {
-				this.massDetector = detector;
-			}
-		}
+	for (MassDetector detector : MassDetectionParameters.massDetectors) {
+	    if (detector.getClass().equals(massDetectorClass)) {
+		this.massDetector = detector;
+	    }
+	}
+    }
+
+    protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+
+	ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
+
+	// Set plot mode only if it hasn't been set before
+	// if the scan is centroided, switch to centroid mode
+	if (previewScan.isCentroided()) {
+	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
+	} else {
+	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
 	}
 
-	protected void loadPreview(SpectraPlot spectrumPlot, Scan previewScan) {
+	spectrumPlot.removeAllDataSets();
+	spectrumPlot.addDataSet(spectraDataSet,
+		SpectraVisualizerWindow.scanColor, false);
 
-		ScanDataSet spectraDataSet = new ScanDataSet(previewScan);
+	// If there is some illegal value, do not load the preview but just exit
+	ArrayList<String> errorMessages = new ArrayList<String>();
+	boolean paramsOK = parameterSet.checkParameterValues(errorMessages);
+	if (!paramsOK)
+	    return;
 
-		// Set plot mode only if it hasn't been set before
-		// if the scan is centroided, switch to centroid mode
-		if (previewScan.isCentroided()) {
-			spectrumPlot.setPlotMode(PlotMode.CENTROID);
-		} else {
-			spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-		}
+	DataPoint[] mzValues = massDetector.getMassValues(previewScan,
+		parameters);
 
-		spectrumPlot.removeAllDataSets();
-		spectrumPlot.addDataSet(spectraDataSet,
-				SpectraVisualizerWindow.scanColor, false);
+	DataPointsDataSet peaksDataSet = new DataPointsDataSet(
+		"Detected peaks", mzValues);
 
-		// If there is some illegal value, do not load the preview but just exit
-		ArrayList<String> errorMessages = new ArrayList<String>();
-		boolean paramsOK = parameterSet.checkUserParameterValues(errorMessages);
-		if (!paramsOK)
-			return;
+	spectrumPlot.addDataSet(peaksDataSet,
+		SpectraVisualizerWindow.peaksColor, false);
 
-		DataPoint[] mzValues = massDetector.getMassValues(previewScan, parameters);
-
-		DataPointsDataSet peaksDataSet = new DataPointsDataSet("Detected peaks",
-				mzValues);
-
-		spectrumPlot.addDataSet(peaksDataSet,
-				SpectraVisualizerWindow.peaksColor, false);
-
-	}
+    }
 
 }

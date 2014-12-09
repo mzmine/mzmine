@@ -39,6 +39,11 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class DirectoryComponent extends JPanel implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Text field width.
     private static final int TEXT_FIELD_COLUMNS = 15;
 

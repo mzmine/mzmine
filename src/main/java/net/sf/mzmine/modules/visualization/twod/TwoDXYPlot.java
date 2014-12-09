@@ -24,7 +24,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Date;
-import java.util.Random;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.util.Range;
@@ -39,6 +38,11 @@ import org.jfree.data.general.DatasetChangeEvent;
  * This class is responsible for drawing the actual data points.
  */
 class TwoDXYPlot extends XYPlot {
+
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -100,7 +104,6 @@ class TwoDXYPlot extends XYPlot {
 		// prepare a double array of summed intensities
 		double values[][] = new double[width][height];
 		maxValue = 0; // now this is an instance variable
-		Random r = new Random();
 
 		for (int i = 0; i < width; i++)
 			for (int j = 0; j < height; j++) {

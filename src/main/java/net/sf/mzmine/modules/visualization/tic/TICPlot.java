@@ -72,6 +72,11 @@ import org.jfree.ui.RectangleInsets;
  */
 public class TICPlot extends ChartPanel implements MouseWheelListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger.
     private static final Logger LOG = Logger.getLogger(TICPlot.class.getName());
 

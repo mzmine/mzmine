@@ -34,6 +34,11 @@ import org.jfree.data.xy.XYDataset;
 
 public class DiagonalLineRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	// plot colors for diagonal lines
 	private static final Color[] plotDiagonalColors = { new Color(165, 42, 42),
 			Color.BLACK, new Color(165, 42, 42) };

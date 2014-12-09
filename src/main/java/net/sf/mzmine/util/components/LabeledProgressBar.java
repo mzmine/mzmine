@@ -29,6 +29,10 @@ import javax.swing.OverlayLayout;
  */
 public class LabeledProgressBar extends JPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private JLabel label;
     private JProgressBar progressBar;
 

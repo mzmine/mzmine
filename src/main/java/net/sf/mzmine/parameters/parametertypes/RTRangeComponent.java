@@ -31,6 +31,10 @@ import net.sf.mzmine.util.Range;
 
 public class RTRangeComponent extends RangeComponent implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final JButton setAutoButton;
 
     public RTRangeComponent() {

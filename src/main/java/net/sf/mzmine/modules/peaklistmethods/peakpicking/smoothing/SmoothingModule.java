@@ -59,7 +59,7 @@ public class SmoothingModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull ParameterSet parameters,
 	    @Nonnull Collection<Task> tasks) {
 	PeakList peakLists[] = parameters.getParameter(
-		SmoothingParameters.peakLists).getValue();
+		SmoothingParameters.peakLists).getMatchingPeakLists();
 
 	for (final PeakList peakList : peakLists) {
 	    Task newTask = new SmoothingTask(peakList, parameters);

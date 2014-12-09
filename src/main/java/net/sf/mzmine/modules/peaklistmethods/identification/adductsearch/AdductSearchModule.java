@@ -66,8 +66,7 @@ public class AdductSearchModule implements MZmineProcessingModule {
     public ExitCode runModule(@Nonnull final ParameterSet parameters,
                               @Nonnull final Collection<Task> tasks) {
 
-        for (final PeakList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS).getValue()) {
-
+        for (final PeakList peakList : parameters.getParameter(AdductSearchParameters.PEAK_LISTS).getMatchingPeakLists()) {
             tasks.add(new AdductSearchTask(parameters, peakList));
         }
 

@@ -20,6 +20,7 @@
 package net.sf.mzmine.desktop;
 
 import java.awt.Color;
+import java.awt.Window;
 
 import javax.annotation.Nonnull;
 import javax.swing.JFrame;
@@ -36,98 +37,97 @@ import net.sf.mzmine.util.ExitCode;
  */
 public interface Desktop extends MZmineModule {
 
-	/**
-	 * Returns a reference to main application window. May return null if MZmine
-	 * is running in headless (batch) mode.
-	 * 
-	 * @return Main window frame
-	 */
-	public JFrame getMainWindow();
+    /**
+     * Returns a reference to main application window. May return null if MZmine
+     * is running in headless (batch) mode.
+     * 
+     * @return Main window frame
+     */
+    public JFrame getMainWindow();
 
-	/**
-	 * Displays a given text on the application status bar in black color
-	 * 
-	 * @param text
-	 *            Text to show
-	 */
-	public void setStatusBarText(String text);
+    /**
+     * Displays a given text on the application status bar in black color
+     * 
+     * @param text
+     *            Text to show
+     */
+    public void setStatusBarText(String text);
 
-	/**
-	 * Displays a given text on the application status bar in a given color
-	 * 
-	 * @param text
-	 *            Text to show
-	 * @param textColor
-	 *            Text color
-	 */
-	public void setStatusBarText(String text, Color textColor);
+    /**
+     * Displays a given text on the application status bar in a given color
+     * 
+     * @param text
+     *            Text to show
+     * @param textColor
+     *            Text color
+     */
+    public void setStatusBarText(String text, Color textColor);
 
-	/**
-	 * Displays a message box with a given text
-	 * 
-	 * @param msg
-	 *            Text to show
-	 */
-	public void displayMessage(String msg);
+    /**
+     * Displays a message box with a given text
+     * 
+     * @param msg
+     *            Text to show
+     */
+    public void displayMessage(Window window, String msg);
 
-	/**
-	 * Displays a message box with a given text
-	 * 
-	 * @param title
-	 *            Message box title
-	 * @param msg
-	 *            Text to show
-	 */
-	public void displayMessage(String title, String msg);
+    /**
+     * Displays a message box with a given text
+     * 
+     * @param title
+     *            Message box title
+     * @param msg
+     *            Text to show
+     */
+    public void displayMessage(Window window, String title, String msg);
 
-	/**
-	 * Displays an error message box with a given text
-	 * 
-	 * @param msg
-	 *            Text to show
-	 */
-	public void displayErrorMessage(String msg);
+    /**
+     * Displays an error message box with a given text
+     * 
+     * @param msg
+     *            Text to show
+     */
+    public void displayErrorMessage(Window window, String msg);
 
-	/**
-	 * Displays an error message box with a given text
-	 * 
-	 * @param title
-	 *            Message box title
-	 * @param msg
-	 *            Text to show
-	 */
-	public void displayErrorMessage(String title, String msg);
+    /**
+     * Displays an error message box with a given text
+     * 
+     * @param title
+     *            Message box title
+     * @param msg
+     *            Text to show
+     */
+    public void displayErrorMessage(Window window, String title, String msg);
 
-	/**
-	 * Displays an error message
-	 *
-	 */
-	public void displayException(Exception e);
+    /**
+     * Displays an error message
+     *
+     */
+    public void displayException(Window window, Exception e);
 
-	/**
-	 * Returns array of currently selected raw data files in GUI
-	 * 
-	 * @return Array of selected raw data files
-	 */
-	public RawDataFile[] getSelectedDataFiles();
+    /**
+     * Returns array of currently selected raw data files in GUI
+     * 
+     * @return Array of selected raw data files
+     */
+    public RawDataFile[] getSelectedDataFiles();
 
-	/**
-	 * Returns array of currently selected peak lists in GUI
-	 * 
-	 * @return Array of selected peak lists
-	 */
-	public PeakList[] getSelectedPeakLists();
+    /**
+     * Returns array of currently selected peak lists in GUI
+     * 
+     * @return Array of selected peak lists
+     */
+    public PeakList[] getSelectedPeakLists();
 
-	public void addRawDataTreeListener(TreeModelListener listener);
+    public void addRawDataTreeListener(TreeModelListener listener);
 
-	public void addPeakListTreeListener(TreeModelListener listener);
-	
-	
-	public void removeRawDataTreeListener(TreeModelListener listener);
+    public void addPeakListTreeListener(TreeModelListener listener);
 
-	public void removePeakListTreeListener(TreeModelListener listener);
-	
-	@Nonnull
-	public ExitCode exitMZmine();
+    public void removeRawDataTreeListener(TreeModelListener listener);
+
+    public void removePeakListTreeListener(TreeModelListener listener);
+
+    @Nonnull
+    public ExitCode exitMZmine();
 
 }

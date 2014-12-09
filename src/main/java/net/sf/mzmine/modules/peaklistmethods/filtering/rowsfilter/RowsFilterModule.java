@@ -55,7 +55,7 @@ public class RowsFilterModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	final PeakList[] peakLists = parameters.getParameter(
-		RowsFilterParameters.PEAK_LISTS).getValue();
+		RowsFilterParameters.PEAK_LISTS).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 

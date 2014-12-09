@@ -75,7 +75,6 @@ public class PeakListIdentificationTask extends AbstractTask {
      * @param list
      *            peak list to operate on.
      */
-    @SuppressWarnings("unchecked")
     PeakListIdentificationTask(final ParameterSet parameters,
 	    final PeakList list) {
 
@@ -105,12 +104,6 @@ public class PeakListIdentificationTask extends AbstractTask {
     public double getFinishedPercentage() {
 
 	return numItems == 0 ? 0.0 : (double) finishedItems / (double) numItems;
-    }
-
-    @Override
-    public Object[] getCreatedObjects() {
-
-	return null;
     }
 
     @Override
@@ -159,7 +152,8 @@ public class PeakListIdentificationTask extends AbstractTask {
 		final String msg = "Could not search " + db;
 		LOG.log(Level.WARNING, msg, t);
 		setStatus(TaskStatus.ERROR);
-		errorMessage = msg + ": " + ExceptionUtils.exceptionToString(t);
+		setErrorMessage(msg + ": "
+			+ ExceptionUtils.exceptionToString(t));
 	    }
 	}
     }

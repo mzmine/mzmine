@@ -26,13 +26,19 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.modules.MZmineProcessingStep;
 import net.sf.mzmine.parameters.ParameterSet;
+import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 
 public class ModuleComboComponent extends JPanel implements ActionListener {
 
-    private JComboBox comboBox;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JComboBox<MZmineProcessingStep<?>> comboBox;
     private JButton setButton;
 
     public ModuleComboComponent(MZmineProcessingStep<?> modules[]) {
@@ -42,7 +48,7 @@ public class ModuleComboComponent extends JPanel implements ActionListener {
 	assert modules != null;
 	assert modules.length > 0;
 
-	comboBox = new JComboBox(modules);
+	comboBox = new JComboBox<MZmineProcessingStep<?>>(modules);
 	comboBox.addActionListener(this);
 	add(comboBox, BorderLayout.CENTER);
 
@@ -82,8 +88,12 @@ public class ModuleComboComponent extends JPanel implements ActionListener {
 	if (src == setButton) {
 	    if (selected == null)
 		return;
+	    ParameterSetupDialog dialog = (ParameterSetupDialog) SwingUtilities
+		    .getAncestorOfClass(ParameterSetupDialog.class, this);
+	    if (dialog == null)
+		return;
 	    ParameterSet parameterSet = selected.getParameterSet();
-	    parameterSet.showSetupDialog();
+	    parameterSet.showSetupDialog(dialog, dialog.isValueCheckRequired());
 	}
 
     }

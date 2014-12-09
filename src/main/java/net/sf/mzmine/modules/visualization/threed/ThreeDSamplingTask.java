@@ -64,19 +64,19 @@ class ThreeDSamplingTask extends AbstractTask {
      * @param visualizer
      */
     ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange,
-            Range mzRange, int rtResolution, int mzResolution,
-            ThreeDDisplay display, ThreeDBottomPanel bottomPanel) {
+	    Range mzRange, int rtResolution, int mzResolution,
+	    ThreeDDisplay display, ThreeDBottomPanel bottomPanel) {
 
-        this.dataFile = dataFile;
-        this.scanNumbers = scanNumbers;
+	this.dataFile = dataFile;
+	this.scanNumbers = scanNumbers;
 
-        this.rtRange = rtRange;
-        this.mzRange = mzRange;
-        this.rtResolution = rtResolution;
-        this.mzResolution = mzResolution;
+	this.rtRange = rtRange;
+	this.mzRange = mzRange;
+	this.rtResolution = rtResolution;
+	this.mzResolution = mzResolution;
 
-        this.display = display;
-        this.bottomPanel = bottomPanel;
+	this.display = display;
+	this.bottomPanel = bottomPanel;
 
     }
 
@@ -84,14 +84,14 @@ class ThreeDSamplingTask extends AbstractTask {
      * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
      */
     public String getTaskDescription() {
-        return "Sampling 3D plot of " + dataFile;
+	return "Sampling 3D plot of " + dataFile;
     }
 
     /**
      * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
      */
     public double getFinishedPercentage() {
-        return (double) retrievedScans / scanNumbers.length;
+	return (double) retrievedScans / scanNumbers.length;
     }
 
     /**
@@ -99,130 +99,125 @@ class ThreeDSamplingTask extends AbstractTask {
      */
     public void run() {
 
-        setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
-        logger.info("Started sampling 3D plot of " + dataFile);
+	logger.info("Started sampling 3D plot of " + dataFile);
 
-        try {
+	try {
 
-            Set domainSet = new Linear2DSet(display.getDomainTuple(),
-                    rtRange.getMin(), rtRange.getMax(), rtResolution,
-                    mzRange.getMin(), mzRange.getMax(), mzResolution);
+	    Set domainSet = new Linear2DSet(display.getDomainTuple(),
+		    rtRange.getMin(), rtRange.getMax(), rtResolution,
+		    mzRange.getMin(), mzRange.getMax(), mzResolution);
 
-            final double rtStep = rtRange.getSize() / rtResolution;
+	    final double rtStep = rtRange.getSize() / rtResolution;
 
-            // create an array for all data points
-            float[][] intensityValues = new float[1][mzResolution
-                    * rtResolution];
-            boolean rtDataSet[] = new boolean[rtResolution];
+	    // create an array for all data points
+	    float[][] intensityValues = new float[1][mzResolution
+		    * rtResolution];
+	    boolean rtDataSet[] = new boolean[rtResolution];
 
-            // load scans
-            for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
+	    // load scans
+	    for (int scanIndex = 0; scanIndex < scanNumbers.length; scanIndex++) {
 
-                if (isCanceled())
-                    return;
+		if (isCanceled())
+		    return;
 
-                Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
+		Scan scan = dataFile.getScan(scanNumbers[scanIndex]);
 
-                DataPoint dataPoints[] = scan.getDataPoints();
-                double[] scanMZValues = new double[dataPoints.length];
-                double[] scanIntensityValues = new double[dataPoints.length];
-                for (int dp = 0; dp < dataPoints.length; dp++) {
-                    scanMZValues[dp] = dataPoints[dp].getMZ();
-                    scanIntensityValues[dp] = dataPoints[dp].getIntensity();
-                }
+		DataPoint dataPoints[] = scan.getDataPoints();
+		double[] scanMZValues = new double[dataPoints.length];
+		double[] scanIntensityValues = new double[dataPoints.length];
+		for (int dp = 0; dp < dataPoints.length; dp++) {
+		    scanMZValues[dp] = dataPoints[dp].getMZ();
+		    scanIntensityValues[dp] = dataPoints[dp].getIntensity();
+		}
 
-                double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
-                        scanIntensityValues, mzRange, mzResolution,
-                        !scan.isCentroided(), BinningType.MAX);
+		double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
+			scanIntensityValues, mzRange, mzResolution,
+			!scan.isCentroided(), BinningType.MAX);
 
-                int scanBinIndex;
+		int scanBinIndex;
 
-                double rt = scan.getRetentionTime();
-                scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
+		double rt = scan.getRetentionTime();
+		scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
 
-                // last scan falls into last bin
-                if (scanBinIndex == rtResolution)
-                    scanBinIndex--;
+		// last scan falls into last bin
+		if (scanBinIndex == rtResolution)
+		    scanBinIndex--;
 
-                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+		for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
-                    int intensityValuesIndex = (rtResolution * mzIndex)
-                            + scanBinIndex;
-                    if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
-                        intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
+		    int intensityValuesIndex = (rtResolution * mzIndex)
+			    + scanBinIndex;
+		    if (binnedIntensities[mzIndex] > intensityValues[0][intensityValuesIndex])
+			intensityValues[0][intensityValuesIndex] = (float) binnedIntensities[mzIndex];
 
-                    if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
-                        maxBinnedIntensity = (double) binnedIntensities[mzIndex];
-                }
+		    if (intensityValues[0][intensityValuesIndex] > maxBinnedIntensity)
+			maxBinnedIntensity = (double) binnedIntensities[mzIndex];
+		}
 
-                rtDataSet[scanBinIndex] = true;
+		rtDataSet[scanBinIndex] = true;
 
-                retrievedScans++;
+		retrievedScans++;
 
-            }
+	    }
 
-            // Interpolate missing values on the RT-axis
-            for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
+	    // Interpolate missing values on the RT-axis
+	    for (int rtIndex = 1; rtIndex < rtResolution - 1; rtIndex++) {
 
-                // If the data was set, go to next RT line
-                if (rtDataSet[rtIndex])
-                    continue;
-                int prevIndex, nextIndex;
-                for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
-                    if (rtDataSet[prevIndex])
-                        break;
-                }
-                for (nextIndex = rtIndex + 1; nextIndex < rtResolution; nextIndex++) {
-                    if (rtDataSet[nextIndex])
-                        break;
-                }
+		// If the data was set, go to next RT line
+		if (rtDataSet[rtIndex])
+		    continue;
+		int prevIndex, nextIndex;
+		for (prevIndex = rtIndex - 1; prevIndex >= 0; prevIndex--) {
+		    if (rtDataSet[prevIndex])
+			break;
+		}
+		for (nextIndex = rtIndex + 1; nextIndex < rtResolution; nextIndex++) {
+		    if (rtDataSet[nextIndex])
+			break;
+		}
 
-                // If no neighboring data was found, give up
-                if ((prevIndex < 0) || (nextIndex >= rtResolution))
-                    continue;
+		// If no neighboring data was found, give up
+		if ((prevIndex < 0) || (nextIndex >= rtResolution))
+		    continue;
 
-                for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
+		for (int mzIndex = 0; mzIndex < mzResolution; mzIndex++) {
 
-                    int valueIndex = (rtResolution * mzIndex) + rtIndex;
-                    int nextValueIndex = (rtResolution * mzIndex) + nextIndex;
-                    int prevValueIndex = (rtResolution * mzIndex) + prevIndex;
+		    int valueIndex = (rtResolution * mzIndex) + rtIndex;
+		    int nextValueIndex = (rtResolution * mzIndex) + nextIndex;
+		    int prevValueIndex = (rtResolution * mzIndex) + prevIndex;
 
-                    double prevValue = intensityValues[0][prevValueIndex];
-                    double nextValue = intensityValues[0][nextValueIndex];
+		    double prevValue = intensityValues[0][prevValueIndex];
+		    double nextValue = intensityValues[0][nextValueIndex];
 
-                    double slope = (nextValue - prevValue)
-                            / (nextIndex - prevIndex);
-                    intensityValues[0][valueIndex] = (float) (prevValue +(slope
-                            * (rtIndex - prevIndex)));
+		    double slope = (nextValue - prevValue)
+			    / (nextIndex - prevIndex);
+		    intensityValues[0][valueIndex] = (float) (prevValue + (slope * (rtIndex - prevIndex)));
 
-                }
+		}
 
-            }
+	    }
 
-            display.setData(intensityValues, domainSet, rtRange.getMin(),
-                    rtRange.getMax(), mzRange.getMin(), mzRange.getMax(),
-                    maxBinnedIntensity);
+	    display.setData(intensityValues, domainSet, rtRange.getMin(),
+		    rtRange.getMax(), mzRange.getMin(), mzRange.getMax(),
+		    maxBinnedIntensity);
 
-            // After we have constructed everything, load the peak lists into
-            // the bottom panel
-            bottomPanel.rebuildPeakListSelector();
+	    // After we have constructed everything, load the peak lists into
+	    // the bottom panel
+	    bottomPanel.rebuildPeakListSelector();
 
-        } catch (Throwable e) {
-            setStatus(TaskStatus.ERROR);
-            errorMessage = "Error while sampling 3D data, "
-                    + ExceptionUtils.exceptionToString(e);
-            return;
-        }
+	} catch (Throwable e) {
+	    setStatus(TaskStatus.ERROR);
+	    setErrorMessage("Error while sampling 3D data, "
+		    + ExceptionUtils.exceptionToString(e));
+	    return;
+	}
 
-        logger.info("Finished sampling 3D plot of " + dataFile);
+	logger.info("Finished sampling 3D plot of " + dataFile);
 
-        setStatus(TaskStatus.FINISHED);
+	setStatus(TaskStatus.FINISHED);
 
-    }
-
-    public Object[] getCreatedObjects() {
-        return null;
     }
 
 }

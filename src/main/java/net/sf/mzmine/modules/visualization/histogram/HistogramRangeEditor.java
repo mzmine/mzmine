@@ -35,14 +35,19 @@ import net.sf.mzmine.util.Range;
  */
 public class HistogramRangeEditor extends JPanel implements ActionListener {
 
-    private JComboBox dataTypeCombo;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private JComboBox<HistogramDataType> dataTypeCombo;
     private RangeComponent dataRangeComponent;
 
     public HistogramRangeEditor() {
 
 	super(new BorderLayout());
 
-	dataTypeCombo = new JComboBox(HistogramDataType.values());
+	dataTypeCombo = new JComboBox<HistogramDataType>(
+		HistogramDataType.values());
 	add(dataTypeCombo, BorderLayout.WEST);
 
 	dataRangeComponent = new RangeComponent(

@@ -39,6 +39,11 @@ import net.sf.mzmine.datamodel.Scan;
  */
 public class PeakListTreeModel extends DefaultTreeModel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final String peakListsNodeName = "Peak lists";
 
     private Hashtable<Object, DefaultMutableTreeNode> treeObjects = new Hashtable<Object, DefaultMutableTreeNode>();
@@ -111,7 +116,7 @@ public class PeakListTreeModel extends DefaultTreeModel {
 	assert node != null;
 
 	// Remove all children from treeObjects
-	Enumeration e = node.depthFirstEnumeration();
+	Enumeration<?> e = node.depthFirstEnumeration();
 	while (e.hasMoreElements()) {
 	    DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) e
 		    .nextElement();
@@ -162,7 +167,7 @@ public class PeakListTreeModel extends DefaultTreeModel {
 		nodeChanged(rootNode);
 	    return;
 	}
-	Enumeration nodes = rootNode.breadthFirstEnumeration();
+	Enumeration<?> nodes = rootNode.breadthFirstEnumeration();
 	while (nodes.hasMoreElements()) {
 	    DefaultMutableTreeNode node = (DefaultMutableTreeNode) nodes
 		    .nextElement();

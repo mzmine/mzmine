@@ -35,6 +35,11 @@ import javax.swing.tree.TreePath;
 public class ProjectTree extends JTree {
 
 	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+	/**
 	 * Constructor
 	 */
 	public ProjectTree() {

@@ -39,153 +39,150 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
 
 class ShapeModelerTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private PeakList originalPeakList;
+    private PeakList originalPeakList;
 
-	// scan counter
-	private int processedRows = 0, totalRows;
-	private int newPeakID = 1;
+    // scan counter
+    private int processedRows = 0, totalRows;
+    private int newPeakID = 1;
 
-	// User parameters
-	private String suffix;
-	private boolean removeOriginal;
+    // User parameters
+    private String suffix;
+    private boolean removeOriginal;
 
-	private ShapeModel shapeModelerType;
-	private double resolution;
+    private ShapeModel shapeModelerType;
+    private double resolution;
 
-	private SimplePeakList newPeakList;
+    private SimplePeakList newPeakList;
 
-	private ParameterSet parameters;
+    private ParameterSet parameters;
 
-	public ShapeModelerTask(PeakList peakList, ParameterSet parameters) {
+    public ShapeModelerTask(PeakList peakList, ParameterSet parameters) {
 
-		this.originalPeakList = peakList;
-		this.parameters = parameters;
+	this.originalPeakList = peakList;
+	this.parameters = parameters;
 
-		shapeModelerType = parameters.getParameter(
-				ShapeModelerParameters.shapeModelerType).getValue();
-		suffix = parameters.getParameter(ShapeModelerParameters.suffix)
-				.getValue();
-		removeOriginal = parameters.getParameter(
-				ShapeModelerParameters.autoRemove).getValue();
-		resolution = parameters.getParameter(
-				ShapeModelerParameters.massResolution).getValue();
+	shapeModelerType = parameters.getParameter(
+		ShapeModelerParameters.shapeModelerType).getValue();
+	suffix = parameters.getParameter(ShapeModelerParameters.suffix)
+		.getValue();
+	removeOriginal = parameters.getParameter(
+		ShapeModelerParameters.autoRemove).getValue();
+	resolution = parameters.getParameter(
+		ShapeModelerParameters.massResolution).getValue();
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Shape modeling peaks from " + originalPeakList;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+	return "Shape modeling peaks from " + originalPeakList;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalRows == 0)
-			return 0;
-		else
-			return (double) processedRows / totalRows;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+	if (totalRows == 0)
+	    return 0;
+	else
+	    return (double) processedRows / totalRows;
+    }
 
-	public void run() {
+    public void run() {
 
-		setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
-		Class shapeModelClass = shapeModelerType.getModelClass();
-		Constructor<?> shapeModelConstruct;
-		shapeModelConstruct = shapeModelClass.getConstructors()[0];
+	Class<?> shapeModelClass = shapeModelerType.getModelClass();
+	Constructor<?> shapeModelConstruct;
+	shapeModelConstruct = shapeModelClass.getConstructors()[0];
 
-		// Get data file information
-		RawDataFile dataFile = originalPeakList.getRawDataFile(0);
+	// Get data file information
+	RawDataFile dataFile = originalPeakList.getRawDataFile(0);
 
-		// Create new peak list
-		newPeakList = new SimplePeakList(originalPeakList + " " + suffix,
-				dataFile);
+	// Create new peak list
+	newPeakList = new SimplePeakList(originalPeakList + " " + suffix,
+		dataFile);
 
-		totalRows = originalPeakList.getNumberOfRows();
-		int[] scanNumbers;
-		double[] retentionTimes, intensities;
-		SimplePeakListRow newRow;
+	totalRows = originalPeakList.getNumberOfRows();
+	int[] scanNumbers;
+	double[] retentionTimes, intensities;
+	SimplePeakListRow newRow;
 
-		for (PeakListRow row : originalPeakList.getRows()) {
+	for (PeakListRow row : originalPeakList.getRows()) {
 
-			if (isCanceled())
-				return;
+	    if (isCanceled())
+		return;
 
-			newRow = new SimplePeakListRow(newPeakID);
+	    newRow = new SimplePeakListRow(newPeakID);
 
-			try {
-				for (Feature peak : row.getPeaks()) {
+	    try {
+		for (Feature peak : row.getPeaks()) {
 
-					// Load the intensities into array
-					dataFile = peak.getDataFile();
-					scanNumbers = peak.getScanNumbers();
-					retentionTimes = new double[scanNumbers.length];
-					for (int i = 0; i < scanNumbers.length; i++)
-						retentionTimes[i] = dataFile.getScan(scanNumbers[i])
-								.getRetentionTime();
+		    // Load the intensities into array
+		    dataFile = peak.getDataFile();
+		    scanNumbers = peak.getScanNumbers();
+		    retentionTimes = new double[scanNumbers.length];
+		    for (int i = 0; i < scanNumbers.length; i++)
+			retentionTimes[i] = dataFile.getScan(scanNumbers[i])
+				.getRetentionTime();
 
-					intensities = new double[scanNumbers.length];
-					for (int i = 0; i < scanNumbers.length; i++) {
-						DataPoint dp = peak.getDataPoint(scanNumbers[i]);
-						if (dp != null)
-							intensities[i] = dp.getIntensity();
-						else
-							intensities[i] = 0;
-					}
+		    intensities = new double[scanNumbers.length];
+		    for (int i = 0; i < scanNumbers.length; i++) {
+			DataPoint dp = peak.getDataPoint(scanNumbers[i]);
+			if (dp != null)
+			    intensities[i] = dp.getIntensity();
+			else
+			    intensities[i] = 0;
+		    }
 
-					Feature shapePeak = (Feature) shapeModelConstruct
-							.newInstance(peak, scanNumbers, intensities,
-									retentionTimes, resolution);
+		    Feature shapePeak = (Feature) shapeModelConstruct
+			    .newInstance(peak, scanNumbers, intensities,
+				    retentionTimes, resolution);
 
-					newRow.addPeak(shapePeak.getDataFile(), shapePeak);
-				}
-
-			} catch (Exception e) {
-				String message = "Error trying to make an instance of shape model class "
-						+ shapeModelClass;
-				MZmineCore.getDesktop().displayErrorMessage(message);
-				logger.severe(message);
-				return;
-			}
-
-			newPeakList.addRow(newRow);
-			newPeakID++;
-			processedRows++;
+		    newRow.addPeak(shapePeak.getDataFile(), shapePeak);
 		}
 
-		// Add new peaklist to the project
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(newPeakList);
+	    } catch (Exception e) {
+		String message = "Error trying to make an instance of shape model class "
+			+ shapeModelClass;
+		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(), message);
+		logger.severe(message);
+		return;
+	    }
 
-		// Remove the original peaklist if requested
-		if (removeOriginal)
-			currentProject.removePeakList(originalPeakList);
-
-		// Load previous applied methods
-		for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {
-			newPeakList.addDescriptionOfAppliedTask(proc);
-		}
-
-		// Add task description to peakList
-		newPeakList
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-						"Peaks shaped by " + shapeModelerType + " function",
-						parameters));
-
-		logger.finest("Finished peak shape modeler " + processedRows
-				+ " rows processed");
-
-		setStatus(TaskStatus.FINISHED);
-
+	    newPeakList.addRow(newRow);
+	    newPeakID++;
+	    processedRows++;
 	}
 
-	public Object[] getCreatedObjects() {
-		return new Object[] { newPeakList };
+	// Add new peaklist to the project
+	MZmineProject currentProject = MZmineCore.getCurrentProject();
+	currentProject.addPeakList(newPeakList);
+
+	// Remove the original peaklist if requested
+	if (removeOriginal)
+	    currentProject.removePeakList(originalPeakList);
+
+	// Load previous applied methods
+	for (PeakListAppliedMethod proc : originalPeakList.getAppliedMethods()) {
+	    newPeakList.addDescriptionOfAppliedTask(proc);
 	}
+
+	// Add task description to peakList
+	newPeakList
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			"Peaks shaped by " + shapeModelerType + " function",
+			parameters));
+
+	logger.finest("Finished peak shape modeler " + processedRows
+		+ " rows processed");
+
+	setStatus(TaskStatus.FINISHED);
+
+    }
 
 }

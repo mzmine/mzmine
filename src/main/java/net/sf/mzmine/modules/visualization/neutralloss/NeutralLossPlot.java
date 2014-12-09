@@ -48,6 +48,11 @@ import org.jfree.chart.title.TextTitle;
 
 class NeutralLossPlot extends ChartPanel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private JFreeChart chart;
 
     private XYPlot plot;

@@ -42,174 +42,169 @@ import net.sf.mzmine.util.SortingProperty;
 
 public class FragmentSearchTask extends AbstractTask {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private int finishedRows, totalRows;
-	private PeakList peakList;
+    private int finishedRows, totalRows;
+    private PeakList peakList;
 
-	private RTTolerance rtTolerance;
-	private MZTolerance ms2mzTolerance;
-	private double maxFragmentHeight, minMS2peakHeight;
+    private RTTolerance rtTolerance;
+    private MZTolerance ms2mzTolerance;
+    private double maxFragmentHeight, minMS2peakHeight;
 
-	private ParameterSet parameters;
+    private ParameterSet parameters;
 
-	/**
-	 * @param parameters
-	 * @param peakList
-	 */
-	public FragmentSearchTask(ParameterSet parameters,
-			PeakList peakList) {
+    /**
+     * @param parameters
+     * @param peakList
+     */
+    public FragmentSearchTask(ParameterSet parameters, PeakList peakList) {
 
-		this.peakList = peakList;
-		this.parameters = parameters;
+	this.peakList = peakList;
+	this.parameters = parameters;
 
-		rtTolerance = parameters.getParameter(
-				FragmentSearchParameters.rtTolerance).getValue();
-		ms2mzTolerance = parameters.getParameter(
-				FragmentSearchParameters.ms2mzTolerance).getValue();
-		maxFragmentHeight = parameters.getParameter(
-				FragmentSearchParameters.maxFragmentHeight).getValue();
-		minMS2peakHeight = parameters.getParameter(
-				FragmentSearchParameters.minMS2peakHeight).getValue();
+	rtTolerance = parameters.getParameter(
+		FragmentSearchParameters.rtTolerance).getValue();
+	ms2mzTolerance = parameters.getParameter(
+		FragmentSearchParameters.ms2mzTolerance).getValue();
+	maxFragmentHeight = parameters.getParameter(
+		FragmentSearchParameters.maxFragmentHeight).getValue();
+	minMS2peakHeight = parameters.getParameter(
+		FragmentSearchParameters.minMS2peakHeight).getValue();
 
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
-	 */
-	public double getFinishedPercentage() {
-		if (totalRows == 0)
-			return 0;
-		return ((double) finishedRows) / totalRows;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getFinishedPercentage()
+     */
+    public double getFinishedPercentage() {
+	if (totalRows == 0)
+	    return 0;
+	return ((double) finishedRows) / totalRows;
+    }
 
-	/**
-	 * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
-	 */
-	public String getTaskDescription() {
-		return "Identification of fragments in " + peakList;
-	}
+    /**
+     * @see net.sf.mzmine.taskcontrol.Task#getTaskDescription()
+     */
+    public String getTaskDescription() {
+	return "Identification of fragments in " + peakList;
+    }
 
-	/**
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    /**
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
 
-		setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
-		logger.info("Starting fragments search in " + peakList);
+	logger.info("Starting fragments search in " + peakList);
 
-		PeakListRow rows[] = peakList.getRows();
-		totalRows = rows.length;
+	PeakListRow rows[] = peakList.getRows();
+	totalRows = rows.length;
 
-		// Start with the highest peaks
-		Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height,
-				SortingDirection.Descending));
+	// Start with the highest peaks
+	Arrays.sort(rows, new PeakListRowSorter(SortingProperty.Height,
+		SortingDirection.Descending));
 
-		// Compare each two rows against each other
-		for (int i = 0; i < totalRows; i++) {
+	// Compare each two rows against each other
+	for (int i = 0; i < totalRows; i++) {
 
-			for (int j = i + 1; j < rows.length; j++) {
+	    for (int j = i + 1; j < rows.length; j++) {
 
-				// Task canceled?
-				if (isCanceled())
-					return;
+		// Task canceled?
+		if (isCanceled())
+		    return;
 
-				// Treat the higher m/z peak as main peak and check if the
-				// smaller one may be a fragment
-				if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
-					if (checkFragment(rows[i], rows[j]))
-						addFragmentInfo(rows[i], rows[j]);
-				} else {
-					if (checkFragment(rows[j], rows[i]))
-						addFragmentInfo(rows[j], rows[i]);
-				}
-
-			}
-
-			finishedRows++;
-
+		// Treat the higher m/z peak as main peak and check if the
+		// smaller one may be a fragment
+		if (rows[i].getAverageMZ() > rows[j].getAverageMZ()) {
+		    if (checkFragment(rows[i], rows[j]))
+			addFragmentInfo(rows[i], rows[j]);
+		} else {
+		    if (checkFragment(rows[j], rows[i]))
+			addFragmentInfo(rows[j], rows[i]);
 		}
 
-		// Add task description to peakList
-		((SimplePeakList) peakList)
-				.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
-						"Identification of fragments", parameters));
+	    }
 
-		// Repaint the window to reflect the change in the peak list
-		MZmineCore.getDesktop().getMainWindow().repaint();
-		
-		setStatus(TaskStatus.FINISHED);
-
-		logger.info("Finished fragments search in " + peakList);
+	    finishedRows++;
 
 	}
 
-	/**
-	 * Check if candidate peak may be a possible fragment of a given main peak
-	 * 
-	 * @param mainPeak
-	 * @param possibleFragment
-	 */
-	private boolean checkFragment(PeakListRow mainPeak,
-			PeakListRow possibleFragment) {
+	// Add task description to peakList
+	((SimplePeakList) peakList)
+		.addDescriptionOfAppliedTask(new SimplePeakListAppliedMethod(
+			"Identification of fragments", parameters));
 
-		// Check retention time condition
-		boolean rtCheck = rtTolerance.checkWithinTolerance(
-				mainPeak.getAverageRT(), possibleFragment.getAverageRT());
-		if (!rtCheck)
-			return false;
+	// Repaint the window to reflect the change in the peak list
+	MZmineCore.getDesktop().getMainWindow().repaint();
 
-		// Check height condition
-		if (possibleFragment.getAverageHeight() > mainPeak.getAverageHeight()
-				* maxFragmentHeight)
-			return false;
+	setStatus(TaskStatus.FINISHED);
 
-		// Get MS/MS scan, if exists
-		int fragmentScanNumber = mainPeak.getBestPeak()
-				.getMostIntenseFragmentScanNumber();
-		if (fragmentScanNumber <= 0)
-			return false;
+	logger.info("Finished fragments search in " + peakList);
 
-		RawDataFile dataFile = mainPeak.getBestPeak().getDataFile();
-		Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
-		if (fragmentScan == null)
-			return false;
+    }
 
-		// Get MS/MS data points in the tolerance range
-		Range ms2mzRange = ms2mzTolerance.getToleranceRange(possibleFragment
-				.getAverageMZ());
+    /**
+     * Check if candidate peak may be a possible fragment of a given main peak
+     * 
+     * @param mainPeak
+     * @param possibleFragment
+     */
+    private boolean checkFragment(PeakListRow mainPeak,
+	    PeakListRow possibleFragment) {
 
-		DataPoint fragmentDataPoints[] = fragmentScan
-				.getDataPointsByMass(ms2mzRange);
+	// Check retention time condition
+	boolean rtCheck = rtTolerance.checkWithinTolerance(
+		mainPeak.getAverageRT(), possibleFragment.getAverageRT());
+	if (!rtCheck)
+	    return false;
 
-		// If there is a MS/MS peak of required height, we have a hit
-		for (DataPoint dp : fragmentDataPoints) {
-			if (dp.getIntensity() > minMS2peakHeight)
-				return true;
-		}
+	// Check height condition
+	if (possibleFragment.getAverageHeight() > mainPeak.getAverageHeight()
+		* maxFragmentHeight)
+	    return false;
 
-		return false;
+	// Get MS/MS scan, if exists
+	int fragmentScanNumber = mainPeak.getBestPeak()
+		.getMostIntenseFragmentScanNumber();
+	if (fragmentScanNumber <= 0)
+	    return false;
 
+	RawDataFile dataFile = mainPeak.getBestPeak().getDataFile();
+	Scan fragmentScan = dataFile.getScan(fragmentScanNumber);
+	if (fragmentScan == null)
+	    return false;
+
+	// Get MS/MS data points in the tolerance range
+	Range ms2mzRange = ms2mzTolerance.getToleranceRange(possibleFragment
+		.getAverageMZ());
+
+	DataPoint fragmentDataPoints[] = fragmentScan
+		.getDataPointsByMass(ms2mzRange);
+
+	// If there is a MS/MS peak of required height, we have a hit
+	for (DataPoint dp : fragmentDataPoints) {
+	    if (dp.getIntensity() > minMS2peakHeight)
+		return true;
 	}
 
-	/**
-	 * Add new identity to the fragment row
-	 * 
-	 * @param mainRow
-	 * @param fragmentRow
-	 */
-	private void addFragmentInfo(PeakListRow mainRow, PeakListRow fragmentRow) {
-		FragmentIdentity newIdentity = new FragmentIdentity(mainRow);
-		fragmentRow.addPeakIdentity(newIdentity, false);
-		
-		// Notify the GUI about the change in the project
-		MZmineCore.getCurrentProject().notifyObjectChanged(fragmentRow, false);
-		
-	}
+	return false;
 
-	public Object[] getCreatedObjects() {
-		return null;
-	}
+    }
+
+    /**
+     * Add new identity to the fragment row
+     * 
+     * @param mainRow
+     * @param fragmentRow
+     */
+    private void addFragmentInfo(PeakListRow mainRow, PeakListRow fragmentRow) {
+	FragmentIdentity newIdentity = new FragmentIdentity(mainRow);
+	fragmentRow.addPeakIdentity(newIdentity, false);
+
+	// Notify the GUI about the change in the project
+	MZmineCore.getCurrentProject().notifyObjectChanged(fragmentRow, false);
+
+    }
 
 }

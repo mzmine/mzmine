@@ -45,7 +45,7 @@ class PathAlignerTask extends AbstractTask {
 
 	this.parameters = parameters;
 	peakLists = parameters.getParameter(PathAlignerParameters.peakLists)
-		.getValue();
+		.getMatchingPeakLists();
 	;
 	peakListName = parameters.getParameter(
 		PathAlignerParameters.peakListName).getValue();
@@ -91,9 +91,5 @@ class PathAlignerTask extends AbstractTask {
 	logger.info("Finished Path aligner");
 	setStatus(TaskStatus.FINISHED);
 
-    }
-
-    public Object[] getCreatedObjects() {
-	return new Object[] { alignedPeakList };
     }
 }

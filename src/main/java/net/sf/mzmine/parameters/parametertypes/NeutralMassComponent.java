@@ -36,9 +36,14 @@ import net.sf.mzmine.util.components.GridBagPanel;
 public class NeutralMassComponent extends GridBagPanel implements
 	DocumentListener, ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final Color BACKGROUND_COLOR = new Color(192, 224, 240);
 
-    private JComboBox ionTypeCombo;
+    private JComboBox<IonizationType> ionTypeCombo;
     private JTextField ionMassField, chargeField, neutralMassField;
 
     public NeutralMassComponent() {
@@ -58,7 +63,7 @@ public class NeutralMassComponent extends GridBagPanel implements
 	add(chargeField, 3, 0);
 
 	add(new JLabel("Ionization type:"), 0, 1, 2, 1);
-	ionTypeCombo = new JComboBox(IonizationType.values());
+	ionTypeCombo = new JComboBox<IonizationType>(IonizationType.values());
 	ionTypeCombo.addActionListener(this);
 	add(ionTypeCombo, 2, 1, 2, 1);
 

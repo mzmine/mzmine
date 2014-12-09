@@ -51,7 +51,7 @@ public class MassDetectionModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		MassDetectionParameters.dataFiles).getValue();
+		MassDetectionParameters.dataFiles).getMatchingRawDataFiles();
 
 	for (RawDataFile dataFile : dataFiles) {
 	    Task newTask = new MassDetectionTask(dataFile, parameters);

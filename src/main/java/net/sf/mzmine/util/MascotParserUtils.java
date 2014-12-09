@@ -454,7 +454,7 @@ public class MascotParserUtils {
 	 * @param fixed
 	 * @return
 	 */
-	public static ModificationPeptide[] parseModification(String modString, HashMap section, boolean fixed) {
+	public static ModificationPeptide[] parseModification(String modString, HashMap<?, ?> section, boolean fixed) {
 		//Example "Deamidation (NQ)"
 		Vector<ModificationPeptide> mods = new Vector<ModificationPeptide>();
 		double mass = 0.0;
@@ -481,7 +481,7 @@ public class MascotParserUtils {
 	 * @param pepDataFile
 	 * @return
 	 */
-	public static PeptideScan parseScanIons(int queryNumber, HashMap sectionMap, PeptideIdentityDataFile pepDataFile) {
+	public static PeptideScan parseScanIons(int queryNumber, HashMap<?, ?> sectionMap, PeptideIdentityDataFile pepDataFile) {
 		
 		
 		String titleScan = (String) sectionMap.get("title");

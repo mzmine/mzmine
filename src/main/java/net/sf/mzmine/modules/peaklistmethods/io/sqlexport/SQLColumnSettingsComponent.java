@@ -45,6 +45,10 @@ import net.sf.mzmine.util.GUIUtils;
 public class SQLColumnSettingsComponent extends JPanel implements
 	ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final JTable columnsTable;
     private final JButton addColumnButton, removeColumnButton;
 
@@ -59,6 +63,11 @@ public class SQLColumnSettingsComponent extends JPanel implements
 
 	//columnsTable = new JTable(value);
 	columnsTable = new JTable(value) {
+	/**
+	     * 
+	     */
+	    private static final long serialVersionUID = 1L;
+
 	public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
 		Component c = super.prepareRenderer(renderer, row, column);
 		if (!isCellEditable(row, column)) {
@@ -94,7 +103,7 @@ public class SQLColumnSettingsComponent extends JPanel implements
 	columnsTable.setRowHeight(columnsTable.getRowHeight()+5);
 	columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
 	
-	JComboBox dataTypeCombo = new JComboBox(SQLExportDataType.values());
+	JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(SQLExportDataType.values());
 	dataTypeCombo.setMaximumRowCount(22);
 	DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
 	columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
@@ -103,7 +112,7 @@ public class SQLColumnSettingsComponent extends JPanel implements
 	dataTypeCombo.addItemListener(new ItemListener() {
 	     @Override
 	     public void itemStateChanged(ItemEvent e) {
-	    	 JComboBox dataTypeCombo = (JComboBox) e.getSource();
+	    	 JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
 	    	 Boolean selected = ((SQLExportDataType) dataTypeCombo.getSelectedItem()).isSelectableValue();
 	    	 if(!selected && e.getStateChange() == 1) {
 	    		 // Invalid selection - selection of title rows in JComboBox is not allowed

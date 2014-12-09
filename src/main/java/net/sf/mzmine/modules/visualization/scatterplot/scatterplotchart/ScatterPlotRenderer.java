@@ -43,6 +43,11 @@ import org.jfree.data.xy.XYDataset;
 
 public class ScatterPlotRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private static final Shape dataPointsShape = new Ellipse2D.Float(-2.5f,
 			-2.5f, 5, 5);
 

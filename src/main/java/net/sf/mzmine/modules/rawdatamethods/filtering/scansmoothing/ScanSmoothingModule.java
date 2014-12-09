@@ -33,7 +33,7 @@ import net.sf.mzmine.util.ExitCode;
 
 public class ScanSmoothingModule implements MZmineProcessingModule {
 
-    private static final String MODULE_NAME = "Scan Smoothing (LC/MS or MS level 1)";
+    private static final String MODULE_NAME = "Scan smoothing (LC/MS or MS level 1)";
     private static final String MODULE_DESCRIPTION = "This module averages intensity values within a time-scan frame.";
 
     @Override
@@ -52,11 +52,11 @@ public class ScanSmoothingModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		new RawDataFilesParameter()).getValue();
+		new RawDataFilesParameter()).getMatchingRawDataFiles();
 
 	for (int i = 0; i < dataFiles.length; i++) {
 	    Task newTask = new ScanSmoothingTask(dataFiles[i],
-		    parameters.cloneParameter());
+		    parameters.cloneParameterSet());
 	    tasks.add(newTask);
 	}
 

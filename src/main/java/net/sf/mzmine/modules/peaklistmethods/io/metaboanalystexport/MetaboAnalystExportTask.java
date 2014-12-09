@@ -48,7 +48,7 @@ class MetaboAnalystExportTask extends AbstractTask {
     MetaboAnalystExportTask(ParameterSet parameters) {
 
 	this.peakList = parameters.getParameter(
-		MetaboAnalystExportParameters.peakList).getValue()[0];
+		MetaboAnalystExportParameters.peakList).getMatchingPeakLists()[0];
 
 	fileName = parameters.getParameter(
 		MetaboAnalystExportParameters.filename).getValue();
@@ -76,9 +76,9 @@ class MetaboAnalystExportTask extends AbstractTask {
 	boolean checkResult = checkPeakList(peakList);
 	if (checkResult == false) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Peak list "
+	    setErrorMessage("Peak list "
 		    + peakList.getName()
-		    + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group";
+		    + " does not conform to MetaboAnalyst requirement: at least 3 samples (raw data files) in each group");
 	    return;
 	}
 
@@ -98,8 +98,8 @@ class MetaboAnalystExportTask extends AbstractTask {
 	} catch (Exception e) {
 	    e.printStackTrace();
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Could not export peak list to file " + fileName
-		    + ": " + e.getMessage();
+	    setErrorMessage("Could not export peak list to file " + fileName
+		    + ": " + e.getMessage());
 	    return;
 	}
 
@@ -231,7 +231,4 @@ class MetaboAnalystExportTask extends AbstractTask {
 
     }
 
-    public Object[] getCreatedObjects() {
-	return null;
-    }
 }

@@ -51,11 +51,12 @@ public class ChromatogramBuilderModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		ChromatogramBuilderParameters.dataFiles).getValue();
+		ChromatogramBuilderParameters.dataFiles)
+		.getMatchingRawDataFiles();
 
 	for (int i = 0; i < dataFiles.length; i++) {
 	    Task newTask = new ChromatogramBuilderTask(dataFiles[i],
-		    parameters.cloneParameter());
+		    parameters.cloneParameterSet());
 	    tasks.add(newTask);
 	}
 

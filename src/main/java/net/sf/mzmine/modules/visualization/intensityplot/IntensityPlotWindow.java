@@ -58,6 +58,10 @@ import org.jfree.chart.title.TextTitle;
  */
 public class IntensityPlotWindow extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     static final Font legendFont = new Font("SansSerif", Font.PLAIN, 10);
     static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 
@@ -69,7 +73,7 @@ public class IntensityPlotWindow extends JFrame {
     public IntensityPlotWindow(ParameterSet parameters) {
 
 	PeakList peakList = parameters.getParameter(
-		IntensityPlotParameters.peakList).getValue()[0];
+		IntensityPlotParameters.peakList).getMatchingPeakLists()[0];
 
 	String title = "Intensity plot [" + peakList + "]";
 	String xAxisLabel = parameters

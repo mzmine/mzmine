@@ -31,6 +31,10 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class IsotopesDataSet extends AbstractXYDataset implements
 		IntervalXYDataset {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private IsotopePattern isotopePattern;
 	private DataPoint[] dataPoints;
 	private String label;

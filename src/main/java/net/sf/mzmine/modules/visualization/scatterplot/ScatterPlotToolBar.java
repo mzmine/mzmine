@@ -30,6 +30,10 @@ import net.sf.mzmine.util.GUIUtils;
 
 public class ScatterPlotToolBar extends JToolBar {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
 	public ScatterPlotToolBar(ScatterPlotChart chart) {

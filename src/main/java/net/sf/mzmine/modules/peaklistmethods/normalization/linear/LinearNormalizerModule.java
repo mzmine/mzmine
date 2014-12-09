@@ -51,7 +51,7 @@ public class LinearNormalizerModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		LinearNormalizerParameters.peakLists).getValue();
+		LinearNormalizerParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new LinearNormalizerTask(peakList, parameters);

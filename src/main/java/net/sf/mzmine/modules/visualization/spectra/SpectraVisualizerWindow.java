@@ -62,6 +62,11 @@ import org.jfree.data.xy.XYDataset;
  */
 public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     public static final Color scanColor = new Color(0, 0, 192);
@@ -86,7 +91,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
     public SpectraVisualizerWindow(RawDataFile dataFile) {
 
-	super(dataFile.getName());
+	super("Spectrum loading...");
 	this.dataFile = dataFile;
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -152,7 +157,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
 	// Clean up the MS/MS selector combo
 
-	final JComboBox msmsSelector = bottomPanel.getMSMSSelector();
+	final JComboBox<String> msmsSelector = bottomPanel.getMSMSSelector();
 
 	// We disable the MSMS selector first and then enable it again later
 	// after updating the items. If we skip this, the size of the
@@ -216,9 +221,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	bottomPanel.setMSMSSelectorVisible(msmsVisible);
 
 	// Set window and plot titles
-
-	String title = "[" + dataFile.getName() + "] scan #"
-		+ currentScan.getScanNumber();
+	String title = "Spectrum: [" + dataFile.getName() + "; scan #"
+		+ currentScan.getScanNumber() + "]";
 
 	String subTitle = "MS" + currentScan.getMSLevel();
 
@@ -439,7 +443,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	if (command.equals("ADD_ISOTOPE_PATTERN")) {
 
 	    IsotopePattern newPattern = IsotopePatternCalculator
-		    .showIsotopePredictionDialog();
+		    .showIsotopePredictionDialog(this, true);
 
 	    if (newPattern == null)
 		return;

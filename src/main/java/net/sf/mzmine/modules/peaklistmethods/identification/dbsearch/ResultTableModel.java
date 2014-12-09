@@ -30,6 +30,11 @@ import net.sf.mzmine.util.FormulaUtils;
 
 public class ResultTableModel extends AbstractTableModel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private static final String[] columnNames = { "ID", "Common Name",
 	    "Formula", "Mass difference", "Isotope pattern score" };
 

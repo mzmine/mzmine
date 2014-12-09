@@ -36,6 +36,10 @@ import net.sf.mzmine.datamodel.RawDataFile;
 class RemoveFilePopupMenu extends JMenu implements MenuListener,
         ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private Hashtable<JMenuItem, RawDataFile> menuItemFiles;
     private TICVisualizerWindow visualizer;
 

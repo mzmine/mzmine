@@ -51,7 +51,7 @@ public class CustomDBSearchModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		CustomDBSearchParameters.peakLists).getValue();
+		CustomDBSearchParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new CustomDBSearchTask(peakList, parameters);

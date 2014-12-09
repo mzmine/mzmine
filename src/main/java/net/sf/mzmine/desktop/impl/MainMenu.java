@@ -25,7 +25,6 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -56,6 +55,11 @@ import net.sf.mzmine.util.GUIUtils;
  * This class represents the main menu of MZmine desktop
  */
 public class MainMenu extends JMenuBar implements ActionListener {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
@@ -96,7 +100,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	projectSampleParameters = GUIUtils.addMenuItem(projectMenu,
 		"Set sample parameters", this, KeyEvent.VK_P);
-	
+
 	projectMenu.addSeparator();
 
 	projectPreferences = GUIUtils.addMenuItem(projectMenu,
@@ -278,14 +282,24 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	JMenuItem newItem = new JMenuItem(menuItemText);
 	newItem.setToolTipText(menuItemToolTip);
 	newItem.addActionListener(this);
-	
+
 	/*
-	 * Shortcuts keys to open, save and close a project. Implementation will be changed with JavaFX. 
+	 * Shortcuts keys to open, save and close a project. Implementation will
+	 * be changed with JavaFX.
 	 */
-	if (menuItemText == "Open project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, ActionEvent.CTRL_MASK));}
-	if (menuItemText == "Save project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));}
-	if (menuItemText == "Close project") {newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));}
-	
+	if (menuItemText == "Open project") {
+	    newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O,
+		    ActionEvent.CTRL_MASK));
+	}
+	if (menuItemText == "Save project") {
+	    newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+		    ActionEvent.CTRL_MASK));
+	}
+	if (menuItemText == "Close project") {
+	    newItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W,
+		    ActionEvent.CTRL_MASK));
+	}
+
 	moduleMenuItems.put(newItem, module);
 
 	addMenuItem(parentMenu, newItem);
@@ -301,51 +315,39 @@ public class MainMenu extends JMenuBar implements ActionListener {
 
 	MZmineProcessingModule module = moduleMenuItems.get(src);
 	if (module != null) {
-	    RawDataFile selectedFiles[] = MZmineCore.getDesktop()
-		    .getSelectedDataFiles();
-	    PeakList selectedPeakLists[] = MZmineCore.getDesktop()
-		    .getSelectedPeakLists();
-
 	    ParameterSet moduleParameters = MZmineCore.getConfiguration()
 		    .getModuleParameters(module.getClass());
 
-	    boolean allParametersOK = true;
-	    LinkedList<String> errorMessages = new LinkedList<String>();
-	    for (Parameter p : moduleParameters.getParameters()) {
-		if (p instanceof RawDataFilesParameter) {
-		    RawDataFilesParameter rdp = (RawDataFilesParameter) p;
-		    rdp.setValue(selectedFiles);
-		    boolean checkOK = rdp.checkValue(errorMessages);
-		    if (!checkOK) {
-			allParametersOK = false;
+	    RawDataFile selectedFiles[] = MZmineCore.getDesktop()
+		    .getSelectedDataFiles();
+	    if (selectedFiles.length > 0) {
+		for (Parameter<?> p : moduleParameters.getParameters()) {
+		    if (p instanceof RawDataFilesParameter) {
+			RawDataFilesParameter rdp = (RawDataFilesParameter) p;
+			rdp.setValue(selectedFiles);
 		    }
 		}
-		if (p instanceof PeakListsParameter) {
-		    PeakListsParameter plp = (PeakListsParameter) p;
-		    plp.setValue(selectedPeakLists);
-		    boolean checkOK = plp.checkValue(errorMessages);
-		    if (!checkOK) {
-			allParametersOK = false;
-		    }
-		}
-	    }
 
-	    if (!allParametersOK) {
-		StringBuilder message = new StringBuilder();
-		for (String m : errorMessages) {
-		    message.append(m);
-		    message.append("\n");
+	    }
+	    PeakList selectedPeakLists[] = MZmineCore.getDesktop()
+		    .getSelectedPeakLists();
+	    if (selectedPeakLists.length > 0) {
+		for (Parameter<?> p : moduleParameters.getParameters()) {
+		    if (p instanceof PeakListsParameter) {
+			PeakListsParameter plp = (PeakListsParameter) p;
+			plp.setValue(selectedPeakLists);
+		    }
 		}
-		MZmineCore.getDesktop().displayMessage(message.toString());
-		return;
 	    }
 
 	    logger.finest("Setting parameters for module " + module.getName());
-	    ExitCode exitCode = moduleParameters.showSetupDialog();
+	    ExitCode exitCode = moduleParameters.showSetupDialog(MZmineCore
+		    .getDesktop().getMainWindow(), true);
 	    if (exitCode == ExitCode.OK) {
-		ParameterSet parametersCopy = moduleParameters.cloneParameter();
-		logger.finest("Starting module " + module.getName() + " with parameters "
-			+ parametersCopy);
+		ParameterSet parametersCopy = moduleParameters
+			.cloneParameterSet();
+		logger.finest("Starting module " + module.getName()
+			+ " with parameters " + parametersCopy);
 		ArrayList<Task> tasks = new ArrayList<Task>();
 		module.runModule(parametersCopy, tasks);
 		MZmineCore.getTaskController().addTasks(
@@ -367,7 +369,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		try {
 		    MZmineCore.getConfiguration().saveConfiguration(configFile);
 		} catch (Exception ex) {
-		    MZmineCore.getDesktop().displayException(ex);
+		    MZmineCore.getDesktop().displayException(
+			    MZmineCore.getDesktop().getMainWindow(), ex);
 		}
 	    }
 	}
@@ -381,7 +384,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 		try {
 		    MZmineCore.getConfiguration().loadConfiguration(configFile);
 		} catch (Exception ex) {
-		    MZmineCore.getDesktop().displayException(ex);
+		    MZmineCore.getDesktop().displayException(
+			    MZmineCore.getDesktop().getMainWindow(), ex);
 		}
 	    }
 	}
@@ -394,14 +398,15 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	if (src == projectPreferences) {
 	    MZminePreferences preferences = MZmineCore.getConfiguration()
 		    .getPreferences();
-	    preferences.showSetupDialog();
+	    preferences.showSetupDialog(
+		    MZmineCore.getDesktop().getMainWindow(), true);
 	}
 
 	if (src == showAbout) {
 	    MainWindow mainWindow = (MainWindow) MZmineCore.getDesktop();
 	    mainWindow.showAboutDialog();
 	}
-	
+
 	if (src == checkUpdate) { // Check for updated version
 	    NewVersionCheck NVC = new NewVersionCheck(CheckType.MENU);
 	    new Thread(NVC).start();

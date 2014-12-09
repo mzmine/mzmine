@@ -44,6 +44,10 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
  */
 public class ScatterPlotWindow extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private ScatterPlotToolBar toolbar;
     private ScatterPlotChart chart;
     private ScatterPlotTopPanel topPanel;
@@ -72,7 +76,7 @@ public class ScatterPlotWindow extends JFrame {
 	leftMargin.setOpaque(false);
 	add(leftMargin, BorderLayout.WEST);
 
-	bottomPanel = new ScatterPlotBottomPanel(chart, peakList);
+	bottomPanel = new ScatterPlotBottomPanel(this, chart, peakList);
 	add(bottomPanel, BorderLayout.SOUTH);
 
 	// Add the Windows menu

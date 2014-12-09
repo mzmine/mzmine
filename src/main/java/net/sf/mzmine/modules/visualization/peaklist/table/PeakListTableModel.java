@@ -30,6 +30,10 @@ import net.sf.mzmine.datamodel.RawDataFile;
 
 public class PeakListTableModel extends AbstractTableModel {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private PeakList peakList;
 
     /**

@@ -37,6 +37,11 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private PeakListRow displayedRows[], selectedRows[];
 
 	private ScatterPlotAxisSelection axisX, axisY;

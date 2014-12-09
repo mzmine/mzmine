@@ -64,6 +64,10 @@ import net.sf.mzmine.util.components.PercentageCellRenderer;
 
 public class ResultWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final JTable resultsTable;
     private final ResultTableModel resultsTableModel;
     private final TableRowSorter<ResultTableModel> resultsTableSorter;
@@ -183,6 +187,7 @@ public class ResultWindow extends JFrame implements ActionListener {
 
 	    } catch (Exception ex) {
 		MZmineCore.getDesktop().displayErrorMessage(
+			MZmineCore.getDesktop().getMainWindow(),
 			"Error writing to file " + outputFile + ": "
 				+ ExceptionUtils.exceptionToString(ex));
 	    }
@@ -195,7 +200,9 @@ public class ResultWindow extends JFrame implements ActionListener {
 	int index = resultsTable.getSelectedRow();
 
 	if (index < 0) {
-	    MZmineCore.getDesktop().displayMessage("Please select one result");
+	    MZmineCore.getDesktop().displayMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
+		    "Please select one result");
 	    return;
 	}
 	index = resultsTable.convertRowIndexToModel(index);

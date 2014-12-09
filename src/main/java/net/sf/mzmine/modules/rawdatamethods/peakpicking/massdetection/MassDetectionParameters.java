@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
+import java.awt.Window;
+
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -61,9 +63,9 @@ public class MassDetectionParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	ExitCode exitCode = super.showSetupDialog();
+	ExitCode exitCode = super.showSetupDialog(parent, valueCheckRequired);
 
 	// If the parameters are not complete, let's just stop here
 	if (exitCode != ExitCode.OK)
@@ -73,7 +75,8 @@ public class MassDetectionParameters extends SimpleParameterSet {
 	// warning if there is a potential problem
 	boolean centroidData = false;
 	int selectedMSLevel = getParameter(msLevel).getValue();
-	RawDataFile selectedFiles[] = getParameter(dataFiles).getValue();
+	RawDataFile selectedFiles[] = getParameter(dataFiles)
+		.getMatchingRawDataFiles();
 
 	// If no file selected (e.g. in batch mode setup), just return
 	if (selectedFiles == null)
@@ -96,14 +99,14 @@ public class MassDetectionParameters extends SimpleParameterSet {
 	    String msg = "One or more selected files contains centroided data points at MS level "
 		    + selectedMSLevel
 		    + ". The selected mass detector could give unexpected results.";
-	    MZmineCore.getDesktop().displayMessage(msg);
+	    MZmineCore.getDesktop().displayMessage(null, msg);
 	}
 
 	if ((!centroidData) && (massDetectorName.startsWith("Centroid"))) {
 	    String msg = "None one of the selected files contain centroided data points at MS level "
 		    + selectedMSLevel
 		    + ". The selected mass detector could give unexpected results.";
-	    MZmineCore.getDesktop().displayMessage(msg);
+	    MZmineCore.getDesktop().displayMessage(null, msg);
 	}
 
 	return exitCode;

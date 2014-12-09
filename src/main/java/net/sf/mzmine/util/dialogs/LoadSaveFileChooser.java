@@ -38,6 +38,11 @@ import javax.swing.JOptionPane;
 public class LoadSaveFileChooser extends JFileChooser {
 
     /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
+    /**
      * Create the chooser.
      *
      * @param title dialog title.

@@ -233,12 +233,13 @@ public class ProjectSavingTask extends AbstractTask {
 	    setStatus(TaskStatus.ERROR);
 
 	    if (currentSavedObjectName == null) {
-		errorMessage = "Failed saving the project: "
-			+ ExceptionUtils.exceptionToString(e);
+		setErrorMessage("Failed saving the project: "
+			+ ExceptionUtils.exceptionToString(e));
 	    } else {
-		errorMessage = "Failed saving the project. Error while saving "
-			+ currentSavedObjectName + ": "
-			+ ExceptionUtils.exceptionToString(e);
+		setErrorMessage("Failed saving the project. Error while saving "
+			+ currentSavedObjectName
+			+ ": "
+			+ ExceptionUtils.exceptionToString(e));
 	    }
 
 	}
@@ -370,7 +371,4 @@ public class ProjectSavingTask extends AbstractTask {
 
     }
 
-    public Object[] getCreatedObjects() {
-	return null;
-    }
 }

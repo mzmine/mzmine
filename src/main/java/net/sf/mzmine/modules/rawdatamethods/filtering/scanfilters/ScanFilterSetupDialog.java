@@ -20,6 +20,7 @@
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters;
 
 import java.awt.Color;
+import java.awt.Window;
 
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.modules.visualization.spectra.PlotMode;
@@ -36,6 +37,10 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  */
 public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private ParameterSet filterParameters;
     private ScanFilter rawDataFilter;
 
@@ -43,10 +48,11 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
      * @param parameters
      * @param rawDataFilterTypeNumber
      */
-    public ScanFilterSetupDialog(ParameterSet filterParameters,
+    public ScanFilterSetupDialog(Window parent, boolean valueCheckRequired,
+	    ParameterSet filterParameters,
 	    Class<? extends ScanFilter> filterClass) {
 
-	super(filterParameters);
+	super(parent, valueCheckRequired, filterParameters);
 	this.filterParameters = filterParameters;
 
 	try {

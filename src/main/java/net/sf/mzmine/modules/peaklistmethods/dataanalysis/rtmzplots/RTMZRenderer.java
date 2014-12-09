@@ -30,6 +30,11 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RTMZRenderer extends XYLineAndShapeRenderer {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private static final Shape dataPointsShape = new Ellipse2D.Double(-3, -3, 7, 7);
 	
 	private AbstractXYZDataset dataset;

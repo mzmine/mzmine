@@ -55,7 +55,7 @@ public class DesktopSetup {
 		Font tinyFont = new Font("SansSerif", Font.PLAIN, 10);
 
 		// Set default font
-		Enumeration keys = UIManager.getDefaults().keys();
+		Enumeration<Object> keys = UIManager.getDefaults().keys();
 		while (keys.hasMoreElements()) {
 			Object key = keys.nextElement();
 			Object value = UIManager.get(key);

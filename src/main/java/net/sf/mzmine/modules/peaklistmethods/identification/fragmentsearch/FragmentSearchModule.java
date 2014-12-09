@@ -51,7 +51,7 @@ public class FragmentSearchModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		FragmentSearchParameters.peakLists).getValue();
+		FragmentSearchParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new FragmentSearchTask(parameters, peakList);

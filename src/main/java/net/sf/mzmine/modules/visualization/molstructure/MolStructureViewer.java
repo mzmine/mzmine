@@ -43,6 +43,10 @@ import net.sf.mzmine.util.components.MultiLineLabel;
 
 public class MolStructureViewer extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private JSplitPane splitPane;
     private JLabel loading2Dlabel, loading3Dlabel;
 

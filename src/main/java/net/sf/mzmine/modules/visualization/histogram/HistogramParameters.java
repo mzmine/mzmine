@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.histogram;
 
+import java.awt.Window;
+
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -55,9 +57,9 @@ public class HistogramParameters extends SimpleParameterSet {
 		windowSettings });
     }
 
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	PeakList selectedPeaklists[] = getParameter(
-		HistogramParameters.peakList).getValue();
+		HistogramParameters.peakList).getMatchingPeakLists();
 	RawDataFile dataFiles[];
 	if ((selectedPeaklists == null) || (selectedPeaklists.length != 1)) {
 	    dataFiles = MZmineCore.getCurrentProject().getDataFiles();
@@ -65,7 +67,7 @@ public class HistogramParameters extends SimpleParameterSet {
 	    dataFiles = selectedPeaklists[0].getRawDataFiles();
 	}
 	getParameter(HistogramParameters.dataFiles).setChoices(dataFiles);
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

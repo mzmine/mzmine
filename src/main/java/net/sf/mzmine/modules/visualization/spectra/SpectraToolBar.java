@@ -35,6 +35,10 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class SpectraToolBar extends JToolBar {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
 	static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
 	static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");

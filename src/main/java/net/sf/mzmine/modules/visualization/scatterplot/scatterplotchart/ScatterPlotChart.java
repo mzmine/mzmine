@@ -61,6 +61,11 @@ import org.jfree.ui.RectangleInsets;
 public class ScatterPlotChart extends ChartPanel implements
 	ComponentToolTipProvider {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // grid color
     private static final Color gridColor = Color.lightGray;
 
@@ -237,7 +242,7 @@ public class ScatterPlotChart extends ChartPanel implements
 	    PeakListRow selectedRow = mainDataSet.getRow(valueX, valueY);
 
 	    if (selectedRow == null) {
-		MZmineCore.getDesktop().displayErrorMessage(
+		MZmineCore.getDesktop().displayErrorMessage(window,
 			"No peak is selected");
 		return;
 	    }

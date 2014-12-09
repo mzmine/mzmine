@@ -24,7 +24,6 @@
 package net.sf.mzmine.util;
 
 import java.io.File;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.rosuda.JRI.RMainLoopCallbacks;

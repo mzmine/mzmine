@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.mean;
 
+import java.awt.Window;
+
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilterSetupDialog;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
@@ -34,9 +36,9 @@ public class MeanFilterParameters extends SimpleParameterSet {
 	super(new UserParameter[] { oneSidedWindowLength });
     }
 
-    public ExitCode showSetupDialog() {
-	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(this,
-		MeanFilter.class);
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
+	ScanFilterSetupDialog dialog = new ScanFilterSetupDialog(parent,
+		valueCheckRequired, this, MeanFilter.class);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

@@ -38,6 +38,10 @@ import org.jfree.ui.RectangleInsets;
 
 public class ProjectionPlotPanel extends ChartPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private static final Color gridColor = Color.lightGray;
 	private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
 

@@ -34,10 +34,13 @@ import net.sf.mzmine.modules.peaklistmethods.identification.adductsearch.ImportA
 /**
  * A component for selecting adducts.
  *
- * @author $Author$
- * @version $Revision$
  */
 public class AdductsComponent extends MultiChoiceComponent {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Create the component.

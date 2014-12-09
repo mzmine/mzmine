@@ -37,6 +37,7 @@ import javax.swing.ListSelectionModel;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
+import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimplePeakList;
 import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
@@ -46,6 +47,10 @@ import net.sf.mzmine.util.Range;
 
 class InfoVisualizerWindow extends JFrame {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
@@ -69,7 +74,8 @@ class InfoVisualizerWindow extends JFrame {
 	}
 
 	// Raw data file list
-	JList rawDataFileList = new JList(peakList.getRawDataFiles());
+	JList<RawDataFile> rawDataFileList = new JList<RawDataFile>(
+		peakList.getRawDataFiles());
 	rawDataFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	rawDataFileList.setLayoutOrientation(JList.VERTICAL);
 	JScrollPane rawlistScroller = new JScrollPane(rawDataFileList);

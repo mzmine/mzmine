@@ -38,128 +38,122 @@ import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 public class MsMsPeakPickingTask extends AbstractTask {
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private int processedScans, totalScans;
+    private int processedScans, totalScans;
 
-	private RawDataFile dataFile;
-	private double binSize;
-	private double binTime;
-	private int msLevel;
+    private RawDataFile dataFile;
+    private double binSize;
+    private double binTime;
+    private int msLevel;
 
-	private SimplePeakList newPeakList;
+    private SimplePeakList newPeakList;
 
-	public MsMsPeakPickingTask(RawDataFile dataFile,
-			ParameterSet parameters) {
-		this.dataFile = dataFile;
-		binSize = parameters.getParameter(MsMsPeakPickerParameters.mzWindow)
-				.getValue();
-		binTime = parameters.getParameter(MsMsPeakPickerParameters.rtWindow)
-				.getValue();
+    public MsMsPeakPickingTask(RawDataFile dataFile, ParameterSet parameters) {
+	this.dataFile = dataFile;
+	binSize = parameters.getParameter(MsMsPeakPickerParameters.mzWindow)
+		.getValue();
+	binTime = parameters.getParameter(MsMsPeakPickerParameters.rtWindow)
+		.getValue();
 
-		msLevel = parameters.getParameter(MsMsPeakPickerParameters.msLevel)
-				.getValue();
-		newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks",
-				dataFile);
-	}
+	msLevel = parameters.getParameter(MsMsPeakPickerParameters.msLevel)
+		.getValue();
+	newPeakList = new SimplePeakList(dataFile.getName() + " MS/MS peaks",
+		dataFile);
+    }
 
-	public RawDataFile getDataFile() {
-		return dataFile;
-	}
+    public RawDataFile getDataFile() {
+	return dataFile;
+    }
 
-	public double getFinishedPercentage() {
-		if (totalScans == 0)
-			return 0f;
-		return (double) processedScans / totalScans;
-	}
+    public double getFinishedPercentage() {
+	if (totalScans == 0)
+	    return 0f;
+	return (double) processedScans / totalScans;
+    }
 
-	public String getTaskDescription() {
-		return "Building MS/MS Peaklist based on MS/MS from " + dataFile;
-	}
+    public String getTaskDescription() {
+	return "Building MS/MS Peaklist based on MS/MS from " + dataFile;
+    }
 
-	public void run() {
+    public void run() {
 
-		setStatus(TaskStatus.PROCESSING);
+	setStatus(TaskStatus.PROCESSING);
 
-		int[] scanNumbers = dataFile.getScanNumbers(msLevel);
-		totalScans = scanNumbers.length;
-		for (int scanNumber : scanNumbers) {
-			if (isCanceled())
-				return;
+	int[] scanNumbers = dataFile.getScanNumbers(msLevel);
+	totalScans = scanNumbers.length;
+	for (int scanNumber : scanNumbers) {
+	    if (isCanceled())
+		return;
 
-			// Get next MS/MS scan
-			Scan scan = dataFile.getScan(scanNumber);
+	    // Get next MS/MS scan
+	    Scan scan = dataFile.getScan(scanNumber);
 
-			// no parents scan for this msms scan
-			if (scan.getParentScanNumber() <= 0) {
-				continue;
-			}
+	    // no parents scan for this msms scan
+	    if (scan.getParentScanNumber() <= 0) {
+		continue;
+	    }
 
-			// Get the MS Scan
-			Scan bestScan = null;
-			Range rtWindow = new Range(scan.getRetentionTime()
-					- (binTime / 2.0f), scan.getRetentionTime()
-					+ (binTime / 2.0f));
-			Range mzWindow = new Range(
-					scan.getPrecursorMZ() - (binSize / 2.0f),
-					scan.getPrecursorMZ() + (binSize / 2.0f));
-			DataPoint point;
-			DataPoint maxPoint = null;
-			int[] regionScanNumbers = dataFile.getScanNumbers(1, rtWindow);
-			for (int regionScanNumber : regionScanNumbers) {
-				Scan regionScan = dataFile.getScan(regionScanNumber);
-				point = ScanUtils.findBasePeak(regionScan, mzWindow);
-				// no datapoint found
-				if (point == null) {
-					continue;
-				}
-				if (maxPoint == null) {
-					maxPoint = point;
-				}
-				int result = Double.compare(maxPoint.getIntensity(),
-						point.getIntensity());
-				if (result <= 0) {
-					maxPoint = point;
-					bestScan = regionScan;
-				}
-
-			}
-
-			// if no representative dataPoint
-			if (bestScan == null) {
-				continue;
-			}
-			
-			assert maxPoint != null;
-
-			SimpleFeature c = new SimpleFeature(
-					dataFile, scan.getPrecursorMZ(),
-					bestScan.getRetentionTime(), maxPoint.getIntensity(),
-					maxPoint.getIntensity(),
-					new int[] { bestScan.getScanNumber() },
-					new DataPoint[] { maxPoint }, FeatureStatus.DETECTED,
-					bestScan.getScanNumber(), scan.getScanNumber(), new Range(
-							bestScan.getRetentionTime()), new Range(
-							scan.getPrecursorMZ()), new Range(
-							maxPoint.getIntensity()));
-
-			PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
-			entry.addPeak(dataFile, c);
-
-			newPeakList.addRow(entry);
-			processedScans++;
+	    // Get the MS Scan
+	    Scan bestScan = null;
+	    Range rtWindow = new Range(scan.getRetentionTime()
+		    - (binTime / 2.0f), scan.getRetentionTime()
+		    + (binTime / 2.0f));
+	    Range mzWindow = new Range(
+		    scan.getPrecursorMZ() - (binSize / 2.0f),
+		    scan.getPrecursorMZ() + (binSize / 2.0f));
+	    DataPoint point;
+	    DataPoint maxPoint = null;
+	    int[] regionScanNumbers = dataFile.getScanNumbers(1, rtWindow);
+	    for (int regionScanNumber : regionScanNumbers) {
+		Scan regionScan = dataFile.getScan(regionScanNumber);
+		point = ScanUtils.findBasePeak(regionScan, mzWindow);
+		// no datapoint found
+		if (point == null) {
+		    continue;
+		}
+		if (maxPoint == null) {
+		    maxPoint = point;
+		}
+		int result = Double.compare(maxPoint.getIntensity(),
+			point.getIntensity());
+		if (result <= 0) {
+		    maxPoint = point;
+		    bestScan = regionScan;
 		}
 
-		MZmineProject currentProject = MZmineCore.getCurrentProject();
-		currentProject.addPeakList(newPeakList);
-		logger.info("Finished MS/MS peak builder on " + dataFile + ", "
-				+ processedScans + " scans processed");
+	    }
 
-		setStatus(TaskStatus.FINISHED);
+	    // if no representative dataPoint
+	    if (bestScan == null) {
+		continue;
+	    }
+
+	    assert maxPoint != null;
+
+	    SimpleFeature c = new SimpleFeature(dataFile,
+		    scan.getPrecursorMZ(), bestScan.getRetentionTime(),
+		    maxPoint.getIntensity(), maxPoint.getIntensity(),
+		    new int[] { bestScan.getScanNumber() },
+		    new DataPoint[] { maxPoint }, FeatureStatus.DETECTED,
+		    bestScan.getScanNumber(), scan.getScanNumber(), new Range(
+			    bestScan.getRetentionTime()), new Range(
+			    scan.getPrecursorMZ()), new Range(
+			    maxPoint.getIntensity()));
+
+	    PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
+	    entry.addPeak(dataFile, c);
+
+	    newPeakList.addRow(entry);
+	    processedScans++;
 	}
 
-	public Object[] getCreatedObjects() {
-		return new Object[] { newPeakList };
-	}
+	MZmineProject currentProject = MZmineCore.getCurrentProject();
+	currentProject.addPeakList(newPeakList);
+	logger.info("Finished MS/MS peak builder on " + dataFile + ", "
+		+ processedScans + " scans processed");
+
+	setStatus(TaskStatus.FINISHED);
+    }
 
 }

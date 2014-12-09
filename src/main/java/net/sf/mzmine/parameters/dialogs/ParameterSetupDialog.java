@@ -20,9 +20,10 @@
 package net.sf.mzmine.parameters.dialogs;
 
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -62,13 +63,24 @@ import net.sf.mzmine.util.components.HelpButton;
 public class ParameterSetupDialog extends JDialog implements ActionListener,
 	DocumentListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
     private String helpID;
 
     // Parameters and their representation in the dialog
     protected ParameterSet parameterSet;
-    private Map<String, JComponent> parametersAndComponents;
+    private final Map<String, JComponent> parametersAndComponents;
+
+    // If true, the dialog won't allow the OK button to proceed, unless all
+    // parameters pass the value check. This is undesirable in the BatchMode
+    // setup dialog, where some parameters need to be set in advance according
+    // to values that are not yet imported etc.
+    private final boolean valueCheckRequired;
 
     // Buttons
     private JButton btnOK, btnCancel, btnHelp;
@@ -86,12 +98,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
     /**
      * Constructor
      */
-    public ParameterSetupDialog(ParameterSet parameters) {
+    public ParameterSetupDialog(Window parent, boolean valueCheckRequired,
+	    ParameterSet parameters) {
 
 	// Make dialog modal
-	super((Frame) null,
-		"Please set the parameters", true);
+	super(parent, "Please set the parameters", Dialog.ModalityType.DOCUMENT_MODAL);
 
+	this.valueCheckRequired = valueCheckRequired;
 	this.parameterSet = parameters;
 	this.helpID = GUIUtils.generateHelpID(parameters);
 
@@ -102,7 +115,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	updateMinimumSize();
 	pack();
 
-	setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+	setLocationRelativeTo(parent);
 
     }
 
@@ -122,7 +135,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
     /**
      * Constructs all components of the dialog
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void addDialogComponents() {
 
 	// Main panel which holds all the components in a grid
@@ -241,13 +254,13 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	return exitCode;
     }
 
-    protected JComponent getComponentForParameter(Parameter p) {
+    protected JComponent getComponentForParameter(Parameter<?> p) {
 	return parametersAndComponents.get(p.getName());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void updateParameterSetFromComponents() {
-	for (Parameter p : parameterSet.getParameters()) {
+	for (Parameter<?> p : parameterSet.getParameters()) {
 	    if (!(p instanceof UserParameter))
 		continue;
 	    UserParameter up = (UserParameter) p;
@@ -269,19 +282,22 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	    // commit the changes to the parameter set
 	    updateParameterSetFromComponents();
 
-	    ArrayList<String> messages = new ArrayList<String>();
-	    boolean allParametersOK = parameterSet
-		    .checkUserParameterValues(messages);
+	    if (valueCheckRequired) {
+		ArrayList<String> messages = new ArrayList<String>();
+		boolean allParametersOK = parameterSet
+			.checkParameterValues(messages);
 
-	    if (!allParametersOK) {
-		StringBuilder message = new StringBuilder(
-			"Please check the parameter settings:\n\n");
-		for (String m : messages) {
-		    message.append(m);
-		    message.append("\n");
+		if (!allParametersOK) {
+		    StringBuilder message = new StringBuilder(
+			    "Please check the parameter settings:\n\n");
+		    for (String m : messages) {
+			message.append(m);
+			message.append("\n");
+		    }
+		    MZmineCore.getDesktop().displayMessage(this,
+			    message.toString());
+		    return;
 		}
-		MZmineCore.getDesktop().displayMessage(message.toString());
-		return;
 	    }
 	}
 	this.exitCode = exitCode;
@@ -304,7 +320,7 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
 	    textComp.getDocument().addDocumentListener(this);
 	}
 	if (comp instanceof JComboBox) {
-	    JComboBox comboComp = (JComboBox) comp;
+	    JComboBox<?> comboComp = (JComboBox<?>) comp;
 	    comboComp.addActionListener(this);
 	}
 	if (comp instanceof JCheckBox) {
@@ -335,6 +351,10 @@ public class ParameterSetupDialog extends JDialog implements ActionListener,
     @Override
     public void removeUpdate(DocumentEvent event) {
 	parametersChanged();
+    }
+    
+    public boolean isValueCheckRequired() {
+	return valueCheckRequired;
     }
 
 }

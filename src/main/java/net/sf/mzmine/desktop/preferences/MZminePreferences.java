@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.desktop.preferences;
 
+import java.awt.Window;
 import java.text.DecimalFormat;
 
 import net.sf.mzmine.main.MZmineCore;
@@ -58,9 +59,10 @@ public class MZminePreferences extends SimpleParameterSet {
 		numOfThreads, proxySettings, windowSetttings });
     }
 
-    public ExitCode showSetupDialog() {
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	ExitCode retVal = super.showSetupDialog();
+	ExitCode retVal = super.showSetupDialog(parent, valueCheckRequired);
 
 	if (retVal == ExitCode.OK) {
 

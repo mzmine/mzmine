@@ -63,7 +63,7 @@ public class DuplicateFilterModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList[] peakLists = parameters.getParameter(
-		DuplicateFilterParameters.peakLists).getValue();
+		DuplicateFilterParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new DuplicateFilterTask(peakList, parameters);

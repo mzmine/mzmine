@@ -30,6 +30,11 @@ import net.sf.mzmine.util.GUIUtils;
 
 public class ProjectionPlotToolbar extends JToolBar {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
 
 	static final Icon labelsIcon = new ImageIcon("icons/annotationsicon.png");

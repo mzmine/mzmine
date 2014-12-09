@@ -35,6 +35,10 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private RTMZToolbar toolbar;
     private RTMZPlot plot;
 
@@ -69,7 +73,7 @@ public class RTMZAnalyzerWindow extends JFrame implements ActionListener {
 
 	if (command.equals("SETUP_COLORS")) {
 	    InterpolatingLookupPaintScaleSetupDialog colorDialog = new InterpolatingLookupPaintScaleSetupDialog(
-		    plot.getPaintScale());
+		    this, plot.getPaintScale());
 	    colorDialog.setVisible(true);
 
 	    if (colorDialog.getExitCode() == ExitCode.OK)

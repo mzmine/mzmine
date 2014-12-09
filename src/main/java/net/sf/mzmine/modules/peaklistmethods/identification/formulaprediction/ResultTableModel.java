@@ -28,6 +28,10 @@ import net.sf.mzmine.main.MZmineCore;
 
 public class ResultTableModel extends AbstractTableModel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	public static final String questionMark = "?";
 	public static final String checkMark = new String(new char[] { '\u2713' });
 	public static final String crossMark = new String(new char[] { '\u2717' });

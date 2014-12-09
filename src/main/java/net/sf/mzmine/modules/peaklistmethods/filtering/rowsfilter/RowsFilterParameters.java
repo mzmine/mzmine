@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.peaklistmethods.filtering.rowsfilter;
 
+import java.awt.Window;
+
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.UserParameter;
@@ -77,10 +79,10 @@ public class RowsFilterParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
 	// Update the parameter choices
-	UserParameter newChoices[] = MZmineCore.getCurrentProject()
+	UserParameter<?, ?> newChoices[] = MZmineCore.getCurrentProject()
 		.getParameters();
 	String[] choices;
 	if (newChoices == null || newChoices.length == 0) {
@@ -95,7 +97,8 @@ public class RowsFilterParameters extends SimpleParameterSet {
 	}
 
 	getParameter(RowsFilterParameters.GROUPSPARAMETER).setChoices(choices);
-	ParameterSetupDialog dialog = new ParameterSetupDialog(this);
+	ParameterSetupDialog dialog = new ParameterSetupDialog(parent,
+		valueCheckRequired, this);
 	dialog.setVisible(true);
 	return dialog.getExitCode();
     }

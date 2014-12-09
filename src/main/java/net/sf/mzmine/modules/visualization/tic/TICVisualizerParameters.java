@@ -19,6 +19,7 @@
 
 package net.sf.mzmine.modules.visualization.tic;
 
+import java.awt.Window;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import net.sf.mzmine.parameters.parametertypes.MZRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
 import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
+import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.RawDataFileUtils;
@@ -43,9 +45,7 @@ public class TICVisualizerParameters extends SimpleParameterSet {
     /**
      * The data file.
      */
-    public static final MultiChoiceParameter<RawDataFile> DATA_FILES = new MultiChoiceParameter<RawDataFile>(
-	    "Data files", "Please choose raw data files to plot",
-	    new RawDataFile[0]);
+    public static final RawDataFilesParameter DATA_FILES = new RawDataFilesParameter();
 
     /**
      * MS level.
@@ -122,11 +122,11 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      * @return an ExitCode indicating the user's action.
      */
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	return showSetupDialog(MZmineCore.getCurrentProject().getDataFiles(),
-		MZmineCore.getDesktop().getSelectedDataFiles(), new Feature[0],
-		new Feature[0]);
+	return showSetupDialog(parent, valueCheckRequired, MZmineCore
+		.getCurrentProject().getDataFiles(), MZmineCore.getDesktop()
+		.getSelectedDataFiles(), new Feature[0], new Feature[0]);
     }
 
     /**
@@ -142,19 +142,18 @@ public class TICVisualizerParameters extends SimpleParameterSet {
      *            default peak selections.
      * @return an ExitCode indicating the user's action.
      */
-    public ExitCode showSetupDialog(final RawDataFile[] allFiles,
-	    final RawDataFile[] selectedFiles, final Feature[] allPeaks,
-	    final Feature[] selectedPeaks) {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired,
+	    final RawDataFile[] allFiles, final RawDataFile[] selectedFiles,
+	    final Feature[] allPeaks, final Feature[] selectedPeaks) {
 
-	getParameter(DATA_FILES).setChoices(allFiles);
 	getParameter(DATA_FILES).setValue(selectedFiles);
 	getParameter(PEAKS).setChoices(allPeaks);
 	getParameter(PEAKS).setValue(selectedPeaks);
 
-	Map<UserParameter, Object> autoValues = null;
+	Map<UserParameter<?,?>, Object> autoValues = null;
 	if (selectedFiles != null && selectedFiles.length > 0) {
 
-	    autoValues = new HashMap<UserParameter, Object>(3);
+	    autoValues = new HashMap<UserParameter<?,?>, Object>(3);
 	    autoValues.put(MS_LEVEL, 1);
 	    autoValues.put(RT_RANGE,
 		    RawDataFileUtils.findTotalRTRange(selectedFiles, 1));
@@ -162,6 +161,6 @@ public class TICVisualizerParameters extends SimpleParameterSet {
 		    RawDataFileUtils.findTotalMZRange(selectedFiles, 1));
 	}
 
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 }

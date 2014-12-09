@@ -24,6 +24,7 @@
 package net.sf.mzmine.modules.peaklistmethods.identification.adductsearch;
 
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileReader;
@@ -52,8 +53,14 @@ import com.Ostermiller.util.CSVParser;
 
 public class ImportAdductsAction extends AbstractAction {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger.
-    private static final Logger LOG = Logger.getLogger(ImportAdductsAction.class.getName());
+    private static final Logger LOG = Logger
+	    .getLogger(ImportAdductsAction.class.getName());
 
     // Filename extension.
     private static final String FILENAME_EXTENSION = "csv";
@@ -65,93 +72,104 @@ public class ImportAdductsAction extends AbstractAction {
      */
     public ImportAdductsAction() {
 
-        super("Import...");
-        putValue(SHORT_DESCRIPTION, "Import custom adducts from a CSV file");
+	super("Import...");
+	putValue(SHORT_DESCRIPTION, "Import custom adducts from a CSV file");
 
-        chooser = null;
+	chooser = null;
     }
 
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-        // Parent component.
-        final AdductsComponent parent =
-                (AdductsComponent) SwingUtilities.getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
+	// Parent component.
+	final AdductsComponent parent = (AdductsComponent) SwingUtilities
+		.getAncestorOfClass(AdductsComponent.class,
+			(Component) e.getSource());
 
-        if (parent != null) {
+	if (parent != null) {
 
-            // Create the chooser if necessary.
-            if (chooser == null) {
+	    // Create the chooser if necessary.
+	    if (chooser == null) {
 
-                chooser = new LoadSaveFileChooser("Select Adducts File");
-                chooser.addChoosableFileFilter(new FileNameExtensionFilter("Comma-separated values files",
-                                                                           FILENAME_EXTENSION));
-            }
+		chooser = new LoadSaveFileChooser("Select Adducts File");
+		chooser.addChoosableFileFilter(new FileNameExtensionFilter(
+			"Comma-separated values files", FILENAME_EXTENSION));
+	    }
 
-            // Select a file.
-            final File file = chooser.getLoadFile(parent);
-            if (file != null) {
+	    // Select a file.
+	    final File file = chooser.getLoadFile(parent);
+	    if (file != null) {
 
-                // Read the CSV file into a string array.
-                String[][] csvLines = null;
-                try {
+		// Read the CSV file into a string array.
+		String[][] csvLines = null;
+		try {
 
-                    csvLines = CSVParser.parse(new FileReader(file));
-                }
-                catch (IOException ex) {
+		    csvLines = CSVParser.parse(new FileReader(file));
+		} catch (IOException ex) {
+		    final Window window = (Window) SwingUtilities
+			    .getAncestorOfClass(Window.class,
+				    (Component) e.getSource());
+		    final String msg = "There was a problem reading the adducts file.";
+		    MZmineCore.getDesktop().displayErrorMessage(window,
+			    "I/O Error", msg + "\n(" + ex.getMessage() + ')');
+		    LOG.log(Level.SEVERE, msg, ex);
+		}
 
-                    final String msg = "There was a problem reading the adducts file.";
-                    MZmineCore.getDesktop().displayErrorMessage("I/O Error", msg + "\n(" + ex.getMessage() + ')');
-                    LOG.log(Level.SEVERE, msg, ex);
-                }
+		// Read the adducts data.
+		if (csvLines != null) {
 
-                // Read the adducts data.
-                if (csvLines != null) {
-
-                    // Load adducts from CSV data into parent choices.
-                    parent.setChoices(loadAdductsIntoChoices(csvLines, (AdductType[]) parent.getChoices()));
-                }
-            }
-        }
+		    // Load adducts from CSV data into parent choices.
+		    parent.setChoices(loadAdductsIntoChoices(csvLines,
+			    (AdductType[]) parent.getChoices()));
+		}
+	    }
+	}
     }
 
     /**
      * Load the adducts into the list of adduct choices.
      *
-     * @param lines   CSV lines to parse.
-     * @param adducts the current adduct choices.
-     * @return a new list of adduct choices that includes the original choices plus any new ones found by parsing the CSV lines.
+     * @param lines
+     *            CSV lines to parse.
+     * @param adducts
+     *            the current adduct choices.
+     * @return a new list of adduct choices that includes the original choices
+     *         plus any new ones found by parsing the CSV lines.
      */
-    private static AdductType[] loadAdductsIntoChoices(final String[][] lines, final AdductType[] adducts) {
+    private static AdductType[] loadAdductsIntoChoices(final String[][] lines,
+	    final AdductType[] adducts) {
 
-        // Create a list of adducts.
-        final ArrayList<AdductType> choices = new ArrayList<AdductType>(Arrays.asList(adducts));
+	// Create a list of adducts.
+	final ArrayList<AdductType> choices = new ArrayList<AdductType>(
+		Arrays.asList(adducts));
 
-        int i = 1;
-        for (final String[] line : lines) {
+	int i = 1;
+	for (final String[] line : lines) {
 
-            if (line.length >= 2) {
+	    if (line.length >= 2) {
 
-                try {
+		try {
 
-                    // Create new adduct and add it to the choices if it's new.
-                    final AdductType adduct = new AdductType(line[0], Double.parseDouble(line[1]));
-                    if (!choices.contains(adduct)) {
+		    // Create new adduct and add it to the choices if it's new.
+		    final AdductType adduct = new AdductType(line[0],
+			    Double.parseDouble(line[1]));
+		    if (!choices.contains(adduct)) {
 
-                        choices.add(adduct);
-                    }
-                }
-                catch (final NumberFormatException ignored) {
+			choices.add(adduct);
+		    }
+		} catch (final NumberFormatException ignored) {
 
-                    LOG.warning("Invalid numeric value (" + line[1] + ") - ignored.");
-                }
-            } else {
+		    LOG.warning("Invalid numeric value (" + line[1]
+			    + ") - ignored.");
+		}
+	    } else {
 
-                LOG.warning("Line #" + i + " contains too few fields - ignored.");
-            }
-            i++;
-        }
+		LOG.warning("Line #" + i
+			+ " contains too few fields - ignored.");
+	    }
+	    i++;
+	}
 
-        return choices.toArray(new AdductType[choices.size()]);
+	return choices.toArray(new AdductType[choices.size()]);
     }
 }

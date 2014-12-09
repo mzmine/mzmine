@@ -135,7 +135,7 @@ class ManualPickerTask extends AbstractTask {
 	    // Check if the peak list row has been added to the peak list, and
 	    // if it has not, add it
 	    List<PeakListRow> rows = Arrays.asList(peakList.getRows());
-	    if (! rows.contains(peakListRow)) {
+	    if (!rows.contains(peakListRow)) {
 		peakList.addRow(peakListRow);
 	    }
 	    MZmineCore.getCurrentProject().notifyObjectChanged(peakList, true);
@@ -149,10 +149,6 @@ class ManualPickerTask extends AbstractTask {
 
 	setStatus(TaskStatus.FINISHED);
 
-    }
-
-    public Object[] getCreatedObjects() {
-	return null;
     }
 
 }

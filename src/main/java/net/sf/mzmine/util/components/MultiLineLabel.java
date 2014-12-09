@@ -29,6 +29,11 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class MultiLineLabel extends JScrollPane {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public MultiLineLabel(String text) {
 	this(text, 0);
     }

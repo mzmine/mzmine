@@ -23,46 +23,49 @@ import java.awt.BorderLayout;
 import java.util.EventObject;
 
 import javax.swing.JDialog;
-
-import net.sf.mzmine.main.MZmineCore;
+import javax.swing.JFrame;
 
 import org.openscience.cdk.event.ICDKChangeListener;
 import org.openscience.jchempaint.dialog.PeriodicTablePanel;
 
 public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 
-	private PeriodicTablePanel periodicTable;
-	private String elementSymbol;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+    private PeriodicTablePanel periodicTable;
+    private String elementSymbol;
 
-	public PeriodicTableDialog() {
-		
-		super(MZmineCore.getDesktop().getMainWindow(), "Choose an element...", true);
-		
-		setLayout(new BorderLayout());
-		
-		periodicTable = new PeriodicTablePanel();
-		periodicTable.addCDKChangeListener(this);
-		add(BorderLayout.CENTER, periodicTable);
+    public PeriodicTableDialog(JFrame parent) {
 
-		pack();
-		
-		setLocationRelativeTo(MZmineCore.getDesktop().getMainWindow());
+	super(parent, "Choose an element...", true);
+
+	setLayout(new BorderLayout());
+
+	periodicTable = new PeriodicTablePanel();
+	periodicTable.addCDKChangeListener(this);
+	add(BorderLayout.CENTER, periodicTable);
+
+	pack();
+
+	setLocationRelativeTo(parent);
+    }
+
+    public void stateChanged(EventObject event) {
+
+	if (event.getSource() == periodicTable) {
+	    try {
+		elementSymbol = periodicTable.getSelectedElement();
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
+	    dispose();
 	}
+    }
 
-	public void stateChanged(EventObject event) {
-
-		if (event.getSource() == periodicTable) {
-			try {
-				elementSymbol = periodicTable.getSelectedElement();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			dispose();
-		}
-	}
-	
-	public String getSelectedElement() {
-		return elementSymbol;
-	}
+    public String getSelectedElement() {
+	return elementSymbol;
+    }
 
 }

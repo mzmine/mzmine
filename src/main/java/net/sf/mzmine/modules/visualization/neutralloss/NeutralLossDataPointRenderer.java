@@ -36,6 +36,10 @@ import org.jfree.data.xy.XYDataset;
  */
 class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private AlphaComposite alphaComp, alphaCompOriginal;
 
     public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {

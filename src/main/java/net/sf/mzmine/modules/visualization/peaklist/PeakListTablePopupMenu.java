@@ -68,6 +68,10 @@ import net.sf.mzmine.util.Range;
 public class PeakListTablePopupMenu extends JPopupMenu implements
 	ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private final PeakListTable table;
     private final PeakList peakList;
     private final PeakListTableColumnModel columnModel;
@@ -97,6 +101,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     private final JMenuItem copyIdsItem;
     private final JMenuItem pasteIdsItem;
 
+    private final PeakListTableWindow window;
     private RawDataFile clickedDataFile;
     private PeakListRow clickedPeakListRow;
     private PeakListRow[] allClickedPeakListRows;
@@ -106,9 +111,11 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
     // class.
     private static PeakIdentity copiedId = null;
 
-    public PeakListTablePopupMenu(final PeakListTable listTable,
-	    final PeakListTableColumnModel model, final PeakList list) {
+    public PeakListTablePopupMenu(final PeakListTableWindow window,
+	    PeakListTable listTable, final PeakListTableColumnModel model,
+	    final PeakList list) {
 
+	this.window = window;
 	table = listTable;
 	peakList = list;
 	columnModel = model;
@@ -452,6 +459,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 			    showPeak.getDataFile(), scanNumber);
 		} else {
 		    MZmineCore.getDesktop().displayMessage(
+			    window,
 			    "There is no fragment for "
 				    + MZmineCore.getConfiguration()
 					    .getMZFormat()

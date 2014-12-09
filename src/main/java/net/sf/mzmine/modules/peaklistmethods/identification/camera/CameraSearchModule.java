@@ -37,50 +37,47 @@ import net.sf.mzmine.util.ExitCode;
 /**
  * Uses CAMERA to form pseudo-spectra.
  *
- * @author $Author$
- * @version $Revision$
  */
 public class CameraSearchModule implements MZmineProcessingModule {
 
     // Name and description.
     public static final String MODULE_NAME = "CAMERA search";
-    private static final String MODULE_DESCRIPTION =
-            "This method searches for pseudo-spectra using the CAMERA algorithm.";
+    private static final String MODULE_DESCRIPTION = "This method searches for pseudo-spectra using the CAMERA algorithm.";
 
     @Override
     public @Nonnull String getName() {
-        return MODULE_NAME;
+	return MODULE_NAME;
     }
 
     @Override
     public @Nonnull String getDescription() {
-        return MODULE_DESCRIPTION;
+	return MODULE_DESCRIPTION;
     }
 
     @Override
     @Nonnull
     public ExitCode runModule(@Nonnull ParameterSet parameters,
-                              @Nonnull Collection<Task> tasks) {
+	    @Nonnull Collection<Task> tasks) {
 
-        PeakList peakLists[] = parameters.getParameter(
-                CameraSearchParameters.PEAK_LISTS).getValue();
+	PeakList peakLists[] = parameters.getParameter(
+		CameraSearchParameters.PEAK_LISTS).getMatchingPeakLists();
 
-        for (PeakList peakList : peakLists) {
-            Task newTask = new CameraSearchTask(parameters, peakList);
-            tasks.add(newTask);
-        }
+	for (PeakList peakList : peakLists) {
+	    Task newTask = new CameraSearchTask(parameters, peakList);
+	    tasks.add(newTask);
+	}
 
-        return ExitCode.OK;
+	return ExitCode.OK;
     }
 
     @Override
     public @Nonnull MZmineModuleCategory getModuleCategory() {
-        return MZmineModuleCategory.IDENTIFICATION;
+	return MZmineModuleCategory.IDENTIFICATION;
     }
 
     @Override
     public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-        return CameraSearchParameters.class;
+	return CameraSearchParameters.class;
     }
 
 }

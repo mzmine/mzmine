@@ -45,6 +45,10 @@ import javax.swing.ToolTipManager;
  */
 public class MultiChoiceComponent extends JPanel implements ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     private Object[] choices;
     private JCheckBox[] checkBoxes;
     private final JScrollPane choicesPanel;
@@ -193,7 +197,12 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
      */
     private class CheckBoxPanel extends JPanel implements Scrollable {
 
-        // Number of visible rows to show in scrollable containers.
+        /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	// Number of visible rows to show in scrollable containers.
         private static final int VISIBLE_ROWS = 7;
 
         // Width.
@@ -220,7 +229,12 @@ public class MultiChoiceComponent extends JPanel implements ActionListener {
                 // Create a check box (inherit tooltip text.
                 final JCheckBox checkBox = new JCheckBox(theChoices[i].toString()) {
 
-                    @Override
+                    /**
+		     * 
+		     */
+		    private static final long serialVersionUID = 1L;
+
+		    @Override
                     public String getToolTipText() {
 
                         return MultiChoiceComponent.this.getToolTipText();

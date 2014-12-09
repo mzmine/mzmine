@@ -30,7 +30,7 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter(1, 1);
 
     public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
 	    "Common columns", "Visible common columns",

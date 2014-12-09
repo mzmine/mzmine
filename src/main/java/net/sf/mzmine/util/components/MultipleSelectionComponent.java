@@ -42,6 +42,11 @@ import net.sf.mzmine.util.GUIUtils;
 public class MultipleSelectionComponent extends JPanel implements
 	ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private ExtendedCheckBox<Object> checkBoxes[];
 
     private JButton selectAllButton, selectNoneButton;

@@ -38,6 +38,7 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
+import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.CompressionUtils;
@@ -125,20 +126,21 @@ public class MzXMLReadTask extends AbstractTask {
 
 	    // Close file
 	    finalRawDataFile = newMZmineFile.finishWriting();
+	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
 	    e.printStackTrace();
 	    /* we may already have set the status to CANCELED */
 	    if (getStatus() == TaskStatus.PROCESSING) {
 		setStatus(TaskStatus.ERROR);
-		errorMessage = ExceptionUtils.exceptionToString(e);
+		setErrorMessage(ExceptionUtils.exceptionToString(e));
 	    }
 	    return;
 	}
 
 	if (parsedScans == 0) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "No scans found";
+	    setErrorMessage("No scans found");
 	    return;
 	}
 
@@ -150,10 +152,6 @@ public class MzXMLReadTask extends AbstractTask {
 
     public String getTaskDescription() {
 	return "Opening file" + file;
-    }
-
-    public Object[] getCreatedObjects() {
-	return new Object[] { finalRawDataFile };
     }
 
     private class MzXMLHandler extends DefaultHandler {
@@ -198,7 +196,7 @@ public class MzXMLReadTask extends AbstractTask {
 		    retentionTime = dur.getTimeInMillis(currentDate) / 1000d / 60d;
 		} else {
 		    setStatus(TaskStatus.ERROR);
-		    errorMessage = "This file does not contain retentionTime for scans";
+		    setErrorMessage("This file does not contain retentionTime for scans");
 		    throw new SAXException("Could not read retention time");
 		}
 
@@ -206,7 +204,7 @@ public class MzXMLReadTask extends AbstractTask {
 
 		if (msLevel > 9) {
 		    setStatus(TaskStatus.ERROR);
-		    errorMessage = "msLevel value bigger than 10";
+		    setErrorMessage("msLevel value bigger than 10");
 		    throw new SAXException(
 			    "The value of msLevel is bigger than 10");
 		}
@@ -285,7 +283,7 @@ public class MzXMLReadTask extends AbstractTask {
 			    newMZmineFile.addScan(currentScan);
 			} catch (IOException e) {
 			    setStatus(TaskStatus.ERROR);
-			    errorMessage = "IO error: " + e;
+			    setErrorMessage("IO error: " + e);
 			    throw new SAXException("Parsing cancelled");
 			}
 			parsedScans++;
@@ -322,8 +320,8 @@ public class MzXMLReadTask extends AbstractTask {
 			peakBytes = CompressionUtils.decompress(peakBytes);
 		    } catch (DataFormatException e) {
 			setStatus(TaskStatus.ERROR);
-			errorMessage = "Corrupt compressed peak: "
-				+ e.toString();
+			setErrorMessage("Corrupt compressed peak: "
+				+ e.toString());
 			throw new SAXException("Parsing Cancelled");
 		    }
 		}
@@ -355,7 +353,7 @@ public class MzXMLReadTask extends AbstractTask {
 		    }
 		} catch (IOException eof) {
 		    setStatus(TaskStatus.ERROR);
-		    errorMessage = "Corrupt mzXML file";
+		    setErrorMessage("Corrupt mzXML file");
 		    throw new SAXException("Parsing Cancelled");
 		}
 

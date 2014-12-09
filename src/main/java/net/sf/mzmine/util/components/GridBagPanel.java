@@ -34,6 +34,11 @@ import javax.swing.JPanel;
  */
 public class GridBagPanel extends JPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private GridBagLayout layout;
 
 	private final Insets borderInsets = new Insets(0, 0, 5, 5);

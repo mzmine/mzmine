@@ -27,6 +27,10 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class ChromatogramTICDataSet extends AbstractXYDataset {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private Feature chromatogram;
     private RawDataFile dataFile;
     private int scanNumbers[];

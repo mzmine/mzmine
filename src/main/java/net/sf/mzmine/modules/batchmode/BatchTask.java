@@ -21,18 +21,12 @@ package net.sf.mzmine.modules.batchmode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Vector;
 import java.util.logging.Logger;
 
-import net.sf.mzmine.datamodel.PeakList;
-import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineProcessingModule;
 import net.sf.mzmine.modules.MZmineProcessingStep;
-import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
-import net.sf.mzmine.parameters.parametertypes.RawDataFilesParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -49,15 +43,8 @@ public class BatchTask extends AbstractTask {
 
     private BatchQueue queue;
 
-    private RawDataFile dataFiles[];
-    private PeakList peakLists[];
-
     BatchTask(ParameterSet parameters) {
 	this.queue = parameters.getParameter(BatchModeParameters.batchQueue)
-		.getValue();
-	this.dataFiles = parameters.getParameter(BatchModeParameters.dataFiles)
-		.getValue();
-	this.peakLists = parameters.getParameter(BatchModeParameters.peakLists)
 		.getValue();
 	totalSteps = queue.size();
     }
@@ -87,31 +74,19 @@ public class BatchTask extends AbstractTask {
     private void processQueueStep(int stepNumber) {
 
 	// Run next step of the batch
-	MZmineProcessingStep currentStep = queue.get(stepNumber);
+	MZmineProcessingStep<?> currentStep = queue.get(stepNumber);
 	MZmineProcessingModule method = (MZmineProcessingModule) currentStep
 		.getModule();
 	ParameterSet batchStepParameters = currentStep.getParameterSet();
 
-	// Update dataFiles and peakLists in the batchStepParameters
-	for (Parameter p : batchStepParameters.getParameters()) {
-	    if (p instanceof RawDataFilesParameter) {
-		RawDataFilesParameter rdp = (RawDataFilesParameter) p;
-		rdp.setValue(dataFiles);
-	    }
-	    if (p instanceof PeakListsParameter) {
-		PeakListsParameter plp = (PeakListsParameter) p;
-		plp.setValue(peakLists);
-	    }
-	}
-
 	// Check if the parameter settings are valid
 	ArrayList<String> messages = new ArrayList<String>();
 	boolean paramsCheck = batchStepParameters
-		.checkAllParameterValues(messages);
+		.checkParameterValues(messages);
 	if (!paramsCheck) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Invalid parameter settings for module " + method
-		    + ": " + Arrays.toString(messages.toArray());
+	    setErrorMessage("Invalid parameter settings for module " + method
+		    + ": " + Arrays.toString(messages.toArray()));
 	}
 
 	ArrayList<Task> currentStepTasks = new ArrayList<Task>();
@@ -120,7 +95,7 @@ public class BatchTask extends AbstractTask {
 
 	if (exitCode != ExitCode.OK) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Could not start batch step " + method.getName();
+	    setErrorMessage("Could not start batch step " + method.getName());
 	    return;
 	}
 
@@ -157,7 +132,7 @@ public class BatchTask extends AbstractTask {
 		// If there was an error, we have to stop the whole batch
 		if (stepStatus == TaskStatus.ERROR) {
 		    setStatus(TaskStatus.ERROR);
-		    errorMessage = stepTask.getErrorMessage();
+		    setErrorMessage(stepTask.getErrorMessage());
 		    return;
 		}
 
@@ -185,30 +160,6 @@ public class BatchTask extends AbstractTask {
 
 	}
 
-	// Now all tasks are finished. We have to check if project was modified.
-	// If any raw data files or peak lists were added, we continue batch
-	// processing on those.
-
-	Vector<RawDataFile> newDataFiles = new Vector<RawDataFile>();
-	Vector<PeakList> newPeakLists = new Vector<PeakList>();
-
-	for (Task stepTask : currentStepTasks) {
-	    Object createdObjects[] = stepTask.getCreatedObjects();
-	    if (createdObjects == null)
-		continue;
-	    for (Object createdObject : createdObjects) {
-		if (createdObject instanceof RawDataFile)
-		    newDataFiles.add((RawDataFile) createdObject);
-		if (createdObject instanceof PeakList)
-		    newPeakLists.add((PeakList) createdObject);
-	    }
-	}
-
-	if (newDataFiles.size() > 0)
-	    dataFiles = newDataFiles.toArray(new RawDataFile[0]);
-	if (newPeakLists.size() > 0)
-	    peakLists = newPeakLists.toArray(new PeakList[0]);
-
     }
 
     public double getFinishedPercentage() {
@@ -219,10 +170,6 @@ public class BatchTask extends AbstractTask {
 
     public String getTaskDescription() {
 	return "Batch of " + totalSteps + " steps";
-    }
-
-    public Object[] getCreatedObjects() {
-	return null;
     }
 
 }

@@ -51,7 +51,7 @@ public class GPLipidSearchModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	PeakList peakLists[] = parameters.getParameter(
-		GPLipidSearchParameters.peakLists).getValue();
+		GPLipidSearchParameters.peakLists).getMatchingPeakLists();
 
 	for (PeakList peakList : peakLists) {
 	    Task newTask = new GPLipidSearchTask(parameters, peakList);

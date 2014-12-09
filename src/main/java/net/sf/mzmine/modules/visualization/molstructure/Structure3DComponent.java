@@ -31,6 +31,10 @@ import org.jmol.api.JmolViewer;
 
 public class Structure3DComponent extends JPanel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private JmolViewer viewer;
 	private JmolAdapter adapter;
 	final Dimension currentSize = new Dimension();

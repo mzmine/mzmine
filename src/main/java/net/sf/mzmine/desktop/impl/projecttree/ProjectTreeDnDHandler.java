@@ -39,6 +39,11 @@ import net.sf.mzmine.main.MZmineCore;
  */
 class ProjectTreeDnDHandler extends TransferHandler {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	public boolean canImport(TransferSupport info) {
 
 		ProjectTree projectTree = (ProjectTree) info.getComponent();

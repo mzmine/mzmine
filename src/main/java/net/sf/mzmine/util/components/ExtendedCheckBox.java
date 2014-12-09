@@ -28,6 +28,11 @@ import javax.swing.JCheckBox;
  */
 public class ExtendedCheckBox<Type> extends JCheckBox {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     static final Font checkBoxFont = new Font("SansSerif", Font.PLAIN, 11);
 
     private Type object;

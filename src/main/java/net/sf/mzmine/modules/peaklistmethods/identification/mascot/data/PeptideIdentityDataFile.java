@@ -129,7 +129,7 @@ public class PeptideIdentityDataFile{
 	/**
 	 * Returns the parameters used in the identification of peptide's sequences.
 	 */
-	public HashMap getParameters(){
+	public HashMap<String, String> getParameters(){
 		return parameters;
 	}
 	

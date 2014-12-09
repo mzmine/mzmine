@@ -38,6 +38,10 @@ import net.sf.mzmine.datamodel.RawDataFile;
  */
 public class ExportPopUpMenu extends JMenu implements MenuListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     // The visualizer window.
     private final TICVisualizerWindow visualizer;
 

@@ -28,12 +28,16 @@ import net.sf.mzmine.parameters.UserParameter;
 
 public class ParameterTableModel extends AbstractTableModel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private RawDataFile[] files;
-	private Hashtable<UserParameter, Object[]> parameterValues;
-	private UserParameter[] parameters;
+	private Hashtable<UserParameter<?,?>, Object[]> parameterValues;
+	private UserParameter<?,?>[] parameters;
 
 	public ParameterTableModel(RawDataFile[] files,
-			Hashtable<UserParameter, Object[]> parameterValues) {
+			Hashtable<UserParameter<?,?>, Object[]> parameterValues) {
 		this.files = files;
 		parameters = parameterValues.keySet().toArray(new UserParameter[0]);
 		this.parameterValues = parameterValues;
@@ -47,7 +51,7 @@ public class ParameterTableModel extends AbstractTableModel {
 		if (col == 0)
 			return "Raw data";
 		if (col > 0) {
-			UserParameter p = parameters[col - 1];
+			UserParameter<?,?> p = parameters[col - 1];
 			return p.getName();
 		}
 		return null;
@@ -61,7 +65,7 @@ public class ParameterTableModel extends AbstractTableModel {
 		if (col == 0)
 			return files[row].getName();
 		if (col > 0) {
-			UserParameter p = parameters[col - 1];
+			UserParameter<?,?> p = parameters[col - 1];
 			return parameterValues.get(p)[row];
 		}
 		return null;
@@ -71,13 +75,13 @@ public class ParameterTableModel extends AbstractTableModel {
 	public void setValueAt(Object value, int row, int col) {
 		if (col == 0)
 			return;
-		UserParameter p = parameters[col - 1];
+		UserParameter<?,?> p = parameters[col - 1];
 		Object[] values = parameterValues.get(p);
 		values[row] = value;
 
 	}
 
-	public UserParameter getParameter(int column) {
+	public UserParameter<?,?> getParameter(int column) {
 		if (column == 0)
 			return null;
 		if ((parameters == null) || (parameters.length == 0))

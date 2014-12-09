@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.modules.visualization.scatterplot;
 
+import java.awt.Window;
+
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
@@ -27,7 +29,8 @@ import net.sf.mzmine.util.ExitCode;
 
 public class ScatterPlotParameters extends SimpleParameterSet {
 
-    public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter(
+	    1, 1);
 
     /**
      * Windows size and position
@@ -38,7 +41,8 @@ public class ScatterPlotParameters extends SimpleParameterSet {
 	super(new Parameter[] { peakLists, windowSettings });
     }
 
-    public ExitCode showSetupDialog() {
+    @Override
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 	return ExitCode.OK;
     }
 

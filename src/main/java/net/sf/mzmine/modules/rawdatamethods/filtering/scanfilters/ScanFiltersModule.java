@@ -51,7 +51,7 @@ public class ScanFiltersModule implements MZmineProcessingModule {
 	    @Nonnull Collection<Task> tasks) {
 
 	RawDataFile[] dataFiles = parameters.getParameter(
-		ScanFiltersParameters.dataFiles).getValue();
+		ScanFiltersParameters.dataFiles).getMatchingRawDataFiles();
 
 	for (RawDataFile dataFile : dataFiles) {
 	    Task newTask = new ScanFilteringTask(dataFile, parameters);

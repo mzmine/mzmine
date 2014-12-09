@@ -47,9 +47,11 @@ public class IsotopePatternExportModule implements MZmineModule {
 
     public static void exportIsotopePattern(PeakListRow row) {
 
-	ParameterSet parameters = MZmineCore.getConfiguration().getModuleParameters(IsotopePatternExportModule.class);
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(IsotopePatternExportModule.class);
 
-	ExitCode exitCode = parameters.showSetupDialog();
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
 	if (exitCode != ExitCode.OK)
 	    return;
 
@@ -83,7 +85,9 @@ public class IsotopePatternExportModule implements MZmineModule {
 	    writer.close();
 
 	} catch (Exception e) {
+	    e.printStackTrace();
 	    MZmineCore.getDesktop().displayErrorMessage(
+		    MZmineCore.getDesktop().getMainWindow(),
 		    "Error writing to file " + outputFile + ": "
 			    + ExceptionUtils.exceptionToString(e));
 	}

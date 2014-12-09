@@ -54,7 +54,12 @@ public class ColumnGroup {
         if (renderer == null) {
             this.renderer = new DefaultTableCellRenderer() {
 
-                public Component getTableCellRendererComponent(JTable table,
+                /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public Component getTableCellRendererComponent(JTable table,
                         Object value, boolean isSelected, boolean hasFocus,
                         int row, int column) {
                     JTableHeader header = table.getTableHeader();
@@ -90,16 +95,16 @@ public class ColumnGroup {
      * @param c TableColumn
      * @param v ColumnGroups
      */
-    public Vector getColumnGroups(TableColumn c, Vector<ColumnGroup> g) {
+    public Vector<?> getColumnGroups(TableColumn c, Vector<ColumnGroup> g) {
         g.addElement(this);
         if (v.contains(c))
             return g;
-        Enumeration en = v.elements();
+        Enumeration<Object> en = v.elements();
         while (en.hasMoreElements()) {
             Object obj = en.nextElement();
             if (obj instanceof ColumnGroup) {
                 Vector<ColumnGroup> clone = new Vector<ColumnGroup>(g);
-                Vector groups = (Vector) ((ColumnGroup) obj).getColumnGroups(c,
+                Vector<?> groups = (Vector<?>) ((ColumnGroup) obj).getColumnGroups(c,
                         clone);
                 if (groups != null)
                     return groups;
@@ -127,7 +132,7 @@ public class ColumnGroup {
                 getHeaderValue(), false, false, -1, -1);
         int height = comp.getPreferredSize().height;
         int width = 0;
-        Enumeration en = v.elements();
+        Enumeration<?> en = v.elements();
         while (en.hasMoreElements()) {
             Object obj = en.nextElement();
             if (obj instanceof TableColumn) {
@@ -143,7 +148,7 @@ public class ColumnGroup {
 
     public void setColumnMargin(int margin) {
         this.margin = margin;
-        Enumeration en = v.elements();
+        Enumeration<?> en = v.elements();
         while (en.hasMoreElements()) {
             Object obj = en.nextElement();
             if (obj instanceof ColumnGroup) {

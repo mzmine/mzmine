@@ -155,13 +155,16 @@ class CasmiImportTask extends AbstractTask {
 		    newDataFile);
 	    newPeakList.addRow(newRow);
 
+	    MZmineCore.getCurrentProject().addFile(newDataFile);
+	    MZmineCore.getCurrentProject().addPeakList(newPeakList);
+
 	    logger.finest("Finished generating data for CASMI problem "
 		    + casmiProblemName);
 
 	} catch (IOException e) {
 	    e.printStackTrace();
 	    setStatus(TaskStatus.ERROR);
-	    this.errorMessage = e.getMessage();
+	    setErrorMessage(e.getMessage());
 	}
 
 	setStatus(TaskStatus.FINISHED);
@@ -184,10 +187,6 @@ class CasmiImportTask extends AbstractTask {
 	}
 	scanner.close();
 	return dataPoints.toArray(new DataPoint[0]);
-    }
-
-    public Object[] getCreatedObjects() {
-	return new Object[] { newDataFile, newPeakList };
     }
 
 }

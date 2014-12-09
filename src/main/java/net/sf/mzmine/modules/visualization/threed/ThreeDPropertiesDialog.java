@@ -67,6 +67,11 @@ import visad.util.GMCWidget;
  */
 public class ThreeDPropertiesDialog extends JDialog {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     // Logger.
     private static final Logger LOG = Logger.getLogger(ThreeDPropertiesDialog.class.getName());
 

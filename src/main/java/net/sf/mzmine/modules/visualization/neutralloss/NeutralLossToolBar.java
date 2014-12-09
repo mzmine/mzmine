@@ -33,6 +33,10 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class NeutralLossToolBar extends JToolBar {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
     static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
 
     NeutralLossToolBar(NeutralLossVisualizerWindow masterFrame) {

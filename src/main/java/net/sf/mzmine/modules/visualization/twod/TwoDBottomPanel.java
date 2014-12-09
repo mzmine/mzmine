@@ -58,12 +58,17 @@ import net.sf.mzmine.util.SortingProperty;
 class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	ActionListener {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private JComboBox peakListSelector;
-    private JComboBox thresholdCombo;
+    private JComboBox<PeakList> peakListSelector;
+    private JComboBox<?> thresholdCombo;
     private JTextField peakTextField;
     private PeakThresholdParameter thresholdSettings;
 
@@ -85,7 +90,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 
 	GUIUtils.addLabel(this, "Show: ", SwingConstants.RIGHT);
 
-	thresholdCombo = new JComboBox(PeakThresholdMode.values());
+	thresholdCombo = new JComboBox<Object>(PeakThresholdMode.values());
 	thresholdCombo.setBackground(Color.white);
 	thresholdCombo.setFont(smallFont);
 	thresholdCombo.addActionListener(this);
@@ -107,7 +112,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 
 	GUIUtils.addLabel(this, " from peak list: ", SwingConstants.RIGHT);
 
-	peakListSelector = new JComboBox();
+	peakListSelector = new JComboBox<PeakList>();
 	peakListSelector.setBackground(Color.white);
 	peakListSelector.setFont(smallFont);
 	peakListSelector.addActionListener(masterFrame);
@@ -291,6 +296,8 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	    case TOP_PEAKS_AREA:
 		int topPeaks = Integer.parseInt(value);
 		thresholdSettings.setTopPeaksThreshold(topPeaks);
+		break;
+	    default:
 		break;
 	    }
 	}

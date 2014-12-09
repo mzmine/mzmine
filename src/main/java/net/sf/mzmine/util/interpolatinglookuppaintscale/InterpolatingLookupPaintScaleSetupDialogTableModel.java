@@ -26,6 +26,11 @@ import javax.swing.table.AbstractTableModel;
 
 public class InterpolatingLookupPaintScaleSetupDialogTableModel extends AbstractTableModel {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
 	private static String[] columnNames = {"Value", "Color"};
 	
 	private TreeMap<Double, Color> lookupTable;

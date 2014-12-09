@@ -25,8 +25,12 @@ import javax.swing.JList;
 
 import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 
-public class AppliedMethodList extends JList {
+public class AppliedMethodList extends JList<Object> {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private String parameters;
 
 	AppliedMethodList(PeakListAppliedMethod[] methods) {

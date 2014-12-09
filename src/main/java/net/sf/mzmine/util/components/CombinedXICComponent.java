@@ -38,6 +38,11 @@ import net.sf.mzmine.util.Range;
  */
 public class CombinedXICComponent extends JComponent{
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public static final Border componentBorder = BorderFactory.createLineBorder(Color.lightGray);
 
     // plot colors for plotted files, circulated by numberOfDataSets

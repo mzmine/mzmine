@@ -30,6 +30,10 @@ import org.jfree.data.xy.IntervalXYDataset;
 public class DataPointsDataSet extends AbstractXYDataset implements
 		IntervalXYDataset {
 
+	/**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 	private DataPoint mzPeaks[];
 	private String label;
 

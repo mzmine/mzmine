@@ -19,9 +19,10 @@
 
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.rtmzplots.logratioplot;
 
+import java.awt.Window;
+
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
@@ -52,22 +53,16 @@ public class LogratioParameters extends SimpleParameterSet {
     }
 
     @Override
-    public ExitCode showSetupDialog() {
+    public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
 
-	PeakList selectedPeakLists[] = getParameter(peakLists).getValue();
-
-	if (selectedPeakLists.length != 1) {
-	    MZmineCore.getDesktop().displayErrorMessage(
-		    "Please select a single peak list");
-	    return ExitCode.CANCEL;
-	}
-
+	PeakList selectedPeakLists[] = getParameter(peakLists)
+		.getMatchingPeakLists();
 	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
 
 	getParameter(groupOneFiles).setChoices(plDataFiles);
 	getParameter(groupTwoFiles).setChoices(plDataFiles);
 
-	return super.showSetupDialog();
+	return super.showSetupDialog(parent, valueCheckRequired);
     }
 
 }

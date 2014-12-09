@@ -38,7 +38,7 @@ import javax.swing.table.TableCellRenderer;
  * Simple table cell renderer that renders only JComponents
  */
 public class ComponentCellRenderer implements TableCellRenderer,
-		ListCellRenderer {
+		ListCellRenderer<Object> {
 
 	private boolean createTooltips;
 	private Font font;
@@ -132,7 +132,7 @@ public class ComponentCellRenderer implements TableCellRenderer,
 	 * @see javax.swing.ListCellRenderer#getListCellRendererComponent(javax.swing.JList,
 	 *      java.lang.Object, int, boolean, boolean)
 	 */
-	public Component getListCellRendererComponent(JList list, Object value,
+	public Component getListCellRendererComponent(JList<?> list, Object value,
 			int index, boolean isSelected, boolean hasFocus) {
 
 		JPanel newPanel = new JPanel();

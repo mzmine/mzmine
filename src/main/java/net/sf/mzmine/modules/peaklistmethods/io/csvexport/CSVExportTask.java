@@ -47,7 +47,7 @@ class CSVExportTask extends AbstractTask {
     CSVExportTask(ParameterSet parameters) {
 
 	this.peakList = parameters.getParameter(CSVExportParameters.peakList)
-		.getValue()[0];
+		.getMatchingPeakLists()[0];
 
 	fileName = parameters.getParameter(CSVExportParameters.filename)
 		.getValue();
@@ -85,7 +85,7 @@ class CSVExportTask extends AbstractTask {
 	    writer = new FileWriter(fileName);
 	} catch (Exception e) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Could not open file " + fileName + " for writing.";
+	    setErrorMessage("Could not open file " + fileName + " for writing.");
 	    return;
 	}
 
@@ -99,7 +99,7 @@ class CSVExportTask extends AbstractTask {
 	    writer.close();
 	} catch (Exception e) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Could not close file " + fileName;
+	    setErrorMessage("Could not close file " + fileName);
 	    return;
 	}
 
@@ -148,7 +148,7 @@ class CSVExportTask extends AbstractTask {
 	    writer.write(line.toString());
 	} catch (Exception e) {
 	    setStatus(TaskStatus.ERROR);
-	    errorMessage = "Could not write to file " + fileName;
+	    setErrorMessage("Could not write to file " + fileName);
 	    return;
 	}
 
@@ -235,7 +235,8 @@ class CSVExportTask extends AbstractTask {
 		    if (peak != null) {
 			switch (dataFileElements[i]) {
 			case PEAK_STATUS:
-			    line.append(peak.getFeatureStatus() + fieldSeparator);
+			    line.append(peak.getFeatureStatus()
+				    + fieldSeparator);
 			    break;
 			case PEAK_MZ:
 			    line.append(peak.getMZ() + fieldSeparator);
@@ -253,8 +254,9 @@ class CSVExportTask extends AbstractTask {
 			    line.append(peak.getCharge() + fieldSeparator);
 			    break;
 			case PEAK_DURATION:
-			    line.append(peak.getRawDataPointsRTRange().getSize() + fieldSeparator);
-			    break;				
+			    line.append(peak.getRawDataPointsRTRange()
+				    .getSize() + fieldSeparator);
+			    break;
 			}
 		    } else {
 			switch (dataFileElements[i]) {
@@ -275,15 +277,11 @@ class CSVExportTask extends AbstractTask {
 		writer.write(line.toString());
 	    } catch (Exception e) {
 		setStatus(TaskStatus.ERROR);
-		errorMessage = "Could not write to file " + fileName;
+		setErrorMessage("Could not write to file " + fileName);
 		return;
 	    }
 
 	    processedRows++;
 	}
-    }
-
-    public Object[] getCreatedObjects() {
-	return null;
     }
 }

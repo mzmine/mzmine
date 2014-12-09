@@ -49,7 +49,6 @@ public class MassDetectionTask extends AbstractTask {
      * @param dataFile
      * @param parameters
      */
-    @SuppressWarnings("unchecked")
     public MassDetectionTask(RawDataFile dataFile, ParameterSet parameters) {
 
 	this.dataFile = dataFile;
@@ -122,10 +121,6 @@ public class MassDetectionTask extends AbstractTask {
 
 	logger.info("Finished mass detector on " + dataFile);
 
-    }
-
-    public Object[] getCreatedObjects() {
-	return null;
     }
 
 }
