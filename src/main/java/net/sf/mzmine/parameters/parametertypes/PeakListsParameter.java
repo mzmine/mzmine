@@ -21,6 +21,8 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
@@ -58,17 +60,35 @@ public class PeakListsParameter implements
     }
 
     public PeakList[] getMatchingPeakLists() {
-	if (values == null)
+
+	if ((values == null) || (values.length == 0))
 	    return new PeakList[0];
+
 	PeakList allPeakLists[] = MZmineCore.getCurrentProject().getPeakLists();
 	ArrayList<PeakList> matchingPeakLists = new ArrayList<PeakList>();
-	plCheck: for (PeakList file : allPeakLists) {
+
+	plCheck: for (PeakList pl : allPeakLists) {
 	    for (String singleValue : values) {
-		final String fileName = file.getName();
-		final String regex = "^" + singleValue.replace("*", ".*") + "$";
-		if (fileName.matches(regex)) {
-		    matchingPeakLists.add(file);
-		    continue plCheck;
+		final String fileName = pl.getName();
+
+		// Generate a regular expression, replacing * with .*
+		try {
+		    final StringBuilder regex = new StringBuilder("^");
+		    String sections[] = singleValue.split("\\*", -1);
+		    for (int i = 0; i < sections.length; i++) {
+			if (i > 0)
+			    regex.append(".*");
+			regex.append(Pattern.quote(sections[i]));
+		    }
+		    regex.append("$");
+
+		    if (fileName.matches(regex.toString())) {
+			matchingPeakLists.add(pl);
+			continue plCheck;
+		    }
+		} catch (PatternSyntaxException e) {
+		    e.printStackTrace();
+		    continue;
 		}
 
 	    }
@@ -107,13 +127,13 @@ public class PeakListsParameter implements
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-	PeakList matchingFiles[] = getMatchingPeakLists();
-	if (matchingFiles.length < minCount) {
+	PeakList matchingPeakLists[] = getMatchingPeakLists();
+	if (matchingPeakLists.length < minCount) {
 	    errorMessages.add("At least " + minCount
 		    + " peak lists must be selected");
 	    return false;
 	}
-	if (matchingFiles.length > maxCount) {
+	if (matchingPeakLists.length > maxCount) {
 	    errorMessages.add("Maximum " + maxCount
 		    + " peak lists may be selected");
 	    return false;

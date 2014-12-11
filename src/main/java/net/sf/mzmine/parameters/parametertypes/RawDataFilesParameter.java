@@ -21,6 +21,8 @@ package net.sf.mzmine.parameters.parametertypes;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
@@ -58,18 +60,36 @@ public class RawDataFilesParameter implements
     }
 
     public RawDataFile[] getMatchingRawDataFiles() {
-	if (values == null)
+
+	if ((values == null) || (values.length == 0))
 	    return new RawDataFile[0];
+
 	RawDataFile allDataFiles[] = MZmineCore.getCurrentProject()
 		.getDataFiles();
 	ArrayList<RawDataFile> matchingDataFiles = new ArrayList<RawDataFile>();
+
 	fileCheck: for (RawDataFile file : allDataFiles) {
 	    for (String singleValue : values) {
 		final String fileName = file.getName();
-		final String regex = "^" + singleValue.replace("*", ".*") + "$";
-		if (fileName.matches(regex)) {
-		    matchingDataFiles.add(file);
-		    continue fileCheck;
+
+		// Generate a regular expression, replacing * with .*
+		try {
+		    final StringBuilder regex = new StringBuilder("^");
+		    String sections[] = singleValue.split("\\*", -1);
+		    for (int i = 0; i < sections.length; i++) {
+			if (i > 0)
+			    regex.append(".*");
+			regex.append(Pattern.quote(sections[i]));
+		    }
+		    regex.append("$");
+
+		    if (fileName.matches(regex.toString())) {
+			matchingDataFiles.add(file);
+			continue fileCheck;
+		    }
+		} catch (PatternSyntaxException e) {
+		    e.printStackTrace();
+		    continue;
 		}
 
 	    }
@@ -78,7 +98,7 @@ public class RawDataFilesParameter implements
     }
 
     @Override
-      public void setValue(String newValue[]) {
+    public void setValue(String newValue[]) {
 	this.values = newValue;
     }
 
