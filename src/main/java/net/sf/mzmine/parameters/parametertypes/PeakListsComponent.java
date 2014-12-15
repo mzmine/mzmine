@@ -55,7 +55,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
     private final JButton addPatternButton, selectPeakListsButton,
 	    removeButton;
 
-    public PeakListsComponent(int rows) {
+    public PeakListsComponent(int rows, int inputsize) {
 
 	super(new BorderLayout());
 
@@ -65,7 +65,7 @@ public class PeakListsComponent extends JPanel implements ActionListener {
 	JScrollPane scroll = new JScrollPane(nameList,
 		ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 		ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-	scroll.setPreferredSize(new Dimension(300, 10));
+	scroll.setPreferredSize(new Dimension(inputsize, 10));
 	add(scroll, BorderLayout.CENTER);
 
 	JPanel buttonsPanel = new JPanel();

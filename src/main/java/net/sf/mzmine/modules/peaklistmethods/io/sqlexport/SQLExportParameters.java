@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 public class SQLExportParameters extends SimpleParameterSet {
 
     public static final PeakListsParameter peakList = new PeakListsParameter(1,
-	    1);
+	    1, 555);
 
     public static final StringParameter connectionString = new StringParameter(
 	    "JDBC connection string",

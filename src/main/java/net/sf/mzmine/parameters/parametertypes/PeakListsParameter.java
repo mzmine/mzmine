@@ -40,6 +40,7 @@ public class PeakListsParameter implements
 
     private int minCount, maxCount;
     private String values[];
+    private int inputsize = 300;
 
     public PeakListsParameter() {
 	this(1, Integer.MAX_VALUE);
@@ -52,6 +53,12 @@ public class PeakListsParameter implements
     public PeakListsParameter(int minCount, int maxCount) {
 	this.minCount = minCount;
 	this.maxCount = maxCount;
+    }
+    
+    public PeakListsParameter(int minCount, int maxCount, int inputsize) {
+	this.minCount = minCount;
+	this.maxCount = maxCount;
+	this.inputsize = inputsize;
     }
 
     @Override
@@ -166,8 +173,8 @@ public class PeakListsParameter implements
 
     @Override
     public PeakListsComponent createEditingComponent() {
-	final int rows = Math.min(4, maxCount);
-	return new PeakListsComponent(rows);
+	final int rows = Math.min(1, maxCount);
+	return new PeakListsComponent(rows, inputsize);
     }
 
     @Override
