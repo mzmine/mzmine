@@ -12,11 +12,12 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.primitives.Ints;
 
 public class ExtendedPeak implements Feature {
 
@@ -161,7 +162,7 @@ public class ExtendedPeak implements Feature {
 
 	public void finishExtendedPeak() {
 
-		int allScanNumbers[] = CollectionUtils.toIntArray(dataPointsMap
+		int allScanNumbers[] = Ints.toArray(dataPointsMap
 				.keySet());
 		Arrays.sort(allScanNumbers);
 

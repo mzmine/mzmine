@@ -41,8 +41,9 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
+
+import com.google.common.primitives.Ints;
 
 /**
  * RawDataFile implementation. It provides storage of data points for scans and
@@ -188,7 +189,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		eligibleScanNumbers.add(scan.getScanNumber());
 	}
 
-	int[] numbersArray = CollectionUtils.toIntArray(eligibleScanNumbers);
+	int[] numbersArray = Ints.toArray(eligibleScanNumbers);
 	Arrays.sort(numbersArray);
 
 	return numbersArray;
@@ -204,7 +205,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	    return scanNumbersCache.get(0);
 
 	Set<Integer> allScanNumbers = scans.keySet();
-	int[] numbersArray = CollectionUtils.toIntArray(allScanNumbers);
+	int[] numbersArray = Ints.toArray(allScanNumbers);
 	Arrays.sort(numbersArray);
 
 	scanNumbersCache.put(0, numbersArray);
@@ -227,7 +228,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	    msLevelsSet.add(scan.getMSLevel());
 	}
 
-	int[] msLevels = CollectionUtils.toIntArray(msLevelsSet);
+	int[] msLevels = Ints.toArray(msLevelsSet);
 	Arrays.sort(msLevels);
 	return msLevels;
 

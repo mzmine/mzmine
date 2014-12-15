@@ -30,11 +30,12 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.PeptideSorter;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
+
+import com.google.common.primitives.Ints;
 
 public class PeptideScan implements Scan {
 	
@@ -299,7 +300,7 @@ public class PeptideScan implements Scan {
 				fragmentsSet.add(frag);
 		}
 		fragmentsSet.add(fragmentScan);
-		fragmentScans = CollectionUtils.toIntArray(fragmentsSet);
+		fragmentScans = Ints.toArray(fragmentsSet);
 	}
 
 	/**

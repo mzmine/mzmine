@@ -34,11 +34,12 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
+
+import com.google.common.primitives.Ints;
 
 /**
  * TIC visualizer data set. One data set is created per file shown in this
@@ -333,7 +334,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	    }
 	}
 
-	return CollectionUtils.toIntArray(indices);
+	return Ints.toArray(indices);
     }
 
     public double getMinIntensity() {

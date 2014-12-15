@@ -450,8 +450,8 @@ public class NetCDFReadTask extends AbstractTask {
 	boolean centroided = ScanUtils.isCentroided(completeDataPoints);
 
 	// Remove zero data points
-	DataPoint optimizedDataPoints[] = ScanUtils.removeZeroDataPoints(
-		completeDataPoints, centroided);
+	DataPoint optimizedDataPoints[] = ScanUtils
+		.removeZeroDataPoints(completeDataPoints);
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
 		retentionTime.doubleValue(), -1, 0, 0, null,

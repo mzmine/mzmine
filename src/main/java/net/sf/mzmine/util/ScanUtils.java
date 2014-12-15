@@ -38,6 +38,8 @@ import net.sf.mzmine.main.MZmineCore;
 
 import org.apache.axis.encoding.Base64;
 
+import com.google.common.primitives.Doubles;
+
 /**
  * Scan related utilities
  */
@@ -51,7 +53,7 @@ public class ScanUtils {
      *            Scan to be converted to String
      * @return String representation of the scan
      */
-    public static String scanToString(Scan scan) {
+    public static @Nonnull String scanToString(@Nonnull Scan scan) {
 	StringBuffer buf = new StringBuffer();
 	Format rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
@@ -63,6 +65,10 @@ public class ScanUtils {
 	buf.append(scan.getMSLevel());
 	if (scan.getMSLevel() > 1)
 	    buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
+	if (scan.isCentroided())
+	    buf.append(" c");
+	else
+	    buf.append(" p");
 
 	return buf.toString();
     }
@@ -78,7 +84,8 @@ public class ScanUtils {
      *            m/z range maximum
      * @return double[2] containing base peak m/z and intensity
      */
-    public static DataPoint findBasePeak(Scan scan, Range mzRange) {
+    public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
+	    @Nonnull Range mzRange) {
 
 	DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
 	DataPoint basePeak = null;
@@ -360,41 +367,40 @@ public class ScanUtils {
      * points quite regularly distributed. However, the density of the data
      * points in continuous spectra may gradually change with increasing m/z
      * value. Also, continuous spectra may contain areas with no data points, if
-     * zero-intensity data points were removed. We check the m/z distance
-     * between the each two data points, and if this distance is 2x bigger than
-     * the distance between the previous pair of data points, the spectrum
-     * should be centroided. In case we encounter a zero-intensity data point,
-     * the previous data point pair is ignored and checking starts again.
+     * zero-intensity data points were removed. We use an algorithm adapted from
+     * LutefiskXP software.
+     * 
+     * The mass differences between adjacent data points are calculated, and a
+     * standard deviation for these differences is used to establish if the data
+     * is continuous (very little deviation) or centroided (large deviation).
+     * 
      */
-    public static boolean isCentroided(DataPoint[] dataPoints) {
+    public static boolean isCentroided(@Nonnull DataPoint[] dataPoints) {
 
-	// If the spectrum has less than 10 data points, it should be centroid
-	if (dataPoints.length <= 10)
-	    return true;
-
-	double previousMzDifference = 0, currentMzDifference;
+	ArrayList<Double> mzDifferences = new ArrayList<Double>();
 
 	for (int i = 1; i < dataPoints.length; i++) {
-	    currentMzDifference = dataPoints[i].getMZ()
+
+	    // Check the m/z difference of adjacent non-zero data points
+	    if ((dataPoints[i - 1].getIntensity() == 0d)
+		    || (dataPoints[i].getIntensity() == 0d))
+		continue;
+
+	    final double mzDifference = dataPoints[i].getMZ()
 		    - dataPoints[i - 1].getMZ();
 
-	    // If there is a previous data point pair (previousMzDifference >
-	    // 0), check our condition for centroided spectra
-	    if ((previousMzDifference > 0)
-		    && (currentMzDifference > previousMzDifference * 2)) {
-		return true;
-	    }
-
-	    // If we have a zero-intensity data point, ignore the next m/z
-	    // distance. Otherwise, keep the current pair as
-	    // previousMzDifference.
-	    if (dataPoints[i].getIntensity() > 0)
-		previousMzDifference = currentMzDifference;
-	    else
-		previousMzDifference = 0;
+	    mzDifferences.add(mzDifference);
 	}
 
-	return false;
+	// If the spectrum has less than 10 non-zero data points, it should be
+	// centroided
+	if (mzDifferences.size() <= 10)
+	    return true;
+
+	final double mzDifferencesArray[] = Doubles.toArray(mzDifferences);
+	final double stdDev = MathUtils.calcStd(mzDifferencesArray);
+
+	return stdDev > 0.5;
 
     }
 
@@ -446,8 +452,8 @@ public class ScanUtils {
      * nothing was removed. Otherwise, it returns a new array.
      * 
      */
-    public static DataPoint[] removeZeroDataPoints(DataPoint dataPoints[],
-	    boolean centroided) {
+    public static @Nonnull DataPoint[] removeZeroDataPoints(
+	    @Nonnull DataPoint dataPoints[]) {
 
 	// First, check if we actually have any zero data point
 	boolean haveZeroDP = false;
@@ -472,18 +478,15 @@ public class ScanUtils {
 		continue;
 	    }
 
-	    // Check the neighbouring data points, but only if the scan is not
-	    // centroided
-	    if (!centroided) {
-		if ((i > 0) && (dataPoints[i - 1].getIntensity() > 0)) {
-		    newDataPoints.add(dataPoints[i]);
-		    continue;
-		}
-		if ((i < dataPoints.length - 1)
-			&& (dataPoints[i + 1].getIntensity() > 0)) {
-		    newDataPoints.add(dataPoints[i]);
-		    continue;
-		}
+	    // Check the neighbouring data points
+	    if ((i > 0) && (dataPoints[i - 1].getIntensity() > 0)) {
+		newDataPoints.add(dataPoints[i]);
+		continue;
+	    }
+	    if ((i < dataPoints.length - 1)
+		    && (dataPoints[i + 1].getIntensity() > 0)) {
+		newDataPoints.add(dataPoints[i]);
+		continue;
 	    }
 	}
 
@@ -492,7 +495,7 @@ public class ScanUtils {
 	    return dataPoints;
 
 	DataPoint[] newDataPointsArray = newDataPoints
-		.toArray(new DataPoint[0]);
+		.toArray(new DataPoint[newDataPoints.size()]);
 
 	return newDataPointsArray;
 

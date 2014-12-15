@@ -365,7 +365,7 @@ public class MzXMLReadTask extends AbstractTask {
 
 		// Remove zero data points
 		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints, centroided);
+			.removeZeroDataPoints(completeDataPoints);
 
 		// Set the final data points to the scan
 		buildingScan.setDataPoints(optimizedDataPoints);

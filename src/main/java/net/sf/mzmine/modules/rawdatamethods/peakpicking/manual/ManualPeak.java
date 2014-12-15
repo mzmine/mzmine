@@ -28,11 +28,12 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.primitives.Ints;
 
 /**
  * This class represents a manually picked chromatographic peak.
@@ -105,7 +106,7 @@ class ManualPeak implements Feature {
      * This method returns numbers of scans that contain this peak
      */
     public @Nonnull int[] getScanNumbers() {
-	return CollectionUtils.toIntArray(dataPointMap.keySet());
+	return Ints.toArray(dataPointMap.keySet());
     }
 
     /**
@@ -195,8 +196,7 @@ class ManualPeak implements Feature {
 	}
 
 	// Get all scan numbers
-	int allScanNumbers[] = CollectionUtils
-		.toIntArray(dataPointMap.keySet());
+	int allScanNumbers[] = Ints.toArray(dataPointMap.keySet());
 
 	// Find the data point with top intensity and use its RT and height
 	for (int i = 0; i < allScanNumbers.length; i++) {

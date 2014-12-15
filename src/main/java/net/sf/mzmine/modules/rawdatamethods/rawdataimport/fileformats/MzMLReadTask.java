@@ -132,7 +132,7 @@ public class MzMLReadTask extends AbstractTask {
 
 		// Remove zero data points
 		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(dataPoints, centroided);
+			.removeZeroDataPoints(dataPoints);
 
 		SimpleScan scan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMz,

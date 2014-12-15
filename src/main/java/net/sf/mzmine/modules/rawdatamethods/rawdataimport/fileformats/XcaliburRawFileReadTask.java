@@ -260,7 +260,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		boolean centroided = ScanUtils.isCentroided(completeDataPoints);
 
 		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints, centroided);
+			.removeZeroDataPoints(completeDataPoints);
 
 		/*
 		 * If this scan is a full scan (ms level = 1), it means that the

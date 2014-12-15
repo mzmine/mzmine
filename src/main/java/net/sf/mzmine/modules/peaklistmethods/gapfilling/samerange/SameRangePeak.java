@@ -28,11 +28,12 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.primitives.Ints;
 
 /**
  * This class represents a manually picked chromatographic peak.
@@ -69,8 +70,7 @@ class SameRangePeak implements Feature {
     /**
      * This peak is always a result of manual peak detection, therefore MANUAL
      */
-    public @Nonnull
-    FeatureStatus getFeatureStatus() {
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return FeatureStatus.ESTIMATED;
     }
 
@@ -105,9 +105,8 @@ class SameRangePeak implements Feature {
     /**
      * This method returns numbers of scans that contain this peak
      */
-    public @Nonnull
-    int[] getScanNumbers() {
-	return CollectionUtils.toIntArray(mzPeakMap.keySet());
+    public @Nonnull int[] getScanNumbers() {
+	return Ints.toArray(mzPeakMap.keySet());
     }
 
     /**
@@ -118,26 +117,22 @@ class SameRangePeak implements Feature {
 	return mzPeakMap.get(scanNumber);
     }
 
-    public @Nonnull
-    Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsMZRange() {
+    public @Nonnull Range getRawDataPointsMZRange() {
 	return mzRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsRTRange() {
+    public @Nonnull Range getRawDataPointsRTRange() {
 	return rtRange;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.Feature#getDataFile()
      */
-    public @Nonnull
-    RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -197,7 +192,7 @@ class SameRangePeak implements Feature {
 	}
 
 	// Get all scan numbers
-	int allScanNumbers[] = CollectionUtils.toIntArray(mzPeakMap.keySet());
+	int allScanNumbers[] = Ints.toArray(mzPeakMap.keySet());
 
 	// Find the data point with top intensity and use its RT and height
 	for (int i = 0; i < allScanNumbers.length; i++) {

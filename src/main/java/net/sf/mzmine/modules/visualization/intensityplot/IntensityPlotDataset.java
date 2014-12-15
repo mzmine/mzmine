@@ -32,13 +32,14 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
-import net.sf.mzmine.util.CollectionUtils;
 import net.sf.mzmine.util.MathUtils;
 
 import org.jfree.data.DomainOrder;
 import org.jfree.data.general.AbstractDataset;
 import org.jfree.data.statistics.StatisticalCategoryDataset;
 import org.jfree.data.xy.IntervalXYDataset;
+
+import com.google.common.primitives.Doubles;
 
 /**
  * This class implements 2 kinds of data sets - CategoryDataset and XYDataset
@@ -149,7 +150,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	    if (yAxisValueSource == YAxisValueSource.RT)
 		values.add(peaks[i].getRT());
 	}
-	double doubleValues[] = CollectionUtils.toDoubleArray(values);
+	double doubleValues[] = Doubles.toArray(values);
 	if (doubleValues.length == 0)
 	    return 0;
 	double mean = MathUtils.calcAvg(doubleValues);
@@ -179,7 +180,7 @@ class IntensityPlotDataset extends AbstractDataset implements
 	    if (yAxisValueSource == YAxisValueSource.RT)
 		values.add(peaks[i].getRT());
 	}
-	double doubleValues[] = CollectionUtils.toDoubleArray(values);
+	double doubleValues[] = Doubles.toArray(values);
 	double std = MathUtils.calcStd(doubleValues);
 	return std;
     }
