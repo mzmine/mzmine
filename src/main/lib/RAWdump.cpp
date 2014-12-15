@@ -190,7 +190,10 @@ int main(int argc, char* argv[]) {
             }
             
             fprintf(stdout, "PRECURSOR: %f %d\n", precursorMz, precursorCharge);
-            
+           	
+           	// release memory
+			VariantClear(&varPrecMz);
+			VariantClear(&varPrecChrg);
         }
         
         VARIANT varMassList;
@@ -221,7 +224,9 @@ int main(int argc, char* argv[]) {
                                         &varPeakFlags,        // peakFlags
                                         &dataPoints);        // array size
         
-        // Get a pointer to the SafeArray
+
+
+         // Get a pointer to the SafeArray
         SAFEARRAY FAR* psa = varMassList.parray;
         DataPeak* pDataPeaks = NULL;
         SafeArrayAccessData(psa, (void**)(&pDataPeaks));
@@ -235,6 +240,9 @@ int main(int argc, char* argv[]) {
         // Release the data handle
         SafeArrayUnaccessData(psa);
         
+       	// release memory
+	  	VariantClear(&varMassList);
+	    VariantClear(&varPeakFlags);
     }
     
     // Finalize link to XRawfile2.dll library
