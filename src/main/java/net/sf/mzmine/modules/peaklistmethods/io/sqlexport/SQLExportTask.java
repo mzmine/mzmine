@@ -95,12 +95,14 @@ class SQLExportTask extends AbstractTask {
 	PeakListRow rows[] = peakList.getRows();
 
 	try {
+	    dbConnection.setAutoCommit(false);
 	    for (PeakListRow row : rows) {
 		if (getStatus() != TaskStatus.PROCESSING)
 		    break;
 		exportPeakListRow(row);
 		processedRows++;
 	    }
+	    dbConnection.commit();
 	    dbConnection.close();
 	} catch (SQLException e) {
 	    setStatus(TaskStatus.ERROR);
@@ -123,28 +125,28 @@ class SQLExportTask extends AbstractTask {
 	// Value for looping through raw data files
 	boolean loopDataFiles = false;
 
+	StringBuilder sql = new StringBuilder();
+	sql.append("INSERT INTO ");
+	sql.append(tableName);
+	sql.append(" (");
+	for (int i = 0; i < exportColumns.getRowCount(); i++) {
+	    sql.append(exportColumns.getValueAt(i, 0));
+	    if (i < exportColumns.getRowCount() - 1)
+		sql.append(",");
+	}
+	sql.append(" ) VALUES (");
+	for (int i = 0; i < exportColumns.getRowCount(); i++) {
+	    sql.append("?");
+	    if (i < exportColumns.getRowCount() - 1)
+		sql.append(",");
+	}
+	sql.append(")");
+
+	PreparedStatement statement = dbConnection.prepareStatement(sql.toString());
+
 	for (RawDataFile rawDataFile : row.getRawDataFiles()) {
 	    Feature peak = row.getPeak(rawDataFile);
-
-	    StringBuilder sql = new StringBuilder();
-	    sql.append("INSERT INTO ");
-	    sql.append(tableName);
-	    sql.append(" (");
-	    for (int i = 0; i < exportColumns.getRowCount(); i++) {
-		sql.append(exportColumns.getValueAt(i, 0));
-		if (i < exportColumns.getRowCount() - 1)
-		    sql.append(",");
-	    }
-	    sql.append(" ) VALUES (");
-	    for (int i = 0; i < exportColumns.getRowCount(); i++) {
-		sql.append("?");
-		if (i < exportColumns.getRowCount() - 1)
-		    sql.append(",");
-	    }
-	    sql.append(")");
-
-	    PreparedStatement statement = dbConnection.prepareStatement(sql
-		    .toString());
+	    
 	    for (int i = 0; i < exportColumns.getRowCount(); i++) {
 		SQLExportDataType dataType = (SQLExportDataType) exportColumns
 			.getValueAt(i, 1);
@@ -171,7 +173,7 @@ class SQLExportTask extends AbstractTask {
 			    .getSize());
 		    loopDataFiles = true;
 		    break;
-		case PEAKSTATUS: // FIX!
+		case PEAKSTATUS:
 		    statement.setString(i + 1, peak.getFeatureStatus().name());
 		    loopDataFiles = true;
 		    break;
@@ -249,7 +251,7 @@ class SQLExportTask extends AbstractTask {
 		    break;
 		}
 	    }
-	    statement.execute();
+	    statement.executeUpdate();
 
 	    // If no data file elements are selected then don't loop through all
 	    // data files in peak list
