@@ -26,7 +26,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 
 import org.openscience.cdk.event.ICDKChangeListener;
-import org.openscience.jchempaint.dialog.PeriodicTablePanel;
 
 public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 

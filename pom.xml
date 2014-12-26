@@ -11,9 +11,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.7</cdk.version>
-		<!-- Note: CDK version 1.5.8 breaks the molecular structure viewer of JChemPaint 
-			3.4, due to missing GeometryTools class -->
+		<cdk.version>1.5.9</cdk.version>
 	</properties>
 	<build>
 		<plugins>
@@ -76,8 +74,8 @@
 		<repository>
 			<!-- jmzreader and CDK repository -->
 			<id>ebi-repo</id>
-			<name>The EBI Maven 2 repository</name>
-			<url>http://www.ebi.ac.uk/~maven/m2repo</url>
+			<name>The EBI Maven repository</name>
+			<url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
 		</repository>
 		<repository>
 			<id>lib</id>
@@ -165,18 +163,7 @@
 			<version>13.0.14</version>
 		</dependency>
 
-		<!-- Start of CDK & JChemPaint dependencies -->
-		<dependency>
-			<groupId>org.openscience.jchempaint</groupId>
-			<artifactId>jchempaint-hotfix</artifactId>
-			<version>3.4</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>xml-apis</artifactId>
-					<groupId>xml-apis</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
+		<!-- Start of CDK dependencies -->
 		<dependency>
 			<groupId>org.openscience.cdk</groupId>
 			<artifactId>cdk-core</artifactId>
@@ -212,9 +199,13 @@
 			<artifactId>cdk-renderbasic</artifactId>
 			<version>${cdk.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.openscience.cdk</groupId>
+			<artifactId>cdk-renderawt</artifactId>
+			<version>${cdk.version}</version>
+		</dependency>
 
-		<!-- End of CDK & JChemPaint dependencies -->
-
+		<!-- End of CDK dependencies -->
 
 		<!-- Start of parsers (http://code.google.com/p/jmzreader/) -->
 
