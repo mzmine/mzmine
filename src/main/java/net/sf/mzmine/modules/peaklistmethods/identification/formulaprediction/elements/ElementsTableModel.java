@@ -19,89 +19,100 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.openscience.cdk.interfaces.IIsotope;
+
 public class ElementsTableModel extends AbstractTableModel {
 
-	/**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 	private static final String[] columnNames = { "Element", "Min", "Max" };
 
-	private Vector<ElementRule> elementRules = new Vector<ElementRule>();
+	private ArrayList<IIsotope> isotopes = new ArrayList<IIsotope>();
+	private ArrayList<Integer> minCounts = new ArrayList<Integer>();
+	private ArrayList<Integer> maxCounts = new ArrayList<Integer>();
 
+	@Override
 	public String getColumnName(int col) {
 		return columnNames[col];
 	}
 
-	public int getRowCount() {
-		return elementRules.size();
+	@Override
+	public Class<?> getColumnClass(int col) {
+		if (col == 0)
+			return IIsotope.class;
+		else
+			return Integer.class;
+
 	}
 
+	@Override
+	public int getRowCount() {
+		return isotopes.size();
+	}
+
+	@Override
 	public int getColumnCount() {
 		return columnNames.length;
 	}
 
+	@Override
 	public Object getValueAt(int row, int col) {
-		ElementRule rule = elementRules.get(row);
 		switch (col) {
-		case (0):
-			return rule.getElementSymbol();
-		case (1):
-			return rule.getMinCount();
-		case (2):
-			return rule.getMaxCount();
+		case 0:
+			return isotopes.get(row);
+		case 1:
+			return minCounts.get(row);
+		case 2:
+			return maxCounts.get(row);
 		}
 		return null;
 	}
 
+	@Override
 	public boolean isCellEditable(int row, int col) {
 		return (col == 1) || (col == 2);
 	}
 
-	public void setValueAt(Object value, int row, int col) {
+	@Override
+	public synchronized void setValueAt(Object value, int row, int col) {
 
-		int intval;
+		int intval = (Integer) value;
 
-		try {
-			intval = Integer.parseInt((String) value);
-		} catch (NumberFormatException e) {
-			// ignore wrong numbers
+			if (intval < 0)
 			return;
-		}
-
-		if (intval < 0)
-			return;
-		
-		ElementRule rule = elementRules.get(row);
 
 		if (col == 1) {
-			rule.setMinCount(intval);
-			int currentMax = rule.getMaxCount();
+			minCounts.set(row, intval);
+			int currentMax = maxCounts.get(row);
 			if (currentMax < intval)
-				rule.setMaxCount(intval);
+				maxCounts.set(row, intval);
 		} else if (col == 2) {
-			rule.setMaxCount(intval);
-			int currentMin = rule.getMinCount();
+
+			maxCounts.set(row, intval);
+			int currentMin = minCounts.get(row);
 			if (currentMin > intval)
-				rule.setMinCount(intval);
+				minCounts.set(row, intval);
 		}
 	}
 
-	public void addRow(ElementRule rule) {
-		if (elementRules.contains(rule))
+	public synchronized void addRow(IIsotope isotope, int minCount, int maxCount) {
+		if (isotopes.contains(isotope))
 			return;
-		int newRowIndex = elementRules.size();
-		elementRules.add(newRowIndex, rule);
+		int newRowIndex = isotopes.size();
+		isotopes.add(newRowIndex, isotope);
+		minCounts.add(newRowIndex, minCount);
+		maxCounts.add(newRowIndex, maxCount);
 		fireTableRowsInserted(newRowIndex, newRowIndex);
 	}
 
-	public void removeRow(int index) {
-		elementRules.remove(index);
+	public synchronized void removeRow(int index) {
+		isotopes.remove(index);
+		minCounts.remove(index);
+		maxCounts.remove(index);
 		fireTableRowsDeleted(index, index);
 	}
 

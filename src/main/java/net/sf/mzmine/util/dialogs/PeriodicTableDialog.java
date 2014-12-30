@@ -25,46 +25,51 @@ import java.util.EventObject;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 
+import org.openscience.cdk.config.IsotopeFactory;
+import org.openscience.cdk.config.Isotopes;
 import org.openscience.cdk.event.ICDKChangeListener;
+import org.openscience.cdk.interfaces.IIsotope;
 
 public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 
-    /**
+	/**
      * 
      */
-    private static final long serialVersionUID = 1L;
-    private PeriodicTablePanel periodicTable;
-    private String elementSymbol;
+	private static final long serialVersionUID = 1L;
+	private PeriodicTablePanel periodicTable;
+	private IIsotope selectedIsotope;
 
-    public PeriodicTableDialog(JFrame parent) {
+	public PeriodicTableDialog(JFrame parent) {
 
-	super(parent, "Choose an element...", true);
+		super(parent, "Choose an element...", true);
 
-	setLayout(new BorderLayout());
+		setLayout(new BorderLayout());
 
-	periodicTable = new PeriodicTablePanel();
-	periodicTable.addCDKChangeListener(this);
-	add(BorderLayout.CENTER, periodicTable);
+		periodicTable = new PeriodicTablePanel();
+		periodicTable.addCDKChangeListener(this);
+		add(BorderLayout.CENTER, periodicTable);
 
-	pack();
+		pack();
 
-	setLocationRelativeTo(parent);
-    }
-
-    public void stateChanged(EventObject event) {
-
-	if (event.getSource() == periodicTable) {
-	    try {
-		elementSymbol = periodicTable.getSelectedElement();
-	    } catch (Exception e) {
-		e.printStackTrace();
-	    }
-	    dispose();
+		setLocationRelativeTo(parent);
 	}
-    }
 
-    public String getSelectedElement() {
-	return elementSymbol;
-    }
+	public void stateChanged(EventObject event) {
+
+		if (event.getSource() == periodicTable) {
+			try {
+				String elementSymbol = periodicTable.getSelectedElement();
+				IsotopeFactory isoFac = Isotopes.getInstance();
+				selectedIsotope = isoFac.getMajorIsotope(elementSymbol);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			dispose();
+		}
+	}
+
+	public IIsotope getSelectedIsotope() {
+		return selectedIsotope;
+	}
 
 }

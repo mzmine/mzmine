@@ -11,7 +11,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<cdk.version>1.5.9</cdk.version>
+		<cdk.version>1.5.10</cdk.version>
 	</properties>
 	<build>
 		<plugins>

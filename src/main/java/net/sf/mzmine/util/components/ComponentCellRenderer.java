@@ -34,6 +34,8 @@ import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
+import org.openscience.cdk.interfaces.IIsotope;
+
 /**
  * Simple table cell renderer that renders only JComponents
  */
@@ -109,7 +111,13 @@ public class ComponentCellRenderer implements TableCellRenderer,
 
 			} else {
 
-				JLabel newLabel = new JLabel(value.toString());
+				JLabel newLabel = new JLabel();
+				if (value instanceof IIsotope) {
+					IIsotope is = (IIsotope) value;
+					newLabel.setText(is.getSymbol());
+				} else {
+					newLabel.setText(value.toString());
+				}
 
 				if (font != null)
 					newLabel.setFont(font);

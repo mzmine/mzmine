@@ -38,105 +38,103 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.components.ComponentCellRenderer;
 import net.sf.mzmine.util.dialogs.PeriodicTableDialog;
 
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IIsotope;
+
 public class ElementsTableComponent extends JPanel implements ActionListener {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+	private static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    private JTable elementsTable;
-    private JButton addElementButton, removeElementButton;
-    private ElementsTableModel elementsTableModel;
+	private JTable elementsTable;
+	private JButton addElementButton, removeElementButton;
+	private ElementsTableModel elementsTableModel;
 
-    public ElementsTableComponent() {
+	public ElementsTableComponent() {
 
-	super(new BorderLayout());
+		super(new BorderLayout());
 
-	elementsTableModel = new ElementsTableModel();
+		elementsTableModel = new ElementsTableModel();
 
-	elementsTable = new JTable(elementsTableModel);
-	elementsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	elementsTable.setRowSelectionAllowed(true);
-	elementsTable.setColumnSelectionAllowed(false);
-	elementsTable.setDefaultRenderer(Object.class,
-		new ComponentCellRenderer(smallFont));
-	elementsTable.getTableHeader().setReorderingAllowed(false);
+		elementsTable = new JTable(elementsTableModel);
+		elementsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		elementsTable.setRowSelectionAllowed(true);
+		elementsTable.setColumnSelectionAllowed(false);
+		elementsTable.setDefaultRenderer(Object.class,
+				new ComponentCellRenderer(smallFont));
+		elementsTable.getTableHeader().setReorderingAllowed(false);
 
-	elementsTable.getTableHeader().setResizingAllowed(false);
-	elementsTable
-		.setPreferredScrollableViewportSize(new Dimension(200, 80));
+		elementsTable.getTableHeader().setResizingAllowed(false);
+		elementsTable
+				.setPreferredScrollableViewportSize(new Dimension(200, 80));
 
-	JScrollPane elementsScroll = new JScrollPane(elementsTable);
-	add(elementsScroll, BorderLayout.CENTER);
+		JScrollPane elementsScroll = new JScrollPane(elementsTable);
+		add(elementsScroll, BorderLayout.CENTER);
 
-	// Add buttons
-	JPanel buttonsPanel = new JPanel();
-	BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel,
-		BoxLayout.Y_AXIS);
-	buttonsPanel.setLayout(buttonsPanelLayout);
-	addElementButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
-	removeElementButton = GUIUtils.addButton(buttonsPanel, "Remove", null,
-		this);
-	add(buttonsPanel, BorderLayout.EAST);
+		// Add buttons
+		JPanel buttonsPanel = new JPanel();
+		BoxLayout buttonsPanelLayout = new BoxLayout(buttonsPanel,
+				BoxLayout.Y_AXIS);
+		buttonsPanel.setLayout(buttonsPanelLayout);
+		addElementButton = GUIUtils.addButton(buttonsPanel, "Add", null, this);
+		removeElementButton = GUIUtils.addButton(buttonsPanel, "Remove", null,
+				this);
+		add(buttonsPanel, BorderLayout.EAST);
 
-	this.setPreferredSize(new Dimension(300, 100));
-
-    }
-
-    public void actionPerformed(ActionEvent event) {
-
-	Object src = event.getSource();
-
-	if (src == addElementButton) {
-	    JFrame parent = (JFrame) SwingUtilities.getAncestorOfClass(
-		    JFrame.class, this);
-	    PeriodicTableDialog dialog = new PeriodicTableDialog(parent);
-	    dialog.setVisible(true);
-	    String chosenElement = dialog.getSelectedElement();
-	    if (chosenElement == null)
-		return;
-	    ElementRule rule = new ElementRule(chosenElement, 0, 100);
-	    elementsTableModel.addRow(rule);
-	}
-
-	if (src == removeElementButton) {
-	    int selectedRow = elementsTable.getSelectedRow();
-	    if (selectedRow < 0)
-		return;
-	    elementsTableModel.removeRow(selectedRow);
-	}
-    }
-
-    public String getElementsAsString() {
-	StringBuilder elementsString = new StringBuilder();
-	for (int i = 0; i < elementsTableModel.getRowCount(); i++) {
-	    if (i > 0)
-		elementsString.append(",");
-	    String element = (String) elementsTableModel.getValueAt(i, 0);
-	    int min = (Integer) elementsTableModel.getValueAt(i, 1);
-	    int max = (Integer) elementsTableModel.getValueAt(i, 2);
-	    elementsString.append(element + "[" + min + "-" + max + "]");
-	}
-	return elementsString.toString();
-    }
-
-    public void setElementsFromString(String elements) {
-
-	if (elements == null)
-	    return;
-
-	String elementsArray[] = elements.split(",");
-
-	for (String elementEntry : elementsArray) {
-	    if (elementEntry.length() == 0)
-		continue;
-	    ElementRule rule = new ElementRule(elementEntry);
-	    elementsTableModel.addRow(rule);
+		this.setPreferredSize(new Dimension(300, 100));
 
 	}
-    }
+
+	public void actionPerformed(ActionEvent event) {
+
+		Object src = event.getSource();
+
+		if (src == addElementButton) {
+			JFrame parent = (JFrame) SwingUtilities.getAncestorOfClass(
+					JFrame.class, this);
+			PeriodicTableDialog dialog = new PeriodicTableDialog(parent);
+			dialog.setVisible(true);
+			IIsotope chosenIsotope = dialog.getSelectedIsotope();
+			if (chosenIsotope == null)
+				return;
+			elementsTableModel.addRow(chosenIsotope, 0, 100);
+		}
+
+		if (src == removeElementButton) {
+			int selectedRow = elementsTable.getSelectedRow();
+			if (selectedRow < 0)
+				return;
+			elementsTableModel.removeRow(selectedRow);
+		}
+	}
+
+	public MolecularFormulaRange getElements() {
+
+		MolecularFormulaRange newValue = new MolecularFormulaRange();
+
+		for (int i = 0; i < elementsTableModel.getRowCount(); i++) {
+
+			IIsotope isotope = (IIsotope) elementsTableModel.getValueAt(i, 0);
+			int minCount = (Integer) elementsTableModel.getValueAt(i, 1);
+			int maxCount = (Integer) elementsTableModel.getValueAt(i, 2);
+
+			newValue.addIsotope(isotope, minCount, maxCount);
+		}
+		return newValue;
+	}
+
+	public void setElements(MolecularFormulaRange elements) {
+
+		if (elements == null)
+			return;
+
+		for (IIsotope isotope : elements.isotopes()) {
+			int minCount = elements.getIsotopeCountMin(isotope);
+			int maxCount = elements.getIsotopeCountMax(isotope);
+			elementsTableModel.addRow(isotope, minCount, maxCount);
+
+		}
+	}
 
 }

@@ -25,8 +25,8 @@ import java.util.Map;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.Range;
 
-import org.openscience.cdk.formula.MolecularFormula;
 import org.openscience.cdk.interfaces.IIsotope;
+import org.openscience.cdk.interfaces.IMolecularFormula;
 
 public class RDBERestrictionChecker {
 
@@ -63,10 +63,10 @@ public class RDBERestrictionChecker {
 	 * for RDBE.
 	 * 
 	 */
-	public static Double calculateRDBE(MolecularFormula formula) {
+	public static Double calculateRDBE(IMolecularFormula formula) {
 
 		double sum = 0;
-		
+
 		Map<String, Integer> valences2 = new HashMap<String, Integer>();
 		valences2.put("H", 1);
 		valences2.put("C", 4);
@@ -81,7 +81,7 @@ public class RDBERestrictionChecker {
 		valences2.put("I", 1);
 		valences2.put("Na", 1);
 		valences2.put("K", 1);
-		
+
 		for (IIsotope isotope : formula.isotopes()) {
 
 			Integer valence = valences2.get(isotope.getSymbol());

@@ -19,127 +19,134 @@
 
 package net.sf.mzmine.modules.peaklistmethods.msms.msmsscore;
 
-import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Map;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.FormulaGenerator;
-import net.sf.mzmine.modules.peaklistmethods.identification.formulaprediction.elements.ElementRule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.Range;
 
-import org.openscience.cdk.formula.MolecularFormula;
+import org.openscience.cdk.DefaultChemObjectBuilder;
+import org.openscience.cdk.exception.CDKException;
+import org.openscience.cdk.formula.MolecularFormulaGenerator;
+import org.openscience.cdk.formula.MolecularFormulaRange;
+import org.openscience.cdk.interfaces.IChemObjectBuilder;
 import org.openscience.cdk.interfaces.IIsotope;
 import org.openscience.cdk.interfaces.IMolecularFormula;
 import org.openscience.cdk.tools.manipulator.MolecularFormulaManipulator;
 
 public class MSMSScoreCalculator {
 
-    /**
-     * Returns a calculated similarity score of
-     */
-    public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula,
-	    Scan msmsScan, ParameterSet parameters) {
+	/**
+	 * Returns a calculated similarity score of
+	 */
+	public static MSMSScore evaluateMSMS(IMolecularFormula parentFormula,
+			Scan msmsScan, ParameterSet parameters) {
 
-	MZTolerance msmsTolerance = parameters.getParameter(
-		MSMSScoreParameters.msmsTolerance).getValue();
-	String massListName = parameters.getParameter(
-		MSMSScoreParameters.massList).getValue();
+		MZTolerance msmsTolerance = parameters.getParameter(
+				MSMSScoreParameters.msmsTolerance).getValue();
+		String massListName = parameters.getParameter(
+				MSMSScoreParameters.massList).getValue();
 
-	MassList massList = msmsScan.getMassList(massListName);
+		MassList massList = msmsScan.getMassList(massListName);
 
-	if (massList == null) {
-	    throw new IllegalArgumentException("Scan #"
-		    + msmsScan.getScanNumber()
-		    + " does not have a mass list called '" + massListName
-		    + "'");
-	}
-
-	DataPoint msmsIons[] = massList.getDataPoints();
-
-	if (msmsIons == null) {
-	    throw new IllegalArgumentException("Mass list " + massList
-		    + " does not contain data for scan #"
-		    + msmsScan.getScanNumber());
-	}
-
-	// Sorted by mass in descending order
-	ArrayList<ElementRule> rulesSet = new ArrayList<ElementRule>();
-	for (IIsotope isotope : parentFormula.isotopes()) {
-	    ElementRule rule = new ElementRule(isotope.getSymbol(), 0,
-		    parentFormula.getIsotopeCount(isotope));
-	    rulesSet.add(rule);
-	}
-	ElementRule msmsElementRules[] = rulesSet.toArray(new ElementRule[0]);
-
-	int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
-	Map<DataPoint, String> msmsAnnotations = new Hashtable<DataPoint, String>();
-
-	msmsCycle: for (DataPoint dp : msmsIons) {
-
-	    // Check if this is an isotope
-	    Range isotopeCheckRange = new Range(dp.getMZ() - 1.4,
-		    dp.getMZ() - 0.6);
-	    for (DataPoint dpCheck : msmsIons) {
-		// If we have any MS/MS peak with 1 neutron mass smaller m/z
-		// and higher intensity, it means the current peak is an
-		// isotope and we should ignore it
-		if (isotopeCheckRange.contains(dpCheck.getMZ())
-			&& (dpCheck.getIntensity() > dp.getIntensity())) {
-		    continue msmsCycle;
+		if (massList == null) {
+			throw new IllegalArgumentException("Scan #"
+					+ msmsScan.getScanNumber()
+					+ " does not have a mass list called '" + massListName
+					+ "'");
 		}
-	    }
 
-	    // If getPrecursorCharge() returns 0, it means charge is unknown. In
-	    // that case let's assume charge 1
-	    int precursorCharge = msmsScan.getPrecursorCharge();
-	    if (precursorCharge == 0)
-		precursorCharge = 1;
+		DataPoint msmsIons[] = massList.getDataPoints();
 
-	    // We don't know the charge of the fragment, so we will simply
-	    // assume 1
-	    double neutralLoss = msmsScan.getPrecursorMZ() * precursorCharge
-		    - dp.getMZ();
+		if (msmsIons == null) {
+			throw new IllegalArgumentException("Mass list " + massList
+					+ " does not contain data for scan #"
+					+ msmsScan.getScanNumber());
+		}
 
-	    // Ignore negative neutral losses and parent ion, <5 may be a
-	    // good threshold
-	    if (neutralLoss < 5) {
-		continue;
-	    }
+		MolecularFormulaRange msmsElementRange = new MolecularFormulaRange();
+		for (IIsotope isotope : parentFormula.isotopes()) {
+			msmsElementRange.addIsotope(isotope, 0,
+					parentFormula.getIsotopeCount(isotope));
+		}
 
-	    Range msmsTargetRange = msmsTolerance
-		    .getToleranceRange(neutralLoss);
+		int totalMSMSpeaks = 0, interpretedMSMSpeaks = 0;
+		Map<DataPoint, String> msmsAnnotations = new Hashtable<DataPoint, String>();
 
-	    FormulaGenerator msmsEngine = new FormulaGenerator(msmsTargetRange,
-		    msmsElementRules);
+		msmsCycle: for (DataPoint dp : msmsIons) {
 
-	    MolecularFormula formula = msmsEngine.getNextFormula();
-	    if (formula != null) {
-		String formulaString = MolecularFormulaManipulator
-			.getString(formula);
-		msmsAnnotations.put(dp, formulaString);
-		interpretedMSMSpeaks++;
-	    }
+			// Check if this is an isotope
+			Range isotopeCheckRange = new Range(dp.getMZ() - 1.4,
+					dp.getMZ() - 0.6);
+			for (DataPoint dpCheck : msmsIons) {
+				// If we have any MS/MS peak with 1 neutron mass smaller m/z
+				// and higher intensity, it means the current peak is an
+				// isotope and we should ignore it
+				if (isotopeCheckRange.contains(dpCheck.getMZ())
+						&& (dpCheck.getIntensity() > dp.getIntensity())) {
+					continue msmsCycle;
+				}
+			}
 
-	    totalMSMSpeaks++;
+			// If getPrecursorCharge() returns 0, it means charge is unknown. In
+			// that case let's assume charge 1
+			int precursorCharge = msmsScan.getPrecursorCharge();
+			if (precursorCharge == 0)
+				precursorCharge = 1;
+
+			// We don't know the charge of the fragment, so we will simply
+			// assume 1
+			double neutralLoss = msmsScan.getPrecursorMZ() * precursorCharge
+					- dp.getMZ();
+
+			// Ignore negative neutral losses and parent ion, <5 may be a
+			// good threshold
+			if (neutralLoss < 5) {
+				continue;
+			}
+
+			Range msmsTargetRange = msmsTolerance
+					.getToleranceRange(neutralLoss);
+
+			IChemObjectBuilder chemBuilder = DefaultChemObjectBuilder
+					.getInstance();
+			MolecularFormulaGenerator msmsEngine;
+			try {
+				msmsEngine = new MolecularFormulaGenerator(chemBuilder,
+						msmsTargetRange.getMin(), msmsTargetRange.getMax(),
+						msmsElementRange);
+			} catch (CDKException e) {
+				e.printStackTrace();
+				return null;
+			}
+
+			IMolecularFormula formula = msmsEngine.getNextFormula();
+			if (formula != null) {
+				String formulaString = MolecularFormulaManipulator
+						.getString(formula);
+				msmsAnnotations.put(dp, formulaString);
+				interpretedMSMSpeaks++;
+			}
+
+			totalMSMSpeaks++;
+
+		}
+
+		// If we did not evaluate any MS/MS peaks, we cannot calculate a score
+		if (totalMSMSpeaks == 0) {
+			return null;
+		}
+
+		double msmsScore = (double) interpretedMSMSpeaks / totalMSMSpeaks;
+
+		MSMSScore result = new MSMSScore(msmsScore, msmsAnnotations);
+
+		return result;
 
 	}
-
-	// If we did not evaluate any MS/MS peaks, we cannot calculate a score
-	if (totalMSMSpeaks == 0) {
-	    return null;
-	}
-
-	double msmsScore = (double) interpretedMSMSpeaks / totalMSMSpeaks;
-
-	MSMSScore result = new MSMSScore(msmsScore, msmsAnnotations);
-
-	return result;
-
-    }
 
 }
