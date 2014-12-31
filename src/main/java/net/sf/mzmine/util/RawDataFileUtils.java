@@ -19,57 +19,63 @@
 
 package net.sf.mzmine.util;
 
+import javax.annotation.Nonnull;
+
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
+
+import com.google.common.collect.Range;
 
 /**
  * Raw data file related utilities
  */
 public class RawDataFileUtils {
 
-	public static Range findTotalRTRange(RawDataFile dataFiles[], int msLevel) {
-		Range rtRange = null;
-		for (RawDataFile file : dataFiles) {
-			Range dfRange = file.getDataRTRange(msLevel);
-			if (dfRange == null)
-				continue;
-			if (rtRange == null)
-				rtRange = dfRange;
-			else
-				rtRange.extendRange(dfRange);
-		}
-		if (rtRange == null)
-			rtRange = new Range(0);
-		return rtRange;
+    public static @Nonnull Range<Double> findTotalRTRange(
+	    RawDataFile dataFiles[], int msLevel) {
+	Range<Double> rtRange = null;
+	for (RawDataFile file : dataFiles) {
+	    Range<Double> dfRange = file.getDataRTRange(msLevel);
+	    if (dfRange == null)
+		continue;
+	    if (rtRange == null)
+		rtRange = dfRange;
+	    else
+		rtRange = rtRange.span(dfRange);
 	}
+	if (rtRange == null)
+	    rtRange = Range.singleton(0.0);
+	return rtRange;
+    }
 
-	public static Range findTotalMZRange(RawDataFile dataFiles[], int msLevel) {
-		Range mzRange = null;
-		for (RawDataFile file : dataFiles) {
-			Range dfRange = file.getDataMZRange(msLevel);
-			if (dfRange == null)
-				continue;
-			if (mzRange == null)
-				mzRange = dfRange;
-			else
-				mzRange.extendRange(dfRange);
-		}
-		if (mzRange == null)
-			mzRange = new Range(0);
-		return mzRange;
+    public static @Nonnull Range<Double> findTotalMZRange(
+	    RawDataFile dataFiles[], int msLevel) {
+	Range<Double> mzRange = null;
+	for (RawDataFile file : dataFiles) {
+	    Range<Double> dfRange = file.getDataMZRange(msLevel);
+	    if (dfRange == null)
+		continue;
+	    if (mzRange == null)
+		mzRange = dfRange;
+	    else
+		mzRange = mzRange.span(dfRange);
 	}
+	if (mzRange == null)
+	    mzRange = Range.singleton(0.0);
+	return mzRange;
+    }
 
-	/**
-	 * Returns true if the given data file has mass lists for all MS1 scans
-	 * 
-	 */
-	public static boolean hasMassLists(RawDataFile dataFile) {
-		for (int scanNum : dataFile.getScanNumbers(1)) {
-			Scan scan = dataFile.getScan(scanNum);
-			if (scan.getMassLists().length == 0)
-				return false;
-		}
-		return true;
+    /**
+     * Returns true if the given data file has mass lists for all MS1 scans
+     * 
+     */
+    public static boolean hasMassLists(RawDataFile dataFile) {
+	for (int scanNum : dataFile.getScanNumbers(1)) {
+	    Scan scan = dataFile.getScan(scanNum);
+	    if (scan.getMassLists().length == 0)
+		return false;
 	}
+	return true;
+    }
 
 }

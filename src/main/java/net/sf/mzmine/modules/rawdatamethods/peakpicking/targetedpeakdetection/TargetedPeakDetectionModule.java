@@ -17,7 +17,7 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
+package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 
 import java.util.Collection;
 

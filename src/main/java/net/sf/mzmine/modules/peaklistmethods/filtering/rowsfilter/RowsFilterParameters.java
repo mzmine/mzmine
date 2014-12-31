@@ -35,7 +35,8 @@ import net.sf.mzmine.parameters.parametertypes.RTRangeParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.parameters.parametertypes.StringParameter;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class RowsFilterParameters extends SimpleParameterSet {
 
@@ -59,7 +60,7 @@ public class RowsFilterParameters extends SimpleParameterSet {
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
 	    "Peak duration range",
 	    "Permissible range of (average) peak durations per row", MZmineCore
-		    .getConfiguration().getRTFormat(), new Range(0.0, 10.0));
+		    .getConfiguration().getRTFormat(), Range.closed(0.0, 10.0));
 
     public static final ComboParameter<Object> GROUPSPARAMETER = new ComboParameter<Object>(
 	    "Parameter", "Paremeter defining the group of each sample.",

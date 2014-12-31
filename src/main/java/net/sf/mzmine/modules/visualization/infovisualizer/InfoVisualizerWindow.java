@@ -43,7 +43,8 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 class InfoVisualizerWindow extends JFrame {
 
@@ -54,7 +55,7 @@ class InfoVisualizerWindow extends JFrame {
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
     private NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-    Range rtRange, mzRange;
+    Range<Double> rtRange, mzRange;
     int numOfRows, numOfIdentities;
 
     InfoVisualizerWindow(PeakList peakList) {
@@ -69,8 +70,8 @@ class InfoVisualizerWindow extends JFrame {
 	this.getInfoRange(peakList);
 
 	if (peakList.getNumberOfRows() == 0) {
-	    mzRange = new Range(0, 0);
-	    rtRange = new Range(0, 0);
+	    mzRange = Range.singleton(0.0);
+	    rtRange = Range.singleton(0.0);
 	}
 
 	// Raw data file list
@@ -135,14 +136,14 @@ class InfoVisualizerWindow extends JFrame {
 		+ numOfRows + "</font></html>"), c);
 	c.gridx = 0;
 	c.gridy = 4;
-	String text = mzFormat.format(mzRange.getMin()) + " - "
-		+ mzFormat.format(mzRange.getMax());
+	String text = mzFormat.format(mzRange.lowerEndpoint()) + " - "
+		+ mzFormat.format(mzRange.upperEndpoint());
 	pnlGrid.add(new JLabel("<html>m/z range: <font color=\"blue\">" + text
 		+ "</font></html>"), c);
 	c.gridx = 0;
 	c.gridy = 5;
-	text = rtFormat.format(rtRange.getMin()) + " - "
-		+ rtFormat.format(rtRange.getMax());
+	text = rtFormat.format(rtRange.lowerEndpoint()) + " - "
+		+ rtFormat.format(rtRange.upperEndpoint());
 	pnlGrid.add(new JLabel("<html>RT range: <font color=\"blue\">" + text
 		+ "</font> min</html>"), c);
 	c.gridx = 0;

@@ -30,9 +30,9 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 /**
@@ -46,7 +46,7 @@ class SameRangePeak implements Feature {
     private double mz, rt, height, area;
 
     // Boundaries of the peak
-    private Range rtRange, mzRange, intensityRange;
+    private Range<Double> rtRange, mzRange, intensityRange;
 
     // Map of scan number and data point
     private TreeMap<Integer, DataPoint> mzPeakMap;
@@ -117,15 +117,15 @@ class SameRangePeak implements Feature {
 	return mzPeakMap.get(scanNumber);
     }
 
-    public @Nonnull Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
-    public @Nonnull Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return mzRange;
     }
 
-    public @Nonnull Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rtRange;
     }
 
@@ -156,13 +156,14 @@ class SameRangePeak implements Feature {
 	double rt = dataFile.getScan(scanNumber).getRetentionTime();
 
 	if (mzPeakMap.isEmpty()) {
-	    rtRange = new Range(rt);
-	    mzRange = new Range(dataPoint.getMZ());
-	    intensityRange = new Range(dataPoint.getIntensity());
+	    rtRange = Range.singleton(rt);
+	    mzRange = Range.singleton(dataPoint.getMZ());
+	    intensityRange = Range.singleton(dataPoint.getIntensity());
 	} else {
-	    rtRange.extendRange(rt);
-	    mzRange.extendRange(dataPoint.getMZ());
-	    intensityRange.extendRange(dataPoint.getIntensity());
+	    rtRange = rtRange.span(Range.singleton(rt));
+	    mzRange = mzRange.span(Range.singleton(dataPoint.getMZ()));
+	    intensityRange = intensityRange.span(Range.singleton(dataPoint
+		    .getIntensity()));
 	}
 
 	mzPeakMap.put(scanNumber, dataPoint);

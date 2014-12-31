@@ -33,7 +33,9 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 /**
  *
@@ -48,10 +50,9 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
     }
 
     @Override
-    public Feature[] resolvePeaks(
-	    final Feature chromatogram, final int[] scanNumbers,
-	    final double[] retentionTimes, final double[] intensities,
-	    ParameterSet parameters) {
+    public Feature[] resolvePeaks(final Feature chromatogram,
+	    final int[] scanNumbers, final double[] retentionTimes,
+	    final double[] intensities, ParameterSet parameters) {
 
 	final double amplitudeOfNoise = parameters
 		.getParameter(NOISE_AMPLITUDE).getValue();
@@ -81,8 +82,8 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
 	    boolean activePeak = false;
 
-	    final Range peakDuration = parameters.getParameter(PEAK_DURATION)
-		    .getValue();
+	    final Range<Double> peakDuration = parameters.getParameter(
+		    PEAK_DURATION).getValue();
 	    final double minimumPeakHeight = parameters.getParameter(
 		    MIN_PEAK_HEIGHT).getValue();
 
@@ -110,8 +111,8 @@ public class NoiseAmplitudePeakDetector implements PeakResolver {
 
 			final ResolvedPeak peak = new ResolvedPeak(
 				chromatogram, currentPeakStart, currentPeakEnd);
-			if (peakDuration.contains(peak
-				.getRawDataPointsRTRange().getSize())
+			if (peakDuration.contains(RangeUtils.rangeLength(peak
+				.getRawDataPointsRTRange()))
 				&& peak.getHeight() >= minimumPeakHeight) {
 
 			    resolvedPeaks.add(peak);

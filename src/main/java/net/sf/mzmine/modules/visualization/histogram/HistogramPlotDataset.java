@@ -28,7 +28,6 @@ import java.util.Vector;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.data.general.DatasetChangeEvent;
 import org.jfree.data.statistics.HistogramBin;
@@ -36,13 +35,10 @@ import org.jfree.data.statistics.HistogramType;
 import org.jfree.data.xy.AbstractIntervalXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
 
-/**
- */
+import com.google.common.collect.Range;
+
 public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private HistogramDataType dataType;
     private PeakList peakList;
@@ -57,7 +53,7 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
     private HistogramType type;
 
     public HistogramPlotDataset(PeakList peakList, RawDataFile[] rawDataFiles,
-	    int numOfBins, HistogramDataType dataType, Range range) {
+	    int numOfBins, HistogramDataType dataType, Range<Double> range) {
 
 	this.list = new Vector<HashMap<?, ?>>();
 	this.type = HistogramType.FREQUENCY;
@@ -66,8 +62,8 @@ public class HistogramPlotDataset extends AbstractIntervalXYDataset {
 	this.numOfBins = numOfBins;
 	this.rawDataFiles = rawDataFiles;
 
-	minimum = range.getMin();
-	maximum = range.getMax();
+	minimum = range.lowerEndpoint();
+	maximum = range.upperEndpoint();
 
 	updateHistogramDataset();
 

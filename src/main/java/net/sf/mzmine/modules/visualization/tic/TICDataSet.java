@@ -34,11 +34,11 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
 import org.jfree.data.xy.AbstractXYZDataset;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 /**
@@ -51,9 +51,6 @@ import com.google.common.primitives.Ints;
  */
 public class TICDataSet extends AbstractXYZDataset implements Task {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     // Logger.
@@ -78,7 +75,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
     private final double[] basePeakValues;
     private final double[] intensityValues;
     private final double[] rtValues;
-    private final Range mzRange;
+    private final Range<Double> mzRange;
     private double intensityMin;
     private double intensityMax;
 
@@ -101,7 +98,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
      *            visualizer window.
      */
     public TICDataSet(final RawDataFile file, final int[] theScanNumbers,
-	    final Range rangeMZ, final TICVisualizerWindow window) {
+	    final Range<Double> rangeMZ, final TICVisualizerWindow window) {
 	this(file, theScanNumbers, rangeMZ, window, ((window != null) ? window
 		.getPlotType() : PlotType.BASEPEAK));
     }
@@ -122,7 +119,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
      *            plot type.
      */
     public TICDataSet(final RawDataFile file, final int[] theScanNumbers,
-	    final Range rangeMZ, final TICVisualizerWindow window,
+	    final Range<Double> rangeMZ, final TICVisualizerWindow window,
 	    PlotType plotType) {
 
 	mzRange = rangeMZ;
@@ -358,7 +355,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	    final Scan scan = dataFile.getScan(scanNumbers[index]);
 
 	    // Determine base peak value.
-	    final DataPoint basePeak = scan.getMZRange().isWithin(mzRange) ? scan
+	    final DataPoint basePeak = mzRange.encloses(scan.getMZRange()) ? scan
 		    .getHighestDataPoint() : ScanUtils.findBasePeak(scan,
 		    mzRange);
 	    if (basePeak != null) {
@@ -371,7 +368,7 @@ public class TICDataSet extends AbstractXYZDataset implements Task {
 	    if (plotType == PlotType.TIC) {
 
 		// Total ion count.
-		intensity = scan.getMZRange().isWithin(mzRange) ? scan.getTIC()
+		intensity = mzRange.encloses(scan.getMZRange()) ? scan.getTIC()
 			: ScanUtils.calculateTIC(scan, mzRange);
 
 	    } else if (plotType == PlotType.BASEPEAK && basePeak != null) {

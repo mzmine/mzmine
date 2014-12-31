@@ -34,9 +34,9 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 
 import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
 
 class CustomDBSearchTask extends AbstractTask {
 
@@ -161,9 +161,9 @@ class CustomDBSearchTask extends AbstractTask {
 
 	for (PeakListRow peakRow : peakList.getRows()) {
 
-	    Range mzRange = mzTolerance.getToleranceRange(peakRow
+	    Range<Double> mzRange = mzTolerance.getToleranceRange(peakRow
 		    .getAverageMZ());
-	    Range rtRange = rtTolerance.getToleranceRange(peakRow
+	    Range<Double> rtRange = rtTolerance.getToleranceRange(peakRow
 		    .getAverageRT());
 
 	    boolean mzMatches = (lineMZ == 0d) || mzRange.contains(lineMZ);

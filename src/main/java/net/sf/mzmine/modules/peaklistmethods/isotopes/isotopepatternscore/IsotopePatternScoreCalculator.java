@@ -29,9 +29,10 @@ import net.sf.mzmine.modules.peaklistmethods.isotopes.isotopeprediction.IsotopeP
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+
+import com.google.common.collect.Range;
 
 public class IsotopePatternScoreCalculator {
 
@@ -99,7 +100,7 @@ public class IsotopePatternScoreCalculator {
         // tolerance
         for (int i = 0; i < mergedDPArray.length - 1; i++) {
 
-            Range toleranceRange = mzTolerance
+            Range<Double> toleranceRange = mzTolerance
                     .getToleranceRange(mergedDPArray[i].getMZ());
 
             if (!toleranceRange.contains(mergedDPArray[i + 1].getMZ()))

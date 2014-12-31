@@ -25,8 +25,9 @@ import java.text.NumberFormat;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.components.GridBagPanel;
+
+import com.google.common.collect.Range;
 
 public class RangeComponent extends GridBagPanel {
 
@@ -52,7 +53,7 @@ public class RangeComponent extends GridBagPanel {
 	add(maxTxtField, 2, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL);
     }
 
-    public Range getValue() {
+    public Range<Double> getValue() {
 	String minString = minTxtField.getText();
 	String maxString = maxTxtField.getText();
 
@@ -62,7 +63,7 @@ public class RangeComponent extends GridBagPanel {
 
 	    if ((minValue == null) || (maxValue == null))
 		return null;
-	    return new Range(minValue.doubleValue(), maxValue.doubleValue());
+	    return Range.closed(minValue.doubleValue(), maxValue.doubleValue());
 
 	} catch (Exception e) {
 	    return null;
@@ -73,9 +74,9 @@ public class RangeComponent extends GridBagPanel {
 	this.format = format;
     }
 
-    public void setValue(Range value) {
-	minTxtField.setText(format.format(value.getMin()));
-	maxTxtField.setText(format.format(value.getMax()));
+    public void setValue(Range<Double> value) {
+	minTxtField.setText(format.format(value.lowerEndpoint()));
+	maxTxtField.setText(format.format(value.upperEndpoint()));
     }
 
     @Override

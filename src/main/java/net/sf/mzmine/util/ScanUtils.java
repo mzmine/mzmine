@@ -38,6 +38,7 @@ import net.sf.mzmine.main.MZmineCore;
 
 import org.apache.axis.encoding.Base64;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -85,7 +86,7 @@ public class ScanUtils {
      * @return double[2] containing base peak m/z and intensity
      */
     public static @Nonnull DataPoint findBasePeak(@Nonnull Scan scan,
-	    @Nonnull Range mzRange) {
+	    @Nonnull Range<Double> mzRange) {
 
 	DataPoint dataPoints[] = scan.getDataPointsByMass(mzRange);
 	DataPoint basePeak = null;
@@ -108,7 +109,7 @@ public class ScanUtils {
      *            mass range.
      * @return the total ion count of the scan within the mass range.
      */
-    public static double calculateTIC(Scan scan, Range mzRange) {
+    public static double calculateTIC(Scan scan, Range<Double> mzRange) {
 
 	double tic = 0.0;
 	for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
@@ -123,7 +124,7 @@ public class ScanUtils {
      * 
      */
     public static DataPoint[] selectDataPointsByMass(DataPoint dataPoints[],
-	    Range mzRange) {
+	    Range<Double> mzRange) {
 	ArrayList<DataPoint> goodPoints = new ArrayList<DataPoint>();
 	for (DataPoint dp : dataPoints) {
 	    if (mzRange.contains(dp.getMZ()))
@@ -175,11 +176,13 @@ public class ScanUtils {
      *            of 'y', avg of 'y')
      * @return Values for each bin
      */
-    public static double[] binValues(double[] x, double[] y, Range binRange,
-	    int numberOfBins, boolean interpolate, BinningType binningType) {
+    public static double[] binValues(double[] x, double[] y,
+	    Range<Double> binRange, int numberOfBins, boolean interpolate,
+	    BinningType binningType) {
 
 	Double[] binValues = new Double[numberOfBins];
-	double binWidth = binRange.getSize() / numberOfBins;
+	double binWidth = (binRange.upperEndpoint() - binRange.lowerEndpoint())
+		/ numberOfBins;
 
 	double beforeX = Double.MIN_VALUE;
 	double beforeY = 0.0f;
@@ -192,7 +195,7 @@ public class ScanUtils {
 	for (int valueIndex = 0; valueIndex < x.length; valueIndex++) {
 
 	    // Before first bin?
-	    if ((x[valueIndex] - binRange.getMin()) < 0) {
+	    if ((x[valueIndex] - binRange.lowerEndpoint()) < 0) {
 		if (x[valueIndex] > beforeX) {
 		    beforeX = x[valueIndex];
 		    beforeY = y[valueIndex];
@@ -201,7 +204,7 @@ public class ScanUtils {
 	    }
 
 	    // After last bin?
-	    if ((binRange.getMax() - x[valueIndex]) < 0) {
+	    if ((binRange.upperEndpoint() - x[valueIndex]) < 0) {
 		if (x[valueIndex] < afterX) {
 		    afterX = x[valueIndex];
 		    afterY = y[valueIndex];
@@ -209,7 +212,7 @@ public class ScanUtils {
 		continue;
 	    }
 
-	    int binIndex = (int) ((x[valueIndex] - binRange.getMin()) / binWidth);
+	    int binIndex = (int) ((x[valueIndex] - binRange.lowerEndpoint()) / binWidth);
 
 	    // in case x[valueIndex] is exactly lastBinStop, we would overflow
 	    // the array
@@ -280,7 +283,8 @@ public class ScanUtils {
 		    // Find exisiting left neighbour
 		    double leftNeighbourValue = beforeY;
 		    int leftNeighbourBinIndex = (int) Math
-			    .floor((beforeX - binRange.getMin()) / binWidth);
+			    .floor((beforeX - binRange.lowerEndpoint())
+				    / binWidth);
 		    for (int anotherBinIndex = binIndex - 1; anotherBinIndex >= 0; anotherBinIndex--) {
 			if (binValues[anotherBinIndex] != null) {
 			    leftNeighbourValue = binValues[anotherBinIndex];
@@ -292,8 +296,8 @@ public class ScanUtils {
 		    // Find existing right neighbour
 		    double rightNeighbourValue = afterY;
 		    int rightNeighbourBinIndex = (binValues.length - 1)
-			    + (int) Math.ceil((afterX - binRange.getMax())
-				    / binWidth);
+			    + (int) Math.ceil((afterX - binRange
+				    .upperEndpoint()) / binWidth);
 		    for (int anotherBinIndex = binIndex + 1; anotherBinIndex < binValues.length; anotherBinIndex++) {
 			if (binValues[anotherBinIndex] != null) {
 			    rightNeighbourValue = binValues[anotherBinIndex];
@@ -408,8 +412,8 @@ public class ScanUtils {
      * Finds the MS/MS scan with highest intensity, within given retention time
      * range and with precursor m/z within given m/z range
      */
-    public static int findBestFragmentScan(RawDataFile dataFile, Range rtRange,
-	    Range mzRange) {
+    public static int findBestFragmentScan(RawDataFile dataFile,
+	    Range<Double> rtRange, Range<Double> mzRange) {
 
 	assert dataFile != null;
 	assert rtRange != null;
@@ -523,7 +527,8 @@ public class ScanUtils {
      * Find the m/z range of the data points in the array. We assume there is at
      * least one data point, and the data points are sorted by m/z.
      */
-    public static @Nonnull Range findMzRange(@Nonnull DataPoint dataPoints[]) {
+    public static @Nonnull Range<Double> findMzRange(
+	    @Nonnull DataPoint dataPoints[]) {
 
 	assert dataPoints.length > 0;
 
@@ -538,9 +543,7 @@ public class ScanUtils {
 		highMz = dataPoints[i].getMZ();
 	}
 
-	final Range mzRange = new Range(lowMz, highMz);
-
-	return mzRange;
+	return Range.closed(lowMz, highMz);
     }
 
     public static byte[] encodeDataPointsToBytes(DataPoint dataPoints[]) {

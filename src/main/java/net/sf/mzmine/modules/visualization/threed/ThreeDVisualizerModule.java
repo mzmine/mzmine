@@ -35,8 +35,9 @@ import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
 import visad.VisADException;
+
+import com.google.common.collect.Range;
 
 /**
  * 3D visualizer module
@@ -68,7 +69,7 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
 		ThreeDVisualizerParameters.dataFiles).getMatchingRawDataFiles();
 	final int msLevel = parameters.getParameter(
 		ThreeDVisualizerParameters.msLevel).getValue();
-	final Range rtRange = parameters.getParameter(
+	final Range<Double> rtRange = parameters.getParameter(
 		ThreeDVisualizerParameters.retentionTimeRange).getValue();
 
 	final Desktop desktop = MZmineCore.getDesktop();
@@ -129,7 +130,7 @@ public class ThreeDVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void setupNew3DVisualizer(final RawDataFile dataFile,
-	    final Range mzRange, final Range rtRange) {
+	    final Range<Double> mzRange, final Range<Double> rtRange) {
 
 	final ParameterSet myParameters = MZmineCore.getConfiguration()
 		.getModuleParameters(ThreeDVisualizerModule.class);

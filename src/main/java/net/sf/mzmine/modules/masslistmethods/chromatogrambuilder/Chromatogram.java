@@ -33,9 +33,9 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.MathUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 /**
@@ -58,7 +58,7 @@ public class Chromatogram implements Feature {
     private int representativeScan = -1, fragmentScan = -1;
 
     // Ranges of raw data points
-    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+    private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
 
     // A set of scan numbers of a segment which is currently being connected
@@ -75,7 +75,7 @@ public class Chromatogram implements Feature {
     // method.
     private IsotopePattern isotopePattern;
     private int charge = 0;
-    
+
     // Victor Trevino
     private int minScan = Integer.MAX_VALUE;
     private int maxScan = 0;
@@ -90,8 +90,7 @@ public class Chromatogram implements Feature {
     public Chromatogram(RawDataFile dataFile) {
 	this.dataFile = dataFile;
 
-	// Create a copy, not a reference
-	rawDataPointsRTRange = new Range(dataFile.getDataRTRange(1));
+	rawDataPointsRTRange = dataFile.getDataRTRange(1);
 
 	dataPointsMap = new Hashtable<Integer, DataPoint>();
 	buildingSegment = new Vector<Integer>(128);
@@ -113,14 +112,14 @@ public class Chromatogram implements Feature {
 
 	// Victor Treviño
 	if (scanNumber < minScan) {
-		minScan = scanNumber;
-		minTime = dataFile.getScan(minScan).getRetentionTime();
+	    minScan = scanNumber;
+	    minTime = dataFile.getScan(minScan).getRetentionTime();
 	}
 	if (scanNumber > maxScan) {
-		maxScan = scanNumber;
-		maxTime = dataFile.getScan(maxScan).getRetentionTime();
+	    maxScan = scanNumber;
+	    maxTime = dataFile.getScan(maxScan).getRetentionTime();
 	}
-	rt = (maxTime+minTime)/2;
+	rt = (maxTime + minTime) / 2;
     }
 
     public DataPoint getDataPoint(int scanNumber) {
@@ -165,8 +164,7 @@ public class Chromatogram implements Feature {
 	return fragmentScan;
     }
 
-    public @Nonnull
-    FeatureStatus getFeatureStatus() {
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return FeatureStatus.DETECTED;
     }
 
@@ -174,18 +172,15 @@ public class Chromatogram implements Feature {
 	return rt;
     }
 
-    public @Nonnull
-    Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 
@@ -193,13 +188,11 @@ public class Chromatogram implements Feature {
 	return representativeScan;
     }
 
-    public @Nonnull
-    int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 	return dataFile.getScanNumbers(1);
     }
 
-    public @Nonnull
-    RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -213,8 +206,7 @@ public class Chromatogram implements Feature {
 
     public void finishChromatogram() {
 
-	int allScanNumbers[] = Ints.toArray(dataPointsMap
-		.keySet());
+	int allScanNumbers[] = Ints.toArray(dataPointsMap.keySet());
 	Arrays.sort(allScanNumbers);
 
 	// Calculate median m/z
@@ -237,11 +229,14 @@ public class Chromatogram implements Feature {
 	    dataPointsMap.put(allScanNumbers[i], mzPeak);
 
 	    if (i == 0) {
-		rawDataPointsIntensityRange = new Range(mzPeak.getIntensity());
-		rawDataPointsMZRange = new Range(mzPeak.getMZ());
+		rawDataPointsIntensityRange = Range.singleton(mzPeak
+			.getIntensity());
+		rawDataPointsMZRange = Range.singleton(mzPeak.getMZ());
 	    } else {
-		rawDataPointsIntensityRange.extendRange(mzPeak.getIntensity());
-		rawDataPointsMZRange.extendRange(mzPeak.getMZ());
+		rawDataPointsIntensityRange = rawDataPointsIntensityRange
+			.span(Range.singleton(mzPeak.getIntensity()));
+		rawDataPointsMZRange = rawDataPointsMZRange.span(Range
+			.singleton(mzPeak.getMZ()));
 	    }
 
 	    if (height < mzPeak.getIntensity()) {
@@ -279,10 +274,13 @@ public class Chromatogram implements Feature {
 	}
 
 	// Victor Treviño
-	//using allScanNumbers : rawDataPointsRTRange = new Range(dataFile.getScan(allScanNumbers[0]).getRetentionTime(), dataFile.getScan(allScanNumbers[allScanNumbers.length-1]).getRetentionTime());
-	rawDataPointsRTRange = new Range(minTime, maxTime); // using the "cached" values 
+	// using allScanNumbers : rawDataPointsRTRange = new
+	// Range(dataFile.getScan(allScanNumbers[0]).getRetentionTime(),
+	// dataFile.getScan(allScanNumbers[allScanNumbers.length-1]).getRetentionTime());
+	rawDataPointsRTRange = Range.closed(minTime, maxTime); // using the
+							       // "cached"
+							       // values
 
-	
 	// Discard the fields we don't need anymore
 	buildingSegment = null;
 	lastMzPeak = null;
@@ -300,11 +298,11 @@ public class Chromatogram implements Feature {
     }
 
     public double getBuildingFirstTime() {
-    	return minTime;
+	return minTime;
     }
 
     public double getBuildingLastTime() {
-    	return maxTime;
+	return maxTime;
     }
 
     public int getNumberOfCommittedSegments() {
@@ -321,11 +319,11 @@ public class Chromatogram implements Feature {
 	buildingSegment.clear();
 	numOfCommittedSegments++;
     }
-    
+
     public void addDataPointsFromChromatogram(Chromatogram ch) {
-    	for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
-    		addMzPeak(dp.getKey(), dp.getValue());
-    	}
+	for (Entry<Integer, DataPoint> dp : ch.dataPointsMap.entrySet()) {
+	    addMzPeak(dp.getKey(), dp.getValue());
+	}
     }
 
     public int getCharge() {

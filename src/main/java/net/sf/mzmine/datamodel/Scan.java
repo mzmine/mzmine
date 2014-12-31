@@ -27,69 +27,69 @@ import javax.annotation.Nullable;
  */
 public interface Scan extends Spectrum {
 
-	/**
-	 * 
-	 * @return RawDataFile containing this Scan
-	 */
-	@Nonnull
-	public RawDataFile getDataFile();
+    /**
+     * 
+     * @return RawDataFile containing this Scan
+     */
+    @Nonnull
+    public RawDataFile getDataFile();
 
-	/**
-	 * 
-	 * @return Scan number
-	 */
-	public int getScanNumber();
+    /**
+     * 
+     * @return Scan number
+     */
+    public int getScanNumber();
 
-	/**
-	 * 
-	 * @return MS level
-	 */
-	public int getMSLevel();
+    /**
+     * 
+     * @return MS level
+     */
+    public int getMSLevel();
 
-	/**
-	 * 
-	 * @return Retention time of this scan in minutes
-	 */
-	public double getRetentionTime();
+    /**
+     * 
+     * @return Retention time of this scan in minutes
+     */
+    public double getRetentionTime();
 
-	// TODO: public Range getScanRange(); return the actual scanning range of
-	// the instrument
+    // TODO: public Range getScanRange(); return the actual scanning range of
+    // the instrument
 
-	/**
-	 * 
-	 * @return parent scan number or -1 if there is no parent scan
-	 */
-	public int getParentScanNumber();
+    /**
+     * 
+     * @return parent scan number or -1 if there is no parent scan
+     */
+    public int getParentScanNumber();
 
-	/**
-	 * 
-	 * @return Precursor m/z or 0 if this is not MSn scan
-	 */
-	public double getPrecursorMZ();
+    /**
+     * 
+     * @return Precursor m/z or 0 if this is not MSn scan
+     */
+    public double getPrecursorMZ();
 
-	public @Nonnull Polarity getPolarity();
-	
-	/**
-	 * 
-	 * @return Precursor charge or 0 if this is not MSn scan or charge is
-	 *         unknown
-	 */
-	public int getPrecursorCharge();
+    public @Nonnull Polarity getPolarity();
 
-	/**
-	 * 
-	 * @return array of fragment scan numbers, or null if there are none
-	 */
-	public int[] getFragmentScanNumbers();
+    /**
+     * 
+     * @return Precursor charge or 0 if this is not MSn scan or charge is
+     *         unknown
+     */
+    public int getPrecursorCharge();
 
-	@Nonnull
-	public MassList[] getMassLists();
+    /**
+     * 
+     * @return array of fragment scan numbers, or null if there are none
+     */
+    public int[] getFragmentScanNumbers();
 
-	@Nullable
-	public MassList getMassList(@Nonnull String name);
+    @Nonnull
+    public MassList[] getMassLists();
 
-	public void addMassList(@Nonnull MassList massList);
+    @Nullable
+    public MassList getMassList(@Nonnull String name);
 
-	public void removeMassList(@Nonnull MassList massList);
+    public void addMassList(@Nonnull MassList massList);
+
+    public void removeMassList(@Nonnull MassList massList);
 
 }

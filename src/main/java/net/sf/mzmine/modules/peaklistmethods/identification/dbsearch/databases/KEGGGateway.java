@@ -31,7 +31,8 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatab
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class KEGGGateway implements DBGateway {
 
@@ -47,10 +48,10 @@ public class KEGGGateway implements DBGateway {
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
 
-	Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
-	String queryAddress = keggFindAddress1 + toleranceRange.getMin() + "-"
-		+ toleranceRange.getMax() + keggFindAddress2;
+	String queryAddress = keggFindAddress1 + toleranceRange.lowerEndpoint()
+		+ "-" + toleranceRange.upperEndpoint() + keggFindAddress2;
 
 	URL queryURL = new URL(queryAddress);
 

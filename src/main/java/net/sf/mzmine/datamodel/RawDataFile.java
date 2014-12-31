@@ -21,7 +21,7 @@ package net.sf.mzmine.datamodel;
 
 import javax.annotation.Nonnull;
 
-import net.sf.mzmine.util.Range;
+import com.google.common.collect.Range;
 
 public interface RawDataFile {
 
@@ -76,7 +76,7 @@ public interface RawDataFile {
      * @return Sorted array of scan numbers, never returns null
      */
     @Nonnull
-    public int[] getScanNumbers(int msLevel, @Nonnull Range rtRange);
+    public int[] getScanNumbers(int msLevel, @Nonnull Range<Double> rtRange);
 
     /**
      * 
@@ -88,16 +88,16 @@ public interface RawDataFile {
     public Scan getScan(int scan);
 
     @Nonnull
-    public Range getDataMZRange();
+    public Range<Double> getDataMZRange();
 
     @Nonnull
-    public Range getDataRTRange();
+    public Range<Double> getDataRTRange();
 
     @Nonnull
-    public Range getDataMZRange(int msLevel);
+    public Range<Double> getDataMZRange(int msLevel);
 
     @Nonnull
-    public Range getDataRTRange(int msLevel);
+    public Range<Double> getDataRTRange(int msLevel);
 
     public double getDataMaxBasePeakIntensity(int msLevel);
 

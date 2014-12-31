@@ -40,107 +40,112 @@ public class SimplePeakIdentity implements PeakIdentity {
      */
     protected SimplePeakIdentity() {
 
-        this("Unknown name");
+	this("Unknown name");
     }
 
     public SimplePeakIdentity(final String name) {
 
-        // Check name.
-        if (name == null) {
-            throw new IllegalArgumentException("Identity properties must contain name");
-        }
+	// Check name.
+	if (name == null) {
+	    throw new IllegalArgumentException(
+		    "Identity properties must contain name");
+	}
 
-        properties = new Hashtable<String, String>();
+	properties = new Hashtable<String, String>();
 
-        properties.put(PROPERTY_NAME, name);
+	properties.put(PROPERTY_NAME, name);
 
     }
 
-    public SimplePeakIdentity(final String name, final String formula, final String method, final String id, final String url) {
+    public SimplePeakIdentity(final String name, final String formula,
+	    final String method, final String id, final String url) {
 
-        // Check name
-        if (name == null) {
-            throw new IllegalArgumentException("Identity properties must contain name");
-        }
+	// Check name
+	if (name == null) {
+	    throw new IllegalArgumentException(
+		    "Identity properties must contain name");
+	}
 
-        properties = new Hashtable<String, String>();
+	properties = new Hashtable<String, String>();
 
-        properties.put(PROPERTY_NAME, name);
+	properties.put(PROPERTY_NAME, name);
 
-        if (formula != null) {
-            properties.put(PROPERTY_FORMULA, formula);
-        }
-        if (method != null) {
-            properties.put(PROPERTY_METHOD, method);
-        }
-        if (id != null) {
-            properties.put(PROPERTY_ID, id);
-        }
-        if (url != null) {
-            properties.put(PROPERTY_URL, url);
-        }
+	if (formula != null) {
+	    properties.put(PROPERTY_FORMULA, formula);
+	}
+	if (method != null) {
+	    properties.put(PROPERTY_METHOD, method);
+	}
+	if (id != null) {
+	    properties.put(PROPERTY_ID, id);
+	}
+	if (url != null) {
+	    properties.put(PROPERTY_URL, url);
+	}
     }
 
     public SimplePeakIdentity(final Hashtable<String, String> prop) {
 
-        // Check for name .
-        if (prop.get(PROPERTY_NAME) == null) {
+	// Check for name .
+	if (prop.get(PROPERTY_NAME) == null) {
 
-            throw new IllegalArgumentException("Identity properties must contain name");
-        }
+	    throw new IllegalArgumentException(
+		    "Identity properties must contain name");
+	}
 
-        properties = prop;
+	properties = prop;
     }
 
     @Override
     public @Nonnull String getName() {
 
-        return properties.get(PROPERTY_NAME);
+	return properties.get(PROPERTY_NAME);
     }
 
     public String toString() {
 
-        return getName();
+	return getName();
     }
 
     @Override
     public @Nonnull String getDescription() {
 
-        final StringBuilder description = new StringBuilder();
-        for (final Entry<String, String> entry : properties.entrySet()) {
+	final StringBuilder description = new StringBuilder();
+	for (final Entry<String, String> entry : properties.entrySet()) {
 
-            if (description.length() > 0) {
-                description.append('\n');
-            }
-            description.append(entry.getKey());
-            description.append(": ");
-            description.append(entry.getValue());
-        }
+	    if (description.length() > 0) {
+		description.append('\n');
+	    }
+	    description.append(entry.getKey());
+	    description.append(": ");
+	    description.append(entry.getValue());
+	}
 
-        return description.toString();
+	return description.toString();
     }
 
     @Override
     public @Nonnull Map<String, String> getAllProperties() {
 
-        return new Hashtable<String, String>(properties);
+	return new Hashtable<String, String>(properties);
     }
 
     @Override
     public @Nonnull String getPropertyValue(final String property) {
 
-        return properties.get(property);
+	return properties.get(property);
     }
 
     public void setPropertyValue(final String property, final String value) {
 
-        // Check name.
-        if (property.equals(PROPERTY_NAME) && value == null) {
+	// Check name.
+	if (property.equals(PROPERTY_NAME) && value == null) {
 
-            throw new IllegalArgumentException("Identity properties must contain name");
-        }
+	    throw new IllegalArgumentException(
+		    "Identity properties must contain name");
+	}
 
-        properties.put(property, value);
+	properties.put(property, value);
     }
 
     /**
@@ -151,6 +156,7 @@ public class SimplePeakIdentity implements PeakIdentity {
     @SuppressWarnings("unchecked")
     @Override
     public synchronized @Nonnull Object clone() {
-        return new SimplePeakIdentity((Hashtable<String, String>) properties.clone());
+	return new SimplePeakIdentity(
+		(Hashtable<String, String>) properties.clone());
     }
 }

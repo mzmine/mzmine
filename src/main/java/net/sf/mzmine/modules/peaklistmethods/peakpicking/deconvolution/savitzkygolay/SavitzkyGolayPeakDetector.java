@@ -34,7 +34,9 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 /**
  * This class implements a peak builder using a match score to link MzPeaks in
@@ -54,10 +56,9 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
     }
 
     @Override
-    public Feature[] resolvePeaks(
-	    final Feature chromatogram, final int[] scanNumbers,
-	    final double[] retentionTimes, final double[] intensities,
-	    ParameterSet parameters) {
+    public Feature[] resolvePeaks(final Feature chromatogram,
+	    final int[] scanNumbers, final double[] retentionTimes,
+	    final double[] intensities, ParameterSet parameters) {
 
 	// Calculate intensity statistics.
 	double maxIntensity = 0.0;
@@ -70,8 +71,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
 	avgIntensity /= (double) scanNumbers.length;
 
-	final List<Feature> resolvedPeaks = new ArrayList<Feature>(
-		2);
+	final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
 
 	// If the current chromatogram has characteristics of background or just
 	// noise return an empty array.
@@ -89,11 +89,11 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 
 	    // Search for peaks.
 	    Arrays.sort(scanNumbers);
-	    final Feature[] resolvedOriginalPeaks = peaksSearch(
-		    chromatogram, scanNumbers, secondDerivative, noiseThreshold);
+	    final Feature[] resolvedOriginalPeaks = peaksSearch(chromatogram,
+		    scanNumbers, secondDerivative, noiseThreshold);
 
-	    final Range peakDuration = parameters.getParameter(PEAK_DURATION)
-		    .getValue();
+	    final Range<Double> peakDuration = parameters.getParameter(
+		    PEAK_DURATION).getValue();
 	    final double minimumPeakHeight = parameters.getParameter(
 		    MIN_PEAK_HEIGHT).getValue();
 
@@ -101,8 +101,8 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	    // parameters.
 	    for (final Feature p : resolvedOriginalPeaks) {
 
-		if (peakDuration
-			.contains(p.getRawDataPointsRTRange().getSize())
+		if (peakDuration.contains(RangeUtils.rangeLength(p
+			.getRawDataPointsRTRange()))
 			&& p.getHeight() >= minimumPeakHeight) {
 
 		    resolvedPeaks.add(p);
@@ -110,8 +110,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	    }
 	}
 
-	return resolvedPeaks.toArray(new Feature[resolvedPeaks
-		.size()]);
+	return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
     }
 
     /**
@@ -127,9 +126,9 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
      *            noise threshold.
      * @return array of peaks found.
      */
-    private static Feature[] peaksSearch(
-	    final Feature chromatogram, final int[] scanNumbers,
-	    final double[] derivativeOfIntensities, final double noiseThreshold) {
+    private static Feature[] peaksSearch(final Feature chromatogram,
+	    final int[] scanNumbers, final double[] derivativeOfIntensities,
+	    final double noiseThreshold) {
 
 	// Flag to identify the current and next overlapped peak.
 	boolean activeFirstPeak = false;
@@ -151,8 +150,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	int nextPeakStart = totalNumberPoints;
 	int currentPeakEnd = 0;
 
-	final List<Feature> resolvedPeaks = new ArrayList<Feature>(
-		2);
+	final List<Feature> resolvedPeaks = new ArrayList<Feature>(2);
 
 	// Shape analysis of derivative of chromatogram "*" represents the
 	// original chromatogram shape. "-" represents
@@ -287,8 +285,7 @@ public class SavitzkyGolayPeakDetector implements PeakResolver {
 	    }
 	}
 
-	return resolvedPeaks.toArray(new Feature[resolvedPeaks
-		.size()]);
+	return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
     }
 
     /**

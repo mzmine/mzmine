@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 /**
  * This interface represents an identification result.
  */
-public interface PeakIdentity extends Cloneable{
+public interface PeakIdentity extends Cloneable {
 
     /**
      * These variables define standard properties. The PROPERTY_NAME must be
@@ -45,7 +45,8 @@ public interface PeakIdentity extends Cloneable{
      * 
      * @return Name
      */
-    @Nonnull String getName();
+    @Nonnull
+    String getName();
 
     /**
      * Returns full, multi-line description of this identity, one property per
@@ -53,7 +54,8 @@ public interface PeakIdentity extends Cloneable{
      * 
      * @return Description
      */
-    @Nonnull String getDescription();
+    @Nonnull
+    String getDescription();
 
     /**
      * Returns the value for a
@@ -61,14 +63,16 @@ public interface PeakIdentity extends Cloneable{
      * @param property
      * @return Description
      */
-    @Nonnull String getPropertyValue(String property);
+    @Nonnull
+    String getPropertyValue(String property);
 
     /**
      * Returns all the properties in the form of a map key --> value
      * 
      * @return Description
      */
-    @Nonnull Map<String, String> getAllProperties();
+    @Nonnull
+    Map<String, String> getAllProperties();
 
     @Nonnull
     public Object clone();

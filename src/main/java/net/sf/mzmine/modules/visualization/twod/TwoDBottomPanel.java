@@ -48,9 +48,10 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.PeakListRowSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+
+import com.google.common.collect.Range;
 
 /**
  * 2D visualizer's bottom panel
@@ -58,9 +59,6 @@ import net.sf.mzmine.util.SortingProperty;
 class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -173,7 +171,7 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 	    Feature peak = peakRow.getPeak(dataFile);
 	    if (peak == null)
 		continue;
-	    if (peak.getRawDataPointsIntensityRange().getMax() > intensity) {
+	    if (peak.getRawDataPointsIntensityRange().upperEndpoint() > intensity) {
 		newList.addRow(peakRow);
 	    }
 	}
@@ -195,8 +193,8 @@ class TwoDBottomPanel extends JPanel implements TreeModelListener,
 
 	Vector<PeakListRow> peakRows = new Vector<PeakListRow>();
 
-	Range mzRange = selectedPeakList.getRowsMZRange();
-	Range rtRange = selectedPeakList.getRowsRTRange();
+	Range<Double> mzRange = selectedPeakList.getRowsMZRange();
+	Range<Double> rtRange = selectedPeakList.getRowsRTRange();
 
 	PeakThresholdMode selectedPeakOption = (PeakThresholdMode) thresholdCombo
 		.getSelectedItem();

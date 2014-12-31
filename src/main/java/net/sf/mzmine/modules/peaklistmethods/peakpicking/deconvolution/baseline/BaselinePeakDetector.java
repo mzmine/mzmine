@@ -33,7 +33,8 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResolver;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class implements a simple peak deconvolution algorithm. Continuous peaks
@@ -57,7 +58,7 @@ public class BaselinePeakDetector implements PeakResolver {
 		MIN_PEAK_HEIGHT).getValue();
 	final double baselineLevel = parameters.getParameter(BASELINE_LEVEL)
 		.getValue();
-	final Range durationRange = parameters.getParameter(PEAK_DURATION)
+	final Range<Double> durationRange = parameters.getParameter(PEAK_DURATION)
 		.getValue();
 
 	final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);

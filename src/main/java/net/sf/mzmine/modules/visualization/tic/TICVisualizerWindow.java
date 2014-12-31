@@ -45,7 +45,6 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SimpleSorter;
 import net.sf.mzmine.util.dialogs.LoadSaveFileChooser;
 
@@ -53,15 +52,13 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Range;
 
 /**
  * Total ion chromatogram visualizer using JFreeChart library
  */
 public class TICVisualizerWindow extends JFrame implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     // CSV extension.
@@ -75,7 +72,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
     private PlotType plotType;
     private int msLevel;
-    private Range rtRange, mzRange;
+    private Range<Double> rtRange, mzRange;
 
     private Desktop desktop;
 
@@ -86,8 +83,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
      * Constructor for total ion chromatogram visualizer
      */
     public TICVisualizerWindow(RawDataFile dataFiles[], PlotType plotType,
-	    int msLevel, Range rtRange, Range mzRange, Feature[] peaks,
-	    Map<Feature, String> peakLabels) {
+	    int msLevel, Range<Double> rtRange, Range<Double> mzRange,
+	    Feature[] peaks, Map<Feature, String> peakLabels) {
 
 	super("Chromatogram loading...");
 
@@ -171,7 +168,7 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	    Set<RawDataFile> fileSet = ticDataSets.keySet();
 	    String ticOrXIC = "TIC";
 	    for (RawDataFile df : fileSet) {
-		if (!mzRange.containsRange(df.getDataMZRange(msLevel))) {
+		if (!mzRange.encloses(df.getDataMZRange(msLevel))) {
 		    ticOrXIC = "XIC";
 		    break;
 		}
@@ -180,8 +177,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	mainTitle.append(", MS" + msLevel);
-	mainTitle.append(", m/z: " + mzFormat.format(mzRange.getMin()) + " - "
-		+ mzFormat.format(mzRange.getMax()));
+	mainTitle.append(", m/z: " + mzFormat.format(mzRange.lowerEndpoint())
+		+ " - " + mzFormat.format(mzRange.upperEndpoint()));
 
 	CursorPosition pos = getCursorPosition();
 
@@ -205,8 +202,8 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 	Arrays.sort(files, new SimpleSorter());
 	String dataFileNames = Joiner.on(",").join(files);
 	setTitle("Chromatogram: [" + dataFileNames + "; "
-		+ mzFormat.format(mzRange.getMin()) + " - "
-		+ mzFormat.format(mzRange.getMax()) + " m/z" + "]");
+		+ mzFormat.format(mzRange.lowerEndpoint()) + " - "
+		+ mzFormat.format(mzRange.upperEndpoint()) + " m/z" + "]");
 
 	// update plot title
 	ticPlot.setTitle(mainTitle.toString(), subTitle.toString());
@@ -226,9 +223,9 @@ public class TICVisualizerWindow extends JFrame implements ActionListener {
 
     /**
      */
-    public void setRTRange(Range rtRange) {
+    public void setRTRange(Range<Double> rtRange) {
 	ticPlot.getXYPlot().getDomainAxis()
-		.setRange(rtRange.getMin(), rtRange.getMax());
+		.setRange(rtRange.lowerEndpoint(), rtRange.upperEndpoint());
     }
 
     public void setAxesRange(double xMin, double xMax, double xTickSize,

@@ -61,7 +61,8 @@ import net.sf.mzmine.modules.visualization.threed.ThreeDVisualizerModule;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class PeakSummaryComponent extends JPanel implements ActionListener {
 
@@ -358,7 +359,7 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 	    int[] indexesRow = peaksInfoList.getSelectedRows();
 	    Feature[] selectedPeaks = new Feature[indexesRow.length];
 	    RawDataFile[] dataFiles = new RawDataFile[indexesRow.length];
-	    Range rtRange = null, mzRange = null;
+	    Range<Double> rtRange = null, mzRange = null;
 	    for (int i = 0; i < indexesRow.length; i++) {
 		selectedPeaks[i] = listElementModel.getElementAt(indexesRow[i]);
 		dataFiles[i] = selectedPeaks[i].getDataFile();
@@ -367,8 +368,8 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		    rtRange = dataFiles[i].getDataRTRange(1);
 		    mzRange = selectedPeaks[i].getRawDataPointsMZRange();
 		} else {
-		    rtRange.extendRange(dataFiles[i].getDataRTRange(1));
-		    mzRange.extendRange(selectedPeaks[i]
+		    rtRange = rtRange.span(dataFiles[i].getDataRTRange(1));
+		    mzRange = mzRange.span(selectedPeaks[i]
 			    .getRawDataPointsMZRange());
 		}
 	    }
@@ -402,33 +403,38 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 		}
 	    } else if (visualizerType.equals("Peak in 2D")) {
 		for (int i = 0; i < selectedPeaks.length; i++) {
-		    Range peakRTRange = selectedPeaks[i]
+		    Range<Double> peakRTRange = selectedPeaks[i]
 			    .getRawDataPointsRTRange();
-		    Range peakMZRange = selectedPeaks[i]
+		    Range<Double> peakMZRange = selectedPeaks[i]
 			    .getRawDataPointsMZRange();
-		    Range localRTRange = new Range(Math.max(0,
-			    peakRTRange.getMin() - peakRTRange.getSize()),
-			    peakRTRange.getMax() + peakRTRange.getSize());
+		    final double rtLen = peakRTRange.upperEndpoint()
+			    - peakRTRange.lowerEndpoint();
+		    Range<Double> localRTRange = Range.closed(
+			    Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
+			    peakRTRange.upperEndpoint() + rtLen);
 
-		    Range localMZRange = new Range(Math.max(0,
-			    peakMZRange.getMin() - peakMZRange.getSize()),
-			    peakMZRange.getMax() + peakMZRange.getSize());
+		    final double mzLen = peakMZRange.upperEndpoint()
+			    - peakMZRange.lowerEndpoint();
+		    Range<Double> localMZRange = Range.closed(
+			    Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
+			    peakMZRange.upperEndpoint() + mzLen);
 		    TwoDVisualizerModule.show2DVisualizerSetupDialog(
 			    dataFiles[i], localMZRange, localRTRange);
 		}
 	    } else if (visualizerType.equals("Peak in 3D")) {
 		for (int i = 0; i < selectedPeaks.length; i++) {
-		    Range peakRTRange = selectedPeaks[i]
+		    Range<Double> peakRTRange = selectedPeaks[i]
 			    .getRawDataPointsRTRange();
-		    Range peakMZRange = selectedPeaks[i]
+		    Range<Double> peakMZRange = selectedPeaks[i]
 			    .getRawDataPointsMZRange();
-		    Range localRTRange = new Range(Math.max(0,
-			    peakRTRange.getMin() - peakRTRange.getSize()),
-			    peakRTRange.getMax() + peakRTRange.getSize());
-
-		    Range localMZRange = new Range(Math.max(0,
-			    peakMZRange.getMin() - peakMZRange.getSize()),
-			    peakMZRange.getMax() + peakMZRange.getSize());
+		    final double rtLen = peakRTRange.upperEndpoint() - peakRTRange.lowerEndpoint();
+		    Range<Double> localRTRange = Range.closed(Math.max(0,
+			    peakRTRange.lowerEndpoint() - rtLen),
+			    peakRTRange.upperEndpoint() + rtLen);
+		    final double mzLen = peakMZRange.upperEndpoint() - peakMZRange.lowerEndpoint();
+		    Range<Double> localMZRange = Range.closed(Math.max(0,
+			    peakMZRange.lowerEndpoint() - mzLen),
+			    peakMZRange.upperEndpoint() + mzLen);
 		    ThreeDVisualizerModule.setupNew3DVisualizer(dataFiles[i],
 			    localMZRange, localRTRange);
 		}

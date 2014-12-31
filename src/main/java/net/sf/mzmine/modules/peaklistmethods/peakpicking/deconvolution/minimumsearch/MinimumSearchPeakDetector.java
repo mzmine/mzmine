@@ -36,7 +36,8 @@ import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.PeakResol
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.ResolvedPeak;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.MathUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This peak recognition method searches for local minima in the chromatogram.
@@ -51,18 +52,17 @@ public class MinimumSearchPeakDetector implements PeakResolver {
     }
 
     @Override
-    public Feature[] resolvePeaks(
-	    final Feature chromatogram, final int[] scanNumbers,
-	    final double[] retentionTimes, final double[] intensities,
-	    ParameterSet parameters) {
+    public Feature[] resolvePeaks(final Feature chromatogram,
+	    final int[] scanNumbers, final double[] retentionTimes,
+	    final double[] intensities, ParameterSet parameters) {
 
 	final int scanCount = scanNumbers.length;
 	final int lastScan = scanCount - 1;
 
 	assert scanCount > 0;
 
-	final Range peakDuration = parameters.getParameter(PEAK_DURATION)
-		.getValue();
+	final Range<Double> peakDuration = parameters.getParameter(
+		PEAK_DURATION).getValue();
 	final double searchRTRange = parameters.getParameter(SEARCH_RT_RANGE)
 		.getValue();
 	final double minRatio = parameters.getParameter(MIN_RATIO).getValue();
@@ -137,7 +137,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 			    - retentionTimes[currentRegionStart] >= searchRTRange) {
 
 			// Set the RT range to check
-			final Range checkRange = new Range(
+			final Range<Double> checkRange = Range.closed(
 				retentionTimes[currentRegionEnd]
 					- searchRTRange,
 				retentionTimes[currentRegionEnd]
@@ -199,8 +199,7 @@ public class MinimumSearchPeakDetector implements PeakResolver {
 	    }
 	}
 
-	return resolvedPeaks.toArray(new Feature[resolvedPeaks
-		.size()]);
+	return resolvedPeaks.toArray(new Feature[resolvedPeaks.size()]);
     }
 
     @Override

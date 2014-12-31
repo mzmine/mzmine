@@ -31,8 +31,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 public class AgilentCsvReadTask extends AbstractTask {
 
@@ -69,10 +70,10 @@ public class AgilentCsvReadTask extends AbstractTask {
 	    this.dataSource = this.getMetaData(scanner, "file name");
 
 	    String[] range = this.getMetaData(scanner, "mass range").split(",");
-	    newMZmineFile.setMZRange(1, new Range(Double.parseDouble(range[0]),
+	    newMZmineFile.setMZRange(1,  Range.closed(Double.parseDouble(range[0]),
 		    Double.parseDouble(range[1])));
 	    range = this.getMetaData(scanner, "time range").split(",");
-	    newMZmineFile.setRTRange(1, new Range(Double.parseDouble(range[0]),
+	    newMZmineFile.setRTRange(1, Range.closed(Double.parseDouble(range[0]),
 		    Double.parseDouble(range[1])));
 	    totalScans = Integer.parseInt(this.getMetaData(scanner,
 		    "number of spectra"));

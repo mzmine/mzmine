@@ -30,7 +30,8 @@ import net.sf.mzmine.modules.MZmineModule;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class ManualPeakPickerModule implements MZmineModule {
 
@@ -50,7 +51,7 @@ public class ManualPeakPickerModule implements MZmineModule {
     public static ExitCode runManualDetection(RawDataFile dataFiles[],
 	    PeakListRow peakListRow, PeakList peakList, PeakListTable table) {
 
-	Range mzRange = null, rtRange = null;
+	Range<Double> mzRange = null, rtRange = null;
 
 	// Check the peaks for selected data files
 	for (RawDataFile dataFile : dataFiles) {
@@ -58,11 +59,11 @@ public class ManualPeakPickerModule implements MZmineModule {
 	    if (peak == null)
 		continue;
 	    if ((mzRange == null) || (rtRange == null)) {
-		mzRange = new Range(peak.getRawDataPointsMZRange());
-		rtRange = new Range(peak.getRawDataPointsRTRange());
+		mzRange = peak.getRawDataPointsMZRange();
+		rtRange = peak.getRawDataPointsRTRange();
 	    } else {
-		mzRange.extendRange(peak.getRawDataPointsMZRange());
-		rtRange.extendRange(peak.getRawDataPointsRTRange());
+		mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+		rtRange = rtRange.span(peak.getRawDataPointsRTRange());
 	    }
 
 	}
@@ -73,11 +74,11 @@ public class ManualPeakPickerModule implements MZmineModule {
 		if (peak == null)
 		    continue;
 		if ((mzRange == null) || (rtRange == null)) {
-		    mzRange = new Range(peak.getRawDataPointsMZRange());
-		    rtRange = new Range(peak.getRawDataPointsRTRange());
+		    mzRange = peak.getRawDataPointsMZRange();
+		    rtRange = peak.getRawDataPointsRTRange();
 		} else {
-		    mzRange.extendRange(peak.getRawDataPointsMZRange());
-		    rtRange.extendRange(peak.getRawDataPointsRTRange());
+		    mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+		    rtRange = rtRange.span(peak.getRawDataPointsRTRange());
 		}
 
 	    }

@@ -26,20 +26,20 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class CropFilter implements ScanFilter {
 
     public Scan filterScan(Scan scan, ParameterSet parameters) {
 
-	Range mzRange = parameters.getParameter(CropFilterParameters.mzRange)
-		.getValue();
+	Range<Double> mzRange = parameters.getParameter(
+		CropFilterParameters.mzRange).getValue();
 
 	// Check if whole m/z range is within cropping region or
 	// scan is a fragmentation scan. In such case we copy the
 	// scan unmodified.
-	if ((scan.getMSLevel() > 1)
-		|| (mzRange.containsRange(scan.getMZRange()))) {
+	if ((scan.getMSLevel() > 1) || (mzRange.encloses(scan.getMZRange()))) {
 	    return scan;
 	}
 

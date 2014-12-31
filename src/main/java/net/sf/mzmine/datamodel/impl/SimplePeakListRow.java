@@ -40,246 +40,246 @@ import net.sf.mzmine.util.SortingProperty;
  */
 public class SimplePeakListRow implements PeakListRow {
 
-	private Hashtable<RawDataFile, Feature> peaks;
-	private Vector<PeakIdentity> identities;
-	private PeakIdentity preferredIdentity;
-	private String comment;
-	private int myID;
-	private double maxDataPointIntensity = 0;
+    private Hashtable<RawDataFile, Feature> peaks;
+    private Vector<PeakIdentity> identities;
+    private PeakIdentity preferredIdentity;
+    private String comment;
+    private int myID;
+    private double maxDataPointIntensity = 0;
 
-	/**
-	 * These variables are used for caching the average values, so we don't need
-	 * to calculate them again and again
-	 */
-	private double averageRT, averageMZ, averageHeight, averageArea;
+    /**
+     * These variables are used for caching the average values, so we don't need
+     * to calculate them again and again
+     */
+    private double averageRT, averageMZ, averageHeight, averageArea;
 
-	public SimplePeakListRow(int myID) {
-		this.myID = myID;
-		peaks = new Hashtable<RawDataFile, Feature>();
-		identities = new Vector<PeakIdentity>();
+    public SimplePeakListRow(int myID) {
+	this.myID = myID;
+	peaks = new Hashtable<RawDataFile, Feature>();
+	identities = new Vector<PeakIdentity>();
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#getID()
+     */
+    public int getID() {
+	return myID;
+    }
+
+    /**
+     * Return peaks assigned to this row
+     */
+    public Feature[] getPeaks() {
+	return peaks.values().toArray(new Feature[0]);
+    }
+
+    public void removePeak(RawDataFile file) {
+	this.peaks.remove(file);
+	calculateAverageValues();
+    }
+
+    /**
+     * Returns opened raw data files with a peak on this row
+     */
+    public RawDataFile[] getRawDataFiles() {
+	return peaks.keySet().toArray(new RawDataFile[0]);
+    }
+
+    /**
+     * Returns peak for given raw data file
+     */
+    public Feature getPeak(RawDataFile rawData) {
+	return peaks.get(rawData);
+    }
+
+    public synchronized void addPeak(RawDataFile rawData, Feature peak) {
+
+	if (peak == null)
+	    throw new IllegalArgumentException(
+		    "Cannot add null peak to a peak list row");
+
+	peaks.put(rawData, peak);
+	if (peak.getRawDataPointsIntensityRange().upperEndpoint() > maxDataPointIntensity)
+	    maxDataPointIntensity = peak.getRawDataPointsIntensityRange()
+		    .upperEndpoint();
+	calculateAverageValues();
+
+    }
+
+    public double getAverageMZ() {
+	return averageMZ;
+    }
+
+    public double getAverageRT() {
+	return averageRT;
+    }
+
+    public double getAverageHeight() {
+	return averageHeight;
+    }
+
+    public double getAverageArea() {
+	return averageArea;
+    }
+
+    private synchronized void calculateAverageValues() {
+	double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
+	Enumeration<Feature> peakEnum = peaks.elements();
+	while (peakEnum.hasMoreElements()) {
+	    Feature p = peakEnum.nextElement();
+	    rtSum += p.getRT();
+	    mzSum += p.getMZ();
+	    heightSum += p.getHeight();
+	    areaSum += p.getArea();
+	}
+	averageRT = rtSum / peaks.size();
+	averageMZ = mzSum / peaks.size();
+	averageHeight = heightSum / peaks.size();
+	averageArea = areaSum / peaks.size();
+    }
+
+    /**
+     * Returns number of peaks assigned to this row
+     */
+    public int getNumberOfPeaks() {
+	return peaks.size();
+    }
+
+    public String toString() {
+	StringBuffer buf = new StringBuffer();
+	Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
+	Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
+	buf.append("#" + myID + " ");
+	buf.append(mzFormat.format(getAverageMZ()));
+	buf.append(" m/z @");
+	buf.append(timeFormat.format(getAverageRT()));
+	if (preferredIdentity != null)
+	    buf.append(" " + preferredIdentity.getName());
+	if ((comment != null) && (comment.length() > 0))
+	    buf.append(" (" + comment + ")");
+	return buf.toString();
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#getComment()
+     */
+    public String getComment() {
+	return comment;
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#setComment(java.lang.String)
+     */
+    public void setComment(String comment) {
+	this.comment = comment;
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
+     */
+    public synchronized void addPeakIdentity(PeakIdentity identity,
+	    boolean preferred) {
+
+	// Verify if exists already an identity with the same name
+	for (PeakIdentity testId : identities) {
+	    if (testId.getName().equals(identity.getName())) {
+		return;
+	    }
 	}
 
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#getID()
-	 */
-	public int getID() {
-		return myID;
+	identities.add(identity);
+	if ((preferredIdentity == null) || (preferred)) {
+	    setPreferredPeakIdentity(identity);
+	}
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
+     */
+    public synchronized void removePeakIdentity(PeakIdentity identity) {
+	identities.remove(identity);
+	if (preferredIdentity == identity) {
+	    if (identities.size() > 0) {
+		PeakIdentity[] identitiesArray = identities
+			.toArray(new PeakIdentity[0]);
+		setPreferredPeakIdentity(identitiesArray[0]);
+	    } else
+		preferredIdentity = null;
+	}
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#getPeakIdentities()
+     */
+    public PeakIdentity[] getPeakIdentities() {
+	return identities.toArray(new PeakIdentity[0]);
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#getPreferredPeakIdentity()
+     */
+    public PeakIdentity getPreferredPeakIdentity() {
+	return preferredIdentity;
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.datamodel.PeakIdentity)
+     */
+    public void setPreferredPeakIdentity(PeakIdentity identity) {
+
+	if (identity == null)
+	    return;
+
+	preferredIdentity = identity;
+
+	if (!identities.contains(identity)) {
+	    identities.add(identity);
 	}
 
-	/**
-	 * Return peaks assigned to this row
-	 */
-	public Feature[] getPeaks() {
-		return peaks.values().toArray(new Feature[0]);
+    }
+
+    /**
+     * @see net.sf.mzmine.datamodel.PeakListRow#getDataPointMaxIntensity()
+     */
+    public double getDataPointMaxIntensity() {
+	return maxDataPointIntensity;
+    }
+
+    public boolean hasPeak(Feature peak) {
+	return peaks.containsValue(peak);
+    }
+
+    public boolean hasPeak(RawDataFile file) {
+	return peaks.containsKey(file);
+    }
+
+    /**
+     * Returns the highest isotope pattern of a peak in this row
+     */
+    public IsotopePattern getBestIsotopePattern() {
+	Feature peaks[] = getPeaks();
+	Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
+		SortingDirection.Descending));
+
+	for (Feature peak : peaks) {
+	    IsotopePattern ip = peak.getIsotopePattern();
+	    if (ip != null)
+		return ip;
 	}
 
-	public void removePeak(RawDataFile file) {
-		this.peaks.remove(file);
-		calculateAverageValues();
-	}
+	return null;
+    }
 
-	/**
-	 * Returns opened raw data files with a peak on this row
-	 */
-	public RawDataFile[] getRawDataFiles() {
-		return peaks.keySet().toArray(new RawDataFile[0]);
-	}
-
-	/**
-	 * Returns peak for given raw data file
-	 */
-	public Feature getPeak(RawDataFile rawData) {
-		return peaks.get(rawData);
-	}
-
-	public synchronized void addPeak(RawDataFile rawData,
-			Feature peak) {
-
-		if (peak == null)
-			throw new IllegalArgumentException(
-					"Cannot add null peak to a peak list row");
-
-		peaks.put(rawData, peak);
-		if (peak.getRawDataPointsIntensityRange().getMax() > maxDataPointIntensity)
-			maxDataPointIntensity = peak.getRawDataPointsIntensityRange()
-					.getMax();
-		calculateAverageValues();
-
-	}
-
-	public double getAverageMZ() {
-		return averageMZ;
-	}
-
-	public double getAverageRT() {
-		return averageRT;
-	}
-
-	public double getAverageHeight() {
-		return averageHeight;
-	}
-
-	public double getAverageArea() {
-		return averageArea;
-	}
-
-	private synchronized void calculateAverageValues() {
-		double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
-		Enumeration<Feature> peakEnum = peaks.elements();
-		while (peakEnum.hasMoreElements()) {
-			Feature p = peakEnum.nextElement();
-			rtSum += p.getRT();
-			mzSum += p.getMZ();
-			heightSum += p.getHeight();
-			areaSum += p.getArea();
-		}
-		averageRT = rtSum / peaks.size();
-		averageMZ = mzSum / peaks.size();
-		averageHeight = heightSum / peaks.size();
-		averageArea = areaSum / peaks.size();
-	}
-
-	/**
-	 * Returns number of peaks assigned to this row
-	 */
-	public int getNumberOfPeaks() {
-		return peaks.size();
-	}
-
-	public String toString() {
-		StringBuffer buf = new StringBuffer();
-		Format mzFormat = MZmineCore.getConfiguration().getMZFormat();
-		Format timeFormat = MZmineCore.getConfiguration().getRTFormat();
-		buf.append("#" + myID + " ");
-		buf.append(mzFormat.format(getAverageMZ()));
-		buf.append(" m/z @");
-		buf.append(timeFormat.format(getAverageRT()));
-		if (preferredIdentity != null)
-			buf.append(" " + preferredIdentity.getName());
-		if ((comment != null) && (comment.length() > 0))
-			buf.append(" (" + comment + ")");
-		return buf.toString();
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#getComment()
-	 */
-	public String getComment() {
-		return comment;
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#setComment(java.lang.String)
-	 */
-	public void setComment(String comment) {
-		this.comment = comment;
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
-	 */
-	public synchronized void addPeakIdentity(PeakIdentity identity,
-			boolean preferred) {
-
-		// Verify if exists already an identity with the same name
-		for (PeakIdentity testId : identities) {
-			if (testId.getName().equals(identity.getName())) {
-				return;
-			}
-		}
-
-		identities.add(identity);
-		if ((preferredIdentity == null) || (preferred)) {
-			setPreferredPeakIdentity(identity);
-		}
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#addCompoundIdentity(net.sf.mzmine.datamodel.PeakIdentity)
-	 */
-	public synchronized void removePeakIdentity(PeakIdentity identity) {
-		identities.remove(identity);
-		if (preferredIdentity == identity) {
-			if (identities.size() > 0) {
-				PeakIdentity[] identitiesArray = identities
-						.toArray(new PeakIdentity[0]);
-				setPreferredPeakIdentity(identitiesArray[0]);
-			} else
-				preferredIdentity = null;
-		}
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#getPeakIdentities()
-	 */
-	public PeakIdentity[] getPeakIdentities() {
-		return identities.toArray(new PeakIdentity[0]);
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#getPreferredPeakIdentity()
-	 */
-	public PeakIdentity getPreferredPeakIdentity() {
-		return preferredIdentity;
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#setPreferredPeakIdentity(net.sf.mzmine.datamodel.PeakIdentity)
-	 */
-	public void setPreferredPeakIdentity(PeakIdentity identity) {
-
-		if (identity == null)
-			return;
-
-		preferredIdentity = identity;
-
-		if (!identities.contains(identity)) {
-			identities.add(identity);
-		}
-
-	}
-
-	/**
-	 * @see net.sf.mzmine.datamodel.PeakListRow#getDataPointMaxIntensity()
-	 */
-	public double getDataPointMaxIntensity() {
-		return maxDataPointIntensity;
-	}
-
-	public boolean hasPeak(Feature peak) {
-		return peaks.containsValue(peak);
-	}
-
-	public boolean hasPeak(RawDataFile file) {
-		return peaks.containsKey(file);
-	}
-
-	/**
-	 * Returns the highest isotope pattern of a peak in this row
-	 */
-	public IsotopePattern getBestIsotopePattern() {
-		Feature peaks[] = getPeaks();
-		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
-				SortingDirection.Descending));
-
-		for (Feature peak : peaks) {
-			IsotopePattern ip = peak.getIsotopePattern();
-			if (ip != null)
-				return ip;
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the highest peak in this row
-	 */
-	public Feature getBestPeak() {
-		Feature peaks[] = getPeaks();
-		Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
-				SortingDirection.Descending));
-		if (peaks.length == 0) return null;
-		return peaks[0];
-	}
+    /**
+     * Returns the highest peak in this row
+     */
+    public Feature getBestPeak() {
+	Feature peaks[] = getPeaks();
+	Arrays.sort(peaks, new PeakSorter(SortingProperty.Height,
+		SortingDirection.Descending));
+	if (peaks.length == 0)
+	    return null;
+	return peaks[0];
+    }
 
 }

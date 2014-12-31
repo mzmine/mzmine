@@ -31,7 +31,9 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatab
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.InetUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 public class MassBankGateway implements DBGateway {
 
@@ -48,7 +50,7 @@ public class MassBankGateway implements DBGateway {
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
 
-	Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
 	StringBuilder queryAddress = new StringBuilder(massBankSearchAddress);
 
@@ -58,9 +60,9 @@ public class MassBankGateway implements DBGateway {
 	}
 
 	queryAddress.append("&mz=");
-	queryAddress.append(toleranceRange.getAverage());
+	queryAddress.append(RangeUtils.rangeCenter(toleranceRange));
 	queryAddress.append("&tol=");
-	queryAddress.append(toleranceRange.getSize() / 2);
+	queryAddress.append(RangeUtils.rangeLength(toleranceRange) / 2.0);
 
 	URL queryURL = new URL(queryAddress.toString());
 

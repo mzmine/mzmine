@@ -47,18 +47,17 @@ import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
 import net.sf.mzmine.util.RUtilities;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 import org.rosuda.JRI.REXP;
 import org.rosuda.JRI.Rengine;
 
+import com.google.common.collect.Range;
+
 /**
  * A task to perform a CAMERA search.
  *
- * @author $Author$
- * @version $Revision$
  */
 public class CameraSearchTask extends AbstractTask {
 
@@ -248,8 +247,8 @@ public class CameraSearchTask extends AbstractTask {
 	    for (final Feature peak : peaks) {
 
 		// Get peak data.
-		Range rtRange = null;
-		Range intRange = null;
+		Range<Double> rtRange = null;
+		Range<Double> intRange = null;
 		final double mz = peak.getMZ();
 
 		// Get the peak's data points per scan.
@@ -272,33 +271,28 @@ public class CameraSearchTask extends AbstractTask {
 				new SimpleDataPoint(mz, intensity));
 			dataPointCount++;
 
-			// Update RT range.
+			// Update RT & intensity range.
 			final double rt = scan.getRetentionTime();
 			if (rtRange == null) {
-
-			    rtRange = new Range(rt);
+			    rtRange = Range.singleton(rt);
+			    intRange = Range.singleton(intensity);
 			} else {
-
-			    rtRange.extendRange(rt);
+			    rtRange = rtRange.span(Range.singleton(rt));
+			    intRange = intRange
+				    .span(Range.singleton(intensity));
 			}
 
-			// Update intensity range.
-			if (intRange == null) {
-			    intRange = new Range(intensity);
-			} else {
-			    intRange.extendRange(intensity);
-			}
 		    }
 		}
 
 		// Set peak values.
 		final double area = peak.getArea();
 		final double maxo = intRange == null ? peak.getHeight()
-			: intRange.getMax();
+			: intRange.upperEndpoint();
 		final double rtMin = (rtRange == null ? peak
-			.getRawDataPointsRTRange() : rtRange).getMin();
+			.getRawDataPointsRTRange() : rtRange).lowerEndpoint();
 		final double rtMax = (rtRange == null ? peak
-			.getRawDataPointsRTRange() : rtRange).getMax();
+			.getRawDataPointsRTRange() : rtRange).upperEndpoint();
 
 		// Add peak row.
 		rEngine.eval("peaks <- rbind(peaks, c(" + mz + ", " // mz

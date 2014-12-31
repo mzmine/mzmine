@@ -31,398 +31,403 @@ import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.util.PeptideSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.SortingDirection;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 public class PeptideScan implements Scan {
-	
-	private PeptideIdentityDataFile dataFile;
-	private RawDataFile rawDataFile;
-	private int rawScanNumber;
-	private Vector<Peptide> peptides;
-	private Peptide[] alterPeptides;
-	private int queryNumber;
-	private int msLevel;
-	private int parentScan;
-	private int fragmentScans[];
-	private DataPoint dataPoints[];
-	private double precursorMZ;
-	private int precursorCharge;
-	private double retentionTime;
-	private Range mzRange;
-	private DataPoint basePeak;
-	private double totalIonCurrent;
-	private boolean centroided;
 
-	/**
-	 * This class represents the scan (collection of DataPoints)  with MS level 2 or more,
-	 * which contains peaks with masses equal to the calculated fragment ion's masses for one or many peptides.
-	 */
-	public PeptideScan(PeptideIdentityDataFile dataFile, String rawDataFile, int queryNumber, int rawScanNumber) {
+    private PeptideIdentityDataFile dataFile;
+    private RawDataFile rawDataFile;
+    private int rawScanNumber;
+    private Vector<Peptide> peptides;
+    private Peptide[] alterPeptides;
+    private int queryNumber;
+    private int msLevel;
+    private int parentScan;
+    private int fragmentScans[];
+    private DataPoint dataPoints[];
+    private double precursorMZ;
+    private int precursorCharge;
+    private double retentionTime;
+    private Range<Double> mzRange;
+    private DataPoint basePeak;
+    private double totalIonCurrent;
+    private boolean centroided;
 
-		this.dataFile = dataFile;
-		this.peptides = new Vector<Peptide>();
-		this.queryNumber = queryNumber;
-		this.rawScanNumber = rawScanNumber;
-			
+    /**
+     * This class represents the scan (collection of DataPoints) with MS level 2
+     * or more, which contains peaks with masses equal to the calculated
+     * fragment ion's masses for one or many peptides.
+     */
+    public PeptideScan(PeptideIdentityDataFile dataFile, String rawDataFile,
+	    int queryNumber, int rawScanNumber) {
+
+	this.dataFile = dataFile;
+	this.peptides = new Vector<Peptide>();
+	this.queryNumber = queryNumber;
+	this.rawScanNumber = rawScanNumber;
+
+    }
+
+    /**
+     * Sets the original raw data file
+     * 
+     * @param rawDataFile
+     */
+    public void setRawDataFile(RawDataFile rawDataFile) {
+	this.rawDataFile = rawDataFile;
+    }
+
+    /**
+     * @return Returns scan datapoints
+     */
+    public @Nonnull DataPoint[] getDataPoints() {
+	return dataPoints;
+    }
+
+    /**
+     * @return Returns scan datapoints within a given range
+     */
+    public @Nonnull DataPoint[] getDataPointsByMass(
+	    @Nonnull Range<Double> mzRange) {
+
+	int startIndex, endIndex;
+	for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
+	    if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint())
+		break;
 	}
 
-	/**
-	 * Sets the original raw data file
-	 * 
-	 * @param rawDataFile
-	 */
-	public void setRawDataFile(RawDataFile rawDataFile){
-		this.rawDataFile = rawDataFile;
-	}
-	
-	
-	/**
-	 * @return Returns scan datapoints
-	 */
-	public @Nonnull DataPoint[] getDataPoints() {
-		return dataPoints;
+	for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
+	    if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint())
+		break;
 	}
 
-	/**
-	 * @return Returns scan datapoints within a given range
-	 */
-	public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
+	DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
 
-		int startIndex, endIndex;
-		for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-			if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
-				break;
-		}
+	// Copy the relevant points
+	System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
+		- startIndex);
 
-		for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-			if (dataPoints[endIndex].getMZ() > mzRange.getMax())
-				break;
-		}
+	return pointsWithinRange;
+    }
 
-		DataPoint pointsWithinRange[] = new DataPoint[endIndex - startIndex];
+    /**
+     * @return Returns scan datapoints over certain intensity
+     */
+    public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
+	int index;
+	Vector<DataPoint> points = new Vector<DataPoint>();
 
-		// Copy the relevant points
-		System.arraycopy(dataPoints, startIndex, pointsWithinRange, 0, endIndex
-				- startIndex);
-
-		return pointsWithinRange;
+	for (index = 0; index < dataPoints.length; index++) {
+	    if (dataPoints[index].getIntensity() >= intensity)
+		points.add(dataPoints[index]);
 	}
 
-	/**
-	 * @return Returns scan datapoints over certain intensity
-	 */
-	public @Nonnull DataPoint[] getDataPointsOverIntensity(double intensity) {
-		int index;
-		Vector<DataPoint> points = new Vector<DataPoint>();
+	DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
 
-		for (index = 0; index < dataPoints.length; index++) {
-			if (dataPoints[index].getIntensity() >= intensity)
-				points.add(dataPoints[index]);
-		}
+	return pointsOverIntensity;
+    }
 
-		DataPoint pointsOverIntensity[] = points.toArray(new DataPoint[0]);
+    /**
+     * @param mzValues
+     *            m/z values to set
+     * @param intensityValues
+     *            Intensity values to set
+     */
+    public void setDataPoints(DataPoint[] dataPoints) {
 
-		return pointsOverIntensity;
-	}
+	this.dataPoints = dataPoints;
+	mzRange = Range.singleton(0.0);
+	basePeak = null;
+	totalIonCurrent = 0;
 
-	/**
-	 * @param mzValues
-	 *            m/z values to set
-	 * @param intensityValues
-	 *            Intensity values to set
-	 */
-	public void setDataPoints(DataPoint[] dataPoints) {
+	// find m/z range and base peak
+	if (dataPoints.length > 0) {
 
-		this.dataPoints = dataPoints;
-		mzRange = new Range(0, 0);
-		basePeak = null;
-		totalIonCurrent = 0;
-		
-		// find m/z range and base peak
-		if (dataPoints.length > 0) {
+	    basePeak = dataPoints[0];
+	    mzRange = Range.singleton(dataPoints[0].getMZ());
 
-			basePeak = dataPoints[0];
-			mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
+	    for (DataPoint dp : dataPoints) {
 
-			for (DataPoint dp : dataPoints) {
+		if (dp.getIntensity() > basePeak.getIntensity())
+		    basePeak = dp;
 
-				if (dp.getIntensity() > basePeak.getIntensity())
-					basePeak = dp;
+		mzRange = mzRange.span(Range.singleton(dp.getMZ()));
+		totalIonCurrent += dp.getIntensity();
 
-				mzRange.extendRange(dp.getMZ());
-				totalIonCurrent += dp.getIntensity();
-
-			}
-
-		}
+	    }
 
 	}
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getNumberOfDataPoints()
-	 */
-	public int getNumberOfDataPoints() {
-		return dataPoints.length;
-	}
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getScanNumber()
-	 */
-	public int getScanNumber() {
-		return rawScanNumber;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getNumberOfDataPoints()
+     */
+    public int getNumberOfDataPoints() {
+	return dataPoints.length;
+    }
 
-	/**
-	 * @param scanNumber
-	 *            The scanNumber to set.
-	 */
-	public void setScanNumber(int scanNumber) {
-		this.rawScanNumber = scanNumber;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getScanNumber()
+     */
+    public int getScanNumber() {
+	return rawScanNumber;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getMSLevel()
-	 */
-	public int getMSLevel() {
-		return msLevel;
-	}
+    /**
+     * @param scanNumber
+     *            The scanNumber to set.
+     */
+    public void setScanNumber(int scanNumber) {
+	this.rawScanNumber = scanNumber;
+    }
 
-	/**
-	 * @param msLevel
-	 *            The msLevel to set.
-	 */
-	public void setMSLevel(int msLevel) {
-		this.msLevel = msLevel;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getMSLevel()
+     */
+    public int getMSLevel() {
+	return msLevel;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getPrecursorMZ()
-	 */
-	public double getPrecursorMZ() {
-		return precursorMZ;
-	}
+    /**
+     * @param msLevel
+     *            The msLevel to set.
+     */
+    public void setMSLevel(int msLevel) {
+	this.msLevel = msLevel;
+    }
 
-	/**
-	 * @param precursorMZ
-	 *            The precursorMZ to set.
-	 */
-	public void setPrecursorMZ(double precursorMZ) {
-		this.precursorMZ = precursorMZ;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getPrecursorMZ()
+     */
+    public double getPrecursorMZ() {
+	return precursorMZ;
+    }
 
-	/**
-	 * @return Returns the precursorCharge.
-	 */
-	public int getPrecursorCharge() {
-		return precursorCharge;
-	}
+    /**
+     * @param precursorMZ
+     *            The precursorMZ to set.
+     */
+    public void setPrecursorMZ(double precursorMZ) {
+	this.precursorMZ = precursorMZ;
+    }
 
-	/**
-	 * @param precursorCharge
-	 *            The precursorCharge to set.
-	 */
-	public void setPrecursorCharge(int precursorCharge) {
-		this.precursorCharge = precursorCharge;
-	}
+    /**
+     * @return Returns the precursorCharge.
+     */
+    public int getPrecursorCharge() {
+	return precursorCharge;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getScanAcquisitionTime()
-	 */
-	public double getRetentionTime() {
-		return retentionTime;
-	}
+    /**
+     * @param precursorCharge
+     *            The precursorCharge to set.
+     */
+    public void setPrecursorCharge(int precursorCharge) {
+	this.precursorCharge = precursorCharge;
+    }
 
-	/**
-	 * @param retentionTime
-	 *            The retentionTime to set.
-	 */
-	public void setRetentionTime(double retentionTime) {
-		this.retentionTime = retentionTime;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getScanAcquisitionTime()
+     */
+    public double getRetentionTime() {
+	return retentionTime;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
-	 */
-	public @Nonnull Range getMZRange() {
-		return mzRange;
-	}
+    /**
+     * @param retentionTime
+     *            The retentionTime to set.
+     */
+    public void setRetentionTime(double retentionTime) {
+	this.retentionTime = retentionTime;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
-	 */
-	public DataPoint getHighestDataPoint() {
-		return basePeak;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
+     */
+    public @Nonnull Range<Double> getMZRange() {
+	return mzRange;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
-	 */
-	public int getParentScanNumber() {
-		return parentScan;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getBasePeakMZ()
+     */
+    public DataPoint getHighestDataPoint() {
+	return basePeak;
+    }
 
-	/**
-	 * @param parentScan
-	 *            The parentScan to set.
-	 */
-	public void setParentScanNumber(int parentScan) {
-		this.parentScan = parentScan;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getParentScanNumber()
+     */
+    public int getParentScanNumber() {
+	return parentScan;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#getFragmentScanNumbers()
-	 */
-	public int[] getFragmentScanNumbers() {
-		return fragmentScans;
-	}
+    /**
+     * @param parentScan
+     *            The parentScan to set.
+     */
+    public void setParentScanNumber(int parentScan) {
+	this.parentScan = parentScan;
+    }
 
-	/**
-	 * @param fragmentScans
-	 *            The fragmentScans to set.
-	 */
-	public void setFragmentScanNumbers(int[] fragmentScans) {
-		this.fragmentScans = fragmentScans;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#getFragmentScanNumbers()
+     */
+    public int[] getFragmentScanNumbers() {
+	return fragmentScans;
+    }
 
-	/**
-	 * Adds a fragment scan
-	 * 
-	 * @param fragmentScan
-	 */
-	public void addFragmentScan(int fragmentScan) {
-		TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
-		if (fragmentScans != null) {
-			for (int frag : fragmentScans)
-				fragmentsSet.add(frag);
-		}
-		fragmentsSet.add(fragmentScan);
-		fragmentScans = Ints.toArray(fragmentsSet);
-	}
+    /**
+     * @param fragmentScans
+     *            The fragmentScans to set.
+     */
+    public void setFragmentScanNumbers(int[] fragmentScans) {
+	this.fragmentScans = fragmentScans;
+    }
 
-	/**
-	 * @see net.sf.mzmine.datamodel.Scan#isCentroided()
-	 */
-	public boolean isCentroided() {
-		return centroided;
+    /**
+     * Adds a fragment scan
+     * 
+     * @param fragmentScan
+     */
+    public void addFragmentScan(int fragmentScan) {
+	TreeSet<Integer> fragmentsSet = new TreeSet<Integer>();
+	if (fragmentScans != null) {
+	    for (int frag : fragmentScans)
+		fragmentsSet.add(frag);
 	}
+	fragmentsSet.add(fragmentScan);
+	fragmentScans = Ints.toArray(fragmentsSet);
+    }
 
-	/**
-	 * @param centroided
-	 *            The centroided to set.
-	 */
-	public void setCentroided(boolean centroided) {
-		this.centroided = centroided;
-	}
+    /**
+     * @see net.sf.mzmine.datamodel.Scan#isCentroided()
+     */
+    public boolean isCentroided() {
+	return centroided;
+    }
 
-	/**
-	 * Returns the total ion current
-	 */
-	public double getTIC() {
-		return totalIonCurrent;
-	}
+    /**
+     * @param centroided
+     *            The centroided to set.
+     */
+    public void setCentroided(boolean centroided) {
+	this.centroided = centroided;
+    }
 
-	public String getName() {
-		return ScanUtils.scanToString(this);
-	}
+    /**
+     * Returns the total ion current
+     */
+    public double getTIC() {
+	return totalIonCurrent;
+    }
 
-	/**
-	 * Returns the raw data file that this scan belongs.
-	 */
-	public @Nonnull RawDataFile getDataFile() {
-		return rawDataFile;
-	}
-	
-	/**
-	 * Returns the PeptideDataFile from where the information of the peptide was extracted.
-	 * 
-	 * @return PeptideIdentityDataFile
-	 */
-	public PeptideIdentityDataFile getPeptideDataFile() {
-		return dataFile;
-	}
+    public String getName() {
+	return ScanUtils.scanToString(this);
+    }
 
-	/**
-	 * Adds a peptide. This scan can be related to different peptides.
-	 * 
-	 * @param peptide
-	 */
-	public void addPeptide(Peptide peptide) {
-		peptides.add(peptide);
-	}
-	
-	/**
-	 * Returns all the peptides that fix into this scan (masses)
-	 * 
-	 * @return Peptide[]
-	 */
-	public Peptide[] getPeptides() {
-		return peptides.toArray(new Peptide[0]);
-	}
-	
-	/**
-	 * 
-	 * Returns the most probable peptide identity of this scan (collection of data points).
-	 * 
-	 * @return Peptide
-	 */
-	public Peptide getHighScorePeptide(){
-		// Sort m/z peaks by descending intensity
-		Peptide[] sortedPeptides = peptides.toArray(new Peptide[0]);
-		Arrays.sort(sortedPeptides, new PeptideSorter(SortingDirection.Descending));
-		return sortedPeptides[0];
-	}
-	
-	/**
-	 * Returns the number of query associated to this scan (number from identification file).
-	 * 
-	 * @return queryNumber
-	 */
-	public int getQueryNumber(){
-		return queryNumber;
-	}
+    /**
+     * Returns the raw data file that this scan belongs.
+     */
+    public @Nonnull RawDataFile getDataFile() {
+	return rawDataFile;
+    }
 
-	public void setAlterPeptides(Peptide[] alterPeptides) {
-		this.alterPeptides = alterPeptides;
-		
-	}
+    /**
+     * Returns the PeptideDataFile from where the information of the peptide was
+     * extracted.
+     * 
+     * @return PeptideIdentityDataFile
+     */
+    public PeptideIdentityDataFile getPeptideDataFile() {
+	return dataFile;
+    }
 
-	public Peptide[] getAlterPeptides() {
-		return alterPeptides;
-		
-	}
+    /**
+     * Adds a peptide. This scan can be related to different peptides.
+     * 
+     * @param peptide
+     */
+    public void addPeptide(Peptide peptide) {
+	peptides.add(peptide);
+    }
 
-	@Override
-	public @Nonnull MassList[] getMassLists() {
-		return new MassList[0];
-	}
+    /**
+     * Returns all the peptides that fix into this scan (masses)
+     * 
+     * @return Peptide[]
+     */
+    public Peptide[] getPeptides() {
+	return peptides.toArray(new Peptide[0]);
+    }
 
-	@Override
-	public MassList getMassList(@Nonnull String name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    /**
+     * 
+     * Returns the most probable peptide identity of this scan (collection of
+     * data points).
+     * 
+     * @return Peptide
+     */
+    public Peptide getHighScorePeptide() {
+	// Sort m/z peaks by descending intensity
+	Peptide[] sortedPeptides = peptides.toArray(new Peptide[0]);
+	Arrays.sort(sortedPeptides, new PeptideSorter(
+		SortingDirection.Descending));
+	return sortedPeptides[0];
+    }
 
-	@Override
-	public void addMassList(@Nonnull MassList massList) {
-		// TODO Auto-generated method stub
-		
-	}
+    /**
+     * Returns the number of query associated to this scan (number from
+     * identification file).
+     * 
+     * @return queryNumber
+     */
+    public int getQueryNumber() {
+	return queryNumber;
+    }
 
-	@Override
-	public void removeMassList(@Nonnull MassList massList) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void setAlterPeptides(Peptide[] alterPeptides) {
+	this.alterPeptides = alterPeptides;
 
-	@Override
-	public @Nonnull Polarity getPolarity() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    }
 
-	
+    public Peptide[] getAlterPeptides() {
+	return alterPeptides;
+
+    }
+
+    @Override
+    public @Nonnull MassList[] getMassLists() {
+	return new MassList[0];
+    }
+
+    @Override
+    public MassList getMassList(@Nonnull String name) {
+	// TODO Auto-generated method stub
+	return null;
+    }
+
+    @Override
+    public void addMassList(@Nonnull MassList massList) {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removeMassList(@Nonnull MassList massList) {
+	// TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public @Nonnull Polarity getPolarity() {
+	// TODO Auto-generated method stub
+	return null;
+    }
+
 }

@@ -23,20 +23,19 @@ import java.util.Map;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.IntervalXYDataset;
+
+import com.google.common.collect.Range;
 
 /**
  * Spectra visualizer data set for scan data points
  */
 public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private String label;
     private Scan scan;
     private Map<DataPoint, String> annotation;
@@ -115,7 +114,7 @@ public class ScanDataSet extends AbstractXYDataset implements IntervalXYDataset 
      * This function finds highest data point intensity in given m/z range. It
      * is important for normalizing isotope patterns.
      */
-    public double getHighestIntensity(Range mzRange) {
+    public double getHighestIntensity(Range<Double> mzRange) {
 
 	double maxIntensity = 0;
 	for (DataPoint dp : dataPoints) {

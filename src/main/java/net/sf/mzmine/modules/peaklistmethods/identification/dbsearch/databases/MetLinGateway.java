@@ -35,9 +35,11 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
 
 import org.apache.axis.AxisFault;
+
+import com.google.common.collect.Range;
 
 public class MetLinGateway implements DBGateway {
 
@@ -53,7 +55,7 @@ public class MetLinGateway implements DBGateway {
 	    MZTolerance mzTolerance, int numOfResults, ParameterSet parameters)
 	    throws IOException {
 
-	Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
 	MetlinServiceLocator locator = new MetlinServiceLocator();
 	MetlinPortType serv;
@@ -64,8 +66,9 @@ public class MetLinGateway implements DBGateway {
 	}
 
 	// Search mass as float[]
-	float searchMass[] = new float[] { (float) toleranceRange.getAverage() };
-	float searchTolerance = (float) (toleranceRange.getSize() / 2.0);
+	float searchMass[] = new float[] { (float) RangeUtils
+		.rangeCenter(toleranceRange) };
+	float searchTolerance = (float) (RangeUtils.rangeLength(toleranceRange) / 2.0);
 
 	final String token = parameters.getParameter(
 		MetLinParameters.SECURITY_TOKEN).getValue();

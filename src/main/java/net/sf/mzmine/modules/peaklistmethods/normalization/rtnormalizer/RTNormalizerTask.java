@@ -40,7 +40,8 @@ import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 class RTNormalizerTask extends AbstractTask {
 
@@ -137,8 +138,10 @@ class RTNormalizerTask extends AbstractTask {
 
 	    // Find matching rows in remaining peaklists
 	    for (int i = 1; i < originalPeakLists.length; i++) {
-		Range rtRange = rtTolerance.getToleranceRange(candidateRT);
-		Range mzRange = mzTolerance.getToleranceRange(candidateMZ);
+		Range<Double> rtRange = rtTolerance
+			.getToleranceRange(candidateRT);
+		Range<Double> mzRange = mzTolerance
+			.getToleranceRange(candidateMZ);
 		PeakListRow matchingRows[] = originalPeakLists[i]
 			.getRowsInsideScanAndMZRange(rtRange, mzRange);
 

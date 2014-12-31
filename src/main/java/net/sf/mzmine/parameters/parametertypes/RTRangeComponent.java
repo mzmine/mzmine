@@ -27,7 +27,8 @@ import javax.swing.JButton;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class RTRangeComponent extends RangeComponent implements ActionListener {
 
@@ -55,15 +56,15 @@ public class RTRangeComponent extends RangeComponent implements ActionListener {
 	Object src = event.getSource();
 
 	if (src == setAutoButton) {
-	    Range rtRange = null;
+	    Range<Double> rtRange = null;
 	    RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
 		    .getDataFiles();
 	    for (RawDataFile file : currentFiles) {
-		Range fileRange = file.getDataRTRange();
+		Range<Double> fileRange = file.getDataRTRange();
 		if (rtRange == null)
 		    rtRange = fileRange;
 		else
-		    rtRange.extendRange(fileRange);
+		    rtRange = rtRange.span(fileRange);
 	    }
 	    setValue(rtRange);
 	}

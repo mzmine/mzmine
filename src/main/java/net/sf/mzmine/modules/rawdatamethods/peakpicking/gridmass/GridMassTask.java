@@ -84,9 +84,11 @@ public class GridMassTask extends AbstractTask {
 	this.mzTol = parameters.getParameter(GridMassParameters.mzTolerance)
 		.getValue();
 	this.minimumTimeSpan = parameters
-		.getParameter(GridMassParameters.timeSpan).getValue().getMin();
+		.getParameter(GridMassParameters.timeSpan).getValue()
+		.lowerEndpoint();
 	this.maximumTimeSpan = parameters
-		.getParameter(GridMassParameters.timeSpan).getValue().getMax();
+		.getParameter(GridMassParameters.timeSpan).getValue()
+		.upperEndpoint();
 	this.minimumHeight = parameters.getParameter(
 		GridMassParameters.minimumHeight).getValue();
 	this.suffix = parameters.getParameter(GridMassParameters.suffix)

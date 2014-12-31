@@ -47,10 +47,11 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.TaskPriority;
-import net.sf.mzmine.util.Range;
 import visad.ProjectionControl;
 import visad.VisADException;
 import visad.java3d.MouseBehaviorJ3D;
+
+import com.google.common.collect.Range;
 
 /**
  * 3D visualizer frame.
@@ -58,9 +59,6 @@ import visad.java3d.MouseBehaviorJ3D;
 public class ThreeDVisualizerWindow extends JFrame implements
 	MouseWheelListener, ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     // Logger.
@@ -84,8 +82,8 @@ public class ThreeDVisualizerWindow extends JFrame implements
     private JDialog propertiesDialog;
 
     // Axes bounds.
-    private final Range rtRange;
-    private final Range mzRange;
+    private final Range<Double> rtRange;
+    private final Range<Double> mzRange;
 
     // Raw data file.
     private final RawDataFile dataFile;
@@ -111,7 +109,7 @@ public class ThreeDVisualizerWindow extends JFrame implements
      *             if there are VisAD problems.
      */
     public ThreeDVisualizerWindow(final RawDataFile file, final int msLevel,
-	    final Range rt, final int rtRes, final Range mz, final int mzRes)
+	    final Range<Double> rt, final int rtRes, final Range<Double> mz, final int mzRes)
 	    throws VisADException, RemoteException {
 
 	super("3D view: [" + file.getName() + "]");

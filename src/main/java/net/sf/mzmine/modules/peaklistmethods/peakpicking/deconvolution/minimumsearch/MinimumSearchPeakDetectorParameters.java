@@ -29,7 +29,8 @@ import net.sf.mzmine.parameters.parametertypes.DoubleParameter;
 import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
@@ -57,7 +58,8 @@ public class MinimumSearchPeakDetectorParameters extends SimpleParameterSet {
 
     public static final RangeParameter PEAK_DURATION = new RangeParameter(
 	    "Peak duration range (min)", "Range of acceptable peak lengths",
-	    MZmineCore.getConfiguration().getRTFormat(), new Range(0.0, 10.0));
+	    MZmineCore.getConfiguration().getRTFormat(),
+	    Range.closed(0.0, 10.0));
 
     public MinimumSearchPeakDetectorParameters() {
 	super(new Parameter[] { CHROMATOGRAPHIC_THRESHOLD_LEVEL,

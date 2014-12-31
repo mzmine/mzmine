@@ -46,7 +46,8 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialog;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -56,10 +57,8 @@ import net.sf.mzmine.util.Range;
 public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 	ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     // Dialog components
     private JPanel pnlPlotXY, peakListsPanel;
     private JCheckBox previewCheckBox;
@@ -196,8 +195,8 @@ public class RansacAlignerSetupDialog extends ParameterSetupDialog implements
 		    RansacAlignerParameters.MZTolerance).getValue();
 	    RTTolerance rtTolerance = super.parameterSet.getParameter(
 		    RansacAlignerParameters.RTToleranceBefore).getValue();
-	    Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-	    Range rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
+	    Range<Double> mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+	    Range<Double> rtRange = rtTolerance.getToleranceRange(row.getAverageRT());
 
 	    // Get all rows of the aligned peaklist within parameter limits
 	    PeakListRow candidateRows[] = peakListY

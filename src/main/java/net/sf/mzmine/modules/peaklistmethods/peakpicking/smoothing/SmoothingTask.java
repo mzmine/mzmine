@@ -42,13 +42,12 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * Performs chromatographic smoothing of a peak-list.
  *
- * @author $Author$
- * @version $Revision$
  */
 public class SmoothingTask extends AbstractTask {
 
@@ -155,7 +154,7 @@ public class SmoothingTask extends AbstractTask {
 			    double maxIntensity = 0.0;
 			    int maxScanNumber = -1;
 			    DataPoint maxDataPoint = null;
-			    Range intensityRange = null;
+			    Range<Double> intensityRange = null;
 			    double area = 0.0;
 			    for (int i = 0; i < numScans; i++) {
 
@@ -183,9 +182,12 @@ public class SmoothingTask extends AbstractTask {
 
 				    // Update ranges.
 				    if (intensityRange == null) {
-					intensityRange = new Range(intensity);
+					intensityRange = Range
+						.singleton(intensity);
 				    } else {
-					intensityRange.extendRange(intensity);
+					intensityRange = intensityRange
+						.span(Range
+							.singleton(intensity));
 				    }
 
 				    // Accumulate peak area.
@@ -222,10 +224,8 @@ public class SmoothingTask extends AbstractTask {
 						peak.getFeatureStatus(),
 						maxScanNumber,
 						peak.getMostIntenseFragmentScanNumber(),
-						new Range(
-							peak.getRawDataPointsRTRange()),
-						new Range(
-							peak.getRawDataPointsMZRange()),
+						peak.getRawDataPointsRTRange(),
+						peak.getRawDataPointsMZRange(),
 						intensityRange));
 			    }
 			}

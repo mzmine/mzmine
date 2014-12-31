@@ -26,6 +26,8 @@ import java.util.regex.PatternSyntaxException;
 import net.sf.mzmine.datamodel.PeakIdentity;
 import net.sf.mzmine.datamodel.PeakListRow;
 
+import com.google.common.collect.Range;
+
 /**
  * This class defines a search condition - searching either by peak name, m/z or
  * retention time. Such search can be defined by any module and then conforming
@@ -36,7 +38,7 @@ public class SearchDefinition {
 
     private SearchDefinitionType type;
     private Pattern nameRegex;
-    private Range range;
+    private Range<Double> range;
 
     /**
      * Creates a search definition by using a regular expression
@@ -54,7 +56,7 @@ public class SearchDefinition {
     /**
      * Creates a search definition by m/z or RT range
      */
-    public SearchDefinition(SearchDefinitionType type, Range range) {
+    public SearchDefinition(SearchDefinitionType type, Range<Double> range) {
 
 	assert type == SearchDefinitionType.NAME;
 
@@ -66,8 +68,8 @@ public class SearchDefinition {
     /**
      * Creates a search definition by using a regular expression
      */
-    public SearchDefinition(SearchDefinitionType type, String regex, Range range)
-	    throws PatternSyntaxException {
+    public SearchDefinition(SearchDefinitionType type, String regex,
+	    Range<Double> range) throws PatternSyntaxException {
 
 	this.type = type;
 	this.range = range;

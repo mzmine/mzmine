@@ -35,14 +35,13 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class HistogramWindow extends JFrame {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private HistogramChart histogram;
 
     public HistogramWindow(ParameterSet parameters) {
@@ -61,8 +60,8 @@ public class HistogramWindow extends JFrame {
 		HistogramParameters.dataRange).getType();
 	int numOfBins = parameters.getParameter(HistogramParameters.numOfBins)
 		.getValue();
-	Range range = parameters.getParameter(HistogramParameters.dataRange)
-		.getValue();
+	Range<Double> range = parameters.getParameter(
+		HistogramParameters.dataRange).getValue();
 
 	setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	setBackground(Color.white);

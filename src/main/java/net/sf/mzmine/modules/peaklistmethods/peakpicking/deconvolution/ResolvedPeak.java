@@ -31,8 +31,9 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.MathUtils;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 /**
  * ResolvedPeak
@@ -58,7 +59,7 @@ public class ResolvedPeak implements Feature {
     private int representativeScan, fragmentScan;
 
     // Ranges of raw data points
-    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+    private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
 
     // Isotope pattern. Null by default but can be set later by deisotoping
@@ -73,8 +74,7 @@ public class ResolvedPeak implements Feature {
      * selected region MUST NOT contain any zero-intensity data points,
      * otherwise exception is thrown.
      */
-    public ResolvedPeak(Feature chromatogram, int regionStart,
-	    int regionEnd) {
+    public ResolvedPeak(Feature chromatogram, int regionStart, int regionEnd) {
 
 	assert regionEnd > regionStart;
 
@@ -116,15 +116,19 @@ public class ResolvedPeak implements Feature {
 	    dataPointIntensityValues[i] = dp.getIntensity();
 
 	    if (rawDataPointsIntensityRange == null) {
-		rawDataPointsIntensityRange = new Range(dp.getIntensity());
-		rawDataPointsRTRange = new Range(dataFile.getScan(
+		rawDataPointsIntensityRange = Range
+			.singleton(dp.getIntensity());
+		rawDataPointsRTRange = Range.singleton(dataFile.getScan(
 			scanNumbers[i]).getRetentionTime());
-		rawDataPointsMZRange = new Range(dp.getMZ());
+		rawDataPointsMZRange = Range.singleton(dp.getMZ());
 	    } else {
-		rawDataPointsRTRange.extendRange(dataFile.getScan(
-			scanNumbers[i]).getRetentionTime());
-		rawDataPointsIntensityRange.extendRange(dp.getIntensity());
-		rawDataPointsMZRange.extendRange(dp.getMZ());
+		rawDataPointsRTRange = rawDataPointsRTRange.span(Range
+			.singleton(dataFile.getScan(scanNumbers[i])
+				.getRetentionTime()));
+		rawDataPointsIntensityRange = rawDataPointsIntensityRange
+			.span(Range.singleton(dp.getIntensity()));
+		rawDataPointsMZRange = rawDataPointsMZRange.span(Range
+			.singleton(dp.getMZ()));
 	    }
 
 	    if (height < dp.getIntensity()) {
@@ -216,15 +220,15 @@ public class ResolvedPeak implements Feature {
 	return rt;
     }
 
-    public @Nonnull Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public @Nonnull Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public @Nonnull Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 

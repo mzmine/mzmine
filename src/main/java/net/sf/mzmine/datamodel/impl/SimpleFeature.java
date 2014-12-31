@@ -28,7 +28,8 @@ import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class is a simple implementation of the peak interface.
@@ -47,7 +48,7 @@ public class SimpleFeature implements Feature {
     private double mz, rt, height, area;
 
     // Boundaries of the peak raw data points
-    private Range rtRange, mzRange, intensityRange;
+    private Range<Double> rtRange, mzRange, intensityRange;
 
     // Number of representative scan
     private int representativeScan;
@@ -64,11 +65,12 @@ public class SimpleFeature implements Feature {
      * Initializes a new peak using given values
      * 
      */
-    public SimpleFeature(RawDataFile dataFile, double MZ,
-	    double RT, double height, double area, int[] scanNumbers,
+    public SimpleFeature(RawDataFile dataFile, double MZ, double RT,
+	    double height, double area, int[] scanNumbers,
 	    DataPoint[] dataPointsPerScan, FeatureStatus peakStatus,
-	    int representativeScan, int fragmentScanNumber, Range rtRange,
-	    Range mzRange, Range intensityRange) {
+	    int representativeScan, int fragmentScanNumber,
+	    Range<Double> rtRange, Range<Double> mzRange,
+	    Range<Double> intensityRange) {
 
 	if (dataPointsPerScan.length == 0) {
 	    throw new IllegalArgumentException(
@@ -103,10 +105,9 @@ public class SimpleFeature implements Feature {
 	this.height = p.getHeight();
 	this.area = p.getArea();
 
-	// Create a copy of the mutable properties, not a reference
-	this.rtRange = new Range(p.getRawDataPointsRTRange());
-	this.mzRange = new Range(p.getRawDataPointsMZRange());
-	this.intensityRange = new Range(p.getRawDataPointsIntensityRange());
+	this.rtRange = p.getRawDataPointsRTRange();
+	this.mzRange = p.getRawDataPointsMZRange();
+	this.intensityRange = p.getRawDataPointsIntensityRange();
 
 	this.scanNumbers = p.getScanNumbers();
 
@@ -126,8 +127,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns the status of the peak
      */
-    public @Nonnull
-    FeatureStatus getFeatureStatus() {
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return peakStatus;
     }
 
@@ -186,8 +186,7 @@ public class SimpleFeature implements Feature {
     /**
      * This method returns numbers of scans that contain this peak
      */
-    public @Nonnull
-    int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 	return scanNumbers;
     }
 
@@ -205,8 +204,7 @@ public class SimpleFeature implements Feature {
     /**
      * @see net.sf.mzmine.datamodel.Feature#getDataFile()
      */
-    public @Nonnull
-    RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return dataFile;
     }
 
@@ -228,24 +226,21 @@ public class SimpleFeature implements Feature {
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsIntensityRange()
      */
-    public @Nonnull
-    Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return intensityRange;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsMZRange()
      */
-    public @Nonnull
-    Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return mzRange;
     }
 
     /**
      * @see net.sf.mzmine.datamodel.Feature#getRawDataPointsRTRange()
      */
-    public @Nonnull
-    Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rtRange;
     }
 

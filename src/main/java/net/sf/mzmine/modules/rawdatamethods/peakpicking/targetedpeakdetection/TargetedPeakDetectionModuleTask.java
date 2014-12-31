@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
+package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 
 import java.io.File;
 import java.io.FileReader;
@@ -40,9 +40,9 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 
 import com.Ostermiller.util.CSVParser;
+import com.google.common.collect.Range;
 
 class TargetedPeakDetectionModuleTask extends AbstractTask {
 
@@ -119,16 +119,15 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 	List<Gap> gaps = new ArrayList<Gap>();
 
 	// Fill each row of this raw data file column, create new empty
-	// gaps
-	// if necessary
+	// gaps if necessary
 	for (int row = 0; row < peaks.size(); row++) {
 	    PeakListRow newRow = processedPeakList.getRow(row);
 	    // Create a new gap
 
-	    Range mzRange = mzTolerance.getToleranceRange(peaks.get(row)
-		    .getMZ());
-	    Range rtRange = rtTolerance.getToleranceRange(peaks.get(row)
-		    .getRT());
+	    Range<Double> mzRange = mzTolerance.getToleranceRange(peaks
+		    .get(row).getMZ());
+	    Range<Double> rtRange = rtTolerance.getToleranceRange(peaks
+		    .get(row).getRT());
 	    newRow.addPeakIdentity(new SimplePeakIdentity(peaks.get(row)
 		    .getName()), true);
 
@@ -209,6 +208,7 @@ class TargetedPeakDetectionModuleTask extends AbstractTask {
 	    }
 	    dbFileReader.close();
 	    return list;
+
 	} catch (Exception e) {
 	    logger.log(Level.WARNING, "Could not read file " + peakListFile, e);
 	    setStatus(TaskStatus.ERROR);

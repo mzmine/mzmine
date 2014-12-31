@@ -22,7 +22,7 @@ package net.sf.mzmine.datamodel;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import net.sf.mzmine.util.Range;
+import com.google.common.collect.Range;
 
 /**
  * This class represent one mass spectrum.
@@ -35,8 +35,8 @@ public interface Spectrum {
      * @return m/z range of this Scan
      */
     @Nonnull
-    public Range getMZRange();
-    
+    public Range<Double> getMZRange();
+
     /**
      * Returns the top intensity data point. May return null if there are no
      * data points in this Scan.
@@ -58,7 +58,6 @@ public interface Spectrum {
      * @return True if the scan data is centroided
      */
     public boolean isCentroided();
-
 
     /**
      * @return Number of m/z and intensity data points
@@ -87,7 +86,7 @@ public interface Spectrum {
      * @return Data points (m/z and intensity pairs) of this MzDataTable
      */
     @Nonnull
-    public DataPoint[] getDataPointsByMass(@Nonnull Range mzRange);
+    public DataPoint[] getDataPointsByMass(@Nonnull Range<Double> mzRange);
 
     /**
      * Returns data points over given intensity, sorted in m/z order.

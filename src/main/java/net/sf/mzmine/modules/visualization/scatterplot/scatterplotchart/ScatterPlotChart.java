@@ -40,7 +40,7 @@ import net.sf.mzmine.modules.visualization.scatterplot.ScatterPlotWindow;
 import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.PeakUtils;
 import net.sf.mzmine.util.SearchDefinition;
 import net.sf.mzmine.util.components.ComponentToolTipManager;
 import net.sf.mzmine.util.components.ComponentToolTipProvider;
@@ -58,12 +58,11 @@ import org.jfree.chart.plot.SeriesRenderingOrder;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.ui.RectangleInsets;
 
+import com.google.common.collect.Range;
+
 public class ScatterPlotChart extends ChartPanel implements
 	ComponentToolTipProvider {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     // grid color
@@ -248,16 +247,8 @@ public class ScatterPlotChart extends ChartPanel implements
 	    }
 
 	    Feature[] peaks = selectedRow.getPeaks();
-	    Range rtRange = peakList.getRowsRTRange();
-	    Range mzRange = null;
-
-	    for (Feature p : peaks) {
-		if (mzRange == null) {
-		    mzRange = p.getRawDataPointsMZRange();
-		} else {
-		    mzRange.extendRange(p.getRawDataPointsMZRange());
-		}
-	    }
+	    Range<Double> rtRange = peakList.getRowsRTRange();
+	    Range<Double> mzRange = PeakUtils.findMZRange(peaks);
 
 	    // Label best peak with preferred identity.
 	    final Feature bestPeak = selectedRow.getBestPeak();

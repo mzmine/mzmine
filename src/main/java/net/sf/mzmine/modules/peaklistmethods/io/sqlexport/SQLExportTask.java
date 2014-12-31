@@ -38,6 +38,7 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
+import net.sf.mzmine.util.RangeUtils;
 import net.sf.mzmine.util.ScanUtils;
 
 class SQLExportTask extends AbstractTask {
@@ -142,11 +143,12 @@ class SQLExportTask extends AbstractTask {
 	}
 	sql.append(")");
 
-	PreparedStatement statement = dbConnection.prepareStatement(sql.toString());
+	PreparedStatement statement = dbConnection.prepareStatement(sql
+		.toString());
 
 	for (RawDataFile rawDataFile : row.getRawDataFiles()) {
 	    Feature peak = row.getPeak(rawDataFile);
-	    
+
 	    for (int i = 0; i < exportColumns.getRowCount(); i++) {
 		SQLExportDataType dataType = (SQLExportDataType) exportColumns
 			.getValueAt(i, 1);
@@ -169,8 +171,8 @@ class SQLExportTask extends AbstractTask {
 		    loopDataFiles = true;
 		    break;
 		case PEAKDURATION:
-		    statement.setDouble(i + 1, peak.getRawDataPointsRTRange()
-			    .getSize());
+		    statement.setDouble(i + 1, RangeUtils.rangeLength(peak
+			    .getRawDataPointsRTRange()));
 		    loopDataFiles = true;
 		    break;
 		case PEAKSTATUS:
@@ -260,5 +262,4 @@ class SQLExportTask extends AbstractTask {
 	    }
 	}
     }
-
 }

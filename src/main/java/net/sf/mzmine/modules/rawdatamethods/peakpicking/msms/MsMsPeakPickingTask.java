@@ -34,8 +34,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 public class MsMsPeakPickingTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -96,18 +97,18 @@ public class MsMsPeakPickingTask extends AbstractTask {
 
 	    // Get the MS Scan
 	    Scan bestScan = null;
-	    Range rtWindow = new Range(scan.getRetentionTime()
-		    - (binTime / 2.0f), scan.getRetentionTime()
-		    + (binTime / 2.0f));
-	    Range mzWindow = new Range(
-		    scan.getPrecursorMZ() - (binSize / 2.0f),
-		    scan.getPrecursorMZ() + (binSize / 2.0f));
+	    Range<Double> rtWindow = Range.closed(scan.getRetentionTime()
+		    - (binTime / 2.0), scan.getRetentionTime()
+		    + (binTime / 2.0));
+	    Range<Double> mzWindow = Range.closed(scan.getPrecursorMZ()
+		    - (binSize / 2.0), scan.getPrecursorMZ() + (binSize / 2.0));
 	    DataPoint point;
 	    DataPoint maxPoint = null;
 	    int[] regionScanNumbers = dataFile.getScanNumbers(1, rtWindow);
 	    for (int regionScanNumber : regionScanNumbers) {
 		Scan regionScan = dataFile.getScan(regionScanNumber);
 		point = ScanUtils.findBasePeak(regionScan, mzWindow);
+
 		// no datapoint found
 		if (point == null) {
 		    continue;
@@ -136,10 +137,10 @@ public class MsMsPeakPickingTask extends AbstractTask {
 		    maxPoint.getIntensity(), maxPoint.getIntensity(),
 		    new int[] { bestScan.getScanNumber() },
 		    new DataPoint[] { maxPoint }, FeatureStatus.DETECTED,
-		    bestScan.getScanNumber(), scan.getScanNumber(), new Range(
-			    bestScan.getRetentionTime()), new Range(
-			    scan.getPrecursorMZ()), new Range(
-			    maxPoint.getIntensity()));
+		    bestScan.getScanNumber(), scan.getScanNumber(),
+		    Range.singleton(bestScan.getRetentionTime()),
+		    Range.singleton(scan.getPrecursorMZ()),
+		    Range.singleton(maxPoint.getIntensity()));
 
 	    PeakListRow entry = new SimplePeakListRow(scan.getScanNumber());
 	    entry.addPeak(dataFile, c);

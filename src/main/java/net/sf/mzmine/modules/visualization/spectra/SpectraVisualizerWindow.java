@@ -50,21 +50,19 @@ import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
 import net.sf.mzmine.modules.visualization.spectra.datasets.SinglePeakDataSet;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
 
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.NumberTickUnit;
 import org.jfree.data.xy.XYDataset;
 
+import com.google.common.collect.Range;
+
 /**
  * Spectrum visualizer using JFreeChart library
  */
 public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -286,7 +284,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	// We need to find a normalization factor for the new isotope
 	// pattern, to show meaningful intensity range
 	double mz = newPattern.getHighestDataPoint().getMZ();
-	Range searchMZRange = new Range(mz - 0.5, mz + 0.5);
+	Range<Double> searchMZRange = Range.closed(mz - 0.5, mz + 0.5);
 	ScanDataSet scanDataSet = spectrumPlot.getMainScanDataSet();
 	double normalizationFactor = scanDataSet
 		.getHighestIntensity(searchMZRange);
@@ -295,7 +293,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	// in given m/z range. In such case we use the max intensity of
 	// whole scan as normalization factor.
 	if (normalizationFactor == 0) {
-	    searchMZRange = new Range(0, Double.MAX_VALUE);
+	    searchMZRange = Range.atLeast(0.0);
 	    normalizationFactor = scanDataSet
 		    .getHighestIntensity(searchMZRange);
 	}

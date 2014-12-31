@@ -35,7 +35,8 @@ import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 import net.sf.mzmine.taskcontrol.TaskPriority;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * Neutral loss visualizer using JFreeChart library
@@ -43,9 +44,6 @@ import net.sf.mzmine.util.Range;
 public class NeutralLossVisualizerWindow extends JFrame implements
 	ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private NeutralLossToolBar toolBar;
     private NeutralLossPlot neutralLossPlot;
@@ -65,10 +63,10 @@ public class NeutralLossVisualizerWindow extends JFrame implements
 	this.dataFile = dataFile;
 
 	// Retrieve parameter's values
-	Range rtRange = parameters.getParameter(
+	Range<Double> rtRange = parameters.getParameter(
 		NeutralLossParameters.retentionTimeRange).getValue();
-	Range mzRange = parameters.getParameter(NeutralLossParameters.mzRange)
-		.getValue();
+	Range<Double> mzRange = parameters.getParameter(
+		NeutralLossParameters.mzRange).getValue();
 	int numOfFragments = parameters.getParameter(
 		NeutralLossParameters.numOfFragments).getValue();
 

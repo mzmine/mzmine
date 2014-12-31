@@ -52,7 +52,9 @@ import net.sf.mzmine.parameters.UserParameter;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 /**
  * Filters out peak list rows.
@@ -174,10 +176,12 @@ public class RowsFilterTask extends AbstractTask {
 		.getValue();
 	final int minIsotopePatternSize = parameters.getParameter(
 		MIN_ISOTOPE_PATTERN_COUNT).getValue();
-	final Range mzRange = parameters.getParameter(MZ_RANGE).getValue();
-	final Range rtRange = parameters.getParameter(RT_RANGE).getValue();
-	final Range durationRange = parameters.getParameter(PEAK_DURATION)
+	final Range<Double> mzRange = parameters.getParameter(MZ_RANGE)
 		.getValue();
+	final Range<Double> rtRange = parameters.getParameter(RT_RANGE)
+		.getValue();
+	final Range<Double> durationRange = parameters.getParameter(
+		PEAK_DURATION).getValue();
 
 	// Filter rows.
 	final PeakListRow[] rows = peakList.getRows();
@@ -227,7 +231,8 @@ public class RowsFilterTask extends AbstractTask {
 			    .getNumberOfDataPoints();
 		}
 
-		avgDuration += p.getRawDataPointsRTRange().getSize();
+		avgDuration += RangeUtils.rangeLength(p
+			.getRawDataPointsRTRange());
 	    }
 
 	    // Check isotope pattern count.

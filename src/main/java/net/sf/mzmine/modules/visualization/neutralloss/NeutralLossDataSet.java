@@ -29,26 +29,21 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.AbstractXYDataset;
 import org.jfree.data.xy.XYDataset;
 
-/**
- * 
- */
+import com.google.common.collect.Range;
+
 class NeutralLossDataSet extends AbstractXYDataset implements Task,
 	XYToolTipGenerator {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     private RawDataFile rawDataFile;
 
-    private Range totalMZRange;
+    private Range<Double> totalMZRange;
     private int numOfFragments;
     private Object xAxisType;
     private int scanNumbers[], totalScans, processedScans;
@@ -64,7 +59,7 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
     private static int NEUTRALLOSS_LEVEL = 2;
 
     NeutralLossDataSet(RawDataFile rawDataFile, Object xAxisType,
-	    Range rtRange, Range mzRange, int numOfFragments,
+	    Range<Double> rtRange, Range<Double> mzRange, int numOfFragments,
 	    NeutralLossVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
@@ -176,8 +171,8 @@ class NeutralLossDataSet extends AbstractXYDataset implements Task,
     public void updateOnRangeDataPoints(String rangeType) {
 
 	NeutralLossPlot plot = visualizer.getPlot();
-	Range prRange = plot.getHighlightedPrecursorRange();
-	Range nlRange = plot.getHighlightedNeutralLossRange();
+	Range<Double> prRange = plot.getHighlightedPrecursorRange();
+	Range<Double> nlRange = plot.getHighlightedNeutralLossRange();
 
 	// Set type of search
 	int level = NEUTRALLOSS_LEVEL;

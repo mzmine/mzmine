@@ -40,33 +40,33 @@ public class PeakListTableModel extends AbstractTableModel {
      * Constructor, assign given dataset to this table
      */
     public PeakListTableModel(PeakList peakList) {
-        this.peakList = peakList;
+	this.peakList = peakList;
 
     }
 
     public int getColumnCount() {
-        return CommonColumnType.values().length
-                + peakList.getNumberOfRawDataFiles()
-                * DataFileColumnType.values().length;
+	return CommonColumnType.values().length
+		+ peakList.getNumberOfRawDataFiles()
+		* DataFileColumnType.values().length;
     }
 
     public int getRowCount() {
-        return peakList.getNumberOfRows();
+	return peakList.getNumberOfRows();
     }
 
     public String getColumnName(int col) {
-        return "column" + col;
+	return "column" + col;
     }
 
     public Class<?> getColumnClass(int col) {
 
-        if (isCommonColumn(col)) {
-            CommonColumnType commonColumn = getCommonColumn(col);
-            return commonColumn.getColumnClass();
-        } else {
-            DataFileColumnType dataFileColumn = getDataFileColumn(col);
-            return dataFileColumn.getColumnClass();
-        }
+	if (isCommonColumn(col)) {
+	    CommonColumnType commonColumn = getCommonColumn(col);
+	    return commonColumn.getColumnClass();
+	} else {
+	    DataFileColumnType dataFileColumn = getDataFileColumn(col);
+	    return dataFileColumn.getColumnClass();
+	}
 
     }
 
@@ -77,138 +77,141 @@ public class PeakListTableModel extends AbstractTableModel {
 
     public Object getValueAt(int row, int col) {
 
-        PeakListRow peakListRow = peakList.getRow(row);
+	PeakListRow peakListRow = peakList.getRow(row);
 
-        if (isCommonColumn(col)) {
-            CommonColumnType commonColumn = getCommonColumn(col);
+	if (isCommonColumn(col)) {
+	    CommonColumnType commonColumn = getCommonColumn(col);
 
-            switch (commonColumn) {
-            case ROWID:
-                return new Integer(peakListRow.getID());
-            case AVERAGEMZ:
-                return new Double(peakListRow.getAverageMZ());
-            case AVERAGERT:
-                return new Double(peakListRow.getAverageRT());
-            case COMMENT:
-                return peakListRow.getComment();
-            case IDENTITY:
-                return peakListRow.getPreferredPeakIdentity();
-            case PEAKSHAPE:
-                return peakListRow;
-            }
+	    switch (commonColumn) {
+	    case ROWID:
+		return new Integer(peakListRow.getID());
+	    case AVERAGEMZ:
+		return new Double(peakListRow.getAverageMZ());
+	    case AVERAGERT:
+		return new Double(peakListRow.getAverageRT());
+	    case COMMENT:
+		return peakListRow.getComment();
+	    case IDENTITY:
+		return peakListRow.getPreferredPeakIdentity();
+	    case PEAKSHAPE:
+		return peakListRow;
+	    }
 
-        } else {
+	} else {
 
-            DataFileColumnType dataFileColumn = getDataFileColumn(col);
-            RawDataFile file = getColumnDataFile(col);
-            Feature peak = peakListRow.getPeak(file);
+	    DataFileColumnType dataFileColumn = getDataFileColumn(col);
+	    RawDataFile file = getColumnDataFile(col);
+	    Feature peak = peakListRow.getPeak(file);
 
-            if (peak == null) {
-                if (dataFileColumn == DataFileColumnType.STATUS)
-                    return FeatureStatus.UNKNOWN;
-                else
-                    return null;
-            }
+	    if (peak == null) {
+		if (dataFileColumn == DataFileColumnType.STATUS)
+		    return FeatureStatus.UNKNOWN;
+		else
+		    return null;
+	    }
 
-            switch (dataFileColumn) {
-            case STATUS:
-                return peak.getFeatureStatus();
-            case PEAKSHAPE:
-                return peak;
-            case MZ:
-                return new Double(peak.getMZ());
-            case RT:
-                return new Double(peak.getRT());
-            case HEIGHT:
-                return new Double(peak.getHeight());
-            case AREA:
-                return new Double(peak.getArea());
-            case DURATION:
-                return new Double(peak.getRawDataPointsRTRange().getSize());
-            case CHARGE:
-            	if (peak.getCharge() <= 0) return null;
-                return new Integer(peak.getCharge());
-            }
+	    switch (dataFileColumn) {
+	    case STATUS:
+		return peak.getFeatureStatus();
+	    case PEAKSHAPE:
+		return peak;
+	    case MZ:
+		return peak.getMZ();
+	    case RT:
+		return peak.getRT();
+	    case HEIGHT:
+		return peak.getHeight();
+	    case AREA:
+		return peak.getArea();
+	    case DURATION:
+		double rtLen = peak.getRawDataPointsRTRange().upperEndpoint()
+			- peak.getRawDataPointsRTRange().lowerEndpoint();
+		return rtLen;
+	    case CHARGE:
+		if (peak.getCharge() <= 0)
+		    return null;
+		return new Integer(peak.getCharge());
+	    }
 
-        }
+	}
 
-        return null;
+	return null;
 
     }
 
     public boolean isCellEditable(int row, int col) {
 
-        CommonColumnType columnType = getCommonColumn(col);
+	CommonColumnType columnType = getCommonColumn(col);
 
-        return ((columnType == CommonColumnType.COMMENT) || (columnType == CommonColumnType.IDENTITY));
+	return ((columnType == CommonColumnType.COMMENT) || (columnType == CommonColumnType.IDENTITY));
 
     }
 
     public void setValueAt(Object value, int row, int col) {
 
-        CommonColumnType columnType = getCommonColumn(col);
+	CommonColumnType columnType = getCommonColumn(col);
 
-        PeakListRow peakListRow = peakList.getRow(row);
+	PeakListRow peakListRow = peakList.getRow(row);
 
-        if (columnType == CommonColumnType.COMMENT) {
-            peakListRow.setComment((String) value);
-        }
+	if (columnType == CommonColumnType.COMMENT) {
+	    peakListRow.setComment((String) value);
+	}
 
-        if (columnType == CommonColumnType.IDENTITY) {
-            if (value instanceof PeakIdentity)
-                peakListRow.setPreferredPeakIdentity((PeakIdentity) value);
-        }
+	if (columnType == CommonColumnType.IDENTITY) {
+	    if (value instanceof PeakIdentity)
+		peakListRow.setPreferredPeakIdentity((PeakIdentity) value);
+	}
 
     }
 
     boolean isCommonColumn(int col) {
-        return col < CommonColumnType.values().length;
+	return col < CommonColumnType.values().length;
     }
 
     CommonColumnType getCommonColumn(int col) {
 
-        CommonColumnType commonColumns[] = CommonColumnType.values();
+	CommonColumnType commonColumns[] = CommonColumnType.values();
 
-        if (col < commonColumns.length)
-            return commonColumns[col];
+	if (col < commonColumns.length)
+	    return commonColumns[col];
 
-        return null;
+	return null;
 
     }
 
     DataFileColumnType getDataFileColumn(int col) {
 
-        CommonColumnType commonColumns[] = CommonColumnType.values();
-        DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
+	CommonColumnType commonColumns[] = CommonColumnType.values();
+	DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
 
-        if (col < commonColumns.length)
-            return null;
+	if (col < commonColumns.length)
+	    return null;
 
-        // substract common columns from the index
-        col -= commonColumns.length;
+	// substract common columns from the index
+	col -= commonColumns.length;
 
-        // divide by number of data file columns
-        col %= dataFileColumns.length;
+	// divide by number of data file columns
+	col %= dataFileColumns.length;
 
-        return dataFileColumns[col];
+	return dataFileColumns[col];
 
     }
 
     RawDataFile getColumnDataFile(int col) {
 
-        CommonColumnType commonColumns[] = CommonColumnType.values();
-        DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
+	CommonColumnType commonColumns[] = CommonColumnType.values();
+	DataFileColumnType dataFileColumns[] = DataFileColumnType.values();
 
-        if (col < commonColumns.length)
-            return null;
+	if (col < commonColumns.length)
+	    return null;
 
-        // substract common columns from the index
-        col -= commonColumns.length;
+	// substract common columns from the index
+	col -= commonColumns.length;
 
-        // divide by number of data file columns
-        int fileIndex = (col / dataFileColumns.length);
+	// divide by number of data file columns
+	int fileIndex = (col / dataFileColumns.length);
 
-        return peakList.getRawDataFile(fileIndex);
+	return peakList.getRawDataFile(fileIndex);
 
     }
 

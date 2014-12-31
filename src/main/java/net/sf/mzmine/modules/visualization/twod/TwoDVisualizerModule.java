@@ -30,7 +30,8 @@ import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * 2D visualizer using JFreeChart library
@@ -58,9 +59,9 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
 		TwoDParameters.dataFiles).getMatchingRawDataFiles();
 	int msLevel = parameters.getParameter(TwoDParameters.msLevel)
 		.getValue();
-	Range rtRange = parameters.getParameter(
+	Range<Double> rtRange = parameters.getParameter(
 		TwoDParameters.retentionTimeRange).getValue();
-	Range mzRange = parameters.getParameter(TwoDParameters.mzRange)
+	Range<Double> mzRange = parameters.getParameter(TwoDParameters.mzRange)
 		.getValue();
 	TwoDVisualizerWindow newWindow = new TwoDVisualizerWindow(dataFiles[0],
 		msLevel, rtRange, mzRange, parameters);
@@ -75,7 +76,7 @@ public class TwoDVisualizerModule implements MZmineRunnableModule {
     }
 
     public static void show2DVisualizerSetupDialog(RawDataFile dataFile,
-	    Range mzRange, Range rtRange) {
+	    Range<Double> mzRange, Range<Double> rtRange) {
 
 	ParameterSet parameters = MZmineCore.getConfiguration()
 		.getModuleParameters(TwoDVisualizerModule.class);

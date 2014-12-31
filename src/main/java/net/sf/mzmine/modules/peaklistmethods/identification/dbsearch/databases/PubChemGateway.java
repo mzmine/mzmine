@@ -34,11 +34,12 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.util.Range;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import com.google.common.collect.Range;
 
 public class PubChemGateway implements DBGateway {
 
@@ -55,7 +56,7 @@ public class PubChemGateway implements DBGateway {
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
 	    int numOfResults, ParameterSet parameters) throws IOException {
 
-	Range toleranceRange = mzTolerance.getToleranceRange(mass);
+	Range<Double> toleranceRange = mzTolerance.getToleranceRange(mass);
 
 	StringBuilder pubchemUrl = new StringBuilder();
 
@@ -63,9 +64,9 @@ public class PubChemGateway implements DBGateway {
 		.append("http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?usehistory=n&db=pccompound&sort=cida&retmax=");
 	pubchemUrl.append(numOfResults);
 	pubchemUrl.append("&term=");
-	pubchemUrl.append(toleranceRange.getMin());
+	pubchemUrl.append(toleranceRange.lowerEndpoint());
 	pubchemUrl.append(":");
-	pubchemUrl.append(toleranceRange.getMax());
+	pubchemUrl.append(toleranceRange.upperEndpoint());
 	pubchemUrl.append("[MonoisotopicMass]");
 
 	NodeList cidElements;

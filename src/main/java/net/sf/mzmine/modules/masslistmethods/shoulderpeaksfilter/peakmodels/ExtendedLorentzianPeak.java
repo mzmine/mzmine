@@ -19,8 +19,9 @@
 
 package net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakmodels;
 
-import net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection.exactmass.PeakModel;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.PeakModel;
+
+import com.google.common.collect.Range;
 
 /**
  * 
@@ -46,55 +47,55 @@ public class ExtendedLorentzianPeak implements PeakModel {
     public static final double shoulderResolutionRatio = 0.05;
 
     private LorentzianPeak mainPeak, shoulderPeak;
-    private Range mainPeakRange;
+    private Range<Double> mainPeakRange;
     private double shoulderIntensity;
 
     public ExtendedLorentzianPeak() {
-        mainPeak = new LorentzianPeak();
-        shoulderPeak = new LorentzianPeak();
+	mainPeak = new LorentzianPeak();
+	shoulderPeak = new LorentzianPeak();
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
+     * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.massdetection.exactmass.peakmodel.PeakModel#setParameters(double,
      *      double, double)
      */
     public void setParameters(double mzMain, double intensityMain,
-            double resolution) {
+	    double resolution) {
 
-        mainPeak.setParameters(mzMain, intensityMain, resolution);
-        shoulderPeak.setParameters(mzMain, intensityMain
-                * shoulderIntensityRatio, resolution * shoulderResolutionRatio);
+	mainPeak.setParameters(mzMain, intensityMain, resolution);
+	shoulderPeak.setParameters(mzMain, intensityMain
+		* shoulderIntensityRatio, resolution * shoulderResolutionRatio);
 
-        this.shoulderIntensity = intensityMain * shoulderIntensityRatio;
-        this.mainPeakRange = mainPeak.getWidth(shoulderIntensity);
+	this.shoulderIntensity = intensityMain * shoulderIntensityRatio;
+	this.mainPeakRange = mainPeak.getWidth(shoulderIntensity);
 
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
+     * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getBasePeakWidth()
      */
-    public Range getWidth(double partialIntensity) {
+    public Range<Double> getWidth(double partialIntensity) {
 
-        // The height value must be bigger than zero.
-        if (partialIntensity <= 0)
-            return new Range(0, Double.MAX_VALUE);
+	// The height value must be bigger than zero.
+	if (partialIntensity <= 0)
+	    return Range.atLeast(0.0);
 
-        if (partialIntensity < shoulderIntensity)
-            return shoulderPeak.getWidth(partialIntensity);
-        else
-            return mainPeak.getWidth(partialIntensity);
+	if (partialIntensity < shoulderIntensity)
+	    return shoulderPeak.getWidth(partialIntensity);
+	else
+	    return mainPeak.getWidth(partialIntensity);
 
     }
 
     /**
-     * @see net.sf.mzmine.modules.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
+     * @see net.sf.mzmine.modules.masslistmethods.shoulderpeaksfilter.peakpicking.twostep.peakmodel.PeakModel#getIntensity(double)
      */
     public double getIntensity(double mz) {
 
-        if (mainPeakRange.contains(mz))
-            return mainPeak.getIntensity(mz);
-        else
-            return shoulderPeak.getIntensity(mz);
+	if (mainPeakRange.contains(mz))
+	    return mainPeak.getIntensity(mz);
+	else
+	    return shoulderPeak.getIntensity(mz);
 
     }
 

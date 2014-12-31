@@ -41,8 +41,8 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
-import net.sf.mzmine.util.Range;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 /**
@@ -64,7 +64,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     // Name of this raw data file - may be changed by the user
     private String dataFileName;
 
-    private final Hashtable<Integer, Range> dataMZRange, dataRTRange;
+    private final Hashtable<Integer, Range<Double>> dataMZRange, dataRTRange;
     private final Hashtable<Integer, Double> dataMaxBasePeakIntensity,
 	    dataMaxTIC;
     private final Hashtable<Integer, int[]> scanNumbersCache;
@@ -88,8 +88,8 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 
 	// Prepare the hashtables for scan numbers and data limits.
 	scanNumbersCache = new Hashtable<Integer, int[]>();
-	dataMZRange = new Hashtable<Integer, Range>();
-	dataRTRange = new Hashtable<Integer, Range>();
+	dataMZRange = new Hashtable<Integer, Range<Double>>();
+	dataRTRange = new Hashtable<Integer, Range<Double>>();
 	dataMaxBasePeakIntensity = new Hashtable<Integer, Double>();
 	dataMaxTIC = new Hashtable<Integer, Double>();
 	scans = new Hashtable<Integer, StorableScan>();
@@ -152,29 +152,28 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.datamodel.RawDataFile#getScan(int)
      */
-    public @Nonnull
-    Scan getScan(int scanNumber) {
+    public @Nonnull Scan getScan(int scanNumber) {
 	return scans.get(scanNumber);
     }
 
     /**
      * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers(int)
      */
-    public @Nonnull
-    int[] getScanNumbers(int msLevel) {
+    public @Nonnull int[] getScanNumbers(int msLevel) {
 	if (scanNumbersCache.containsKey(msLevel))
 	    return scanNumbersCache.get(msLevel);
-	int scanNumbers[] = getScanNumbers(msLevel, new Range(
-		Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
+	Range<Double> all = Range.all();
+	int scanNumbers[] = getScanNumbers(msLevel, all);
 	scanNumbersCache.put(msLevel, scanNumbers);
 	return scanNumbers;
     }
 
     /**
-     * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers(int, double, double)
+     * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers(int, double,
+     *      double)
      */
-    public @Nonnull
-    int[] getScanNumbers(int msLevel, @Nonnull Range rtRange) {
+    public @Nonnull int[] getScanNumbers(int msLevel,
+	    @Nonnull Range<Double> rtRange) {
 
 	assert rtRange != null;
 
@@ -198,8 +197,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.datamodel.RawDataFile#getScanNumbers()
      */
-    public @Nonnull
-    int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 
 	if (scanNumbersCache.containsKey(0))
 	    return scanNumbersCache.get(0);
@@ -217,8 +215,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
     /**
      * @see net.sf.mzmine.datamodel.RawDataFile#getMSLevels()
      */
-    public @Nonnull
-    int[] getMSLevels() {
+    public @Nonnull int[] getMSLevels() {
 
 	Set<Integer> msLevelsSet = new HashSet<Integer>();
 
@@ -424,18 +421,16 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	return this;
     }
 
-    public @Nonnull
-    Range getDataMZRange() {
+    public @Nonnull Range<Double> getDataMZRange() {
 	return getDataMZRange(0);
     }
 
-    public @Nonnull
-    Range getDataMZRange(int msLevel) {
+    public @Nonnull Range<Double> getDataMZRange(int msLevel) {
 
 	// check if we have this value already cached
-	Range mzRange = dataMZRange.get(msLevel);
+	Range<Double> mzRange = dataMZRange.get(msLevel);
 	if (mzRange != null)
-	    return new Range(mzRange);
+	    return mzRange;
 
 	// find the value
 	for (Scan scan : scans.values()) {
@@ -447,7 +442,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	    if (mzRange == null)
 		mzRange = scan.getMZRange();
 	    else
-		mzRange.extendRange(scan.getMZRange());
+		mzRange = mzRange.span(scan.getMZRange());
 
 	}
 
@@ -455,24 +450,22 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	if (mzRange != null)
 	    dataMZRange.put(msLevel, mzRange);
 	else
-	    mzRange = new Range(0);
+	    mzRange = Range.singleton(0.0);
 
-	return new Range(mzRange);
+	return mzRange;
 
     }
 
-    public @Nonnull
-    Range getDataRTRange() {
+    public @Nonnull Range<Double> getDataRTRange() {
 	return getDataRTRange(0);
     }
 
-    public @Nonnull
-    Range getDataRTRange(int msLevel) {
+    public @Nonnull Range<Double> getDataRTRange(int msLevel) {
 
 	// check if we have this value already cached
-	Range rtRange = dataRTRange.get(msLevel);
+	Range<Double> rtRange = dataRTRange.get(msLevel);
 	if (rtRange != null)
-	    return new Range(rtRange);
+	    return rtRange;
 
 	// find the value
 	for (Scan scan : scans.values()) {
@@ -482,9 +475,10 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 		continue;
 
 	    if (rtRange == null)
-		rtRange = new Range(scan.getRetentionTime());
+		rtRange = Range.singleton(scan.getRetentionTime());
 	    else
-		rtRange.extendRange(scan.getRetentionTime());
+		rtRange = rtRange
+			.span(Range.singleton(scan.getRetentionTime()));
 
 	}
 
@@ -492,18 +486,17 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	if (rtRange != null)
 	    dataRTRange.put(msLevel, rtRange);
 	else
-	    rtRange = new Range(0);
+	    rtRange = Range.singleton(0.0);
 
-	// clone the range, because it is mutable
-	return new Range(rtRange);
+	return rtRange;
 
     }
 
-    public void setRTRange(int msLevel, Range rtRange) {
+    public void setRTRange(int msLevel, Range<Double> rtRange) {
 	dataRTRange.put(msLevel, rtRange);
     }
 
-    public void setMZRange(int msLevel, Range mzRange) {
+    public void setMZRange(int msLevel, Range<Double> mzRange) {
 	dataMZRange.put(msLevel, mzRange);
     }
 
@@ -529,8 +522,7 @@ public class RawDataFileImpl implements RawDataFile, RawDataFileWriter {
 	}
     }
 
-    public @Nonnull
-    String getName() {
+    public @Nonnull String getName() {
 	return dataFileName;
     }
 

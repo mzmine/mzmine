@@ -23,24 +23,26 @@ import java.text.NumberFormat;
 import java.util.Collection;
 
 import net.sf.mzmine.parameters.UserParameter;
-import net.sf.mzmine.util.Range;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-public class RangeParameter implements UserParameter<Range, RangeComponent> {
+import com.google.common.collect.Range;
+
+public class RangeParameter implements
+	UserParameter<Range<Double>, RangeComponent> {
 
     private String name, description;
     private NumberFormat format;
-    private Range value;
+    private Range<Double> value;
 
     public RangeParameter(String name, String description, NumberFormat format) {
 	this(name, description, format, null);
     }
 
     public RangeParameter(String name, String description, NumberFormat format,
-	    Range defaultValue) {
+	    Range<Double> defaultValue) {
 	this.name = name;
 	this.description = description;
 	this.format = format;
@@ -68,12 +70,12 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 	return new RangeComponent(format);
     }
 
-    public Range getValue() {
+    public Range<Double> getValue() {
 	return value;
     }
 
     @Override
-    public void setValue(Range value) {
+    public void setValue(Range<Double> value) {
 	this.value = value;
     }
 
@@ -90,7 +92,8 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
     }
 
     @Override
-    public void setValueToComponent(RangeComponent component, Range newValue) {
+    public void setValueToComponent(RangeComponent component,
+	    Range<Double> newValue) {
 	component.setValue(newValue);
     }
 
@@ -106,7 +109,7 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 	String maxText = maxNodes.item(0).getTextContent();
 	double min = Double.valueOf(minText);
 	double max = Double.valueOf(maxText);
-	value = new Range(min, max);
+	value = Range.closed(min, max);
     }
 
     @Override
@@ -115,10 +118,10 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 	    return;
 	Document parentDocument = xmlElement.getOwnerDocument();
 	Element newElement = parentDocument.createElement("min");
-	newElement.setTextContent(String.valueOf(value.getMin()));
+	newElement.setTextContent(String.valueOf(value.lowerEndpoint()));
 	xmlElement.appendChild(newElement);
 	newElement = parentDocument.createElement("max");
-	newElement.setTextContent(String.valueOf(value.getMax()));
+	newElement.setTextContent(String.valueOf(value.upperEndpoint()));
 	xmlElement.appendChild(newElement);
     }
 
@@ -128,7 +131,7 @@ public class RangeParameter implements UserParameter<Range, RangeComponent> {
 	    errorMessages.add(name + " is not set properly");
 	    return false;
 	}
-	if (value.getMin() == value.getMax()) {
+	if (value.lowerEndpoint() == value.upperEndpoint()) {
 	    errorMessages.add(name
 		    + " range maximum must be higher than minimum");
 	    return false;

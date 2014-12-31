@@ -16,7 +16,7 @@
  * MZmine 2; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
-package net.sf.mzmine.modules.rawdatamethods.targetedpeakdetection;
+package net.sf.mzmine.modules.rawdatamethods.peakpicking.targetedpeakdetection;
 
 import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;

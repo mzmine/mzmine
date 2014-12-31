@@ -32,17 +32,15 @@ import net.sf.mzmine.desktop.impl.WindowsMenu;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.dialogs.AxesSetupDialog;
+
+import com.google.common.collect.Range;
 
 /**
  * 2D visualizer using JFreeChart library
  */
 public class TwoDVisualizerWindow extends JFrame implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private TwoDToolBar toolBar;
     private TwoDPlot twoDPlot;
@@ -54,7 +52,7 @@ public class TwoDVisualizerWindow extends JFrame implements ActionListener {
     private boolean logScale;
 
     public TwoDVisualizerWindow(RawDataFile dataFile, int msLevel,
-	    Range rtRange, Range mzRange, ParameterSet parameters) {
+	    Range<Double> rtRange, Range<Double> mzRange, ParameterSet parameters) {
 
 	super("2D view: [" + dataFile.getName() + "]");
 

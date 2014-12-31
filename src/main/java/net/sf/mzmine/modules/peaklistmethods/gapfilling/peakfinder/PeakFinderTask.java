@@ -38,7 +38,8 @@ import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 class PeakFinderTask extends AbstractTask {
 
@@ -139,10 +140,10 @@ class PeakFinderTask extends AbstractTask {
 
 			// Create a new gap
 
-			Range mzRange = mzTolerance.getToleranceRange(sourceRow
-				.getAverageMZ());
-			Range rtRange = rtTolerance.getToleranceRange(sourceRow
-				.getAverageRT());
+			Range<Double> mzRange = mzTolerance
+				.getToleranceRange(sourceRow.getAverageMZ());
+			Range<Double> rtRange = rtTolerance
+				.getToleranceRange(sourceRow.getAverageRT());
 
 			Gap newGap = new Gap(newRow, dataFile, mzRange,
 				rtRange, intTolerance);
@@ -276,9 +277,9 @@ class PeakFinderTask extends AbstractTask {
 
 			    if (rt != -1) {
 
-				Range mzRange = mzTolerance
+				Range<Double> mzRange = mzTolerance
 					.getToleranceRange(mz);
-				Range rtRange = rtTolerance
+				Range<Double> rtRange = rtTolerance
 					.getToleranceRange(rt);
 
 				Gap newGap = new Gap(newRow, datafile1,

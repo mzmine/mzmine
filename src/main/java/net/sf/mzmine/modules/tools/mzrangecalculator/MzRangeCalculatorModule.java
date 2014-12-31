@@ -29,7 +29,8 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.util.ExitCode;
 import net.sf.mzmine.util.FormulaUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * m/z range calculator module. Calculates m/z range from a given chemical
@@ -54,7 +55,7 @@ public class MzRangeCalculatorModule implements MZmineModule {
      * return null in case user clicked Cancel.
      */
     @Nullable
-    public static Range showRangeCalculationDialog() {
+    public static Range<Double> showRangeCalculationDialog() {
 
 	ParameterSet myParameters = MZmineCore.getConfiguration()
 		.getModuleParameters(MzRangeCalculatorModule.class);
@@ -85,7 +86,7 @@ public class MzRangeCalculatorModule implements MZmineModule {
 	double calculatedMZ = FormulaUtils.calculateExactMass(ionizedFormula,
 		charge) / charge;
 
-	Range mzRange = mzTolerance.getToleranceRange(calculatedMZ);
+	Range<Double> mzRange = mzTolerance.getToleranceRange(calculatedMZ);
 
 	return mzRange;
     }

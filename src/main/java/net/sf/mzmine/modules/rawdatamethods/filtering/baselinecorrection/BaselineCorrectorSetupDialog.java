@@ -47,11 +47,12 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+
+import com.google.common.collect.Range;
 
 /**
  * @description This class extends ParameterSetupDialogWithChromatogramPreview
@@ -171,8 +172,7 @@ public class BaselineCorrectorSetupDialog extends
 
 	private TICPlot ticPlot;
 	private RawDataFile dataFile;
-	private Range rtRange;
-	private Range mzRange;
+	private Range<Double> rtRange, mzRange;
 	private BaselineCorrectorSetupDialog dialog;
 	private ProgressThread progressThread;
 
@@ -180,8 +180,8 @@ public class BaselineCorrectorSetupDialog extends
 	private boolean userCanceled;
 
 	public PreviewTask(BaselineCorrectorSetupDialog dialog,
-		TICPlot ticPlot, RawDataFile dataFile, Range rtRange,
-		Range mzRange) {
+		TICPlot ticPlot, RawDataFile dataFile, Range<Double> rtRange,
+		Range<Double> mzRange) {
 
 	    this.dialog = dialog;
 	    this.ticPlot = ticPlot;
@@ -407,7 +407,7 @@ public class BaselineCorrectorSetupDialog extends
      */
     @Override
     protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
-	    Range rtRange, Range mzRange) {
+	    Range<Double> rtRange, Range<Double> mzRange) {
 
 	boolean ready = true;
 	// Abort previous preview task.

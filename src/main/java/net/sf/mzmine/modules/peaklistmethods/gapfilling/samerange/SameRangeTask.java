@@ -38,8 +38,10 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 class SameRangeTask extends AbstractTask {
 
@@ -153,7 +155,7 @@ class SameRangeTask extends AbstractTask {
 
 	SameRangePeak newPeak = new SameRangePeak(column);
 
-	Range mzRange = null, rtRange = null;
+	Range<Double> mzRange = null, rtRange = null;
 
 	// Check the peaks for selected data files
 	for (RawDataFile dataFile : row.getRawDataFiles()) {
@@ -161,18 +163,18 @@ class SameRangeTask extends AbstractTask {
 	    if (peak == null)
 		continue;
 	    if ((mzRange == null) || (rtRange == null)) {
-		mzRange = new Range(peak.getRawDataPointsMZRange());
-		rtRange = new Range(peak.getRawDataPointsRTRange());
+		mzRange = peak.getRawDataPointsMZRange();
+		rtRange = peak.getRawDataPointsRTRange();
 	    } else {
-		mzRange.extendRange(peak.getRawDataPointsMZRange());
-		rtRange.extendRange(peak.getRawDataPointsRTRange());
+		mzRange = mzRange.span(peak.getRawDataPointsMZRange());
+		rtRange = rtRange.span(peak.getRawDataPointsRTRange());
 	    }
 	}
 
 	assert mzRange != null;
 	assert rtRange != null;
 
-	Range mzRangeWithTol = new Range(mzTolerance.getToleranceRange(mzRange));
+	Range<Double> mzRangeWithTol = mzTolerance.getToleranceRange(mzRange);
 
 	// Get scan numbers
 	int[] scanNumbers = column.getScanNumbers(1, rtRange);
@@ -196,7 +198,7 @@ class SameRangeTask extends AbstractTask {
 		newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 	    } else {
 		DataPoint fakeDataPoint = new SimpleDataPoint(
-			mzRangeWithTol.getAverage(), 0);
+			RangeUtils.rangeCenter(mzRangeWithTol), 0);
 		newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 	    }
 

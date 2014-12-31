@@ -35,8 +35,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.peaklist.table.PeakListTable;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 class ManualPickerTask extends AbstractTask {
 
@@ -48,7 +49,7 @@ class ManualPickerTask extends AbstractTask {
     private PeakList peakList;
     private PeakListRow peakListRow;
     private RawDataFile dataFiles[];
-    private Range rtRange, mzRange;
+    private Range<Double> rtRange, mzRange;
 
     ManualPickerTask(PeakListRow peakListRow, RawDataFile dataFiles[],
 	    ManualPickerParameters parameters, PeakList peakList,
@@ -113,8 +114,9 @@ class ManualPickerTask extends AbstractTask {
 			dataPointFound = true;
 		    newPeak.addDatapoint(scan.getScanNumber(), basePeak);
 		} else {
-		    DataPoint fakeDataPoint = new SimpleDataPoint(
-			    mzRange.getAverage(), 0);
+		    final double mzCenter = (mzRange.lowerEndpoint() + mzRange
+			    .upperEndpoint()) / 2.0;
+		    DataPoint fakeDataPoint = new SimpleDataPoint(mzCenter, 0);
 		    newPeak.addDatapoint(scan.getScanNumber(), fakeDataPoint);
 		}
 

@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.util.Range;
+import com.google.common.collect.Range;
 
 /**
  * This class represents m/z tolerance. Tolerance is set using absolute (m/z)
@@ -36,43 +36,46 @@ public class MZTolerance {
     private final double ppmTolerance;
 
     public MZTolerance(final double toleranceMZ, final double tolerancePPM) {
-        mzTolerance = toleranceMZ;
-        ppmTolerance = tolerancePPM;
+	mzTolerance = toleranceMZ;
+	ppmTolerance = tolerancePPM;
     }
 
     public double getMzTolerance() {
-        return mzTolerance;
+	return mzTolerance;
     }
 
     public double getPpmTolerance() {
-        return ppmTolerance;
+	return ppmTolerance;
     }
 
     private double getMzToleranceForMass(final double mzValue) {
-        return Math.max(mzTolerance, mzValue / MILLION * ppmTolerance);
+	return Math.max(mzTolerance, mzValue / MILLION * ppmTolerance);
     }
 
     public double getPpmToleranceForMass(final double mzValue) {
-        return Math.max(ppmTolerance, mzTolerance / (mzValue / MILLION));
+	return Math.max(ppmTolerance, mzTolerance / (mzValue / MILLION));
     }
 
-    public Range getToleranceRange(final double mzValue) {
-        final double absoluteTolerance = getMzToleranceForMass(mzValue);
-        return new Range(mzValue - absoluteTolerance,
-                         mzValue + absoluteTolerance);
+    public Range<Double> getToleranceRange(final double mzValue) {
+	final double absoluteTolerance = getMzToleranceForMass(mzValue);
+	return Range.closed(mzValue - absoluteTolerance, mzValue
+		+ absoluteTolerance);
     }
 
-    public Range getToleranceRange(final Range mzRange) {
-        return new Range(mzRange.getMin() - getMzToleranceForMass(mzRange.getMin()),
-                         mzRange.getMax() + getMzToleranceForMass(mzRange.getMax()));
+    public Range<Double> getToleranceRange(final Range<Double> mzRange) {
+	return Range.closed(
+		mzRange.lowerEndpoint()
+			- getMzToleranceForMass(mzRange.lowerEndpoint()),
+		mzRange.upperEndpoint()
+			+ getMzToleranceForMass(mzRange.upperEndpoint()));
     }
 
     public boolean checkWithinTolerance(final double mz1, final double mz2) {
-        return getToleranceRange(mz1).contains(mz2);
+	return getToleranceRange(mz1).contains(mz2);
     }
 
     @Override
     public String toString() {
-        return mzTolerance + " m/z or " + ppmTolerance + " ppm";
+	return mzTolerance + " m/z or " + ppmTolerance + " ppm";
     }
 }

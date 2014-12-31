@@ -29,7 +29,8 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.datasetfilters.RawDataSetFilter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class CropFilter implements RawDataSetFilter {
 
@@ -39,7 +40,7 @@ public class CropFilter implements RawDataSetFilter {
 	    RawDataFileWriter rawDataFileWriter, ParameterSet parameters)
 	    throws IOException {
 
-	Range RTRange = parameters.getParameter(
+	Range<Double> RTRange = parameters.getParameter(
 		CropFilterParameters.retentionTimeRange).getValue();
 
 	int[] scanNumbers = dataFile.getScanNumbers();

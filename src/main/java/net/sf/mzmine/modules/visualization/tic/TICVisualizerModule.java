@@ -33,7 +33,8 @@ import net.sf.mzmine.modules.MZmineRunnableModule;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.util.ExitCode;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * TIC/XIC visualizer using JFreeChart library
@@ -61,9 +62,9 @@ public class TICVisualizerModule implements MZmineRunnableModule {
 		TICVisualizerParameters.DATA_FILES).getMatchingRawDataFiles();
 	final int msLevel = parameters.getParameter(
 		TICVisualizerParameters.MS_LEVEL).getValue();
-	final Range rtRange = parameters.getParameter(
+	final Range<Double> rtRange = parameters.getParameter(
 		TICVisualizerParameters.RT_RANGE).getValue();
-	final Range mzRange = parameters.getParameter(
+	final Range<Double> mzRange = parameters.getParameter(
 		TICVisualizerParameters.MZ_RANGE).getValue();
 	final PlotType plotType = parameters.getParameter(
 		TICVisualizerParameters.PLOT_TYPE).getValue();
@@ -111,8 +112,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
     public static void setupNewTICVisualizer(final RawDataFile[] allFiles,
 	    final RawDataFile[] selectedFiles, final Feature[] allPeaks,
 	    final Feature[] selectedPeaks,
-	    final Map<Feature, String> peakLabels, final Range rtRange,
-	    final Range mzRange) {
+	    final Map<Feature, String> peakLabels, final Range<Double> rtRange,
+	    final Range<Double> mzRange) {
 
 	assert allFiles != null;
 
@@ -155,7 +156,7 @@ public class TICVisualizerModule implements MZmineRunnableModule {
     public static void showNewTICVisualizerWindow(
 	    final RawDataFile[] dataFiles, final Feature[] selectionPeaks,
 	    final Map<Feature, String> peakLabels, final int msLevel,
-	    final PlotType plotType, final Range rtRange, final Range mzRange) {
+	    final PlotType plotType, final Range<Double> rtRange, final Range<Double> mzRange) {
 
 	TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
 		plotType, msLevel, rtRange, mzRange, selectionPeaks, peakLabels);

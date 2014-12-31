@@ -27,8 +27,9 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
 import net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.ScanFilter;
 import net.sf.mzmine.parameters.ParameterSet;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 public class ResampleFilter implements ScanFilter {
 
@@ -37,9 +38,9 @@ public class ResampleFilter implements ScanFilter {
 	double binSize = parameters.getParameter(
 		ResampleFilterParameters.binSize).getValue();
 
-	Range mzRange = scan.getMZRange();
-	int numberOfBins = (int) Math.round((mzRange.getMax() - mzRange
-		.getMin()) / binSize);
+	Range<Double> mzRange = scan.getMZRange();
+	int numberOfBins = (int) Math.round((mzRange.upperEndpoint() - mzRange
+		.lowerEndpoint()) / binSize);
 	if (numberOfBins == 0) {
 	    numberOfBins++;
 	}
@@ -58,7 +59,7 @@ public class ResampleFilter implements ScanFilter {
 	SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
 
 	// set the new m/z value in the middle of the bin
-	double newX = mzRange.getMin() + binSize / 2.0;
+	double newX = mzRange.lowerEndpoint() + binSize / 2.0;
 	// creates new DataPoints
 	for (int i = 0; i < newY.length; i++) {
 	    newPoints[i] = new SimpleDataPoint(newX, newY[i]);

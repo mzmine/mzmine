@@ -31,11 +31,12 @@ import net.sf.mzmine.taskcontrol.Task;
 import net.sf.mzmine.taskcontrol.TaskPriority;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.DataPointSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
 
 import org.jfree.data.xy.AbstractXYDataset;
+
+import com.google.common.collect.Range;
 
 /**
  * 
@@ -53,14 +54,14 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
     private double basePeaks[];
     private SoftReference<DataPoint[]> dataPointMatrix[];
 
-    private Range totalRTRange, totalMZRange;
+    private Range<Double> totalRTRange, totalMZRange;
     private int scanNumbers[], totalScans, processedScans;
 
     private TaskStatus status = TaskStatus.WAITING;
 
     @SuppressWarnings("unchecked")
-    TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range rtRange,
-	    Range mzRange, TwoDVisualizerWindow visualizer) {
+    TwoDDataSet(RawDataFile rawDataFile, int msLevel, Range<Double> rtRange,
+	    Range<Double> mzRange, TwoDVisualizerWindow visualizer) {
 
 	this.rawDataFile = rawDataFile;
 
@@ -133,9 +134,9 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
      */
     public Number getX(int series, int item) {
 	if (series == 0)
-	    return totalRTRange.getMin();
+	    return totalRTRange.lowerEndpoint();
 	else
-	    return totalRTRange.getMax();
+	    return totalRTRange.upperEndpoint();
     }
 
     /**
@@ -143,12 +144,13 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
      */
     public Number getY(int series, int item) {
 	if (item == 0)
-	    return totalMZRange.getMin();
+	    return totalMZRange.lowerEndpoint();
 	else
-	    return totalMZRange.getMax();
+	    return totalMZRange.upperEndpoint();
     }
 
-    double getMaxIntensity(Range rtRange, Range mzRange, PlotMode plotMode) {
+    double upperEndpointIntensity(Range<Double> rtRange, Range<Double> mzRange,
+	    PlotMode plotMode) {
 
 	double maxIntensity = 0;
 
@@ -160,7 +162,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	}
 
 	int startScanIndex = Arrays.binarySearch(searchRetentionTimes,
-		rtRange.getMin());
+		rtRange.lowerEndpoint());
 
 	if (startScanIndex < 0)
 	    startScanIndex = (startScanIndex * -1) - 1;
@@ -169,33 +171,36 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	    return 0;
 	}
 
-	if (searchRetentionTimes[startScanIndex] > rtRange.getMax()) {
+	if (searchRetentionTimes[startScanIndex] > rtRange.upperEndpoint()) {
 	    if (startScanIndex == 0)
 		return 0;
 
 	    if (startScanIndex == searchRetentionTimes.length - 1)
-		return getMaxIntensity(startScanIndex - 1, mzRange, plotMode);
+		return upperEndpointIntensity(startScanIndex - 1, mzRange,
+			plotMode);
 
 	    // find which scan point is closer
 	    double diffNext = searchRetentionTimes[startScanIndex]
-		    - rtRange.getMax();
-	    double diffPrev = rtRange.getMin()
+		    - rtRange.upperEndpoint();
+	    double diffPrev = rtRange.lowerEndpoint()
 		    - searchRetentionTimes[startScanIndex - 1];
 
 	    if (diffPrev < diffNext)
-		return getMaxIntensity(startScanIndex - 1, mzRange, plotMode);
+		return upperEndpointIntensity(startScanIndex - 1, mzRange,
+			plotMode);
 	    else
-		return getMaxIntensity(startScanIndex, mzRange, plotMode);
+		return upperEndpointIntensity(startScanIndex, mzRange, plotMode);
 	}
 
 	for (int scanIndex = startScanIndex; ((scanIndex < searchRetentionTimes.length) && (searchRetentionTimes[scanIndex] <= rtRange
-		.getMax())); scanIndex++) {
+		.upperEndpoint())); scanIndex++) {
 
 	    // ignore scans where all peaks are smaller than current max
 	    if (basePeaks[scanIndex] < maxIntensity)
 		continue;
 
-	    double scanMax = getMaxIntensity(scanIndex, mzRange, plotMode);
+	    double scanMax = upperEndpointIntensity(scanIndex, mzRange,
+		    plotMode);
 
 	    if (scanMax > maxIntensity)
 		maxIntensity = scanMax;
@@ -206,8 +211,8 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
     }
 
-    private double getMaxIntensity(int dataPointMatrixIndex, Range mzRange,
-	    PlotMode plotMode) {
+    private double upperEndpointIntensity(int dataPointMatrixIndex,
+	    Range<Double> mzRange, PlotMode plotMode) {
 	DataPoint dataPoints[] = dataPointMatrix[dataPointMatrixIndex].get();
 	if (dataPoints == null) {
 	    Scan scan = rawDataFile.getScan(scanNumbers[dataPointMatrixIndex]);
@@ -215,15 +220,15 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	    dataPointMatrix[dataPointMatrixIndex] = new SoftReference<DataPoint[]>(
 		    dataPoints);
 	}
-	return getMaxIntensity(dataPoints, mzRange, plotMode);
+	return upperEndpointIntensity(dataPoints, mzRange, plotMode);
     }
 
-    private double getMaxIntensity(DataPoint dataPoints[], Range mzRange,
-	    PlotMode plotMode) {
+    private double upperEndpointIntensity(DataPoint dataPoints[],
+	    Range<Double> mzRange, PlotMode plotMode) {
 
 	double maxIntensity = 0;
 
-	DataPoint searchMZ = new SimpleDataPoint(mzRange.getMin(), 0);
+	DataPoint searchMZ = new SimpleDataPoint(mzRange.lowerEndpoint(), 0);
 	int startMZIndex = Arrays.binarySearch(dataPoints, searchMZ,
 		new DataPointSorter(SortingProperty.MZ,
 			SortingDirection.Ascending));
@@ -233,7 +238,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	if (startMZIndex >= dataPoints.length)
 	    return 0;
 
-	if (dataPoints[startMZIndex].getMZ() > mzRange.getMax()) {
+	if (dataPoints[startMZIndex].getMZ() > mzRange.upperEndpoint()) {
 	    if (plotMode != PlotMode.CENTROID) {
 		if (startMZIndex == 0)
 		    return 0;
@@ -242,8 +247,8 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 
 		// find which data point is closer
 		double diffNext = dataPoints[startMZIndex].getMZ()
-			- mzRange.getMax();
-		double diffPrev = mzRange.getMin()
+			- mzRange.upperEndpoint();
+		double diffPrev = mzRange.lowerEndpoint()
 			- dataPoints[startMZIndex - 1].getMZ();
 
 		if (diffPrev < diffNext)
@@ -257,7 +262,7 @@ class TwoDDataSet extends AbstractXYDataset implements Task {
 	}
 
 	for (int mzIndex = startMZIndex; ((mzIndex < dataPoints.length) && (dataPoints[mzIndex]
-		.getMZ() <= mzRange.getMax())); mzIndex++) {
+		.getMZ() <= mzRange.upperEndpoint())); mzIndex++) {
 	    if (dataPoints[mzIndex].getIntensity() > maxIntensity)
 		maxIntensity = dataPoints[mzIndex].getIntensity();
 	}

@@ -29,7 +29,8 @@ import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class TrianglePeakModel implements Feature {
 
@@ -43,7 +44,7 @@ public class TrianglePeakModel implements Feature {
     private RawDataFile rawDataFile;
     private FeatureStatus status;
     private int representativeScan = -1, fragmentScan = -1;
-    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+    private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
     private TreeMap<Integer, DataPoint> dataPointsMap;
 
@@ -56,8 +57,7 @@ public class TrianglePeakModel implements Feature {
 	return area;
     }
 
-    public @Nonnull
-    RawDataFile getDataFile() {
+    public @Nonnull RawDataFile getDataFile() {
 	return rawDataFile;
     }
 
@@ -77,8 +77,7 @@ public class TrianglePeakModel implements Feature {
 	return dataPointsMap.get(scanNumber);
     }
 
-    public @Nonnull
-    FeatureStatus getFeatureStatus() {
+    public @Nonnull FeatureStatus getFeatureStatus() {
 	return status;
     }
 
@@ -86,18 +85,15 @@ public class TrianglePeakModel implements Feature {
 	return rt;
     }
 
-    public @Nonnull
-    Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public @Nonnull
-    Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 
@@ -105,8 +101,7 @@ public class TrianglePeakModel implements Feature {
 	return representativeScan;
     }
 
-    public @Nonnull
-    int[] getScanNumbers() {
+    public @Nonnull int[] getScanNumbers() {
 	return scanNumbers;
     }
 
@@ -122,9 +117,8 @@ public class TrianglePeakModel implements Feature {
 	this.isotopePattern = isotopePattern;
     }
 
-    public TrianglePeakModel(Feature originalDetectedShape,
-	    int[] scanNumbers, double[] intensities, double[] retentionTimes,
-	    double resolution) {
+    public TrianglePeakModel(Feature originalDetectedShape, int[] scanNumbers,
+	    double[] intensities, double[] retentionTimes, double resolution) {
 
 	height = originalDetectedShape.getHeight();
 	rt = originalDetectedShape.getRT();
@@ -132,13 +126,10 @@ public class TrianglePeakModel implements Feature {
 	this.scanNumbers = scanNumbers;
 	rawDataFile = originalDetectedShape.getDataFile();
 
-	// Create a copy of the mutable properties
-	rawDataPointsIntensityRange = new Range(
-		originalDetectedShape.getRawDataPointsIntensityRange());
-	rawDataPointsMZRange = new Range(
-		originalDetectedShape.getRawDataPointsMZRange());
-	rawDataPointsRTRange = new Range(
-		originalDetectedShape.getRawDataPointsRTRange());
+	rawDataPointsIntensityRange = originalDetectedShape
+		.getRawDataPointsIntensityRange();
+	rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
+	rawDataPointsRTRange = originalDetectedShape.getRawDataPointsRTRange();
 
 	dataPointsMap = new TreeMap<Integer, DataPoint>();
 	status = originalDetectedShape.getFeatureStatus();

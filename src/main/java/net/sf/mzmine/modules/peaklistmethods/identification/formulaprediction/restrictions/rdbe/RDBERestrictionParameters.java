@@ -25,21 +25,22 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.BooleanParameter;
 import net.sf.mzmine.parameters.parametertypes.RangeParameter;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class RDBERestrictionParameters extends SimpleParameterSet {
 
-	public static final RangeParameter rdbeRange = new RangeParameter(
-			"RDBE range",
-			"Range of allowed RDBE (Range or Double Bonds Equivalents) value",
-			NumberFormat.getNumberInstance(), new Range(-1, 40));
+    public static final RangeParameter rdbeRange = new RangeParameter(
+	    "RDBE range",
+	    "Range of allowed RDBE (Range or Double Bonds Equivalents) value",
+	    NumberFormat.getNumberInstance(), Range.closed(-1.0, 40.0));
 
-	public static final BooleanParameter rdbeWholeNum = new BooleanParameter(
-			"RDBE must be an integer",
-			"Only integer values are allowed for RDBE", true);
+    public static final BooleanParameter rdbeWholeNum = new BooleanParameter(
+	    "RDBE must be an integer",
+	    "Only integer values are allowed for RDBE", true);
 
-	public RDBERestrictionParameters() {
-		super(new Parameter[] { rdbeRange, rdbeWholeNum });
-	}
+    public RDBERestrictionParameters() {
+	super(new Parameter[] { rdbeRange, rdbeWholeNum });
+    }
 
 }

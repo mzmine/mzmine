@@ -40,12 +40,14 @@ import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
 
 import org.apache.commons.math.analysis.polynomials.PolynomialFunction;
 import org.apache.commons.math.optimization.fitting.PolynomialFitter;
 import org.apache.commons.math.optimization.general.GaussNewtonOptimizer;
 import org.apache.commons.math.stat.regression.SimpleRegression;
+
+import com.google.common.collect.Range;
 
 class RansacAlignerTask extends AbstractTask {
 
@@ -210,7 +212,8 @@ class RansacAlignerTask extends AbstractTask {
 
 	for (PeakListRow row : allRows) {
 	    // Calculate limits for a row with which the row can be aligned
-	    Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
+	    Range<Double> mzRange = mzTolerance.getToleranceRange(row
+		    .getAverageMZ());
 
 	    double rt;
 	    try {
@@ -222,7 +225,7 @@ class RansacAlignerTask extends AbstractTask {
 		rt = row.getAverageRT();
 	    }
 
-	    Range rtRange = rtToleranceAfter.getToleranceRange(rt);
+	    Range<Double> rtRange = rtToleranceAfter.getToleranceRange(rt);
 
 	    // Get all rows of the aligned peaklist within parameter limits
 	    PeakListRow candidateRows[] = alignedPeakList
@@ -237,7 +240,8 @@ class RansacAlignerTask extends AbstractTask {
 
 		try {
 		    score = new RowVsRowScore(row, candidate,
-			    mzRange.getSize() / 2, rtRange.getSize() / 2, rt);
+			    RangeUtils.rangeLength(mzRange) / 2.0,
+			    RangeUtils.rangeLength(rtRange) / 2.0, rt);
 
 		    scoreSet.add(score);
 		    setErrorMessage(score.getErrorMessage());
@@ -372,8 +376,9 @@ class RansacAlignerTask extends AbstractTask {
 		return null;
 	    }
 	    // Calculate limits for a row with which the row can be aligned
-	    Range mzRange = mzTolerance.getToleranceRange(row.getAverageMZ());
-	    Range rtRange = rtToleranceBefore.getToleranceRange(row
+	    Range<Double> mzRange = mzTolerance.getToleranceRange(row
+		    .getAverageMZ());
+	    Range<Double> rtRange = rtToleranceBefore.getToleranceRange(row
 		    .getAverageRT());
 
 	    // Get all rows of the aligned peaklist within parameter limits

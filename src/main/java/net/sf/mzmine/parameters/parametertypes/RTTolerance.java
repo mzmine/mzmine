@@ -19,7 +19,7 @@
 
 package net.sf.mzmine.parameters.parametertypes;
 
-import net.sf.mzmine.util.Range;
+import com.google.common.collect.Range;
 
 public class RTTolerance {
 
@@ -27,39 +27,38 @@ public class RTTolerance {
     private final boolean isAbsolute;
     private final double tolerance;
 
-    public RTTolerance(final boolean absolute,
-                       final double rtTolerance) {
+    public RTTolerance(final boolean absolute, final double rtTolerance) {
 
-        isAbsolute = absolute;
-        tolerance = rtTolerance;
+	isAbsolute = absolute;
+	tolerance = rtTolerance;
     }
 
     public boolean isAbsolute() {
 
-        return isAbsolute;
+	return isAbsolute;
     }
 
     public double getTolerance() {
 
-        return tolerance;
+	return tolerance;
     }
 
-    public Range getToleranceRange(final double rtValue) {
+    public Range<Double> getToleranceRange(final double rtValue) {
 
-        final double absoluteTolerance = isAbsolute ? tolerance : rtValue * tolerance;
-        return new Range(rtValue - absoluteTolerance,
-                         rtValue + absoluteTolerance);
+	final double absoluteTolerance = isAbsolute ? tolerance : rtValue
+		* tolerance;
+	return Range.closed(rtValue - absoluteTolerance, rtValue
+		+ absoluteTolerance);
     }
 
-    public boolean checkWithinTolerance(final double rt1,
-                                        final double rt2) {
+    public boolean checkWithinTolerance(final double rt1, final double rt2) {
 
-        return getToleranceRange(rt1).contains(rt2);
+	return getToleranceRange(rt1).contains(rt2);
     }
 
     @Override
     public String toString() {
 
-        return isAbsolute ? tolerance + " min" : 100.0 * tolerance + " %";
+	return isAbsolute ? tolerance + " min" : 100.0 * tolerance + " %";
     }
 }

@@ -34,9 +34,10 @@ import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakListRowSorter;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SortingDirection;
 import net.sf.mzmine.util.SortingProperty;
+
+import com.google.common.collect.Range;
 
 public class ComplexSearchTask extends AbstractTask {
 
@@ -107,7 +108,7 @@ public class ComplexSearchTask extends AbstractTask {
 	// Compare each three rows against each other
 	for (int i = 0; i < totalRows; i++) {
 
-	    Range testRTRange = rtTolerance.getToleranceRange(rows[i]
+	    Range<Double> testRTRange = rtTolerance.getToleranceRange(rows[i]
 		    .getAverageRT());
 	    PeakListRow testRows[] = peakList
 		    .getRowsInsideScanRange(testRTRange);
@@ -158,8 +159,8 @@ public class ComplexSearchTask extends AbstractTask {
 	    PeakListRow row2) {
 
 	// Check retention time condition
-	Range rtRange = rtTolerance
-		.getToleranceRange(complexRow.getAverageRT());
+	Range<Double> rtRange = rtTolerance.getToleranceRange(complexRow
+		.getAverageRT());
 	if (!rtRange.contains(row1.getAverageRT()))
 	    return false;
 	if (!rtRange.contains(row2.getAverageRT()))
@@ -170,7 +171,7 @@ public class ComplexSearchTask extends AbstractTask {
 		- (2 * ionType.getAddedMass());
 	double detectedMass = complexRow.getAverageMZ()
 		- ionType.getAddedMass();
-	Range mzRange = mzTolerance.getToleranceRange(detectedMass);
+	Range<Double> mzRange = mzTolerance.getToleranceRange(detectedMass);
 	if (!mzRange.contains(expectedMass))
 	    return false;
 

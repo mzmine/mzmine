@@ -38,9 +38,10 @@ import javax.swing.JPanel;
 import net.sf.mzmine.desktop.Desktop;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.Range;
 
 import org.jfree.data.general.DatasetChangeEvent;
+
+import com.google.common.collect.Range;
 
 /**
  * Dialog for selection of highlighted precursor m/z range
@@ -170,7 +171,7 @@ public class NeutralLossSetHighlightDialog extends JDialog implements
 		double mzMin = ((Number) fieldMinMZ.getValue()).doubleValue();
 		double mzMax = ((Number) fieldMaxMZ.getValue()).doubleValue();
 
-		Range range = new Range(mzMin, mzMax);
+		Range<Double> range = Range.closed(mzMin, mzMax);
 		if (rangeType.equals("HIGHLIGHT_PRECURSOR"))
 		    plot.setHighlightedPrecursorRange(range);
 		else if (rangeType.equals("HIGHLIGHT_NEUTRALLOSS"))

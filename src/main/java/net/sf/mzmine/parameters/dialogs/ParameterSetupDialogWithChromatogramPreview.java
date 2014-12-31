@@ -43,7 +43,8 @@ import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.RangeComponent;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class extends ParameterSetupDialog class, including a TICPlot. This is
@@ -86,20 +87,20 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
      * @param dataFile
      */
     protected abstract void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
-	    Range rtRange, Range mzRange);
+	    Range<Double> rtRange, Range<Double> mzRange);
 
     private void updateTitle() {
 
 	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-	Range rtRange = rtRangeBox.getValue();
-	Range mzRange = mzRangeBox.getValue();
+	Range<Double> rtRange = rtRangeBox.getValue();
+	Range<Double> mzRange = mzRangeBox.getValue();
 
-	String title = "m/z: " + mzFormat.format(mzRange.getMin()) + " - "
-		+ mzFormat.format(mzRange.getMax()) + ", RT: "
-		+ rtFormat.format(rtRange.getMin()) + " - "
-		+ rtFormat.format(rtRange.getMax());
+	String title = "m/z: " + mzFormat.format(mzRange.lowerEndpoint())
+		+ " - " + mzFormat.format(mzRange.upperEndpoint()) + ", RT: "
+		+ rtFormat.format(rtRange.lowerEndpoint()) + " - "
+		+ rtFormat.format(rtRange.upperEndpoint());
 
 	// update plot title
 	ticPlot.setTitle(previewDataFile.getName(), title);
@@ -179,8 +180,8 @@ public abstract class ParameterSetupDialogWithChromatogramPreview extends
 	if ((previewCheckBox == null) || (!previewCheckBox.isSelected()))
 	    return;
 
-	Range rtRange = rtRangeBox.getValue();
-	Range mzRange = mzRangeBox.getValue();
+	Range<Double> rtRange = rtRangeBox.getValue();
+	Range<Double> mzRange = mzRangeBox.getValue();
 	updateParameterSetFromComponents();
 
 	loadPreview(ticPlot, previewDataFile, rtRange, mzRange);

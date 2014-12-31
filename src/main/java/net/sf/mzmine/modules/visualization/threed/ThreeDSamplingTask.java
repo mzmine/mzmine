@@ -27,11 +27,12 @@ import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.ScanUtils.BinningType;
 import visad.Linear2DSet;
 import visad.Set;
+
+import com.google.common.collect.Range;
 
 /**
  * Sampling task which loads the raw data and feeds them to ThreeDDisplay
@@ -42,7 +43,7 @@ class ThreeDSamplingTask extends AbstractTask {
 
     private RawDataFile dataFile;
     private int scanNumbers[];
-    private Range rtRange, mzRange;
+    private Range<Double> rtRange, mzRange;
 
     // Data resolution on m/z and retention time axis
     private int rtResolution, mzResolution;
@@ -63,9 +64,10 @@ class ThreeDSamplingTask extends AbstractTask {
      * @param msLevel
      * @param visualizer
      */
-    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[], Range rtRange,
-	    Range mzRange, int rtResolution, int mzResolution,
-	    ThreeDDisplay display, ThreeDBottomPanel bottomPanel) {
+    ThreeDSamplingTask(RawDataFile dataFile, int scanNumbers[],
+	    Range<Double> rtRange, Range<Double> mzRange, int rtResolution,
+	    int mzResolution, ThreeDDisplay display,
+	    ThreeDBottomPanel bottomPanel) {
 
 	this.dataFile = dataFile;
 	this.scanNumbers = scanNumbers;
@@ -106,10 +108,12 @@ class ThreeDSamplingTask extends AbstractTask {
 	try {
 
 	    Set domainSet = new Linear2DSet(display.getDomainTuple(),
-		    rtRange.getMin(), rtRange.getMax(), rtResolution,
-		    mzRange.getMin(), mzRange.getMax(), mzResolution);
+		    rtRange.lowerEndpoint(), rtRange.upperEndpoint(),
+		    rtResolution, mzRange.lowerEndpoint(),
+		    mzRange.upperEndpoint(), mzResolution);
 
-	    final double rtStep = rtRange.getSize() / rtResolution;
+	    final double rtStep = (rtRange.upperEndpoint() - rtRange
+		    .lowerEndpoint()) / rtResolution;
 
 	    // create an array for all data points
 	    float[][] intensityValues = new float[1][mzResolution
@@ -139,7 +143,7 @@ class ThreeDSamplingTask extends AbstractTask {
 		int scanBinIndex;
 
 		double rt = scan.getRetentionTime();
-		scanBinIndex = (int) ((rt - rtRange.getMin()) / rtStep);
+		scanBinIndex = (int) ((rt - rtRange.lowerEndpoint()) / rtStep);
 
 		// last scan falls into last bin
 		if (scanBinIndex == rtResolution)
@@ -199,8 +203,9 @@ class ThreeDSamplingTask extends AbstractTask {
 
 	    }
 
-	    display.setData(intensityValues, domainSet, rtRange.getMin(),
-		    rtRange.getMax(), mzRange.getMin(), mzRange.getMax(),
+	    display.setData(intensityValues, domainSet,
+		    rtRange.lowerEndpoint(), rtRange.upperEndpoint(),
+		    mzRange.lowerEndpoint(), mzRange.upperEndpoint(),
 		    maxBinnedIntensity);
 
 	    // After we have constructed everything, load the peak lists into

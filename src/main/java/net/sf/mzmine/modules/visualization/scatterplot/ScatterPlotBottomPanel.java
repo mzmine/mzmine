@@ -47,17 +47,16 @@ import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.scatterplot.scatterplotchart.ScatterPlotChart;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.SearchDefinition;
 import net.sf.mzmine.util.SearchDefinitionType;
 import net.sf.mzmine.util.components.CenteredListCellRenderer;
 
+import com.google.common.collect.Range;
+
 public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private JComboBox<ScatterPlotAxisSelection> comboX, comboY;
     private JComboBox<String> comboFold;
     private JComboBox<SearchDefinitionType> comboSearchDataType;
@@ -248,7 +247,7 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 	    Number maxValue = ((Number) maxSearchField.getValue());
 	    if (maxValue == null)
 		maxValue = 0;
-	    Range searchRange = new Range(minValue.doubleValue(),
+	    Range<Double> searchRange = Range.closed(minValue.doubleValue(),
 		    maxValue.doubleValue());
 	    try {
 		SearchDefinition newSearch = new SearchDefinition(searchType,
@@ -275,13 +274,13 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 		txtSearchField.setVisible(false);
 		NumberFormat mzFormatter = MZmineCore.getConfiguration()
 			.getMZFormat();
-		Range mzRange = peakList.getRowsMZRange();
+		Range<Double> mzRange = peakList.getRowsMZRange();
 		DefaultFormatterFactory mzFormatFac = new DefaultFormatterFactory(
 			new NumberFormatter(mzFormatter));
 		minSearchField.setFormatterFactory(mzFormatFac);
-		minSearchField.setValue(mzRange.getMin());
+		minSearchField.setValue(mzRange.lowerEndpoint());
 		maxSearchField.setFormatterFactory(mzFormatFac);
-		maxSearchField.setValue(mzRange.getMax());
+		maxSearchField.setValue(mzRange.upperEndpoint());
 		break;
 
 	    case RT:
@@ -291,13 +290,13 @@ public class ScatterPlotBottomPanel extends JPanel implements ActionListener {
 		txtSearchField.setVisible(false);
 		NumberFormat rtFormatter = MZmineCore.getConfiguration()
 			.getRTFormat();
-		Range rtRange = peakList.getRowsRTRange();
+		Range<Double> rtRange = peakList.getRowsRTRange();
 		DefaultFormatterFactory rtFormatFac = new DefaultFormatterFactory(
 			new NumberFormatter(rtFormatter));
 		minSearchField.setFormatterFactory(rtFormatFac);
-		minSearchField.setValue(rtRange.getMin());
+		minSearchField.setValue(rtRange.lowerEndpoint());
 		maxSearchField.setFormatterFactory(rtFormatFac);
-		maxSearchField.setValue(rtRange.getMax());
+		maxSearchField.setValue(rtRange.upperEndpoint());
 		break;
 
 	    case NAME:

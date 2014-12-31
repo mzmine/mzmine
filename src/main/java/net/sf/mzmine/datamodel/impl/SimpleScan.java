@@ -29,9 +29,9 @@ import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
 
+import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
 
 /**
@@ -48,7 +48,7 @@ public class SimpleScan implements Scan {
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
-    private Range mzRange;
+    private Range<Double> mzRange;
     private DataPoint basePeak;
     private double totalIonCurrent;
     private boolean centroided;
@@ -97,16 +97,17 @@ public class SimpleScan implements Scan {
     /**
      * @return Returns scan datapoints within a given range
      */
-    public @Nonnull DataPoint[] getDataPointsByMass(@Nonnull Range mzRange) {
+    public @Nonnull DataPoint[] getDataPointsByMass(
+	    @Nonnull Range<Double> mzRange) {
 
 	int startIndex, endIndex;
 	for (startIndex = 0; startIndex < dataPoints.length; startIndex++) {
-	    if (dataPoints[startIndex].getMZ() >= mzRange.getMin())
+	    if (dataPoints[startIndex].getMZ() >= mzRange.lowerEndpoint())
 		break;
 	}
 
 	for (endIndex = startIndex; endIndex < dataPoints.length; endIndex++) {
-	    if (dataPoints[endIndex].getMZ() > mzRange.getMax())
+	    if (dataPoints[endIndex].getMZ() > mzRange.upperEndpoint())
 		break;
 	}
 
@@ -145,7 +146,7 @@ public class SimpleScan implements Scan {
     public void setDataPoints(DataPoint[] dataPoints) {
 
 	this.dataPoints = dataPoints;
-	mzRange = new Range(0, 0);
+	mzRange = Range.singleton(0.0);
 	basePeak = null;
 	totalIonCurrent = 0;
 
@@ -153,14 +154,14 @@ public class SimpleScan implements Scan {
 	if (dataPoints.length > 0) {
 
 	    basePeak = dataPoints[0];
-	    mzRange = new Range(dataPoints[0].getMZ(), dataPoints[0].getMZ());
+	    mzRange = Range.singleton(dataPoints[0].getMZ());
 
 	    for (DataPoint dp : dataPoints) {
 
 		if (dp.getIntensity() > basePeak.getIntensity())
 		    basePeak = dp;
 
-		mzRange.extendRange(dp.getMZ());
+		mzRange = mzRange.span(Range.singleton(dp.getMZ()));
 		totalIonCurrent += dp.getIntensity();
 
 	    }
@@ -254,7 +255,7 @@ public class SimpleScan implements Scan {
     /**
      * @see net.sf.mzmine.datamodel.Scan#getMZRangeMax()
      */
-    public @Nonnull Range getMZRange() {
+    public @Nonnull Range<Double> getMZRange() {
 	return mzRange;
     }
 

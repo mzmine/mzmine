@@ -21,6 +21,8 @@ package net.sf.mzmine.util;
 
 import java.text.Format;
 
+import com.google.common.collect.Range;
+
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.PeakIdentity;
@@ -171,8 +173,7 @@ public class PeakUtils {
      * Copies properties such as isotope pattern and charge from the source peak
      * to the target peak
      */
-    public static void copyPeakProperties(Feature source,
-	    Feature target) {
+    public static void copyPeakProperties(Feature source, Feature target) {
 
 	// Copy isotope pattern
 	IsotopePattern originalPattern = source.getIsotopePattern();
@@ -182,6 +183,25 @@ public class PeakUtils {
 	// Copy charge
 	int charge = source.getCharge();
 	target.setCharge(charge);
+
+    }
+
+    /**
+     * Finds a combined m/z range that covers all given peaks
+     */
+    public static Range<Double> findMZRange(Feature peaks[]) {
+
+	Range<Double> mzRange = null;
+
+	for (Feature p : peaks) {
+	    if (mzRange == null) {
+		mzRange = p.getRawDataPointsMZRange();
+	    } else {
+		mzRange = mzRange.span(p.getRawDataPointsMZRange());
+	    }
+	}
+
+	return mzRange;
 
     }
 

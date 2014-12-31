@@ -26,30 +26,30 @@ import javax.annotation.Nonnull;
  */
 public interface IsotopePattern extends Spectrum {
 
-	public enum IsotopePatternStatus {
-
-		/**
-		 * Isotope pattern was detected by isotope grouper
-		 */
-		DETECTED,
-
-		/**
-		 * Isotope pattern was predicted by Isotope pattern calculator
-		 */
-		PREDICTED;
-
-	}
+    public enum IsotopePatternStatus {
 
 	/**
-	 * Returns the isotope pattern status.
+	 * Isotope pattern was detected by isotope grouper
 	 */
-	@Nonnull
-	public IsotopePatternStatus getStatus();
+	DETECTED,
 
 	/**
-	 * Returns a description of this isotope pattern (formula, etc.)
+	 * Isotope pattern was predicted by Isotope pattern calculator
 	 */
-	@Nonnull
-	public String getDescription();
+	PREDICTED;
+
+    }
+
+    /**
+     * Returns the isotope pattern status.
+     */
+    @Nonnull
+    public IsotopePatternStatus getStatus();
+
+    /**
+     * Returns a description of this isotope pattern (formula, etc.)
+     */
+    @Nonnull
+    public String getDescription();
 
 }

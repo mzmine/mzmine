@@ -28,7 +28,8 @@ import javax.swing.JButton;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.tools.mzrangecalculator.MzRangeCalculatorModule;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class MZRangeComponent extends RangeComponent implements ActionListener {
 
@@ -61,24 +62,24 @@ public class MZRangeComponent extends RangeComponent implements ActionListener {
         Object src = event.getSource();
 
         if (src == setAutoButton) {
-            Range mzRange = null;
+            Range<Double> mzRange = null;
             RawDataFile currentFiles[] = MZmineCore.getCurrentProject()
                     .getDataFiles();
             for (RawDataFile file : currentFiles) {
-                Range fileRange = file.getDataMZRange(1);
+        	Range<Double> fileRange = file.getDataMZRange(1);
                 if (fileRange == null)
                     continue;
                 if (mzRange == null)
                     mzRange = fileRange;
                 else
-                    mzRange.extendRange(fileRange);
+                    mzRange=mzRange.span(fileRange);
             }
             if (mzRange != null)
                 setValue(mzRange);
         }
 
         if (src == fromFormulaButton) {
-            Range mzRange = MzRangeCalculatorModule
+            Range<Double> mzRange = MzRangeCalculatorModule
                     .showRangeCalculationDialog();
             if (mzRange != null)
                 setValue(mzRange);

@@ -31,7 +31,8 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 public class GPLipidSearchTask extends AbstractTask {
 
@@ -180,8 +181,8 @@ public class GPLipidSearchTask extends AbstractTask {
 	    if (isCanceled())
 		return;
 
-	    Range mzTolRange = mzTolerance.getToleranceRange(rows[rowIndex]
-		    .getAverageMZ());
+	    Range<Double> mzTolRange = mzTolerance
+		    .getToleranceRange(rows[rowIndex].getAverageMZ());
 
 	    if (mzTolRange.contains(lipidIonMass)) {
 		rows[rowIndex].addPeakIdentity(lipid, false);

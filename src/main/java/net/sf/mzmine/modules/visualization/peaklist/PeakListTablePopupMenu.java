@@ -60,7 +60,8 @@ import net.sf.mzmine.modules.visualization.tic.PlotType;
 import net.sf.mzmine.modules.visualization.tic.TICVisualizerModule;
 import net.sf.mzmine.modules.visualization.twod.TwoDVisualizerModule;
 import net.sf.mzmine.util.GUIUtils;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * Peak-list table pop-up menu.
@@ -68,10 +69,8 @@ import net.sf.mzmine.util.Range;
 public class PeakListTablePopupMenu extends JPopupMenu implements
 	ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private final PeakListTable table;
     private final PeakList peakList;
     private final PeakListTableColumnModel columnModel;
@@ -326,7 +325,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	    final RawDataFile selectedDataFile = clickedDataFile == null ? allClickedPeakListRows[0]
 		    .getBestPeak().getDataFile() : clickedDataFile;
 
-	    Range mzRange = null;
+	    Range<Double> mzRange = null;
 	    final List<Feature> selectedPeaks = new ArrayList<Feature>(
 		    allClickedPeakListRows.length);
 	    for (final PeakListRow row : allClickedPeakListRows) {
@@ -335,7 +334,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		    if (mzRange == null) {
 			mzRange = peak.getRawDataPointsMZRange();
 		    } else {
-			mzRange.extendRange(peak.getRawDataPointsMZRange());
+			mzRange = mzRange.span(peak.getRawDataPointsMZRange());
 		    }
 		}
 
@@ -369,7 +368,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 	    final RawDataFile[] selectedDataFiles = clickedDataFile == null ? peakList
 		    .getRawDataFiles() : new RawDataFile[] { clickedDataFile };
 
-	    Range mzRange = null;
+	    Range<Double> mzRange = null;
 	    final ArrayList<Feature> allClickedPeaks = new ArrayList<Feature>(
 		    allClickedPeakListRows.length);
 	    final ArrayList<Feature> selectedClickedPeaks = new ArrayList<Feature>(
@@ -389,7 +388,7 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
 		    if (mzRange == null) {
 			mzRange = peak.getRawDataPointsMZRange();
 		    } else {
-			mzRange.extendRange(peak.getRawDataPointsMZRange());
+			mzRange = mzRange.span(peak.getRawDataPointsMZRange());
 		    }
 
 		    if (identity != null) {
@@ -584,21 +583,25 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      *            the peak.
      * @return The peak's m/z range.
      */
-    private static Range getPeakMZRange(final Feature peak) {
+    private static Range<Double> getPeakMZRange(final Feature peak) {
 
-	final Range peakMZRange = peak.getRawDataPointsMZRange();
+	final Range<Double> peakMZRange = peak.getRawDataPointsMZRange();
 
 	// By default, open the visualizer with the m/z range of
 	// "peak_width x 2", but no smaller than 0.1 m/z, because with smaller
 	// ranges VisAD tends to show nasty anti-aliasing artifacts.
 	// For example of such artifacts, set mzMin = 440.27, mzMax = 440.28 and
 	// mzResolution = 500
-	final double minRangeWidth = Math.max(0.1, peakMZRange.getSize() * 2);
-	double mzMin = peakMZRange.getAverage() - (minRangeWidth / 2);
+	final double minRangeCenter = (peakMZRange.upperEndpoint() + peakMZRange
+		.lowerEndpoint()) / 2.0;
+	final double minRangeWidth = Math
+		.max(0.1, (peakMZRange.upperEndpoint() - peakMZRange
+			.lowerEndpoint()) * 2);
+	double mzMin = minRangeCenter - (minRangeWidth / 2);
 	if (mzMin < 0)
 	    mzMin = 0;
-	double mzMax = peakMZRange.getAverage() + (minRangeWidth / 2);
-	return new Range(mzMin, mzMax);
+	double mzMax = minRangeCenter + (minRangeWidth / 2);
+	return Range.closed(mzMin, mzMax);
     }
 
     /**
@@ -608,11 +611,12 @@ public class PeakListTablePopupMenu extends JPopupMenu implements
      *            the peak.
      * @return The peak's RT range.
      */
-    private static Range getPeakRTRange(final Feature peak) {
+    private static Range<Double> getPeakRTRange(final Feature peak) {
 
-	final Range range = peak.getRawDataPointsRTRange();
-	return new Range(Math.max(0.0, range.getMin() - range.getSize()),
-		range.getMax() + range.getSize());
+	final Range<Double> range = peak.getRawDataPointsRTRange();
+	final double rtLen = range.upperEndpoint() - range.lowerEndpoint();
+	return Range.closed(Math.max(0.0, range.lowerEndpoint() - rtLen),
+		range.upperEndpoint() + rtLen);
     }
 
     /**

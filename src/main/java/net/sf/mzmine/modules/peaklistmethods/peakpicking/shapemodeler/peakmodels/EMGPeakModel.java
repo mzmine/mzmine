@@ -32,7 +32,9 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.modules.peaklistmethods.peakpicking.deconvolution.savitzkygolay.SGDerivative;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 public class EMGPeakModel implements Feature {
 
@@ -51,7 +53,7 @@ public class EMGPeakModel implements Feature {
     private RawDataFile rawDataFile;
     private FeatureStatus status;
     private int representativeScan = -1, fragmentScan = -1;
-    private Range rawDataPointsIntensityRange, rawDataPointsMZRange,
+    private Range<Double> rawDataPointsIntensityRange, rawDataPointsMZRange,
 	    rawDataPointsRTRange;
     private TreeMap<Integer, DataPoint> dataPointsMap;
 
@@ -60,9 +62,8 @@ public class EMGPeakModel implements Feature {
     private IsotopePattern isotopePattern;
     private int charge = 0;
 
-    public EMGPeakModel(Feature originalDetectedShape,
-	    int[] scanNumbers, double[] intensities, double[] retentionTimes,
-	    double resolution) {
+    public EMGPeakModel(Feature originalDetectedShape, int[] scanNumbers,
+	    double[] intensities, double[] retentionTimes, double resolution) {
 
 	height = originalDetectedShape.getHeight();
 	rt = originalDetectedShape.getRT();
@@ -71,11 +72,9 @@ public class EMGPeakModel implements Feature {
 
 	rawDataFile = originalDetectedShape.getDataFile();
 
-	// Create a copy of the mutable properties
-	rawDataPointsIntensityRange = new Range(
-		originalDetectedShape.getRawDataPointsIntensityRange());
-	rawDataPointsMZRange = new Range(
-		originalDetectedShape.getRawDataPointsMZRange());
+	rawDataPointsIntensityRange = originalDetectedShape
+		.getRawDataPointsIntensityRange();
+	rawDataPointsMZRange = originalDetectedShape.getRawDataPointsMZRange();
 
 	dataPointsMap = new TreeMap<Integer, DataPoint>();
 	status = originalDetectedShape.getFeatureStatus();
@@ -95,7 +94,7 @@ public class EMGPeakModel implements Feature {
 	previousHeight = calculateEMGIntensity(H, M, Dp, Ap, C,
 		allRetentionTimes[0]);
 	previousRT = allRetentionTimes[0] * 60d;
-	rawDataPointsRTRange = new Range(allRetentionTimes[0]);
+	rawDataPointsRTRange = RangeUtils.fromArray(allRetentionTimes);
 
 	for (int i = 0; i < allRetentionTimes.length; i++) {
 
@@ -104,7 +103,6 @@ public class EMGPeakModel implements Feature {
 	    if (shapeHeight > height * 0.01d) {
 		SimpleDataPoint mzPeak = new SimpleDataPoint(mz, shapeHeight);
 		dataPointsMap.put(allScanNumbers[i], mzPeak);
-		rawDataPointsRTRange.extendRange(allRetentionTimes[i]);
 	    }
 
 	    currentRT = allRetentionTimes[i] * 60d;
@@ -159,15 +157,15 @@ public class EMGPeakModel implements Feature {
 	return rt;
     }
 
-    public @Nonnull Range getRawDataPointsIntensityRange() {
+    public @Nonnull Range<Double> getRawDataPointsIntensityRange() {
 	return rawDataPointsIntensityRange;
     }
 
-    public @Nonnull Range getRawDataPointsMZRange() {
+    public @Nonnull Range<Double> getRawDataPointsMZRange() {
 	return rawDataPointsMZRange;
     }
 
-    public @Nonnull Range getRawDataPointsRTRange() {
+    public @Nonnull Range<Double> getRawDataPointsRTRange() {
 	return rawDataPointsRTRange;
     }
 

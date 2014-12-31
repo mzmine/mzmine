@@ -41,7 +41,9 @@ import net.sf.mzmine.parameters.parametertypes.RTTolerance;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.PeakUtils;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
+
+import com.google.common.collect.Range;
 
 class JoinAlignerTask extends AbstractTask {
 
@@ -168,9 +170,9 @@ class JoinAlignerTask extends AbstractTask {
 		    return;
 
 		// Calculate limits for a row with which the row can be aligned
-		Range mzRange = mzTolerance.getToleranceRange(row
+		Range<Double> mzRange = mzTolerance.getToleranceRange(row
 			.getAverageMZ());
-		Range rtRange = rtTolerance.getToleranceRange(row
+		Range<Double> rtRange = rtTolerance.getToleranceRange(row
 			.getAverageRT());
 
 		// Get all rows of the aligned peaklist within parameter limits
@@ -208,8 +210,8 @@ class JoinAlignerTask extends AbstractTask {
 		    }
 
 		    RowVsRowScore score = new RowVsRowScore(row, candidate,
-			    mzRange.getSize() / 2, mzWeight,
-			    rtRange.getSize() / 2, rtWeight);
+			    RangeUtils.rangeLength(mzRange) / 2.0, mzWeight,
+			    RangeUtils.rangeLength(rtRange) / 2.0, rtWeight);
 
 		    scoreSet.add(score);
 

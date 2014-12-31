@@ -37,16 +37,16 @@ import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.DBGateway;
 import net.sf.mzmine.modules.peaklistmethods.identification.dbsearch.OnlineDatabase;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.parametertypes.MZTolerance;
-import net.sf.mzmine.util.Range;
+import net.sf.mzmine.util.RangeUtils;
 
 import com.chemspider.www.ExtendedCompoundInfo;
 import com.chemspider.www.MassSpecAPILocator;
 import com.chemspider.www.MassSpecAPISoap;
+import com.google.common.collect.Range;
 
 /**
  * Searches the ChemSpider database.
  * 
- * @version $Revision$
  */
 public class ChemSpiderGateway implements DBGateway {
 
@@ -74,11 +74,12 @@ public class ChemSpiderGateway implements DBGateway {
 	LOG.finest("Searching by mass...");
 
 	// Get search range
-	final Range mzRange = mzTolerance.getToleranceRange(mass);
+	final Range<Double> mzRange = mzTolerance.getToleranceRange(mass);
 
 	// These are returned in #CSID (numerical) order.
 	final String[] results = createMassSpecAPI().searchByMass2(
-		mzRange.getAverage(), mzRange.getSize() / 2.0);
+		RangeUtils.rangeCenter(mzRange),
+		RangeUtils.rangeLength(mzRange) / 2.0);
 
 	// Copy results.
 	final int len = Math.min(numOfResults, results.length);

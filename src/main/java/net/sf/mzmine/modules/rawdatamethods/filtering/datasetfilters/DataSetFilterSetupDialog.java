@@ -29,7 +29,8 @@ import net.sf.mzmine.modules.visualization.tic.TICDataSet;
 import net.sf.mzmine.modules.visualization.tic.TICPlot;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithChromatogramPreview;
-import net.sf.mzmine.util.Range;
+
+import com.google.common.collect.Range;
 
 /**
  * This class extends ParameterSetupDialog class, including a spectraPlot. This
@@ -39,10 +40,8 @@ import net.sf.mzmine.util.Range;
 public class DataSetFilterSetupDialog extends
 	ParameterSetupDialogWithChromatogramPreview {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
+
     private ParameterSet filterParameters;
     private RawDataSetFilter rawDataFilter;
 
@@ -66,7 +65,7 @@ public class DataSetFilterSetupDialog extends
     }
 
     protected void loadPreview(TICPlot ticPlot, RawDataFile dataFile,
-	    Range rtRange, Range mzRange) {
+	    Range<Double> rtRange, Range<Double> mzRange) {
 
 	// First, remove all current data sets
 	ticPlot.removeAllTICDataSets();

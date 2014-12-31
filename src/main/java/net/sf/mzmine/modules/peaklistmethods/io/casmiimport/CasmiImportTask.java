@@ -46,8 +46,9 @@ import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
-import net.sf.mzmine.util.Range;
 import net.sf.mzmine.util.ScanUtils;
+
+import com.google.common.collect.Range;
 
 class CasmiImportTask extends AbstractTask {
 
@@ -132,9 +133,10 @@ class CasmiImportTask extends AbstractTask {
 	    double area = topDataPoint.getIntensity();
 	    int scanNumbers[] = new int[] { 1 };
 	    DataPoint dataPointsPerScan[] = new DataPoint[] { topDataPoint };
-	    Range mzRange = ScanUtils.findMzRange(msSpectrumDataPoints);
-	    Range rtRange = new Range(msScan.getRetentionTime());
-	    Range intensityRange = new Range(0, topDataPoint.getIntensity());
+	    Range<Double> mzRange = ScanUtils.findMzRange(msSpectrumDataPoints);
+	    Range<Double> rtRange = Range.singleton(msScan.getRetentionTime());
+	    Range<Double> intensityRange = Range.closed(0.0,
+		    topDataPoint.getIntensity());
 	    Feature newPeak = new SimpleFeature(newDataFile, mz, rt, height,
 		    area, scanNumbers, dataPointsPerScan, FeatureStatus.MANUAL,
 		    msScanNumber, msMsScanNumber, rtRange, mzRange,

@@ -29,15 +29,11 @@ import javax.swing.JPanel;
 
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.parameters.parametertypes.RangeComponent;
-import net.sf.mzmine.util.Range;
 
-/**
- */
+import com.google.common.collect.Range;
+
 public class HistogramRangeEditor extends JPanel implements ActionListener {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private JComboBox<HistogramDataType> dataTypeCombo;
     private RangeComponent dataRangeComponent;
@@ -56,20 +52,15 @@ public class HistogramRangeEditor extends JPanel implements ActionListener {
 
     }
 
-    public void setValue(Range value) {
-    }
-
-    public void setValue(HistogramDataType type, Range value) {
-
+    public void setValue(Range<Double> value) {
 	dataRangeComponent.setValue(value);
-
     }
 
     public HistogramDataType getSelectedType() {
 	return (HistogramDataType) dataTypeCombo.getSelectedItem();
     }
 
-    public Range getValue() {
+    public Range<Double> getValue() {
 	return dataRangeComponent.getValue();
     }
 
