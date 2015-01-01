@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,18 +20,17 @@
 package net.sf.mzmine.modules.peaklistmethods.dataanalysis.clustering;
 
 public enum ClusteringDataType {
-	
-    SAMPLES("Samples"),
-    VARIABLES("Variables");  
-    
+
+    SAMPLES("Samples"), VARIABLES("Variables");
+
     private final String name;
 
     ClusteringDataType(String name) {
-        this.name = name;
+	this.name = name;
     }
 
-    public String toString(){
-    	return this.name;
+    public String toString() {
+	return this.name;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -30,32 +30,29 @@ import net.sf.mzmine.util.GUIUtils;
 
 public class RTMZToolbar extends JToolBar {
 
-	
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-	static final Icon colorbarIcon = new ImageIcon("icons/colorbaricon.png");
-	
-	public RTMZToolbar(RTMZAnalyzerWindow masterFrame) {
-        super(JToolBar.VERTICAL);
+    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon colorbarIcon = new ImageIcon("icons/colorbaricon.png");
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
-      
-        GUIUtils.addButton(this, null, axesIcon, masterFrame,
-                "SETUP_AXES", "Setup ranges for axes");
-	
-        addSeparator();
-        
-        GUIUtils.addButton(this, null, colorbarIcon, masterFrame,
-                "SETUP_COLORS", "Setup color palette");
-        
-        
-	}
-	
-	
+    public RTMZToolbar(RTMZAnalyzerWindow masterFrame) {
+	super(JToolBar.VERTICAL);
+
+	setFloatable(false);
+	setFocusable(false);
+	setMargin(new Insets(5, 5, 5, 5));
+	setBackground(Color.white);
+
+	GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+		"Setup ranges for axes");
+
+	addSeparator();
+
+	GUIUtils.addButton(this, null, colorbarIcon, masterFrame,
+		"SETUP_COLORS", "Setup color palette");
+
+    }
+
 }

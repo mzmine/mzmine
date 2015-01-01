@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,26 +29,26 @@ import net.sf.mzmine.util.PeakMeasurementType;
 
 public class LinearNormalizerParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "normalized");
+    public static final StringParameter suffix = new StringParameter(
+	    "Name suffix", "Suffix to be added to peak list name", "normalized");
 
-	public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
-			"Normalization type", "Normalize intensities by...",
-			NormalizationType.values());
+    public static final ComboParameter<NormalizationType> normalizationType = new ComboParameter<NormalizationType>(
+	    "Normalization type", "Normalize intensities by...",
+	    NormalizationType.values());
 
-	public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
-			"Peak measurement type", "Measure peaks using",
-			PeakMeasurementType.values());
+    public static final ComboParameter<PeakMeasurementType> peakMeasurementType = new ComboParameter<PeakMeasurementType>(
+	    "Peak measurement type", "Measure peaks using",
+	    PeakMeasurementType.values());
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original peak list",
-			"If checked, original peak list will be removed and only normalized version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+	    "Remove original peak list",
+	    "If checked, original peak list will be removed and only normalized version remains");
 
-	public LinearNormalizerParameters() {
-		super(new Parameter[] { peakLists, suffix, normalizationType,
-				peakMeasurementType, autoRemove });
-	}
+    public LinearNormalizerParameters() {
+	super(new Parameter[] { peakLists, suffix, normalizationType,
+		peakMeasurementType, autoRemove });
+    }
 
 }

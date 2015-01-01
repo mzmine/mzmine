@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -23,29 +23,31 @@ import net.sf.mzmine.parameters.ParameterSet;
 
 public interface ScoreCalculator {
 
-        /**
-         *
-         * @param path
-         * @param peak
-         * @param params
-         * @return
-         */
-        double calculateScore(AlignmentPath path, PeakListRow peak, ParameterSet params);
+    /**
+     *
+     * @param path
+     * @param peak
+     * @param params
+     * @return
+     */
+    double calculateScore(AlignmentPath path, PeakListRow peak,
+	    ParameterSet params);
 
-        double getWorstScore();
+    double getWorstScore();
 
-        /**
-         * Is score calculated by calculate Score in any way meaningful?
-         * If path and peak don't match in ScoreCalculator's mind, value returned
-         * from calculateScore may still be finite, but matches returns false.
-         * @param path
-         * @param peak
-         * @param params
-         * @return
-         */
-        boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet params);
+    /**
+     * Is score calculated by calculate Score in any way meaningful? If path and
+     * peak don't match in ScoreCalculator's mind, value returned from
+     * calculateScore may still be finite, but matches returns false.
+     * 
+     * @param path
+     * @param peak
+     * @param params
+     * @return
+     */
+    boolean matches(AlignmentPath path, PeakListRow peak, ParameterSet params);
 
-        boolean isValid(PeakListRow peak);
+    boolean isValid(PeakListRow peak);
 
-        String name();
+    String name();
 }

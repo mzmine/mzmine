@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,44 +32,44 @@ import org.openscience.cdk.interfaces.IIsotope;
 
 public class PeriodicTableDialog extends JDialog implements ICDKChangeListener {
 
-	/**
+    /**
      * 
      */
-	private static final long serialVersionUID = 1L;
-	private PeriodicTablePanel periodicTable;
-	private IIsotope selectedIsotope;
+    private static final long serialVersionUID = 1L;
+    private PeriodicTablePanel periodicTable;
+    private IIsotope selectedIsotope;
 
-	public PeriodicTableDialog(JFrame parent) {
+    public PeriodicTableDialog(JFrame parent) {
 
-		super(parent, "Choose an element...", true);
+	super(parent, "Choose an element...", true);
 
-		setLayout(new BorderLayout());
+	setLayout(new BorderLayout());
 
-		periodicTable = new PeriodicTablePanel();
-		periodicTable.addCDKChangeListener(this);
-		add(BorderLayout.CENTER, periodicTable);
+	periodicTable = new PeriodicTablePanel();
+	periodicTable.addCDKChangeListener(this);
+	add(BorderLayout.CENTER, periodicTable);
 
-		pack();
+	pack();
 
-		setLocationRelativeTo(parent);
+	setLocationRelativeTo(parent);
+    }
+
+    public void stateChanged(EventObject event) {
+
+	if (event.getSource() == periodicTable) {
+	    try {
+		String elementSymbol = periodicTable.getSelectedElement();
+		IsotopeFactory isoFac = Isotopes.getInstance();
+		selectedIsotope = isoFac.getMajorIsotope(elementSymbol);
+	    } catch (Exception e) {
+		e.printStackTrace();
+	    }
+	    dispose();
 	}
+    }
 
-	public void stateChanged(EventObject event) {
-
-		if (event.getSource() == periodicTable) {
-			try {
-				String elementSymbol = periodicTable.getSelectedElement();
-				IsotopeFactory isoFac = Isotopes.getInstance();
-				selectedIsotope = isoFac.getMajorIsotope(elementSymbol);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			dispose();
-		}
-	}
-
-	public IIsotope getSelectedIsotope() {
-		return selectedIsotope;
-	}
+    public IIsotope getSelectedIsotope() {
+	return selectedIsotope;
+    }
 
 }

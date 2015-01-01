@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,72 +28,72 @@ import org.jfree.data.xy.IntervalXYDataset;
  * Data set for MzPeaks, used in peak detection preview
  */
 public class DataPointsDataSet extends AbstractXYDataset implements
-		IntervalXYDataset {
+	IntervalXYDataset {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private DataPoint mzPeaks[];
-	private String label;
+    private DataPoint mzPeaks[];
+    private String label;
 
-	public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
-		this.label = label;
-		this.mzPeaks = mzPeaks;
-	}
+    public DataPointsDataSet(String label, DataPoint mzPeaks[]) {
+	this.label = label;
+	this.mzPeaks = mzPeaks;
+    }
 
-	@Override
-	public int getSeriesCount() {
-		return 1;
-	}
+    @Override
+    public int getSeriesCount() {
+	return 1;
+    }
 
-	@Override
-	public Comparable<?> getSeriesKey(int series) {
-		return label;
-	}
+    @Override
+    public Comparable<?> getSeriesKey(int series) {
+	return label;
+    }
 
-	public int getItemCount(int series) {
-		return mzPeaks.length;
-	}
+    public int getItemCount(int series) {
+	return mzPeaks.length;
+    }
 
-	public Number getX(int series, int item) {
-		return mzPeaks[item].getMZ();
-	}
+    public Number getX(int series, int item) {
+	return mzPeaks[item].getMZ();
+    }
 
-	public Number getY(int series, int item) {
-		return mzPeaks[item].getIntensity();
-	}
+    public Number getY(int series, int item) {
+	return mzPeaks[item].getIntensity();
+    }
 
-	public Number getEndX(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public Number getEndX(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public double getEndXValue(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public double getEndXValue(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public Number getEndY(int series, int item) {
-		return getY(series, item);
-	}
+    public Number getEndY(int series, int item) {
+	return getY(series, item);
+    }
 
-	public double getEndYValue(int series, int item) {
-		return getYValue(series, item);
-	}
+    public double getEndYValue(int series, int item) {
+	return getYValue(series, item);
+    }
 
-	public Number getStartX(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public Number getStartX(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public double getStartXValue(int series, int item) {
-		return getX(series, item).doubleValue();
-	}
+    public double getStartXValue(int series, int item) {
+	return getX(series, item).doubleValue();
+    }
 
-	public Number getStartY(int series, int item) {
-		return getY(series, item);
-	}
+    public Number getStartY(int series, int item) {
+	return getY(series, item);
+    }
 
-	public double getStartYValue(int series, int item) {
-		return getYValue(series, item);
-	}
+    public double getStartYValue(int series, int item) {
+	return getYValue(series, item);
+    }
 
 }

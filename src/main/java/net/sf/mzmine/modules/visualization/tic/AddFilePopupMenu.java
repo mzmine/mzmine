@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,8 +35,7 @@ import net.sf.mzmine.main.MZmineCore;
 /**
  * 
  */
-class AddFilePopupMenu extends JMenu implements MenuListener,
-        ActionListener {
+class AddFilePopupMenu extends JMenu implements MenuListener, ActionListener {
 
     /**
      * 
@@ -46,9 +45,9 @@ class AddFilePopupMenu extends JMenu implements MenuListener,
     private TICVisualizerWindow visualizer;
 
     AddFilePopupMenu(TICVisualizerWindow visualizer) {
-        super("Add plot of file...");
-        addMenuListener(this);
-        this.visualizer = visualizer;
+	super("Add plot of file...");
+	addMenuListener(this);
+	this.visualizer = visualizer;
     }
 
     /**
@@ -56,28 +55,28 @@ class AddFilePopupMenu extends JMenu implements MenuListener,
      */
     public void menuSelected(MenuEvent event) {
 
-        // remove all menu items
-        removeAll();
-        
-        // get all project files
-        RawDataFile[] openFiles = MZmineCore.getCurrentProject().getDataFiles();
-        HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
-        for (RawDataFile file : visualizer.getRawDataFiles())
-            visualizedFiles.add(file);
+	// remove all menu items
+	removeAll();
 
-        menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
-        for (RawDataFile file : openFiles) {
-            
-            // if this file is already added, skip it
-            if (visualizedFiles.contains(file))
-                continue;
+	// get all project files
+	RawDataFile[] openFiles = MZmineCore.getCurrentProject().getDataFiles();
+	HashSet<RawDataFile> visualizedFiles = new HashSet<RawDataFile>();
+	for (RawDataFile file : visualizer.getRawDataFiles())
+	    visualizedFiles.add(file);
 
-            // add a menu item for each file
-            JMenuItem newItem = new JMenuItem(file.getName());
-            newItem.addActionListener(this);
-            menuItemFiles.put(newItem, file);
-            add(newItem);
-        }
+	menuItemFiles = new Hashtable<JMenuItem, RawDataFile>();
+	for (RawDataFile file : openFiles) {
+
+	    // if this file is already added, skip it
+	    if (visualizedFiles.contains(file))
+		continue;
+
+	    // add a menu item for each file
+	    JMenuItem newItem = new JMenuItem(file.getName());
+	    newItem.addActionListener(this);
+	    menuItemFiles.put(newItem, file);
+	    add(newItem);
+	}
 
     }
 
@@ -85,23 +84,23 @@ class AddFilePopupMenu extends JMenu implements MenuListener,
      * @see javax.swing.event.MenuListener#menuDeselected(javax.swing.event.MenuEvent)
      */
     public void menuDeselected(MenuEvent arg0) {
-        // do nothing
+	// do nothing
     }
 
     /**
      * @see javax.swing.event.MenuListener#menuCanceled(javax.swing.event.MenuEvent)
      */
     public void menuCanceled(MenuEvent arg0) {
-        // do nothing
+	// do nothing
     }
 
     /**
      * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
      */
     public void actionPerformed(ActionEvent event) {
-        Object src = event.getSource();
-        RawDataFile file = menuItemFiles.get(src);
-        if (file != null)
-            visualizer.addRawDataFile(file);
+	Object src = event.getSource();
+	RawDataFile file = menuItemFiles.get(src);
+	if (file != null)
+	    visualizer.addRawDataFile(file);
     }
 }

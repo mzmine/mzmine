@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -156,7 +156,8 @@ public class TICVisualizerModule implements MZmineRunnableModule {
     public static void showNewTICVisualizerWindow(
 	    final RawDataFile[] dataFiles, final Feature[] selectionPeaks,
 	    final Map<Feature, String> peakLabels, final int msLevel,
-	    final PlotType plotType, final Range<Double> rtRange, final Range<Double> mzRange) {
+	    final PlotType plotType, final Range<Double> rtRange,
+	    final Range<Double> mzRange) {
 
 	TICVisualizerWindow window = new TICVisualizerWindow(dataFiles,
 		plotType, msLevel, rtRange, mzRange, selectionPeaks, peakLabels);

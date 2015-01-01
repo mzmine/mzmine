@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,67 +40,67 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class FileNameComponent extends JPanel implements ActionListener {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	public static final int TEXTFIELD_COLUMNS = 15;
-	public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
+    public static final int TEXTFIELD_COLUMNS = 15;
+    public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
-	private JTextField txtFilename;
+    private JTextField txtFilename;
 
-	public FileNameComponent() {
-		txtFilename = new JTextField();
-		txtFilename.setColumns(TEXTFIELD_COLUMNS);
-		txtFilename.setFont(smallFont);
-		JButton btnFileBrowser = new JButton("...");
+    public FileNameComponent() {
+	txtFilename = new JTextField();
+	txtFilename.setColumns(TEXTFIELD_COLUMNS);
+	txtFilename.setFont(smallFont);
+	JButton btnFileBrowser = new JButton("...");
 
-		btnFileBrowser.addActionListener(this);
+	btnFileBrowser.addActionListener(this);
 
-		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-		add(txtFilename);
-		add(Box.createRigidArea(new Dimension(10, 1)));
-		add(btnFileBrowser);
+	setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+	add(txtFilename);
+	add(Box.createRigidArea(new Dimension(10, 1)));
+	add(btnFileBrowser);
+    }
+
+    public void addPropertyChangeListener(String property,
+	    PropertyChangeListener listener) {
+	txtFilename.addPropertyChangeListener(property, listener);
+    }
+
+    public void removePropertyChangeListener(String property,
+	    PropertyChangeListener listener) {
+	txtFilename.removePropertyChangeListener(property, listener);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+	JFileChooser fileChooser = new JFileChooser();
+	fileChooser.setMultiSelectionEnabled(false);
+
+	String currentPath = txtFilename.getText();
+	if (currentPath.length() > 0) {
+	    File currentFile = new File(currentPath);
+	    File currentDir = currentFile.getParentFile();
+	    if (currentDir != null && currentDir.exists())
+		fileChooser.setCurrentDirectory(currentDir);
 	}
 
-	public void addPropertyChangeListener(String property,
-			PropertyChangeListener listener) {
-		txtFilename.addPropertyChangeListener(property, listener);
+	int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
+		.getMainWindow(), "Select file");
+
+	if (returnVal == JFileChooser.APPROVE_OPTION) {
+	    String selectedPath = fileChooser.getSelectedFile()
+		    .getAbsolutePath();
+	    txtFilename.setText(selectedPath);
 	}
+    }
 
-	public void removePropertyChangeListener(String property,
-			PropertyChangeListener listener) {
-		txtFilename.removePropertyChangeListener(property, listener);
-	}
+    public String getFilePath() {
+	return txtFilename.getText();
+    }
 
-	public void actionPerformed(ActionEvent e) {
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setMultiSelectionEnabled(false);
-
-		String currentPath = txtFilename.getText();
-		if (currentPath.length() > 0) {
-			File currentFile = new File(currentPath);
-			File currentDir = currentFile.getParentFile();
-			if (currentDir != null && currentDir.exists())
-				fileChooser.setCurrentDirectory(currentDir);
-		}
-
-		int returnVal = fileChooser.showDialog(MZmineCore.getDesktop()
-				.getMainWindow(), "Select file");
-
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			String selectedPath = fileChooser.getSelectedFile()
-					.getAbsolutePath();
-			txtFilename.setText(selectedPath);
-		}
-	}
-
-	public String getFilePath() {
-		return txtFilename.getText();
-	}
-
-	public void setFilePath(String path) {
-		txtFilename.setText(path);
-	}
+    public void setFilePath(String path) {
+	txtFilename.setText(path);
+    }
 
 }

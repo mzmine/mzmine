@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -44,60 +44,49 @@ public class CameraSearchParameters extends SimpleParameterSet {
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
     // Sigma.
-    public static final DoubleParameter FWHM_SIGMA =
-            new DoubleParameter("FWHM sigma",
-                                "Fitted peak (Gaussian) width multiplier used when grouping peaks by RT",
-                                NumberFormat.getNumberInstance(),
-                                0.2,
-                                0.0,
-                                null);
+    public static final DoubleParameter FWHM_SIGMA = new DoubleParameter(
+	    "FWHM sigma",
+	    "Fitted peak (Gaussian) width multiplier used when grouping peaks by RT",
+	    NumberFormat.getNumberInstance(), 0.2, 0.0, null);
 
     // Percentage of FWHM.
-    public static final PercentParameter FWHM_PERCENTAGE =
-            new PercentParameter("FWHM percentage",
-                                 "Percentage of the FWHM of a peak used when grouping peaks by RT",
-                                 0.01, 0.0, 1.0);
+    public static final PercentParameter FWHM_PERCENTAGE = new PercentParameter(
+	    "FWHM percentage",
+	    "Percentage of the FWHM of a peak used when grouping peaks by RT",
+	    0.01, 0.0, 1.0);
 
     // Max charge.
-    public static final IntegerParameter ISOTOPES_MAX_CHARGE =
-            new IntegerParameter("Isotopes max. charge",
-                                 "The maximum charge considered when identifying isotopes",
-                                 3, 1, null);
+    public static final IntegerParameter ISOTOPES_MAX_CHARGE = new IntegerParameter(
+	    "Isotopes max. charge",
+	    "The maximum charge considered when identifying isotopes", 3, 1,
+	    null);
 
     // Max isotopes.
-    public static final IntegerParameter ISOTOPES_MAXIMUM =
-            new IntegerParameter("Isotopes max. per cluster",
-                                 "The maximum number of isotopes per cluster",
-                                 4, 0, null);
+    public static final IntegerParameter ISOTOPES_MAXIMUM = new IntegerParameter(
+	    "Isotopes max. per cluster",
+	    "The maximum number of isotopes per cluster", 4, 0, null);
 
     // Isotope m/z tolerance.
-    public static final MZToleranceParameter ISOTOPES_MZ_TOLERANCE =
-            new MZToleranceParameter("Isotopes mass tolerance",
-                                     "Mass tolerance used when identifying isotopes (both values required)");
+    public static final MZToleranceParameter ISOTOPES_MZ_TOLERANCE = new MZToleranceParameter(
+	    "Isotopes mass tolerance",
+	    "Mass tolerance used when identifying isotopes (both values required)");
 
     // Correlation threshold.
-    public static final DoubleParameter CORRELATION_THRESHOLD =
-            new DoubleParameter("Correlation threshold",
-                                "Minimum correlation required between two peaks' EICs when grouping by peak shape",
-                                NumberFormat.getNumberInstance(),
-                                0.9,
-                                0.0,
-                                1.0);
+    public static final DoubleParameter CORRELATION_THRESHOLD = new DoubleParameter(
+	    "Correlation threshold",
+	    "Minimum correlation required between two peaks' EICs when grouping by peak shape",
+	    NumberFormat.getNumberInstance(), 0.9, 0.0, 1.0);
 
     // Correlation threshold.
-    public static final DoubleParameter CORRELATION_P_VALUE =
-            new DoubleParameter("Correlation p-value",
-                                "Required p-value when testing the significance of peak shape correlation",
-                                NumberFormat.getNumberInstance(),
-                                0.05,
-                                0.0,
-                                1.0);
+    public static final DoubleParameter CORRELATION_P_VALUE = new DoubleParameter(
+	    "Correlation p-value",
+	    "Required p-value when testing the significance of peak shape correlation",
+	    NumberFormat.getNumberInstance(), 0.05, 0.0, 1.0);
 
     public CameraSearchParameters() {
 
-        super(new Parameter[]{PEAK_LISTS,
-                              FWHM_SIGMA, FWHM_PERCENTAGE,
-                              ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM, ISOTOPES_MZ_TOLERANCE,
-                              CORRELATION_THRESHOLD, CORRELATION_P_VALUE});
+	super(new Parameter[] { PEAK_LISTS, FWHM_SIGMA, FWHM_PERCENTAGE,
+		ISOTOPES_MAX_CHARGE, ISOTOPES_MAXIMUM, ISOTOPES_MZ_TOLERANCE,
+		CORRELATION_THRESHOLD, CORRELATION_P_VALUE });
     }
 }

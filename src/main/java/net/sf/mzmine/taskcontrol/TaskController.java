@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,18 +26,18 @@ import net.sf.mzmine.taskcontrol.impl.TaskQueue;
  */
 public interface TaskController {
 
-	public void addTask(Task task);
+    public void addTask(Task task);
 
-	public void addTasks(Task tasks[]);
+    public void addTasks(Task tasks[]);
 
-	public void addTask(Task task, TaskPriority priority);
+    public void addTask(Task task, TaskPriority priority);
 
-	public void addTasks(Task tasks[], TaskPriority priority);
+    public void addTasks(Task tasks[], TaskPriority priority);
 
-	public void setTaskPriority(Task task, TaskPriority priority);
+    public void setTaskPriority(Task task, TaskPriority priority);
 
-	public void addTaskControlListener(TaskControlListener listener);
+    public void addTaskControlListener(TaskControlListener listener);
 
-	public TaskQueue getTaskQueue();
-	
+    public TaskQueue getTaskQueue();
+
 }

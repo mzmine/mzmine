@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,62 +37,62 @@ import org.jfree.data.xy.XYDataset;
 
 public class ContinuousRenderer extends XYLineAndShapeRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	public static final float TRANSPARENCY = 0.8f;
+    public static final float TRANSPARENCY = 0.8f;
 
-	public static final AlphaComposite alphaComp = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, TRANSPARENCY);
+    public static final AlphaComposite alphaComp = AlphaComposite.getInstance(
+	    AlphaComposite.SRC_OVER, TRANSPARENCY);
 
-	// data points shape
-	private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
-			5, 5);
-	
-	private boolean isTransparent;
+    // data points shape
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
+	    5, 5);
 
-	public ContinuousRenderer(Color color, boolean isTransparent) {
+    private boolean isTransparent;
 
-		this.isTransparent = isTransparent;
+    public ContinuousRenderer(Color color, boolean isTransparent) {
 
-		// Set painting color
-		setBasePaint(color);
-		setBaseFillPaint(color);
-		setUseFillPaint(true);
-		
-		// Set shape properties
-		setBaseShape(dataPointsShape);
-		setBaseShapesFilled(true);
-		setBaseShapesVisible(false);
-		setDrawOutlines(false);
-				
-		// Set the tooltip generator
-		SpectraToolTipGenerator tooltipGenerator = new SpectraToolTipGenerator();
-		setBaseToolTipGenerator(tooltipGenerator);
-		
-	}
+	this.isTransparent = isTransparent;
 
-	public void drawItem(Graphics2D g2, XYItemRendererState state,
-			Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-			ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-			int series, int item, CrosshairState crosshairState, int pass) {
+	// Set painting color
+	setBasePaint(color);
+	setBaseFillPaint(color);
+	setUseFillPaint(true);
 
-		if (isTransparent)
-			g2.setComposite(alphaComp);
+	// Set shape properties
+	setBaseShape(dataPointsShape);
+	setBaseShapesFilled(true);
+	setBaseShapesVisible(false);
+	setDrawOutlines(false);
 
-		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-				dataset, series, item, crosshairState, pass);
+	// Set the tooltip generator
+	SpectraToolTipGenerator tooltipGenerator = new SpectraToolTipGenerator();
+	setBaseToolTipGenerator(tooltipGenerator);
 
-	}
+    }
 
-	/**
-	 * This method returns null, because we don't want to change the colors
-	 * dynamically.
-	 */
-	public DrawingSupplier getDrawingSupplier() {
-		return null;
-	}
+    public void drawItem(Graphics2D g2, XYItemRendererState state,
+	    Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
+	    ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
+	    int series, int item, CrosshairState crosshairState, int pass) {
+
+	if (isTransparent)
+	    g2.setComposite(alphaComp);
+
+	super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+		dataset, series, item, crosshairState, pass);
+
+    }
+
+    /**
+     * This method returns null, because we don't want to change the colors
+     * dynamically.
+     */
+    public DrawingSupplier getDrawingSupplier() {
+	return null;
+    }
 
 }

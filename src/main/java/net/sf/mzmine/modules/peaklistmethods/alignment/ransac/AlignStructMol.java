@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -25,33 +25,34 @@ import net.sf.mzmine.datamodel.RawDataFile;
 
 public class AlignStructMol implements Comparator<AlignStructMol> {
 
-    public PeakListRow row1,  row2;
-    public double RT,  RT2;
+    public PeakListRow row1, row2;
+    public double RT, RT2;
     public boolean Aligned = false;
     public boolean ransacMaybeInLiers;
     public boolean ransacAlsoInLiers;
 
     public AlignStructMol(PeakListRow row1, PeakListRow row2) {
-        this.row1 = row1;
-        this.row2 = row2;
-        RT = row1.getAverageRT();
-        RT2 = row2.getAverageRT();
+	this.row1 = row1;
+	this.row2 = row2;
+	RT = row1.getAverageRT();
+	RT2 = row2.getAverageRT();
     }
 
-    public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file, RawDataFile file2) {
-        this.row1 = row1;
-        this.row2 = row2;
-        if (row1.getPeak(file) != null) {
-            RT = row1.getPeak(file).getRT();
-        } else {
-            RT = row1.getAverageRT();
-        }
+    public AlignStructMol(PeakListRow row1, PeakListRow row2, RawDataFile file,
+	    RawDataFile file2) {
+	this.row1 = row1;
+	this.row2 = row2;
+	if (row1.getPeak(file) != null) {
+	    RT = row1.getPeak(file).getRT();
+	} else {
+	    RT = row1.getAverageRT();
+	}
 
-        if (row2.getPeak(file2) != null) {
-            RT2 = row2.getPeak(file2).getRT();
-        } else {
-            RT = row1.getAverageRT();
-        }
+	if (row2.getPeak(file2) != null) {
+	    RT2 = row2.getPeak(file2).getRT();
+	} else {
+	    RT = row1.getAverageRT();
+	}
     }
 
     AlignStructMol() {
@@ -59,13 +60,10 @@ public class AlignStructMol implements Comparator<AlignStructMol> {
     }
 
     public int compare(AlignStructMol arg0, AlignStructMol arg1) {
-        if (arg0.RT < arg1.RT) {
-            return -1;
-        } else {
-            return 1;
-        }
+	if (arg0.RT < arg1.RT) {
+	    return -1;
+	} else {
+	    return 1;
+	}
     }
 }
-
-
-

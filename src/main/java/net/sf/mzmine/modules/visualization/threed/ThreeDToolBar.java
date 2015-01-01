@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -40,24 +40,24 @@ class ThreeDToolBar extends JToolBar {
     private static final long serialVersionUID = 1L;
     static final Icon propertiesIcon = MetalIconFactory.getTreeComputerIcon();
     static final Icon annotationsIcon = new ImageIcon(
-            "icons/annotationsicon.png");
+	    "icons/annotationsicon.png");
 
     ThreeDToolBar(ThreeDVisualizerWindow masterFrame) {
 
-        super(JToolBar.VERTICAL);
+	super(JToolBar.VERTICAL);
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+	setFloatable(false);
+	setFocusable(false);
+	setMargin(new Insets(5, 5, 5, 5));
+	setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
-                "PROPERTIES", "Set properties");
+	GUIUtils.addButton(this, null, propertiesIcon, masterFrame,
+		"PROPERTIES", "Set properties");
 
-        addSeparator();
+	addSeparator();
 
-        GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
-                "SHOW_ANNOTATIONS", "Toggle displaying of peak values");
+	GUIUtils.addButton(this, null, annotationsIcon, masterFrame,
+		"SHOW_ANNOTATIONS", "Toggle displaying of peak values");
 
     }
 

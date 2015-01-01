@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,44 +36,44 @@ public class HelpImpl {
 
     public HelpImpl() {
 
-        MZmineHelpMap helpMap;
-        JarFile jarFile;
-        try {
-            String path = this.getClass().getProtectionDomain().getCodeSource()
-                    .getLocation().getPath();
-            String decodedPath = URLDecoder.decode(path, "UTF-8");
-            helpMap = new MZmineHelpMap(decodedPath);
-            jarFile = new JarFile(decodedPath);
-        } catch (Exception e) {
-            logger.warning("Could not load help files: "
-                    + ExceptionUtils.exceptionToString(e));
-            return;
-        }
+	MZmineHelpMap helpMap;
+	JarFile jarFile;
+	try {
+	    String path = this.getClass().getProtectionDomain().getCodeSource()
+		    .getLocation().getPath();
+	    String decodedPath = URLDecoder.decode(path, "UTF-8");
+	    helpMap = new MZmineHelpMap(decodedPath);
+	    jarFile = new JarFile(decodedPath);
+	} catch (Exception e) {
+	    logger.warning("Could not load help files: "
+		    + ExceptionUtils.exceptionToString(e));
+	    return;
+	}
 
-        Enumeration<JarEntry> e = jarFile.entries();
-        while (e.hasMoreElements()) {
-            JarEntry entry = e.nextElement();
-            String name = entry.getName();
-            if ((name.endsWith("htm")) || (name.endsWith("html"))) {
-                helpMap.setTarget(name);
-            }
-        }
+	Enumeration<JarEntry> e = jarFile.entries();
+	while (e.hasMoreElements()) {
+	    JarEntry entry = e.nextElement();
+	    String name = entry.getName();
+	    if ((name.endsWith("htm")) || (name.endsWith("html"))) {
+		helpMap.setTarget(name);
+	    }
+	}
 
-        helpMap.setTargetImage("topic.png");
+	helpMap.setTargetImage("topic.png");
 
-        hs = new MZmineHelpSet();
-        hs.setLocalMap(helpMap);
+	hs = new MZmineHelpSet();
+	hs.setLocalMap(helpMap);
 
-        MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents",
-                helpMap, jarFile);
+	MZmineTOCView myTOC = new MZmineTOCView(hs, "TOC", "Table Of Contents",
+		helpMap, jarFile);
 
-        hs.setTitle("MZmine 2");
-        hs.addTOCView(myTOC);
+	hs.setTitle("MZmine 2");
+	hs.addTOCView(myTOC);
 
     }
 
     public MZmineHelpSet getHelpSet() {
-        return hs;
+	return hs;
     }
 
 }

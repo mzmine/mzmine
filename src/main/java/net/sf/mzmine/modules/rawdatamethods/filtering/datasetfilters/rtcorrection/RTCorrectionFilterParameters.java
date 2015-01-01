@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,15 +25,15 @@ import net.sf.mzmine.parameters.parametertypes.RangeParameter;
 
 public class RTCorrectionFilterParameters extends SimpleParameterSet {
 
-	public static final RangeParameter mzRange = new RangeParameter(
-			"m/z range", "m/z boundary of the cropped region",
-			MZmineCore.getConfiguration().getMZFormat());
+    public static final RangeParameter mzRange = new RangeParameter(
+	    "m/z range", "m/z boundary of the cropped region", MZmineCore
+		    .getConfiguration().getMZFormat());
 
-	public static final RangeParameter retentionTimeRange = new RangeParameter(
-			"Retention time", "retention time boundary of the cropped region",
-			MZmineCore.getConfiguration().getRTFormat());
+    public static final RangeParameter retentionTimeRange = new RangeParameter(
+	    "Retention time", "retention time boundary of the cropped region",
+	    MZmineCore.getConfiguration().getRTFormat());
 
-	public RTCorrectionFilterParameters() {
-		super(new UserParameter[] { mzRange, retentionTimeRange });
-	}
+    public RTCorrectionFilterParameters() {
+	super(new UserParameter[] { mzRange, retentionTimeRange });
+    }
 }

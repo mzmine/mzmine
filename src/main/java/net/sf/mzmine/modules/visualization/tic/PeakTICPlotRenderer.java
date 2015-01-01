@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -42,35 +42,19 @@ public class PeakTICPlotRenderer extends XYAreaRenderer {
 
     private static Composite makeComposite(final float alpha) {
 
-        return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
+	return AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha);
     }
 
     @Override
-    public void drawItem(final Graphics2D g2,
-                         final XYItemRendererState state,
-                         final Rectangle2D dataArea,
-                         final PlotRenderingInfo info,
-                         final XYPlot plot,
-                         final ValueAxis domainAxis,
-                         final ValueAxis rangeAxis,
-                         final XYDataset dataSet,
-                         final int series,
-                         final int item,
-                         final CrosshairState crosshairState,
-                         final int pass) {
+    public void drawItem(final Graphics2D g2, final XYItemRendererState state,
+	    final Rectangle2D dataArea, final PlotRenderingInfo info,
+	    final XYPlot plot, final ValueAxis domainAxis,
+	    final ValueAxis rangeAxis, final XYDataset dataSet,
+	    final int series, final int item,
+	    final CrosshairState crosshairState, final int pass) {
 
-        g2.setComposite(makeComposite(OPACITY));
-        super.drawItem(g2,
-                       state,
-                       dataArea,
-                       info,
-                       plot,
-                       domainAxis,
-                       rangeAxis,
-                       dataSet,
-                       series,
-                       item,
-                       crosshairState,
-                       pass);
+	g2.setComposite(makeComposite(OPACITY));
+	super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+		dataSet, series, item, crosshairState, pass);
     }
 }

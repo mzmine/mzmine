@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,76 +35,74 @@ import org.jfree.data.xy.XYDataset;
 
 public class TICPlotRenderer extends XYLineAndShapeRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private double transparency = 1.0f;
+    private double transparency = 1.0f;
 
-	public TICPlotRenderer() {
-		super(true, false);
-	}
-	
-	private AlphaComposite makeComposite(double alpha) {
-		int type = AlphaComposite.SRC_OVER;
-		return (AlphaComposite.getInstance(type, (float) alpha));
-	}
+    public TICPlotRenderer() {
+	super(true, false);
+    }
 
-	public void drawItem(Graphics2D g2, XYItemRendererState state,
-			Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-			ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-			int series, int item, CrosshairState crosshairState, int pass) {
+    private AlphaComposite makeComposite(double alpha) {
+	int type = AlphaComposite.SRC_OVER;
+	return (AlphaComposite.getInstance(type, (float) alpha));
+    }
 
-		g2.setComposite(makeComposite(transparency));
+    public void drawItem(Graphics2D g2, XYItemRendererState state,
+	    Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
+	    ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
+	    int series, int item, CrosshairState crosshairState, int pass) {
 
-		super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-				dataset, series, item, crosshairState, pass);
+	g2.setComposite(makeComposite(transparency));
 
-	}
+	super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+		dataset, series, item, crosshairState, pass);
 
-	protected void drawPrimaryLine(XYItemRendererState state, Graphics2D g2,
-			XYPlot plot, XYDataset dataset, int pass, int series, int item,
-			ValueAxis domainAxis, ValueAxis rangeAxis, Rectangle2D dataArea) {
+    }
 
-		g2.setComposite(makeComposite(transparency));
+    protected void drawPrimaryLine(XYItemRendererState state, Graphics2D g2,
+	    XYPlot plot, XYDataset dataset, int pass, int series, int item,
+	    ValueAxis domainAxis, ValueAxis rangeAxis, Rectangle2D dataArea) {
 
-		super.drawPrimaryLine(state, g2, plot, dataset, pass, series, item,
-				domainAxis, rangeAxis, dataArea);
+	g2.setComposite(makeComposite(transparency));
 
-	}
+	super.drawPrimaryLine(state, g2, plot, dataset, pass, series, item,
+		domainAxis, rangeAxis, dataArea);
 
-	protected void drawFirstPassShape(Graphics2D g2, int pass, int series,
-			int item, Shape shape) {
-		g2.setComposite(makeComposite(transparency));
-		g2.setStroke(getItemStroke(series, item));
-		g2.setPaint(getItemPaint(series, item));
-		g2.draw(shape);
-	}
+    }
 
-	protected void drawPrimaryLineAsPath(XYItemRendererState state,
-			Graphics2D g2, XYPlot plot, XYDataset dataset, int pass,
-			int series, int item, ValueAxis domainAxis, ValueAxis rangeAxis,
-			Rectangle2D dataArea) {
+    protected void drawFirstPassShape(Graphics2D g2, int pass, int series,
+	    int item, Shape shape) {
+	g2.setComposite(makeComposite(transparency));
+	g2.setStroke(getItemStroke(series, item));
+	g2.setPaint(getItemPaint(series, item));
+	g2.draw(shape);
+    }
 
-		g2.setComposite(makeComposite(transparency));
+    protected void drawPrimaryLineAsPath(XYItemRendererState state,
+	    Graphics2D g2, XYPlot plot, XYDataset dataset, int pass,
+	    int series, int item, ValueAxis domainAxis, ValueAxis rangeAxis,
+	    Rectangle2D dataArea) {
 
-		super.drawPrimaryLineAsPath(state, g2, plot, dataset, pass, series,
-				item, domainAxis, rangeAxis, dataArea);
+	g2.setComposite(makeComposite(transparency));
 
-	}
+	super.drawPrimaryLineAsPath(state, g2, plot, dataset, pass, series,
+		item, domainAxis, rangeAxis, dataArea);
 
-	protected void drawSecondaryPass(Graphics2D g2, XYPlot plot,
-			XYDataset dataset, int pass, int series, int item,
-			ValueAxis domainAxis, Rectangle2D dataArea, ValueAxis rangeAxis,
-			CrosshairState crosshairState, EntityCollection entities) {
+    }
 
-		g2.setComposite(makeComposite(transparency));
+    protected void drawSecondaryPass(Graphics2D g2, XYPlot plot,
+	    XYDataset dataset, int pass, int series, int item,
+	    ValueAxis domainAxis, Rectangle2D dataArea, ValueAxis rangeAxis,
+	    CrosshairState crosshairState, EntityCollection entities) {
 
-		super.drawSecondaryPass(g2, plot, dataset, pass, series, item,
-				domainAxis, dataArea, rangeAxis, crosshairState, entities);
+	g2.setComposite(makeComposite(transparency));
 
-	}
-	
-	
+	super.drawSecondaryPass(g2, plot, dataset, pass, series, item,
+		domainAxis, dataArea, rangeAxis, crosshairState, entities);
+
+    }
 
 }

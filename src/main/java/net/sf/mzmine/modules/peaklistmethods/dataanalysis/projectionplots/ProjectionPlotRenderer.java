@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,62 +30,62 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 public class ProjectionPlotRenderer extends XYLineAndShapeRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	private Paint[] paintsForGroups;
+    private Paint[] paintsForGroups;
 
-	private final Color[] avoidColors = { new Color(255, 255, 85)};
+    private final Color[] avoidColors = { new Color(255, 255, 85) };
 
-	private static final Shape dataPointsShape = new Ellipse2D.Double(-6, -6,
-			12, 12);
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-6, -6,
+	    12, 12);
 
-	private ProjectionPlotDataset dataset;
+    private ProjectionPlotDataset dataset;
 
-	private boolean isAvoidColor(Color color) {
-		for (Color c : avoidColors) {
-			if (	(color.getRed() >= c.getRed()) &&
-					(color.getGreen() >= c.getGreen()) &&
-					(color.getBlue() >= c.getBlue())	)
-				return true;
-		}
-
-		return false;
+    private boolean isAvoidColor(Color color) {
+	for (Color c : avoidColors) {
+	    if ((color.getRed() >= c.getRed())
+		    && (color.getGreen() >= c.getGreen())
+		    && (color.getBlue() >= c.getBlue()))
+		return true;
 	}
 
-	public ProjectionPlotRenderer(XYPlot plot, ProjectionPlotDataset dataset) {
-		super(false, true);
-		this.dataset = dataset;
-		this.setSeriesShape(0, dataPointsShape);
+	return false;
+    }
 
-		paintsForGroups = new Paint[dataset.getNumberOfGroups()];
-		DrawingSupplier drawSupp = plot.getDrawingSupplier();
-		for (int groupNumber = 0; groupNumber < dataset.getNumberOfGroups(); groupNumber++) {
+    public ProjectionPlotRenderer(XYPlot plot, ProjectionPlotDataset dataset) {
+	super(false, true);
+	this.dataset = dataset;
+	this.setSeriesShape(0, dataPointsShape);
 
-			Paint nextPaint = drawSupp.getNextPaint();
-			while (isAvoidColor((Color) nextPaint))
-				nextPaint = drawSupp.getNextPaint();
+	paintsForGroups = new Paint[dataset.getNumberOfGroups()];
+	DrawingSupplier drawSupp = plot.getDrawingSupplier();
+	for (int groupNumber = 0; groupNumber < dataset.getNumberOfGroups(); groupNumber++) {
 
-			paintsForGroups[groupNumber] = nextPaint;
+	    Paint nextPaint = drawSupp.getNextPaint();
+	    while (isAvoidColor((Color) nextPaint))
+		nextPaint = drawSupp.getNextPaint();
 
-		}
+	    paintsForGroups[groupNumber] = nextPaint;
 
 	}
 
-	public Paint getItemPaint(int series, int item) {
+    }
 
-		int groupNumber = dataset.getGroupNumber(item);
-		return paintsForGroups[groupNumber];
-	}
+    public Paint getItemPaint(int series, int item) {
 
-	public Paint getGroupPaint(int groupNumber) {
-		return paintsForGroups[groupNumber];
-	}
+	int groupNumber = dataset.getGroupNumber(item);
+	return paintsForGroups[groupNumber];
+    }
 
-	protected Shape getDataPointsShape() {
-		return dataPointsShape;
-	}
+    public Paint getGroupPaint(int groupNumber) {
+	return paintsForGroups[groupNumber];
+    }
+
+    protected Shape getDataPointsShape() {
+	return dataPointsShape;
+    }
 
 }

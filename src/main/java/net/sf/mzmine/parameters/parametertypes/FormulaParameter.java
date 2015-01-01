@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,22 +26,22 @@ public class FormulaParameter extends StringParameter {
     private static final String formulaPattern = "^([A-Z][a-z]?[0-9]*)+$";
 
     public FormulaParameter() {
-        super("Formula",
-                "The chemical formula in its neutral form, e.g. C6H12O6", null);
+	super("Formula",
+		"The chemical formula in its neutral form, e.g. C6H12O6", null);
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-        boolean superCheck = super.checkValue(errorMessages);
+	boolean superCheck = super.checkValue(errorMessages);
 
-        String value = getValue();
-        if ((value != null) && (!value.matches(formulaPattern))) {
-            errorMessages.add("\"" + value
-                    + "\" is not a valid chemical formula");
-            return false;
-        }
+	String value = getValue();
+	if ((value != null) && (!value.matches(formulaPattern))) {
+	    errorMessages.add("\"" + value
+		    + "\" is not a valid chemical formula");
+	    return false;
+	}
 
-        return superCheck;
+	return superCheck;
     }
 
 }

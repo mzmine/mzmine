@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,31 +28,32 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class CSVExportParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakList = new PeakListsParameter(1,
+	    1);
 
-	public static final FileNameParameter filename = new FileNameParameter(
-			"Filename",
-			"Name of exported peak list file name. If the file already exists, it will be overwritten.",
-			"csv");
+    public static final FileNameParameter filename = new FileNameParameter(
+	    "Filename",
+	    "Name of exported peak list file name. If the file already exists, it will be overwritten.",
+	    "csv");
 
-	public static final StringParameter fieldSeparator = new StringParameter(
-			"Field separator",
-			"Character(s) used to separate fields in the exported file", ",");
+    public static final StringParameter fieldSeparator = new StringParameter(
+	    "Field separator",
+	    "Character(s) used to separate fields in the exported file", ",");
 
-	public static final MultiChoiceParameter<ExportRowCommonElement> exportCommonItems = new MultiChoiceParameter<ExportRowCommonElement>(
-			"Export common elements", "Selection of row's elements to export",
-			ExportRowCommonElement.values());
+    public static final MultiChoiceParameter<ExportRowCommonElement> exportCommonItems = new MultiChoiceParameter<ExportRowCommonElement>(
+	    "Export common elements", "Selection of row's elements to export",
+	    ExportRowCommonElement.values());
 
-	public static final IdentityItemsParameter exportIdentityItems = new IdentityItemsParameter();
+    public static final IdentityItemsParameter exportIdentityItems = new IdentityItemsParameter();
 
-	public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<ExportRowDataFileElement>(
-			"Export data file elements",
-			"Selection of peak's elements to export",
-			ExportRowDataFileElement.values());
+    public static final MultiChoiceParameter<ExportRowDataFileElement> exportDataFileItems = new MultiChoiceParameter<ExportRowDataFileElement>(
+	    "Export data file elements",
+	    "Selection of peak's elements to export",
+	    ExportRowDataFileElement.values());
 
-	public CSVExportParameters() {
-		super(new Parameter[] { peakList, filename, fieldSeparator,
-				exportCommonItems, exportIdentityItems, exportDataFileItems });
-	}
+    public CSVExportParameters() {
+	super(new Parameter[] { peakList, filename, fieldSeparator,
+		exportCommonItems, exportIdentityItems, exportDataFileItems });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,13 +26,13 @@ import net.sf.mzmine.datamodel.MassList;
  */
 public class MassListDataSet extends DataPointsDataSet {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	public MassListDataSet(MassList massList) {
-		super("Mass list " + massList.getName(), massList.getDataPoints());
-	}
+    public MassListDataSet(MassList massList) {
+	super("Mass list " + massList.getName(), massList.getDataPoints());
+    }
 
 }

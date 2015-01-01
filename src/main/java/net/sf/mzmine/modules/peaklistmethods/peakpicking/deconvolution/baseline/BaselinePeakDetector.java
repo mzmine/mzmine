@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -46,20 +46,18 @@ public class BaselinePeakDetector implements PeakResolver {
 	return "Baseline cut-off";
     }
 
-
     @Override
-    public Feature[] resolvePeaks(
-	    final Feature chromatogram, final int[] scanNumbers,
-	    final double[] retentionTimes, final double[] intensities,
-	    ParameterSet parameters) {
+    public Feature[] resolvePeaks(final Feature chromatogram,
+	    final int[] scanNumbers, final double[] retentionTimes,
+	    final double[] intensities, ParameterSet parameters) {
 
 	// Get parameters.
 	final double minimumPeakHeight = parameters.getParameter(
 		MIN_PEAK_HEIGHT).getValue();
 	final double baselineLevel = parameters.getParameter(BASELINE_LEVEL)
 		.getValue();
-	final Range<Double> durationRange = parameters.getParameter(PEAK_DURATION)
-		.getValue();
+	final Range<Double> durationRange = parameters.getParameter(
+		PEAK_DURATION).getValue();
 
 	final List<ResolvedPeak> resolvedPeaks = new ArrayList<ResolvedPeak>(2);
 

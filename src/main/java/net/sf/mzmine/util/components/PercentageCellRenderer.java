@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,39 +29,39 @@ import javax.swing.table.DefaultTableCellRenderer;
  */
 public class PercentageCellRenderer extends DefaultTableCellRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private final NumberFormat percentFormat;
+    private final NumberFormat percentFormat;
 
-	public PercentageCellRenderer() {
-		this(0);
+    public PercentageCellRenderer() {
+	this(0);
+    }
+
+    public PercentageCellRenderer(int decimals) {
+
+	assert decimals >= 0;
+
+	if (decimals == 0) {
+	    percentFormat = NumberFormat.getPercentInstance();
+	} else {
+	    StringBuilder pattern = new StringBuilder("0.");
+	    for (int i = 0; i < decimals; i++)
+		pattern.append("0");
+	    pattern.append("%");
+	    percentFormat = new DecimalFormat(pattern.toString());
 	}
 
-	public PercentageCellRenderer(int decimals) {
+    }
 
-		assert decimals >= 0;
-
-		if (decimals == 0) {
-			percentFormat = NumberFormat.getPercentInstance();
-		} else {
-			StringBuilder pattern = new StringBuilder("0.");
-			for (int i = 0; i < decimals; i++)
-				pattern.append("0");
-			pattern.append("%");
-			percentFormat = new DecimalFormat(pattern.toString());
-		}
-
+    protected void setValue(Object value) {
+	if ((value == null) || (!(value instanceof Double))) {
+	    super.setValue(value);
+	} else {
+	    String formatted = percentFormat.format((Double) value);
+	    super.setValue(formatted);
 	}
-
-	protected void setValue(Object value) {
-		if ((value == null) || (!(value instanceof Double))) {
-			super.setValue(value);
-		} else {
-			String formatted = percentFormat.format((Double) value);
-			super.setValue(formatted);
-		}
-	}
+    }
 
 }

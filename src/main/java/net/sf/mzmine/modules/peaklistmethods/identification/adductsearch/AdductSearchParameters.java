@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,23 +32,24 @@ public class AdductSearchParameters extends SimpleParameterSet {
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
     public static final RTToleranceParameter RT_TOLERANCE = new RTToleranceParameter(
-            "RT tolerance",
-            "Maximum allowed difference of retention time to set a relationship between peaks");
+	    "RT tolerance",
+	    "Maximum allowed difference of retention time to set a relationship between peaks");
 
     public static final AdductsParameter ADDUCTS = new AdductsParameter(
-            "Adducts",
-            "List of adducts, each one refers a specific distance in m/z axis between related peaks");
+	    "Adducts",
+	    "List of adducts, each one refers a specific distance in m/z axis between related peaks");
 
     public static final MZToleranceParameter MZ_TOLERANCE = new MZToleranceParameter(
-            "m/z tolerance",
-            "Tolerance value of the m/z difference between peaks");
+	    "m/z tolerance",
+	    "Tolerance value of the m/z difference between peaks");
 
     public static final PercentParameter MAX_ADDUCT_HEIGHT = new PercentParameter(
-            "Max relative adduct peak height",
-            "Maximum height of the recognized adduct peak, relative to the main peak");
+	    "Max relative adduct peak height",
+	    "Maximum height of the recognized adduct peak, relative to the main peak");
 
     public AdductSearchParameters() {
 
-        super(new Parameter[]{PEAK_LISTS, RT_TOLERANCE, ADDUCTS, MZ_TOLERANCE, MAX_ADDUCT_HEIGHT});
+	super(new Parameter[] { PEAK_LISTS, RT_TOLERANCE, ADDUCTS,
+		MZ_TOLERANCE, MAX_ADDUCT_HEIGHT });
     }
 }

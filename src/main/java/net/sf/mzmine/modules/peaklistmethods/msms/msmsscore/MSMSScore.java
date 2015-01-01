@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,20 +31,20 @@ import net.sf.mzmine.datamodel.DataPoint;
  */
 public class MSMSScore {
 
-	private double score;
-	private Map<DataPoint, String> annotation;
+    private double score;
+    private Map<DataPoint, String> annotation;
 
-	public MSMSScore(double score, Map<DataPoint, String> annotation) {
-		this.score = score;
-		this.annotation = annotation;
-	}
+    public MSMSScore(double score, Map<DataPoint, String> annotation) {
+	this.score = score;
+	this.annotation = annotation;
+    }
 
-	public double getScore() {
-		return score;
-	}
+    public double getScore() {
+	return score;
+    }
 
-	public Map<DataPoint, String> getAnnotation() {
-		return annotation;
-	}
+    public Map<DataPoint, String> getAnnotation() {
+	return annotation;
+    }
 
 }

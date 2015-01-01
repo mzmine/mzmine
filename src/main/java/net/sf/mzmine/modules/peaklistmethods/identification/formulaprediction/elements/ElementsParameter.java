@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,127 +37,127 @@ import org.w3c.dom.Element;
  * MolecularFormulaRange (CDK class).
  */
 public class ElementsParameter implements
-		UserParameter<MolecularFormulaRange, ElementsTableComponent> {
+	UserParameter<MolecularFormulaRange, ElementsTableComponent> {
 
-	private String name, description;
-	private MolecularFormulaRange value;
+    private String name, description;
+    private MolecularFormulaRange value;
 
-	public ElementsParameter(String name, String description) {
-		this.name = name;
-		this.description = description;
-		this.value = new MolecularFormulaRange();
-		try {
-			IsotopeFactory iFac = Isotopes.getInstance();
-			value.addIsotope(iFac.getMajorIsotope("C"), 0, 100);
-			value.addIsotope(iFac.getMajorIsotope("H"), 0, 100);
-			value.addIsotope(iFac.getMajorIsotope("N"), 0, 50);
-			value.addIsotope(iFac.getMajorIsotope("O"), 0, 50);
-			value.addIsotope(iFac.getMajorIsotope("P"), 0, 30);
-			value.addIsotope(iFac.getMajorIsotope("S"), 0, 30);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    public ElementsParameter(String name, String description) {
+	this.name = name;
+	this.description = description;
+	this.value = new MolecularFormulaRange();
+	try {
+	    IsotopeFactory iFac = Isotopes.getInstance();
+	    value.addIsotope(iFac.getMajorIsotope("C"), 0, 100);
+	    value.addIsotope(iFac.getMajorIsotope("H"), 0, 100);
+	    value.addIsotope(iFac.getMajorIsotope("N"), 0, 50);
+	    value.addIsotope(iFac.getMajorIsotope("O"), 0, 50);
+	    value.addIsotope(iFac.getMajorIsotope("P"), 0, 30);
+	    value.addIsotope(iFac.getMajorIsotope("S"), 0, 30);
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
+
+    @Override
+    public ElementsTableComponent createEditingComponent() {
+	ElementsTableComponent editor = new ElementsTableComponent();
+	editor.setElements(value);
+	return editor;
+    }
+
+    @Override
+    public ElementsParameter cloneParameter() {
+	ElementsParameter copy = new ElementsParameter(name, description);
+	copy.value = value;
+	return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(ElementsTableComponent component) {
+	value = component.getElements();
+    }
+
+    @Override
+    public void setValueToComponent(ElementsTableComponent component,
+	    MolecularFormulaRange newValue) {
+	component.setElements(newValue);
+    }
+
+    @Override
+    public MolecularFormulaRange getValue() {
+	return value;
+    }
+
+    @Override
+    public void setValue(MolecularFormulaRange newValue) {
+	this.value = newValue;
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+
+	try {
+	    MolecularFormulaRange newValue = new MolecularFormulaRange();
+	    IsotopeFactory iFac = Isotopes.getInstance();
+
+	    String s = xmlElement.getTextContent();
+	    Pattern p = Pattern.compile("([a-zA-Z]+)\\[([0-9]+)-([0-9]+)\\]");
+	    Matcher m = p.matcher(s);
+	    while (m.find()) {
+		String elementSymbol = m.group(1);
+		int minCount = Integer.parseInt(m.group(2));
+		int maxCount = Integer.parseInt(m.group(3));
+		newValue.addIsotope(iFac.getMajorIsotope(elementSymbol),
+			minCount, maxCount);
+	    }
+	    this.value = newValue;
+
+	} catch (IOException e) {
+	    e.printStackTrace();
 	}
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	StringBuilder s = new StringBuilder();
+	for (IIsotope i : value.isotopes()) {
+	    s.append(i.getSymbol());
+	    s.append("[");
+	    s.append(value.getIsotopeCountMin(i));
+	    s.append("-");
+	    s.append(value.getIsotopeCountMax(i));
+	    s.append("]");
 	}
+	xmlElement.setTextContent(s.toString());
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if ((value == null) || (value.getIsotopeCount() == 0)) {
+	    errorMessages.add("Please set the chemical elements");
+	    return false;
 	}
-
-	@Override
-	public ElementsTableComponent createEditingComponent() {
-		ElementsTableComponent editor = new ElementsTableComponent();
-		editor.setElements(value);
-		return editor;
-	}
-
-	@Override
-	public ElementsParameter cloneParameter() {
-		ElementsParameter copy = new ElementsParameter(name, description);
-		copy.value = value;
-		return copy;
-	}
-
-	@Override
-	public void setValueFromComponent(ElementsTableComponent component) {
-		value = component.getElements();
-	}
-
-	@Override
-	public void setValueToComponent(ElementsTableComponent component,
-			MolecularFormulaRange newValue) {
-		component.setElements(newValue);
-	}
-
-	@Override
-	public MolecularFormulaRange getValue() {
-		return value;
-	}
-
-	@Override
-	public void setValue(MolecularFormulaRange newValue) {
-		this.value = newValue;
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-
-		try {
-			MolecularFormulaRange newValue = new MolecularFormulaRange();
-			IsotopeFactory iFac = Isotopes.getInstance();
-
-			String s = xmlElement.getTextContent();
-			Pattern p = Pattern.compile("([a-zA-Z]+)\\[([0-9]+)-([0-9]+)\\]");
-			Matcher m = p.matcher(s);
-			while (m.find()) {
-				String elementSymbol = m.group(1);
-				int minCount = Integer.parseInt(m.group(2));
-				int maxCount = Integer.parseInt(m.group(3));
-				newValue.addIsotope(iFac.getMajorIsotope(elementSymbol),
-						minCount, maxCount);
-			}
-			this.value = newValue;
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		StringBuilder s = new StringBuilder();
-		for (IIsotope i : value.isotopes()) {
-			s.append(i.getSymbol());
-			s.append("[");
-			s.append(value.getIsotopeCountMin(i));
-			s.append("-");
-			s.append(value.getIsotopeCountMax(i));
-			s.append("]");
-		}
-		xmlElement.setTextContent(s.toString());
-	}
-
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if ((value == null) || (value.getIsotopeCount() == 0)) {
-			errorMessages.add("Please set the chemical elements");
-			return false;
-		}
-		return true;
-	}
+	return true;
+    }
 
 }

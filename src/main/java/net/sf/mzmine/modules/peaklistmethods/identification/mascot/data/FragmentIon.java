@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,53 +22,55 @@ package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 import net.sf.mzmine.util.ProteomeUtils;
 
 public class FragmentIon {
-	
-	private double mass;
-	private FragmentIonType ionType;
-	private int position;
-	
-	/**
-	 * This class represents a fragment ion comming from a sequence of amino acids (peptide) 
-	 * 
-	 * @param mass
-	 * @param fragmentIonType
-	 * @param position
-	 */
-	public FragmentIon(double mass, FragmentIonType fragmentIonType, int position){
-		this.mass = mass;
-		this.ionType = fragmentIonType;
-	}
-	
-	/**
-	 * Returns the mass value for this fragment ion
-	 * 
-	 * @return mass
-	 */
-	public double getMass(){
-		return mass;
-	}
+
+    private double mass;
+    private FragmentIonType ionType;
+    private int position;
+
+    /**
+     * This class represents a fragment ion comming from a sequence of amino
+     * acids (peptide)
+     * 
+     * @param mass
+     * @param fragmentIonType
+     * @param position
+     */
+    public FragmentIon(double mass, FragmentIonType fragmentIonType,
+	    int position) {
+	this.mass = mass;
+	this.ionType = fragmentIonType;
+    }
+
+    /**
+     * Returns the mass value for this fragment ion
+     * 
+     * @return mass
+     */
+    public double getMass() {
+	return mass;
+    }
 
     /**
      * Returns the enum FragmentIonType assigned to this fragment ion
      * 
      * @return ionType
      */
-	public FragmentIonType getType(){
-    	return ionType;
+    public FragmentIonType getType() {
+	return ionType;
     }
 
     /**
-     * Returns the position of this fragment (Example: b2 where b is the type and 2 is the position)
+     * Returns the position of this fragment (Example: b2 where b is the type
+     * and 2 is the position)
      * 
      * @return position
      */
-	public int getPosition(){
-    	return position;
-    }
-    
-	public String getName(){
-    	return ProteomeUtils.fragmentIonToString(this); 
+    public int getPosition() {
+	return position;
     }
 
+    public String getName() {
+	return ProteomeUtils.fragmentIonToString(this);
+    }
 
 }

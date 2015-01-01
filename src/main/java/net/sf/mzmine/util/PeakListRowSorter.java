@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,61 +30,61 @@ import net.sf.mzmine.datamodel.PeakListRow;
  */
 public class PeakListRowSorter implements Comparator<PeakListRow> {
 
-	private SortingProperty property;
-	private SortingDirection direction;
+    private SortingProperty property;
+    private SortingDirection direction;
 
-	public PeakListRowSorter(SortingProperty property,
-			SortingDirection direction) {
-		this.property = property;
-		this.direction = direction;
+    public PeakListRowSorter(SortingProperty property,
+	    SortingDirection direction) {
+	this.property = property;
+	this.direction = direction;
+    }
+
+    public int compare(PeakListRow row1, PeakListRow row2) {
+
+	Double row1Value = getValue(row1);
+	Double row2Value = getValue(row2);
+
+	if (direction == SortingDirection.Ascending)
+	    return row1Value.compareTo(row2Value);
+	else
+	    return row2Value.compareTo(row1Value);
+
+    }
+
+    private double getValue(PeakListRow row) {
+	switch (property) {
+	case Area:
+	    Feature[] areaPeaks = row.getPeaks();
+	    double[] peakAreas = new double[areaPeaks.length];
+	    for (int i = 0; i < peakAreas.length; i++)
+		peakAreas[i] = areaPeaks[i].getArea();
+	    double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
+	    return medianArea;
+	case Intensity:
+	    Feature[] intensityPeaks = row.getPeaks();
+	    double[] peakIntensities = new double[intensityPeaks.length];
+	    for (int i = 0; i < intensityPeaks.length; i++)
+		peakIntensities[i] = intensityPeaks[i].getArea();
+	    double medianIntensity = MathUtils.calcQuantile(peakIntensities,
+		    0.5);
+	    return medianIntensity;
+	case Height:
+	    Feature[] heightPeaks = row.getPeaks();
+	    double[] peakHeights = new double[heightPeaks.length];
+	    for (int i = 0; i < peakHeights.length; i++)
+		peakHeights[i] = heightPeaks[i].getHeight();
+	    double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
+	    return medianHeight;
+	case MZ:
+	    return row.getAverageMZ();
+	case RT:
+	    return row.getAverageRT();
+	case ID:
+	    return row.getID();
 	}
 
-	public int compare(PeakListRow row1, PeakListRow row2) {
-
-		Double row1Value = getValue(row1);
-		Double row2Value = getValue(row2);
-
-		if (direction == SortingDirection.Ascending)
-			return row1Value.compareTo(row2Value);
-		else
-			return row2Value.compareTo(row1Value);
-
-	}
-
-	private double getValue(PeakListRow row) {
-		switch (property) {
-		case Area:
-			Feature[] areaPeaks = row.getPeaks();
-			double[] peakAreas = new double[areaPeaks.length];
-			for (int i = 0; i < peakAreas.length; i++)
-				peakAreas[i] = areaPeaks[i].getArea();
-			double medianArea = MathUtils.calcQuantile(peakAreas, 0.5);
-			return medianArea;
-		case Intensity:
-			Feature[] intensityPeaks = row.getPeaks();
-			double[] peakIntensities = new double[intensityPeaks.length];
-			for (int i = 0; i < intensityPeaks.length; i++)
-				peakIntensities[i] = intensityPeaks[i].getArea();
-			double medianIntensity = MathUtils.calcQuantile(peakIntensities,
-					0.5);
-			return medianIntensity;
-		case Height:
-			Feature[] heightPeaks = row.getPeaks();
-			double[] peakHeights = new double[heightPeaks.length];
-			for (int i = 0; i < peakHeights.length; i++)
-				peakHeights[i] = heightPeaks[i].getHeight();
-			double medianHeight = MathUtils.calcQuantile(peakHeights, 0.5);
-			return medianHeight;
-		case MZ:
-			return row.getAverageMZ();
-		case RT:
-			return row.getAverageRT();
-		case ID:
-			return row.getID();
-		}
-
-		// We should never get here, so throw exception
-		throw (new IllegalStateException());
-	}
+	// We should never get here, so throw exception
+	throw (new IllegalStateException());
+    }
 
 }

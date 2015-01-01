@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,84 +34,84 @@ import net.sf.mzmine.util.GUIUtils;
  */
 class TwoDToolBar extends JToolBar {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
-	static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
-	static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
-	static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
-	static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
-	static final Icon tooltipsIcon = new ImageIcon(
-			"icons/tooltips2dploticon.png");
-	static final Icon notooltipsIcon = new ImageIcon(
-			"icons/notooltips2dploticon.png");
-	static final Icon logScaleIcon = new ImageIcon("icons/logicon.png");
+    static final Icon paletteIcon = new ImageIcon("icons/colorbaricon.png");
+    static final Icon dataPointsIcon = new ImageIcon("icons/datapointsicon.png");
+    static final Icon axesIcon = new ImageIcon("icons/axesicon.png");
+    static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
+    static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
+    static final Icon tooltipsIcon = new ImageIcon(
+	    "icons/tooltips2dploticon.png");
+    static final Icon notooltipsIcon = new ImageIcon(
+	    "icons/notooltips2dploticon.png");
+    static final Icon logScaleIcon = new ImageIcon("icons/logicon.png");
 
-	private JButton centroidContinuousButton, toggleContinuousModeButton,
-			toggleTooltipButton;
+    private JButton centroidContinuousButton, toggleContinuousModeButton,
+	    toggleTooltipButton;
 
-	TwoDToolBar(TwoDVisualizerWindow masterFrame) {
+    TwoDToolBar(TwoDVisualizerWindow masterFrame) {
 
-		super(JToolBar.VERTICAL);
+	super(JToolBar.VERTICAL);
 
-		setFloatable(false);
-		setFocusable(false);
-		setMargin(new Insets(5, 5, 5, 5));
-		setBackground(Color.white);
+	setFloatable(false);
+	setFocusable(false);
+	setMargin(new Insets(5, 5, 5, 5));
+	setBackground(Color.white);
 
-		GUIUtils.addButton(this, null, paletteIcon, masterFrame,
-				"SWITCH_PALETTE", "Switch palette");
+	GUIUtils.addButton(this, null, paletteIcon, masterFrame,
+		"SWITCH_PALETTE", "Switch palette");
 
-		addSeparator();
+	addSeparator();
 
-		toggleContinuousModeButton = GUIUtils.addButton(this, null,
-				dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
-				"Toggle displaying of data points in continuous mode");
+	toggleContinuousModeButton = GUIUtils.addButton(this, null,
+		dataPointsIcon, masterFrame, "SHOW_DATA_POINTS",
+		"Toggle displaying of data points in continuous mode");
 
-		addSeparator();
+	addSeparator();
 
-		GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
-				"Setup ranges for axes");
+	GUIUtils.addButton(this, null, axesIcon, masterFrame, "SETUP_AXES",
+		"Setup ranges for axes");
 
-		addSeparator();
+	addSeparator();
 
-		centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
-				masterFrame, "SWITCH_PLOTMODE",
-				"Switch between continuous and centroided mode");
+	centroidContinuousButton = GUIUtils.addButton(this, null, centroidIcon,
+		masterFrame, "SWITCH_PLOTMODE",
+		"Switch between continuous and centroided mode");
 
-		addSeparator();
+	addSeparator();
 
-		toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
-				masterFrame, "SWITCH_TOOLTIPS",
-				"Toggle displaying of tool tips on the peaks");
+	toggleTooltipButton = GUIUtils.addButton(this, null, tooltipsIcon,
+		masterFrame, "SWITCH_TOOLTIPS",
+		"Toggle displaying of tool tips on the peaks");
 
-		addSeparator();
+	addSeparator();
 
-		GUIUtils.addButton(this, null, logScaleIcon, masterFrame,
-				"SWITCH_LOG_SCALE", "Set Log Scale");
+	GUIUtils.addButton(this, null, logScaleIcon, masterFrame,
+		"SWITCH_LOG_SCALE", "Set Log Scale");
 
+    }
+
+    void setCentroidButton(boolean centroid) {
+	if (centroid) {
+	    centroidContinuousButton.setIcon(centroidIcon);
+	} else {
+	    centroidContinuousButton.setIcon(continuousIcon);
 	}
+    }
 
-	void setCentroidButton(boolean centroid) {
-		if (centroid) {
-			centroidContinuousButton.setIcon(centroidIcon);
-		} else {
-			centroidContinuousButton.setIcon(continuousIcon);
-		}
-	}
+    void toggleContinuousModeButtonSetEnable(boolean enable) {
+	toggleContinuousModeButton.setEnabled(enable);
+    }
 
-	void toggleContinuousModeButtonSetEnable(boolean enable) {
-		toggleContinuousModeButton.setEnabled(enable);
+    void setTooltipButton(boolean tooltip) {
+	if (tooltip) {
+	    toggleTooltipButton.setIcon(tooltipsIcon);
+	} else {
+	    toggleTooltipButton.setIcon(notooltipsIcon);
 	}
-
-	void setTooltipButton(boolean tooltip) {
-		if (tooltip) {
-			toggleTooltipButton.setIcon(tooltipsIcon);
-		} else {
-			toggleTooltipButton.setIcon(notooltipsIcon);
-		}
-	}
+    }
 
 }

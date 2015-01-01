@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,62 +32,65 @@ import weka.core.Instances;
 
 public class HierarClusterer implements ClusteringAlgorithm {
 
-        private Logger logger = Logger.getLogger(this.getClass().getName());
-        
-        private static final String MODULE_NAME = "Hierarchical clusterer";
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-        @Override
-        public @Nonnull String getName() {
-                return MODULE_NAME;
-        }
+    private static final String MODULE_NAME = "Hierarchical clusterer";
 
-        @Override
-        public ClusteringResult performClustering(Instances dataset,
-                ParameterSet parameters) {
-                HierarchicalClusterer clusterer = new HierarchicalClusterer();
-                String[] options = new String[5];
-                LinkType link = parameters.getParameter(
-                        HierarClustererParameters.linkType).getValue();
-                DistanceType distanceType = parameters.getParameter(
-                        HierarClustererParameters.distanceType).getValue();
-                options[0] = "-L";
-                options[1] = link.name();
-                options[2] = "-A";
-                switch (distanceType) {
-                        case EUCLIDIAN:
-                                options[3] = "weka.core.EuclideanDistance";
-                                break;
-                        case CHEBYSHEV:
-                                options[3] = "weka.core.ChebyshevDistance";
-                                break;
-                        case MANHATTAN:
-                                options[3] = "weka.core.ManhattanDistance";
-                                break;
-                        case MINKOWSKI:
-                                options[3] = "weka.core.MinkowskiDistance";
-                                break;
-                }
+    @Override
+    public @Nonnull String getName() {
+	return MODULE_NAME;
+    }
 
-                options[4] = "-P";
-                try {
-                        clusterer.setOptions(options);
-                        clusterer.setPrintNewick(true);
-                        clusterer.buildClusterer(dataset);      
-                        // clusterer.graph() gives only the first cluster and in the case there
-                        // are more than one cluster the variables in the second cluster are missing.
-                        // I'm using clusterer.toString() which contains all the clusters in Newick format.
-                        ClusteringResult result = new ClusteringResult(null, clusterer.toString(),
-                                clusterer.getNumClusters(), null);
-                        return result;
-                } catch (Exception ex) {
-                        logger.log(Level.SEVERE, null, ex);
-                        return null;
-                }
-        }
+    @Override
+    public ClusteringResult performClustering(Instances dataset,
+	    ParameterSet parameters) {
+	HierarchicalClusterer clusterer = new HierarchicalClusterer();
+	String[] options = new String[5];
+	LinkType link = parameters.getParameter(
+		HierarClustererParameters.linkType).getValue();
+	DistanceType distanceType = parameters.getParameter(
+		HierarClustererParameters.distanceType).getValue();
+	options[0] = "-L";
+	options[1] = link.name();
+	options[2] = "-A";
+	switch (distanceType) {
+	case EUCLIDIAN:
+	    options[3] = "weka.core.EuclideanDistance";
+	    break;
+	case CHEBYSHEV:
+	    options[3] = "weka.core.ChebyshevDistance";
+	    break;
+	case MANHATTAN:
+	    options[3] = "weka.core.ManhattanDistance";
+	    break;
+	case MINKOWSKI:
+	    options[3] = "weka.core.MinkowskiDistance";
+	    break;
+	}
 
-        @Override
-        public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-                return HierarClustererParameters.class;
-        }
+	options[4] = "-P";
+	try {
+	    clusterer.setOptions(options);
+	    clusterer.setPrintNewick(true);
+	    clusterer.buildClusterer(dataset);
+	    // clusterer.graph() gives only the first cluster and in the case
+	    // there
+	    // are more than one cluster the variables in the second cluster are
+	    // missing.
+	    // I'm using clusterer.toString() which contains all the clusters in
+	    // Newick format.
+	    ClusteringResult result = new ClusteringResult(null,
+		    clusterer.toString(), clusterer.getNumClusters(), null);
+	    return result;
+	} catch (Exception ex) {
+	    logger.log(Level.SEVERE, null, ex);
+	    return null;
+	}
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return HierarClustererParameters.class;
+    }
 
 }

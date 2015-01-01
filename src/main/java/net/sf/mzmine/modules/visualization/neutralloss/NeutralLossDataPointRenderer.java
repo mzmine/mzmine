@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,30 +43,30 @@ class NeutralLossDataPointRenderer extends XYLineAndShapeRenderer {
     private AlphaComposite alphaComp, alphaCompOriginal;
 
     public NeutralLossDataPointRenderer(boolean lines, boolean shapes) {
-        super(lines, shapes);
+	super(lines, shapes);
     }
 
     public void setTransparency(float transparency) {
-        if ((transparency > 1.0) || (transparency < 0))
-            transparency = 1.0f;
-        int type = AlphaComposite.SRC_OVER;
-        alphaComp = (AlphaComposite.getInstance(type, transparency));
-        alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
+	if ((transparency > 1.0) || (transparency < 0))
+	    transparency = 1.0f;
+	int type = AlphaComposite.SRC_OVER;
+	alphaComp = (AlphaComposite.getInstance(type, transparency));
+	alphaCompOriginal = (AlphaComposite.getInstance(type, 1.0f));
     }
 
     public void drawItem(Graphics2D g2, XYItemRendererState state,
-            Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
-            ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
-            int series, int item, CrosshairState crosshairState, int pass) {
+	    Rectangle2D dataArea, PlotRenderingInfo info, XYPlot plot,
+	    ValueAxis domainAxis, ValueAxis rangeAxis, XYDataset dataset,
+	    int series, int item, CrosshairState crosshairState, int pass) {
 
-        if (series > 0) {
-            g2.setComposite(alphaComp);
-        } else if (series == 0) {
-            g2.setComposite(alphaCompOriginal);
-        }
+	if (series > 0) {
+	    g2.setComposite(alphaComp);
+	} else if (series == 0) {
+	    g2.setComposite(alphaCompOriginal);
+	}
 
-        super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
-                dataset, series, item, crosshairState, pass);
+	super.drawItem(g2, state, dataArea, info, plot, domainAxis, rangeAxis,
+		dataset, series, item, crosshairState, pass);
 
     }
 

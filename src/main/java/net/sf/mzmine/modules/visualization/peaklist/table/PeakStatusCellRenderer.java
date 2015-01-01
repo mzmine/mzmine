@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,77 +37,77 @@ import net.sf.mzmine.util.components.ColorCircle;
  */
 class PeakStatusCellRenderer implements TableCellRenderer {
 
-	private static final ColorCircle greenCircle = new ColorCircle(Color.green);
-	private static final ColorCircle redCircle = new ColorCircle(Color.red);
-	private static final ColorCircle yellowCircle = new ColorCircle(
-			Color.yellow);
-	private static final ColorCircle orangeCircle = new ColorCircle(
-			Color.orange);
+    private static final ColorCircle greenCircle = new ColorCircle(Color.green);
+    private static final ColorCircle redCircle = new ColorCircle(Color.red);
+    private static final ColorCircle yellowCircle = new ColorCircle(
+	    Color.yellow);
+    private static final ColorCircle orangeCircle = new ColorCircle(
+	    Color.orange);
 
-	/**
-	 * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
-	 *      java.lang.Object, boolean, boolean, int, int)
-	 */
-	public Component getTableCellRendererComponent(JTable table, Object value,
-			boolean isSelected, boolean hasFocus, int row, int column) {
+    /**
+     * @see javax.swing.table.TableCellRenderer#getTableCellRendererComponent(javax.swing.JTable,
+     *      java.lang.Object, boolean, boolean, int, int)
+     */
+    public Component getTableCellRendererComponent(JTable table, Object value,
+	    boolean isSelected, boolean hasFocus, int row, int column) {
 
-		JPanel newPanel = new JPanel();
-		newPanel.setLayout(new OverlayLayout(newPanel));
+	JPanel newPanel = new JPanel();
+	newPanel.setLayout(new OverlayLayout(newPanel));
 
-		Color bgColor;
+	Color bgColor;
 
-		if (isSelected)
-			bgColor = table.getSelectionBackground();
-		else
-			bgColor = table.getBackground();
+	if (isSelected)
+	    bgColor = table.getSelectionBackground();
+	else
+	    bgColor = table.getBackground();
 
-		newPanel.setBackground(bgColor);
+	newPanel.setBackground(bgColor);
 
-		if (hasFocus) {
-			Border border = null;
-			if (isSelected)
-				border = UIManager
-						.getBorder("Table.focusSelectedCellHighlightBorder");
-			if (border == null)
-				border = UIManager.getBorder("Table.focusCellHighlightBorder");
-	        
-			/*
-			 * The "border.getBorderInsets(newPanel) != null" is a workaround
-			 * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
-			 * NullPointerException
-			 */
-			if ((border != null) && (border.getBorderInsets(newPanel) != null)) {
-				newPanel.setBorder(border);
-			}
-			
-		}
+	if (hasFocus) {
+	    Border border = null;
+	    if (isSelected)
+		border = UIManager
+			.getBorder("Table.focusSelectedCellHighlightBorder");
+	    if (border == null)
+		border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
-		if (value != null) {
-			FeatureStatus status = (FeatureStatus) value;
-
-			switch (status) {
-			case DETECTED:
-				newPanel.add(greenCircle);
-				break;
-			case ESTIMATED:
-				newPanel.add(yellowCircle);
-				break;
-			case MANUAL:
-				newPanel.add(orangeCircle);
-				break;
-			default:
-				newPanel.add(redCircle);
-				break;
-			}
-
-			newPanel.setToolTipText(status.toString());
-
-		} else {
-			newPanel.add(redCircle);
-		}
-
-		return newPanel;
+	    /*
+	     * The "border.getBorderInsets(newPanel) != null" is a workaround
+	     * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+	     * NullPointerException
+	     */
+	    if ((border != null) && (border.getBorderInsets(newPanel) != null)) {
+		newPanel.setBorder(border);
+	    }
 
 	}
+
+	if (value != null) {
+	    FeatureStatus status = (FeatureStatus) value;
+
+	    switch (status) {
+	    case DETECTED:
+		newPanel.add(greenCircle);
+		break;
+	    case ESTIMATED:
+		newPanel.add(yellowCircle);
+		break;
+	    case MANUAL:
+		newPanel.add(orangeCircle);
+		break;
+	    default:
+		newPanel.add(redCircle);
+		break;
+	    }
+
+	    newPanel.setToolTipText(status.toString());
+
+	} else {
+	    newPanel.add(redCircle);
+	}
+
+	return newPanel;
+
+    }
 
 }

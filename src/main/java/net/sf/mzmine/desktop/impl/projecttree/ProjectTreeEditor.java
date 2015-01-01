@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,31 +33,31 @@ import net.sf.mzmine.datamodel.RawDataFile;
 
 class ProjectTreeEditor extends DefaultCellEditor {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private JTree projectTree;
+    private JTree projectTree;
 
-	ProjectTreeEditor(JTree projectTree) {
-		super(new JTextField());
-		this.projectTree = projectTree;
-		this.getComponent().setFont(ProjectTreeRenderer.smallerFont);
-	}
+    ProjectTreeEditor(JTree projectTree) {
+	super(new JTextField());
+	this.projectTree = projectTree;
+	this.getComponent().setFont(ProjectTreeRenderer.smallerFont);
+    }
 
-	public boolean isCellEditable(EventObject e) {
-		if (e instanceof MouseEvent) {
-			MouseEvent me = (MouseEvent) e;
-			TreePath clickedPath = projectTree.getPathForLocation(me.getX(),
-					me.getY());
-			if (clickedPath == null)
-				return false;
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) clickedPath
-					.getLastPathComponent();
-			Object editedObject = node.getUserObject();
-			return ((editedObject instanceof RawDataFile) || (editedObject instanceof PeakList));
-		}
-		return true;
+    public boolean isCellEditable(EventObject e) {
+	if (e instanceof MouseEvent) {
+	    MouseEvent me = (MouseEvent) e;
+	    TreePath clickedPath = projectTree.getPathForLocation(me.getX(),
+		    me.getY());
+	    if (clickedPath == null)
+		return false;
+	    DefaultMutableTreeNode node = (DefaultMutableTreeNode) clickedPath
+		    .getLastPathComponent();
+	    Object editedObject = node.getUserObject();
+	    return ((editedObject instanceof RawDataFile) || (editedObject instanceof PeakList));
 	}
+	return true;
+    }
 
 }

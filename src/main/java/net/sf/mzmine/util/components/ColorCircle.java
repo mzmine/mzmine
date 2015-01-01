@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,29 +36,30 @@ public class ColorCircle extends JComponent {
     private static final long serialVersionUID = 1L;
 
     public static final int DEFAULT_MARGIN = 5;
-    
+
     private Color circleColor;
     private int margin;
-    
+
     /**
      */
     public ColorCircle(Color circleColor) {
-        this(circleColor, DEFAULT_MARGIN);
+	this(circleColor, DEFAULT_MARGIN);
     }
-    
+
     /**
      */
     public ColorCircle(Color circleColor, int margin) {
-        this.circleColor = circleColor;
-        this.margin = margin;
+	this.circleColor = circleColor;
+	this.margin = margin;
     }
 
     public void paint(Graphics g) {
-        super.paint(g);
-        Dimension size = getSize();
-        g.setColor(circleColor);
-        int diameter = Math.min(size.width, size.height) - (2 * margin);
-        g.fillOval((size.width - diameter) / 2, (size.height - diameter) / 2, diameter, diameter);
+	super.paint(g);
+	Dimension size = getSize();
+	g.setColor(circleColor);
+	int diameter = Math.min(size.width, size.height) - (2 * margin);
+	g.fillOval((size.width - diameter) / 2, (size.height - diameter) / 2,
+		diameter, diameter);
     }
 
 }

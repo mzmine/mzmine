@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -68,14 +68,14 @@ public class ProjectParametersSetupDialog extends JDialog implements
     private ExitCode exitCode = ExitCode.UNKNOWN;
 
     private RawDataFile[] dataFiles;
-    private Hashtable<UserParameter<?,?>, Object[]> parameterValues;
+    private Hashtable<UserParameter<?, ?>, Object[]> parameterValues;
 
     private Desktop desktop;
 
     public ProjectParametersSetupDialog() {
 	super(MZmineCore.getDesktop().getMainWindow(), true);
 
-	parameterValues = new Hashtable<UserParameter<?,?>, Object[]>();
+	parameterValues = new Hashtable<UserParameter<?, ?>, Object[]>();
 
 	this.dataFiles = MZmineCore.getCurrentProject().getDataFiles();
 	this.desktop = MZmineCore.getDesktop();
@@ -135,7 +135,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 	if (src == buttonRemoveParameter) {
 	    int selectedColumn = tableParameterValues.getSelectedColumn();
-	    UserParameter<?,?> parameter = tablemodelParameterValues
+	    UserParameter<?, ?> parameter = tablemodelParameterValues
 		    .getParameter(selectedColumn);
 	    if (parameter == null) {
 		desktop.displayErrorMessage(this,
@@ -154,7 +154,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
      * 
      * @param parameter
      */
-    protected void addParameter(UserParameter<?,?> parameter) {
+    protected void addParameter(UserParameter<?, ?> parameter) {
 	// Initialize with default value
 	Object[] values = new Object[dataFiles.length];
 	for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++)
@@ -170,7 +170,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
      * 
      * @param parameter
      */
-    protected void removeParameter(UserParameter<?,?> parameter) {
+    protected void removeParameter(UserParameter<?, ?> parameter) {
 	parameterValues.remove(parameter);
 	setupTableModel();
     }
@@ -178,12 +178,12 @@ public class ProjectParametersSetupDialog extends JDialog implements
     /**
      * Returns parameter by name
      */
-    protected UserParameter<?,?> getParameter(String parameterName) {
-	Iterator<UserParameter<?,?>> parameterIterator = parameterValues.keySet()
-		.iterator();
+    protected UserParameter<?, ?> getParameter(String parameterName) {
+	Iterator<UserParameter<?, ?>> parameterIterator = parameterValues
+		.keySet().iterator();
 
 	while (parameterIterator.hasNext()) {
-	    UserParameter<?,?> p = parameterIterator.next();
+	    UserParameter<?, ?> p = parameterIterator.next();
 	    if (p.getName().equals(parameterName))
 		return p;
 	}
@@ -198,7 +198,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
      * @param dataFile
      * @param value
      */
-    protected void setParameterValue(UserParameter<?,?> parameter,
+    protected void setParameterValue(UserParameter<?, ?> parameter,
 	    String dataFileName, Object value) {
 	// Find index for data file
 	int dataFileIndex = 0;
@@ -221,7 +221,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
     private boolean validateParameterValues() {
 	// Create new parameters and set values
 	for (int columnIndex = 0; columnIndex < parameterValues.keySet().size(); columnIndex++) {
-	    UserParameter<?,?> parameter = tablemodelParameterValues
+	    UserParameter<?, ?> parameter = tablemodelParameterValues
 		    .getParameter(columnIndex + 1);
 
 	    if (parameter instanceof DoubleParameter) {
@@ -259,20 +259,20 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	MZmineProject currentProject = MZmineCore.getCurrentProject();
 
 	// Remove all previous parameters from project
-	UserParameter<?,?>[] parameters = currentProject.getParameters();
-	for (UserParameter<?,?> parameter : parameters) {
+	UserParameter<?, ?>[] parameters = currentProject.getParameters();
+	for (UserParameter<?, ?> parameter : parameters) {
 	    currentProject.removeParameter(parameter);
 	}
 
 	// Add new parameters
 	parameters = parameterValues.keySet().toArray(new UserParameter[0]);
-	for (UserParameter<?,?> parameter : parameters) {
+	for (UserParameter<?, ?> parameter : parameters) {
 	    currentProject.addParameter(parameter);
 	}
 
 	// Set values for new parameters
 	for (int columnIndex = 0; columnIndex < parameterValues.keySet().size(); columnIndex++) {
-	    UserParameter<?,?> parameter = tablemodelParameterValues
+	    UserParameter<?, ?> parameter = tablemodelParameterValues
 		    .getParameter(columnIndex + 1);
 
 	    for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
@@ -315,10 +315,10 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	for (int dataFileIndex = 0; dataFileIndex < dataFiles.length; dataFileIndex++) {
 
 	    RawDataFile file = dataFiles[dataFileIndex];
-	    UserParameter<?,?>[] parameters = currentProject.getParameters();
+	    UserParameter<?, ?>[] parameters = currentProject.getParameters();
 
 	    // Loop through all parameters defined for this file
-	    for (UserParameter<?,?> p : parameters) {
+	    for (UserParameter<?, ?> p : parameters) {
 
 		// Check if this parameter has been seen before?
 		Object[] values;
@@ -350,16 +350,16 @@ public class ProjectParametersSetupDialog extends JDialog implements
 
 	for (int columnIndex = 0; columnIndex < (tablemodelParameterValues
 		.getColumnCount() - 1); columnIndex++) {
-	    UserParameter<?,?> parameter = tablemodelParameterValues
+	    UserParameter<?, ?> parameter = tablemodelParameterValues
 		    .getParameter(columnIndex + 1);
 	    if (parameter instanceof ComboParameter) {
-		Object choices[] = ((ComboParameter<?>) parameter)
-			.getChoices();
+		Object choices[] = ((ComboParameter<?>) parameter).getChoices();
 		tableParameterValues
 			.getColumnModel()
 			.getColumn(columnIndex + 1)
 			.setCellEditor(
-				new DefaultCellEditor(new JComboBox<Object>(choices)));
+				new DefaultCellEditor(new JComboBox<Object>(
+					choices)));
 	    }
 	}
 
@@ -370,7 +370,7 @@ public class ProjectParametersSetupDialog extends JDialog implements
 	panelParameterValues = new JPanel(new BorderLayout());
 	scrollParameterValues = new JScrollPane();
 	tablemodelParameterValues = new ParameterTableModel(new RawDataFile[0],
-		new Hashtable<UserParameter<?,?>, Object[]>());
+		new Hashtable<UserParameter<?, ?>, Object[]>());
 	tableParameterValues = new JTable(tablemodelParameterValues);
 	tableParameterValues.setColumnSelectionAllowed(true);
 	tableParameterValues.setRowSelectionAllowed(false);

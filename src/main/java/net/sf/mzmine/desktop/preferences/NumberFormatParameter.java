@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,102 +32,102 @@ import org.w3c.dom.Element;
  * 
  */
 public class NumberFormatParameter implements
-		UserParameter<DecimalFormat, NumberFormatEditor> {
+	UserParameter<DecimalFormat, NumberFormatEditor> {
 
-	private String name, description;
-	private boolean showExponentOption;
-	private DecimalFormat value;
+    private String name, description;
+    private boolean showExponentOption;
+    private DecimalFormat value;
 
-	public NumberFormatParameter(String name, String description,
-			boolean showExponentOption, DecimalFormat defaultValue) {
+    public NumberFormatParameter(String name, String description,
+	    boolean showExponentOption, DecimalFormat defaultValue) {
 
-		assert defaultValue != null;
+	assert defaultValue != null;
 
-		this.name = name;
-		this.description = description;
-		this.showExponentOption = showExponentOption;
-		this.value = defaultValue;
+	this.name = name;
+	this.description = description;
+	this.showExponentOption = showExponentOption;
+	this.value = defaultValue;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
+
+    @Override
+    public NumberFormatEditor createEditingComponent() {
+	NumberFormatEditor editor = new NumberFormatEditor(showExponentOption);
+	return editor;
+    }
+
+    public DecimalFormat getValue() {
+	return value;
+    }
+
+    @Override
+    public void setValue(DecimalFormat value) {
+	assert value != null;
+	this.value = value;
+    }
+
+    @Override
+    public NumberFormatParameter cloneParameter() {
+	NumberFormatParameter copy = new NumberFormatParameter(name,
+		description, showExponentOption, value);
+	copy.setValue(this.getValue());
+	return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(NumberFormatEditor component) {
+	final int decimals = component.getDecimals();
+	final boolean showExponent = component.getShowExponent();
+	String pattern = "0";
+
+	if (decimals > 0) {
+	    pattern += ".";
+	    for (int i = 0; i < decimals; i++)
+		pattern += "0";
 	}
-
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
+	if (showExponent) {
+	    pattern += "E0";
 	}
+	value.applyPattern(pattern);
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    @Override
+    public void setValueToComponent(NumberFormatEditor component,
+	    DecimalFormat newValue) {
+	final int decimals = newValue.getMinimumFractionDigits();
+	boolean showExponent = newValue.toPattern().contains("E");
+	component.setValue(decimals, showExponent);
+    }
 
-	@Override
-	public NumberFormatEditor createEditingComponent() {
-		NumberFormatEditor editor = new NumberFormatEditor(showExponentOption);
-		return editor;
-	}
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	String newPattern = xmlElement.getTextContent();
+	value.applyPattern(newPattern);
+    }
 
-	public DecimalFormat getValue() {
-		return value;
-	}
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	xmlElement.setTextContent(value.toPattern());
+    }
 
-	@Override
-	public void setValue(DecimalFormat value) {
-		assert value != null;
-		this.value = value;
-	}
-
-	@Override
-	public NumberFormatParameter cloneParameter() {
-		NumberFormatParameter copy = new NumberFormatParameter(name,
-				description, showExponentOption, value);
-		copy.setValue(this.getValue());
-		return copy;
-	}
-
-	@Override
-	public void setValueFromComponent(NumberFormatEditor component) {
-		final int decimals = component.getDecimals();
-		final boolean showExponent = component.getShowExponent();
-		String pattern = "0";
-
-		if (decimals > 0) {
-			pattern += ".";
-			for (int i = 0; i < decimals; i++)
-				pattern += "0";
-		}
-		if (showExponent) {
-			pattern += "E0";
-		}
-		value.applyPattern(pattern);
-	}
-
-	@Override
-	public void setValueToComponent(NumberFormatEditor component,
-			DecimalFormat newValue) {
-		final int decimals = newValue.getMinimumFractionDigits();
-		boolean showExponent = newValue.toPattern().contains("E");
-		component.setValue(decimals, showExponent);
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		String newPattern = xmlElement.getTextContent();
-		value.applyPattern(newPattern);
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		xmlElement.setTextContent(value.toPattern());
-	}
-
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		return true;
-	}
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	return true;
+    }
 
 }

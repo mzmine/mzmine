@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,19 +28,19 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class SameRangeGapFillerParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
+    public static final StringParameter suffix = new StringParameter(
+	    "Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original peak list",
-			"If checked, the original peak list will be removed");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+	    "Remove original peak list",
+	    "If checked, the original peak list will be removed");
 
-	public SameRangeGapFillerParameters() {
-		super(new Parameter[] { peakLists, suffix, mzTolerance, autoRemove });
-	}
+    public SameRangeGapFillerParameters() {
+	super(new Parameter[] { peakLists, suffix, mzTolerance, autoRemove });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,40 +27,40 @@ import javax.swing.JTextField;
  */
 public class PercentComponent extends JPanel {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private JTextField percentField;
+    private JTextField percentField;
 
-	public PercentComponent() {
+    public PercentComponent() {
 
-		percentField = new JTextField();
-		percentField.setColumns(4);
-		add(percentField);
+	percentField = new JTextField();
+	percentField.setColumns(4);
+	add(percentField);
 
-		add(new JLabel("%"));
+	add(new JLabel("%"));
 
+    }
+
+    public void setValue(double value) {
+	String stringValue = String.valueOf(value * 100);
+	percentField.setText(stringValue);
+    }
+
+    public Double getValue() {
+	String stringValue = percentField.getText();
+	try {
+	    double doubleValue = Double.parseDouble(stringValue) / 100;
+	    return doubleValue;
+	} catch (NumberFormatException e) {
+	    return null;
 	}
+    }
 
-	public void setValue(double value) {
-		String stringValue = String.valueOf(value * 100);
-		percentField.setText(stringValue);
-	}
-
-	public Double getValue() {
-		String stringValue = percentField.getText();
-		try {
-			double doubleValue = Double.parseDouble(stringValue) / 100;
-			return doubleValue;
-		} catch (NumberFormatException e) {
-			return null;
-		}
-	}
-
-	@Override
-	public void setToolTipText(String toolTip) {
-		percentField.setToolTipText(toolTip);
-	}
+    @Override
+    public void setToolTipText(String toolTip) {
+	percentField.setToolTipText(toolTip);
+    }
 
 }

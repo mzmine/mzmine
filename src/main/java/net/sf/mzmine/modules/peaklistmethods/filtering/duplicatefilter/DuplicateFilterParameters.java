@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,28 +29,28 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DuplicateFilterParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "filtered");
+    public static final StringParameter suffix = new StringParameter(
+	    "Name suffix", "Suffix to be added to peak list name", "filtered");
 
-	public static final MZToleranceParameter mzDifferenceMax = new MZToleranceParameter(
-			"m/z tolerance", "Maximum m/z difference between duplicate peaks");
-	public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
-			"RT tolerance",
-			"Maximum retention time difference between duplicate peaks");
+    public static final MZToleranceParameter mzDifferenceMax = new MZToleranceParameter(
+	    "m/z tolerance", "Maximum m/z difference between duplicate peaks");
+    public static final RTToleranceParameter rtDifferenceMax = new RTToleranceParameter(
+	    "RT tolerance",
+	    "Maximum retention time difference between duplicate peaks");
 
-	public static final BooleanParameter requireSameIdentification = new BooleanParameter(
-			"Require same identification",
-			"If checked, duplicate peaks must have same identification(s)");
+    public static final BooleanParameter requireSameIdentification = new BooleanParameter(
+	    "Require same identification",
+	    "If checked, duplicate peaks must have same identification(s)");
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original peaklist",
-			"If checked, original peaklist will be removed and only deisotoped version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+	    "Remove original peaklist",
+	    "If checked, original peaklist will be removed and only deisotoped version remains");
 
-	public DuplicateFilterParameters() {
-		super(new Parameter[] { peakLists, suffix, mzDifferenceMax,
-				rtDifferenceMax, requireSameIdentification, autoRemove, });
-	}
+    public DuplicateFilterParameters() {
+	super(new Parameter[] { peakLists, suffix, mzDifferenceMax,
+		rtDifferenceMax, requireSameIdentification, autoRemove, });
+    }
 
 }

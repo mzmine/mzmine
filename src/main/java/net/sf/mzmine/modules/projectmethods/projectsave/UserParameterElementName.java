@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -21,23 +21,18 @@ package net.sf.mzmine.modules.projectmethods.projectsave;
 
 enum UserParameterElementName {
 
-	PARAMETERS ("parameters"),
-	COUNT ("count"),
-	PARAMETER ("parameter"),	
-	NAME ("name"),
-	TYPE ("type"),
-	OPTION ("option"),
-	VALUE ("value"),
-	DATA_FILE ("data_file");
+    PARAMETERS("parameters"), COUNT("count"), PARAMETER("parameter"), NAME(
+	    "name"), TYPE("type"), OPTION("option"), VALUE("value"), DATA_FILE(
+	    "data_file");
 
-	private String elementName;
+    private String elementName;
 
-	private UserParameterElementName(String itemName){
-		this.elementName = itemName;
-	}
+    private UserParameterElementName(String itemName) {
+	this.elementName = itemName;
+    }
 
-	public String getElementName(){
-		return elementName;
-	}
+    public String getElementName() {
+	return elementName;
+    }
 
 }

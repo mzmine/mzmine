@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -21,18 +21,16 @@ package net.sf.mzmine.modules.visualization.intensityplot;
 
 public enum YAxisValueSource {
 
-	HEIGHT("Peak height"), 
-	AREA("Peak area"),
-	RT("Peak retention time");
+    HEIGHT("Peak height"), AREA("Peak area"), RT("Peak retention time");
 
-	private String type;
+    private String type;
 
-	YAxisValueSource(String type) {
-		this.type = type;
-	}
+    YAxisValueSource(String type) {
+	this.type = type;
+    }
 
-	public String toString() {
-		return type;
-	}
-	
+    public String toString() {
+	return type;
+    }
+
 }

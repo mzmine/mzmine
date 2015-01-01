@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -25,13 +25,13 @@ import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 
 public class HierarClustererParameters extends SimpleParameterSet {
 
-	public static final ComboParameter<LinkType> linkType = new ComboParameter<LinkType>(
-			"Type of link", "Type of link", LinkType.values());
+    public static final ComboParameter<LinkType> linkType = new ComboParameter<LinkType>(
+	    "Type of link", "Type of link", LinkType.values());
 
-	public static final ComboParameter<DistanceType> distanceType = new ComboParameter<DistanceType>(
-			"Distances", "Distances", DistanceType.values());
+    public static final ComboParameter<DistanceType> distanceType = new ComboParameter<DistanceType>(
+	    "Distances", "Distances", DistanceType.values());
 
-	public HierarClustererParameters() {
-		super(new Parameter[] { linkType, distanceType });
-	}
+    public HierarClustererParameters() {
+	super(new Parameter[] { linkType, distanceType });
+    }
 }

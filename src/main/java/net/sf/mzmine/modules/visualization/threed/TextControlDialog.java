@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -51,21 +51,26 @@ public class TextControlDialog extends JDialog {
     /**
      * Create the dialog.
      *
-     * @param owner   parent window.
-     * @param control the text control.
-     * @throws VisADException  if there are VisAD problems.
-     * @throws RemoteException if there are VisAD problems.
+     * @param owner
+     *            parent window.
+     * @param control
+     *            the text control.
+     * @throws VisADException
+     *             if there are VisAD problems.
+     * @throws RemoteException
+     *             if there are VisAD problems.
      */
-    public TextControlDialog(final Window owner, final TextControl control) throws VisADException, RemoteException {
+    public TextControlDialog(final Window owner, final TextControl control)
+	    throws VisADException, RemoteException {
 
-        super(owner, TITLE, ModalityType.APPLICATION_MODAL);
+	super(owner, TITLE, ModalityType.APPLICATION_MODAL);
 
-        // Layout dialog.
-        final Container content = getContentPane();
-        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-        content.add(new TextControlWidget(control), Component.CENTER_ALIGNMENT);
-        content.add(createDoneButton());
-        pack();
+	// Layout dialog.
+	final Container content = getContentPane();
+	content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+	content.add(new TextControlWidget(control), Component.CENTER_ALIGNMENT);
+	content.add(createDoneButton());
+	pack();
     }
 
     /**
@@ -75,22 +80,22 @@ public class TextControlDialog extends JDialog {
      */
     private JButton createDoneButton() {
 
-        final JButton button = new JButton("Done");
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                setVisible(false);
-            }
-        });
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        return button;
+	final JButton button = new JButton("Done");
+	button.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(final ActionEvent e) {
+		setVisible(false);
+	    }
+	});
+	button.setAlignmentX(Component.CENTER_ALIGNMENT);
+	return button;
     }
 
     @Override
     public void setVisible(final boolean visible) {
-        if (visible) {
-            setLocationRelativeTo(getOwner());
-        }
-        super.setVisible(visible);
+	if (visible) {
+	    setLocationRelativeTo(getOwner());
+	}
+	super.setVisible(visible);
     }
 }

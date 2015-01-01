@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,54 +21,54 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass;
 
 class PearsonCorrelation {
 
-	private int count; // Number of numbers that have been entered.
-	private double sumX = 0;
-	private double sumY = 0;
-	private double sumXX = 0;
-	private double sumYY = 0;
-	private double sumXY = 0;
+    private int count; // Number of numbers that have been entered.
+    private double sumX = 0;
+    private double sumY = 0;
+    private double sumXX = 0;
+    private double sumYY = 0;
+    private double sumXY = 0;
 
-	void enter(double x, double y) {
-		// Add the number to the dataset.
-		count++;
-		sumX += x;
-		sumY += y;
-		sumXX += x * x;
-		sumYY += y * y;
-		sumXY += x * y;
-	}
+    void enter(double x, double y) {
+	// Add the number to the dataset.
+	count++;
+	sumX += x;
+	sumY += y;
+	sumXX += x * x;
+	sumYY += y * y;
+	sumXY += x * y;
+    }
 
-	int getCount() {
-		// Return number of items that have been entered.
-		return count;
-	}
+    int getCount() {
+	// Return number of items that have been entered.
+	return count;
+    }
 
-	double meanX() {
-		return sumX / count;
-	}
+    double meanX() {
+	return sumX / count;
+    }
 
-	double meanY() {
-		return sumY / count;
-	}
+    double meanY() {
+	return sumY / count;
+    }
 
-	double stdevX() {
-		if (count < 2)
-			return meanX();
-		return Math.sqrt((sumXX - sumX * sumX / count) / (count - 1));
-	}
+    double stdevX() {
+	if (count < 2)
+	    return meanX();
+	return Math.sqrt((sumXX - sumX * sumX / count) / (count - 1));
+    }
 
-	double stdevY() {
-		if (count < 2)
-			return meanY();
-		return Math.sqrt((sumYY - sumY * sumY / count) / (count - 1));
-	}
+    double stdevY() {
+	if (count < 2)
+	    return meanY();
+	return Math.sqrt((sumYY - sumY * sumY / count) / (count - 1));
+    }
 
-	double correlation() {
-		double numerator = count * sumXY - sumX * sumY;
-		int n = (count > 50 ? count - 1 : count);
-		double denominator = Math.sqrt(n * sumXX - sumX * sumX)
-				* Math.sqrt(n * sumYY - sumY * sumY);
-		double c = (count < 3 ? 0 : numerator / denominator);
-		return c;
-	}
+    double correlation() {
+	double numerator = count * sumXY - sumX * sumY;
+	int n = (count > 50 ? count - 1 : count);
+	double denominator = Math.sqrt(n * sumXX - sumX * sumX)
+		* Math.sqrt(n * sumYY - sumY * sumY);
+	double c = (count < 3 ? 0 : numerator / denominator);
+	return c;
+    }
 }

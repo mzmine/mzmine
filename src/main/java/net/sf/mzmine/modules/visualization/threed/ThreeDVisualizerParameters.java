@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,7 +33,8 @@ import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
  */
 public class ThreeDVisualizerParameters extends SimpleParameterSet {
 
-    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(1, 1);
+    public static final RawDataFilesParameter dataFiles = new RawDataFilesParameter(
+	    1, 1);
 
     public static final MSLevelParameter msLevel = new MSLevelParameter();
 

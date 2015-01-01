@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -25,28 +25,28 @@ import javax.swing.JTable;
 
 public class ClusteringReportWindow extends JFrame {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private JTable table;
+    private JTable table;
 
-	public ClusteringReportWindow(String[] samplesOrVariables,
-			Integer[] clusteringData, String title) {
-		super(title);
-		String[] columnNames = { "Variables", "Cluster number" };
-		Object[][] data = new Object[samplesOrVariables.length][2];
-		for (int i = 0; i < samplesOrVariables.length; i++) {
-			data[i][0] = samplesOrVariables[i];
-			data[i][1] = clusteringData[i];
-		}
-
-		table = new JTable(data, columnNames);
-
-		JScrollPane scrollPane = new JScrollPane(table);
-		table.setFillsViewportHeight(true);
-		this.add(scrollPane);
-
-		pack();
+    public ClusteringReportWindow(String[] samplesOrVariables,
+	    Integer[] clusteringData, String title) {
+	super(title);
+	String[] columnNames = { "Variables", "Cluster number" };
+	Object[][] data = new Object[samplesOrVariables.length][2];
+	for (int i = 0; i < samplesOrVariables.length; i++) {
+	    data[i][0] = samplesOrVariables[i];
+	    data[i][1] = clusteringData[i];
 	}
+
+	table = new JTable(data, columnNames);
+
+	JScrollPane scrollPane = new JScrollPane(table);
+	table.setFillsViewportHeight(true);
+	this.add(scrollPane);
+
+	pack();
+    }
 }

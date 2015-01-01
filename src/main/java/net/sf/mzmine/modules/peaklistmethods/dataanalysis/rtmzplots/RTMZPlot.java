@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -48,112 +48,106 @@ public class RTMZPlot extends ChartPanel {
     private static final long serialVersionUID = 1L;
     private static final Color gridColor = Color.lightGray;
     private static final Color crossHairColor = Color.gray;
-    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11); 
+    private static final Font titleFont = new Font("SansSerif", Font.PLAIN, 11);
     // crosshair stroke
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
-            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-            1.0f, new float[] { 5, 3 }, 0);
+	    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+		    5, 3 }, 0);
 
-	private JFreeChart chart;
-	private XYPlot plot;
-	private ValueAxis paintScaleAxis;
-	private PaintScaleLegend paintScaleLegend;
-	
-	private XYItemRenderer spotRenderer;
-	
-	private InterpolatingLookupPaintScale paintScale;
-	
-	public RTMZPlot(RTMZAnalyzerWindow masterFrame, AbstractXYZDataset dataset, InterpolatingLookupPaintScale paintScale) {
-		super(null);
-		
-		this.paintScale = paintScale;
-		
-		chart = ChartFactory.createXYAreaChart(
-				"",
-				"Retention time",
-				"m/z",
-				dataset,
-				PlotOrientation.VERTICAL,
-				false,
-				false,
-				false
-				);
-		chart.setBackgroundPaint(Color.white);
-		setChart(chart);
-		
-        // title
-		
-        TextTitle chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
-        chartTitle.setFont(titleFont);
-        chart.removeSubtitle(chartTitle);
+    private JFreeChart chart;
+    private XYPlot plot;
+    private ValueAxis paintScaleAxis;
+    private PaintScaleLegend paintScaleLegend;
 
-        // disable maximum size (we don't want scaling)
-        setMaximumDrawWidth(Integer.MAX_VALUE);
-        setMaximumDrawHeight(Integer.MAX_VALUE);
-		
-        // set the plot properties
-        plot = chart.getXYPlot();		
-        plot.setBackgroundPaint(Color.white);
-        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+    private XYItemRenderer spotRenderer;
 
-        // set grid properties
-        plot.setDomainGridlinePaint(gridColor);
-        plot.setRangeGridlinePaint(gridColor);
+    private InterpolatingLookupPaintScale paintScale;
 
-        // set crosshair (selection) properties
-        plot.setDomainCrosshairVisible(true);
-        plot.setRangeCrosshairVisible(true);
-        plot.setDomainCrosshairPaint(crossHairColor);
-        plot.setRangeCrosshairPaint(crossHairColor);
-        plot.setDomainCrosshairStroke(crossHairStroke);
-        plot.setRangeCrosshairStroke(crossHairStroke);
-  
-        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+    public RTMZPlot(RTMZAnalyzerWindow masterFrame, AbstractXYZDataset dataset,
+	    InterpolatingLookupPaintScale paintScale) {
+	super(null);
 
-        // set the X axis (retention time) properties
-        NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
-        xAxis.setNumberFormatOverride(rtFormat);
-        xAxis.setUpperMargin(0.001);
-        xAxis.setLowerMargin(0.001);
+	this.paintScale = paintScale;
 
-        // set the Y axis (intensity) properties
-        NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
-        yAxis.setAutoRangeIncludesZero(false);
-        yAxis.setNumberFormatOverride(mzFormat);
-			
-		plot.setDataset(dataset);
-		spotRenderer = new RTMZRenderer(dataset, paintScale);
-		plot.setRenderer(spotRenderer);
-		spotRenderer.setBaseToolTipGenerator(new RTMZToolTipGenerator());
-		
-		// Add a paintScaleLegend to chart
-		
-		paintScaleAxis = new NumberAxis("Logratio");
-		paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
-		
-		paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
-		paintScaleLegend.setPosition(plot.getDomainAxisEdge());
-		paintScaleLegend.setMargin(5,25,5,25);
-		
-		chart.addSubtitle(paintScaleLegend);
+	chart = ChartFactory.createXYAreaChart("", "Retention time", "m/z",
+		dataset, PlotOrientation.VERTICAL, false, false, false);
+	chart.setBackgroundPaint(Color.white);
+	setChart(chart);
 
-	
-	}
-	
-	public InterpolatingLookupPaintScale getPaintScale() {
-		return paintScale;
-	}
-	
-	public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+	// title
 
-        RTMZRenderer renderer = (RTMZRenderer) plot.getRenderer();
-        renderer.setPaintScale(paintScale);
+	TextTitle chartTitle = chart.getTitle();
+	chartTitle.setMargin(5, 0, 0, 0);
+	chartTitle.setFont(titleFont);
+	chart.removeSubtitle(chartTitle);
 
-		this.paintScale = paintScale;
-		paintScaleAxis.setRange(paintScale.getLowerBound(), paintScale.getUpperBound());
-		paintScaleLegend.setScale(paintScale);
-	}
-	
+	// disable maximum size (we don't want scaling)
+	setMaximumDrawWidth(Integer.MAX_VALUE);
+	setMaximumDrawHeight(Integer.MAX_VALUE);
+
+	// set the plot properties
+	plot = chart.getXYPlot();
+	plot.setBackgroundPaint(Color.white);
+	plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+
+	// set grid properties
+	plot.setDomainGridlinePaint(gridColor);
+	plot.setRangeGridlinePaint(gridColor);
+
+	// set crosshair (selection) properties
+	plot.setDomainCrosshairVisible(true);
+	plot.setRangeCrosshairVisible(true);
+	plot.setDomainCrosshairPaint(crossHairColor);
+	plot.setRangeCrosshairPaint(crossHairColor);
+	plot.setDomainCrosshairStroke(crossHairStroke);
+	plot.setRangeCrosshairStroke(crossHairStroke);
+
+	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+
+	// set the X axis (retention time) properties
+	NumberAxis xAxis = (NumberAxis) plot.getDomainAxis();
+	xAxis.setNumberFormatOverride(rtFormat);
+	xAxis.setUpperMargin(0.001);
+	xAxis.setLowerMargin(0.001);
+
+	// set the Y axis (intensity) properties
+	NumberAxis yAxis = (NumberAxis) plot.getRangeAxis();
+	yAxis.setAutoRangeIncludesZero(false);
+	yAxis.setNumberFormatOverride(mzFormat);
+
+	plot.setDataset(dataset);
+	spotRenderer = new RTMZRenderer(dataset, paintScale);
+	plot.setRenderer(spotRenderer);
+	spotRenderer.setBaseToolTipGenerator(new RTMZToolTipGenerator());
+
+	// Add a paintScaleLegend to chart
+
+	paintScaleAxis = new NumberAxis("Logratio");
+	paintScaleAxis.setRange(paintScale.getLowerBound(),
+		paintScale.getUpperBound());
+
+	paintScaleLegend = new PaintScaleLegend(paintScale, paintScaleAxis);
+	paintScaleLegend.setPosition(plot.getDomainAxisEdge());
+	paintScaleLegend.setMargin(5, 25, 5, 25);
+
+	chart.addSubtitle(paintScaleLegend);
+
+    }
+
+    public InterpolatingLookupPaintScale getPaintScale() {
+	return paintScale;
+    }
+
+    public void setPaintScale(InterpolatingLookupPaintScale paintScale) {
+
+	RTMZRenderer renderer = (RTMZRenderer) plot.getRenderer();
+	renderer.setPaintScale(paintScale);
+
+	this.paintScale = paintScale;
+	paintScaleAxis.setRange(paintScale.getLowerBound(),
+		paintScale.getUpperBound());
+	paintScaleLegend.setScale(paintScale);
+    }
+
 }

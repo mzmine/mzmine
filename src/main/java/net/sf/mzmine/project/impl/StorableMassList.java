@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,64 +34,64 @@ import net.sf.mzmine.datamodel.Scan;
  */
 public class StorableMassList implements MassList {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private Scan scan;
-	private String name;
-	private RawDataFileImpl rawDataFile;
-	private int storageID;
+    private Scan scan;
+    private String name;
+    private RawDataFileImpl rawDataFile;
+    private int storageID;
 
-	public StorableMassList(RawDataFileImpl rawDataFile, int storageID,
-			String name, Scan scan) {
-		this.scan = scan;
-		this.name = name;
-		this.rawDataFile = rawDataFile;
-		this.storageID = storageID;
-	}
+    public StorableMassList(RawDataFileImpl rawDataFile, int storageID,
+	    String name, Scan scan) {
+	this.scan = scan;
+	this.name = name;
+	this.rawDataFile = rawDataFile;
+	this.storageID = storageID;
+    }
 
-	@Override
-	public @Nonnull String getName() {
-		return name;
-	}
+    @Override
+    public @Nonnull String getName() {
+	return name;
+    }
 
-	@Override
-	public @Nonnull Scan getScan() {
-		return scan;
-	}
+    @Override
+    public @Nonnull Scan getScan() {
+	return scan;
+    }
 
-	public void setScan(Scan scan) {
-		this.scan = scan;
-	}
+    public void setScan(Scan scan) {
+	this.scan = scan;
+    }
 
-	@Override
-	public @Nonnull DataPoint[] getDataPoints() {
-		try {
-			DataPoint result[] = rawDataFile.readDataPoints(storageID);
-			return result;
+    @Override
+    public @Nonnull DataPoint[] getDataPoints() {
+	try {
+	    DataPoint result[] = rawDataFile.readDataPoints(storageID);
+	    return result;
 
-		} catch (IOException e) {
-			logger.severe("Could not read data from temporary file "
-					+ e.toString());
-			return new DataPoint[0];
-		}
+	} catch (IOException e) {
+	    logger.severe("Could not read data from temporary file "
+		    + e.toString());
+	    return new DataPoint[0];
 	}
+    }
 
-	public void removeStoredData() {
-		try {
-			rawDataFile.removeStoredDataPoints(storageID);
-		} catch (IOException e) {
-			logger.severe("Could not modify temporary file " + e.toString());
-		}
-		storageID = -1;
+    public void removeStoredData() {
+	try {
+	    rawDataFile.removeStoredDataPoints(storageID);
+	} catch (IOException e) {
+	    logger.severe("Could not modify temporary file " + e.toString());
 	}
-	
-	public int getStorageID() {
-		return storageID;
-	}
-	
-	@Override
-	public String toString() {
-		return name;
-	}
+	storageID = -1;
+    }
+
+    public int getStorageID() {
+	return storageID;
+    }
+
+    @Override
+    public String toString() {
+	return name;
+    }
 
 }

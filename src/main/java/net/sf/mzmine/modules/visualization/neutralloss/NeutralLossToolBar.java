@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -41,15 +41,15 @@ class NeutralLossToolBar extends JToolBar {
 
     NeutralLossToolBar(NeutralLossVisualizerWindow masterFrame) {
 
-        super(JToolBar.VERTICAL);
+	super(JToolBar.VERTICAL);
 
-        setFloatable(false);
-        setFocusable(false);
-        setMargin(new Insets(5, 5, 5, 5));
-        setBackground(Color.white);
+	setFloatable(false);
+	setFocusable(false);
+	setMargin(new Insets(5, 5, 5, 5));
+	setBackground(Color.white);
 
-        GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
-                "HIGHLIGHT", "Highlight selected precursor mass range");
+	GUIUtils.addButton(this, null, dataPointsIcon, masterFrame,
+		"HIGHLIGHT", "Highlight selected precursor mass range");
 
     }
 

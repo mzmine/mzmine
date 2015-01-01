@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -47,113 +47,116 @@ public class ColumnGroup {
     protected int margin = 0;
 
     public ColumnGroup(String text) {
-        this(null, text);
+	this(null, text);
     }
 
     public ColumnGroup(TableCellRenderer renderer, String text) {
-        if (renderer == null) {
-            this.renderer = new DefaultTableCellRenderer() {
+	if (renderer == null) {
+	    this.renderer = new DefaultTableCellRenderer() {
 
-                /**
+		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
 
 		public Component getTableCellRendererComponent(JTable table,
-                        Object value, boolean isSelected, boolean hasFocus,
-                        int row, int column) {
-                    JTableHeader header = table.getTableHeader();
-                    if (header != null) {
-                        setForeground(header.getForeground());
-                        setBackground(header.getBackground());
-                        setFont(header.getFont());
-                    }
-                    setHorizontalAlignment(JLabel.CENTER);
-                    setText((value == null) ? "" : value.toString());
-                    setBorder(UIManager.getBorder("TableHeader.cellBorder"));
-                    return this;
-                }
-            };
-        } else {
-            this.renderer = renderer;
-        }
-        this.text = text;
-        v = new Vector<Object>();
+			Object value, boolean isSelected, boolean hasFocus,
+			int row, int column) {
+		    JTableHeader header = table.getTableHeader();
+		    if (header != null) {
+			setForeground(header.getForeground());
+			setBackground(header.getBackground());
+			setFont(header.getFont());
+		    }
+		    setHorizontalAlignment(JLabel.CENTER);
+		    setText((value == null) ? "" : value.toString());
+		    setBorder(UIManager.getBorder("TableHeader.cellBorder"));
+		    return this;
+		}
+	    };
+	} else {
+	    this.renderer = renderer;
+	}
+	this.text = text;
+	v = new Vector<Object>();
     }
 
     /**
-     * @param obj TableColumn or ColumnGroup
+     * @param obj
+     *            TableColumn or ColumnGroup
      */
     public void add(Object obj) {
-        if (obj == null) {
-            return;
-        }
-        v.addElement(obj);
+	if (obj == null) {
+	    return;
+	}
+	v.addElement(obj);
     }
 
     /**
-     * @param c TableColumn
-     * @param v ColumnGroups
+     * @param c
+     *            TableColumn
+     * @param v
+     *            ColumnGroups
      */
     public Vector<?> getColumnGroups(TableColumn c, Vector<ColumnGroup> g) {
-        g.addElement(this);
-        if (v.contains(c))
-            return g;
-        Enumeration<Object> en = v.elements();
-        while (en.hasMoreElements()) {
-            Object obj = en.nextElement();
-            if (obj instanceof ColumnGroup) {
-                Vector<ColumnGroup> clone = new Vector<ColumnGroup>(g);
-                Vector<?> groups = (Vector<?>) ((ColumnGroup) obj).getColumnGroups(c,
-                        clone);
-                if (groups != null)
-                    return groups;
-            }
-        }
-        return null;
+	g.addElement(this);
+	if (v.contains(c))
+	    return g;
+	Enumeration<Object> en = v.elements();
+	while (en.hasMoreElements()) {
+	    Object obj = en.nextElement();
+	    if (obj instanceof ColumnGroup) {
+		Vector<ColumnGroup> clone = new Vector<ColumnGroup>(g);
+		Vector<?> groups = (Vector<?>) ((ColumnGroup) obj)
+			.getColumnGroups(c, clone);
+		if (groups != null)
+		    return groups;
+	    }
+	}
+	return null;
     }
 
     public TableCellRenderer getHeaderRenderer() {
-        return renderer;
+	return renderer;
     }
 
     public void setHeaderRenderer(TableCellRenderer renderer) {
-        if (renderer != null) {
-            this.renderer = renderer;
-        }
+	if (renderer != null) {
+	    this.renderer = renderer;
+	}
     }
 
     public Object getHeaderValue() {
-        return text;
+	return text;
     }
 
     public Dimension getSize(JTable table) {
-        Component comp = renderer.getTableCellRendererComponent(table,
-                getHeaderValue(), false, false, -1, -1);
-        int height = comp.getPreferredSize().height;
-        int width = 0;
-        Enumeration<?> en = v.elements();
-        while (en.hasMoreElements()) {
-            Object obj = en.nextElement();
-            if (obj instanceof TableColumn) {
-                TableColumn aColumn = (TableColumn) obj;
-                width += aColumn.getWidth();
-                width += margin;
-            } else {
-                width += ((ColumnGroup) obj).getSize(table).width;
-            }
-        }
-        return new Dimension(width, height);
+	Component comp = renderer.getTableCellRendererComponent(table,
+		getHeaderValue(), false, false, -1, -1);
+	int height = comp.getPreferredSize().height;
+	int width = 0;
+	Enumeration<?> en = v.elements();
+	while (en.hasMoreElements()) {
+	    Object obj = en.nextElement();
+	    if (obj instanceof TableColumn) {
+		TableColumn aColumn = (TableColumn) obj;
+		width += aColumn.getWidth();
+		width += margin;
+	    } else {
+		width += ((ColumnGroup) obj).getSize(table).width;
+	    }
+	}
+	return new Dimension(width, height);
     }
 
     public void setColumnMargin(int margin) {
-        this.margin = margin;
-        Enumeration<?> en = v.elements();
-        while (en.hasMoreElements()) {
-            Object obj = en.nextElement();
-            if (obj instanceof ColumnGroup) {
-                ((ColumnGroup) obj).setColumnMargin(margin);
-            }
-        }
+	this.margin = margin;
+	Enumeration<?> en = v.elements();
+	while (en.hasMoreElements()) {
+	    Object obj = en.nextElement();
+	    if (obj instanceof ColumnGroup) {
+		((ColumnGroup) obj).setColumnMargin(margin);
+	    }
+	}
     }
 }

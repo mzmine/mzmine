@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,32 +35,40 @@ import net.sf.mzmine.parameters.impl.SimpleParameterSet;
  */
 public class PeakSummaryVisualizerModule implements MZmineModule {
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#getName()
-	 */
-	@Override
-	public @Nonnull String getName() {
-		return "Peak list row summary";
-	}
+    /**
+     * @see net.sf.mzmine.modules.MZmineModule#getName()
+     */
+    @Override
+    public @Nonnull String getName() {
+	return "Peak list row summary";
+    }
 
-	/**
-	 * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
-	 */
-	public static void showNewPeakSummaryWindow(PeakListRow row) {
-		final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
-		newWindow.setVisible(true);
-		newWindow.setLocation(20, 20);
-		newWindow.setSize(new Dimension(1000, 600));
-		
-		//Hack to show the new window in front of the main window
-		Timer timer = new Timer();
-		timer.schedule(new TimerTask() { public void run() { newWindow.toFront(); } }, 200); //msecs
-		timer.schedule(new TimerTask() { public void run() { newWindow.toFront(); } }, 400); //msecs
-	}
+    /**
+     * @see net.sf.mzmine.modules.MZmineModule#setParameters(net.sf.mzmine.data.ParameterSet)
+     */
+    public static void showNewPeakSummaryWindow(PeakListRow row) {
+	final PeakSummaryWindow newWindow = new PeakSummaryWindow(row);
+	newWindow.setVisible(true);
+	newWindow.setLocation(20, 20);
+	newWindow.setSize(new Dimension(1000, 600));
 
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return SimpleParameterSet.class;
-	}
+	// Hack to show the new window in front of the main window
+	Timer timer = new Timer();
+	timer.schedule(new TimerTask() {
+	    public void run() {
+		newWindow.toFront();
+	    }
+	}, 200); // msecs
+	timer.schedule(new TimerTask() {
+	    public void run() {
+		newWindow.toFront();
+	    }
+	}, 400); // msecs
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return SimpleParameterSet.class;
+    }
 
 }

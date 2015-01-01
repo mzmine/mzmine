@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -61,65 +61,68 @@ public class SQLColumnSettingsComponent extends JPanel implements
 
 	value = new SQLColumnSettings();
 
-	//columnsTable = new JTable(value);
+	// columnsTable = new JTable(value);
 	columnsTable = new JTable(value) {
-	/**
+	    /**
 	     * 
 	     */
 	    private static final long serialVersionUID = 1L;
 
-	public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+	    public Component prepareRenderer(TableCellRenderer renderer,
+		    int row, int column) {
 		Component c = super.prepareRenderer(renderer, row, column);
 		if (!isCellEditable(row, column)) {
-			if (isCellSelected(row, column)) {
-				c.setBackground(Color.decode("#3399FF"));
-				c.setForeground(Color.white);				
-			}
-			else {
-				c.setBackground(Color.decode("#E3E3E3"));
-			}
-		}
-		else{
-			if (isCellSelected(row, column)) {
-				c.setBackground(Color.decode("#3399FF"));
-				c.setForeground(Color.white);
-			}
-			else {
-				c.setBackground(Color.white);
-				c.setForeground(Color.black);
-			}
+		    if (isCellSelected(row, column)) {
+			c.setBackground(Color.decode("#3399FF"));
+			c.setForeground(Color.white);
+		    } else {
+			c.setBackground(Color.decode("#E3E3E3"));
+		    }
+		} else {
+		    if (isCellSelected(row, column)) {
+			c.setBackground(Color.decode("#3399FF"));
+			c.setForeground(Color.white);
+		    } else {
+			c.setBackground(Color.white);
+			c.setForeground(Color.black);
+		    }
 		}
 		return c;
-		}
+	    }
 	};
-	
+
 	columnsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	columnsTable.setRowSelectionAllowed(true);
 	columnsTable.setColumnSelectionAllowed(false);
 	columnsTable.getTableHeader().setReorderingAllowed(false);
 	columnsTable.getTableHeader().setResizingAllowed(false);
-	columnsTable.setPreferredScrollableViewportSize(new Dimension(550, 220));
+	columnsTable
+		.setPreferredScrollableViewportSize(new Dimension(550, 220));
 
-	columnsTable.setRowHeight(columnsTable.getRowHeight()+5);
+	columnsTable.setRowHeight(columnsTable.getRowHeight() + 5);
 	columnsTable.setFont(new Font(getFont().getName(), Font.PLAIN, 13));
-	
-	JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(SQLExportDataType.values());
+
+	JComboBox<SQLExportDataType> dataTypeCombo = new JComboBox<SQLExportDataType>(
+		SQLExportDataType.values());
 	dataTypeCombo.setMaximumRowCount(22);
 	DefaultCellEditor dataTypeEditor = new DefaultCellEditor(dataTypeCombo);
 	columnsTable.setDefaultEditor(SQLExportDataType.class, dataTypeEditor);
 
 	// Create an ItemListener for the JComboBox component.
 	dataTypeCombo.addItemListener(new ItemListener() {
-	     @Override
-	     public void itemStateChanged(ItemEvent e) {
-	    	 JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
-	    	 Boolean selected = ((SQLExportDataType) dataTypeCombo.getSelectedItem()).isSelectableValue();
-	    	 if(!selected && e.getStateChange() == 1) {
-	    		 // Invalid selection - selection of title rows in JComboBox is not allowed
-	    		 dataTypeCombo.setSelectedIndex(dataTypeCombo.getSelectedIndex()+1);
-	    	 }
-	     }
-	 });
+	    @Override
+	    public void itemStateChanged(ItemEvent e) {
+		JComboBox<?> dataTypeCombo = (JComboBox<?>) e.getSource();
+		Boolean selected = ((SQLExportDataType) dataTypeCombo
+			.getSelectedItem()).isSelectableValue();
+		if (!selected && e.getStateChange() == 1) {
+		    // Invalid selection - selection of title rows in JComboBox
+		    // is not allowed
+		    dataTypeCombo.setSelectedIndex(dataTypeCombo
+			    .getSelectedIndex() + 1);
+		}
+	    }
+	});
 
 	JScrollPane elementsScroll = new JScrollPane(columnsTable);
 	add(elementsScroll, BorderLayout.CENTER);

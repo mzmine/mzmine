@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,25 +29,25 @@ import net.sf.mzmine.parameters.parametertypes.PercentParameter;
 public class IsotopePatternScoreParameters extends SimpleParameterSet {
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter(
-            "Isotope m/z tolerance",
-            "m/z tolerance which defines what isotopes would be considered same when "
-                    + "comparing two isotopic patterns. This tolerance needs to be "
-                    + "higher than general m/z precision of the data, because some "
-                    + "small isotopes may overlap with the sides of bigger isotopic "
-                    + "peaks.");
+	    "Isotope m/z tolerance",
+	    "m/z tolerance which defines what isotopes would be considered same when "
+		    + "comparing two isotopic patterns. This tolerance needs to be "
+		    + "higher than general m/z precision of the data, because some "
+		    + "small isotopes may overlap with the sides of bigger isotopic "
+		    + "peaks.");
 
     public static final DoubleParameter isotopeNoiseLevel = new DoubleParameter(
-            "Minimum absolute intensity",
-            "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.", MZmineCore
-                    .getConfiguration().getIntensityFormat());
+	    "Minimum absolute intensity",
+	    "Minimum absolute intensity of the isotopes to be compared. Isotopes below this intensity will be ignored.",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final PercentParameter isotopePatternScoreThreshold = new PercentParameter(
-            "Minimum score",
-            "If the score between isotope pattern is lower, discard this match");
+	    "Minimum score",
+	    "If the score between isotope pattern is lower, discard this match");
 
     public IsotopePatternScoreParameters() {
-        super(new Parameter[] { mzTolerance, isotopeNoiseLevel,
-                isotopePatternScoreThreshold });
+	super(new Parameter[] { mzTolerance, isotopeNoiseLevel,
+		isotopePatternScoreThreshold });
     }
 
 }

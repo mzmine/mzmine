@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,26 +30,26 @@ import net.sf.mzmine.parameters.parametertypes.RTToleranceParameter;
 
 public class FragmentSearchParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-	public static final MZToleranceParameter ms2mzTolerance = new MZToleranceParameter(
-			"m/z tolerance of MS2 data",
-			"Tolerance value of the m/z difference between peaks in MS/MS scans");
+    public static final MZToleranceParameter ms2mzTolerance = new MZToleranceParameter(
+	    "m/z tolerance of MS2 data",
+	    "Tolerance value of the m/z difference between peaks in MS/MS scans");
 
-	public static final PercentParameter maxFragmentHeight = new PercentParameter(
-			"Max fragment peak height",
-			"Maximum height of the recognized fragment peak, relative to the main peak");
+    public static final PercentParameter maxFragmentHeight = new PercentParameter(
+	    "Max fragment peak height",
+	    "Maximum height of the recognized fragment peak, relative to the main peak");
 
-	public static final DoubleParameter minMS2peakHeight = new DoubleParameter(
-			"Min MS2 peak height",
-			"Minimum absolute intensity of the MS2 fragment peak",
-			MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter minMS2peakHeight = new DoubleParameter(
+	    "Min MS2 peak height",
+	    "Minimum absolute intensity of the MS2 fragment peak", MZmineCore
+		    .getConfiguration().getIntensityFormat());
 
-	public FragmentSearchParameters() {
-		super(new Parameter[] { peakLists, rtTolerance, ms2mzTolerance,
-				maxFragmentHeight, minMS2peakHeight });
-	}
+    public FragmentSearchParameters() {
+	super(new Parameter[] { peakLists, rtTolerance, ms2mzTolerance,
+		maxFragmentHeight, minMS2peakHeight });
+    }
 
 }

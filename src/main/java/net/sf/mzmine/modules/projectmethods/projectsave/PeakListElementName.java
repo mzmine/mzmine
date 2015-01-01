@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,48 +20,26 @@
 package net.sf.mzmine.modules.projectmethods.projectsave;
 
 enum PeakListElementName {
-	
-	PEAKLIST ("peaklist"),
-	PEAKLIST_DATE ("created"),
-	QUANTITY ("quantity"),
-	RAWFILE ("raw_file"),
-	PEAKLIST_NAME ("pl_name"),
-	ID ("id"),
-	RT ("rt"),
-	MZ ("mz"),
-	HEIGHT ("height"),
-	RTRANGE ("rt_range"),
-	MZRANGE ("mz_range"),
-	AREA ("area"),
-	STATUS ("status"),
-	COLUMN ("column_id"),
-	SCAN_ID ("scan_id"),
-	ROW ("row"),
-	PEAK_IDENTITY ("identity"),
-	PREFERRED ("preferred"),
-	IDPROPERTY("identity_property"),
-	NAME("name"),
-	COMMENT ("comment"),
-	PEAK ("peak"),
-	ISOTOPE_PATTERN("isotope_pattern"),
-	DESCRIPTION("description"),
-	CHARGE("charge"),
-	ISOTOPE("isotope"),
-	MZPEAKS ("mzpeaks"),
-	METHOD ("applied_method"),
-	METHOD_NAME ("method_name"),
-	METHOD_PARAMETERS ("method_parameters"),
-	REPRESENTATIVE_SCAN("best_scan"),
-	FRAGMENT_SCAN("fragment_scan");
-	
-	private String elementName;
-	
-	private PeakListElementName(String itemName){
-		this.elementName = itemName;
-	}
-	
-	public String getElementName(){
-		return elementName;
-	}
+
+    PEAKLIST("peaklist"), PEAKLIST_DATE("created"), QUANTITY("quantity"), RAWFILE(
+	    "raw_file"), PEAKLIST_NAME("pl_name"), ID("id"), RT("rt"), MZ("mz"), HEIGHT(
+	    "height"), RTRANGE("rt_range"), MZRANGE("mz_range"), AREA("area"), STATUS(
+	    "status"), COLUMN("column_id"), SCAN_ID("scan_id"), ROW("row"), PEAK_IDENTITY(
+	    "identity"), PREFERRED("preferred"), IDPROPERTY("identity_property"), NAME(
+	    "name"), COMMENT("comment"), PEAK("peak"), ISOTOPE_PATTERN(
+	    "isotope_pattern"), DESCRIPTION("description"), CHARGE("charge"), ISOTOPE(
+	    "isotope"), MZPEAKS("mzpeaks"), METHOD("applied_method"), METHOD_NAME(
+	    "method_name"), METHOD_PARAMETERS("method_parameters"), REPRESENTATIVE_SCAN(
+	    "best_scan"), FRAGMENT_SCAN("fragment_scan");
+
+    private String elementName;
+
+    private PeakListElementName(String itemName) {
+	this.elementName = itemName;
+    }
+
+    public String getElementName() {
+	return elementName;
+    }
 
 }

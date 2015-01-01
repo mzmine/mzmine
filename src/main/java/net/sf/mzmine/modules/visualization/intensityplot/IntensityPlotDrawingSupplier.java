@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,23 +37,26 @@ class IntensityPlotDrawingSupplier extends DefaultDrawingSupplier {
      */
     private static final long serialVersionUID = 1L;
     // use shapes 1.75 times bigger than default
-    private final AffineTransform resizeTransform = AffineTransform.getScaleInstance(1.75, 1.75);
-    
+    private final AffineTransform resizeTransform = AffineTransform
+	    .getScaleInstance(1.75, 1.75);
+
     public Shape getNextShape() {
-        Shape baseShape = super.getNextShape();
-        return resizeTransform.createTransformedShape(baseShape);
+	Shape baseShape = super.getNextShape();
+	return resizeTransform.createTransformedShape(baseShape);
     }
 
     public Paint getNextPaint() {
-        
-        // get new color from the default supplier
-        Color baseColor = (Color) super.getNextPaint();
 
-        // ban colors that are too bright
-        int colorSum = baseColor.getRed() + baseColor.getGreen() + baseColor.getBlue();
-        if (colorSum > 520) baseColor = baseColor.darker();
-        
-        return baseColor;
+	// get new color from the default supplier
+	Color baseColor = (Color) super.getNextPaint();
+
+	// ban colors that are too bright
+	int colorSum = baseColor.getRed() + baseColor.getGreen()
+		+ baseColor.getBlue();
+	if (colorSum > 520)
+	    baseColor = baseColor.darker();
+
+	return baseColor;
     }
-    
+
 }

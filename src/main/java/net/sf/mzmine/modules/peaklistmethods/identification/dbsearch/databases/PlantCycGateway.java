@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,36 +43,36 @@ public class PlantCycGateway implements DBGateway {
     private Map<String, String> retrievedFormulas = new Hashtable<String, String>();
 
     public String[] findCompounds(double mass, MZTolerance mzTolerance,
-            int numOfResults, ParameterSet parameters) throws IOException {
+	    int numOfResults, ParameterSet parameters) throws IOException {
 
-        final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
+	final double ppmTolerance = mzTolerance.getPpmToleranceForMass(mass);
 
-        final String queryAddress = "http://pmn.plantcyc.org/PLANT/search-query?type=COMPOUND&monoisomw="
-                + mass + "&monoisotol=" + ppmTolerance;
+	final String queryAddress = "http://pmn.plantcyc.org/PLANT/search-query?type=COMPOUND&monoisomw="
+		+ mass + "&monoisotol=" + ppmTolerance;
 
-        final URL queryURL = new URL(queryAddress);
+	final URL queryURL = new URL(queryAddress);
 
-        // Submit the query
-        final String queryResult = InetUtils.retrieveData(queryURL);
+	// Submit the query
+	final String queryResult = InetUtils.retrieveData(queryURL);
 
-        final List<String> results = new ArrayList<String>();
-        
-        // Find IDs in the HTML data
-        Pattern pat = Pattern
-                .compile("/PLANT/NEW-IMAGE\\?type=COMPOUND&object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
-        Matcher matcher = pat.matcher(queryResult);
-        while (matcher.find()) {
-            String id = matcher.group(1);
-            String name = matcher.group(2);
-            String formula = matcher.group(3);
-            results.add(id);
-            retrievedNames.put(id, name);
-            retrievedFormulas.put(id, formula);
-            if (results.size() == numOfResults)
-                break;
-        }
+	final List<String> results = new ArrayList<String>();
 
-        return results.toArray(new String[0]);
+	// Find IDs in the HTML data
+	Pattern pat = Pattern
+		.compile("/PLANT/NEW-IMAGE\\?type=COMPOUND&object=([^\"]+)\">([^<]*)</A></TD><TD ALIGN=LEFT>([^<]*)</TD>");
+	Matcher matcher = pat.matcher(queryResult);
+	while (matcher.find()) {
+	    String id = matcher.group(1);
+	    String name = matcher.group(2);
+	    String formula = matcher.group(3);
+	    results.add(id);
+	    retrievedNames.put(id, name);
+	    retrievedFormulas.put(id, formula);
+	    if (results.size() == numOfResults)
+		break;
+	}
+
+	return results.toArray(new String[0]);
 
     }
 
@@ -81,26 +81,26 @@ public class PlantCycGateway implements DBGateway {
      * 
      */
     public DBCompound getCompound(String ID, ParameterSet parameters)
-            throws IOException {
+	    throws IOException {
 
-        final URL entryURL = new URL(plantCycEntryAddress + ID);
+	final URL entryURL = new URL(plantCycEntryAddress + ID);
 
-        final String compoundName = retrievedNames.get(ID);
-        final String compoundFormula = retrievedFormulas.get(ID);
+	final String compoundName = retrievedNames.get(ID);
+	final String compoundFormula = retrievedFormulas.get(ID);
 
-        // Unfortunately PlantCyc does not contain structures in MOL format
-        URL structure2DURL = null;
-        URL structure3DURL = null;
+	// Unfortunately PlantCyc does not contain structures in MOL format
+	URL structure2DURL = null;
+	URL structure3DURL = null;
 
-        if (compoundName == null) {
-            throw (new IOException("Invalid compound ID " + ID));
-        }
+	if (compoundName == null) {
+	    throw (new IOException("Invalid compound ID " + ID));
+	}
 
-        DBCompound newCompound = new DBCompound(OnlineDatabase.PLANTCYC, ID,
-                compoundName, compoundFormula, entryURL, structure2DURL,
-                structure3DURL);
+	DBCompound newCompound = new DBCompound(OnlineDatabase.PLANTCYC, ID,
+		compoundName, compoundFormula, entryURL, structure2DURL,
+		structure3DURL);
 
-        return newCompound;
+	return newCompound;
 
     }
 }

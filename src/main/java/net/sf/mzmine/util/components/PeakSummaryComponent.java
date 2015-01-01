@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -427,13 +427,15 @@ public class PeakSummaryComponent extends JPanel implements ActionListener {
 			    .getRawDataPointsRTRange();
 		    Range<Double> peakMZRange = selectedPeaks[i]
 			    .getRawDataPointsMZRange();
-		    final double rtLen = peakRTRange.upperEndpoint() - peakRTRange.lowerEndpoint();
-		    Range<Double> localRTRange = Range.closed(Math.max(0,
-			    peakRTRange.lowerEndpoint() - rtLen),
+		    final double rtLen = peakRTRange.upperEndpoint()
+			    - peakRTRange.lowerEndpoint();
+		    Range<Double> localRTRange = Range.closed(
+			    Math.max(0, peakRTRange.lowerEndpoint() - rtLen),
 			    peakRTRange.upperEndpoint() + rtLen);
-		    final double mzLen = peakMZRange.upperEndpoint() - peakMZRange.lowerEndpoint();
-		    Range<Double> localMZRange = Range.closed(Math.max(0,
-			    peakMZRange.lowerEndpoint() - mzLen),
+		    final double mzLen = peakMZRange.upperEndpoint()
+			    - peakMZRange.lowerEndpoint();
+		    Range<Double> localMZRange = Range.closed(
+			    Math.max(0, peakMZRange.lowerEndpoint() - mzLen),
 			    peakMZRange.upperEndpoint() + mzLen);
 		    ThreeDVisualizerModule.setupNew3DVisualizer(dataFiles[i],
 			    localMZRange, localRTRange);

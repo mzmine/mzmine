@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -53,62 +53,56 @@ public class NistMsSearchParameters extends SimpleParameterSet {
      * NIST MS Search path.
      */
     public static final DirectoryParameter NIST_MS_SEARCH_DIR = new DirectoryParameter(
-            "NIST MS Search directory",
-            "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
+	    "NIST MS Search directory",
+	    "Full path of the directory containing the NIST MS Search executable (nistms$.exe)");
 
     /**
      * Ionization method.
      */
     public static final ComboParameter<IonizationType> IONIZATION_METHOD = new ComboParameter<IonizationType>(
-            "Ionization method",
-            "Type of ion used to calculate the neutral mass",
-            IonizationType.values());
+	    "Ionization method",
+	    "Type of ion used to calculate the neutral mass",
+	    IonizationType.values());
 
     /**
      * Spectrum RT width.
      */
     public static final RTToleranceParameter SPECTRUM_RT_WIDTH = new RTToleranceParameter(
-            "Spectrum RT tolerance",
-            "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak");
+	    "Spectrum RT tolerance",
+	    "The RT tolerance (>= 0) to use when forming search spectra; include all other detected peaks whose RT is within the specified tolerance of a given peak");
 
     /**
      * Maximum number of peaks per spectrum.
      */
     public static final IntegerParameter MAX_NUM_PEAKS = new IntegerParameter(
-            "Max. peaks per spectrum",
-            "The maximum number of peaks to include in a spectrum (0 -> unlimited)",
-            10,
-            0,
-            null);
+	    "Max. peaks per spectrum",
+	    "The maximum number of peaks to include in a spectrum (0 -> unlimited)",
+	    10, 0, null);
 
     /**
      * Must have same identities.
      */
 
     public static final BooleanParameter SAME_IDENTITIES = new BooleanParameter(
-            "Must have same identities",
-            "Two peaks will only be included in the same spectrum if they have the same identity (for use with CAMERA pseudo-spectra)",
-            true);
+	    "Must have same identities",
+	    "Two peaks will only be included in the same spectrum if they have the same identity (for use with CAMERA pseudo-spectra)",
+	    true);
 
     /**
      * Match factor cut-off.
      */
     public static final IntegerParameter MIN_MATCH_FACTOR = new IntegerParameter(
-            "Min. match factor",
-            "The minimum match factor (0 .. 1000) that search hits must have",
-            800,
-            0,
-            1000);
+	    "Min. match factor",
+	    "The minimum match factor (0 .. 1000) that search hits must have",
+	    800, 0, 1000);
 
     /**
      * Match factor cut-off.
      */
     public static final IntegerParameter MIN_REVERSE_MATCH_FACTOR = new IntegerParameter(
-            "Min. reverse match factor",
-            "The minimum reverse match factor (0 .. 1000) that search hits must have",
-            800,
-            0,
-            1000);
+	    "Min. reverse match factor",
+	    "The minimum reverse match factor (0 .. 1000) that search hits must have",
+	    800, 0, 1000);
 
     // NIST MS Search executable.
     private static final String NIST_MS_SEARCH_EXE = "nistms$.exe";
@@ -117,40 +111,37 @@ public class NistMsSearchParameters extends SimpleParameterSet {
      * Construct the parameter set.
      */
     public NistMsSearchParameters() {
-        super(new Parameter[]{PEAK_LISTS,
-                              NIST_MS_SEARCH_DIR,
-                              IONIZATION_METHOD,
-                              SPECTRUM_RT_WIDTH,
-                              MAX_NUM_PEAKS,
-                              SAME_IDENTITIES,
-                              MIN_MATCH_FACTOR,
-                              MIN_REVERSE_MATCH_FACTOR});
+	super(new Parameter[] { PEAK_LISTS, NIST_MS_SEARCH_DIR,
+		IONIZATION_METHOD, SPECTRUM_RT_WIDTH, MAX_NUM_PEAKS,
+		SAME_IDENTITIES, MIN_MATCH_FACTOR, MIN_REVERSE_MATCH_FACTOR });
     }
 
     @Override
     public boolean checkParameterValues(final Collection<String> errorMessages) {
 
-        // Unsupported OS.
-        if (!isWindows()) {
-            errorMessages.add("NIST MS Search is only supported on the Windows operating system.");
-            return false;
-        }
+	// Unsupported OS.
+	if (!isWindows()) {
+	    errorMessages
+		    .add("NIST MS Search is only supported on the Windows operating system.");
+	    return false;
+	}
 
-        boolean result = super.checkParameterValues(errorMessages);
+	boolean result = super.checkParameterValues(errorMessages);
 
-        // NIST MS Search home directory and executable.
-        final File executable = getNistMsSearchExecutable();
+	// NIST MS Search home directory and executable.
+	final File executable = getNistMsSearchExecutable();
 
-        // Executable missing.
-        if (executable == null || !executable.exists()) {
+	// Executable missing.
+	if (executable == null || !executable.exists()) {
 
-            errorMessages.add(
-                    "NIST MS Search executable (" + NIST_MS_SEARCH_EXE +
-                    ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
-            result = false;
-        }
+	    errorMessages
+		    .add("NIST MS Search executable ("
+			    + NIST_MS_SEARCH_EXE
+			    + ") not found.  Please set the to the full path of the directory containing the NIST MS Search executable.");
+	    result = false;
+	}
 
-        return result;
+	return result;
     }
 
     /**
@@ -160,17 +151,18 @@ public class NistMsSearchParameters extends SimpleParameterSet {
      */
     public File getNistMsSearchExecutable() {
 
-        final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
-        return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
+	final File dir = getParameter(NIST_MS_SEARCH_DIR).getValue();
+	return dir == null ? null : new File(dir, NIST_MS_SEARCH_EXE);
     }
 
     /**
      * Is this a Windows OS?
      *
-     * @return true/false if the os.name property does/doesn't contain "Windows".
+     * @return true/false if the os.name property does/doesn't contain
+     *         "Windows".
      */
     private static boolean isWindows() {
 
-        return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
+	return System.getProperty("os.name").toUpperCase().contains("WINDOWS");
     }
 }

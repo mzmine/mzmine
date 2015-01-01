@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -27,17 +27,17 @@ import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
 
 public class EMClustererParameters extends SimpleParameterSet {
 
-	public static final ComboParameter<VisualizationType> visualization = new ComboParameter<VisualizationType>(
-			"Visualization type",
-			"Select the kind of visualization for the clustering result",
-			VisualizationType.values());
+    public static final ComboParameter<VisualizationType> visualization = new ComboParameter<VisualizationType>(
+	    "Visualization type",
+	    "Select the kind of visualization for the clustering result",
+	    VisualizationType.values());
 
-	public static final IntegerParameter numberOfIterations = new IntegerParameter(
-			"Number of iterantions",
-			"Specify the number of iterations to terminate if EM has not converged.",
-			3);
+    public static final IntegerParameter numberOfIterations = new IntegerParameter(
+	    "Number of iterantions",
+	    "Specify the number of iterations to terminate if EM has not converged.",
+	    3);
 
-	public EMClustererParameters() {
-		super(new Parameter[] { numberOfIterations, visualization });
-	}
+    public EMClustererParameters() {
+	super(new Parameter[] { numberOfIterations, visualization });
+    }
 }

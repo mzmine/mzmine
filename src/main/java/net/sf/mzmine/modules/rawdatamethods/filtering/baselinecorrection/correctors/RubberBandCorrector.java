@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -28,66 +28,80 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RUtilities;
 
 /**
- * @description Rubber Band  baseline corrector. 
- * Estimates a trend based on Rubber Band algorithm (which determines a convex envelope for the spectra - underneath side).
- * Uses "spc.rubberband" feature from "hyperSpec" R-package (http://cran.r-project.org/web/packages/hyperSpec/vignettes/baseline.pdf).
+ * @description Rubber Band baseline corrector. Estimates a trend based on
+ *              Rubber Band algorithm (which determines a convex envelope for
+ *              the spectra - underneath side). Uses "spc.rubberband" feature
+ *              from "hyperSpec" R-package
+ *              (http://cran.r-project.org/web/packages
+ *              /hyperSpec/vignettes/baseline.pdf).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
  */
 public class RubberBandCorrector extends BaselineCorrector {
-	
-	@Override
-	public String[] getRequiredRPackages() {
-		return new String[] { "rJava", "hyperSpec" };
+
+    @Override
+    public String[] getRequiredRPackages() {
+	return new String[] { "rJava", "hyperSpec" };
+    }
+
+    @Override
+    public double[] computeBaseline(final RSession rSession,
+	    final RawDataFile origDataFile, double[] chromatogram,
+	    ParameterSet parameters) {
+
+	// Rubber Band parameters.
+	double noise = parameters.getParameter(
+		RubberBandCorrectorParameters.NOISE).getValue();
+	boolean autoNoise = parameters.getParameter(
+		RubberBandCorrectorParameters.AUTO_NOISE).getValue();
+	double df = parameters.getParameter(RubberBandCorrectorParameters.DF)
+		.getValue();
+	boolean spline = parameters.getParameter(
+		RubberBandCorrectorParameters.SPLINE).getValue();
+	double bend = parameters.getParameter(
+		RubberBandCorrectorParameters.BEND_FACTOR).getValue();
+
+	final double[] baseline;
+	synchronized (RUtilities.R_SEMAPHORE) {
+
+	    try {
+		// Set chromatogram.
+		rSession.assignDoubleArray("chromatogram", chromatogram);
+		// Transform chromatogram.
+		rSession.eval("mat = matrix(chromatogram, nrow=1)");
+		rSession.eval("spc <- new (\"hyperSpec\", spc = mat, wavelength = as.numeric(seq("
+			+ 1 + ", " + chromatogram.length + ")))");
+		// Auto noise ?
+		rSession.eval("noise <- "
+			+ ((autoNoise) ? "min(mat)" : "" + noise));
+		// Bend
+		rSession.eval("bend <- "
+			+ bend
+			+ " * wl.eval(spc, function(x) x^2, normalize.wl=normalize01)");
+		// Calculate baseline.
+		rSession.eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = "
+			+ df + ", spline=" + (spline ? "T" : "F") + ") - bend");
+		rSession.eval("baseline <- orderwl(baseline)[[1]]");
+		baseline = rSession.collectDoubleArray("baseline");
+	    } catch (Throwable t) {
+		// t.printStackTrace();
+		throw new IllegalStateException(
+			"R error during baseline correction (" + this.getName()
+				+ ").", t);
+	    }
 	}
+	return baseline;
+    }
 
-	@Override
-	public double[] computeBaseline(final RSession rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) {
+    @Override
+    public @Nonnull String getName() {
+	return "RubberBand baseline corrector";
+    }
 
-		// Rubber Band parameters.
-		double noise = parameters.getParameter(RubberBandCorrectorParameters.NOISE).getValue();
-		boolean autoNoise = parameters.getParameter(RubberBandCorrectorParameters.AUTO_NOISE).getValue();
-		double df = parameters.getParameter(RubberBandCorrectorParameters.DF).getValue();
-		boolean spline = parameters.getParameter(RubberBandCorrectorParameters.SPLINE).getValue();
-		double bend = parameters.getParameter(RubberBandCorrectorParameters.BEND_FACTOR).getValue();
-
-
-		final double[] baseline;
-		synchronized (RUtilities.R_SEMAPHORE) {
-
-			try {
-				// Set chromatogram.
-				rSession.assignDoubleArray("chromatogram", chromatogram);
-				// Transform chromatogram.
-				rSession.eval("mat = matrix(chromatogram, nrow=1)");
-				rSession.eval("spc <- new (\"hyperSpec\", spc = mat, wavelength = as.numeric(seq(" + 1 + ", " + chromatogram.length + ")))");
-				// Auto noise ?
-				rSession.eval("noise <- " + ((autoNoise) ? "min(mat)" : "" + noise));
-				// Bend
-				rSession.eval("bend <- " + bend + " * wl.eval(spc, function(x) x^2, normalize.wl=normalize01)");
-				// Calculate baseline.
-				rSession.eval("baseline <- spc.rubberband(spc + bend, noise = noise, df = " + df + ", spline=" + (spline ? "T" : "F") + ") - bend");
-				rSession.eval("baseline <- orderwl(baseline)[[1]]");
-				baseline = rSession.collectDoubleArray("baseline");
-			}
-			catch (Throwable t) {
-				//t.printStackTrace();
-				throw new IllegalStateException("R error during baseline correction (" + this.getName() + ").", t);
-			}
-		}
-		return baseline;
-	}
-
-
-	@Override
-	public @Nonnull String getName() {
-		return "RubberBand baseline corrector";
-	}
-
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return RubberBandCorrectorParameters.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return RubberBandCorrectorParameters.class;
+    }
 
 }

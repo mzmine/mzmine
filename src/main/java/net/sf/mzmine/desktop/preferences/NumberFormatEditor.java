@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,46 +28,46 @@ import javax.swing.SpinnerNumberModel;
 
 public class NumberFormatEditor extends JPanel {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private SpinnerNumberModel spinnerModel;
-	private JSpinner decimalsSpinner;
-	private JCheckBox exponentCheckbox;
+    private SpinnerNumberModel spinnerModel;
+    private JSpinner decimalsSpinner;
+    private JCheckBox exponentCheckbox;
 
-	public NumberFormatEditor(boolean showExponentOption) {
+    public NumberFormatEditor(boolean showExponentOption) {
 
-		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+	setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
-		add(new JLabel("Decimals"));
+	add(new JLabel("Decimals"));
 
-		spinnerModel = new SpinnerNumberModel(1, 0, 20, 1);
-		decimalsSpinner = new JSpinner(spinnerModel);
-		add(decimalsSpinner);
+	spinnerModel = new SpinnerNumberModel(1, 0, 20, 1);
+	decimalsSpinner = new JSpinner(spinnerModel);
+	add(decimalsSpinner);
 
-		if (showExponentOption) {
-			exponentCheckbox = new JCheckBox("Show exponent");
-			add(exponentCheckbox);
-		}
-
+	if (showExponentOption) {
+	    exponentCheckbox = new JCheckBox("Show exponent");
+	    add(exponentCheckbox);
 	}
 
-	public int getDecimals() {
-		return ((Number) spinnerModel.getValue()).intValue();
-	}
+    }
 
-	public boolean getShowExponent() {
-		if (exponentCheckbox == null)
-			return false;
-		else
-			return exponentCheckbox.isSelected();
-	}
+    public int getDecimals() {
+	return ((Number) spinnerModel.getValue()).intValue();
+    }
 
-	public void setValue(int decimals, boolean showExponent) {
-		spinnerModel.setValue(decimals);
-		if (exponentCheckbox != null)
-			exponentCheckbox.setSelected(showExponent);
-	}
+    public boolean getShowExponent() {
+	if (exponentCheckbox == null)
+	    return false;
+	else
+	    return exponentCheckbox.isSelected();
+    }
+
+    public void setValue(int decimals, boolean showExponent) {
+	spinnerModel.setValue(decimals);
+	if (exponentCheckbox != null)
+	    exponentCheckbox.setSelected(showExponent);
+    }
 
 }

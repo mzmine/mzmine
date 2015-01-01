@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -32,12 +32,12 @@ import de.schlichtherle.truezip.zip.ZipFile;
 
 public interface RawDataFileOpenHandler {
 
-	public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
-			ZipEntry xmlEntry) throws IOException,
-			ParserConfigurationException, SAXException;
+    public RawDataFile readRawDataFile(ZipFile zipFile, ZipEntry scansEntry,
+	    ZipEntry xmlEntry) throws IOException,
+	    ParserConfigurationException, SAXException;
 
-	public double getProgress();
+    public double getProgress();
 
-	public void cancel();
+    public void cancel();
 
 }

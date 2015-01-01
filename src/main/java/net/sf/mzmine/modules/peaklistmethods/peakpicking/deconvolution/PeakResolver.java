@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,8 +32,8 @@ public interface PeakResolver extends MZmineModule {
      * chromatogram itself. The size of these arrays must be same, and must be
      * equal to the number of scans covered by given chromatogram.
      */
-    public Feature[] resolvePeaks(Feature chromatogram,
-	    int scanNumbers[], double retentionTimes[], double intensities[],
+    public Feature[] resolvePeaks(Feature chromatogram, int scanNumbers[],
+	    double retentionTimes[], double intensities[],
 	    ParameterSet parameters);
 
 }

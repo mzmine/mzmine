@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -33,7 +33,7 @@ public class RUtilities {
 
     // Logger.
     private static final Logger LOG = Logger.getLogger(RUtilities.class
-            .getName());
+	    .getName());
 
     /**
      * R semaphore - all usage of R engine must be synchronized using this
@@ -48,7 +48,7 @@ public class RUtilities {
      * Utility class - no public access.
      */
     private RUtilities() {
-        // no public access.
+	// no public access.
     }
 
     /**
@@ -58,104 +58,111 @@ public class RUtilities {
      */
     public static Rengine getREngine() {
 
-        synchronized (R_SEMAPHORE) {
+	synchronized (R_SEMAPHORE) {
 
-            if (rEngine == null) {
-        	
-        	// Check if R is installed
-        	File f = new File(System.getenv().get("R_HOME"));
-        	String ErrorMsg;
-        	if(f.exists() && f.isDirectory()) {
-        	    ErrorMsg = "\nPlease check if the path to the R libraries is set properly in the startMZmine script."
-        		+ "\nCurrent values:"
-        		+ "\n R_HOME="+System.getenv().get("R_HOME")
-        	    	+ "\n R_SHARE_DIR="+System.getenv().get("R_SHARE_DIR")
-        	    	+ "\n R_INCLUDE_DIR="+System.getenv().get("R_INCLUDE_DIR")
-        	    	+ "\n R_DOC_DIR="+System.getenv().get("R_DOC_DIR")
-        	    	+ "\n R_LIBS_USER="+System.getenv().get("R_LIBS_USER")
-        	    	+ "\n PATH="+System.getenv().get("PATH")+"\n";
-        	} else {
-        	     ErrorMsg = "Could not start R. Please check if R is installed and path to the "
-                             + "libraries is set properly in the startMZmine script. (R_HOME="+System.getenv().get("R_HOME")+")";
-        	}
+	    if (rEngine == null) {
 
-                try {
+		// Check if R is installed
+		File f = new File(System.getenv().get("R_HOME"));
+		String ErrorMsg;
+		if (f.exists() && f.isDirectory()) {
+		    ErrorMsg = "\nPlease check if the path to the R libraries is set properly in the startMZmine script."
+			    + "\nCurrent values:"
+			    + "\n R_HOME="
+			    + System.getenv().get("R_HOME")
+			    + "\n R_SHARE_DIR="
+			    + System.getenv().get("R_SHARE_DIR")
+			    + "\n R_INCLUDE_DIR="
+			    + System.getenv().get("R_INCLUDE_DIR")
+			    + "\n R_DOC_DIR="
+			    + System.getenv().get("R_DOC_DIR")
+			    + "\n R_LIBS_USER="
+			    + System.getenv().get("R_LIBS_USER")
+			    + "\n PATH="
+			    + System.getenv().get("PATH") + "\n";
+		} else {
+		    ErrorMsg = "Could not start R. Please check if R is installed and path to the "
+			    + "libraries is set properly in the startMZmine script. (R_HOME="
+			    + System.getenv().get("R_HOME") + ")";
+		}
 
-                    LOG.finest("Checking R Engine.");
+		try {
 
-                    /*
-                     * For some reason if we run Rengine.versionCheck() and R is
-                     * not installed, it will crash the JVM. This was observed
-                     * at least on Windows and Mac OS X. However, if we call
-                     * System.loadLibrary("jri") before calling Rengine class,
-                     * the crash is avoided and we can catch the
-                     * UnsatisfiedLinkError properly.
-                     */
-                    System.loadLibrary("jri");
+		    LOG.finest("Checking R Engine.");
 
-                    if (!Rengine.versionCheck()) {
-                        throw new IllegalStateException("JRI version mismatch");
-                    }
+		    /*
+		     * For some reason if we run Rengine.versionCheck() and R is
+		     * not installed, it will crash the JVM. This was observed
+		     * at least on Windows and Mac OS X. However, if we call
+		     * System.loadLibrary("jri") before calling Rengine class,
+		     * the crash is avoided and we can catch the
+		     * UnsatisfiedLinkError properly.
+		     */
+		    System.loadLibrary("jri");
 
-                } catch (UnsatisfiedLinkError error) {
-                    throw new IllegalStateException(ErrorMsg);
-                }
+		    if (!Rengine.versionCheck()) {
+			throw new IllegalStateException("JRI version mismatch");
+		    }
 
-                LOG.finest("Creating R Engine.");
-                rEngine = new Rengine(new String[] { "--vanilla" }, false,
-                        new LoggerConsole());
+		} catch (UnsatisfiedLinkError error) {
+		    throw new IllegalStateException(ErrorMsg);
+		}
 
-                LOG.finest("Rengine created, waiting for R.");
-                if (!rEngine.waitForR()) {
-                    throw new IllegalStateException("Could not start R");
-                }
+		LOG.finest("Creating R Engine.");
+		rEngine = new Rengine(new String[] { "--vanilla" }, false,
+			new LoggerConsole());
 
-            }
-            return rEngine;
-        }
+		LOG.finest("Rengine created, waiting for R.");
+		if (!rEngine.waitForR()) {
+		    throw new IllegalStateException("Could not start R");
+		}
+
+	    }
+	    return rEngine;
+	}
     }
 
     /**
      * Logs all output.
      */
     private static class LoggerConsole implements RMainLoopCallbacks {
-        @Override
-        public void rWriteConsole(final Rengine re, final String text,
-                final int oType) {
-            LOG.finest(text);
-        }
+	@Override
+	public void rWriteConsole(final Rengine re, final String text,
+		final int oType) {
+	    LOG.finest(text);
+	}
 
-        @Override
-        public void rBusy(final Rengine re, final int which) {
-            LOG.finest("rBusy(" + which + ')');
-        }
+	@Override
+	public void rBusy(final Rengine re, final int which) {
+	    LOG.finest("rBusy(" + which + ')');
+	}
 
-        @Override
-        public String rReadConsole(final Rengine re, final String prompt,
-                final int addToHistory) {
-            return null;
-        }
+	@Override
+	public String rReadConsole(final Rengine re, final String prompt,
+		final int addToHistory) {
+	    return null;
+	}
 
-        @Override
-        public void rShowMessage(final Rengine re, final String message) {
-            LOG.finest("rShowMessage \"" + message + '\"');
-        }
+	@Override
+	public void rShowMessage(final Rengine re, final String message) {
+	    LOG.finest("rShowMessage \"" + message + '\"');
+	}
 
-        @Override
-        public String rChooseFile(final Rengine re, final int newFile) {
-            return null;
-        }
+	@Override
+	public String rChooseFile(final Rengine re, final int newFile) {
+	    return null;
+	}
 
-        @Override
-        public void rFlushConsole(final Rengine re) {
-        }
+	@Override
+	public void rFlushConsole(final Rengine re) {
+	}
 
-        @Override
-        public void rLoadHistory(final Rengine re, final String filename) {
-        }
+	@Override
+	public void rLoadHistory(final Rengine re, final String filename) {
+	}
 
-        @Override
-        public void rSaveHistory(final Rengine re, final String filename) {
-        }
+	@Override
+	public void rSaveHistory(final Rengine re, final String filename) {
+	}
     }
 }

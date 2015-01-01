@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -50,11 +50,11 @@ public class MZmineTOCView extends TOCView {
     private JarFile jarFile;
 
     public MZmineTOCView(HelpSet hs, String name, String label,
-            MZmineHelpMap hm, JarFile jarFile) {
-        super(hs, name, label, null);
-        this.hm = hm;
-        this.hs = hs;
-        this.jarFile = jarFile;
+	    MZmineHelpMap hm, JarFile jarFile) {
+	super(hs, name, label, null);
+	this.hm = hm;
+	this.hs = hs;
+	this.jarFile = jarFile;
     }
 
     /**
@@ -63,38 +63,38 @@ public class MZmineTOCView extends TOCView {
      */
     public DefaultMutableTreeNode getDataAsTree() {
 
-        try {
-            DefaultMutableTreeNode node = new DefaultMutableTreeNode();
+	try {
+	    DefaultMutableTreeNode node = new DefaultMutableTreeNode();
 
-            TreeSet<TOCItem> sortedItems = new TreeSet<TOCItem>(
-                    new TOCItemSorterByName());
+	    TreeSet<TOCItem> sortedItems = new TreeSet<TOCItem>(
+		    new TOCItemSorterByName());
 
-            List<String> list = Collections.list(hm.getAllIDs());
-            Collections.sort(list);
-            Iterator<String> e = list.iterator();
+	    List<String> list = Collections.list(hm.getAllIDs());
+	    Collections.sort(list);
+	    Iterator<String> e = list.iterator();
 
-            while (e.hasNext()) {
-                String target = (String) e.next();
-                if (target.contains(".png"))
-                    continue;
-                sortedItems.add((TOCItem) createMyItem(target));
-                // System.out.print(target +"\n");
-            }
+	    while (e.hasNext()) {
+		String target = (String) e.next();
+		if (target.contains(".png"))
+		    continue;
+		sortedItems.add((TOCItem) createMyItem(target));
+		// System.out.print(target +"\n");
+	    }
 
-            Iterator<TOCItem> i = sortedItems.iterator();
+	    Iterator<TOCItem> i = sortedItems.iterator();
 
-            while (i.hasNext()) {
-                TOCItem item = i.next();
-                DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(
-                        item);
-                node.add(newChild);
-            }
+	    while (i.hasNext()) {
+		TOCItem item = i.next();
+		DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(
+			item);
+		node.add(newChild);
+	    }
 
-            return node;
+	    return node;
 
-        } catch (Exception ex) {
-            throw new Error("Trouble creating TOC data progamatically; " + ex);
-        }
+	} catch (Exception ex) {
+	    throw new Error("Trouble creating TOC data progamatically; " + ex);
+	}
 
     }
 
@@ -118,53 +118,53 @@ public class MZmineTOCView extends TOCView {
      */
     public TreeItem createMyItem(String target) {
 
-        String line, title = "Test";
-        try {
-            InputStream test = jarFile.getInputStream(jarFile.getEntry(target));
-            BufferedReader in = new BufferedReader(new InputStreamReader(test));
+	String line, title = "Test";
+	try {
+	    InputStream test = jarFile.getInputStream(jarFile.getEntry(target));
+	    BufferedReader in = new BufferedReader(new InputStreamReader(test));
 
-            if (!in.ready())
-                throw new IOException();
+	    if (!in.ready())
+		throw new IOException();
 
-            while ((line = in.readLine()) != null) {
-                if (line.toLowerCase().contains("title")) {
-                    int beginIndex = line.toLowerCase().indexOf("title") + 6;
-                    int endIndex = line.toLowerCase().indexOf("</title>");
-                    title = line.substring(beginIndex, endIndex);
-                    break;
-                }
-            }
+	    while ((line = in.readLine()) != null) {
+		if (line.toLowerCase().contains("title")) {
+		    int beginIndex = line.toLowerCase().indexOf("title") + 6;
+		    int endIndex = line.toLowerCase().indexOf("</title>");
+		    title = line.substring(beginIndex, endIndex);
+		    break;
+		}
+	    }
 
-            in.close();
-        } catch (IOException e) {
-        }
+	    in.close();
+	} catch (IOException e) {
+	}
 
-        Map.ID mapID = null;
-        try {
-            mapID = ID.create(target, hs);
-        } catch (BadIDException bex1) {
-        }
+	Map.ID mapID = null;
+	try {
+	    mapID = ID.create(target, hs);
+	} catch (BadIDException bex1) {
+	}
 
-        Map.ID imageMapID = null;
-        String imageID = "topic.png";
-        try {
-            imageMapID = ID.create(imageID, hs);
-        } catch (BadIDException bex2) {
-        }
+	Map.ID imageMapID = null;
+	String imageID = "topic.png";
+	try {
+	    imageMapID = ID.create(imageID, hs);
+	} catch (BadIDException bex2) {
+	}
 
-        TOCItem item = new TOCItem(mapID, imageMapID, hs, Locale.getDefault());
-        item.setName(title);
-        item.setMergeType("javax.help.AppendMerge");
-        item.setExpansionType(TreeItem.COLLAPSE);
+	TOCItem item = new TOCItem(mapID, imageMapID, hs, Locale.getDefault());
+	item.setName(title);
+	item.setMergeType("javax.help.AppendMerge");
+	item.setExpansionType(TreeItem.COLLAPSE);
 
-        return item;
+	return item;
     }
 
     /**
      * Creates a default TOCItem.
      */
     public TreeItem createItem() {
-        return new TOCItem();
+	return new TOCItem();
     }
 
 }

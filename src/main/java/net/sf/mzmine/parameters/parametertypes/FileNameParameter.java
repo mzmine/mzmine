@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,97 +30,98 @@ import org.w3c.dom.Element;
  * Simple Parameter implementation
  * 
  */
-public class FileNameParameter implements UserParameter<File, FileNameComponent> {
+public class FileNameParameter implements
+	UserParameter<File, FileNameComponent> {
 
-	private String name, description;
-	private File value;
-	private String extension;
+    private String name, description;
+    private File value;
+    private String extension;
 
-	public FileNameParameter(String name, String description) {
-		this(name, description, null);
-	}
+    public FileNameParameter(String name, String description) {
+	this(name, description, null);
+    }
 
-	public FileNameParameter(String name, String description, String extension) {
-		this.name = name;
-		this.description = description;
-		this.extension = extension;
-	}
+    public FileNameParameter(String name, String description, String extension) {
+	this.name = name;
+	this.description = description;
+	this.extension = extension;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
 
-	@Override
-	public FileNameComponent createEditingComponent() {
-		return new FileNameComponent();
-	}
+    @Override
+    public FileNameComponent createEditingComponent() {
+	return new FileNameComponent();
+    }
 
-	@Override
-	public File getValue() {
-		return value;
-	}
+    @Override
+    public File getValue() {
+	return value;
+    }
 
-	@Override
-	public void setValue(File value) {
-		this.value = value;
-	}
+    @Override
+    public void setValue(File value) {
+	this.value = value;
+    }
 
-	@Override
-	public FileNameParameter cloneParameter() {
-		FileNameParameter copy = new FileNameParameter(name, description);
-		copy.setValue(this.getValue());
-		return copy;
-	}
+    @Override
+    public FileNameParameter cloneParameter() {
+	FileNameParameter copy = new FileNameParameter(name, description);
+	copy.setValue(this.getValue());
+	return copy;
+    }
 
-	@Override
-	public void setValueFromComponent(FileNameComponent component) {
-		File compValue = component.getValue();
-		if (extension != null) {
-			if (!compValue.getName().endsWith(extension))
-				compValue = new File(compValue.getPath() + "." + extension);
-		}
-		this.value = compValue;
+    @Override
+    public void setValueFromComponent(FileNameComponent component) {
+	File compValue = component.getValue();
+	if (extension != null) {
+	    if (!compValue.getName().endsWith(extension))
+		compValue = new File(compValue.getPath() + "." + extension);
 	}
+	this.value = compValue;
+    }
 
-	@Override
-	public void setValueToComponent(FileNameComponent component, File newValue) {
-		component.setValue(newValue);
-	}
+    @Override
+    public void setValueToComponent(FileNameComponent component, File newValue) {
+	component.setValue(newValue);
+    }
 
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		String fileString = xmlElement.getTextContent();
-		if (fileString.length() == 0)
-			return;
-		this.value = new File(fileString);
-	}
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	String fileString = xmlElement.getTextContent();
+	if (fileString.length() == 0)
+	    return;
+	this.value = new File(fileString);
+    }
 
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value.getPath());
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	xmlElement.setTextContent(value.getPath());
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if (value == null) {
+	    errorMessages.add(name + " is not set properly");
+	    return false;
 	}
-	
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if (value == null) {
-			errorMessages.add(name + " is not set properly");
-			return false;
-		}
-		return true;
-	}
-	
+	return true;
+    }
+
 }

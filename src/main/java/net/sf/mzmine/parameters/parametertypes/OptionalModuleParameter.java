@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -94,7 +94,8 @@ public class OptionalModuleParameter implements
 
     @Override
     public OptionalModuleParameter cloneParameter() {
-	final ParameterSet embeddedParametersClone = embeddedParameters.cloneParameterSet();
+	final ParameterSet embeddedParametersClone = embeddedParameters
+		.cloneParameterSet();
 	final OptionalModuleParameter copy = new OptionalModuleParameter(name,
 		description, embeddedParametersClone);
 	copy.setValue(this.getValue());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,72 +36,72 @@ import net.sf.mzmine.util.components.MultiLineToolTipUI;
  */
 public class DesktopSetup {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	public void init() {
+    public void init() {
 
-		// Get tooltip manager instance
-		ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
+	// Get tooltip manager instance
+	ToolTipManager tooltipManager = ToolTipManager.sharedInstance();
 
-		// Set tooltip display after 10 ms
-		tooltipManager.setInitialDelay(10);
+	// Set tooltip display after 10 ms
+	tooltipManager.setInitialDelay(10);
 
-		// Never dismiss tooltips
-		tooltipManager.setDismissDelay(Integer.MAX_VALUE);
+	// Never dismiss tooltips
+	tooltipManager.setDismissDelay(Integer.MAX_VALUE);
 
-		// Prepare default fonts
-		Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
-		Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
-		Font tinyFont = new Font("SansSerif", Font.PLAIN, 10);
+	// Prepare default fonts
+	Font defaultFont = new Font("SansSerif", Font.PLAIN, 13);
+	Font smallFont = new Font("SansSerif", Font.PLAIN, 11);
+	Font tinyFont = new Font("SansSerif", Font.PLAIN, 10);
 
-		// Set default font
-		Enumeration<Object> keys = UIManager.getDefaults().keys();
-		while (keys.hasMoreElements()) {
-			Object key = keys.nextElement();
-			Object value = UIManager.get(key);
-			if (value instanceof Font)
-				UIManager.put(key, defaultFont);
-		}
-
-		// Set small font where necessary
-		UIManager.put("List.font", smallFont);
-		UIManager.put("Table.font", smallFont);
-		UIManager.put("ToolTip.font", tinyFont);
-
-		// Set platform look & feel
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception e) {
-			// ignore
-		}
-
-		// Set tooltip UI to support multi-line tooltips
-		UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
-		UIManager.put(MultiLineToolTipUI.class.getName(),
-				MultiLineToolTipUI.class);
-
-		// If we are running on Mac OS X, we can setup some Mac-specific
-		// features. The MacSpecificSetup class is located in
-		// lib/macspecificsetup.jar, including source code. Using reflection we
-		// prevent the MacSpecificSetup class to be loaded on other platforms
-		// than Mac
-		if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-			try {
-				String className = "MacSpecificSetup";
-				Class<?> macSetupClass = Class.forName(className);
-				Object macSetup = macSetupClass.newInstance();
-				Method setupMethod = macSetupClass.getMethod("init");
-				setupMethod.invoke(macSetup, new Object[0]);
-			} catch (Throwable e) {
-				logger.log(Level.WARNING,
-						"Error setting mac-specific properties", e);
-			}
-		}
-
-		// Let the OS decide the location of new windows. Otherwise, all windows
-		// would appear at the top left corner by default.
-		System.setProperty("java.awt.Window.locationByPlatform", "true");
-
+	// Set default font
+	Enumeration<Object> keys = UIManager.getDefaults().keys();
+	while (keys.hasMoreElements()) {
+	    Object key = keys.nextElement();
+	    Object value = UIManager.get(key);
+	    if (value instanceof Font)
+		UIManager.put(key, defaultFont);
 	}
+
+	// Set small font where necessary
+	UIManager.put("List.font", smallFont);
+	UIManager.put("Table.font", smallFont);
+	UIManager.put("ToolTip.font", tinyFont);
+
+	// Set platform look & feel
+	try {
+	    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	} catch (Exception e) {
+	    // ignore
+	}
+
+	// Set tooltip UI to support multi-line tooltips
+	UIManager.put("ToolTipUI", MultiLineToolTipUI.class.getName());
+	UIManager.put(MultiLineToolTipUI.class.getName(),
+		MultiLineToolTipUI.class);
+
+	// If we are running on Mac OS X, we can setup some Mac-specific
+	// features. The MacSpecificSetup class is located in
+	// lib/macspecificsetup.jar, including source code. Using reflection we
+	// prevent the MacSpecificSetup class to be loaded on other platforms
+	// than Mac
+	if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+	    try {
+		String className = "MacSpecificSetup";
+		Class<?> macSetupClass = Class.forName(className);
+		Object macSetup = macSetupClass.newInstance();
+		Method setupMethod = macSetupClass.getMethod("init");
+		setupMethod.invoke(macSetup, new Object[0]);
+	    } catch (Throwable e) {
+		logger.log(Level.WARNING,
+			"Error setting mac-specific properties", e);
+	    }
+	}
+
+	// Let the OS decide the location of new windows. Otherwise, all windows
+	// would appear at the top left corner by default.
+	System.setProperty("java.awt.Window.locationByPlatform", "true");
+
+    }
 
 }

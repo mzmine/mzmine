@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,82 +25,82 @@ import net.sf.mzmine.parameters.UserParameter;
 
 import org.w3c.dom.Element;
 
+public class MassListParameter implements
+	UserParameter<String, MassListComponent> {
 
-public class MassListParameter implements UserParameter<String, MassListComponent> {
+    private String name, description, value;
 
-	private String name, description, value;
+    public MassListParameter() {
+	this.name = "Mass list";
+	this.description = "Please select a mass list name";
+    }
 
-	public MassListParameter() {
-		this.name = "Mass list";
-		this.description = "Please select a mass list name";
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
+
+    @Override
+    public MassListComponent createEditingComponent() {
+	return new MassListComponent();
+    }
+
+    public String getValue() {
+	return value;
+    }
+
+    @Override
+    public void setValue(String value) {
+	this.value = value;
+    }
+
+    @Override
+    public MassListParameter cloneParameter() {
+	MassListParameter copy = new MassListParameter();
+	copy.setValue(this.getValue());
+	return copy;
+    }
+
+    @Override
+    public void setValueFromComponent(MassListComponent component) {
+	value = component.getValue();
+    }
+
+    @Override
+    public void setValueToComponent(MassListComponent component, String newValue) {
+	component.setValue(newValue);
+    }
+
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	value = xmlElement.getTextContent();
+    }
+
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	xmlElement.setTextContent(value);
+    }
+
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if ((value == null) || (value.trim().length() == 0)) {
+	    errorMessages.add(name + " is not set properly");
+	    return false;
 	}
-
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
-
-	@Override
-	public MassListComponent createEditingComponent() {
-		return new MassListComponent();
-	}
-
-	public String getValue() {
-		return value;
-	}
-
-	@Override
-	public void setValue(String value) {
-		this.value = value;
-	}
-
-	@Override
-	public MassListParameter cloneParameter() {
-		MassListParameter copy = new MassListParameter();
-		copy.setValue(this.getValue());
-		return copy;
-	}
-
-	@Override
-	public void setValueFromComponent(MassListComponent component) {
-		value = component.getValue();
-	}
-
-	@Override
-	public void setValueToComponent(MassListComponent component, String newValue) {
-		component.setValue(newValue);
-	}
-
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		value = xmlElement.getTextContent();
-	}
-
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value);
-	}
-	
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if ((value == null) || (value.trim().length() == 0)) {
-			errorMessages.add(name + " is not set properly");
-			return false;
-		}
-		return true;
-	}
+	return true;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -49,21 +49,22 @@ public class DefaultAdductsAction extends AbstractAction {
      */
     public DefaultAdductsAction() {
 
-        super("Reset");
-        putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
+	super("Reset");
+	putValue(SHORT_DESCRIPTION, "Reset adduct choices to default set");
     }
 
     @Override
     public void actionPerformed(final ActionEvent e) {
 
-        // Parent component.
-        final AdductsComponent parent =
-                (AdductsComponent) SwingUtilities.getAncestorOfClass(AdductsComponent.class, (Component) e.getSource());
+	// Parent component.
+	final AdductsComponent parent = (AdductsComponent) SwingUtilities
+		.getAncestorOfClass(AdductsComponent.class,
+			(Component) e.getSource());
 
-        if (parent != null) {
+	if (parent != null) {
 
-            // Reset default choices.
-            parent.setChoices(AdductType.getDefaultValues());
-        }
+	    // Reset default choices.
+	    parent.setChoices(AdductType.getDefaultValues());
+	}
     }
 }

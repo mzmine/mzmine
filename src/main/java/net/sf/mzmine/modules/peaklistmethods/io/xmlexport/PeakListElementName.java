@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -17,49 +17,28 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.modules.peaklistmethods.io.xmlexport;
 
 public enum PeakListElementName {
-	
-	PEAKLIST ("peaklist"),
-	PEAKLIST_DATE ("created"),
-	QUANTITY ("quantity"),
-	RAWFILE ("raw_file"),
-	NAME ("name"),
-	ID ("id"),
-	IDPROPERTY("identity_property"),
-	RT ("rt"),
-	MASS ("mz"),
-	HEIGHT ("height"),
-	RTRANGE ("rt_range"),
-	MZRANGE ("mz_range"),
-	AREA ("area"),
-	STATUS ("status"),
-	COLUMN ("column_id"),
-	SCAN ("scan"),
-	SCAN_ID ("scan_id"),
-	DETECTION ("detection_method"),
-	MASS_DETECTOR ("mass_detector"),
-	CHROMATO_CONSTRUCTOR ("chromato_builder"),
-	ROW ("row"),
-	PEAK_IDENTITY ("identity"),
-	PREFERRED ("preferred"),
-	PEAK ("peak"),
-	MZPEAK ("mzpeak"),
-	SEPARATOR (";"),
-	PROCESS ("applied_method"),
-	ITEM ("item");
-	
-	private String elementName;
-	
-	private PeakListElementName(String itemName){
-		this.elementName = itemName;
-	}
-	
-	public String getElementName(){
-		return elementName;
-	}
-	
+
+    PEAKLIST("peaklist"), PEAKLIST_DATE("created"), QUANTITY("quantity"), RAWFILE(
+	    "raw_file"), NAME("name"), ID("id"), IDPROPERTY("identity_property"), RT(
+	    "rt"), MASS("mz"), HEIGHT("height"), RTRANGE("rt_range"), MZRANGE(
+	    "mz_range"), AREA("area"), STATUS("status"), COLUMN("column_id"), SCAN(
+	    "scan"), SCAN_ID("scan_id"), DETECTION("detection_method"), MASS_DETECTOR(
+	    "mass_detector"), CHROMATO_CONSTRUCTOR("chromato_builder"), ROW(
+	    "row"), PEAK_IDENTITY("identity"), PREFERRED("preferred"), PEAK(
+	    "peak"), MZPEAK("mzpeak"), SEPARATOR(";"), PROCESS("applied_method"), ITEM(
+	    "item");
+
+    private String elementName;
+
+    private PeakListElementName(String itemName) {
+	this.elementName = itemName;
+    }
+
+    public String getElementName() {
+	return elementName;
+    }
 
 }

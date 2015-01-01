@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,44 +29,44 @@ import net.sf.mzmine.util.ExitCode;
 
 public class FormulaPredictionModule implements MZmineModule {
 
-	private static final String MODULE_NAME = "Formula prediction";
+    private static final String MODULE_NAME = "Formula prediction";
 
-	public static void showSingleRowIdentificationDialog(PeakListRow row) {
+    public static void showSingleRowIdentificationDialog(PeakListRow row) {
 
-		ParameterSet parameters = MZmineCore.getConfiguration()
-				.getModuleParameters(FormulaPredictionModule.class);
+	ParameterSet parameters = MZmineCore.getConfiguration()
+		.getModuleParameters(FormulaPredictionModule.class);
 
-		double mzValue = row.getAverageMZ();
-		parameters.getParameter(FormulaPredictionParameters.neutralMass)
-				.setIonMass(mzValue);
+	double mzValue = row.getAverageMZ();
+	parameters.getParameter(FormulaPredictionParameters.neutralMass)
+		.setIonMass(mzValue);
 
-		int charge = row.getBestPeak().getCharge();
-		if (charge > 0) {
-			parameters.getParameter(FormulaPredictionParameters.neutralMass)
-					.setCharge(charge);
-		}
-
-		ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
-				.getMainWindow(), true);
-		if (exitCode != ExitCode.OK)
-			return;
-
-		SingleRowPredictionTask newTask = new SingleRowPredictionTask(
-				parameters.cloneParameterSet(), row);
-
-		// execute the sequence
-		MZmineCore.getTaskController().addTask(newTask);
-
+	int charge = row.getBestPeak().getCharge();
+	if (charge > 0) {
+	    parameters.getParameter(FormulaPredictionParameters.neutralMass)
+		    .setCharge(charge);
 	}
 
-	@Override
-	public @Nonnull String getName() {
-		return MODULE_NAME;
-	}
+	ExitCode exitCode = parameters.showSetupDialog(MZmineCore.getDesktop()
+		.getMainWindow(), true);
+	if (exitCode != ExitCode.OK)
+	    return;
 
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return FormulaPredictionParameters.class;
-	}
+	SingleRowPredictionTask newTask = new SingleRowPredictionTask(
+		parameters.cloneParameterSet(), row);
+
+	// execute the sequence
+	MZmineCore.getTaskController().addTask(newTask);
+
+    }
+
+    @Override
+    public @Nonnull String getName() {
+	return MODULE_NAME;
+    }
+
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return FormulaPredictionParameters.class;
+    }
 
 }

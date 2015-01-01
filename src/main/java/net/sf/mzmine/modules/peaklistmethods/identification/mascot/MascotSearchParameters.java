@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -26,14 +26,14 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class MascotSearchParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter urlAddress = new StringParameter(
-			"Mascot Server address, http://",
-			"URL address where the Mascot Server is installed", "127.0.0.1");
+    public static final StringParameter urlAddress = new StringParameter(
+	    "Mascot Server address, http://",
+	    "URL address where the Mascot Server is installed", "127.0.0.1");
 
-	public MascotSearchParameters() {
-		super(new Parameter[] { peakLists, urlAddress });
-	}
+    public MascotSearchParameters() {
+	super(new Parameter[] { peakLists, urlAddress });
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -115,7 +115,7 @@ public class CDADataset extends AbstractXYDataset implements
 	    // Group files with same parameter value to same group
 	    MZmineProject project = MZmineCore.getCurrentProject();
 	    Vector<Object> availableParameterValues = new Vector<Object>();
-	    UserParameter<?,?> selectedParameter = coloringType.getParameter();
+	    UserParameter<?, ?> selectedParameter = coloringType.getParameter();
 	    for (RawDataFile rawDataFile : selectedRawDataFiles) {
 		Object paramValue = project.getParameterValue(
 			selectedParameter, rawDataFile);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -17,7 +17,6 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.util.components;
 
 import java.awt.Color;
@@ -28,32 +27,32 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 
-
 public class PeakSummaryTableCellRenderer extends DefaultTableCellRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	public Component getTableCellRendererComponent(JTable table, Object value,
-			boolean isSelected, boolean hasFocus, int row, int column) {
+    public Component getTableCellRendererComponent(JTable table, Object value,
+	    boolean isSelected, boolean hasFocus, int row, int column) {
 
-		Component newComponent = super.getTableCellRendererComponent(table,
-				value, isSelected, hasFocus, row, column);
-		
-		PeakSummaryTableModel listElementModel = (PeakSummaryTableModel) table.getModel();
+	Component newComponent = super.getTableCellRendererComponent(table,
+		value, isSelected, hasFocus, row, column);
 
-		if (column == 0){
-			newComponent.setForeground(listElementModel.getPeakColor(row));
-			((JLabel)newComponent).setHorizontalAlignment(SwingConstants.LEFT);
-		}
-		else{
-			newComponent.setForeground(Color.BLACK);
-			((JLabel)newComponent).setHorizontalAlignment(SwingConstants.CENTER);
-		}
-		
-		return newComponent;
+	PeakSummaryTableModel listElementModel = (PeakSummaryTableModel) table
+		.getModel();
+
+	if (column == 0) {
+	    newComponent.setForeground(listElementModel.getPeakColor(row));
+	    ((JLabel) newComponent).setHorizontalAlignment(SwingConstants.LEFT);
+	} else {
+	    newComponent.setForeground(Color.BLACK);
+	    ((JLabel) newComponent)
+		    .setHorizontalAlignment(SwingConstants.CENTER);
 	}
+
+	return newComponent;
+    }
 
 }

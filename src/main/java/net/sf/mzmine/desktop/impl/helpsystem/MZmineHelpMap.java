@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -36,27 +36,27 @@ public class MZmineHelpMap implements Map {
     private String jarFilePath;
 
     public MZmineHelpMap(String jarFilePath) {
-        lookup = new Hashtable<String, String>();
-        this.helpset = new HelpSet();
-        this.jarFilePath = jarFilePath;
+	lookup = new Hashtable<String, String>();
+	this.helpset = new HelpSet();
+	this.jarFilePath = jarFilePath;
     }
 
     public void setTarget(String target) {
-        String url = "jar:file:" + jarFilePath + "!/" + target;
-        lookup.put(target, url);
+	String url = "jar:file:" + jarFilePath + "!/" + target;
+	lookup.put(target, url);
     }
 
     public void setTargetImage(String target) {
-        String url = "file:" + System.getProperty("user.dir") + "/icons/"
-                + target;
-        lookup.put(target, url);
+	String url = "file:" + System.getProperty("user.dir") + "/icons/"
+		+ target;
+	lookup.put(target, url);
     }
 
     /**
      * The HelpSet for this Map.
      */
     public HelpSet getHelpSet() {
-        return helpset;
+	return helpset;
     }
 
     /**
@@ -70,7 +70,7 @@ public class MZmineHelpMap implements Map {
      */
 
     public boolean isValidID(String id, HelpSet hs) {
-        return lookup.containsKey(id);
+	return lookup.containsKey(id);
     }
 
     /**
@@ -79,8 +79,8 @@ public class MZmineHelpMap implements Map {
      * @return An enumeration of all the IDs in a Map.
      */
     public Enumeration<String> getAllIDs() {
-        // return new FlatEnumeration(lookup.keys(), helpset);
-        return lookup.keys();
+	// return new FlatEnumeration(lookup.keys(), helpset);
+	return lookup.keys();
     }
 
     /**
@@ -95,18 +95,18 @@ public class MZmineHelpMap implements Map {
      */
     public URL getURLFromID(ID iden) throws MalformedURLException {
 
-        String id = iden.id;
-        if (id == null) {
-            return null;
-        }
-        String tmp = null;
-        try {
-            tmp = (String) lookup.get(id);
-            URL back = new URL(tmp);
-            return back;
-        } catch (MissingResourceException e) {
-            return null;
-        }
+	String id = iden.id;
+	if (id == null) {
+	    return null;
+	}
+	String tmp = null;
+	try {
+	    tmp = (String) lookup.get(id);
+	    URL back = new URL(tmp);
+	    return back;
+	} catch (MissingResourceException e) {
+	    return null;
+	}
     }
 
     /**
@@ -117,19 +117,19 @@ public class MZmineHelpMap implements Map {
      * @return true If this is an ID, otherwise false.
      */
     public boolean isID(URL url) {
-        URL tmp;
-        for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
-            try {
-                String key = (String) e.nextElement();
-                tmp = new URL((String) lookup.get(key));
-                // sameFile() ignores the anchor! - epll
-                if (url.sameFile(tmp) == true) {
-                    return true;
-                }
-            } catch (Exception ex) {
-            }
-        }
-        return false;
+	URL tmp;
+	for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
+	    try {
+		String key = (String) e.nextElement();
+		tmp = new URL((String) lookup.get(key));
+		// sameFile() ignores the anchor! - epll
+		if (url.sameFile(tmp) == true) {
+		    return true;
+		}
+	    } catch (Exception ex) {
+	    }
+	}
+	return false;
     }
 
     /**
@@ -140,29 +140,29 @@ public class MZmineHelpMap implements Map {
      * @return The id (Map.ID) or null if URL is not an ID.
      */
     public ID getIDFromURL(URL url) {
-        String tmp;
-        URL tmpURL;
-        if (url == null)
-            return null;
-        String urlString = url.toExternalForm();
-        for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
-            try {
-                tmp = (String) lookup.get(key);
+	String tmp;
+	URL tmpURL;
+	if (url == null)
+	    return null;
+	String urlString = url.toExternalForm();
+	for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
+	    String key = (String) e.nextElement();
+	    try {
+		tmp = (String) lookup.get(key);
 
-                // Sometimes tmp will be null because not all keys are ids
-                if (tmp == null)
-                    continue;
+		// Sometimes tmp will be null because not all keys are ids
+		if (tmp == null)
+		    continue;
 
-                tmpURL = new URL(tmp);
-                String tmpString = tmpURL.toExternalForm();
-                if (urlString.compareTo(tmpString) == 0) {
-                    return ID.create(key, helpset);
-                }
-            } catch (Exception ex) {
-            }
-        }
-        return null;
+		tmpURL = new URL(tmp);
+		String tmpString = tmpURL.toExternalForm();
+		if (urlString.compareTo(tmpString) == 0) {
+		    return ID.create(key, helpset);
+		}
+	    } catch (Exception ex) {
+	    }
+	}
+	return null;
     }
 
     /**
@@ -176,7 +176,7 @@ public class MZmineHelpMap implements Map {
      * @return The closest ID in this map to the given URL
      */
     public ID getClosestID(URL url) {
-        return getIDFromURL(url);
+	return getIDFromURL(url);
     }
 
     /**
@@ -187,44 +187,44 @@ public class MZmineHelpMap implements Map {
      * @return Enumeration of Map.IDs
      */
     public Enumeration<Object> getIDs(URL url) {
-        String tmp = null;
-        URL tmpURL = null;
-        Vector<String> ids = new Vector<String>();
-        for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
-            String key = (String) e.nextElement();
-            try {
-                tmp = (String) lookup.get(key);
-                tmpURL = new URL(tmp);
-                if (url.sameFile(tmpURL) == true) {
-                    ids.addElement(key);
-                }
-            } catch (Exception ex) {
-            }
-        }
-        return new FlatEnumeration(ids.elements(), helpset);
+	String tmp = null;
+	URL tmpURL = null;
+	Vector<String> ids = new Vector<String>();
+	for (Enumeration<String> e = lookup.keys(); e.hasMoreElements();) {
+	    String key = (String) e.nextElement();
+	    try {
+		tmp = (String) lookup.get(key);
+		tmpURL = new URL(tmp);
+		if (url.sameFile(tmpURL) == true) {
+		    ids.addElement(key);
+		}
+	    } catch (Exception ex) {
+	    }
+	}
+	return new FlatEnumeration(ids.elements(), helpset);
     }
 
     private static class FlatEnumeration implements Enumeration<Object> {
-        private Enumeration<String> e;
-        private HelpSet hs;
+	private Enumeration<String> e;
+	private HelpSet hs;
 
-        public FlatEnumeration(Enumeration<String> e, HelpSet hs) {
-            this.e = e;
-            this.hs = hs;
-        }
+	public FlatEnumeration(Enumeration<String> e, HelpSet hs) {
+	    this.e = e;
+	    this.hs = hs;
+	}
 
-        public boolean hasMoreElements() {
-            return e.hasMoreElements();
-        }
+	public boolean hasMoreElements() {
+	    return e.hasMoreElements();
+	}
 
-        public Object nextElement() {
-            Object back = null;
-            try {
-                back = ID.create((String) e.nextElement(), hs);
-            } catch (Exception ex) {
-            }
-            return back;
-        }
+	public Object nextElement() {
+	    Object back = null;
+	    try {
+		back = ID.create((String) e.nextElement(), hs);
+	    } catch (Exception ex) {
+	    }
+	    return back;
+	}
     }
 
 }

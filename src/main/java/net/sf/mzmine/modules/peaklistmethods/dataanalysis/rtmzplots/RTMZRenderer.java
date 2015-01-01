@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -30,39 +30,37 @@ import org.jfree.data.xy.AbstractXYZDataset;
 
 public class RTMZRenderer extends XYLineAndShapeRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	private static final Shape dataPointsShape = new Ellipse2D.Double(-3, -3, 7, 7);
-	
-	private AbstractXYZDataset dataset;
-	private PaintScale paintScale;
-	
-	
-	public RTMZRenderer(AbstractXYZDataset dataset, PaintScale paintScale) {
-		super(false,true);
-		this.dataset = dataset;
-		this.paintScale = paintScale;
-		this.setSeriesShape(0, dataPointsShape);
-	}
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-3, -3,
+	    7, 7);
 
-	@Override
-	public Paint getItemPaint(int series, int item) {
-	
-		double cv = dataset.getZValue(series, item);
-		if (Double.isNaN(cv)) return new Color(255,0,0); 
-		
-		return paintScale.getPaint(cv);
-		
-	
-	
-	}
-    
-    void setPaintScale(PaintScale paintScale) {
-        this.paintScale = paintScale;
+    private AbstractXYZDataset dataset;
+    private PaintScale paintScale;
+
+    public RTMZRenderer(AbstractXYZDataset dataset, PaintScale paintScale) {
+	super(false, true);
+	this.dataset = dataset;
+	this.paintScale = paintScale;
+	this.setSeriesShape(0, dataPointsShape);
     }
-	
-	
+
+    @Override
+    public Paint getItemPaint(int series, int item) {
+
+	double cv = dataset.getZValue(series, item);
+	if (Double.isNaN(cv))
+	    return new Color(255, 0, 0);
+
+	return paintScale.getPaint(cv);
+
+    }
+
+    void setPaintScale(PaintScale paintScale) {
+	this.paintScale = paintScale;
+    }
+
 }

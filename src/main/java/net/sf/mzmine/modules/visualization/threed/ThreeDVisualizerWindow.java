@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -109,8 +109,8 @@ public class ThreeDVisualizerWindow extends JFrame implements
      *             if there are VisAD problems.
      */
     public ThreeDVisualizerWindow(final RawDataFile file, final int msLevel,
-	    final Range<Double> rt, final int rtRes, final Range<Double> mz, final int mzRes)
-	    throws VisADException, RemoteException {
+	    final Range<Double> rt, final int rtRes, final Range<Double> mz,
+	    final int mzRes) throws VisADException, RemoteException {
 
 	super("3D view: [" + file.getName() + "]");
 

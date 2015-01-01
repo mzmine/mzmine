@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -51,7 +51,8 @@ public class CVParameters extends SimpleParameterSet {
 
     @Override
     public ExitCode showSetupDialog(Window parent, boolean valueCheckRequired) {
-	PeakList selectedPeakLists[] = getParameter(peakLists).getMatchingPeakLists();
+	PeakList selectedPeakLists[] = getParameter(peakLists)
+		.getMatchingPeakLists();
 	RawDataFile plDataFiles[] = selectedPeakLists[0].getRawDataFiles();
 	getParameter(dataFiles).setChoices(plDataFiles);
 	return super.showSetupDialog(parent, valueCheckRequired);

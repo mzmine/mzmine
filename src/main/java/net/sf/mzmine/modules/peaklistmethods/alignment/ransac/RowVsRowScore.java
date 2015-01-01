@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -26,36 +26,37 @@ import net.sf.mzmine.datamodel.PeakListRow;
  */
 public class RowVsRowScore implements Comparable<RowVsRowScore> {
 
-    private PeakListRow peakListRow,  alignedRow;    
+    private PeakListRow peakListRow, alignedRow;
     double score;
     private String errorMessage;
 
     public RowVsRowScore(PeakListRow peakListRow, PeakListRow alignedRow,
-            double mzMaxDiff, double rtMaxDiff, double correctedRT) throws Exception {
+	    double mzMaxDiff, double rtMaxDiff, double correctedRT)
+	    throws Exception {
 
-        
-        this.alignedRow = alignedRow;
-        this.peakListRow = peakListRow;
+	this.alignedRow = alignedRow;
+	this.peakListRow = peakListRow;
 
-        // Calculate differences between m/z and RT values
-        double mzDiff = Math.abs(peakListRow.getAverageMZ() - alignedRow.getAverageMZ());
-        double rtDiff = Math.abs(correctedRT - alignedRow.getAverageRT());
-      
-        score = ((1 - mzDiff / mzMaxDiff) + (1 - rtDiff / rtMaxDiff));
+	// Calculate differences between m/z and RT values
+	double mzDiff = Math.abs(peakListRow.getAverageMZ()
+		- alignedRow.getAverageMZ());
+	double rtDiff = Math.abs(correctedRT - alignedRow.getAverageRT());
+
+	score = ((1 - mzDiff / mzMaxDiff) + (1 - rtDiff / rtMaxDiff));
     }
 
     /**
      * This method returns the peak list row which is being aligned
      */
     public PeakListRow getPeakListRow() {
-        return peakListRow;
+	return peakListRow;
     }
 
     /**
      * This method returns the row of aligned peak list
      */
     public PeakListRow getAlignedRow() {
-        return alignedRow;
+	return alignedRow;
     }
 
     /**
@@ -63,11 +64,11 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
      * the better match)
      */
     public double getScore() {
-        return score;
+	return score;
     }
 
     String getErrorMessage() {
-        return errorMessage;
+	return errorMessage;
     }
 
     /**
@@ -75,14 +76,14 @@ public class RowVsRowScore implements Comparable<RowVsRowScore> {
      */
     public int compareTo(RowVsRowScore object) {
 
-        // We must never return 0, because the TreeSet in JoinAlignerTask would
-        // treat such elements as equal
-        if (score < object.getScore()) {
-            return 1;
-        } else {
-            return -1;
-        }
+	// We must never return 0, because the TreeSet in JoinAlignerTask would
+	// treat such elements as equal
+	if (score < object.getScore()) {
+	    return 1;
+	} else {
+	    return -1;
+	}
 
     }
-   
+
 }

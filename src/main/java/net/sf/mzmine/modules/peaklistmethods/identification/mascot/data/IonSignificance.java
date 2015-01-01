@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,21 +19,22 @@
 
 package net.sf.mzmine.modules.peaklistmethods.identification.mascot.data;
 
-
 public enum IonSignificance {
-	
-     NOT_Sign_NOT_Scoring(0),//this as a random match
-     Sign_NOT_Scoring(1),//fragment ion with significance but no importance for the score calculation of the peptide
-     Sign_AND_Scoring(2);//fragment ion with significance and was used for the score calculation of the peptide
-     
-     private int value;
 
-     private IonSignificance(int value){
-    	 this.value = value;
-     }
-     
-     public int getValue(){
-    	 return value;
-     }
-     
+    NOT_Sign_NOT_Scoring(0), // this as a random match
+    Sign_NOT_Scoring(1), // fragment ion with significance but no importance for
+			 // the score calculation of the peptide
+    Sign_AND_Scoring(2);// fragment ion with significance and was used for the
+			// score calculation of the peptide
+
+    private int value;
+
+    private IonSignificance(int value) {
+	this.value = value;
+    }
+
+    public int getValue() {
+	return value;
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,41 +21,42 @@ package net.sf.mzmine.modules.peaklistmethods.io.sqlexport;
 
 public enum SQLExportDataType {
 
-	// Common row elements
-	TITLE1("Common row elements", false, false, ""), //
-	ID("      ID", false, true, "INT"), //
-	MZ("      Average m/z", false, true, "DOUBLE"), //
-	RT("      Average retention time", false, true, "DOUBLE"), //
-	HEIGHT("      Average peak height", false, true, "DOUBLE"), //
-	AREA("      Average peak area", false, true, "DOUBLE"), //
-	COMMENT("      Comment", false, true, "STRING"), //
+    // Common row elements
+    TITLE1("Common row elements", false, false, ""), //
+    ID("      ID", false, true, "INT"), //
+    MZ("      Average m/z", false, true, "DOUBLE"), //
+    RT("      Average retention time", false, true, "DOUBLE"), //
+    HEIGHT("      Average peak height", false, true, "DOUBLE"), //
+    AREA("      Average peak area", false, true, "DOUBLE"), //
+    COMMENT("      Comment", false, true, "STRING"), //
 
-	// Identity elements
-	TITLE2("Identity elements", false, false, ""), //
-	IDENTITY("      Identity name", false, true, "STRING"), //
-	ISOTOPEPATTERN("      Isotope pattern", false, true, "BLOB"), //
-	MSMS("      MS/MS pattern", false, true, "BLOB"), //
+    // Identity elements
+    TITLE2("Identity elements", false, false, ""), //
+    IDENTITY("      Identity name", false, true, "STRING"), //
+    ISOTOPEPATTERN("      Isotope pattern", false, true, "BLOB"), //
+    MSMS("      MS/MS pattern", false, true, "BLOB"), //
 
-	// Data file elements
-	TITLE3("Data file elements", false, false, ""), //
-	PEAKSTATUS("      Status", false, true, "STRING"), //
-	PEAKMZ("      m/z", false, true, "DOUBLE"), //
-	PEAKRT("      Retention time", false, true, "DOUBLE"), //
-	PEAKDURATION("      Duration", false, true, "DOUBLE"), //
-	PEAKHEIGHT("      Height", false, true, "DOUBLE"), //
-	PEAKAREA("      Area", false, true, "DOUBLE"), //
-	PEAKCHARGE("      Charge", false, true, "INT"), //
-	RAWFILE("      Raw data file name", false, true, "STRING"), //
+    // Data file elements
+    TITLE3("Data file elements", false, false, ""), //
+    PEAKSTATUS("      Status", false, true, "STRING"), //
+    PEAKMZ("      m/z", false, true, "DOUBLE"), //
+    PEAKRT("      Retention time", false, true, "DOUBLE"), //
+    PEAKDURATION("      Duration", false, true, "DOUBLE"), //
+    PEAKHEIGHT("      Height", false, true, "DOUBLE"), //
+    PEAKAREA("      Area", false, true, "DOUBLE"), //
+    PEAKCHARGE("      Charge", false, true, "INT"), //
+    RAWFILE("      Raw data file name", false, true, "STRING"), //
 
-	TITLE4("Other", false, false, ""), //
-	CONSTANT("      Constant value", true, true, "");
+    TITLE4("Other", false, false, ""), //
+    CONSTANT("      Constant value", true, true, "");
 
     private final String name;
     private final boolean hasAdditionalValue;
     private final boolean isSelectableValue;
     private final String valueType;
 
-    SQLExportDataType(String name, boolean hasAdditionalValue,  boolean isSelectableValue, String valueType) {
+    SQLExportDataType(String name, boolean hasAdditionalValue,
+	    boolean isSelectableValue, String valueType) {
 	this.name = name;
 	this.hasAdditionalValue = hasAdditionalValue;
 	this.isSelectableValue = isSelectableValue;
@@ -69,7 +70,7 @@ public enum SQLExportDataType {
     public boolean hasAdditionalValue() {
 	return hasAdditionalValue;
     }
-    
+
     public boolean isSelectableValue() {
 	return isSelectableValue;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -19,24 +19,24 @@
 
 package net.sf.mzmine.modules.visualization.twod;
 
-public enum PeakThresholdMode {        
-	
-	ALL_PEAKS("All peaks"),
-	ABOVE_INTENSITY_PEAKS("Peaks above user-defined intensity"),
-	TOP_PEAKS("User-defined top peaks"),
-	TOP_PEAKS_AREA("User-defined top peaks in the displayed area");
+public enum PeakThresholdMode {
 
-	private final String name;   
+    ALL_PEAKS("All peaks"), ABOVE_INTENSITY_PEAKS(
+	    "Peaks above user-defined intensity"), TOP_PEAKS(
+	    "User-defined top peaks"), TOP_PEAKS_AREA(
+	    "User-defined top peaks in the displayed area");
 
-	PeakThresholdMode(String name) {
-		this.name = name;       
-	}
+    private final String name;
 
-	public String getName() {
-		return this.name;
-	}
+    PeakThresholdMode(String name) {
+	this.name = name;
+    }
 
-	public String toString(){
-		return this.name;
-	}   
+    public String getName() {
+	return this.name;
+    }
+
+    public String toString() {
+	return this.name;
+    }
 }

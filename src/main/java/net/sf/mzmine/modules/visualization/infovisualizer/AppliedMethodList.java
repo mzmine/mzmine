@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,28 +27,28 @@ import net.sf.mzmine.datamodel.PeakList.PeakListAppliedMethod;
 
 public class AppliedMethodList extends JList<Object> {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private String parameters;
+    private String parameters;
 
-	AppliedMethodList(PeakListAppliedMethod[] methods) {
-		super(methods);
+    AppliedMethodList(PeakListAppliedMethod[] methods) {
+	super(methods);
+    }
+
+    public String getToolTipText(MouseEvent e) {
+
+	int index = locationToIndex(e.getPoint());
+	if (index > -1) {
+	    parameters = ((PeakListAppliedMethod) getModel()
+		    .getElementAt(index)).getParameters();
 	}
-	
-	public String getToolTipText(MouseEvent e) {
-		
-		int index = locationToIndex(e.getPoint());
-		if (index > -1) {
-			parameters = ((PeakListAppliedMethod) getModel().getElementAt(index)).getParameters();
-		}
-		if (parameters != null){
-        String toolTipText = parameters.toString().replace(", ", "\n");
-		return toolTipText;
-		}
-		else
-			return null;
-	}
-	
+	if (parameters != null) {
+	    String toolTipText = parameters.toString().replace(", ", "\n");
+	    return toolTipText;
+	} else
+	    return null;
+    }
+
 }

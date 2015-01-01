@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -28,75 +28,82 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RUtilities;
 
 /**
- * @description Rolling Ball baseline corrector. Estimates a trend based on Rolling Ball algorithm.
- * Uses "rollingBall" feature from "baseline" R-package (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
- * (Ideas from Rolling Ball algorithm for X-ray spectra by M.A.Kneen and H.J. Annegarn. Variable window width has been left out).
+ * @description Rolling Ball baseline corrector. Estimates a trend based on
+ *              Rolling Ball algorithm. Uses "rollingBall" feature from
+ *              "baseline" R-package
+ *              (http://cran.r-project.org/web/packages/baseline/baseline.pdf).
+ *              (Ideas from Rolling Ball algorithm for X-ray spectra by
+ *              M.A.Kneen and H.J. Annegarn. Variable window width has been left
+ *              out).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
  */
 public class RollingBallCorrector extends BaselineCorrector {
 
-	@Override
-	public String[] getRequiredRPackages() {
-		return new String[] { "rJava", "baseline" };
+    @Override
+    public String[] getRequiredRPackages() {
+	return new String[] { "rJava", "baseline" };
+    }
+
+    @Override
+    public double[] computeBaseline(final RSession rSession,
+	    final RawDataFile origDataFile, double[] chromatogram,
+	    ParameterSet parameters) {
+
+	// Rolling Ball parameters.
+	double wm = parameters.getParameter(
+		RollingBallCorrectorParameters.MIN_MAX_WIDTH).getValue();
+	double ws = parameters.getParameter(
+		RollingBallCorrectorParameters.SMOOTHING).getValue();
+
+	final double[] baseline;
+	synchronized (RUtilities.R_SEMAPHORE) {
+
+	    try {
+		// Set chromatogram.
+		rSession.assignDoubleArray("chromatogram", chromatogram);
+		// Transform chromatogram.
+		rSession.eval("mat = matrix(chromatogram, nrow=1)");
+
+		// Calculate baseline.
+		rSession.eval("bl = NULL");
+		// This method can fail for some bins when "useBins" is enabled,
+		// or more generally speaking for
+		// abusive parameter set
+		String cmd = "tryCatch({" + "bl = baseline(mat, wm=" + wm
+			+ ", ws=" + ws + ", method='rollingBall')"
+			+ "}, warning = function(war) {"
+			+ "message(\"<R warning>: \", war);"
+			+ "}, error = function(err) {"
+			+ "message(\"<R error>: \", err);" + "}, finally = {" +
+			// "" +
+			"})";
+		rSession.eval(cmd);
+		// Return a flat baseline (passing by the lowest intensity scan
+		// - "min(chromatogram)") in case of failure
+		// Anyway, this usually happens when "chromatogram" is fully
+		// flat and zeroed.
+		rSession.eval("if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }");
+		baseline = rSession.collectDoubleArray("baseline");
+	    } catch (Throwable t) {
+		// t.printStackTrace();
+		throw new IllegalStateException(
+			"R error during baseline correction (" + this.getName()
+				+ ").", t);
+	    }
 	}
+	return baseline;
+    }
 
-	@Override
-	public double[] computeBaseline(final RSession rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) {
+    @Override
+    public @Nonnull String getName() {
+	return "RollingBall baseline corrector";
+    }
 
-		// Rolling Ball parameters.
-		double wm = parameters.getParameter(RollingBallCorrectorParameters.MIN_MAX_WIDTH).getValue();
-		double ws = parameters.getParameter(RollingBallCorrectorParameters.SMOOTHING).getValue();
-
-
-		final double[] baseline;
-		synchronized (RUtilities.R_SEMAPHORE) {
-
-			try {
-				// Set chromatogram.
-				rSession.assignDoubleArray("chromatogram", chromatogram);
-				// Transform chromatogram.
-				rSession.eval("mat = matrix(chromatogram, nrow=1)");
-
-				// Calculate baseline.
-				rSession.eval("bl = NULL");
-				// This method can fail for some bins when "useBins" is enabled, or more generally speaking for
-				// abusive parameter set
-				String cmd = "tryCatch({" +
-						"bl = baseline(mat, wm=" + wm + ", ws=" + ws + ", method='rollingBall')" +
-						"}, warning = function(war) {" +
-						"message(\"<R warning>: \", war);" +
-						"}, error = function(err) {" +
-						"message(\"<R error>: \", err);" +
-						"}, finally = {" +
-						//"" +
-						"})";
-				rSession.eval(cmd);
-				// Return a flat baseline (passing by the lowest intensity scan - "min(chromatogram)") in case of failure
-				// Anyway, this usually happens when "chromatogram" is fully flat and zeroed.
-				rSession.eval(
-						"if (!is.null(bl)) { baseline <- getBaseline(bl); } else { baseline <- matrix(rep(min(chromatogram), length(chromatogram)), nrow=1); }"
-						);
-				baseline = rSession.collectDoubleArray("baseline");
-			}
-			catch (Throwable t) {
-				//t.printStackTrace();
-				throw new IllegalStateException("R error during baseline correction (" + this.getName() + ").", t);
-			}
-		}
-		return baseline;
-	}
-
-
-	@Override
-	public @Nonnull String getName() {
-		return "RollingBall baseline corrector";
-	}
-
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return RollingBallCorrectorParameters.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return RollingBallCorrectorParameters.class;
+    }
 
 }

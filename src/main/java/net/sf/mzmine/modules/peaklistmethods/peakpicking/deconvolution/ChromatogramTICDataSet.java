@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,41 +27,41 @@ import org.jfree.data.xy.AbstractXYDataset;
 
 public class ChromatogramTICDataSet extends AbstractXYDataset {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private Feature chromatogram;
+    private Feature chromatogram;
     private RawDataFile dataFile;
     private int scanNumbers[];
 
-	public ChromatogramTICDataSet(Feature chromatogram) {
-		this.chromatogram = chromatogram;
-        this.dataFile = chromatogram.getDataFile();
-        this.scanNumbers = dataFile.getScanNumbers(1);
-	}
+    public ChromatogramTICDataSet(Feature chromatogram) {
+	this.chromatogram = chromatogram;
+	this.dataFile = chromatogram.getDataFile();
+	this.scanNumbers = dataFile.getScanNumbers(1);
+    }
 
-	public Comparable<?> getSeriesKey(int series) {
-		return chromatogram.toString();
-	}
+    public Comparable<?> getSeriesKey(int series) {
+	return chromatogram.toString();
+    }
 
-	public int getItemCount(int series) {
-		return scanNumbers.length;
-	}
+    public int getItemCount(int series) {
+	return scanNumbers.length;
+    }
 
-	public Number getX(int series, int index) {
-		return dataFile.getScan(scanNumbers[index]).getRetentionTime();
-	}
+    public Number getX(int series, int index) {
+	return dataFile.getScan(scanNumbers[index]).getRetentionTime();
+    }
 
-	public Number getY(int series, int index) {
-		DataPoint mzPeak = chromatogram.getDataPoint(scanNumbers[index]);
-		if (mzPeak == null)
-			return 0;
-		return mzPeak.getIntensity();
-	}
+    public Number getY(int series, int index) {
+	DataPoint mzPeak = chromatogram.getDataPoint(scanNumbers[index]);
+	if (mzPeak == null)
+	    return 0;
+	return mzPeak.getIntensity();
+    }
 
-	public int getSeriesCount() {
-		return 1;
-	}
+    public int getSeriesCount() {
+	return 1;
+    }
 
 }

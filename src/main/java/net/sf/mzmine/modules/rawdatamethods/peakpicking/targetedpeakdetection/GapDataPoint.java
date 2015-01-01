@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,27 +33,27 @@ class GapDataPoint implements DataPoint {
      */
     GapDataPoint(int scanNumber, double mz, double rt, double intensity) {
 
-        this.scanNumber = scanNumber;
-        this.mz = mz;
-        this.rt = rt;
-        this.intensity = intensity;
+	this.scanNumber = scanNumber;
+	this.mz = mz;
+	this.rt = rt;
+	this.intensity = intensity;
 
     }
 
     int getScanNumber() {
-        return scanNumber;
+	return scanNumber;
     }
 
     public double getIntensity() {
-        return intensity;
+	return intensity;
     }
 
     public double getMZ() {
-        return mz;
+	return mz;
     }
 
     public double getRT() {
-        return rt;
+	return rt;
     }
 
 }

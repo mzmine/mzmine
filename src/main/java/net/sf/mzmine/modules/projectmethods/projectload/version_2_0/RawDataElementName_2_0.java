@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -21,31 +21,21 @@ package net.sf.mzmine.modules.projectmethods.projectload.version_2_0;
 
 public enum RawDataElementName_2_0 {
 
-	RAWDATA ("rawdata"),	
-	NAME ("name"),
-	QUANTITY_SCAN("num_scans"),
-	ID ("id"),	
-	SCAN ("scan"),
-	SCAN_ID ("id"),
-	MS_LEVEL("mslevel"),
-	QUANTITY_FRAGMENT_SCAN ("fragmentscans"),
-	FRAGMENT_SCAN ("fragmentscan"),
-	QUANTITY ("quantity"),
-	PARENT_SCAN ("parent"),
-	PRECURSOR_MZ ("precursor_mz"),
-	PRECURSOR_CHARGE ("precursor_charge"),
-	RETENTION_TIME("rt"),
-	CENTROIDED ("centroid"),
-	QUANTITY_DATAPOINTS ("num_dp");
+    RAWDATA("rawdata"), NAME("name"), QUANTITY_SCAN("num_scans"), ID("id"), SCAN(
+	    "scan"), SCAN_ID("id"), MS_LEVEL("mslevel"), QUANTITY_FRAGMENT_SCAN(
+	    "fragmentscans"), FRAGMENT_SCAN("fragmentscan"), QUANTITY(
+	    "quantity"), PARENT_SCAN("parent"), PRECURSOR_MZ("precursor_mz"), PRECURSOR_CHARGE(
+	    "precursor_charge"), RETENTION_TIME("rt"), CENTROIDED("centroid"), QUANTITY_DATAPOINTS(
+	    "num_dp");
 
-	private String elementName;
+    private String elementName;
 
-	private RawDataElementName_2_0(String itemName){
-		this.elementName = itemName;
-	}
+    private RawDataElementName_2_0(String itemName) {
+	this.elementName = itemName;
+    }
 
-	public String getElementName(){
-		return elementName;
-	}
+    public String getElementName() {
+	return elementName;
+    }
 
 }

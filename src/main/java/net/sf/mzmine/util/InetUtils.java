@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,42 +31,42 @@ import java.net.URLConnection;
  */
 public class InetUtils {
 
-	/**
-	 * Opens a connection to the given URL (typically HTTP) and retrieves the
-	 * data from server. Data is assumed to be in UTF-8 encoding.
-	 */
-	public static String retrieveData(URL url) throws IOException {
+    /**
+     * Opens a connection to the given URL (typically HTTP) and retrieves the
+     * data from server. Data is assumed to be in UTF-8 encoding.
+     */
+    public static String retrieveData(URL url) throws IOException {
 
-		URLConnection connection = url.openConnection();
-		connection.setRequestProperty ( "User-agent", "MZmine 2");
-		InputStream is = connection.getInputStream();
+	URLConnection connection = url.openConnection();
+	connection.setRequestProperty("User-agent", "MZmine 2");
+	InputStream is = connection.getInputStream();
 
-		if (is == null) {
-			throw new IOException("Could not establish a connection to " + url);
-		}
-
-		StringBuffer buffer = new StringBuffer();
-
-		try {
-			InputStreamReader reader = new InputStreamReader(is, "UTF-8");
-
-			char[] cb = new char[1024];
-
-			int amtRead = reader.read(cb);
-			while (amtRead > 0) {
-				buffer.append(cb, 0, amtRead);
-				amtRead = reader.read(cb);
-			}
-
-		} catch (UnsupportedEncodingException e) {
-			// This should never happen, because UTF-8 is supported
-			e.printStackTrace();
-		}
-
-		is.close();
-
-		return buffer.toString();
-
+	if (is == null) {
+	    throw new IOException("Could not establish a connection to " + url);
 	}
+
+	StringBuffer buffer = new StringBuffer();
+
+	try {
+	    InputStreamReader reader = new InputStreamReader(is, "UTF-8");
+
+	    char[] cb = new char[1024];
+
+	    int amtRead = reader.read(cb);
+	    while (amtRead > 0) {
+		buffer.append(cb, 0, amtRead);
+		amtRead = reader.read(cb);
+	    }
+
+	} catch (UnsupportedEncodingException e) {
+	    // This should never happen, because UTF-8 is supported
+	    e.printStackTrace();
+	}
+
+	is.close();
+
+	return buffer.toString();
+
+    }
 
 }

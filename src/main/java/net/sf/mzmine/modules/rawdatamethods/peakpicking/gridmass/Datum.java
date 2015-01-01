@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -22,42 +22,42 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass;
 import net.sf.mzmine.datamodel.DataPoint;
 
 class Datum implements Comparable<Datum> {
-	double mz = 0;
-	double intensity = 0;
-	int spotId = 0;
-	int scan = 0;
-	boolean available = true;
-	boolean neighbours = false;
-	boolean included = true;
-	double mzOriginal = 0;
-	double intensityOriginal = 0;
+    double mz = 0;
+    double intensity = 0;
+    int spotId = 0;
+    int scan = 0;
+    boolean available = true;
+    boolean neighbours = false;
+    boolean included = true;
+    double mzOriginal = 0;
+    double intensityOriginal = 0;
 
-	Datum(DataPoint dp, int iScan, DataPoint dpOriginal) {
-		mz = dp.getMZ();
-		intensity = dp.getIntensity();
-		scan = iScan;
-		mzOriginal = dpOriginal.getMZ();
-		intensityOriginal = dpOriginal.getIntensity();
-	}
+    Datum(DataPoint dp, int iScan, DataPoint dpOriginal) {
+	mz = dp.getMZ();
+	intensity = dp.getIntensity();
+	scan = iScan;
+	mzOriginal = dpOriginal.getMZ();
+	intensityOriginal = dpOriginal.getIntensity();
+    }
 
-	public int compareTo(Datum other) {
-		if (this.intensity > other.intensity)
-			return -1;
-		if (this.intensity < other.intensity)
-			return 1;
+    public int compareTo(Datum other) {
+	if (this.intensity > other.intensity)
+	    return -1;
+	if (this.intensity < other.intensity)
+	    return 1;
 
-		// equal intensities, then sort by lower mz
-		if (this.mz < other.mz)
-			return -1;
-		if (this.mz > other.mz)
-			return 1;
+	// equal intensities, then sort by lower mz
+	if (this.mz < other.mz)
+	    return -1;
+	if (this.mz > other.mz)
+	    return 1;
 
-		// otherwise they are equal in intensity and mz
-		return 0;
-	}
+	// otherwise they are equal in intensity and mz
+	return 0;
+    }
 
-	public String toString() {
-		return "MZ=" + Math.round(mz * 10000) / 10000 + " | Int=" + intensity
-				+ " | Scan=" + scan + " | spotId=" + spotId;
-	}
+    public String toString() {
+	return "MZ=" + Math.round(mz * 10000) / 10000 + " | Int=" + intensity
+		+ " | Scan=" + scan + " | spotId=" + spotId;
+    }
 }

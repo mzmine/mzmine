@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,59 +34,60 @@ enum TwoDPaletteType {
     private InterpolatingLookupPaintScale logScale;
 
     TwoDPaletteType() {
-        rainbowScale = new InterpolatingLookupPaintScale();
-        rainbowScale.add(0, Color.white);
-        rainbowScale.add(0.04, Color.red);
-        rainbowScale.add(0.125, Color.orange);
-        rainbowScale.add(0.25, Color.yellow);
-        rainbowScale.add(0.5, Color.blue);
-        rainbowScale.add(1, Color.cyan);
-        logScale = new InterpolatingLookupPaintScale();
-        //logScale.add(0, Color.cyan.darker());
-        //logScale.add(0.5, Color.white);
-        //logScale.add(1, Color.magenta.darker());
-        logScale.add(0, Color.cyan.darker());
-        logScale.add(0.333, Color.white);
-        logScale.add(0.666, Color.magenta.darker());
-        logScale.add(1, Color.blue);
+	rainbowScale = new InterpolatingLookupPaintScale();
+	rainbowScale.add(0, Color.white);
+	rainbowScale.add(0.04, Color.red);
+	rainbowScale.add(0.125, Color.orange);
+	rainbowScale.add(0.25, Color.yellow);
+	rainbowScale.add(0.5, Color.blue);
+	rainbowScale.add(1, Color.cyan);
+	logScale = new InterpolatingLookupPaintScale();
+	// logScale.add(0, Color.cyan.darker());
+	// logScale.add(0.5, Color.white);
+	// logScale.add(1, Color.magenta.darker());
+	logScale.add(0, Color.cyan.darker());
+	logScale.add(0.333, Color.white);
+	logScale.add(0.666, Color.magenta.darker());
+	logScale.add(1, Color.blue);
     }
 
     /**
      * 
-     * @param intensity Intensity in range <0-1> inclusive
+     * @param intensity
+     *            Intensity in range <0-1> inclusive
      * @return Color
      */
     Color getColor(double intensity) {
 
-        switch (this) {
+	switch (this) {
 
-        case PALETTE_GRAY20:
-            if (intensity > 0.2f)
-                return Color.black;
-            float gray20color = (float) (1 - (intensity / 0.2d));
-            return new Color(gray20color, gray20color, gray20color);
+	case PALETTE_GRAY20:
+	    if (intensity > 0.2f)
+		return Color.black;
+	    float gray20color = (float) (1 - (intensity / 0.2d));
+	    return new Color(gray20color, gray20color, gray20color);
 
-        case PALETTE_GRAY5:
-            if (intensity > 0.05f)
-                return Color.black;
-            float gray5color = (float) (1 - (intensity / 0.05d));
-            return new Color(gray5color, gray5color, gray5color);
+	case PALETTE_GRAY5:
+	    if (intensity > 0.05f)
+		return Color.black;
+	    float gray5color = (float) (1 - (intensity / 0.05d));
+	    return new Color(gray5color, gray5color, gray5color);
 
-        case PALETTE_GRAY1:
-            if (intensity > 0.01f)
-                return Color.black;
-            float gray1color = (float) (1 - (intensity / 0.01d));
-            return new Color(gray1color, gray1color, gray1color);
+	case PALETTE_GRAY1:
+	    if (intensity > 0.01f)
+		return Color.black;
+	    float gray1color = (float) (1 - (intensity / 0.01d));
+	    return new Color(gray1color, gray1color, gray1color);
 
-        case PALETTE_RAINBOW:
-            return (Color) rainbowScale.getPaint(intensity);
+	case PALETTE_RAINBOW:
+	    return (Color) rainbowScale.getPaint(intensity);
 
-        case PALETTE_LOG:
-            return (Color) logScale.getPaint(intensity);
+	case PALETTE_LOG:
+	    return (Color) logScale.getPaint(intensity);
 
-        }
+	}
 
-        return Color.white;
+	return Color.white;
 
     }
 

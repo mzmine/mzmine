@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -28,65 +28,81 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RUtilities;
 
 /**
- * @description Local Minima + LOESS (smoothed low-percentile intensity) baseline corrector.  
- * Uses "bslnoff" feature from "PROcess" R/Bioconductor package (http://bioconductor.org/packages/release/bioc/manuals/PROcess/man/PROcess.pdf).
+ * @description Local Minima + LOESS (smoothed low-percentile intensity)
+ *              baseline corrector. Uses "bslnoff" feature from "PROcess"
+ *              R/Bioconductor package
+ *              (http://bioconductor.org/packages/release/
+ *              bioc/manuals/PROcess/man/PROcess.pdf).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
  */
 public class LocMinLoessCorrector extends BaselineCorrector {
-	
-	@Override
-	public String[] getRequiredRPackages() {
-		return new String[] { "rJava", "PROcess" };
+
+    @Override
+    public String[] getRequiredRPackages() {
+	return new String[] { "rJava", "PROcess" };
+    }
+
+    @Override
+    public double[] computeBaseline(final RSession rSession,
+	    final RawDataFile origDataFile, double[] chromatogram,
+	    ParameterSet parameters) {
+
+	// Local Minima parameters.
+	String method = parameters.getParameter(
+		LocMinLoessCorrectorParameters.METHOD).getValue();
+	double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW)
+		.getValue();
+	int breaks = parameters.getParameter(
+		LocMinLoessCorrectorParameters.BREAKS).getValue();
+	int breaks_width = parameters.getParameter(
+		LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
+	double qntl = parameters.getParameter(
+		LocMinLoessCorrectorParameters.QNTL).getValue();
+
+	final double[] baseline;
+	synchronized (RUtilities.R_SEMAPHORE) {
+
+	    try {
+		// Set chromatogram.
+		rSession.assignDoubleArray("chromatogram", chromatogram);
+		// Transform chromatogram.
+		int mini = 1;
+		int maxi = chromatogram.length;
+		rSession.eval("mat = cbind(matrix(seq(" + ((double) mini)
+			+ ", " + ((double) maxi) + ", by = 1.0), ncol=1), "
+			+ "matrix(chromatogram[" + mini + ":" + maxi
+			+ "], ncol=1))");
+		// Breaks
+		rSession.eval("breaks <- "
+			+ ((breaks_width > 0) ? (int) Math
+				.round((double) (maxi - mini)
+					/ (double) breaks_width) : breaks));
+		// Calculate baseline.
+		rSession.eval("bseoff <- bslnoff(mat, method=\"" + method
+			+ "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl
+			+ ")");
+		rSession.eval("baseline <- mat[,2] - bseoff[,2]");
+		baseline = rSession.collectDoubleArray("baseline");
+	    } catch (Throwable t) {
+		// t.printStackTrace();
+		throw new IllegalStateException(
+			"R error during baseline correction (" + this.getName()
+				+ ").", t);
+	    }
 	}
+	return baseline;
+    }
 
-	@Override
-	public double[] computeBaseline(final RSession rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) {
+    @Override
+    public @Nonnull String getName() {
+	return "Local minima + LOESS baseline corrector";
+    }
 
-		// Local Minima parameters.
-		String method = parameters.getParameter(LocMinLoessCorrectorParameters.METHOD).getValue();
-		double bw = parameters.getParameter(LocMinLoessCorrectorParameters.BW).getValue();
-		int breaks = parameters.getParameter(LocMinLoessCorrectorParameters.BREAKS).getValue();
-		int breaks_width = parameters.getParameter(LocMinLoessCorrectorParameters.BREAK_WIDTH).getValue();
-		double qntl = parameters.getParameter(LocMinLoessCorrectorParameters.QNTL).getValue();
-
-
-		final double[] baseline;
-		synchronized (RUtilities.R_SEMAPHORE) {
-
-			try {
-				// Set chromatogram.
-				rSession.assignDoubleArray("chromatogram", chromatogram);
-				// Transform chromatogram.
-				int mini = 1;
-				int maxi = chromatogram.length;
-				rSession.eval("mat = cbind(matrix(seq(" + ((double)mini) + ", " + ((double)maxi) + ", by = 1.0), ncol=1), " +
-						"matrix(chromatogram[" + mini + ":" + maxi + "], ncol=1))");
-				// Breaks
-				rSession.eval("breaks <- " + ((breaks_width > 0) ? (int)Math.round((double)(maxi-mini)/(double)breaks_width) : breaks));
-				// Calculate baseline.
-				rSession.eval("bseoff <- bslnoff(mat, method=\"" + method + "\", bw=" + bw + ", breaks=breaks, qntl=" + qntl + ")");
-				rSession.eval("baseline <- mat[,2] - bseoff[,2]");
-				baseline = rSession.collectDoubleArray("baseline");
-			}
-			catch (Throwable t) {
-				//t.printStackTrace();
-				throw new IllegalStateException("R error during baseline correction (" + this.getName() + ").", t);
-			}
-		}
-		return baseline;
-	}
-
-
-	@Override
-	public @Nonnull String getName() {
-		return "Local minima + LOESS baseline corrector";
-	}
-
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return LocMinLoessCorrectorParameters.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return LocMinLoessCorrectorParameters.class;
+    }
 
 }

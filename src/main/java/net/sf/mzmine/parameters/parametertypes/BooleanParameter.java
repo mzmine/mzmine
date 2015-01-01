@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,90 +34,90 @@ import org.w3c.dom.Element;
  */
 public class BooleanParameter implements UserParameter<Boolean, JCheckBox> {
 
-	private String name, description;
-	private Boolean value;
+    private String name, description;
+    private Boolean value;
 
-	public BooleanParameter(String name, String description) {
-		this(name, description, null);
-	}
+    public BooleanParameter(String name, String description) {
+	this(name, description, null);
+    }
 
-	public BooleanParameter(String name, String description,
-			Boolean defaultValue) {
-		this.name = name;
-		this.description = description;
-		this.value = defaultValue;
-	}
+    public BooleanParameter(String name, String description,
+	    Boolean defaultValue) {
+	this.name = name;
+	this.description = description;
+	this.value = defaultValue;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getName()
-	 */
-	@Override
-	public String getName() {
-		return name;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getName()
+     */
+    @Override
+    public String getName() {
+	return name;
+    }
 
-	/**
-	 * @see net.sf.mzmine.data.Parameter#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @see net.sf.mzmine.data.Parameter#getDescription()
+     */
+    @Override
+    public String getDescription() {
+	return description;
+    }
 
-	@Override
-	public JCheckBox createEditingComponent() {
-		return new JCheckBox();
-	}
+    @Override
+    public JCheckBox createEditingComponent() {
+	return new JCheckBox();
+    }
 
-	@Override
-	public Boolean getValue() {
-		return value;
-	}
+    @Override
+    public Boolean getValue() {
+	return value;
+    }
 
-	@Override
-	public void setValue(Boolean value) {
-		this.value = value;
-	}
+    @Override
+    public void setValue(Boolean value) {
+	this.value = value;
+    }
 
-	@Override
-	public BooleanParameter cloneParameter() {
-		BooleanParameter copy = new BooleanParameter(name, description);
-		copy.setValue(this.getValue());
-		return copy;
-	}
+    @Override
+    public BooleanParameter cloneParameter() {
+	BooleanParameter copy = new BooleanParameter(name, description);
+	copy.setValue(this.getValue());
+	return copy;
+    }
 
-	@Override
-	public void setValueFromComponent(JCheckBox component) {
-		value = component.isSelected();
-	}
+    @Override
+    public void setValueFromComponent(JCheckBox component) {
+	value = component.isSelected();
+    }
 
-	@Override
-	public void setValueToComponent(JCheckBox component, Boolean newValue) {
-		component.setSelected(newValue);
-	}
+    @Override
+    public void setValueToComponent(JCheckBox component, Boolean newValue) {
+	component.setSelected(newValue);
+    }
 
-	@Override
-	public void loadValueFromXML(Element xmlElement) {
-		String rangeString = xmlElement.getTextContent();
-		if (rangeString.length() == 0)
-			return;
-		this.value = Boolean.valueOf(rangeString);
-	}
+    @Override
+    public void loadValueFromXML(Element xmlElement) {
+	String rangeString = xmlElement.getTextContent();
+	if (rangeString.length() == 0)
+	    return;
+	this.value = Boolean.valueOf(rangeString);
+    }
 
-	@Override
-	public void saveValueToXML(Element xmlElement) {
-		if (value == null)
-			return;
-		xmlElement.setTextContent(value.toString());
-	}
+    @Override
+    public void saveValueToXML(Element xmlElement) {
+	if (value == null)
+	    return;
+	xmlElement.setTextContent(value.toString());
+    }
 
-	@Override
-	public boolean checkValue(Collection<String> errorMessages) {
-		if (value == null) {
-			errorMessages.add(name + " is not set properly");
-			return false;
-		}
-		return true;
+    @Override
+    public boolean checkValue(Collection<String> errorMessages) {
+	if (value == null) {
+	    errorMessages.add(name + " is not set properly");
+	    return false;
 	}
+	return true;
+    }
 
 }

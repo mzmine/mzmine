@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -43,60 +43,60 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class ProjectCloseModule implements MZmineProcessingModule {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	private static final String MODULE_NAME = "Close project";
-	private static final String MODULE_DESCRIPTION = "Close project";
+    private static final String MODULE_NAME = "Close project";
+    private static final String MODULE_DESCRIPTION = "Close project";
 
-	@Override
-	public @Nonnull String getName() {
-		return MODULE_NAME;
-	}
+    @Override
+    public @Nonnull String getName() {
+	return MODULE_NAME;
+    }
 
-	@Override
-	public @Nonnull String getDescription() {
-		return MODULE_DESCRIPTION;
-	}
+    @Override
+    public @Nonnull String getDescription() {
+	return MODULE_DESCRIPTION;
+    }
 
-	@Override
-	@Nonnull
-	public ExitCode runModule(@Nonnull ParameterSet parameters,
-			@Nonnull Collection<Task> tasks) {
+    @Override
+    @Nonnull
+    public ExitCode runModule(@Nonnull ParameterSet parameters,
+	    @Nonnull Collection<Task> tasks) {
 
-		int selectedValue = JOptionPane.showInternalConfirmDialog(MZmineCore
-				.getDesktop().getMainWindow().getContentPane(),
-				"Are you sure you want to close the current project?",
-				"Close project", JOptionPane.YES_NO_OPTION,
-				JOptionPane.WARNING_MESSAGE);
+	int selectedValue = JOptionPane.showInternalConfirmDialog(MZmineCore
+		.getDesktop().getMainWindow().getContentPane(),
+		"Are you sure you want to close the current project?",
+		"Close project", JOptionPane.YES_NO_OPTION,
+		JOptionPane.WARNING_MESSAGE);
 
-		if (selectedValue != JOptionPane.YES_OPTION)
-			return ExitCode.CANCEL;
+	if (selectedValue != JOptionPane.YES_OPTION)
+	    return ExitCode.CANCEL;
 
-		// Close all windows related to previous project
-		GUIUtils.closeAllWindows();
+	// Close all windows related to previous project
+	GUIUtils.closeAllWindows();
 
-		// Create a new, empty project
-		MZmineProject newProject = new MZmineProjectImpl();
+	// Create a new, empty project
+	MZmineProject newProject = new MZmineProjectImpl();
 
-		// Replace the current project with the new one
-		ProjectManager projectManager = MZmineCore.getProjectManager();
-		projectManager.setCurrentProject(newProject);
+	// Replace the current project with the new one
+	ProjectManager projectManager = MZmineCore.getProjectManager();
+	projectManager.setCurrentProject(newProject);
 
-		// Ask the garbage collector to free the previously used memory
-		System.gc();
+	// Ask the garbage collector to free the previously used memory
+	System.gc();
 
-		logger.info("Project closed.");
-		return ExitCode.OK;
-	}
+	logger.info("Project closed.");
+	return ExitCode.OK;
+    }
 
-	@Override
-	public @Nonnull MZmineModuleCategory getModuleCategory() {
-		return MZmineModuleCategory.PROJECTIO;
-	}
+    @Override
+    public @Nonnull MZmineModuleCategory getModuleCategory() {
+	return MZmineModuleCategory.PROJECTIO;
+    }
 
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return SimpleParameterSet.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return SimpleParameterSet.class;
+    }
 
 }

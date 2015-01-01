@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,29 +33,26 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class DeconvolutionParameters extends SimpleParameterSet {
 
-    private static final PeakResolver[] RESOLVERS = {new BaselinePeakDetector(),
-                                                     new NoiseAmplitudePeakDetector(),
-                                                     new SavitzkyGolayPeakDetector(),
-                                                     new MinimumSearchPeakDetector(),
-                                                     new CentWaveDetector()};
+    private static final PeakResolver[] RESOLVERS = {
+	    new BaselinePeakDetector(), new NoiseAmplitudePeakDetector(),
+	    new SavitzkyGolayPeakDetector(), new MinimumSearchPeakDetector(),
+	    new CentWaveDetector() };
 
     public static final PeakListsParameter PEAK_LISTS = new PeakListsParameter();
 
-    public static final StringParameter SUFFIX =
-            new StringParameter("Suffix",
-                                "This string is added to peak list name as suffix",
-                                "deconvoluted");
+    public static final StringParameter SUFFIX = new StringParameter("Suffix",
+	    "This string is added to peak list name as suffix", "deconvoluted");
 
-    public static final ModuleComboParameter<PeakResolver> PEAK_RESOLVER =
-            new ModuleComboParameter<PeakResolver>("Algorithm",
-                                        "Peak recognition description",
-                                        RESOLVERS);
+    public static final ModuleComboParameter<PeakResolver> PEAK_RESOLVER = new ModuleComboParameter<PeakResolver>(
+	    "Algorithm", "Peak recognition description", RESOLVERS);
 
-    public static final BooleanParameter AUTO_REMOVE =
-            new BooleanParameter("Remove original peak list",
-                                 "If checked, original chromatogram will be removed and only the deconvolved version remains");
+    public static final BooleanParameter AUTO_REMOVE = new BooleanParameter(
+	    "Remove original peak list",
+	    "If checked, original chromatogram will be removed and only the deconvolved version remains");
 
     public DeconvolutionParameters() {
-        super(new Parameter[]{PEAK_LISTS, SUFFIX, PEAK_RESOLVER, AUTO_REMOVE});
+	super(
+		new Parameter[] { PEAK_LISTS, SUFFIX, PEAK_RESOLVER,
+			AUTO_REMOVE });
     }
 }

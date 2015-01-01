@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,25 +38,25 @@ public class ExtendedCheckBox<Type> extends JCheckBox {
     private Type object;
 
     public ExtendedCheckBox(Type object) {
-        this(object, false);
+	this(object, false);
     }
-    
+
     public ExtendedCheckBox(Type object, boolean selected) {
-        super(object.toString(), selected);
-        this.object = object;
-        setOpaque(false);
-        setFont(checkBoxFont);
+	super(object.toString(), selected);
+	this.object = object;
+	setOpaque(false);
+	setFont(checkBoxFont);
     }
 
     /**
      * @return Returns the dataFile.
      */
     public Type getObject() {
-        return object;
+	return object;
     }
 
     public int getPreferredWidth() {
-        return ((int) getPreferredSize().getWidth()) + 30;
+	return ((int) getPreferredSize().getWidth()) + 30;
     }
 
 }

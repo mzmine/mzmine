@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -23,19 +23,17 @@ package net.sf.mzmine.modules.visualization.peaklist;
  *
  */
 public enum PeakShapeNormalization {
-    
-    PEAKMAX("Peak maximum"),
-    ROWMAX("Row maximum"),
-    GLOBALMAX("Global maximum");
-    
+
+    PEAKMAX("Peak maximum"), ROWMAX("Row maximum"), GLOBALMAX("Global maximum");
+
     private final String displayName;
-    
+
     PeakShapeNormalization(final String displayName) {
-        this.displayName = displayName;
+	this.displayName = displayName;
     }
-    
+
     public String toString() {
-        return displayName;
+	return displayName;
     }
 
 }

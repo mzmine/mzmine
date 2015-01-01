@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,70 +34,70 @@ import net.sf.mzmine.main.MZmineCore;
  */
 public class StatusBarHandler extends Handler {
 
-	static final DateFormat timeFormat = DateFormat.getTimeInstance();
+    static final DateFormat timeFormat = DateFormat.getTimeInstance();
 
-	static final int infoLevel = Level.INFO.intValue();
+    static final int infoLevel = Level.INFO.intValue();
 
-	/**
-	 * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
-	 */
-	public void publish(LogRecord record) {
+    /**
+     * @see java.util.logging.Handler#publish(java.util.logging.LogRecord)
+     */
+    public void publish(LogRecord record) {
 
-		// if the event level is below INFO, ignore it
-		if (record.getLevel().intValue() < infoLevel)
-			return;
+	// if the event level is below INFO, ignore it
+	if (record.getLevel().intValue() < infoLevel)
+	    return;
 
-		// get Desktop instance
-		Desktop desktop = MZmineCore.getDesktop();
-		if (desktop == null)
-			return;
-		if (desktop.getMainWindow() == null)
-			return;
+	// get Desktop instance
+	Desktop desktop = MZmineCore.getDesktop();
+	if (desktop == null)
+	    return;
+	if (desktop.getMainWindow() == null)
+	    return;
 
-		Date recordTime = new Date(record.getMillis());
+	Date recordTime = new Date(record.getMillis());
 
-		// format the message
-		String formattedMessage = "[" + timeFormat.format(recordTime) + "]: "
-				+ record.getMessage();
+	// format the message
+	String formattedMessage = "[" + timeFormat.format(recordTime) + "]: "
+		+ record.getMessage();
 
-		// default color is black
-		Color messageColor = Color.black;
+	// default color is black
+	Color messageColor = Color.black;
 
-		// display severe errors in red
-		if (record.getLevel().equals(Level.SEVERE))
-			messageColor = Color.red;
+	// display severe errors in red
+	if (record.getLevel().equals(Level.SEVERE))
+	    messageColor = Color.red;
 
-		// set status bar text
-		desktop.setStatusBarText(formattedMessage, messageColor);
+	// set status bar text
+	desktop.setStatusBarText(formattedMessage, messageColor);
 
-	}
+    }
 
-	/**
-	 * @see java.util.logging.Handler#flush()
-	 */
-	public void flush() {
-		// do nothing
-	}
+    /**
+     * @see java.util.logging.Handler#flush()
+     */
+    public void flush() {
+	// do nothing
+    }
 
-	/**
-	 * @see java.util.logging.Handler#close()
-	 */
-	public void close() throws SecurityException {
-		// do nothing
-	}
+    /**
+     * @see java.util.logging.Handler#close()
+     */
+    public void close() throws SecurityException {
+	// do nothing
+    }
 
-	/**
-	 * @see java.util.logging.Handler#isLoggable(java.util.logging.LogRecord)
-	 */
-	public boolean isLoggable(LogRecord record) {
-		return (record.getLevel().intValue() >= infoLevel);
-	}
+    /**
+     * @see java.util.logging.Handler#isLoggable(java.util.logging.LogRecord)
+     */
+    public boolean isLoggable(LogRecord record) {
+	return (record.getLevel().intValue() >= infoLevel);
+    }
 
-	/**
-	 * @see java.util.logging.Handler#getLevel()
-	 */
-	public Level getLevel() {
-		return Level.INFO;
-	}
+    /**
+     * @see java.util.logging.Handler#getLevel()
+     */
+    public Level getLevel() {
+	return Level.INFO;
+    }
 
 }

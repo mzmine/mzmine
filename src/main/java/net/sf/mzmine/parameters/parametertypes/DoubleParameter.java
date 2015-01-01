@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -57,150 +57,150 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
 
     public DoubleParameter(final String aName, final String aDescription) {
 
-        this(aName, aDescription, NumberFormat.getNumberInstance(), null, null,
-                null);
+	this(aName, aDescription, NumberFormat.getNumberInstance(), null, null,
+		null);
     }
 
     public DoubleParameter(final String aName, final String aDescription,
-            final NumberFormat numberFormat) {
+	    final NumberFormat numberFormat) {
 
-        this(aName, aDescription, numberFormat, null, null, null);
+	this(aName, aDescription, numberFormat, null, null, null);
     }
 
     public DoubleParameter(final String aName, final String aDescription,
-            final NumberFormat numberFormat, final Double defaultValue) {
+	    final NumberFormat numberFormat, final Double defaultValue) {
 
-        this(aName, aDescription, numberFormat, defaultValue, null, null);
+	this(aName, aDescription, numberFormat, defaultValue, null, null);
     }
 
     public DoubleParameter(final String aName, final String aDescription,
-            final NumberFormat numberFormat, final Double defaultValue,
-            final Double min, final Double max) {
-        name = aName;
-        description = aDescription;
-        format = numberFormat;
-        value = defaultValue;
-        minimum = min;
-        maximum = max;
+	    final NumberFormat numberFormat, final Double defaultValue,
+	    final Double min, final Double max) {
+	name = aName;
+	description = aDescription;
+	format = numberFormat;
+	value = defaultValue;
+	minimum = min;
+	maximum = max;
     }
 
     @Override
     public String getDescription() {
 
-        return description;
+	return description;
     }
 
     @Override
     public JTextField createEditingComponent() {
 
-        final JTextField textField = new JTextField();
-        textField.setPreferredSize(new Dimension(WIDTH, textField
-                .getPreferredSize().height));
+	final JTextField textField = new JTextField();
+	textField.setPreferredSize(new Dimension(WIDTH, textField
+		.getPreferredSize().height));
 
-        // Add an input verifier if any bounds are specified.
-        if (minimum != null || maximum != null) {
+	// Add an input verifier if any bounds are specified.
+	if (minimum != null || maximum != null) {
 
-            textField.setInputVerifier(new MinMaxVerifier());
-        }
+	    textField.setInputVerifier(new MinMaxVerifier());
+	}
 
-        return textField;
+	return textField;
     }
 
     @Override
     public void setValueFromComponent(final JTextField component) {
 
-        try {
+	try {
 
-            value = format.parse(component.getText()).doubleValue();
-        } catch (Exception e) {
+	    value = format.parse(component.getText()).doubleValue();
+	} catch (Exception e) {
 
-            value = null;
-        }
+	    value = null;
+	}
     }
 
     @Override
     public void setValue(final Double newValue) {
 
-        value = newValue;
+	value = newValue;
     }
 
     @Override
     public DoubleParameter cloneParameter() {
 
-        return new DoubleParameter(name, description, format, value, minimum,
-                maximum);
+	return new DoubleParameter(name, description, format, value, minimum,
+		maximum);
     }
 
     @Override
     public void setValueToComponent(final JTextField component,
-            final Double newValue) {
+	    final Double newValue) {
 
-        component.setText(format.format(newValue));
+	component.setText(format.format(newValue));
     }
 
     @Override
     public Double getValue() {
 
-        return value;
+	return value;
     }
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
 
-        final String numString = xmlElement.getTextContent();
-        if (numString.length() > 0) {
+	final String numString = xmlElement.getTextContent();
+	if (numString.length() > 0) {
 
-            value = Double.parseDouble(numString);
-        }
+	    value = Double.parseDouble(numString);
+	}
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
 
-        if (value != null) {
+	if (value != null) {
 
-            xmlElement.setTextContent(value.toString());
-        }
+	    xmlElement.setTextContent(value.toString());
+	}
     }
 
     @Override
     public String getName() {
 
-        return name;
+	return name;
     }
 
     @Override
     public String toString() {
-        return name;
+	return name;
     }
 
     @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
-        final boolean check;
-        if (value == null) {
+	final boolean check;
+	if (value == null) {
 
-            errorMessages.add(name + " is not set properly");
-            check = false;
+	    errorMessages.add(name + " is not set properly");
+	    check = false;
 
-        } else if (!checkBounds(value)) {
+	} else if (!checkBounds(value)) {
 
-            errorMessages.add(name + " lies outside its bounds: (" + minimum
-                    + " ... " + maximum + ')');
-            check = false;
+	    errorMessages.add(name + " lies outside its bounds: (" + minimum
+		    + " ... " + maximum + ')');
+	    check = false;
 
-        } else {
+	} else {
 
-            check = true;
-        }
+	    check = true;
+	}
 
-        return check;
+	return check;
     }
 
     private boolean checkBounds(final double number) {
 
-        return (minimum == null || number >= minimum)
-                && (maximum == null || number <= maximum);
+	return (minimum == null || number >= minimum)
+		&& (maximum == null || number <= maximum);
     }
 
     /**
@@ -208,33 +208,33 @@ public class DoubleParameter implements UserParameter<Double, JTextField> {
      */
     private class MinMaxVerifier extends InputVerifier {
 
-        @Override
-        public boolean shouldYieldFocus(final JComponent input) {
+	@Override
+	public boolean shouldYieldFocus(final JComponent input) {
 
-            final boolean yield = super.shouldYieldFocus(input);
-            if (!yield) {
+	    final boolean yield = super.shouldYieldFocus(input);
+	    if (!yield) {
 
-                // Beep and highlight.
-                Toolkit.getDefaultToolkit().beep();
-                ((JTextComponent) input).selectAll();
-            }
+		// Beep and highlight.
+		Toolkit.getDefaultToolkit().beep();
+		((JTextComponent) input).selectAll();
+	    }
 
-            return yield;
-        }
+	    return yield;
+	}
 
-        @Override
-        public boolean verify(final JComponent input) {
+	@Override
+	public boolean verify(final JComponent input) {
 
-            boolean verified = false;
-            try {
+	    boolean verified = false;
+	    try {
 
-                verified = checkBounds(format.parse(
-                        ((JTextComponent) input).getText()).doubleValue());
-            } catch (ParseException e) {
+		verified = checkBounds(format.parse(
+			((JTextComponent) input).getText()).doubleValue());
+	    } catch (ParseException e) {
 
-                // Not a number.
-            }
-            return verified;
-        }
+		// Not a number.
+	    }
+	    return verified;
+	}
     }
 }

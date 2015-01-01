@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,16 +24,16 @@ package net.sf.mzmine.parameters.parametertypes;
  */
 public class MSLevelParameter extends ComboParameter<Integer> {
 
-	public MSLevelParameter() {
-		super("MS level",
-				"MS level 1 means full scans, MS level 2 means MS/MS, etc.",
-				new Integer[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 1);
-	}
+    public MSLevelParameter() {
+	super("MS level",
+		"MS level 1 means full scans, MS level 2 means MS/MS, etc.",
+		new Integer[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, 1);
+    }
 
-	@Override
-	public MSLevelParameter cloneParameter() {
-		MSLevelParameter copy = new MSLevelParameter();
-		copy.setValue(getValue());
-		return copy;
-	}
+    @Override
+    public MSLevelParameter cloneParameter() {
+	MSLevelParameter copy = new MSLevelParameter();
+	copy.setValue(getValue());
+	return copy;
+    }
 }

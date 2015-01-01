@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,18 +30,20 @@ import net.sf.mzmine.parameters.ParameterSet;
  */
 public interface BaselineProvider {
 
-	/**
-	 * Gets R required packages for the corrector's method, if applicable
-	 */
-	public String[] getRequiredRPackages();
+    /**
+     * Gets R required packages for the corrector's method, if applicable
+     */
+    public String[] getRequiredRPackages();
 
-	/**
-	 * Returns a baseline for correcting the given chromatogram using R
-	 * @throws BaselineCorrectionException 
-	 * @throws RserveException 
-	 * @throws InterruptedException 
-	 */
-	public double[] computeBaseline(final RSession rSession, final RawDataFile origDataFile, 
-			final double[] chromatogram, ParameterSet parameters);
+    /**
+     * Returns a baseline for correcting the given chromatogram using R
+     * 
+     * @throws BaselineCorrectionException
+     * @throws RserveException
+     * @throws InterruptedException
+     */
+    public double[] computeBaseline(final RSession rSession,
+	    final RawDataFile origDataFile, final double[] chromatogram,
+	    ParameterSet parameters);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,7 +27,7 @@ import net.sf.mzmine.parameters.UserParameter;
 import org.w3c.dom.Element;
 
 public class NeutralMassParameter implements
-        UserParameter<Double, NeutralMassComponent> {
+	UserParameter<Double, NeutralMassComponent> {
 
     private final String name, description;
     private Double ionMass;
@@ -36,8 +36,8 @@ public class NeutralMassParameter implements
     private Double value;
 
     public NeutralMassParameter(String name, String description) {
-        this.name = name;
-        this.description = description;
+	this.name = name;
+	this.description = description;
     }
 
     /**
@@ -45,7 +45,7 @@ public class NeutralMassParameter implements
      */
     @Override
     public String getName() {
-        return name;
+	return name;
     }
 
     /**
@@ -53,104 +53,104 @@ public class NeutralMassParameter implements
      */
     @Override
     public String getDescription() {
-        return description;
+	return description;
     }
 
     @Override
     public NeutralMassComponent createEditingComponent() {
-        return new NeutralMassComponent();
+	return new NeutralMassComponent();
     }
 
     @Override
     public NeutralMassParameter cloneParameter() {
-        NeutralMassParameter copy = new NeutralMassParameter(name, description);
-        copy.ionMass = ionMass;
-        copy.ionType = ionType;
-        copy.value = value;
-        copy.charge = charge;
-        return copy;
+	NeutralMassParameter copy = new NeutralMassParameter(name, description);
+	copy.ionMass = ionMass;
+	copy.ionType = ionType;
+	copy.value = value;
+	copy.charge = charge;
+	return copy;
     }
 
     @Override
     public void setValueFromComponent(NeutralMassComponent component) {
-        value = component.getValue();
-        ionMass = component.getIonMass();
-        charge = component.getCharge();
-        ionType = component.getIonType();
+	value = component.getValue();
+	ionMass = component.getIonMass();
+	charge = component.getCharge();
+	ionType = component.getIonType();
     }
 
     @Override
     public void setValueToComponent(NeutralMassComponent component,
-            Double newValue) {
-        if (ionMass != null)
-            component.setIonMass(ionMass);
-        if (charge != null)
-            component.setCharge(charge);
-        if (ionType != null)
-            component.setIonType(ionType);
+	    Double newValue) {
+	if (ionMass != null)
+	    component.setIonMass(ionMass);
+	if (charge != null)
+	    component.setCharge(charge);
+	if (ionType != null)
+	    component.setIonType(ionType);
     }
 
     @Override
     public Double getValue() {
-        // This is important for the dialog to realize that something is set
-        if (value == null)
-            return ionMass;
-        return value;
+	// This is important for the dialog to realize that something is set
+	if (value == null)
+	    return ionMass;
+	return value;
     }
 
     public Double getIonMass() {
-        return ionMass;
+	return ionMass;
     }
 
     public IonizationType getIonType() {
-        return ionType;
+	return ionType;
     }
 
     public Integer getCharge() {
-        return charge;
+	return charge;
     }
 
     public void setCharge(Integer charge) {
-        this.charge = charge;
+	this.charge = charge;
     }
 
     @Override
     public void setValue(Double newValue) {
-        this.value = newValue;
+	this.value = newValue;
     }
 
     public void setIonMass(Double newValue) {
-        this.ionMass = newValue;
+	this.ionMass = newValue;
     }
 
     @Override
     public void loadValueFromXML(Element xmlElement) {
-        String typeAttr = xmlElement.getAttribute("type");
-        if (typeAttr.length() == 0)
-            return;
-        this.ionType = IonizationType.valueOf(typeAttr);
-        String chargeAttr = xmlElement.getAttribute("charge");
-        this.charge = Integer.valueOf(chargeAttr);
-        String elementText = xmlElement.getTextContent();
-        this.ionMass = Double.valueOf(elementText);
+	String typeAttr = xmlElement.getAttribute("type");
+	if (typeAttr.length() == 0)
+	    return;
+	this.ionType = IonizationType.valueOf(typeAttr);
+	String chargeAttr = xmlElement.getAttribute("charge");
+	this.charge = Integer.valueOf(chargeAttr);
+	String elementText = xmlElement.getTextContent();
+	this.ionMass = Double.valueOf(elementText);
     }
 
     @Override
     public void saveValueToXML(Element xmlElement) {
-        if (value == null)
-            return;
-        xmlElement.setAttribute("type", ionType.name());
-        xmlElement.setAttribute("charge", charge.toString());
-        xmlElement.setTextContent(ionMass.toString());
+	if (value == null)
+	    return;
+	xmlElement.setAttribute("type", ionType.name());
+	xmlElement.setAttribute("charge", charge.toString());
+	xmlElement.setTextContent(ionMass.toString());
     }
 
     @Override
     public boolean checkValue(Collection<String> errorMessages) {
-        if ((value == null) || (ionMass == null) || (charge == null)
-                || (ionType == null)) {
-            errorMessages.add(name + " is not set properly");
-            return false;
-        }
-        return true;
+	if ((value == null) || (ionMass == null) || (charge == null)
+		|| (ionType == null)) {
+	    errorMessages.add(name + " is not set properly");
+	    return false;
+	}
+	return true;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -70,11 +70,15 @@ public class AgilentCsvReadTask extends AbstractTask {
 	    this.dataSource = this.getMetaData(scanner, "file name");
 
 	    String[] range = this.getMetaData(scanner, "mass range").split(",");
-	    newMZmineFile.setMZRange(1,  Range.closed(Double.parseDouble(range[0]),
-		    Double.parseDouble(range[1])));
+	    newMZmineFile.setMZRange(
+		    1,
+		    Range.closed(Double.parseDouble(range[0]),
+			    Double.parseDouble(range[1])));
 	    range = this.getMetaData(scanner, "time range").split(",");
-	    newMZmineFile.setRTRange(1, Range.closed(Double.parseDouble(range[0]),
-		    Double.parseDouble(range[1])));
+	    newMZmineFile.setRTRange(
+		    1,
+		    Range.closed(Double.parseDouble(range[0]),
+			    Double.parseDouble(range[1])));
 	    totalScans = Integer.parseInt(this.getMetaData(scanner,
 		    "number of spectra"));
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -96,7 +96,7 @@ public class ProjectParametersImporter {
 	}
 
 	// Read and interpret parameters
-	UserParameter<?,?>[] parameters = processParameters(parameterFile);
+	UserParameter<?, ?>[] parameters = processParameters(parameterFile);
 
 	if (parameters == null)
 	    return false;
@@ -126,9 +126,9 @@ public class ProjectParametersImporter {
 	return chooser.getSelectedFile();
     }
 
-    private UserParameter<?,?>[] processParameters(File parameterFile) {
+    private UserParameter<?, ?>[] processParameters(File parameterFile) {
 
-	ArrayList<UserParameter<?,?>> parameters = new ArrayList<UserParameter<?,?>>();
+	ArrayList<UserParameter<?, ?>> parameters = new ArrayList<UserParameter<?, ?>>();
 
 	// Open reader
 	BufferedReader parameterFileReader;
@@ -228,7 +228,7 @@ public class ProjectParametersImporter {
 		parameters.add(new StringParameter(name, null));
 
 	    }
-	    
+
 	    // Close reader
 	    parameterFileReader.close();
 
@@ -238,18 +238,19 @@ public class ProjectParametersImporter {
 		    MZmineCore.getDesktop().getMainWindow(),
 		    "Could not open file " + parameterFile);
 	    return null;
-	}	
+	}
 
 	return parameters.toArray(new UserParameter[0]);
 
     }
 
     private boolean processParameterValues(File parameterFile,
-	    UserParameter<?,?>[] parameters) {
+	    UserParameter<?, ?>[] parameters) {
 
 	// Warn user if main dialog already contains a parameter with same name
 	for (UserParameter<?, ?> parameter : parameters) {
-	    UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+	    UserParameter<?, ?> p = mainDialog
+		    .getParameter(parameter.getName());
 	    if (p != null) {
 		int res = JOptionPane.showConfirmDialog(mainDialog,
 			"Overwrite previous parameter(s) with same name?",
@@ -263,7 +264,8 @@ public class ProjectParametersImporter {
 
 	// Remove parameters with same name
 	for (UserParameter<?, ?> parameter : parameters) {
-	    UserParameter<?, ?> p = mainDialog.getParameter(parameter.getName());
+	    UserParameter<?, ?> p = mainDialog
+		    .getParameter(parameter.getName());
 	    if (p != null) {
 		mainDialog.removeParameter(p);
 	    }

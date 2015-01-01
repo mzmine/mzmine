@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,27 +39,27 @@ class PeakDataRenderer extends XYLineAndShapeRenderer {
     private static final Color peakColor = Color.green;
 
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
-            5);
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
+	    5, 5);
 
     PeakDataRenderer() {
-        setBaseShapesFilled(true);
-        setDrawOutlines(false);
-        setUseFillPaint(false);
-        setBaseShapesVisible(false);
-        setBaseShape(dataPointsShape);
-        
-        PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
-        setBaseToolTipGenerator(toolTipGenerator);
+	setBaseShapesFilled(true);
+	setDrawOutlines(false);
+	setUseFillPaint(false);
+	setBaseShapesVisible(false);
+	setBaseShape(dataPointsShape);
+
+	PeakToolTipGenerator toolTipGenerator = new PeakToolTipGenerator();
+	setBaseToolTipGenerator(toolTipGenerator);
 
     }
 
     public Paint getItemPaint(int row, int column) {
-        return peakColor;
+	return peakColor;
     }
 
     public Shape getItemShape(int row, int column) {
-        return dataPointsShape;
+	return dataPointsShape;
     }
-    
+
 }

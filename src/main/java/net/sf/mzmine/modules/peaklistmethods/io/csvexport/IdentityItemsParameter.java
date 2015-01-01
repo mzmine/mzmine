@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,58 +38,58 @@ import net.sf.mzmine.parameters.parametertypes.MultiChoiceParameter;
  */
 public class IdentityItemsParameter extends MultiChoiceParameter<String> {
 
-	public static final String ALL_IDENTITIES = "All identity elements";
+    public static final String ALL_IDENTITIES = "All identity elements";
 
-	public IdentityItemsParameter() {
-		super("Export identity elements", "Selection of identities to export",
-				new String[] { ALL_IDENTITIES });
-	}
+    public IdentityItemsParameter() {
+	super("Export identity elements", "Selection of identities to export",
+		new String[] { ALL_IDENTITIES });
+    }
 
-	@Override
-	public MultiChoiceComponent createEditingComponent() {
+    @Override
+    public MultiChoiceComponent createEditingComponent() {
 
-		HashSet<String> elements = new HashSet<String>();
+	HashSet<String> elements = new HashSet<String>();
 
-		elements.add(ALL_IDENTITIES);
+	elements.add(ALL_IDENTITIES);
 
-		for (PeakList peakList : MZmineCore.getCurrentProject().getPeakLists()) {
-			for (PeakListRow peakListRow : peakList.getRows()) {
+	for (PeakList peakList : MZmineCore.getCurrentProject().getPeakLists()) {
+	    for (PeakListRow peakListRow : peakList.getRows()) {
 
-				PeakIdentity peakIdentity = peakListRow
-						.getPreferredPeakIdentity();
-				if (peakIdentity != null) {
+		PeakIdentity peakIdentity = peakListRow
+			.getPreferredPeakIdentity();
+		if (peakIdentity != null) {
 
-					Map<String, String> properties = peakIdentity
-							.getAllProperties();
-					Iterator<String> subItr = properties.keySet().iterator();
+		    Map<String, String> properties = peakIdentity
+			    .getAllProperties();
+		    Iterator<String> subItr = properties.keySet().iterator();
 
-					while (subItr.hasNext()) {
+		    while (subItr.hasNext()) {
 
-						String propertyName = subItr.next();
-						if (!elements.contains(propertyName)) {
-							elements.add(propertyName);
-						}
-
-					}
-
-				}
+			String propertyName = subItr.next();
+			if (!elements.contains(propertyName)) {
+			    elements.add(propertyName);
 			}
+
+		    }
+
 		}
-
-		String identityElements[] = elements.toArray(new String[0]);
-		Arrays.sort(identityElements);
-
-		setChoices(identityElements);
-
-		return super.createEditingComponent();
+	    }
 	}
 
-	@Override
-	public IdentityItemsParameter cloneParameter() {
-		IdentityItemsParameter copy = new IdentityItemsParameter();
-		copy.setChoices(this.getChoices());
-		copy.setValue(this.getValue());
-		return copy;
-	}
+	String identityElements[] = elements.toArray(new String[0]);
+	Arrays.sort(identityElements);
+
+	setChoices(identityElements);
+
+	return super.createEditingComponent();
+    }
+
+    @Override
+    public IdentityItemsParameter cloneParameter() {
+	IdentityItemsParameter copy = new IdentityItemsParameter();
+	copy.setChoices(this.getChoices());
+	copy.setValue(this.getValue());
+	return copy;
+    }
 
 }

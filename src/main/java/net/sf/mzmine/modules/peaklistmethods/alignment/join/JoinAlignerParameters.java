@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,38 +32,38 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class JoinAlignerParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter peakListName = new StringParameter(
-			"Peak list name", "Peak list name", "Aligned peak list");
+    public static final StringParameter peakListName = new StringParameter(
+	    "Peak list name", "Peak list name", "Aligned peak list");
 
-	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final DoubleParameter MZWeight = new DoubleParameter(
-			"Weight for m/z", "Score for perfectly matching m/z values");
+    public static final DoubleParameter MZWeight = new DoubleParameter(
+	    "Weight for m/z", "Score for perfectly matching m/z values");
 
-	public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-	public static final DoubleParameter RTWeight = new DoubleParameter(
-			"Weight for RT", "Score for perfectly matching RT values");
+    public static final DoubleParameter RTWeight = new DoubleParameter(
+	    "Weight for RT", "Score for perfectly matching RT values");
 
-	public static final BooleanParameter SameChargeRequired = new BooleanParameter(
-			"Require same charge state",
-			"If checked, only rows having same charge state can be aligned");
+    public static final BooleanParameter SameChargeRequired = new BooleanParameter(
+	    "Require same charge state",
+	    "If checked, only rows having same charge state can be aligned");
 
-	public static final BooleanParameter SameIDRequired = new BooleanParameter(
-			"Require same ID",
-			"If checked, only rows having same compound identities (or no identities) can be aligned");
+    public static final BooleanParameter SameIDRequired = new BooleanParameter(
+	    "Require same ID",
+	    "If checked, only rows having same compound identities (or no identities) can be aligned");
 
-	public static final OptionalModuleParameter compareIsotopePattern = new OptionalModuleParameter(
-			"Compare isotope pattern",
-			"If both peaks represent an isotope pattern, add isotope pattern score to match score",
-			new IsotopePatternScoreParameters());
+    public static final OptionalModuleParameter compareIsotopePattern = new OptionalModuleParameter(
+	    "Compare isotope pattern",
+	    "If both peaks represent an isotope pattern, add isotope pattern score to match score",
+	    new IsotopePatternScoreParameters());
 
-	public JoinAlignerParameters() {
-		super(new Parameter[] { peakLists, peakListName, MZTolerance, MZWeight,
-				RTTolerance, RTWeight, SameChargeRequired, SameIDRequired,
-				compareIsotopePattern });
-	}
+    public JoinAlignerParameters() {
+	super(new Parameter[] { peakLists, peakListName, MZTolerance, MZWeight,
+		RTTolerance, RTWeight, SameChargeRequired, SameIDRequired,
+		compareIsotopePattern });
+    }
 
 }

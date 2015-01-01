@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,25 +35,25 @@ public class ChromatogramBuilderParameters extends SimpleParameterSet {
     public static final MassListParameter massList = new MassListParameter();
 
     public static final DoubleParameter minimumTimeSpan = new DoubleParameter(
-            "Min time span (min)",
-            "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram. "
-                    + "The optimal value depends on the chromatography system setup. The best way to set this parameter "
-                    + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
-            MZmineCore.getConfiguration().getRTFormat());
+	    "Min time span (min)",
+	    "Minimum time span over which the same ion must be observed in order to be recognized as a chromatogram. "
+		    + "The optimal value depends on the chromatography system setup. The best way to set this parameter "
+		    + "is by studying the raw data and determining what is the typical time span of chromatographic peaks.",
+	    MZmineCore.getConfiguration().getRTFormat());
 
     public static final DoubleParameter minimumHeight = new DoubleParameter(
-            "Min height",
-            "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
-            MZmineCore.getConfiguration().getIntensityFormat());
+	    "Min height",
+	    "Minimum intensity of the highest data point in the chromatogram. If chromatogram height is below this level, it is discarded.",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
     public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
     public static final StringParameter suffix = new StringParameter("Suffix",
-            "This string is added to filename as suffix", "chromatograms");
+	    "This string is added to filename as suffix", "chromatograms");
 
     public ChromatogramBuilderParameters() {
-        super(new Parameter[] { dataFiles, massList, minimumTimeSpan,
-                minimumHeight, mzTolerance, suffix });
+	super(new Parameter[] { dataFiles, massList, minimumTimeSpan,
+		minimumHeight, mzTolerance, suffix });
     }
 
 }

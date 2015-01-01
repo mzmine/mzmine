@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -32,7 +32,8 @@ import org.w3c.dom.Element;
 /**
  * A parameter that represents a file system directory.
  */
-public class DirectoryParameter implements UserParameter<File, DirectoryComponent> {
+public class DirectoryParameter implements
+	UserParameter<File, DirectoryComponent> {
 
     private final String name;
     private final String description;
@@ -40,88 +41,90 @@ public class DirectoryParameter implements UserParameter<File, DirectoryComponen
 
     public DirectoryParameter(final String aName, final String aDescription) {
 
-        name = aName;
-        description = aDescription;
+	name = aName;
+	description = aDescription;
     }
 
     @Override
     public String getName() {
 
-        return name;
+	return name;
     }
 
     @Override
     public String getDescription() {
 
-        return description;
+	return description;
     }
 
     @Override
     public DirectoryComponent createEditingComponent() {
 
-        return new DirectoryComponent();
+	return new DirectoryComponent();
     }
 
     @Override
     public File getValue() {
 
-        return value;
+	return value;
     }
 
     @Override
     public void setValue(final File newValue) {
 
-        value = newValue;
+	value = newValue;
     }
 
     @Override
     public DirectoryParameter cloneParameter() {
 
-        final DirectoryParameter copy = new DirectoryParameter(name, description);
-        copy.setValue(getValue());
-        return copy;
+	final DirectoryParameter copy = new DirectoryParameter(name,
+		description);
+	copy.setValue(getValue());
+	return copy;
     }
 
     @Override
     public void setValueFromComponent(final DirectoryComponent component) {
 
-        value = component.getValue();
+	value = component.getValue();
     }
 
     @Override
-    public void setValueToComponent(final DirectoryComponent component, final File newValue) {
+    public void setValueToComponent(final DirectoryComponent component,
+	    final File newValue) {
 
-        component.setValue(newValue);
+	component.setValue(newValue);
     }
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
 
-        final String fileString = xmlElement.getTextContent();
-        if (fileString.length() != 0) {
+	final String fileString = xmlElement.getTextContent();
+	if (fileString.length() != 0) {
 
-            value = new File(fileString);
-        }
+	    value = new File(fileString);
+	}
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
 
-        if (value != null) {
+	if (value != null) {
 
-            xmlElement.setTextContent(value.getPath());
-        }
+	    xmlElement.setTextContent(value.getPath());
+	}
     }
 
     @Override
     public boolean checkValue(final Collection<String> errorMessages) {
 
-        boolean check = true;
-        if (value == null) {
+	boolean check = true;
+	if (value == null) {
 
-            errorMessages.add(name + " is not set properly");
-            check = false;
-        }
-        return check;
+	    errorMessages.add(name + " is not set properly");
+	    check = false;
+	}
+	return check;
     }
 }

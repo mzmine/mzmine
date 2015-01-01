@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -17,7 +17,6 @@
  * St, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.modules.peaklistmethods.alignment.ransac;
 
 import java.text.NumberFormat;
@@ -27,19 +26,18 @@ import net.sf.mzmine.main.MZmineCore;
 import org.jfree.chart.labels.XYToolTipGenerator;
 import org.jfree.data.xy.XYDataset;
 
-
 /**
  * Tooltip generator
  */
 class AlignmentPreviewTooltipGenerator implements XYToolTipGenerator {
 
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-	String axis_X, axis_Y;
+    String axis_X, axis_Y;
 
-	public AlignmentPreviewTooltipGenerator(String axis_X, String axis_Y){
-		this.axis_X = axis_X;
-		this.axis_Y = axis_Y;
-	}
+    public AlignmentPreviewTooltipGenerator(String axis_X, String axis_Y) {
+	this.axis_X = axis_X;
+	this.axis_Y = axis_Y;
+    }
 
     /**
      * @see org.jfree.chart.labels.XYToolTipGenerator#generateToolTip(org.jfree.data.xy.XYDataset,
@@ -47,14 +45,13 @@ class AlignmentPreviewTooltipGenerator implements XYToolTipGenerator {
      */
     public String generateToolTip(XYDataset dataset, int series, int item) {
 
-        double rtValue = dataset.getYValue(series, item);
-        double rtValue2 = dataset.getXValue(series, item);
+	double rtValue = dataset.getYValue(series, item);
+	double rtValue2 = dataset.getXValue(series, item);
 
-        String tooltip = axis_X+ ": "
-                + rtFormat.format(rtValue) + "\n" + axis_Y + ": "
-                + rtFormat.format(rtValue2);
+	String tooltip = axis_X + ": " + rtFormat.format(rtValue) + "\n"
+		+ axis_Y + ": " + rtFormat.format(rtValue2);
 
-        return tooltip;
+	return tooltip;
 
     }
 

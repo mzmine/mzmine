@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -35,37 +35,37 @@ public class ConsoleFormatter extends Formatter {
 
     public String format(LogRecord record) {
 
-        String loggerNameElements[] = record.getLoggerName().split("\\.");
-        String loggerName = loggerNameElements[loggerNameElements.length - 1];
+	String loggerNameElements[] = record.getLoggerName().split("\\.");
+	String loggerName = loggerNameElements[loggerNameElements.length - 1];
 
-        StringBuilder output = new StringBuilder(512);
-        Date eventTime = new Date(record.getMillis());
+	StringBuilder output = new StringBuilder(512);
+	Date eventTime = new Date(record.getMillis());
 
-        output.append("[");
-        output.append(format.format(eventTime));
-        output.append('|');
-        output.append(record.getLevel());
-        output.append('|');
-        output.append(loggerName);
-        output.append("]: ");
-        output.append(record.getMessage());
+	output.append("[");
+	output.append(format.format(eventTime));
+	output.append('|');
+	output.append(record.getLevel());
+	output.append('|');
+	output.append(loggerName);
+	output.append("]: ");
+	output.append(record.getMessage());
 
-        if (record.getThrown() != null) {
-            output.append("(");
-            output.append(record.getThrown().toString());
+	if (record.getThrown() != null) {
+	    output.append("(");
+	    output.append(record.getThrown().toString());
 
-            Object[] stackTrace = record.getThrown().getStackTrace();
-            if (stackTrace.length > 0) {
-                output.append("@");
-                output.append(stackTrace[0].toString());
-            }
-            
-            output.append(")");
-        }
+	    Object[] stackTrace = record.getThrown().getStackTrace();
+	    if (stackTrace.length > 0) {
+		output.append("@");
+		output.append(stackTrace[0].toString());
+	    }
 
-        output.append(lineSep);
+	    output.append(")");
+	}
 
-        return output.toString();
+	output.append(lineSep);
+
+	return output.toString();
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,36 +27,36 @@ import java.util.zip.Inflater;
  */
 public class CompressionUtils {
 
-	/**
-	 * Decompress the zlib-compressed bytes and return an array of decompressed
-	 * bytes
-	 * 
-	 */
-	public static byte[] decompress(byte compressedBytes[])
-			throws DataFormatException {
+    /**
+     * Decompress the zlib-compressed bytes and return an array of decompressed
+     * bytes
+     * 
+     */
+    public static byte[] decompress(byte compressedBytes[])
+	    throws DataFormatException {
 
-		Inflater decompresser = new Inflater();
+	Inflater decompresser = new Inflater();
 
-		decompresser.setInput(compressedBytes);
+	decompresser.setInput(compressedBytes);
 
-		byte[] resultBuffer = new byte[compressedBytes.length * 2];
-		byte[] resultTotal = new byte[0];
+	byte[] resultBuffer = new byte[compressedBytes.length * 2];
+	byte[] resultTotal = new byte[0];
 
-		int resultLength = decompresser.inflate(resultBuffer);
+	int resultLength = decompresser.inflate(resultBuffer);
 
-		while (resultLength > 0) {
-			byte previousResult[] = resultTotal;
-			resultTotal = new byte[resultTotal.length + resultLength];
-			System.arraycopy(previousResult, 0, resultTotal, 0,
-					previousResult.length);
-			System.arraycopy(resultBuffer, 0, resultTotal,
-					previousResult.length, resultLength);
-			resultLength = decompresser.inflate(resultBuffer);
-		}
-
-		decompresser.end();
-
-		return resultTotal;
+	while (resultLength > 0) {
+	    byte previousResult[] = resultTotal;
+	    resultTotal = new byte[resultTotal.length + resultLength];
+	    System.arraycopy(previousResult, 0, resultTotal, 0,
+		    previousResult.length);
+	    System.arraycopy(resultBuffer, 0, resultTotal,
+		    previousResult.length, resultLength);
+	    resultLength = decompresser.inflate(resultBuffer);
 	}
+
+	decompresser.end();
+
+	return resultTotal;
+    }
 
 }

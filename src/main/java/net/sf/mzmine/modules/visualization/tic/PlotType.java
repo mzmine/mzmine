@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -21,17 +21,16 @@ package net.sf.mzmine.modules.visualization.tic;
 
 public enum PlotType {
 
-	TIC("Total ion current"), 
-	BASEPEAK("Base peak intensity");
+    TIC("Total ion current"), BASEPEAK("Base peak intensity");
 
-	private String type;
+    private String type;
 
-	PlotType(String type) {
-		this.type = type;
-	}
+    PlotType(String type) {
+	this.type = type;
+    }
 
-	public String toString() {
-		return type;
-	}
+    public String toString() {
+	return type;
+    }
 
 }

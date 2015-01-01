@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -65,11 +65,11 @@ public class AlignmentRansacPlot extends ChartPanel {
     private static final Color crossHairColor = Color.gray;
     // crosshair stroke
     private static final BasicStroke crossHairStroke = new BasicStroke(1,
-            BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[]{
-                5, 3}, 0);
+	    BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 1.0f, new float[] {
+		    5, 3 }, 0);
     // data points shape
-    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2, 5,
-            5);
+    private static final Shape dataPointsShape = new Ellipse2D.Double(-2, -2,
+	    5, 5);
     // titles
     private static final Font titleFont = new Font("SansSerif", Font.BOLD, 12);
     private TextTitle chartTitle;
@@ -83,68 +83,58 @@ public class AlignmentRansacPlot extends ChartPanel {
     private NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
 
     public AlignmentRansacPlot() {
-        super(null, true);
+	super(null, true);
 
-        dataset = new XYSeriesCollection();
-        chart = ChartFactory.createXYLineChart(
-                "",
-                null,
-                null,
-                dataset,
-                PlotOrientation.VERTICAL,
-                true,
-                true,
-                false);
+	dataset = new XYSeriesCollection();
+	chart = ChartFactory.createXYLineChart("", null, null, dataset,
+		PlotOrientation.VERTICAL, true, true, false);
 
-        chart.setBackgroundPaint(Color.white);
-        setChart(chart);
+	chart.setBackgroundPaint(Color.white);
+	setChart(chart);
 
+	// title
+	chartTitle = chart.getTitle();
+	chartTitle.setMargin(5, 0, 0, 0);
+	chartTitle.setFont(titleFont);
 
-        // title
-        chartTitle = chart.getTitle();
-        chartTitle.setMargin(5, 0, 0, 0);
-        chartTitle.setFont(titleFont);
+	// legend constructed by ChartFactory
+	legend = chart.getLegend();
+	legend.setItemFont(legendFont);
+	legend.setFrame(BlockBorder.NONE);
 
-        // legend constructed by ChartFactory
-        legend = chart.getLegend();
-        legend.setItemFont(legendFont);
-        legend.setFrame(BlockBorder.NONE);
+	// set the plot properties
+	plot = chart.getXYPlot();
+	plot.setBackgroundPaint(Color.white);
+	plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
+	plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        // set the plot properties
-        plot = chart.getXYPlot();
-        plot.setBackgroundPaint(Color.white);
-        plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
-        plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+	// set grid properties
+	plot.setDomainGridlinePaint(gridColor);
+	plot.setRangeGridlinePaint(gridColor);
 
-        // set grid properties
-        plot.setDomainGridlinePaint(gridColor);
-        plot.setRangeGridlinePaint(gridColor);
+	// set crosshair (selection) properties
 
-        // set crosshair (selection) properties
+	plot.setDomainCrosshairVisible(true);
+	plot.setRangeCrosshairVisible(true);
+	plot.setDomainCrosshairPaint(crossHairColor);
+	plot.setRangeCrosshairPaint(crossHairColor);
+	plot.setDomainCrosshairStroke(crossHairStroke);
+	plot.setRangeCrosshairStroke(crossHairStroke);
 
-        plot.setDomainCrosshairVisible(true);
-        plot.setRangeCrosshairVisible(true);
-        plot.setDomainCrosshairPaint(crossHairColor);
-        plot.setRangeCrosshairPaint(crossHairColor);
-        plot.setDomainCrosshairStroke(crossHairStroke);
-        plot.setRangeCrosshairStroke(crossHairStroke);
+	// set default renderer properties
+	XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+	renderer.setBaseLinesVisible(false);
+	renderer.setBaseShapesVisible(true);
+	renderer.setSeriesShape(0, dataPointsShape);
+	renderer.setSeriesShape(1, dataPointsShape);
+	renderer.setSeriesLinesVisible(2, true);
+	renderer.setSeriesShapesVisible(2, false);
+	renderer.setSeriesPaint(0, Color.RED);
+	renderer.setSeriesPaint(1, Color.GRAY);
+	renderer.setSeriesPaint(2, Color.BLUE);
+	renderer.setBaseItemLabelPaint(labelsColor);
 
-        // set default renderer properties
-        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setBaseLinesVisible(false);
-        renderer.setBaseShapesVisible(true);
-        renderer.setSeriesShape(0, dataPointsShape);
-        renderer.setSeriesShape(1, dataPointsShape);
-        renderer.setSeriesLinesVisible(2, true);
-        renderer.setSeriesShapesVisible(2, false);
-        renderer.setSeriesPaint(0, Color.RED);
-        renderer.setSeriesPaint(1, Color.GRAY);
-        renderer.setSeriesPaint(2, Color.BLUE);
-        renderer.setBaseItemLabelPaint(labelsColor);
-
-        plot.setRenderer(
-                renderer);
-
+	plot.setRenderer(renderer);
 
     }
 
@@ -152,120 +142,131 @@ public class AlignmentRansacPlot extends ChartPanel {
      * Remove all series from the chart
      */
     public void removeSeries() {
-        dataset.removeAllSeries();
+	dataset.removeAllSeries();
     }
 
     /**
      * Add new serie.
-     * @param v Vector with the alignments
-     * @param Name Name of the type of lipids in this alignment
+     * 
+     * @param v
+     *            Vector with the alignments
+     * @param Name
+     *            Name of the type of lipids in this alignment
      */
-    public void addSeries(Vector<AlignStructMol> data, String title, boolean linear) {
-        try {
-            chart.setTitle(title);
-            XYSeries s1 = new XYSeries("Aligned pairs");
-            XYSeries s2 = new XYSeries("Non-aligned pairs");
-            XYSeries s3 = new XYSeries("Model");
+    public void addSeries(Vector<AlignStructMol> data, String title,
+	    boolean linear) {
+	try {
+	    chart.setTitle(title);
+	    XYSeries s1 = new XYSeries("Aligned pairs");
+	    XYSeries s2 = new XYSeries("Non-aligned pairs");
+	    XYSeries s3 = new XYSeries("Model");
 
-            PolynomialFunction function = getPolynomialFunction(data, linear);
+	    PolynomialFunction function = getPolynomialFunction(data, linear);
 
-            for (AlignStructMol point : data) {
+	    for (AlignStructMol point : data) {
 
-                if (point.Aligned) {
-                    s1.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
-                } else {
-                    s2.add(point.row1.getPeaks()[0].getRT(), point.row2.getPeaks()[0].getRT());
-                }
-                try {
-                    s3.add(function.value(point.row2.getPeaks()[0].getRT()), point.row2.getPeaks()[0].getRT());
-                } catch (Exception e) {
-                }
-            }
+		if (point.Aligned) {
+		    s1.add(point.row1.getPeaks()[0].getRT(),
+			    point.row2.getPeaks()[0].getRT());
+		} else {
+		    s2.add(point.row1.getPeaks()[0].getRT(),
+			    point.row2.getPeaks()[0].getRT());
+		}
+		try {
+		    s3.add(function.value(point.row2.getPeaks()[0].getRT()),
+			    point.row2.getPeaks()[0].getRT());
+		} catch (Exception e) {
+		}
+	    }
 
-            this.dataset.addSeries(s1);
-            this.dataset.addSeries(s2);
-            this.dataset.addSeries(s3);
+	    this.dataset.addSeries(s1);
+	    this.dataset.addSeries(s2);
+	    this.dataset.addSeries(s3);
 
-        } catch (Exception e) {
-        }
+	} catch (Exception e) {
+	}
     }
 
-    private PolynomialFunction getPolynomialFunction(Vector<AlignStructMol> list, boolean linear) {
-        List<RTs> data = new ArrayList<RTs>();
-        for (AlignStructMol m : list) {
-            if (m.Aligned) {
-                data.add(new RTs(m.RT2, m.RT));
-            }
-        }
+    private PolynomialFunction getPolynomialFunction(
+	    Vector<AlignStructMol> list, boolean linear) {
+	List<RTs> data = new ArrayList<RTs>();
+	for (AlignStructMol m : list) {
+	    if (m.Aligned) {
+		data.add(new RTs(m.RT2, m.RT));
+	    }
+	}
 
-        data = this.smooth(data);
-        Collections.sort(data, new RTs());
+	data = this.smooth(data);
+	Collections.sort(data, new RTs());
 
-        double[] xval = new double[data.size()];
-        double[] yval = new double[data.size()];
-        int i = 0;
+	double[] xval = new double[data.size()];
+	double[] yval = new double[data.size()];
+	int i = 0;
 
-        for (RTs rt : data) {
-            xval[i] = rt.RT;
-            yval[i++] = rt.RT2;
-        }
+	for (RTs rt : data) {
+	    xval[i] = rt.RT;
+	    yval[i++] = rt.RT2;
+	}
 
-        int degree = 2;
-        if (linear) {
-            degree = 1;
-        }
+	int degree = 2;
+	if (linear) {
+	    degree = 1;
+	}
 
-        PolynomialFitter fitter = new PolynomialFitter(degree, new GaussNewtonOptimizer(true));
-        for (RTs rt : data) {
-            fitter.addObservedPoint(1, rt.RT, rt.RT2);
-        }
-        try {
-            return fitter.fit();
+	PolynomialFitter fitter = new PolynomialFitter(degree,
+		new GaussNewtonOptimizer(true));
+	for (RTs rt : data) {
+	    fitter.addObservedPoint(1, rt.RT, rt.RT2);
+	}
+	try {
+	    return fitter.fit();
 
-        } catch (Exception ex) {
-            return null;
-        }
+	} catch (Exception ex) {
+	    return null;
+	}
     }
 
     private List<RTs> smooth(List<RTs> list) {
-        // Add points to the model in between of the real points to smooth the regression model
-        Collections.sort(list, new RTs());
+	// Add points to the model in between of the real points to smooth the
+	// regression model
+	Collections.sort(list, new RTs());
 
-        for (int i = 0; i < list.size() - 1; i++) {
-            RTs point1 = list.get(i);
-            RTs point2 = list.get(i + 1);
-            if (point1.RT < point2.RT - 2) {
-                SimpleRegression regression = new SimpleRegression();
-                regression.addData(point1.RT, point1.RT2);
-                regression.addData(point2.RT, point2.RT2);
-                double rt = point1.RT + 1;
-                while (rt < point2.RT) {
-                    RTs newPoint = new RTs(rt, regression.predict(rt));
-                    list.add(newPoint);
-                    rt++;
-                }
+	for (int i = 0; i < list.size() - 1; i++) {
+	    RTs point1 = list.get(i);
+	    RTs point2 = list.get(i + 1);
+	    if (point1.RT < point2.RT - 2) {
+		SimpleRegression regression = new SimpleRegression();
+		regression.addData(point1.RT, point1.RT2);
+		regression.addData(point2.RT, point2.RT2);
+		double rt = point1.RT + 1;
+		while (rt < point2.RT) {
+		    RTs newPoint = new RTs(rt, regression.predict(rt));
+		    list.add(newPoint);
+		    rt++;
+		}
 
-            }
-        }
+	    }
+	}
 
-        return list;
+	return list;
     }
 
     public void printAlignmentChart(String axisTitleX, String axisTitleY) {
-        try {
-            toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX, axisTitleY);
-            plot.getRenderer().setBaseToolTipGenerator(toolTipGenerator);
-            NumberAxis xAxis = new NumberAxis(axisTitleX);
-            xAxis.setNumberFormatOverride(rtFormat);
-            xAxis.setAutoRangeIncludesZero(false);
-            plot.setDomainAxis(xAxis);
+	try {
+	    toolTipGenerator = new AlignmentPreviewTooltipGenerator(axisTitleX,
+		    axisTitleY);
+	    plot.getRenderer().setBaseToolTipGenerator(toolTipGenerator);
+	    NumberAxis xAxis = new NumberAxis(axisTitleX);
+	    xAxis.setNumberFormatOverride(rtFormat);
+	    xAxis.setAutoRangeIncludesZero(false);
+	    plot.setDomainAxis(xAxis);
 
-            NumberAxis yAxis = new NumberAxis(axisTitleY);
-            yAxis.setNumberFormatOverride(rtFormat);
-            yAxis.setAutoRangeIncludesZero(false);
-            plot.setRangeAxis(yAxis);
+	    NumberAxis yAxis = new NumberAxis(axisTitleY);
+	    yAxis.setNumberFormatOverride(rtFormat);
+	    yAxis.setAutoRangeIncludesZero(false);
+	    plot.setRangeAxis(yAxis);
 
-        } catch (Exception e) {
-        }
+	} catch (Exception e) {
+	}
     }
 }

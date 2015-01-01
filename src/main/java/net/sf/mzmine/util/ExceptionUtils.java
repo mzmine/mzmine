@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,19 +30,19 @@ public class ExceptionUtils {
      */
     public static String exceptionToString(Throwable exception) {
 
-        StringBuffer str = new StringBuffer();
-        str.append(exception.toString());
+	StringBuffer str = new StringBuffer();
+	str.append(exception.toString());
 
-        if (exception.getStackTrace().length > 0) {
-            StackTraceElement location = exception.getStackTrace()[0];
-            str.append(" (");
-            str.append(location.getFileName());
-            str.append(":");
-            str.append(location.getLineNumber());
-            str.append(")");
-        }
+	if (exception.getStackTrace().length > 0) {
+	    StackTraceElement location = exception.getStackTrace()[0];
+	    str.append(" (");
+	    str.append(location.getFileName());
+	    str.append(":");
+	    str.append(location.getLineNumber());
+	    str.append(")");
+	}
 
-        return str.toString();
+	return str.toString();
 
     }
 

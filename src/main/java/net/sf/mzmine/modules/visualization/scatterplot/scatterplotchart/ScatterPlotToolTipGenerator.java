@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,8 +24,8 @@ import org.jfree.data.xy.XYDataset;
 
 public class ScatterPlotToolTipGenerator implements XYToolTipGenerator {
 
-	public String generateToolTip(XYDataset dataset, int series, int item) {
-		return String.valueOf(series + ":" + item);
-	}
+    public String generateToolTip(XYDataset dataset, int series, int item) {
+	return String.valueOf(series + ":" + item);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -46,122 +46,121 @@ import net.sf.mzmine.util.components.ComponentCellRenderer;
 /**
  * This class represents a window with a table of running tasks
  */
-public class TaskProgressTable extends JPanel implements
-		ActionListener {
+public class TaskProgressTable extends JPanel implements ActionListener {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	private JTable taskTable;
+    private JTable taskTable;
 
-	private JPopupMenu popupMenu;
-	private JMenu priorityMenu;
-	private JMenuItem cancelTaskMenuItem, cancelAllMenuItem,
-			highPriorityMenuItem, normalPriorityMenuItem;
+    private JPopupMenu popupMenu;
+    private JMenu priorityMenu;
+    private JMenuItem cancelTaskMenuItem, cancelAllMenuItem,
+	    highPriorityMenuItem, normalPriorityMenuItem;
 
-	/**
-	 * Constructor
-	 */
-	public TaskProgressTable() {
+    /**
+     * Constructor
+     */
+    public TaskProgressTable() {
 
-		super(new BorderLayout());
-		
-		add(new JLabel("Tasks in progress..."), BorderLayout.NORTH);
+	super(new BorderLayout());
 
-		TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore
-				.getTaskController();
+	add(new JLabel("Tasks in progress..."), BorderLayout.NORTH);
 
-		taskTable = new JTable(taskController.getTaskQueue());
-		taskTable.setCellSelectionEnabled(false);
-		taskTable.setColumnSelectionAllowed(false);
-		taskTable.setRowSelectionAllowed(true);
-		taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		taskTable.setDefaultRenderer(JComponent.class,
-				new ComponentCellRenderer());
-		taskTable.getTableHeader().setReorderingAllowed(false);
+	TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore
+		.getTaskController();
 
-		JScrollPane jJobScroll = new JScrollPane(taskTable);
-		add(jJobScroll, BorderLayout.CENTER);
+	taskTable = new JTable(taskController.getTaskQueue());
+	taskTable.setCellSelectionEnabled(false);
+	taskTable.setColumnSelectionAllowed(false);
+	taskTable.setRowSelectionAllowed(true);
+	taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	taskTable.setDefaultRenderer(JComponent.class,
+		new ComponentCellRenderer());
+	taskTable.getTableHeader().setReorderingAllowed(false);
 
-		// Create popup menu and items
-		popupMenu = new JPopupMenu();
+	JScrollPane jJobScroll = new JScrollPane(taskTable);
+	add(jJobScroll, BorderLayout.CENTER);
 
-		priorityMenu = new JMenu("Set priority...");
-		highPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "High", this);
-		normalPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "Normal",
-				this);
-		popupMenu.add(priorityMenu);
+	// Create popup menu and items
+	popupMenu = new JPopupMenu();
 
-		cancelTaskMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel task",
-				this);
-		cancelAllMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel all tasks",
-				this);
+	priorityMenu = new JMenu("Set priority...");
+	highPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "High", this);
+	normalPriorityMenuItem = GUIUtils.addMenuItem(priorityMenu, "Normal",
+		this);
+	popupMenu.add(priorityMenu);
 
-		// Addd popup menu to the task table
-		taskTable.setComponentPopupMenu(popupMenu);
+	cancelTaskMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel task",
+		this);
+	cancelAllMenuItem = GUIUtils.addMenuItem(popupMenu, "Cancel all tasks",
+		this);
 
-		// Set the width for first column (task description)
-		taskTable.getColumnModel().getColumn(0).setPreferredWidth(350);
+	// Addd popup menu to the task table
+	taskTable.setComponentPopupMenu(popupMenu);
 
-		jJobScroll.setPreferredSize(new Dimension(600, 120));
+	// Set the width for first column (task description)
+	taskTable.getColumnModel().getColumn(0).setPreferredWidth(350);
 
+	jJobScroll.setPreferredSize(new Dimension(600, 120));
+
+    }
+
+    /**
+     * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+     */
+    public void actionPerformed(ActionEvent event) {
+
+	TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore
+		.getTaskController();
+
+	WrappedTask currentQueue[] = taskController.getTaskQueue()
+		.getQueueSnapshot();
+
+	Task selectedTask = null;
+
+	int selectedRow = taskTable.getSelectedRow();
+
+	if ((selectedRow < currentQueue.length) && (selectedRow >= 0))
+	    selectedTask = currentQueue[selectedRow].getActualTask();
+
+	Object src = event.getSource();
+
+	if (src == cancelTaskMenuItem) {
+	    if (selectedTask == null)
+		return;
+	    TaskStatus status = selectedTask.getStatus();
+	    if ((status == TaskStatus.WAITING)
+		    || (status == TaskStatus.PROCESSING)) {
+		selectedTask.cancel();
+	    }
 	}
 
-	/**
-	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
-	 */
-	public void actionPerformed(ActionEvent event) {
-
-		TaskControllerImpl taskController = (TaskControllerImpl) MZmineCore
-				.getTaskController();
-
-		WrappedTask currentQueue[] = taskController.getTaskQueue()
-				.getQueueSnapshot();
-
-		Task selectedTask = null;
-
-		int selectedRow = taskTable.getSelectedRow();
-
-		if ((selectedRow < currentQueue.length) && (selectedRow >= 0))
-			selectedTask = currentQueue[selectedRow].getActualTask();
-
-		Object src = event.getSource();
-
-		if (src == cancelTaskMenuItem) {
-			if (selectedTask == null)
-				return;
-			TaskStatus status = selectedTask.getStatus();
-			if ((status == TaskStatus.WAITING)
-					|| (status == TaskStatus.PROCESSING)) {
-				selectedTask.cancel();
-			}
+	if (src == cancelAllMenuItem) {
+	    for (WrappedTask wrappedTask : currentQueue) {
+		Task task = wrappedTask.getActualTask();
+		TaskStatus status = task.getStatus();
+		if ((status == TaskStatus.WAITING)
+			|| (status == TaskStatus.PROCESSING)) {
+		    task.cancel();
 		}
-
-		if (src == cancelAllMenuItem) {
-			for (WrappedTask wrappedTask : currentQueue) {
-				Task task = wrappedTask.getActualTask();
-				TaskStatus status = task.getStatus();
-				if ((status == TaskStatus.WAITING)
-						|| (status == TaskStatus.PROCESSING)) {
-					task.cancel();
-				}
-			}
-		}
-
-		if (src == highPriorityMenuItem) {
-			if (selectedTask == null)
-				return;
-			taskController.setTaskPriority(selectedTask, TaskPriority.HIGH);
-		}
-
-		if (src == normalPriorityMenuItem) {
-			if (selectedTask == null)
-				return;
-			taskController.setTaskPriority(selectedTask, TaskPriority.NORMAL);
-		}
-
+	    }
 	}
+
+	if (src == highPriorityMenuItem) {
+	    if (selectedTask == null)
+		return;
+	    taskController.setTaskPriority(selectedTask, TaskPriority.HIGH);
+	}
+
+	if (src == normalPriorityMenuItem) {
+	    if (selectedTask == null)
+		return;
+	    taskController.setTaskPriority(selectedTask, TaskPriority.NORMAL);
+	}
+
+    }
 
 }

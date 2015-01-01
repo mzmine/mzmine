@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,34 +30,34 @@ import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class GPLipidSearchParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final MultiChoiceParameter<GPLipidType> lipidTypes = new MultiChoiceParameter<GPLipidType>(
-			"Type of lipids", "Selection of glycerophospholipis to consider",
-			GPLipidType.values());
+    public static final MultiChoiceParameter<GPLipidType> lipidTypes = new MultiChoiceParameter<GPLipidType>(
+	    "Type of lipids", "Selection of glycerophospholipis to consider",
+	    GPLipidType.values());
 
-	public static final IntegerParameter minChainLength = new IntegerParameter(
-			"Minimum fatty acid length",
-			"Minimum length of the fatty acid chain");
+    public static final IntegerParameter minChainLength = new IntegerParameter(
+	    "Minimum fatty acid length",
+	    "Minimum length of the fatty acid chain");
 
-	public static final IntegerParameter maxChainLength = new IntegerParameter(
-			"Maximum fatty acid length",
-			"Maximum length of the fatty acid chain");
+    public static final IntegerParameter maxChainLength = new IntegerParameter(
+	    "Maximum fatty acid length",
+	    "Maximum length of the fatty acid chain");
 
-	public static final IntegerParameter maxDoubleBonds = new IntegerParameter(
-			"Maximum number of double bonds",
-			"Maximum number of double bonds in one fatty acid chain");
+    public static final IntegerParameter maxDoubleBonds = new IntegerParameter(
+	    "Maximum number of double bonds",
+	    "Maximum number of double bonds in one fatty acid chain");
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
-			"Ionization method",
-			"Type of ion used to calculate the ionized mass",
-			IonizationType.values());
+    public static final ComboParameter<IonizationType> ionizationMethod = new ComboParameter<IonizationType>(
+	    "Ionization method",
+	    "Type of ion used to calculate the ionized mass",
+	    IonizationType.values());
 
-	public GPLipidSearchParameters() {
-		super(new Parameter[] { peakLists, lipidTypes, minChainLength,
-				maxChainLength, maxDoubleBonds, mzTolerance, ionizationMethod });
-	}
+    public GPLipidSearchParameters() {
+	super(new Parameter[] { peakLists, lipidTypes, minChainLength,
+		maxChainLength, maxDoubleBonds, mzTolerance, ionizationMethod });
+    }
 
 }

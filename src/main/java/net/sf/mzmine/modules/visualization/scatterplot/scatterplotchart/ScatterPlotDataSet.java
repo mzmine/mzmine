@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,139 +37,139 @@ import org.jfree.data.xy.AbstractXYDataset;
  */
 public class ScatterPlotDataSet extends AbstractXYDataset {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	private PeakListRow displayedRows[], selectedRows[];
+    private PeakListRow displayedRows[], selectedRows[];
 
-	private ScatterPlotAxisSelection axisX, axisY;
-	private SearchDefinition currentSearch;
+    private ScatterPlotAxisSelection axisX, axisY;
+    private SearchDefinition currentSearch;
 
-	// We use this value for zero data points, because zero cannot be plotted in
-	// the log-scale scatter plot
-	private double defaultValue;
+    // We use this value for zero data points, because zero cannot be plotted in
+    // the log-scale scatter plot
+    private double defaultValue;
 
-	public ScatterPlotDataSet(PeakList peakList) {
-		this.displayedRows = peakList.getRows();
+    public ScatterPlotDataSet(PeakList peakList) {
+	this.displayedRows = peakList.getRows();
+    }
+
+    void setDisplayedAxes(ScatterPlotAxisSelection axisX,
+	    ScatterPlotAxisSelection axisY) {
+
+	this.axisX = axisX;
+	this.axisY = axisY;
+
+	// Update the default value to minimum value divided by 2
+	double minValue = Double.MAX_VALUE;
+	for (PeakListRow row : displayedRows) {
+	    double valX = axisX.getValue(row);
+	    double valY = axisX.getValue(row);
+	    if ((valX > 0) && (valX < minValue))
+		minValue = valX;
+	    if ((valY > 0) && (valY < minValue))
+		minValue = valY;
 	}
+	this.defaultValue = minValue / 2;
 
-	void setDisplayedAxes(ScatterPlotAxisSelection axisX,
-			ScatterPlotAxisSelection axisY) {
+	updateSearchDefinition(currentSearch);
 
-		this.axisX = axisX;
-		this.axisY = axisY;
+    }
 
-		// Update the default value to minimum value divided by 2
-		double minValue = Double.MAX_VALUE;
-		for (PeakListRow row : displayedRows) {
-			double valX = axisX.getValue(row);
-			double valY = axisX.getValue(row);
-			if ((valX > 0) && (valX < minValue))
-				minValue = valX;
-			if ((valY > 0) && (valY < minValue))
-				minValue = valY;
-		}
-		this.defaultValue = minValue / 2;
+    public PeakListRow getRow(int series, int item) {
+	if (series == 0)
+	    return displayedRows[item];
+	else
+	    return selectedRows[item];
+    }
 
-		updateSearchDefinition(currentSearch);
+    @Override
+    public int getSeriesCount() {
+	if ((displayedRows == null) || (axisX == null) || (axisY == null))
+	    return 0;
+	if ((selectedRows == null) || (selectedRows.length == 0))
+	    return 1;
+	return 2;
+    }
 
-	}
+    @Override
+    public Comparable<Integer> getSeriesKey(int series) {
+	return series;
+    }
 
-	public PeakListRow getRow(int series, int item) {
-		if (series == 0)
-			return displayedRows[item];
-		else
-			return selectedRows[item];
-	}
-
-	@Override
-	public int getSeriesCount() {
-		if ((displayedRows == null) || (axisX == null) || (axisY == null))
-			return 0;
-		if ((selectedRows == null) || (selectedRows.length == 0))
-			return 1;
-		return 2;
-	}
-
-	@Override
-	public Comparable<Integer> getSeriesKey(int series) {
-		return series;
-	}
-
-	/**
+    /**
      * 
      */
-	public int getItemCount(int series) {
-		if (series == 0)
-			return displayedRows.length;
-		else
-			return selectedRows.length;
-	}
+    public int getItemCount(int series) {
+	if (series == 0)
+	    return displayedRows.length;
+	else
+	    return selectedRows.length;
+    }
 
-	/**
+    /**
      * 
      */
-	public Number getX(int series, int item) {
-		double value;
-		if (series == 0)
-			value = axisX.getValue(displayedRows[item]);
-		else
-			value = axisX.getValue(selectedRows[item]);
-		// We must not return zero, because it cannot be plotted
-		if (value > 0)
-			return value;
-		else
-			return defaultValue;
-	}
+    public Number getX(int series, int item) {
+	double value;
+	if (series == 0)
+	    value = axisX.getValue(displayedRows[item]);
+	else
+	    value = axisX.getValue(selectedRows[item]);
+	// We must not return zero, because it cannot be plotted
+	if (value > 0)
+	    return value;
+	else
+	    return defaultValue;
+    }
 
-	/**
+    /**
      * 
      */
-	public Number getY(int series, int item) {
-		double value;
-		if (series == 0)
-			value = axisY.getValue(displayedRows[item]);
-		else
-			value = axisY.getValue(selectedRows[item]);
-		// We must not return zero, because it cannot be plotted
-		if (value > 0)
-			return value;
-		else
-			return defaultValue;
+    public Number getY(int series, int item) {
+	double value;
+	if (series == 0)
+	    value = axisY.getValue(displayedRows[item]);
+	else
+	    value = axisY.getValue(selectedRows[item]);
+	// We must not return zero, because it cannot be plotted
+	if (value > 0)
+	    return value;
+	else
+	    return defaultValue;
+    }
+
+    /**
+     * Returns the peak list row which exactly matches given X and Y values
+     */
+    public PeakListRow getRow(double valueX, double valueY) {
+
+	for (int i = 0; i < displayedRows.length; i++) {
+	    if ((Math.abs(valueX - getXValue(0, i)) < 0.0000001)
+		    && (Math.abs(valueY - getYValue(0, i)) < 0.0000001))
+		return displayedRows[i];
 	}
+	return null;
+    }
 
-	/**
-	 * Returns the peak list row which exactly matches given X and Y values
-	 */
-	public PeakListRow getRow(double valueX, double valueY) {
+    void updateSearchDefinition(SearchDefinition newSearch) {
 
-		for (int i = 0; i < displayedRows.length; i++) {
-			if ((Math.abs(valueX - getXValue(0, i)) < 0.0000001)
-					&& (Math.abs(valueY - getYValue(0, i)) < 0.0000001))
-				return displayedRows[i];
+	this.currentSearch = newSearch;
+
+	if (newSearch == null) {
+	    this.selectedRows = new PeakListRow[0];
+	} else {
+	    ArrayList<PeakListRow> selected = new ArrayList<PeakListRow>();
+	    for (PeakListRow row : displayedRows) {
+		if (newSearch.conforms(row)) {
+		    selected.add(row);
 		}
-		return null;
+	    }
+	    this.selectedRows = selected.toArray(new PeakListRow[0]);
 	}
 
-	void updateSearchDefinition(SearchDefinition newSearch) {
-
-		this.currentSearch = newSearch;
-
-		if (newSearch == null) {
-			this.selectedRows = new PeakListRow[0];
-		} else {
-			ArrayList<PeakListRow> selected = new ArrayList<PeakListRow>();
-			for (PeakListRow row : displayedRows) {
-				if (newSearch.conforms(row)) {
-					selected.add(row);
-				}
-			}
-			this.selectedRows = selected.toArray(new PeakListRow[0]);
-		}
-
-		fireDatasetChanged();
-	}
+	fireDatasetChanged();
+    }
 
 }

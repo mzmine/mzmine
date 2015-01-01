@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -29,44 +29,47 @@ public class GPLipidIdentity extends SimplePeakIdentity {
     private final double mass;
 
     public GPLipidIdentity(final GPLipidType lipidType,
-                           final int fattyAcid1Length,
-                           final int fattyAcid1DoubleBonds,
-                           final int fattyAcid2Length,
-                           final int fattyAcid2DoubleBonds) {
+	    final int fattyAcid1Length, final int fattyAcid1DoubleBonds,
+	    final int fattyAcid2Length, final int fattyAcid2DoubleBonds) {
 
-        this(lipidType.getAbbr()
-             + '(' + fattyAcid1Length + ':'
-             + fattyAcid1DoubleBonds + '/' + fattyAcid2Length + ':'
-             + fattyAcid2DoubleBonds + ')',
-             lipidType.getFormula() +
-             calculateFattyAcidFormula(fattyAcid1Length, fattyAcid1DoubleBonds) +
-             calculateFattyAcidFormula(fattyAcid2Length, fattyAcid2DoubleBonds));
+	this(lipidType.getAbbr() + '(' + fattyAcid1Length + ':'
+		+ fattyAcid1DoubleBonds + '/' + fattyAcid2Length + ':'
+		+ fattyAcid2DoubleBonds + ')', lipidType.getFormula()
+		+ calculateFattyAcidFormula(fattyAcid1Length,
+			fattyAcid1DoubleBonds)
+		+ calculateFattyAcidFormula(fattyAcid2Length,
+			fattyAcid2DoubleBonds));
     }
 
     private GPLipidIdentity(final String name, final String formula) {
 
-        super(name);
-        mass = FormulaUtils.calculateExactMass(formula);
-        setPropertyValue(PROPERTY_FORMULA, formula);
-        setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
+	super(name);
+	mass = FormulaUtils.calculateExactMass(formula);
+	setPropertyValue(PROPERTY_FORMULA, formula);
+	setPropertyValue(PROPERTY_METHOD, "Glycerophospholipid search");
     }
 
     /**
      * Calculate fatty acid formula.
      *
-     * @param fattyAcidLength      acid length.
-     * @param fattyAcidDoubleBonds double bond count.
+     * @param fattyAcidLength
+     *            acid length.
+     * @param fattyAcidDoubleBonds
+     *            double bond count.
      * @return fatty acid formula.
      */
-    private static String calculateFattyAcidFormula(final int fattyAcidLength, final int fattyAcidDoubleBonds) {
+    private static String calculateFattyAcidFormula(final int fattyAcidLength,
+	    final int fattyAcidDoubleBonds) {
 
-        String fattyAcid1Formula = "H";
-        if (fattyAcidLength > 0) {
+	String fattyAcid1Formula = "H";
+	if (fattyAcidLength > 0) {
 
-            final int numberOfHydrogens = fattyAcidLength * 2 - fattyAcidDoubleBonds * 2 - 1;
-            fattyAcid1Formula = "C" + fattyAcidLength + 'H' + numberOfHydrogens + 'O';
-        }
-        return fattyAcid1Formula;
+	    final int numberOfHydrogens = fattyAcidLength * 2
+		    - fattyAcidDoubleBonds * 2 - 1;
+	    fattyAcid1Formula = "C" + fattyAcidLength + 'H' + numberOfHydrogens
+		    + 'O';
+	}
+	return fattyAcid1Formula;
     }
 
     /**
@@ -76,12 +79,13 @@ public class GPLipidIdentity extends SimplePeakIdentity {
      */
     public double getMass() {
 
-        return mass;
+	return mass;
     }
 
     @Override
     public @Nonnull Object clone() {
 
-        return new GPLipidIdentity(getName(), getPropertyValue(PROPERTY_FORMULA));
+	return new GPLipidIdentity(getName(),
+		getPropertyValue(PROPERTY_FORMULA));
     }
 }

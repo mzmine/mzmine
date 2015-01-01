@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -45,7 +45,8 @@ import org.w3c.dom.NodeList;
 public class AdductsParameter extends MultiChoiceParameter<AdductType> {
 
     // Logger.
-    private static final Logger LOG = Logger.getLogger(AdductsParameter.class.getName());
+    private static final Logger LOG = Logger.getLogger(AdductsParameter.class
+	    .getName());
 
     // XML tags.
     private static final String ADDUCTS_TAG = "adduct";
@@ -56,113 +57,123 @@ public class AdductsParameter extends MultiChoiceParameter<AdductType> {
     /**
      * Create the parameter.
      *
-     * @param name        name of the parameter.
-     * @param description description of the parameter.
+     * @param name
+     *            name of the parameter.
+     * @param description
+     *            description of the parameter.
      */
     public AdductsParameter(final String name, final String description) {
 
-        super(name, description, AdductType.getDefaultValues());
+	super(name, description, AdductType.getDefaultValues());
     }
 
     @Override
     public MultiChoiceComponent createEditingComponent() {
 
-        return new AdductsComponent(getChoices());
+	return new AdductsComponent(getChoices());
     }
 
     @Override
     public void setValueFromComponent(final MultiChoiceComponent component) {
 
-        super.setValueFromComponent(component);
-        setChoices((AdductType[]) component.getChoices());
+	super.setValueFromComponent(component);
+	setChoices((AdductType[]) component.getChoices());
     }
 
     @Override
     public void loadValueFromXML(final Element xmlElement) {
 
-        // Get the XML tag.
-        final NodeList items = xmlElement.getElementsByTagName(ADDUCTS_TAG);
-        final int length = items.getLength();
+	// Get the XML tag.
+	final NodeList items = xmlElement.getElementsByTagName(ADDUCTS_TAG);
+	final int length = items.getLength();
 
-        // Start with current choices and empty selections.
-        final ArrayList<AdductType> newChoices = new ArrayList<AdductType>(Arrays.asList(getChoices()));
-        final ArrayList<AdductType> selections = new ArrayList<AdductType>(length);
+	// Start with current choices and empty selections.
+	final ArrayList<AdductType> newChoices = new ArrayList<AdductType>(
+		Arrays.asList(getChoices()));
+	final ArrayList<AdductType> selections = new ArrayList<AdductType>(
+		length);
 
-        // Process each adduct.
-        for (int i = 0;
-             i < length;
-             i++) {
+	// Process each adduct.
+	for (int i = 0; i < length; i++) {
 
-            final Node item = items.item(i);
+	    final Node item = items.item(i);
 
-            // Get attributes.
-            final NamedNodeMap attributes = item.getAttributes();
-            final Node nameNode = attributes.getNamedItem(NAME_ATTRIBUTE);
-            final Node massNode = attributes.getNamedItem(MASS_ATTRIBUTE);
-            final Node selectedNode = attributes.getNamedItem(SELECTED_ATTRIBUTE);
+	    // Get attributes.
+	    final NamedNodeMap attributes = item.getAttributes();
+	    final Node nameNode = attributes.getNamedItem(NAME_ATTRIBUTE);
+	    final Node massNode = attributes.getNamedItem(MASS_ATTRIBUTE);
+	    final Node selectedNode = attributes
+		    .getNamedItem(SELECTED_ATTRIBUTE);
 
-            // Valid attributes?
-            if (nameNode != null && massNode != null) {
+	    // Valid attributes?
+	    if (nameNode != null && massNode != null) {
 
-                try {
-                    // Create new adduct.
-                    final AdductType adduct = new AdductType(nameNode.getNodeValue(),
-                                                             Double.parseDouble(massNode.getNodeValue()));
+		try {
+		    // Create new adduct.
+		    final AdductType adduct = new AdductType(
+			    nameNode.getNodeValue(),
+			    Double.parseDouble(massNode.getNodeValue()));
 
-                    // A new choice?
-                    if (!newChoices.contains(adduct)) {
+		    // A new choice?
+		    if (!newChoices.contains(adduct)) {
 
-                        newChoices.add(adduct);
-                    }
+			newChoices.add(adduct);
+		    }
 
-                    // Selected?
-                    if (!selections.contains(adduct) && selectedNode != null &&
-                        Boolean.parseBoolean(selectedNode.getNodeValue())) {
+		    // Selected?
+		    if (!selections.contains(adduct)
+			    && selectedNode != null
+			    && Boolean
+				    .parseBoolean(selectedNode.getNodeValue())) {
 
-                        selections.add(adduct);
-                    }
-                }
-                catch (NumberFormatException ex) {
+			selections.add(adduct);
+		    }
+		} catch (NumberFormatException ex) {
 
-                    // Ignore.
-                    LOG.warning("Illegal mass difference attribute in " + item.getNodeValue());
-                }
-            }
-        }
+		    // Ignore.
+		    LOG.warning("Illegal mass difference attribute in "
+			    + item.getNodeValue());
+		}
+	    }
+	}
 
-        // Set choices and selections (value).
-        setChoices(newChoices.toArray(new AdductType[newChoices.size()]));
-        setValue(selections.toArray(new AdductType[selections.size()]));
+	// Set choices and selections (value).
+	setChoices(newChoices.toArray(new AdductType[newChoices.size()]));
+	setValue(selections.toArray(new AdductType[selections.size()]));
     }
 
     @Override
     public void saveValueToXML(final Element xmlElement) {
 
-        // Get choices and selections.
-        final AdductType[] choices = getChoices();
-        final AdductType[] value = getValue();
-        final List<AdductType> selections = Arrays.asList(value == null ? new AdductType[]{} : value);
+	// Get choices and selections.
+	final AdductType[] choices = getChoices();
+	final AdductType[] value = getValue();
+	final List<AdductType> selections = Arrays
+		.asList(value == null ? new AdductType[] {} : value);
 
-        if (choices != null) {
+	if (choices != null) {
 
-            final Document parent = xmlElement.getOwnerDocument();
-            for (final AdductType item : choices) {
+	    final Document parent = xmlElement.getOwnerDocument();
+	    for (final AdductType item : choices) {
 
-                final Element element = parent.createElement(ADDUCTS_TAG);
-                element.setAttribute(NAME_ATTRIBUTE, item.getName());
-                element.setAttribute(MASS_ATTRIBUTE, Double.toString(item.getMassDifference()));
-                element.setAttribute(SELECTED_ATTRIBUTE, Boolean.toString(selections.contains(item)));
-                xmlElement.appendChild(element);
-            }
-        }
+		final Element element = parent.createElement(ADDUCTS_TAG);
+		element.setAttribute(NAME_ATTRIBUTE, item.getName());
+		element.setAttribute(MASS_ATTRIBUTE,
+			Double.toString(item.getMassDifference()));
+		element.setAttribute(SELECTED_ATTRIBUTE,
+			Boolean.toString(selections.contains(item)));
+		xmlElement.appendChild(element);
+	    }
+	}
     }
 
     @Override
     public AdductsParameter cloneParameter() {
 
-        final AdductsParameter copy = new AdductsParameter(getName(), getDescription());
-        copy.setChoices(getChoices());
-        copy.setValue(getValue());
-        return copy;
+	final AdductsParameter copy = new AdductsParameter(getName(),
+		getDescription());
+	copy.setChoices(getChoices());
+	copy.setValue(getValue());
+	return copy;
     }
 }

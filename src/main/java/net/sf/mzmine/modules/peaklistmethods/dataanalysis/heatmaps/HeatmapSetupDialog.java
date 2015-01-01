@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -37,7 +37,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
      */
     private static final long serialVersionUID = 1L;
     private JComboBox<Object> selDataCombo, refGroupCombo;
-    private UserParameter<?,?> previousParameterSelection;
+    private UserParameter<?, ?> previousParameterSelection;
 
     @SuppressWarnings("unchecked")
     public HeatmapSetupDialog(Window parent, boolean valueCheckRequired,
@@ -51,7 +51,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
 		.getComponentForParameter(HeatMapParameters.referenceGroup);
 
 	// Save a reference to current "Sample parameter" value
-	previousParameterSelection = (UserParameter<?,?>) selDataCombo
+	previousParameterSelection = (UserParameter<?, ?>) selDataCombo
 		.getSelectedItem();
 
 	// Call parametersChanged() to rebuild the reference group combo
@@ -63,7 +63,7 @@ public class HeatmapSetupDialog extends ParameterSetupDialog {
     public void parametersChanged() {
 
 	// Get the current value of the "Sample parameter" combo
-	UserParameter<?,?> currentParameterSelection = (UserParameter<?,?>) selDataCombo
+	UserParameter<?, ?> currentParameterSelection = (UserParameter<?, ?>) selDataCombo
 		.getSelectedItem();
 	if (currentParameterSelection == null)
 	    return;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,30 +30,30 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class PeakFinderParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "gap-filled");
+    public static final StringParameter suffix = new StringParameter(
+	    "Name suffix", "Suffix to be added to peak list name", "gap-filled");
 
-	public static final PercentParameter intTolerance = new PercentParameter(
-			"Intensity tolerance",
-			"Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
+    public static final PercentParameter intTolerance = new PercentParameter(
+	    "Intensity tolerance",
+	    "Maximum allowed deviation from expected /\\ shape of a peak in chromatographic direction");
 
-	public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter MZTolerance = new MZToleranceParameter();
 
-	public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter RTTolerance = new RTToleranceParameter();
 
-	public static final BooleanParameter RTCorrection = new BooleanParameter(
-			"RT correction",
-			"If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
+    public static final BooleanParameter RTCorrection = new BooleanParameter(
+	    "RT correction",
+	    "If it is checked, correction of the retention time will be applied to avoid the problems caused by the deviation of the retention time between the samples.");
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original peak list",
-			"If checked, the original peak list will be removed");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+	    "Remove original peak list",
+	    "If checked, the original peak list will be removed");
 
-		public PeakFinderParameters() {
-		super(new Parameter[] { peakLists, suffix, intTolerance, MZTolerance,
-				RTTolerance, RTCorrection, autoRemove });
-	}
+    public PeakFinderParameters() {
+	super(new Parameter[] { peakLists, suffix, intTolerance, MZTolerance,
+		RTTolerance, RTCorrection, autoRemove });
+    }
 
 }

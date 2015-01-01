@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -28,10 +28,10 @@ import net.sf.mzmine.parameters.ParameterSet;
  * 
  */
 public interface MassDetector extends MZmineModule {
-	
-	/**
-	 * Returns mass and intensity values detected in given scan
-	 */
-	public DataPoint[] getMassValues(Scan scan, ParameterSet parameters);
+
+    /**
+     * Returns mass and intensity values detected in given scan
+     */
+    public DataPoint[] getMassValues(Scan scan, ParameterSet parameters);
 
 }

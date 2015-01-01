@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -38,194 +38,194 @@ import net.sf.mzmine.taskcontrol.TaskStatus;
  */
 public class TaskControllerImpl implements TaskController, Runnable {
 
-	private Logger logger = Logger.getLogger(this.getClass().getName());
+    private Logger logger = Logger.getLogger(this.getClass().getName());
 
-	ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
+    ArrayList<TaskControlListener> listeners = new ArrayList<TaskControlListener>();
 
-	/**
-	 * Update the task progress window every 300 ms
-	 */
-	private final int TASKCONTROLLER_THREAD_SLEEP = 300;
+    /**
+     * Update the task progress window every 300 ms
+     */
+    private final int TASKCONTROLLER_THREAD_SLEEP = 300;
 
-	private Thread taskControllerThread;
+    private Thread taskControllerThread;
 
-	private TaskQueue taskQueue;
+    private TaskQueue taskQueue;
 
-	/**
-	 * This vector contains references to all running threads of NORMAL
-	 * priority. Maximum number of concurrent threads is specified in the
-	 * preferences dialog.
-	 */
-	private Vector<WorkerThread> runningThreads;
+    /**
+     * This vector contains references to all running threads of NORMAL
+     * priority. Maximum number of concurrent threads is specified in the
+     * preferences dialog.
+     */
+    private Vector<WorkerThread> runningThreads;
 
-	/**
-	 * Initialize the task controller
-	 */
-	public void initModule() {
+    /**
+     * Initialize the task controller
+     */
+    public void initModule() {
 
-		taskQueue = new TaskQueue();
+	taskQueue = new TaskQueue();
 
-		runningThreads = new Vector<WorkerThread>();
+	runningThreads = new Vector<WorkerThread>();
 
-		// Create a low-priority thread that will manage the queue and start
-		// worker threads for tasks
-		taskControllerThread = new Thread(this, "Task controller thread");
-		taskControllerThread.setPriority(Thread.MIN_PRIORITY);
-		taskControllerThread.start();
+	// Create a low-priority thread that will manage the queue and start
+	// worker threads for tasks
+	taskControllerThread = new Thread(this, "Task controller thread");
+	taskControllerThread.setPriority(Thread.MIN_PRIORITY);
+	taskControllerThread.start();
 
+    }
+
+    public TaskQueue getTaskQueue() {
+	return taskQueue;
+    }
+
+    public void addTask(Task task) {
+	addTasks(new Task[] { task }, TaskPriority.NORMAL);
+    }
+
+    public void addTask(Task task, TaskPriority priority) {
+	addTasks(new Task[] { task }, priority);
+    }
+
+    public void addTasks(Task tasks[]) {
+	addTasks(tasks, TaskPriority.NORMAL);
+    }
+
+    public void addTasks(Task tasks[], TaskPriority priority) {
+
+	// It can sometimes happen during a batch that no tasks are actually
+	// executed --> tasks[] array may be empty
+	if ((tasks == null) || (tasks.length == 0))
+	    return;
+
+	for (Task task : tasks) {
+	    WrappedTask newQueueEntry = new WrappedTask(task, priority);
+	    taskQueue.addWrappedTask(newQueueEntry);
 	}
 
-	public TaskQueue getTaskQueue() {
-		return taskQueue;
+	// Wake up the task controller thread
+	synchronized (this) {
+	    this.notifyAll();
 	}
 
-	public void addTask(Task task) {
-		addTasks(new Task[] { task }, TaskPriority.NORMAL);
-	}
+    }
 
-	public void addTask(Task task, TaskPriority priority) {
-		addTasks(new Task[] { task }, priority);
-	}
+    /**
+     * Task controller thread main method.
+     * 
+     * @see java.lang.Runnable#run()
+     */
+    public void run() {
 
-	public void addTasks(Task tasks[]) {
-		addTasks(tasks, TaskPriority.NORMAL);
-	}
+	int previousQueueSize = -1;
 
-	public void addTasks(Task tasks[], TaskPriority priority) {
+	while (true) {
 
-		// It can sometimes happen during a batch that no tasks are actually
-		// executed --> tasks[] array may be empty
-		if ((tasks == null) || (tasks.length == 0))
-			return;
+	    int currentQueueSize = taskQueue.getNumOfWaitingTasks();
+	    if (currentQueueSize != previousQueueSize) {
+		previousQueueSize = currentQueueSize;
+		for (TaskControlListener listener : listeners)
+		    listener.numberOfWaitingTasksChanged(currentQueueSize);
+	    }
 
-		for (Task task : tasks) {
-			WrappedTask newQueueEntry = new WrappedTask(task, priority);
-			taskQueue.addWrappedTask(newQueueEntry);
+	    // If the queue is empty, we can sleep. When new task is added into
+	    // the queue, we will be awaken by notify()
+	    synchronized (this) {
+		while (taskQueue.isEmpty()) {
+		    try {
+			this.wait();
+		    } catch (InterruptedException e) {
+			// Ignore
+		    }
 		}
+	    }
 
-		// Wake up the task controller thread
-		synchronized (this) {
-			this.notifyAll();
+	    // Check if all tasks in the queue are finished
+	    if (taskQueue.allTasksFinished()) {
+		taskQueue.clear();
+		continue;
+	    }
+
+	    // Remove already finished threads from runningThreads
+	    Iterator<WorkerThread> threadIterator = runningThreads.iterator();
+	    while (threadIterator.hasNext()) {
+		WorkerThread thread = threadIterator.next();
+		if (thread.isFinished())
+		    threadIterator.remove();
+	    }
+
+	    // Get a snapshot of the queue
+	    WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
+
+	    // Obtain the settings of max concurrent threads
+	    NumOfThreadsParameter parameter = MZmineCore.getConfiguration()
+		    .getPreferences()
+		    .getParameter(MZminePreferences.numOfThreads);
+	    int maxRunningThreads;
+	    if (parameter.isAutomatic() || (parameter.getValue() == null))
+		maxRunningThreads = Runtime.getRuntime().availableProcessors();
+	    else
+		maxRunningThreads = parameter.getValue();
+
+	    // Check all tasks in the queue
+	    for (WrappedTask task : queueSnapshot) {
+
+		// Skip assigned and canceled tasks
+		if (task.isAssigned()
+			|| (task.getActualTask().getStatus() == TaskStatus.CANCELED))
+		    continue;
+
+		// Create a new thread if the task is high-priority or if we
+		// have less then maximum # of threads running
+		if ((task.getPriority() == TaskPriority.HIGH)
+			|| (runningThreads.size() < maxRunningThreads)) {
+		    WorkerThread newThread = new WorkerThread(task);
+
+		    if (task.getPriority() == TaskPriority.NORMAL) {
+			runningThreads.add(newThread);
+		    }
+
+		    newThread.start();
 		}
+	    }
+
+	    // Tell the queue to refresh the Task progress window
+	    taskQueue.refresh();
+
+	    // Sleep for a while until next update
+	    try {
+		Thread.sleep(TASKCONTROLLER_THREAD_SLEEP);
+	    } catch (InterruptedException e) {
+		// Ignore
+	    }
 
 	}
 
-	/**
-	 * Task controller thread main method.
-	 * 
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
+    }
 
-		int previousQueueSize = -1;
+    public void setTaskPriority(Task task, TaskPriority priority) {
 
-		while (true) {
+	// Get a snapshot of current task queue
+	WrappedTask currentQueue[] = taskQueue.getQueueSnapshot();
 
-			int currentQueueSize = taskQueue.getNumOfWaitingTasks();
-			if (currentQueueSize != previousQueueSize) {
-				previousQueueSize = currentQueueSize;
-				for (TaskControlListener listener : listeners)
-					listener.numberOfWaitingTasksChanged(currentQueueSize);
-			}
+	// Find the requested task
+	for (WrappedTask wrappedTask : currentQueue) {
 
-			// If the queue is empty, we can sleep. When new task is added into
-			// the queue, we will be awaken by notify()
-			synchronized (this) {
-				while (taskQueue.isEmpty()) {
-					try {
-						this.wait();
-					} catch (InterruptedException e) {
-						// Ignore
-					}
-				}
-			}
+	    if (wrappedTask.getActualTask() == task) {
+		logger.finest("Setting priority of task \""
+			+ task.getTaskDescription() + "\" to " + priority);
+		wrappedTask.setPriority(priority);
 
-			// Check if all tasks in the queue are finished
-			if (taskQueue.allTasksFinished()) {
-				taskQueue.clear();
-				continue;
-			}
-
-			// Remove already finished threads from runningThreads
-			Iterator<WorkerThread> threadIterator = runningThreads.iterator();
-			while (threadIterator.hasNext()) {
-				WorkerThread thread = threadIterator.next();
-				if (thread.isFinished())
-					threadIterator.remove();
-			}
-
-			// Get a snapshot of the queue
-			WrappedTask[] queueSnapshot = taskQueue.getQueueSnapshot();
-
-			// Obtain the settings of max concurrent threads
-			NumOfThreadsParameter parameter = MZmineCore.getConfiguration()
-					.getPreferences()
-					.getParameter(MZminePreferences.numOfThreads);
-			int maxRunningThreads;
-			if (parameter.isAutomatic() || (parameter.getValue() == null))
-				maxRunningThreads = Runtime.getRuntime().availableProcessors();
-			else
-				maxRunningThreads = parameter.getValue();
-
-			// Check all tasks in the queue
-			for (WrappedTask task : queueSnapshot) {
-
-				// Skip assigned and canceled tasks
-				if (task.isAssigned()
-						|| (task.getActualTask().getStatus() == TaskStatus.CANCELED))
-					continue;
-
-				// Create a new thread if the task is high-priority or if we
-				// have less then maximum # of threads running
-				if ((task.getPriority() == TaskPriority.HIGH)
-						|| (runningThreads.size() < maxRunningThreads)) {
-					WorkerThread newThread = new WorkerThread(task);
-
-					if (task.getPriority() == TaskPriority.NORMAL) {
-						runningThreads.add(newThread);
-					}
-
-					newThread.start();
-				}
-			}
-
-			// Tell the queue to refresh the Task progress window
-			taskQueue.refresh();
-
-			// Sleep for a while until next update
-			try {
-				Thread.sleep(TASKCONTROLLER_THREAD_SLEEP);
-			} catch (InterruptedException e) {
-				// Ignore
-			}
-
-		}
-
+		// Call refresh to re-sort the queue according to new priority
+		// and update the Task progress window
+		taskQueue.refresh();
+	    }
 	}
+    }
 
-	public void setTaskPriority(Task task, TaskPriority priority) {
-
-		// Get a snapshot of current task queue
-		WrappedTask currentQueue[] = taskQueue.getQueueSnapshot();
-
-		// Find the requested task
-		for (WrappedTask wrappedTask : currentQueue) {
-
-			if (wrappedTask.getActualTask() == task) {
-				logger.finest("Setting priority of task \""
-						+ task.getTaskDescription() + "\" to " + priority);
-				wrappedTask.setPriority(priority);
-
-				// Call refresh to re-sort the queue according to new priority
-				// and update the Task progress window
-				taskQueue.refresh();
-			}
-		}
-	}
-
-	@Override
-	public void addTaskControlListener(TaskControlListener listener) {
-		listeners.add(listener);
-	}
+    @Override
+    public void addTaskControlListener(TaskControlListener listener) {
+	listeners.add(listener);
+    }
 
 }

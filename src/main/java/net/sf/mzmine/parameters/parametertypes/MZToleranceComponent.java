@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,42 +33,42 @@ public class MZToleranceComponent extends JPanel {
 
     public MZToleranceComponent() {
 
-        mzToleranceField = new JTextField();
-        mzToleranceField.setColumns(6);
-        add(mzToleranceField);
+	mzToleranceField = new JTextField();
+	mzToleranceField.setColumns(6);
+	add(mzToleranceField);
 
-        add(new JLabel("m/z  or"));
+	add(new JLabel("m/z  or"));
 
-        ppmToleranceField = new JTextField();
-        ppmToleranceField.setColumns(6);
-        add(ppmToleranceField);
+	ppmToleranceField = new JTextField();
+	ppmToleranceField.setColumns(6);
+	add(ppmToleranceField);
 
-        add(new JLabel("ppm"));
+	add(new JLabel("ppm"));
 
     }
 
     public void setValue(MZTolerance value) {
-        mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
-        ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
+	mzToleranceField.setText(String.valueOf(value.getMzTolerance()));
+	ppmToleranceField.setText(String.valueOf(value.getPpmTolerance()));
     }
 
     public MZTolerance getValue() {
-        try {
-            double mzTolerance = Double.parseDouble(mzToleranceField.getText());
-            double ppmTolerance = Double.parseDouble(ppmToleranceField
-                    .getText());
-            MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
-            return value;
-        } catch (NumberFormatException e) {
-            return null;
-        }
+	try {
+	    double mzTolerance = Double.parseDouble(mzToleranceField.getText());
+	    double ppmTolerance = Double.parseDouble(ppmToleranceField
+		    .getText());
+	    MZTolerance value = new MZTolerance(mzTolerance, ppmTolerance);
+	    return value;
+	} catch (NumberFormatException e) {
+	    return null;
+	}
 
     }
 
     @Override
     public void setToolTipText(String toolTip) {
-        mzToleranceField.setToolTipText(toolTip);
-        ppmToleranceField.setToolTipText(toolTip);
+	mzToleranceField.setToolTipText(toolTip);
+	ppmToleranceField.setToolTipText(toolTip);
     }
 
 }

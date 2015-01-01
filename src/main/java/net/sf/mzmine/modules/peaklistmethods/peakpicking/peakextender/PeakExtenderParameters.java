@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -30,24 +30,24 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
 
 public class PeakExtenderParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final StringParameter suffix = new StringParameter(
-			"Name suffix", "Suffix to be added to peak list name", "extended");
+    public static final StringParameter suffix = new StringParameter(
+	    "Name suffix", "Suffix to be added to peak list name", "extended");
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final DoubleParameter minimumHeight = new DoubleParameter(
-			"Min height", "Minimum allowed intensity for succesive scans",
-			MZmineCore.getConfiguration().getIntensityFormat());
+    public static final DoubleParameter minimumHeight = new DoubleParameter(
+	    "Min height", "Minimum allowed intensity for succesive scans",
+	    MZmineCore.getConfiguration().getIntensityFormat());
 
-	public static final BooleanParameter autoRemove = new BooleanParameter(
-			"Remove original peaklist",
-			"If checked, original peaklist will be removed and only deisotoped version remains");
+    public static final BooleanParameter autoRemove = new BooleanParameter(
+	    "Remove original peaklist",
+	    "If checked, original peaklist will be removed and only deisotoped version remains");
 
-	public PeakExtenderParameters() {
-		super(new Parameter[] { peakLists, suffix, mzTolerance, minimumHeight,
-				autoRemove });
-	}
+    public PeakExtenderParameters() {
+	super(new Parameter[] { peakLists, suffix, mzTolerance, minimumHeight,
+		autoRemove });
+    }
 
 }

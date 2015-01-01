@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -44,55 +44,43 @@ public class TICToolBar extends JToolBar {
     private static final Insets MARGIN = new Insets(5, 5, 5, 5);
 
     // Icons.
-    private static final Icon SHOW_SPECTRUM_ICON = new ImageIcon("icons/spectrumicon.png");
-    private static final Icon DATA_POINTS_ICON = new ImageIcon("icons/datapointsicon.png");
-    private static final Icon ANNOTATIONS_ICON = new ImageIcon("icons/annotationsicon.png");
+    private static final Icon SHOW_SPECTRUM_ICON = new ImageIcon(
+	    "icons/spectrumicon.png");
+    private static final Icon DATA_POINTS_ICON = new ImageIcon(
+	    "icons/datapointsicon.png");
+    private static final Icon ANNOTATIONS_ICON = new ImageIcon(
+	    "icons/annotationsicon.png");
     private static final Icon AXES_ICON = new ImageIcon("icons/axesicon.png");
     private static final Icon LEGEND_ICON = new ImageIcon("icons/legendkey.png");
 
     public TICToolBar(final ActionListener listener) {
 
-        super(SwingConstants.VERTICAL);
-        setFloatable(false);
-        setMargin(MARGIN);
-        setBackground(Color.white);
+	super(SwingConstants.VERTICAL);
+	setFloatable(false);
+	setMargin(MARGIN);
+	setBackground(Color.white);
 
-        GUIUtils.addButton(this,
-                           null,
-                           SHOW_SPECTRUM_ICON,
-                           listener,
-                           "SHOW_SPECTRUM",
-                           "Show spectrum of selected scan");
+	GUIUtils.addButton(this, null, SHOW_SPECTRUM_ICON, listener,
+		"SHOW_SPECTRUM", "Show spectrum of selected scan");
 
-        addSeparator();
+	addSeparator();
 
-        GUIUtils.addButton(this,
-                           null,
-                           DATA_POINTS_ICON,
-                           listener,
-                           "SHOW_DATA_POINTS",
-                           "Toggle displaying of data points");
+	GUIUtils.addButton(this, null, DATA_POINTS_ICON, listener,
+		"SHOW_DATA_POINTS", "Toggle displaying of data points");
 
-        addSeparator();
+	addSeparator();
 
-        GUIUtils.addButton(this,
-                           null,
-                           ANNOTATIONS_ICON,
-                           listener,
-                           "SHOW_ANNOTATIONS",
-                           "Toggle displaying of peak labels");
+	GUIUtils.addButton(this, null, ANNOTATIONS_ICON, listener,
+		"SHOW_ANNOTATIONS", "Toggle displaying of peak labels");
 
-        addSeparator();
+	addSeparator();
 
-        GUIUtils.addButton(this,
-                           null,
-                           AXES_ICON,
-                           listener,
-                           "SETUP_AXES",
-                           "Setup ranges for axes");
+	GUIUtils.addButton(this, null, AXES_ICON, listener, "SETUP_AXES",
+		"Setup ranges for axes");
 
-        addSeparator();
+	addSeparator();
 
-        GUIUtils.addButton(this, null, LEGEND_ICON, listener, "SHOW_LEGEND", "Toggle display of the legend");
+	GUIUtils.addButton(this, null, LEGEND_ICON, listener, "SHOW_LEGEND",
+		"Toggle display of the legend");
     }
 }

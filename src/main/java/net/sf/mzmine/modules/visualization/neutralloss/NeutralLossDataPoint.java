@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -46,42 +46,41 @@ class NeutralLossDataPoint {
      * @param retentionTime
      */
     NeutralLossDataPoint(double mzValue, int scanNumber,
-            int precursorScanNumber, double precursorMZ, int precursorCharge,
-            double retentionTime) {
+	    int precursorScanNumber, double precursorMZ, int precursorCharge,
+	    double retentionTime) {
 
-        NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
-        NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
+	NumberFormat rtFormat = MZmineCore.getConfiguration().getRTFormat();
+	NumberFormat mzFormat = MZmineCore.getConfiguration().getMZFormat();
 
-        this.mzValue = mzValue;
-        this.scanNumber = scanNumber;
-        this.precursorScanNumber = precursorScanNumber;
-        this.precursorMZ = precursorMZ;
-        this.precursorCharge = precursorCharge;
-        this.retentionTime = retentionTime;
+	this.mzValue = mzValue;
+	this.scanNumber = scanNumber;
+	this.precursorScanNumber = precursorScanNumber;
+	this.precursorMZ = precursorMZ;
+	this.precursorCharge = precursorCharge;
+	this.retentionTime = retentionTime;
 
-        precursorMass = precursorMZ;
-        if (precursorCharge > 0)
-            precursorMass *= precursorCharge;
+	precursorMass = precursorMZ;
+	if (precursorCharge > 0)
+	    precursorMass *= precursorCharge;
 
-        if ((precursorCharge == 0) && (precursorMass < mzValue))
-            precursorMass *= defaultPrecursorCharge;
+	if ((precursorCharge == 0) && (precursorMass < mzValue))
+	    precursorMass *= defaultPrecursorCharge;
 
-        
-        neutralLoss = precursorMass - mzValue;
+	neutralLoss = precursorMass - mzValue;
 
-        StringBuffer sb = new StringBuffer();
-        sb.append("loss: ");
-        sb.append(mzFormat.format(neutralLoss));
-        sb.append(", m/z ");
-        sb.append(mzFormat.format(mzValue));
-        sb.append(", scan #" + scanNumber + ", RT ");
-        sb.append(rtFormat.format(retentionTime));
-        sb.append(", precursor scan #" + precursorScanNumber);
-        sb.append(", m/z ");
-        sb.append(mzFormat.format(precursorMZ));
-        if (precursorCharge > 0)
-            sb.append(" (charge " + precursorCharge + ")");
-        label = sb.toString();
+	StringBuffer sb = new StringBuffer();
+	sb.append("loss: ");
+	sb.append(mzFormat.format(neutralLoss));
+	sb.append(", m/z ");
+	sb.append(mzFormat.format(mzValue));
+	sb.append(", scan #" + scanNumber + ", RT ");
+	sb.append(rtFormat.format(retentionTime));
+	sb.append(", precursor scan #" + precursorScanNumber);
+	sb.append(", m/z ");
+	sb.append(mzFormat.format(precursorMZ));
+	if (precursorCharge > 0)
+	    sb.append(" (charge " + precursorCharge + ")");
+	label = sb.toString();
 
     }
 
@@ -89,57 +88,57 @@ class NeutralLossDataPoint {
      * @return Returns the mzValue.
      */
     double getMzValue() {
-        return mzValue;
+	return mzValue;
     }
 
     /**
      * @return Returns the precursorCharge.
      */
     int getPrecursorCharge() {
-        return precursorCharge;
+	return precursorCharge;
     }
 
     /**
      * @return Returns the precursorMZ.
      */
     double getPrecursorMZ() {
-        return precursorMZ;
+	return precursorMZ;
     }
 
     /**
      * @return Returns the precursor mass, or m/z if charge is unknown.
      */
     double getPrecursorMass() {
-        return precursorMass;
+	return precursorMass;
     }
 
     /**
      * @return Returns the precursorScanNumber.
      */
     int getPrecursorScanNumber() {
-        return precursorScanNumber;
+	return precursorScanNumber;
     }
 
     /**
      * @return Returns the retentionTime.
      */
     double getRetentionTime() {
-        return retentionTime;
+	return retentionTime;
     }
 
     /**
      * @return Returns the scanNumber.
      */
     int getScanNumber() {
-        return scanNumber;
+	return scanNumber;
     }
 
     double getNeutralLoss() {
-        return neutralLoss;
+	return neutralLoss;
     }
 
     public String getName() {
-        return label;
+	return label;
 
     }
 

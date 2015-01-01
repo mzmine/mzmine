@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -27,17 +27,18 @@ import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 
 public class XMLExportParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakList = new PeakListsParameter(1, 1);
+    public static final PeakListsParameter peakList = new PeakListsParameter(1,
+	    1);
 
-	public static final FileNameParameter filename = new FileNameParameter(
-			"Filename",
-			"Name of exported peak list file name. If the file exists, it will be overwritten.",
-			"mpl");
+    public static final FileNameParameter filename = new FileNameParameter(
+	    "Filename",
+	    "Name of exported peak list file name. If the file exists, it will be overwritten.",
+	    "mpl");
 
-	public static final BooleanParameter compression = new BooleanParameter(
-			"Compressed file", "Generates a compressed file (.zip)");
+    public static final BooleanParameter compression = new BooleanParameter(
+	    "Compressed file", "Generates a compressed file (.zip)");
 
-	public XMLExportParameters() {
-		super(new Parameter[] { peakList, filename, compression });
-	}
+    public XMLExportParameters() {
+	super(new Parameter[] { peakList, filename, compression });
+    }
 }

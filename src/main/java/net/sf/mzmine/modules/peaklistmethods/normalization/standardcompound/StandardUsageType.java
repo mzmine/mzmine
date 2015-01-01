@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -18,20 +18,20 @@
  */
 
 package net.sf.mzmine.modules.peaklistmethods.normalization.standardcompound;
-	
+
 public enum StandardUsageType {
 
-	Nearest("Nearest standard"),
-	Weighted("Weighted contribution of all standards");
+    Nearest("Nearest standard"), Weighted(
+	    "Weighted contribution of all standards");
 
-	private final String name;
+    private final String name;
 
-	StandardUsageType(String name) {
-		this.name = name;
-	}
+    StandardUsageType(String name) {
+	this.name = name;
+    }
 
-	public String toString() {
-		return this.name;
-	}
+    public String toString() {
+	return this.name;
+    }
 
 }

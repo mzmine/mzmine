@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -24,7 +24,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 
 public interface ComponentToolTipProvider {
-	
-	public JComponent getCustomToolTipComponent(MouseEvent event);
+
+    public JComponent getCustomToolTipComponent(MouseEvent event);
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -17,51 +17,48 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
 package net.sf.mzmine.modules.visualization.histogram;
 
 import org.jfree.chart.axis.NumberAxis;
 
-public class HistogramDomainAxis extends NumberAxis{
-	
-	/**
+public class HistogramDomainAxis extends NumberAxis {
+
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
-	private int visibleCount;
-	private double lowerTickValue, upperTickValue;
-	
-	public HistogramDomainAxis(){
-		super();
-	}
-	
-	public void setVisibleTickCount(int numOfTicks){
-		this.visibleCount = numOfTicks;
-	}
-	
-	public void setLowerTickValue(double lowerTickValue){
-		this.lowerTickValue = lowerTickValue;
-	}
-	
-	public void setUpperTickValue(double upperTickValue){
-		this.upperTickValue = upperTickValue;
-	}
+    private int visibleCount;
+    private double lowerTickValue, upperTickValue;
 
-	@Override
-	protected int calculateVisibleTickCount(){
-		return this.visibleCount;
-	}
-	
-	@Override
-	protected double calculateLowestVisibleTickValue(){
-		return this.lowerTickValue;
-	}
-	
-	@Override
-	protected double calculateHighestVisibleTickValue(){
-		return this.upperTickValue;
-	}
-	
-	
+    public HistogramDomainAxis() {
+	super();
+    }
+
+    public void setVisibleTickCount(int numOfTicks) {
+	this.visibleCount = numOfTicks;
+    }
+
+    public void setLowerTickValue(double lowerTickValue) {
+	this.lowerTickValue = lowerTickValue;
+    }
+
+    public void setUpperTickValue(double upperTickValue) {
+	this.upperTickValue = upperTickValue;
+    }
+
+    @Override
+    protected int calculateVisibleTickCount() {
+	return this.visibleCount;
+    }
+
+    @Override
+    protected double calculateLowestVisibleTickValue() {
+	return this.lowerTickValue;
+    }
+
+    @Override
+    protected double calculateHighestVisibleTickValue() {
+	return this.upperTickValue;
+    }
 
 }

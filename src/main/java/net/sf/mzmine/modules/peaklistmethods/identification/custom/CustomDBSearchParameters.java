@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,31 +34,31 @@ import net.sf.mzmine.parameters.parametertypes.StringParameter;
  */
 public class CustomDBSearchParameters extends SimpleParameterSet {
 
-	public static final PeakListsParameter peakLists = new PeakListsParameter();
+    public static final PeakListsParameter peakLists = new PeakListsParameter();
 
-	public static final FileNameParameter dataBaseFile = new FileNameParameter(
-			"Database file",
-			"Name of file that contains information for peak identification");
+    public static final FileNameParameter dataBaseFile = new FileNameParameter(
+	    "Database file",
+	    "Name of file that contains information for peak identification");
 
-	public static final StringParameter fieldSeparator = new StringParameter(
-			"Field separator",
-			"Character(s) used to separate fields in the database file", ",");
+    public static final StringParameter fieldSeparator = new StringParameter(
+	    "Field separator",
+	    "Character(s) used to separate fields in the database file", ",");
 
-	public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
-			"Field order",
-			"Order of items in which they are read from database file",
-			FieldItem.values());
+    public static final OrderParameter<FieldItem> fieldOrder = new OrderParameter<FieldItem>(
+	    "Field order",
+	    "Order of items in which they are read from database file",
+	    FieldItem.values());
 
-	public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
-			"Ignore first line", "Ignore the first line of database file");
+    public static final BooleanParameter ignoreFirstLine = new BooleanParameter(
+	    "Ignore first line", "Ignore the first line of database file");
 
-	public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
+    public static final MZToleranceParameter mzTolerance = new MZToleranceParameter();
 
-	public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
+    public static final RTToleranceParameter rtTolerance = new RTToleranceParameter();
 
-	public CustomDBSearchParameters() {
-		super(new Parameter[] { peakLists, dataBaseFile, fieldSeparator,
-				fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance });
-	}
+    public CustomDBSearchParameters() {
+	super(new Parameter[] { peakLists, dataBaseFile, fieldSeparator,
+		fieldOrder, ignoreFirstLine, mzTolerance, rtTolerance });
+    }
 
 }

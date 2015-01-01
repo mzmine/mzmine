@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -34,50 +34,50 @@ import org.jfree.data.xy.XYDataset;
 
 public class DiagonalLineRenderer extends XYLineAndShapeRenderer {
 
-	/**
+    /**
      * 
      */
     private static final long serialVersionUID = 1L;
 
-	// plot colors for diagonal lines
-	private static final Color[] plotDiagonalColors = { new Color(165, 42, 42),
-			Color.BLACK, new Color(165, 42, 42) };
+    // plot colors for diagonal lines
+    private static final Color[] plotDiagonalColors = { new Color(165, 42, 42),
+	    Color.BLACK, new Color(165, 42, 42) };
 
-	private static final Shape diagonalPointsShape = new Rectangle2D.Float(-3,
-			-3, 6, 6);
+    private static final Shape diagonalPointsShape = new Rectangle2D.Float(-3,
+	    -3, 6, 6);
 
-	public static final AlphaComposite alpha = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, 0.7f);
+    public static final AlphaComposite alpha = AlphaComposite.getInstance(
+	    AlphaComposite.SRC_OVER, 0.7f);
 
-	public DiagonalLineRenderer() {
+    public DiagonalLineRenderer() {
 
-		super(true, true);
+	super(true, true);
 
-		setBaseShapesFilled(true);
-		setDrawOutlines(true);
-		setUseFillPaint(true);
+	setBaseShapesFilled(true);
+	setDrawOutlines(true);
+	setUseFillPaint(true);
 
-		for (int i = 0; i < plotDiagonalColors.length; i++) {
-			setSeriesShape(i, diagonalPointsShape);
-			setSeriesPaint(i, plotDiagonalColors[i]);
-			setSeriesFillPaint(i, plotDiagonalColors[i]);
-		}
-
-		setBaseShapesVisible(true);
-
-		XYItemLabelGenerator diagonallabelGenerator = new DiagonalLineLabelGenerator();
-		setBaseItemLabelGenerator(diagonallabelGenerator);
-		setBaseItemLabelsVisible(true);
-
+	for (int i = 0; i < plotDiagonalColors.length; i++) {
+	    setSeriesShape(i, diagonalPointsShape);
+	    setSeriesPaint(i, plotDiagonalColors[i]);
+	    setSeriesFillPaint(i, plotDiagonalColors[i]);
 	}
 
-	public XYItemRendererState initialise(Graphics2D g2, Rectangle2D dataArea,
-			XYPlot plot, XYDataset dataset, PlotRenderingInfo info) {
+	setBaseShapesVisible(true);
 
-		// Set transparency
-		g2.setComposite(alpha);
+	XYItemLabelGenerator diagonallabelGenerator = new DiagonalLineLabelGenerator();
+	setBaseItemLabelGenerator(diagonallabelGenerator);
+	setBaseItemLabelsVisible(true);
 
-		return super.initialise(g2, dataArea, plot, dataset, info);
-	}
+    }
+
+    public XYItemRendererState initialise(Graphics2D g2, Rectangle2D dataArea,
+	    XYPlot plot, XYDataset dataset, PlotRenderingInfo info) {
+
+	// Set transparency
+	g2.setComposite(alpha);
+
+	return super.initialise(g2, dataArea, plot, dataset, info);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -33,26 +33,25 @@ class PeakDataPoint {
     /**
      */
     PeakDataPoint(int scanNumber, double rt, DataPoint dataPoint) {
-        this.scanNumber = scanNumber;
-        this.rt = rt;
-        this.dataPoint = dataPoint;
+	this.scanNumber = scanNumber;
+	this.rt = rt;
+	this.dataPoint = dataPoint;
     }
 
     int getScanNumber() {
-        return scanNumber;
-    }
-    
-    double getRT() {
-        return rt;
-    }
-    
-    double getMZ() {
-        return dataPoint.getMZ();
-    }
-    
-    double getIntensity() {
-        return dataPoint.getIntensity();
+	return scanNumber;
     }
 
+    double getRT() {
+	return rt;
+    }
+
+    double getMZ() {
+	return dataPoint.getMZ();
+    }
+
+    double getIntensity() {
+	return dataPoint.getIntensity();
+    }
 
 }

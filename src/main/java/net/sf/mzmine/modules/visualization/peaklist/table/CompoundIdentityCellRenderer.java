@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -43,52 +43,53 @@ public class CompoundIdentityCellRenderer implements TableCellRenderer {
      *      java.lang.Object, boolean, boolean, int, int)
      */
     public Component getTableCellRendererComponent(JTable table, Object value,
-            boolean isSelected, boolean hasFocus, int row, int column) {
+	    boolean isSelected, boolean hasFocus, int row, int column) {
 
-        JLabel newLabel = new JLabel();
-        newLabel.setHorizontalAlignment(JLabel.LEFT);
-        newLabel.setFont(defaultFont);
-        newLabel.setOpaque(true);
+	JLabel newLabel = new JLabel();
+	newLabel.setHorizontalAlignment(JLabel.LEFT);
+	newLabel.setFont(defaultFont);
+	newLabel.setOpaque(true);
 
-        Color bgColor;
+	Color bgColor;
 
-        if (isSelected)
-            bgColor = table.getSelectionBackground();
-        else
-            bgColor = table.getBackground();
+	if (isSelected)
+	    bgColor = table.getSelectionBackground();
+	else
+	    bgColor = table.getBackground();
 
-        newLabel.setBackground(bgColor);
+	newLabel.setBackground(bgColor);
 
-        if (hasFocus) {
-            Border border = null;
-            if (isSelected)
-                border = UIManager.getBorder("Table.focusSelectedCellHighlightBorder");
-            if (border == null)
-                border = UIManager.getBorder("Table.focusCellHighlightBorder");
-			
-            /*
-			 * The "border.getBorderInsets(newPanel) != null" is a workaround
-			 * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
-			 * NullPointerException
-			 */
-			if ((border != null) && (border.getBorderInsets(newLabel) != null)) {
-				newLabel.setBorder(border);
-			}
-        }
+	if (hasFocus) {
+	    Border border = null;
+	    if (isSelected)
+		border = UIManager
+			.getBorder("Table.focusSelectedCellHighlightBorder");
+	    if (border == null)
+		border = UIManager.getBorder("Table.focusCellHighlightBorder");
 
-        if (value instanceof PeakIdentity) {
+	    /*
+	     * The "border.getBorderInsets(newPanel) != null" is a workaround
+	     * for OpenJDK 1.6.0 bug, otherwise setBorder() may throw a
+	     * NullPointerException
+	     */
+	    if ((border != null) && (border.getBorderInsets(newLabel) != null)) {
+		newLabel.setBorder(border);
+	    }
+	}
 
-            PeakIdentity identity = (PeakIdentity) value;
+	if (value instanceof PeakIdentity) {
 
-            newLabel.setText(identity.getName());
+	    PeakIdentity identity = (PeakIdentity) value;
 
-            String toolTipText = identity.getDescription();
+	    newLabel.setText(identity.getName());
 
-            newLabel.setToolTipText(toolTipText);
+	    String toolTipText = identity.getDescription();
 
-        }
+	    newLabel.setToolTipText(toolTipText);
 
-        return newLabel;
+	}
+
+	return newLabel;
 
     }
 

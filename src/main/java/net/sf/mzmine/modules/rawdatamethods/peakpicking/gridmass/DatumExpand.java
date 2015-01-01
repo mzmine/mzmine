@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -20,39 +20,39 @@
 package net.sf.mzmine.modules.rawdatamethods.peakpicking.gridmass;
 
 class DatumExpand implements Comparable<DatumExpand> {
-	Datum dato;
-	boolean left;
-	boolean right;
-	boolean up;
-	boolean down;
-	double expanded = Double.MAX_VALUE; // expanded to a certain threshold
-	int index;
-	double minIntensity = 0;
+    Datum dato;
+    boolean left;
+    boolean right;
+    boolean up;
+    boolean down;
+    double expanded = Double.MAX_VALUE; // expanded to a certain threshold
+    int index;
+    double minIntensity = 0;
 
-	DatumExpand(Datum dato, boolean l, boolean r, boolean up, boolean dw,
-			int pos) {
-		this.dato = dato;
-		this.left = l;
-		this.right = r;
-		this.up = up;
-		this.down = dw;
-		this.index = pos;
-		minIntensity = dato.intensity;
-	}
+    DatumExpand(Datum dato, boolean l, boolean r, boolean up, boolean dw,
+	    int pos) {
+	this.dato = dato;
+	this.left = l;
+	this.right = r;
+	this.up = up;
+	this.down = dw;
+	this.index = pos;
+	minIntensity = dato.intensity;
+    }
 
-	public int compareTo(DatumExpand other) {
-		if (dato.scan < other.dato.scan)
-			return -1;
-		if (dato.scan > other.dato.scan)
-			return 1;
+    public int compareTo(DatumExpand other) {
+	if (dato.scan < other.dato.scan)
+	    return -1;
+	if (dato.scan > other.dato.scan)
+	    return 1;
 
-		// equal scan, then sort by lower mz
-		if (dato.mz < other.dato.mz)
-			return -1;
-		if (dato.mz > other.dato.mz)
-			return 1;
+	// equal scan, then sort by lower mz
+	if (dato.mz < other.dato.mz)
+	    return -1;
+	if (dato.mz > other.dato.mz)
+	    return 1;
 
-		return 0;
-	}
+	return 0;
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  *
  * This file is part of MZmine 2.
  *
@@ -27,55 +27,60 @@ import net.sf.mzmine.parameters.ParameterSet;
 import net.sf.mzmine.util.RUtilities;
 
 /**
- * @description Asymmetric baseline corrector. Estimates a trend based on asymmetric least squares.
- * Uses "asysm" feature from "ptw" R-package (http://cran.r-project.org/web/packages/ptw/ptw.pdf).
+ * @description Asymmetric baseline corrector. Estimates a trend based on
+ *              asymmetric least squares. Uses "asysm" feature from "ptw"
+ *              R-package (http://cran.r-project.org/web/packages/ptw/ptw.pdf).
  * 
  * @author Gauthier Boaglio
  * @date Nov 6, 2014
  */
 public class AsymmetryCorrector extends BaselineCorrector {
 
+    @Override
+    public String[] getRequiredRPackages() {
+	return new String[] { "rJava", "ptw" };
+    }
 
-	@Override
-	public String[] getRequiredRPackages() {
-		return new String[] { "rJava", "ptw" };
+    @Override
+    public double[] computeBaseline(final RSession rSession,
+	    final RawDataFile origDataFile, double[] chromatogram,
+	    ParameterSet parameters) {
+
+	// Smoothing and asymmetry parameters.
+	final double smoothing = parameters.getParameter(
+		AsymmetryCorrectorParameters.SMOOTHING).getValue();
+	final double asymmetry = parameters.getParameter(
+		AsymmetryCorrectorParameters.ASYMMETRY).getValue();
+
+	// Compute baseline.
+	final double[] baseline;
+	synchronized (RUtilities.R_SEMAPHORE) {
+
+	    try {
+		// Set chromatogram.
+		rSession.assignDoubleArray("chromatogram", chromatogram);
+		// Calculate baseline.
+		rSession.eval("baseline <- asysm(chromatogram," + smoothing
+			+ ',' + asymmetry + ')');
+		baseline = rSession.collectDoubleArray("baseline");
+	    } catch (Throwable t) {
+		// t.printStackTrace();
+		throw new IllegalStateException(
+			"R error during baseline correction (" + this.getName()
+				+ ").", t);
+	    }
 	}
+	return baseline;
+    }
 
-	@Override
-	public double[] computeBaseline(final RSession rSession, final RawDataFile origDataFile, double[] chromatogram, ParameterSet parameters) {
+    @Override
+    public @Nonnull String getName() {
+	return "Asymmetric baseline corrector";
+    }
 
-		// Smoothing and asymmetry parameters.
-		final double smoothing = parameters.getParameter(AsymmetryCorrectorParameters.SMOOTHING).getValue();
-		final double asymmetry = parameters.getParameter(AsymmetryCorrectorParameters.ASYMMETRY).getValue();
-
-		// Compute baseline.
-		final double[] baseline;
-		synchronized (RUtilities.R_SEMAPHORE) {
-
-			try {
-				// Set chromatogram.
-				rSession.assignDoubleArray("chromatogram", chromatogram);
-				// Calculate baseline.
-				rSession.eval("baseline <- asysm(chromatogram," + smoothing + ',' + asymmetry + ')');
-				baseline = rSession.collectDoubleArray("baseline");
-			}
-			catch (Throwable t) {
-				//t.printStackTrace();
-				throw new IllegalStateException("R error during baseline correction (" + this.getName() + ").", t);
-			}
-		}
-		return baseline;
-	}
-
-
-	@Override
-	public @Nonnull String getName() {
-		return "Asymmetric baseline corrector";
-	}
-
-	@Override
-	public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
-		return AsymmetryCorrectorParameters.class;
-	}
+    @Override
+    public @Nonnull Class<? extends ParameterSet> getParameterSetClass() {
+	return AsymmetryCorrectorParameters.class;
+    }
 
 }

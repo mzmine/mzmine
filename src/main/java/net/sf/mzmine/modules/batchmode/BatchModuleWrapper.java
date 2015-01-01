@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -39,7 +39,7 @@ public class BatchModuleWrapper {
 
     @Override
     public String toString() {
-	return "     "+module.getName();
+	return "     " + module.getName();
     }
 
 }

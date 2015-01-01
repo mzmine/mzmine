@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -25,16 +25,16 @@ import org.jfree.data.xy.XYDataset;
 
 public interface ProjectionPlotDataset extends XYDataset, Task {
 
-	public String getRawDataFile(int item);
-	
-	public int getGroupNumber(int item);
-	
-	public Object getGroupParameterValue(int groupNumber);
-	
-	public int getNumberOfGroups();
-	
-	public String getXLabel();
-	
-	public String getYLabel();
-		
+    public String getRawDataFile(int item);
+
+    public int getGroupNumber(int item);
+
+    public Object getGroupParameterValue(int groupNumber);
+
+    public int getNumberOfGroups();
+
+    public String getXLabel();
+
+    public String getYLabel();
+
 }

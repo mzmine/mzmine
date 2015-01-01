@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -31,21 +31,22 @@ import net.sf.mzmine.parameters.ParameterSet;
  * MZmine configuration interface
  */
 public interface MZmineConfiguration {
-    
+
     public static final File CONFIG_FILE = new File("conf/config.xml");
 
     public ParameterSet getModuleParameters(Class<? extends MZmineModule> module);
 
-    public void setModuleParameters(Class<? extends MZmineModule> module, ParameterSet parameters);
+    public void setModuleParameters(Class<? extends MZmineModule> module,
+	    ParameterSet parameters);
 
     public MZminePreferences getPreferences();
 
     public NumberFormat getMZFormat();
-    
+
     public NumberFormat getRTFormat();
-    
+
     public NumberFormat getIntensityFormat();
-    
+
     public void loadConfiguration(File file) throws IOException;
 
     public void saveConfiguration(File file) throws IOException;

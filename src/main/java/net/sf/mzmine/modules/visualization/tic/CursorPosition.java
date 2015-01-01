@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2014 The MZmine 2 Development Team
+ * Copyright 2006-2015 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -37,83 +37,88 @@ public class CursorPosition {
      * @param rawDataFile
      * @param scanNumber
      */
-    public CursorPosition(double retentionTime, double mzValue, double intensityValue,
-            RawDataFile dataFile, int scanNumber) {
-        this.retentionTime = retentionTime;
-        this.mzValue = mzValue;
-        this.intensityValue = intensityValue;
-        this.dataFile = dataFile;
-        this.scanNumber = scanNumber;
+    public CursorPosition(double retentionTime, double mzValue,
+	    double intensityValue, RawDataFile dataFile, int scanNumber) {
+	this.retentionTime = retentionTime;
+	this.mzValue = mzValue;
+	this.intensityValue = intensityValue;
+	this.dataFile = dataFile;
+	this.scanNumber = scanNumber;
     }
 
     /**
      * @return Returns the intensityValue.
      */
     public double getIntensityValue() {
-        return intensityValue;
+	return intensityValue;
     }
 
     /**
-     * @param intensityValue The intensityValue to set.
+     * @param intensityValue
+     *            The intensityValue to set.
      */
     public void setIntensityValue(double intensityValue) {
-        this.intensityValue = intensityValue;
+	this.intensityValue = intensityValue;
     }
 
     /**
      * @return Returns the mzValue.
      */
     public double getMzValue() {
-        return mzValue;
+	return mzValue;
     }
 
     /**
-     * @param mzValue The mzValue to set.
+     * @param mzValue
+     *            The mzValue to set.
      */
     public void setMzValue(double mzValue) {
-        this.mzValue = mzValue;
+	this.mzValue = mzValue;
     }
 
     /**
      * @return Returns the retentionTime.
      */
     public double getRetentionTime() {
-        return retentionTime;
+	return retentionTime;
     }
 
     /**
-     * @param retentionTime The retentionTime to set.
+     * @param retentionTime
+     *            The retentionTime to set.
      */
     public void setRetentionTime(double retentionTime) {
-        this.retentionTime = retentionTime;
+	this.retentionTime = retentionTime;
     }
 
     /**
      * @return Returns the dataFile.
      */
     public RawDataFile getDataFile() {
-        return dataFile;
+	return dataFile;
     }
 
     /**
-     * @param dataFile The dataFile to set.
+     * @param dataFile
+     *            The dataFile to set.
      */
     public void setDataFile(RawDataFile dataFile) {
-        this.dataFile = dataFile;
+	this.dataFile = dataFile;
     }
 
     /**
      * @return Returns the scanNumber.
      */
     public int getScanNumber() {
-        return scanNumber;
+	return scanNumber;
     }
 
     /**
-     * @param scanNumber The scanNumber to set.
+     * @param scanNumber
+     *            The scanNumber to set.
      */
     public void setScanNumber(int scanNumber) {
-        this.scanNumber = scanNumber;
+	this.scanNumber = scanNumber;
     }
 
 }
