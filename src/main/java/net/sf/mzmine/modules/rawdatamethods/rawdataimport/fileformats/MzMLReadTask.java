@@ -34,7 +34,6 @@ import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -309,8 +308,6 @@ public class MzMLReadTask extends AbstractTask {
 	    // Get the precursor scan number
 	    String precursorScanId = parent.getSpectrumRef();
 	    if (precursorScanId == null) {
-		logger.warning("Missing precursor spectrumRef tag for spectrum ID "
-			+ spectrum.getId());
 		return -1;
 	    }
 	    int parentScan = convertScanIdToScanNumber(precursorScanId);
