@@ -26,12 +26,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -59,6 +59,7 @@ public class NetCDFReadTask extends AbstractTask {
     private Hashtable<Integer, Double> scansRetentionTimes;
 
     private File file;
+    private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
 
@@ -69,10 +70,9 @@ public class NetCDFReadTask extends AbstractTask {
     private double massValueScaleFactor = 1;
     private double intensityValueScaleFactor = 1;
 
-    /**
-     * 
-     */
-    public NetCDFReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+    public NetCDFReadTask(MZmineProject project, File fileToOpen,
+	    RawDataFileWriter newMZmineFile) {
+	this.project = project;
 	this.file = fileToOpen;
 	this.newMZmineFile = newMZmineFile;
     }
@@ -115,7 +115,7 @@ public class NetCDFReadTask extends AbstractTask {
 	    // Close file
 	    this.finishReading();
 	    finalRawDataFile = newMZmineFile.finishWriting();
-	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+	    project.addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
 	    logger.log(Level.SEVERE, "Could not open file " + file.getPath(), e);
@@ -378,7 +378,7 @@ public class NetCDFReadTask extends AbstractTask {
      * Reads one scan from the file. Requires that general information has
      * already been read.
      */
-    public Scan readNextScan() throws IOException {
+    private Scan readNextScan() throws IOException {
 
 	// Get scan starting position and length
 	int[] scanStartPosition = new int[1];

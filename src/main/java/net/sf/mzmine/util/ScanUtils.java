@@ -37,6 +37,8 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.apache.axis.encoding.Base64;
+import org.openscience.cdk.annotations.TestClass;
+import org.openscience.cdk.annotations.TestMethod;
 
 import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
@@ -44,6 +46,7 @@ import com.google.common.primitives.Doubles;
 /**
  * Scan related utilities
  */
+@TestClass("net.sf.mzmine.util.ScanUtilsTest")
 public class ScanUtils {
 
     /**
@@ -379,6 +382,7 @@ public class ScanUtils {
      * is continuous (very little deviation) or centroided (large deviation).
      * 
      */
+    @TestMethod("testIsCentroided")
     public static boolean isCentroided(@Nonnull DataPoint[] dataPoints) {
 
 	ArrayList<Double> mzDifferences = new ArrayList<Double>();

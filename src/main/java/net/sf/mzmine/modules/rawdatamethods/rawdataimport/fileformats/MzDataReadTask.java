@@ -30,11 +30,11 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -53,6 +53,7 @@ public class MzDataReadTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File file;
+    private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
     private int totalScans = 0, parsedScans;
@@ -99,10 +100,12 @@ public class MzDataReadTask extends AbstractTask {
      */
     private LinkedList<SimpleScan> parentStack;
 
-    public MzDataReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+    public MzDataReadTask(MZmineProject project, File fileToOpen,
+	    RawDataFileWriter newMZmineFile) {
 	// 256 kilo-chars buffer
 	charBuffer = new StringBuilder(1 << 18);
 	parentStack = new LinkedList<SimpleScan>();
+	this.project = project;
 	this.file = fileToOpen;
 	this.newMZmineFile = newMZmineFile;
     }
@@ -132,7 +135,7 @@ public class MzDataReadTask extends AbstractTask {
 
 	    // Close file
 	    finalRawDataFile = newMZmineFile.finishWriting();
-	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+	    project.addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
 	    /* we may already have set the status to CANCELED */

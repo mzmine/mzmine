@@ -29,11 +29,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
 import net.sf.mzmine.util.ExceptionUtils;
@@ -54,6 +54,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File file;
+    private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
 
@@ -79,9 +80,10 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     private int scanNumber = 0, msLevel = 0, precursorCharge = 0;
     private double retentionTime = 0, precursorMZ = 0;
 
-    public XcaliburRawFileReadTask(File fileToOpen,
+    public XcaliburRawFileReadTask(MZmineProject project, File fileToOpen,
 	    RawDataFileWriter newMZmineFile) {
 	parentStack = new LinkedList<SimpleScan>();
+	this.project = project;
 	this.file = fileToOpen;
 	this.newMZmineFile = newMZmineFile;
     }
@@ -148,7 +150,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 	    // Close file
 	    finalRawDataFile = newMZmineFile.finishWriting();
-	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+	    project.addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
 

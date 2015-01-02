@@ -23,11 +23,11 @@ import java.io.File;
 import java.util.Scanner;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
-import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.project.impl.RawDataFileImpl;
 import net.sf.mzmine.taskcontrol.AbstractTask;
 import net.sf.mzmine.taskcontrol.TaskStatus;
@@ -39,6 +39,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 
     protected String dataSource;
     private File file;
+    private MZmineProject project;
     private RawDataFileImpl newMZmineFile;
     private RawDataFile finalRawDataFile;
 
@@ -50,7 +51,9 @@ public class AgilentCsvReadTask extends AbstractTask {
      * @param file
      *            A File instance containing the file to be read
      */
-    public AgilentCsvReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+    public AgilentCsvReadTask(MZmineProject project, File fileToOpen,
+	    RawDataFileWriter newMZmineFile) {
+	this.project = project;
 	this.file = fileToOpen;
 	this.newMZmineFile = (RawDataFileImpl) newMZmineFile;
     }
@@ -115,7 +118,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 	    }
 
 	    finalRawDataFile = newMZmineFile.finishWriting();
-	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+	    project.addFile(finalRawDataFile);
 
 	} catch (Exception e) {
 	    setErrorMessage(e.getMessage());

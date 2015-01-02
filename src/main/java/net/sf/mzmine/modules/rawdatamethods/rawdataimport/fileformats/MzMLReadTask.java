@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -61,6 +62,7 @@ public class MzMLReadTask extends AbstractTask {
     private Logger logger = Logger.getLogger(this.getClass().getName());
 
     private File file;
+    private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
     private int totalScans = 0, parsedScans;
@@ -80,7 +82,9 @@ public class MzMLReadTask extends AbstractTask {
     private static final int PARENT_STACK_SIZE = 20;
     private LinkedList<SimpleScan> parentStack = new LinkedList<SimpleScan>();
 
-    public MzMLReadTask(File fileToOpen, RawDataFileWriter newMZmineFile) {
+    public MzMLReadTask(MZmineProject project, File fileToOpen,
+	    RawDataFileWriter newMZmineFile) {
+	this.project = project;
 	this.file = fileToOpen;
 	this.newMZmineFile = newMZmineFile;
     }
@@ -166,7 +170,7 @@ public class MzMLReadTask extends AbstractTask {
 	    }
 
 	    finalRawDataFile = newMZmineFile.finishWriting();
-	    MZmineCore.getCurrentProject().addFile(finalRawDataFile);
+	    project.addFile(finalRawDataFile);
 
 	} catch (Throwable e) {
 	    setStatus(TaskStatus.ERROR);

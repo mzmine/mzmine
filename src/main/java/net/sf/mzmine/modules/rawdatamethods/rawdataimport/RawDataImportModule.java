@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import net.sf.mzmine.datamodel.MZmineProject;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.MZmineModuleCategory;
@@ -97,21 +98,25 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		    .substring(fileNames[i].getName().lastIndexOf(".") + 1)
 		    .toLowerCase();
 	    Task newTask = null;
+	    final MZmineProject project = MZmineCore.getCurrentProject();
 
 	    if (extension.endsWith("mzdata")) {
-		newTask = new MzDataReadTask(fileNames[i], newMZmineFile);
+		newTask = new MzDataReadTask(project, fileNames[i],
+			newMZmineFile);
 	    }
 	    if (extension.endsWith("mzxml")) {
-		newTask = new MzXMLReadTask(fileNames[i], newMZmineFile);
+		newTask = new MzXMLReadTask(project, fileNames[i],
+			newMZmineFile);
 	    }
 	    if (extension.endsWith("mzml")) {
-		newTask = new MzMLReadTask(fileNames[i], newMZmineFile);
+		newTask = new MzMLReadTask(project, fileNames[i], newMZmineFile);
 	    }
 	    if (extension.endsWith("cdf")) {
-		newTask = new NetCDFReadTask(fileNames[i], newMZmineFile);
+		newTask = new NetCDFReadTask(project, fileNames[i],
+			newMZmineFile);
 	    }
 	    if (extension.endsWith("raw")) {
-		newTask = new XcaliburRawFileReadTask(fileNames[i],
+		newTask = new XcaliburRawFileReadTask(project, fileNames[i],
 			newMZmineFile);
 	    }
 	    if (extension.endsWith("xml")) {
@@ -125,14 +130,16 @@ public class RawDataImportModule implements MZmineProcessingModule {
 		    reader.close();
 		    String fileHeader = new String(buffer);
 		    if (fileHeader.contains("mzXML")) {
-			newTask = new MzXMLReadTask(fileNames[i], newMZmineFile);
+			newTask = new MzXMLReadTask(project, fileNames[i],
+				newMZmineFile);
 		    }
 		    if (fileHeader.contains("mzData")) {
-			newTask = new MzDataReadTask(fileNames[i],
+			newTask = new MzDataReadTask(project, fileNames[i],
 				newMZmineFile);
 		    }
 		    if (fileHeader.contains("mzML")) {
-			newTask = new MzMLReadTask(fileNames[i], newMZmineFile);
+			newTask = new MzMLReadTask(project, fileNames[i],
+				newMZmineFile);
 		    }
 		} catch (Exception e) {
 		    logger.warning("Cannot read file " + fileNames[i] + ": "
@@ -142,7 +149,8 @@ public class RawDataImportModule implements MZmineProcessingModule {
 	    }
 
 	    if (extension.endsWith("csv")) {
-		newTask = new AgilentCsvReadTask(fileNames[i], newMZmineFile);
+		newTask = new AgilentCsvReadTask(project, fileNames[i],
+			newMZmineFile);
 	    }
 
 	    if (newTask == null) {

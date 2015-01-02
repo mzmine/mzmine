@@ -72,7 +72,7 @@
 	</build>
 	<repositories>
 		<repository>
-			<!-- jmzreader and CDK repository -->
+			<!-- jmzreader repository -->
 			<id>ebi-repo</id>
 			<name>The EBI Maven repository</name>
 			<url>http://www.ebi.ac.uk/intact/maven/nexus/content/repositories/ebi-repo/</url>
@@ -84,6 +84,12 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.jfree</groupId>
 			<artifactId>jfreechart</artifactId>
@@ -123,8 +129,8 @@
 		</dependency>
 		<dependency>
 			<groupId>edu.ucar</groupId>
-			<artifactId>netcdf</artifactId>
-			<version>4.2.20</version>
+			<artifactId>netcdf4</artifactId>
+			<version>4.5.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ostermiller</groupId>
