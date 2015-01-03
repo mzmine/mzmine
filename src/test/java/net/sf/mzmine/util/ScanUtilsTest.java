@@ -19,6 +19,8 @@
 
 package net.sf.mzmine.util;
 
+import java.util.logging.Logger;
+
 import net.sf.mzmine.MZmineTest;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -28,6 +30,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class ScanUtilsTest extends MZmineTest {
+
+    private static final Logger logger = Logger.getLogger(ScanUtilsTest.class
+	    .getName());
 
     /**
      * Test the isCentroided() method
@@ -46,7 +51,10 @@ public class ScanUtilsTest extends MZmineTest {
 		isCentroided = false;
 	    else
 		continue;
-	    for (int scanNumber : file.getScanNumbers(1)) {
+	    logger.finest("Checking autodetection of centroid/profile scans on file "
+		    + file.getName());
+	    int scanNumbers[] = file.getScanNumbers(1);
+	    for (int scanNumber : scanNumbers) {
 		Scan scan = file.getScan(scanNumber);
 		DataPoint dataPoints[] = scan.getDataPoints();
 		boolean isCentroidedAutoDetection = ScanUtils
