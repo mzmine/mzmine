@@ -292,26 +292,22 @@ public class MzDataReadTask extends AbstractTask {
 	    // <spectrum>
 	    if (qName.equalsIgnoreCase("spectrum")) {
 
-		DataPoint completeDataPoints[] = new DataPoint[peaksCount];
+		DataPoint dataPoints[] = new DataPoint[peaksCount];
 		spectrumInstrumentFlag = false;
 
 		// Copy m/z and intensity data
-		for (int i = 0; i < completeDataPoints.length; i++) {
-		    completeDataPoints[i] = new SimpleDataPoint(
+		for (int i = 0; i < dataPoints.length; i++) {
+		    dataPoints[i] = new SimpleDataPoint(
 			    (double) mzDataPoints[i],
 			    (double) intensityDataPoints[i]);
 		}
 
 		// Auto-detect whether this scan is centroided
-		boolean centroided = ScanUtils.isCentroided(completeDataPoints);
-
-		// Remove zero data points
-		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints);
+		boolean centroided = ScanUtils.isCentroided(dataPoints);
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMz,
-			precursorCharge, null, optimizedDataPoints, centroided);
+			precursorCharge, null, dataPoints, centroided);
 
 		/*
 		 * Update of fragmentScanNumbers of each Scan in the parentStack

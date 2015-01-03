@@ -430,7 +430,7 @@ public class NetCDFReadTask extends AbstractTask {
 
 	int arrayLength = massValueArray.getShape()[0];
 
-	DataPoint completeDataPoints[] = new DataPoint[arrayLength];
+	DataPoint dataPoints[] = new DataPoint[arrayLength];
 
 	for (int j = 0; j < arrayLength; j++) {
 	    Index massIndex0 = massValuesIndex.set0(j);
@@ -440,22 +440,18 @@ public class NetCDFReadTask extends AbstractTask {
 		    * massValueScaleFactor;
 	    double intensity = intensityValueArray.getDouble(intensityIndex0)
 		    * intensityValueScaleFactor;
-	    completeDataPoints[j] = new SimpleDataPoint(mz, intensity);
+	    dataPoints[j] = new SimpleDataPoint(mz, intensity);
 
 	}
 
 	scanNum++;
 
 	// Auto-detect whether this scan is centroided
-	boolean centroided = ScanUtils.isCentroided(completeDataPoints);
-
-	// Remove zero data points
-	DataPoint optimizedDataPoints[] = ScanUtils
-		.removeZeroDataPoints(completeDataPoints);
+	boolean centroided = ScanUtils.isCentroided(dataPoints);
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
-		retentionTime.doubleValue(), -1, 0, 0, null,
-		optimizedDataPoints, centroided);
+		retentionTime.doubleValue(), -1, 0, 0, null, dataPoints,
+		centroided);
 
 	return buildingScan;
 

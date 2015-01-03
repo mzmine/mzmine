@@ -133,13 +133,9 @@ public class MzMLReadTask extends AbstractTask {
 		// Auto-detect whether this scan is centroided
 		boolean centroided = ScanUtils.isCentroided(dataPoints);
 
-		// Remove zero data points
-		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(dataPoints);
-
 		SimpleScan scan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMz,
-			precursorCharge, null, optimizedDataPoints, centroided);
+			precursorCharge, null, dataPoints, centroided);
 
 		for (SimpleScan s : parentStack) {
 		    if (s.getScanNumber() == parentScan) {

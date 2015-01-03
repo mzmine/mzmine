@@ -41,7 +41,6 @@ import org.openscience.cdk.annotations.TestClass;
 import org.openscience.cdk.annotations.TestMethod;
 
 import com.google.common.collect.Range;
-import com.google.common.primitives.Doubles;
 
 /**
  * Scan related utilities
@@ -368,48 +367,24 @@ public class ScanUtils {
 
     /**
      * Determines if the spectrum represented by given array of data points is
-     * centroided or continuous. The algorithm is based on the following
-     * assumption: centroided spectra have their data points unevenly
-     * distributed on the m/z scale, while continuous spectra have there data
-     * points quite regularly distributed. However, the density of the data
-     * points in continuous spectra may gradually change with increasing m/z
-     * value. Also, continuous spectra may contain areas with no data points, if
-     * zero-intensity data points were removed. We use an algorithm adapted from
-     * LutefiskXP software.
-     * 
-     * The mass differences between adjacent data points are calculated, and a
-     * standard deviation for these differences is used to establish if the data
-     * is continuous (very little deviation) or centroided (large deviation).
-     * 
+     * centroided or continuous (profile). The MZmine algorithm is very simple:
+     * if the spectrum contains at least one data point with zero intensity, it
+     * should be continuous. If all data points are non-zero, the spectrum is
+     * centroided.
      */
     @TestMethod("testIsCentroided")
     public static boolean isCentroided(@Nonnull DataPoint[] dataPoints) {
 
-	ArrayList<Double> mzDifferences = new ArrayList<Double>();
-
-	for (int i = 1; i < dataPoints.length; i++) {
-
-	    // Check the m/z difference of adjacent non-zero data points
-	    if ((dataPoints[i - 1].getIntensity() == 0d)
-		    || (dataPoints[i].getIntensity() == 0d))
-		continue;
-
-	    final double mzDifference = dataPoints[i].getMZ()
-		    - dataPoints[i - 1].getMZ();
-
-	    mzDifferences.add(mzDifference);
-	}
-
-	// If the spectrum has less than 10 non-zero data points, it should be
+	// If the spectrum has less than 5 data points, it should be
 	// centroided
-	if (mzDifferences.size() <= 10)
+	if (dataPoints.length < 5)
 	    return true;
 
-	final double mzDifferencesArray[] = Doubles.toArray(mzDifferences);
-	final double stdDev = MathUtils.calcStd(mzDifferencesArray);
-
-	return stdDev > 0.5;
-
+	for (DataPoint dp : dataPoints) {
+	    if (dp.getIntensity() == 0.0)
+		return false;
+	}
+	return true;
     }
 
     /**
@@ -449,63 +424,6 @@ public class ScanUtils {
 	}
 
 	return bestFragmentScan;
-
-    }
-
-    /**
-     * Removes zero-intensity data points from the given array. This function
-     * doesn't remove ALL zero data points. In case the spectrum is continuous,
-     * one zero data point is required to form a correct border of the peak.
-     * This function may return the original array (same instance) in case
-     * nothing was removed. Otherwise, it returns a new array.
-     * 
-     */
-    public static @Nonnull DataPoint[] removeZeroDataPoints(
-	    @Nonnull DataPoint dataPoints[]) {
-
-	// First, check if we actually have any zero data point
-	boolean haveZeroDP = false;
-	for (DataPoint dp : dataPoints) {
-	    if (dp.getIntensity() == 0)
-		haveZeroDP = true;
-	}
-
-	// If no zero data point was found, return the original array
-	if (!haveZeroDP)
-	    return dataPoints;
-
-	// Prepare a list of good data points
-	ArrayList<DataPoint> newDataPoints = new ArrayList<DataPoint>(
-		dataPoints.length);
-
-	for (int i = 0; i < dataPoints.length; i++) {
-
-	    // If the data point is > 0, add it
-	    if (dataPoints[i].getIntensity() > 0) {
-		newDataPoints.add(dataPoints[i]);
-		continue;
-	    }
-
-	    // Check the neighbouring data points
-	    if ((i > 0) && (dataPoints[i - 1].getIntensity() > 0)) {
-		newDataPoints.add(dataPoints[i]);
-		continue;
-	    }
-	    if ((i < dataPoints.length - 1)
-		    && (dataPoints[i + 1].getIntensity() > 0)) {
-		newDataPoints.add(dataPoints[i]);
-		continue;
-	    }
-	}
-
-	// If no data point was removed, return the original array
-	if (newDataPoints.size() == dataPoints.length)
-	    return dataPoints;
-
-	DataPoint[] newDataPointsArray = newDataPoints
-		.toArray(new DataPoint[newDataPoints.size()]);
-
-	return newDataPointsArray;
 
     }
 

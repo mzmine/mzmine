@@ -245,7 +245,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		int numOfDataPoints = Integer.parseInt(line
 			.substring("DATA POINTS: ".length()));
 
-		DataPoint completeDataPoints[] = new DataPoint[numOfDataPoints];
+		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
 
 		// Because Intel CPU is using little endian natively, we
 		// need to use LittleEndianDataInputStream instead of normal
@@ -256,13 +256,10 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		for (int i = 0; i < numOfDataPoints; i++) {
 		    double mz = dis.readDouble();
 		    double intensity = dis.readDouble();
-		    completeDataPoints[i] = new SimpleDataPoint(mz, intensity);
+		    dataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
-		boolean centroided = ScanUtils.isCentroided(completeDataPoints);
-
-		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints);
+		boolean centroided = ScanUtils.isCentroided(dataPoints);
 
 		/*
 		 * If this scan is a full scan (ms level = 1), it means that the
@@ -295,7 +292,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 		SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMZ,
-			precursorCharge, null, optimizedDataPoints, centroided);
+			precursorCharge, null, dataPoints, centroided);
 
 		parentStack.add(newScan);
 		parsedScans++;

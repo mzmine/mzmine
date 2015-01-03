@@ -333,10 +333,10 @@ public class MzXMLReadTask extends AbstractTask {
 		DataInputStream peakStream = new DataInputStream(
 			new ByteArrayInputStream(peakBytes));
 
-		DataPoint completeDataPoints[] = new DataPoint[peaksCount];
+		DataPoint dataPoints[] = new DataPoint[peaksCount];
 
 		try {
-		    for (int i = 0; i < completeDataPoints.length; i++) {
+		    for (int i = 0; i < dataPoints.length; i++) {
 
 			// Always respect this order pairOrder="m/z-int"
 			double massOverCharge;
@@ -350,8 +350,8 @@ public class MzXMLReadTask extends AbstractTask {
 			}
 
 			// Copy m/z and intensity data
-			completeDataPoints[i] = new SimpleDataPoint(
-				massOverCharge, intensity);
+			dataPoints[i] = new SimpleDataPoint(massOverCharge,
+				intensity);
 
 		    }
 		} catch (IOException eof) {
@@ -361,17 +361,13 @@ public class MzXMLReadTask extends AbstractTask {
 		}
 
 		// Auto-detect whether this scan is centroided
-		boolean centroided = ScanUtils.isCentroided(completeDataPoints);
+		boolean centroided = ScanUtils.isCentroided(dataPoints);
 
 		// Set the centroided tag
 		buildingScan.setCentroided(centroided);
 
-		// Remove zero data points
-		DataPoint optimizedDataPoints[] = ScanUtils
-			.removeZeroDataPoints(completeDataPoints);
-
 		// Set the final data points to the scan
-		buildingScan.setDataPoints(optimizedDataPoints);
+		buildingScan.setDataPoints(dataPoints);
 
 		return;
 	    }
