@@ -25,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.transform.TransformerConfigurationException;
 
@@ -43,12 +45,7 @@ import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
 
-import de.schlichtherle.truezip.zip.ZipEntry;
-import de.schlichtherle.truezip.zip.ZipOutputStream;
-
 /**
- * This class is using ZipEntry and ZipOutputStream from the truezip library, in
- * order to get Zip64 support to overcome the 4GB size limitation.
  * 
  */
 public class ProjectSavingTask extends AbstractTask {

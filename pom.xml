@@ -102,17 +102,6 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>de.schlichtherle.truezip</groupId>
-			<artifactId>truezip-driver-zip</artifactId>
-			<version>7.7.7</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>truezip-swing</artifactId>
-					<groupId>de.schlichtherle.truezip</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>18.0</version>

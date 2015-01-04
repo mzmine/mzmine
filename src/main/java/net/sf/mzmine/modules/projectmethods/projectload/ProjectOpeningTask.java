@@ -30,6 +30,8 @@ import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -55,9 +57,6 @@ import net.sf.mzmine.util.GUIUtils;
 import net.sf.mzmine.util.StreamCopy;
 
 import org.xml.sax.SAXException;
-
-import de.schlichtherle.truezip.zip.ZipEntry;
-import de.schlichtherle.truezip.zip.ZipFile;
 
 public class ProjectOpeningTask extends AbstractTask {
 

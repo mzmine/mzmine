@@ -25,6 +25,8 @@ import java.io.RandomAccessFile;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -41,9 +43,6 @@ import net.sf.mzmine.project.impl.StorableScan;
 
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
-
-import de.schlichtherle.truezip.zip.ZipEntry;
-import de.schlichtherle.truezip.zip.ZipOutputStream;
 
 class RawDataFileSaveHandler {
 

@@ -20,15 +20,14 @@
 package net.sf.mzmine.modules.projectmethods.projectload;
 
 import java.io.IOException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.xml.parsers.ParserConfigurationException;
 
 import net.sf.mzmine.datamodel.RawDataFile;
 
 import org.xml.sax.SAXException;
-
-import de.schlichtherle.truezip.zip.ZipEntry;
-import de.schlichtherle.truezip.zip.ZipFile;
 
 public interface RawDataFileOpenHandler {
 
