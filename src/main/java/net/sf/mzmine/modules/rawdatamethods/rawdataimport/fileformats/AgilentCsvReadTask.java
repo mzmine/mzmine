@@ -112,7 +112,7 @@ public class AgilentCsvReadTask extends AbstractTask {
 		}
 		newMZmineFile.addScan(new SimpleScan(null, parsedScans + 1,
 			msLevel, retentionTime, -1, 0.0, charge, null,
-			dataPoints, ScanUtils.isCentroided(dataPoints)));
+			dataPoints, ScanUtils.detectSpectrumType(dataPoints)));
 
 		scanner.nextLine();
 	    }

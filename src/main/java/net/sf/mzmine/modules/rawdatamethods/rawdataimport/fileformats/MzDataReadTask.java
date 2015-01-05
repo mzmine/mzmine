@@ -31,6 +31,7 @@ import javax.xml.parsers.SAXParserFactory;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -303,11 +304,12 @@ public class MzDataReadTask extends AbstractTask {
 		}
 
 		// Auto-detect whether this scan is centroided
-		boolean centroided = ScanUtils.isCentroided(dataPoints);
+		MassSpectrumType spectrumType = ScanUtils
+			.detectSpectrumType(dataPoints);
 
 		buildingScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMz,
-			precursorCharge, null, dataPoints, centroided);
+			precursorCharge, null, dataPoints, spectrumType);
 
 		/*
 		 * Update of fragmentScanNumbers of each Scan in the parentStack

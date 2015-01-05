@@ -30,6 +30,7 @@ import net.sf.mzmine.datamodel.Feature.FeatureStatus;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.PeakListRow;
 import net.sf.mzmine.datamodel.RawDataFile;
@@ -108,10 +109,11 @@ class CasmiImportTask extends AbstractTask {
 		    + " raw data");
 	    double precursorMz = topDataPoint.getMZ();
 	    Scan msScan = new SimpleScan(null, msScanNumber, 1, 1.0, -1, 0, 0,
-		    new int[] { 2 }, msSpectrumDataPoints, true);
+		    new int[] { 2 }, msSpectrumDataPoints,
+		    MassSpectrumType.CENTROIDED);
 	    Scan msMsScan = new SimpleScan(null, msMsScanNumber, 2, 1.1,
 		    msScanNumber, precursorMz, 1, null, msMsSpectrumDataPoints,
-		    true);
+		    MassSpectrumType.CENTROIDED);
 	    dataFileWriter.addScan(msScan);
 	    dataFileWriter.addScan(msMsScan);
 	    newDataFile = dataFileWriter.finishWriting();

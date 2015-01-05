@@ -24,7 +24,7 @@ import javax.annotation.Nonnull;
 /**
  * This interface defines an isotope pattern which can be attached to a peak
  */
-public interface IsotopePattern extends Spectrum {
+public interface IsotopePattern extends MassSpectrum {
 
     public enum IsotopePatternStatus {
 

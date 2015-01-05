@@ -29,6 +29,7 @@ import java.text.NumberFormat;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.visualization.spectra.datasets.IsotopesDataSet;
@@ -66,7 +67,7 @@ public class SpectraPlot extends ChartPanel {
     private XYPlot plot;
 
     // initially, plotMode is set to null, until we load first scan
-    private PlotMode plotMode = null;
+    private MassSpectrumType plotMode = null;
 
     // peak labels color
     private static final Color labelsColor = Color.darkGray;
@@ -211,7 +212,7 @@ public class SpectraPlot extends ChartPanel {
      * This will set either centroid or continuous renderer to the first data
      * set, assuming that dataset with index 0 contains the raw data.
      */
-    public void setPlotMode(PlotMode plotMode) {
+    public void setPlotMode(MassSpectrumType plotMode) {
 
 	this.plotMode = plotMode;
 
@@ -220,7 +221,7 @@ public class SpectraPlot extends ChartPanel {
 	    return;
 
 	XYItemRenderer newRenderer;
-	if (plotMode == PlotMode.CENTROID) {
+	if (plotMode == MassSpectrumType.CENTROIDED) {
 	    newRenderer = new PeakRenderer(SpectraVisualizerWindow.scanColor,
 		    false);
 	} else {
@@ -241,7 +242,7 @@ public class SpectraPlot extends ChartPanel {
 
     }
 
-    public PlotMode getPlotMode() {
+    public MassSpectrumType getPlotMode() {
 	return plotMode;
     }
 
@@ -322,7 +323,7 @@ public class SpectraPlot extends ChartPanel {
 	if (dataSet instanceof ScanDataSet) {
 	    ScanDataSet scanDataSet = (ScanDataSet) dataSet;
 	    Scan scan = scanDataSet.getScan();
-	    if (scan.isCentroided())
+	    if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
 		newRenderer = new PeakRenderer(color, transparency);
 	    else {
 		newRenderer = new ContinuousRenderer(color, transparency);

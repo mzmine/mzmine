@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -54,7 +55,7 @@ public class StorableScan implements Scan {
     private Range<Double> mzRange;
     private DataPoint basePeak;
     private Double totalIonCurrent;
-    private boolean centroided;
+    private MassSpectrumType spectrumType;
     private int numberOfDataPoints;
     private RawDataFileImpl rawDataFile;
     private ArrayList<MassList> massLists = new ArrayList<MassList>();
@@ -78,7 +79,7 @@ public class StorableScan implements Scan {
 	this.precursorMZ = originalScan.getPrecursorMZ();
 	this.precursorCharge = originalScan.getPrecursorCharge();
 	this.fragmentScans = originalScan.getFragmentScanNumbers();
-	this.centroided = originalScan.isCentroided();
+	this.spectrumType = originalScan.getSpectrumType();
 	this.mzRange = originalScan.getMZRange();
 	this.basePeak = originalScan.getHighestDataPoint();
 	this.totalIonCurrent = originalScan.getTIC();
@@ -88,7 +89,8 @@ public class StorableScan implements Scan {
     public StorableScan(RawDataFileImpl rawDataFile, int storageID,
 	    int numberOfDataPoints, int scanNumber, int msLevel,
 	    double retentionTime, int parentScan, double precursorMZ,
-	    int precursorCharge, int fragmentScans[], boolean centroided) {
+	    int precursorCharge, int fragmentScans[],
+	    MassSpectrumType spectrumType) {
 
 	this.rawDataFile = rawDataFile;
 	this.numberOfDataPoints = numberOfDataPoints;
@@ -101,7 +103,7 @@ public class StorableScan implements Scan {
 	this.precursorMZ = precursorMZ;
 	this.precursorCharge = precursorCharge;
 	this.fragmentScans = fragmentScans;
-	this.centroided = centroided;
+	this.spectrumType = spectrumType;
     }
 
     /**
@@ -297,10 +299,10 @@ public class StorableScan implements Scan {
     }
 
     /**
-     * @see net.sf.mzmine.datamodel.Scan#isCentroided()
+     * @see net.sf.mzmine.datamodel.Scan#getSpectrumType()
      */
-    public boolean isCentroided() {
-	return centroided;
+    public MassSpectrumType getSpectrumType() {
+	return spectrumType;
     }
 
     public double getTIC() {

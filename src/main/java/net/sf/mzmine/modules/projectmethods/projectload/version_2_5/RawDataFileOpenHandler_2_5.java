@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.main.MZmineCore;
 import net.sf.mzmine.modules.projectmethods.projectload.RawDataFileOpenHandler;
@@ -61,7 +62,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
     private double precursorMZ;
     private int precursorCharge;
     private double retentionTime;
-    private boolean centroided;
+    private MassSpectrumType spectrumType;
     private int dataPointsNumber;
     private int stepNumber;
     private int fragmentCount;
@@ -263,7 +264,11 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	}
 
 	if (qName.equals(RawDataElementName_2_5.CENTROIDED.getElementName())) {
-	    centroided = Boolean.parseBoolean(getTextOfElement());
+	    boolean centroided = Boolean.parseBoolean(getTextOfElement());
+	    if (centroided)
+		spectrumType = MassSpectrumType.CENTROIDED;
+	    else
+		spectrumType = MassSpectrumType.PROFILE;
 	}
 
 	if (qName.equals(RawDataElementName_2_5.QUANTITY_DATAPOINTS
@@ -281,7 +286,7 @@ public class RawDataFileOpenHandler_2_5 extends DefaultHandler implements
 	    StorableScan storableScan = new StorableScan(newRawDataFile,
 		    currentStorageID, dataPointsNumber, scanNumber, msLevel,
 		    retentionTime, parentScan, precursorMZ, precursorCharge,
-		    fragmentScan, centroided);
+		    fragmentScan, spectrumType);
 
 	    try {
 		newRawDataFile.addScan(storableScan);

@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * This class represent one spectrum of a raw data file.
  */
-public interface Scan extends Spectrum {
+public interface Scan extends MassSpectrum {
 
     /**
      * 

@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Polarity;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -51,7 +52,7 @@ public class SimpleScan implements Scan {
     private Range<Double> mzRange;
     private DataPoint basePeak;
     private double totalIonCurrent;
-    private boolean centroided;
+    private MassSpectrumType spectrumType;
 
     /**
      * Clone constructor
@@ -61,7 +62,7 @@ public class SimpleScan implements Scan {
 		.getRetentionTime(), sc.getParentScanNumber(), sc
 		.getPrecursorMZ(), sc.getPrecursorCharge(), sc
 		.getFragmentScanNumbers(), sc.getDataPoints(), sc
-		.isCentroided());
+		.getSpectrumType());
     }
 
     /**
@@ -70,7 +71,7 @@ public class SimpleScan implements Scan {
     public SimpleScan(RawDataFile dataFile, int scanNumber, int msLevel,
 	    double retentionTime, int parentScan, double precursorMZ,
 	    int precursorCharge, int fragmentScans[], DataPoint[] dataPoints,
-	    boolean centroided) {
+	    MassSpectrumType spectrumType) {
 
 	// save scan data
 	this.dataFile = dataFile;
@@ -80,7 +81,7 @@ public class SimpleScan implements Scan {
 	this.parentScan = parentScan;
 	this.precursorMZ = precursorMZ;
 	this.fragmentScans = fragmentScans;
-	this.centroided = centroided;
+	this.spectrumType = spectrumType;
 	this.precursorCharge = precursorCharge;
 
 	if (dataPoints != null)
@@ -307,18 +308,18 @@ public class SimpleScan implements Scan {
     }
 
     /**
-     * @see net.sf.mzmine.datamodel.Scan#isCentroided()
+     * @see net.sf.mzmine.datamodel.Scan#getSpectrumType()
      */
-    public boolean isCentroided() {
-	return centroided;
+    public MassSpectrumType getSpectrumType() {
+	return spectrumType;
     }
 
     /**
      * @param centroided
      *            The centroided to set.
      */
-    public void setCentroided(boolean centroided) {
-	this.centroided = centroided;
+    public void setSpectrumType(MassSpectrumType spectrumType) {
+	this.spectrumType = spectrumType;
     }
 
     public double getTIC() {

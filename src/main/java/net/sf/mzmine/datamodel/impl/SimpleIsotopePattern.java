@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.IsotopePattern;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.util.ScanUtils;
 
 import com.google.common.collect.Range;
@@ -91,8 +92,8 @@ public class SimpleIsotopePattern implements IsotopePattern {
     }
 
     @Override
-    public boolean isCentroided() {
-	return false;
+    public MassSpectrumType getSpectrumType() {
+	return MassSpectrumType.CENTROIDED;
     }
 
     @Override

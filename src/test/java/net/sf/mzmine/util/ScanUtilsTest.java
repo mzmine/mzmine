@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.MZmineTest;
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 
@@ -38,17 +39,17 @@ public class ScanUtilsTest extends MZmineTest {
      * Test the isCentroided() method
      */
     @Test
-    public void testIsCentroided() throws Exception {
+    public void testDetectSpectrumType() throws Exception {
 
 	RawDataFile files[] = project.getDataFiles();
 	Assert.assertNotEquals(0, files.length);
 	int filesTested = 0;
 	for (RawDataFile file : files) {
-	    boolean isCentroided;
+	    MassSpectrumType trueType;
 	    if (file.getName().startsWith("centroid"))
-		isCentroided = true;
+		trueType = MassSpectrumType.CENTROIDED;
 	    else if (file.getName().startsWith("profile"))
-		isCentroided = false;
+		trueType = MassSpectrumType.PROFILE;
 	    else
 		continue;
 	    logger.finest("Checking autodetection of centroid/profile scans on file "
@@ -57,12 +58,12 @@ public class ScanUtilsTest extends MZmineTest {
 	    for (int scanNumber : scanNumbers) {
 		Scan scan = file.getScan(scanNumber);
 		DataPoint dataPoints[] = scan.getDataPoints();
-		boolean isCentroidedAutoDetection = ScanUtils
-			.isCentroided(dataPoints);
+		MassSpectrumType detectedType = ScanUtils
+			.detectSpectrumType(dataPoints);
+
 		Assert.assertEquals("Scan " + file.getName() + "#" + scanNumber
-			+ " wrongly detected as "
-			+ (isCentroidedAutoDetection ? "centroid" : "profile")
-			+ ".", isCentroided, isCentroidedAutoDetection);
+			+ " wrongly detected as " + detectedType + ".",
+			detectedType, trueType);
 	    }
 	    filesTested++;
 	}

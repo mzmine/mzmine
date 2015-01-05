@@ -27,6 +27,7 @@ import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.Scan;
@@ -405,7 +406,7 @@ public class NetCDFReadTask extends AbstractTask {
 	    scanNum++;
 	    return new SimpleScan(null, scanNum, 1,
 		    retentionTime.doubleValue(), -1, 0, 0, null,
-		    new DataPoint[0], false);
+		    new DataPoint[0], null);
 	}
 
 	// Read mass and intensity values
@@ -447,11 +448,12 @@ public class NetCDFReadTask extends AbstractTask {
 	scanNum++;
 
 	// Auto-detect whether this scan is centroided
-	boolean centroided = ScanUtils.isCentroided(dataPoints);
+	MassSpectrumType spectrumType = ScanUtils
+		.detectSpectrumType(dataPoints);
 
 	SimpleScan buildingScan = new SimpleScan(null, scanNum, 1,
 		retentionTime.doubleValue(), -1, 0, 0, null, dataPoints,
-		centroided);
+		spectrumType);
 
 	return buildingScan;
 

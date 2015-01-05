@@ -24,6 +24,7 @@ import java.util.Vector;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
@@ -98,7 +99,7 @@ public class MeanFilter implements ScanFilter {
 		sc.getMSLevel(), sc.getRetentionTime(),
 		sc.getParentScanNumber(), sc.getPrecursorMZ(),
 		sc.getPrecursorCharge(), sc.getFragmentScanNumbers(),
-		newDataPoints, true);
+		newDataPoints, MassSpectrumType.CENTROIDED);
 
 	return newScan;
 

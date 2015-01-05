@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.rawdatamethods.filtering.scanfilters.resample;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.datamodel.impl.SimpleScan;
@@ -55,7 +56,8 @@ public class ResampleFilter implements ScanFilter {
 	}
 	// the new intensity values
 	double[] newY = ScanUtils.binValues(x, y, mzRange, numberOfBins,
-		!scan.isCentroided(), ScanUtils.BinningType.AVG);
+		scan.getSpectrumType() == MassSpectrumType.PROFILE,
+		ScanUtils.BinningType.AVG);
 	SimpleDataPoint[] newPoints = new SimpleDataPoint[newY.length];
 
 	// set the new m/z value in the middle of the bin
@@ -69,7 +71,7 @@ public class ResampleFilter implements ScanFilter {
 	// Create updated scan
 	SimpleScan newScan = new SimpleScan(scan);
 	newScan.setDataPoints(newPoints);
-	newScan.setCentroided(true);
+	newScan.setSpectrumType(MassSpectrumType.CENTROIDED);
 
 	return newScan;
     }

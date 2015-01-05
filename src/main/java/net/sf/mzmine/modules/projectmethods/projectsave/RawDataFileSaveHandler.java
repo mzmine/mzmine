@@ -288,8 +288,8 @@ class RawDataFileSaveHandler {
 	// <CENTROIDED>
 	hd.startElement("", "", RawDataElementName.CENTROIDED.getElementName(),
 		atts);
-	hd.characters(String.valueOf(scan.isCentroided()).toCharArray(), 0,
-		String.valueOf(scan.isCentroided()).length());
+	hd.characters(String.valueOf(scan.getSpectrumType()).toCharArray(), 0,
+		String.valueOf(scan.getSpectrumType()).length());
 	hd.endElement("", "", RawDataElementName.CENTROIDED.getElementName());
 
 	// <QUANTITY_DATAPOINTS>

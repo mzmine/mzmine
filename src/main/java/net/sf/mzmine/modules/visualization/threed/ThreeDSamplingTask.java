@@ -22,6 +22,7 @@ package net.sf.mzmine.modules.visualization.threed;
 import java.util.logging.Logger;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.taskcontrol.AbstractTask;
@@ -138,7 +139,8 @@ class ThreeDSamplingTask extends AbstractTask {
 
 		double[] binnedIntensities = ScanUtils.binValues(scanMZValues,
 			scanIntensityValues, mzRange, mzResolution,
-			!scan.isCentroided(), BinningType.MAX);
+			scan.getSpectrumType() != MassSpectrumType.CENTROIDED,
+			BinningType.MAX);
 
 		int scanBinIndex;
 

@@ -28,7 +28,6 @@ import java.util.Vector;
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MassList;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
@@ -79,11 +78,7 @@ public class ShoulderPeaksFilterSetupDialog extends
 		false);
 
 	// If the scan is centroided, switch to centroid mode
-	if (previewScan.isCentroided()) {
-	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
-	} else {
-	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-	}
+	spectrumPlot.setPlotMode(previewScan.getSpectrumType());
 
 	// If the parameters are not complete, exit
 	ArrayList<String> errors = new ArrayList<String>();

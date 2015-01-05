@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.awt.Window;
 
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.ScanDataSet;
@@ -37,9 +36,6 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
  */
 public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private ParameterSet filterParameters;
     private ScanFilter rawDataFilter;
@@ -82,11 +78,7 @@ public class ScanFilterSetupDialog extends ParameterSetupDialogWithScanPreview {
 	spectrumPlot.addDataSet(spectraDataSet, Color.green, true);
 
 	// if the scan is centroided, switch to centroid mode
-	if (previewScan.isCentroided()) {
-	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
-	} else {
-	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-	}
+	spectrumPlot.setPlotMode(previewScan.getSpectrumType());
 
     }
 }

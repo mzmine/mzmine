@@ -38,6 +38,7 @@ import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Feature;
 import net.sf.mzmine.datamodel.IsotopePattern;
 import net.sf.mzmine.datamodel.IsotopePattern.IsotopePatternStatus;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.PeakList;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
@@ -144,13 +145,8 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 
 	// If the plot mode has not been set yet, set it accordingly
 	if (spectrumPlot.getPlotMode() == null) {
-	    if (currentScan.isCentroided()) {
-		spectrumPlot.setPlotMode(PlotMode.CENTROID);
-		toolBar.setCentroidButton(false);
-	    } else {
-		spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-		toolBar.setCentroidButton(true);
-	    }
+	    spectrumPlot.setPlotMode(currentScan.getSpectrumType());
+	    toolBar.setCentroidButton(currentScan.getSpectrumType() == MassSpectrumType.PROFILE);
 	}
 
 	// Clean up the MS/MS selector combo
@@ -407,11 +403,11 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	if (command.equals("TOGGLE_PLOT_MODE")) {
-	    if (spectrumPlot.getPlotMode() == PlotMode.CONTINUOUS) {
-		spectrumPlot.setPlotMode(PlotMode.CENTROID);
+	    if (spectrumPlot.getPlotMode() == MassSpectrumType.PROFILE) {
+		spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
 		toolBar.setCentroidButton(false);
 	    } else {
-		spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
+		spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
 		toolBar.setCentroidButton(true);
 	    }
 	}

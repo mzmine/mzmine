@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 The MZmine 2 Development Team
+ * Copyright 2006-2014 The MZmine 2 Development Team
  * 
  * This file is part of MZmine 2.
  * 
@@ -17,8 +17,18 @@
  * Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-package net.sf.mzmine.modules.visualization.spectra;
+package net.sf.mzmine.datamodel;
 
-public enum PlotMode {
-    CENTROID, CONTINUOUS
+public enum MassSpectrumType {
+
+    /**
+     * Continuous (profile) mass spectrum.
+     */
+    PROFILE,
+
+    /**
+     * Centroided mass spectrum (discrete data points).
+     */
+    CENTROIDED;
+
 }

@@ -27,7 +27,7 @@ import com.google.common.collect.Range;
 /**
  * This class represent one mass spectrum.
  */
-public interface Spectrum {
+public interface MassSpectrum {
 
     /**
      * Returns the m/z range of this Scan. Never returns null.
@@ -57,7 +57,7 @@ public interface Spectrum {
      * 
      * @return True if the scan data is centroided
      */
-    public boolean isCentroided();
+    public MassSpectrumType getSpectrumType();
 
     /**
      * @return Number of m/z and intensity data points

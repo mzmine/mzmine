@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.Scan;
-import net.sf.mzmine.modules.visualization.spectra.PlotMode;
 import net.sf.mzmine.modules.visualization.spectra.SpectraPlot;
 import net.sf.mzmine.modules.visualization.spectra.SpectraVisualizerWindow;
 import net.sf.mzmine.modules.visualization.spectra.datasets.DataPointsDataSet;
@@ -40,9 +39,6 @@ import net.sf.mzmine.parameters.dialogs.ParameterSetupDialogWithScanPreview;
 public class MassDetectorSetupDialog extends
 	ParameterSetupDialogWithScanPreview {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     private MassDetector massDetector;
     private ParameterSet parameters;
@@ -71,11 +67,7 @@ public class MassDetectorSetupDialog extends
 
 	// Set plot mode only if it hasn't been set before
 	// if the scan is centroided, switch to centroid mode
-	if (previewScan.isCentroided()) {
-	    spectrumPlot.setPlotMode(PlotMode.CENTROID);
-	} else {
-	    spectrumPlot.setPlotMode(PlotMode.CONTINUOUS);
-	}
+	spectrumPlot.setPlotMode(previewScan.getSpectrumType());
 
 	spectrumPlot.removeAllDataSets();
 	spectrumPlot.addDataSet(spectraDataSet,

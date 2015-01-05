@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import net.sf.mzmine.datamodel.DataPoint;
 import net.sf.mzmine.datamodel.MZmineProject;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.RawDataFileWriter;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -259,7 +260,9 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 		    dataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
-		boolean centroided = ScanUtils.isCentroided(dataPoints);
+		// Auto-detect whether this scan is centroided
+		MassSpectrumType spectrumType = ScanUtils
+			.detectSpectrumType(dataPoints);
 
 		/*
 		 * If this scan is a full scan (ms level = 1), it means that the
@@ -292,7 +295,7 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 
 		SimpleScan newScan = new SimpleScan(null, scanNumber, msLevel,
 			retentionTime, parentScan, precursorMZ,
-			precursorCharge, null, dataPoints, centroided);
+			precursorCharge, null, dataPoints, spectrumType);
 
 		parentStack.add(newScan);
 		parsedScans++;

@@ -31,6 +31,7 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 
 import net.sf.mzmine.datamodel.DataPoint;
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
@@ -68,7 +69,7 @@ public class ScanUtils {
 	buf.append(scan.getMSLevel());
 	if (scan.getMSLevel() > 1)
 	    buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
-	if (scan.isCentroided())
+	if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
 	    buf.append(" c");
 	else
 	    buf.append(" p");
@@ -372,19 +373,20 @@ public class ScanUtils {
      * should be continuous. If all data points are non-zero, the spectrum is
      * centroided.
      */
-    @TestMethod("testIsCentroided")
-    public static boolean isCentroided(@Nonnull DataPoint[] dataPoints) {
+    @TestMethod("testDetectSpectrumType")
+    public static MassSpectrumType detectSpectrumType(
+	    @Nonnull DataPoint[] dataPoints) {
 
 	// If the spectrum has less than 5 data points, it should be
 	// centroided
 	if (dataPoints.length < 5)
-	    return true;
+	    return MassSpectrumType.CENTROIDED;
 
 	for (DataPoint dp : dataPoints) {
 	    if (dp.getIntensity() == 0.0)
-		return false;
+		return MassSpectrumType.PROFILE;
 	}
-	return true;
+	return MassSpectrumType.CENTROIDED;
     }
 
     /**

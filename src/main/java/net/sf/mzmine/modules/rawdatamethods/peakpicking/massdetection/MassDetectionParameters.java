@@ -21,6 +21,7 @@ package net.sf.mzmine.modules.rawdatamethods.peakpicking.massdetection;
 
 import java.awt.Window;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.datamodel.RawDataFile;
 import net.sf.mzmine.datamodel.Scan;
 import net.sf.mzmine.main.MZmineCore;
@@ -86,7 +87,7 @@ public class MassDetectionParameters extends SimpleParameterSet {
 	    int scanNums[] = file.getScanNumbers(selectedMSLevel);
 	    for (int scanNum : scanNums) {
 		Scan s = file.getScan(scanNum);
-		if (s.isCentroided())
+		if (s.getSpectrumType() == MassSpectrumType.CENTROIDED)
 		    centroidData = true;
 	    }
 	}
