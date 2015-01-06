@@ -150,7 +150,7 @@
 		<dependency>
 			<groupId>nz.ac.waikato.cms.weka</groupId>
 			<artifactId>weka-stable</artifactId>
-			<version>3.6.11</version>
+			<version>3.6.12</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jmol</groupId>
@@ -211,26 +211,6 @@
 		</dependency>
 		<dependency>
 			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>pkl-parser</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>dta-parser</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>ms2-parser</artifactId>
-			<version>1.2.1</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>mgf-parser</artifactId>
-			<version>1.2.9</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
 			<artifactId>mzxml-parser</artifactId>
 			<version>1.3.3</version>
 		</dependency>
@@ -247,14 +227,7 @@
 		<dependency>
 			<groupId>uk.ac.ebi.jmzml</groupId>
 			<artifactId>jmzml</artifactId>
-			<version>1.7.2.pride</version>
-			<!-- jmzml versions prior to 1.7.1 contain a critical bug that causes 
-				infinite loops when reading certain mzML files -->
-		</dependency>
-		<dependency>
-			<groupId>uk.ac.ebi.pride.tools</groupId>
-			<artifactId>pride-wrapper</artifactId>
-			<version>1.2.2</version>
+			<version>1.7.2</version>
 		</dependency>
 		<!-- End of jmzreader parsers -->
 
