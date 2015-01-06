@@ -19,15 +19,30 @@
 
 package net.sf.mzmine.datamodel;
 
+/**
+ * Defines a type of the mass spectrum. For exact definition of different
+ * spectra types, see Deutsch, E. W. (2012). File Formats Commonly Used in Mass
+ * Spectrometry Proteomics. Molecular & Cellular Proteomics, 11(12), 1612–1621.
+ * doi:10.1074/mcp.R112.019695
+ */
 public enum MassSpectrumType {
 
     /**
-     * Continuous (profile) mass spectrum.
+     * Continuous (profile) mass spectrum. Continuous stream of connected data
+     * points forms a spectrum consisting of individual peaks. Peaks represent
+     * detected ions. Each peak consists of multiple data points.
      */
     PROFILE,
 
     /**
-     * Centroided mass spectrum (discrete data points).
+     * Thresholded mass spectrum = same as profile, but data points below
+     * certain intensity threshold are removed.
+     */
+    THRESHOLDED,
+
+    /**
+     * Centroided mass spectrum = discrete data points, one for each detected
+     * ion.
      */
     CENTROIDED;
 

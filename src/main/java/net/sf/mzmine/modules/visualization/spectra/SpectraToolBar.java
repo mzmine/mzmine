@@ -28,6 +28,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
 
+import net.sf.mzmine.datamodel.MassSpectrumType;
 import net.sf.mzmine.util.GUIUtils;
 
 /**
@@ -35,9 +36,6 @@ import net.sf.mzmine.util.GUIUtils;
  */
 public class SpectraToolBar extends JToolBar {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
     static final Icon centroidIcon = new ImageIcon("icons/centroidicon.png");
     static final Icon continuousIcon = new ImageIcon("icons/continuousicon.png");
@@ -93,13 +91,13 @@ public class SpectraToolBar extends JToolBar {
 
     }
 
-    public void setCentroidButton(boolean centroid) {
-	if (centroid) {
-	    centroidContinuousButton.setIcon(centroidIcon);
-	    dataPointsButton.setEnabled(true);
-	} else {
+    public void setCentroidButton(MassSpectrumType spectrumType) {
+	if (spectrumType == MassSpectrumType.CENTROIDED) {
 	    centroidContinuousButton.setIcon(continuousIcon);
 	    dataPointsButton.setEnabled(false);
+	} else {
+	    centroidContinuousButton.setIcon(centroidIcon);
+	    dataPointsButton.setEnabled(true);
 	}
     }
 

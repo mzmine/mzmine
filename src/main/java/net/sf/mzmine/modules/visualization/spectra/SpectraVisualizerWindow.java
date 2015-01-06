@@ -146,7 +146,7 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	// If the plot mode has not been set yet, set it accordingly
 	if (spectrumPlot.getPlotMode() == null) {
 	    spectrumPlot.setPlotMode(currentScan.getSpectrumType());
-	    toolBar.setCentroidButton(currentScan.getSpectrumType() == MassSpectrumType.PROFILE);
+	    toolBar.setCentroidButton(currentScan.getSpectrumType());
 	}
 
 	// Clean up the MS/MS selector combo
@@ -403,12 +403,12 @@ public class SpectraVisualizerWindow extends JFrame implements ActionListener {
 	}
 
 	if (command.equals("TOGGLE_PLOT_MODE")) {
-	    if (spectrumPlot.getPlotMode() == MassSpectrumType.PROFILE) {
-		spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
-		toolBar.setCentroidButton(false);
-	    } else {
+	    if (spectrumPlot.getPlotMode() == MassSpectrumType.CENTROIDED) {
 		spectrumPlot.setPlotMode(MassSpectrumType.PROFILE);
-		toolBar.setCentroidButton(true);
+		toolBar.setCentroidButton(MassSpectrumType.PROFILE);
+	    } else {
+		spectrumPlot.setPlotMode(MassSpectrumType.CENTROIDED);
+		toolBar.setCentroidButton(MassSpectrumType.CENTROIDED);
 	    }
 	}
 

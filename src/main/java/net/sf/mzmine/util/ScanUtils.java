@@ -69,10 +69,17 @@ public class ScanUtils {
 	buf.append(scan.getMSLevel());
 	if (scan.getMSLevel() > 1)
 	    buf.append(" (" + mzFormat.format(scan.getPrecursorMZ()) + ")");
-	if (scan.getSpectrumType() == MassSpectrumType.CENTROIDED)
+	switch (scan.getSpectrumType()) {
+	case CENTROIDED:
 	    buf.append(" c");
-	else
+	    break;
+	case PROFILE:
 	    buf.append(" p");
+	    break;
+	case THRESHOLDED:
+	    buf.append(" t");
+	    break;
+	}
 
 	return buf.toString();
     }
@@ -116,7 +123,6 @@ public class ScanUtils {
 
 	double tic = 0.0;
 	for (final DataPoint dataPoint : scan.getDataPointsByMass(mzRange)) {
-
 	    tic += dataPoint.getIntensity();
 	}
 	return tic;
@@ -368,25 +374,108 @@ public class ScanUtils {
 
     /**
      * Determines if the spectrum represented by given array of data points is
-     * centroided or continuous (profile). The MZmine algorithm is very simple:
-     * if the spectrum contains at least one data point with zero intensity, it
-     * should be continuous. If all data points are non-zero, the spectrum is
-     * centroided.
+     * centroided or continuous (profile or thresholded). Profile spectra are
+     * easy to detect, because they contain zero-intensity data points. However,
+     * distinguishing centroided from thresholded spectra is not trivial. MZmine
+     * uses multiple checks for that purpose, as described in the code comments.
      */
     @TestMethod("testDetectSpectrumType")
     public static MassSpectrumType detectSpectrumType(
 	    @Nonnull DataPoint[] dataPoints) {
 
-	// If the spectrum has less than 5 data points, it should be
-	// centroided
+	// If the spectrum has less than 5 data points, it should be centroided.
 	if (dataPoints.length < 5)
 	    return MassSpectrumType.CENTROIDED;
 
-	for (DataPoint dp : dataPoints) {
-	    if (dp.getIntensity() == 0.0)
+	// Go through the data points and find the highest one
+	double maxIntensity = 0.0;
+	int topDataPointIndex = 0;
+	for (int i = 0; i < dataPoints.length; i++) {
+
+	    // If the spectrum contains data points of zero intensity, it should
+	    // be in profile mode
+	    if (dataPoints[i].getIntensity() == 0.0) {
 		return MassSpectrumType.PROFILE;
+	    }
+
+	    // Let's ignore the first and the last data point, because
+	    // that would complicate our following checks
+	    if ((i == 0) || (i == dataPoints.length - 1))
+		continue;
+
+	    // Update the maxDataPointIndex accordingly
+	    if (dataPoints[i].getIntensity() > maxIntensity) {
+		maxIntensity = dataPoints[i].getIntensity();
+		topDataPointIndex = i;
+	    }
 	}
-	return MassSpectrumType.CENTROIDED;
+
+	// Now we have the index of the top data point (except the first and
+	// the last). We also know the spectrum has at least 5 data points.
+	assert topDataPointIndex > 0;
+	assert topDataPointIndex < dataPoints.length - 1;
+	assert dataPoints.length >= 5;
+
+	// Calculate the m/z difference between the top data point and the
+	// previous one
+	final double topMzDifference = Math.abs(dataPoints[topDataPointIndex]
+		.getMZ() - dataPoints[topDataPointIndex - 1].getMZ());
+
+	// For 5 data points around the top one (with the top one in the
+	// center), we check the distribution of the m/z values. If the spectrum
+	// is continuous (thresholded), the distances between data points should
+	// be more or less constant. On the other hand, centroided spectra
+	// usually have unevenly distributed data points.
+	for (int i = topDataPointIndex - 2; i < topDataPointIndex + 2; i++) {
+
+	    // Check if the index is within acceptable range
+	    if ((i < 1) || (i > dataPoints.length - 1))
+		continue;
+
+	    final double currentMzDifference = Math.abs(dataPoints[i].getMZ()
+		    - dataPoints[i - 1].getMZ());
+
+	    // Check if the m/z distance of the pair of consecutive data points
+	    // falls within 25% tolerance of the distance of the top data point
+	    // and its neighbor. If not, the spectrum should be centroided.
+	    if ((currentMzDifference < 0.8 * topMzDifference)
+		    || (currentMzDifference > 1.25 * topMzDifference)) {
+		return MassSpectrumType.CENTROIDED;
+	    }
+
+	}
+
+	// The previous check will detect most of the centroided spectra, but
+	// there is a catch: some centroided spectra were produced by binning,
+	// and the bins typically have regular distribution of data points, so
+	// the above check would fail. Binning is normally used for
+	// low-resolution spectra, so we can check the m/z difference the 3
+	// consecutive data points (with the top one in the middle). If it goes
+	// above 0.1, the spectrum should be centroided.
+	final double mzDifferenceTopThree = Math
+		.abs(dataPoints[topDataPointIndex - 1].getMZ()
+			- dataPoints[topDataPointIndex + 1].getMZ());
+	if (mzDifferenceTopThree > 0.1)
+	    return MassSpectrumType.CENTROIDED;
+
+	// Finally, we check the data points on the left and on the right of the
+	// top one. If the spectrum is continous (thresholded), their intensity
+	// should decrease gradually from the top data point. Let's check if
+	// their intensity is above 1/3 of the top data point. If not, the
+	// spectrum should be centroided.
+	final double thirdMaxIntensity = maxIntensity / 3;
+	final double leftDataPointIntensity = dataPoints[topDataPointIndex - 1]
+		.getIntensity();
+	final double rightDataPointIntensity = dataPoints[topDataPointIndex + 1]
+		.getIntensity();
+	if ((leftDataPointIntensity < thirdMaxIntensity)
+		|| (rightDataPointIntensity < thirdMaxIntensity))
+	    return MassSpectrumType.CENTROIDED;
+
+	// If we could not find any sign that the spectrum is centroided, we
+	// conclude it should be thresholded.
+	return MassSpectrumType.THRESHOLDED;
+
     }
 
     /**

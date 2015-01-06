@@ -36,7 +36,7 @@ public class ScanUtilsTest extends MZmineTest {
 	    .getName());
 
     /**
-     * Test the isCentroided() method
+     * Test the detectSpectrumType() method
      */
     @Test
     public void testDetectSpectrumType() throws Exception {
@@ -46,13 +46,15 @@ public class ScanUtilsTest extends MZmineTest {
 	int filesTested = 0;
 	for (RawDataFile file : files) {
 	    MassSpectrumType trueType;
-	    if (file.getName().startsWith("centroid"))
+	    if (file.getName().startsWith("centroided"))
 		trueType = MassSpectrumType.CENTROIDED;
+	    else if (file.getName().startsWith("thresholded"))
+		trueType = MassSpectrumType.THRESHOLDED;
 	    else if (file.getName().startsWith("profile"))
 		trueType = MassSpectrumType.PROFILE;
 	    else
 		continue;
-	    logger.finest("Checking autodetection of centroid/profile scans on file "
+	    logger.finest("Checking autodetection of centroided/thresholded/profile scans on file "
 		    + file.getName());
 	    int scanNumbers[] = file.getScanNumbers(1);
 	    for (int scanNumber : scanNumbers) {
@@ -61,9 +63,9 @@ public class ScanUtilsTest extends MZmineTest {
 		MassSpectrumType detectedType = ScanUtils
 			.detectSpectrumType(dataPoints);
 
-		Assert.assertEquals("Scan " + file.getName() + "#" + scanNumber
-			+ " wrongly detected as " + detectedType + ".",
-			detectedType, trueType);
+		Assert.assertEquals("Scan type wrongly detected for scan "
+			+ scanNumber + " in " + file.getName(), trueType,
+			detectedType);
 	    }
 	    filesTested++;
 	}
