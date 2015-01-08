@@ -76,7 +76,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    showAbout, checkUpdate;
 
     private int projectIOMenuIndex = 0, projectMenuIndex = 1,
-	    rawDataMenuIndex = 0, visualizationMenuIndex = 0;
+	    rawDataMenuIndex = 0, visualizationMenuIndex = 0, exportMenuIndex = 0;
 
     private Map<JMenuItem, MZmineRunnableModule> moduleMenuItems = new Hashtable<JMenuItem, MZmineRunnableModule>();
 
@@ -178,6 +178,8 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	peakListExportMenu.setMnemonic(KeyEvent.VK_E);
 	peakListMenu.add(peakListExportMenu);
 
+	peakListExportMenu.addSeparator();
+
 	/*
 	 * Visualization menu
 	 */
@@ -255,6 +257,10 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	    identificationMenu.add(newItem);
 	    break;
 	case PEAKLISTEXPORT:
+	    peakListExportMenu.add(newItem, exportMenuIndex);
+	    exportMenuIndex++;
+	    break;
+	case PEAKLISTIMPORT:
 	    peakListExportMenu.add(newItem);
 	    break;
 	case VISUALIZATIONRAWDATA:
@@ -301,7 +307,7 @@ public class MainMenu extends JMenuBar implements ActionListener {
 	}
 
 	moduleMenuItems.put(newItem, module);
-
+	
 	addMenuItem(parentMenu, newItem);
 
     }

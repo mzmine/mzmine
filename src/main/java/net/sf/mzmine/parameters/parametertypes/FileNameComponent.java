@@ -39,15 +39,14 @@ public class FileNameComponent extends JPanel implements ActionListener {
      * 
      */
     private static final long serialVersionUID = 1L;
-    public static final int TEXTFIELD_COLUMNS = 15;
     public static final Font smallFont = new Font("SansSerif", Font.PLAIN, 10);
 
     private JTextField txtFilename;
 
-    public FileNameComponent() {
+    public FileNameComponent(int textfieldcolumns) {
 
 	txtFilename = new JTextField();
-	txtFilename.setColumns(TEXTFIELD_COLUMNS);
+	txtFilename.setColumns(textfieldcolumns);
 	txtFilename.setFont(smallFont);
 	add(txtFilename);
 

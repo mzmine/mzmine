@@ -48,6 +48,7 @@ import net.sf.mzmine.modules.peaklistmethods.identification.nist.NistMsSearchMod
 import net.sf.mzmine.modules.peaklistmethods.io.casmiimport.CasmiImportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.csvexport.CSVExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.metaboanalystexport.MetaboAnalystExportModule;
+import net.sf.mzmine.modules.peaklistmethods.io.mztabexport.mzTabExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.sqlexport.SQLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlexport.XMLExportModule;
 import net.sf.mzmine.modules.peaklistmethods.io.xmlimport.XMLImportModule;
@@ -127,10 +128,11 @@ public class MZmineModulesList {
 	    // I/O
 	    CSVExportModule.class,
 	    MetaboAnalystExportModule.class,
-	    XMLExportModule.class,
-	    XMLImportModule.class,
+	    mzTabExportModule.class,
 	    SQLExportModule.class,
+	    XMLExportModule.class,
 	    CasmiImportModule.class,
+	    XMLImportModule.class,
 
 	    // Gap filling
 	    PeakFinderModule.class,
@@ -166,7 +168,8 @@ public class MZmineModulesList {
 	    HeatMapModule.class,
 
 	    // Identification
-	    CustomDBSearchModule.class, FormulaPredictionModule.class,
+	    CustomDBSearchModule.class,
+	    FormulaPredictionModule.class,
 	    FragmentSearchModule.class,
 	    AdductSearchModule.class,
 	    ComplexSearchModule.class,
@@ -177,13 +180,18 @@ public class MZmineModulesList {
 	    FormulaPredictionPeakListModule.class,
 
 	    // Visualizers
-
-	    TICVisualizerModule.class, SpectraVisualizerModule.class,
-	    TwoDVisualizerModule.class, ThreeDVisualizerModule.class,
-	    NeutralLossVisualizerModule.class, PeakListTableModule.class,
-	    IsotopePatternExportModule.class, MSMSExportModule.class,
-	    ScatterPlotVisualizerModule.class, HistogramVisualizerModule.class,
-	    InfoVisualizerModule.class, IntensityPlotModule.class,
+	    TICVisualizerModule.class,
+	    SpectraVisualizerModule.class,
+	    TwoDVisualizerModule.class,
+	    ThreeDVisualizerModule.class,
+	    NeutralLossVisualizerModule.class,
+	    PeakListTableModule.class,
+	    IsotopePatternExportModule.class,
+	    MSMSExportModule.class,
+	    ScatterPlotVisualizerModule.class,
+	    HistogramVisualizerModule.class,
+	    InfoVisualizerModule.class,
+	    IntensityPlotModule.class,
 
 	    // Tools
 	    MzRangeCalculatorModule.class

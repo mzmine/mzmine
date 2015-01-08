@@ -36,6 +36,7 @@ public class FileNameParameter implements
     private String name, description;
     private File value;
     private String extension;
+    private int textfield_columns = 15;
 
     public FileNameParameter(String name, String description) {
 	this(name, description, null);
@@ -45,6 +46,13 @@ public class FileNameParameter implements
 	this.name = name;
 	this.description = description;
 	this.extension = extension;
+    }
+    
+    public FileNameParameter(String name, String description, String extension, int textfield_columns) {
+	this.name = name;
+	this.description = description;
+	this.extension = extension;	
+	this.textfield_columns = textfield_columns;
     }
 
     /**
@@ -65,7 +73,7 @@ public class FileNameParameter implements
 
     @Override
     public FileNameComponent createEditingComponent() {
-	return new FileNameComponent();
+	return new FileNameComponent(textfield_columns);
     }
 
     @Override

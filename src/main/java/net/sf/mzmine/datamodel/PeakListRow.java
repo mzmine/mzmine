@@ -77,6 +77,11 @@ public interface PeakListRow {
     public double getAverageHeight();
 
     /**
+     * Returns the charge for peak on this row. If more charges are found 0 is returned
+     */
+    public int getRowCharge();
+
+    /**
      * Returns average area for peaks on this row
      */
     public double getAverageArea();

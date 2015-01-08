@@ -34,6 +34,7 @@ public enum MZmineModuleCategory {
     NORMALIZATION("Normalization"), //
     IDENTIFICATION("Identification"), //
     PEAKLISTEXPORT("Peak list export"), //
+    PEAKLISTIMPORT("Peak list import"), //
     VISUALIZATIONRAWDATA("Visualization"), //
     VISUALIZATIONPEAKLIST("Visualization peak list"), //
     DATAANALYSIS("Data analysis"), //

@@ -22,6 +22,7 @@ package net.sf.mzmine.datamodel.impl;
 import java.text.Format;
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -52,6 +53,7 @@ public class SimplePeakListRow implements PeakListRow {
      * to calculate them again and again
      */
     private double averageRT, averageMZ, averageHeight, averageArea;
+    private int rowCharge;
 
     public SimplePeakListRow(int myID) {
 	this.myID = myID;
@@ -122,8 +124,14 @@ public class SimplePeakListRow implements PeakListRow {
 	return averageArea;
     }
 
+    public int getRowCharge() {
+	return rowCharge;
+    }
+
     private synchronized void calculateAverageValues() {
 	double rtSum = 0, mzSum = 0, heightSum = 0, areaSum = 0;
+	int charge = 0;
+	HashSet<Integer> chargeArr = new HashSet<Integer>();
 	Enumeration<Feature> peakEnum = peaks.elements();
 	while (peakEnum.hasMoreElements()) {
 	    Feature p = peakEnum.nextElement();
@@ -131,11 +139,16 @@ public class SimplePeakListRow implements PeakListRow {
 	    mzSum += p.getMZ();
 	    heightSum += p.getHeight();
 	    areaSum += p.getArea();
+	    if (p.getCharge() > 0) {
+		chargeArr.add(p.getCharge());
+		charge = p.getCharge();
+	    }
 	}
 	averageRT = rtSum / peaks.size();
 	averageMZ = mzSum / peaks.size();
 	averageHeight = heightSum / peaks.size();
 	averageArea = areaSum / peaks.size();
+	if (chargeArr.size() < 2) { rowCharge = charge; } else { rowCharge = 0; }
     }
 
     /**
