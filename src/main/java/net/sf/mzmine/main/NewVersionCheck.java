@@ -58,7 +58,7 @@ public class NewVersionCheck implements Runnable {
 	    newestVersion = InetUtils.retrieveData(newestVersionURL);
 	    newestVersion = newestVersion.trim();
 	} catch (Exception e) {
-	    e.printStackTrace();
+	    if (checkType.equals(CheckType.MENU)) { e.printStackTrace(); }
 	    newestVersion = null;
 	}
 
