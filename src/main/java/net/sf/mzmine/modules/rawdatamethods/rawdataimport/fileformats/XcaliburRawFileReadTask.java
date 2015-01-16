@@ -23,6 +23,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -41,14 +43,13 @@ import net.sf.mzmine.util.ExceptionUtils;
 import net.sf.mzmine.util.ScanUtils;
 import net.sf.mzmine.util.TextUtils;
 
-import com.google.common.io.LittleEndianDataInputStream;
-
 /**
- * This module binds to the XRawfile2.dll library of Xcalibur and reads directly
- * the contents of the Thermo RAW file. We use external utility (RAWdump.exe) to
- * perform the binding to the Xcalibur DLL. RAWdump.exe is a 32-bit application
- * running in separate process from the JVM, therefore it can bind to Xcalibur
- * DLL (also 32-bit) even when JVM is running in 64-bit mode.
+ * This module binds to the XRawfile2.dll library from MSFileReader and reads
+ * directly the contents of the Thermo RAW file. We use external utility
+ * (ThermoRawDump.exe) to perform the binding to the XRawfile2.dll.
+ * ThermoRawDump.exe is a 32-bit application running in separate process from
+ * the JVM, therefore it can bind to the XRawfile2.dll (also 32-bit) even when
+ * the JVM is running in 64-bit mode.
  */
 public class XcaliburRawFileReadTask extends AbstractTask {
 
@@ -58,6 +59,8 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     private MZmineProject project;
     private RawDataFileWriter newMZmineFile;
     private RawDataFile finalRawDataFile;
+
+    private Process dumper = null;
 
     private int totalScans = 0, parsedScans = 0;
 
@@ -108,7 +111,8 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 	String osName = System.getProperty("os.name").toUpperCase();
 
 	String rawDumpPath = System.getProperty("user.dir") + File.separator
-		+ "lib" + File.separator + "RAWdump.exe";
+		+ "lib" + File.separator + "vendor_lib" + File.separator
+		+ "thermo" + File.separator + "ThermoRawDump.exe";
 	String cmdLine[];
 
 	if (osName.toUpperCase().contains("WINDOWS")) {
@@ -116,8 +120,6 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 	} else {
 	    cmdLine = new String[] { "wine", rawDumpPath, file.getPath() };
 	}
-
-	Process dumper = null;
 
 	try {
 
@@ -183,6 +185,8 @@ public class XcaliburRawFileReadTask extends AbstractTask {
     private void readRAWDump(InputStream dumpStream) throws IOException {
 
 	String line;
+	byte byteBuffer[] = new byte[1000000];
+
 	while ((line = TextUtils.readLineFromStream(dumpStream)) != null) {
 
 	    if (isCanceled()) {
@@ -243,20 +247,31 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 	    }
 
 	    if (line.startsWith("DATA POINTS: ")) {
+
 		int numOfDataPoints = Integer.parseInt(line
 			.substring("DATA POINTS: ".length()));
 
-		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
+		// 8 should be replaced with Double.BYTES in Java 1.8
+		int numOfBytes = numOfDataPoints * 8 * 2;
 
-		// Because Intel CPU is using little endian natively, we
-		// need to use LittleEndianDataInputStream instead of normal
-		// Java DataInputStream, which is big-endian.
-		@SuppressWarnings("resource")
-		LittleEndianDataInputStream dis = new LittleEndianDataInputStream(
-			dumpStream);
+		// Read the byte array which contains numOfDataPoints of little
+		// endian-encoded doubles for mz values, followed by
+		// numOfDataPoints of little endian-encoded doubles for
+		// intensity values
+		if (byteBuffer.length < numOfBytes)
+		    byteBuffer = new byte[numOfBytes * 2];
+		dumpStream.read(byteBuffer, 0, numOfBytes);
+
+		// Convert the bytes to DataPoint[] array
+		DataPoint dataPoints[] = new DataPoint[numOfDataPoints];
+		ByteBuffer mzByteBuffer = ByteBuffer.wrap(byteBuffer, 0,
+			numOfBytes / 2).order(ByteOrder.LITTLE_ENDIAN);
+		ByteBuffer intensityByteBuffer = ByteBuffer.wrap(byteBuffer,
+			numOfBytes / 2, numOfBytes / 2).order(
+			ByteOrder.LITTLE_ENDIAN);
 		for (int i = 0; i < numOfDataPoints; i++) {
-		    double mz = dis.readDouble();
-		    double intensity = dis.readDouble();
+		    double mz = mzByteBuffer.getDouble();
+		    double intensity = intensityByteBuffer.getDouble();
 		    dataPoints[i] = new SimpleDataPoint(mz, intensity);
 		}
 
@@ -317,6 +332,15 @@ public class XcaliburRawFileReadTask extends AbstractTask {
 	    newMZmineFile.addScan(currentScan);
 	}
 
+    }
+
+    @Override
+    public void cancel() {
+	super.cancel();
+	// Try to destroy the dumper process
+	if (dumper != null) {
+	    dumper.destroy();
+	}
     }
 
 }

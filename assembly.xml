@@ -37,12 +37,8 @@
 			<directoryMode>0755</directoryMode>
 		</fileSet>
 		<fileSet>
-			<directory>src/main/lib</directory>
-			<includes>
-				<!-- Include the RAWdump.exe and its source codes -->
-				<include>RAWdump.*</include>
-			</includes>
-			<outputDirectory>lib</outputDirectory>
+			<directory>src/main/lib/vendor_lib</directory>
+			<outputDirectory>lib/vendor_lib</outputDirectory>
 			<fileMode>0644</fileMode>
 			<directoryMode>0755</directoryMode>
 		</fileSet>
