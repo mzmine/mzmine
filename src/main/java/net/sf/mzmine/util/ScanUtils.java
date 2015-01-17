@@ -38,15 +38,12 @@ import net.sf.mzmine.datamodel.impl.SimpleDataPoint;
 import net.sf.mzmine.main.MZmineCore;
 
 import org.apache.axis.encoding.Base64;
-import org.openscience.cdk.annotations.TestClass;
-import org.openscience.cdk.annotations.TestMethod;
 
 import com.google.common.collect.Range;
 
 /**
  * Scan related utilities
  */
-@TestClass("net.sf.mzmine.util.ScanUtilsTest")
 public class ScanUtils {
 
     /**
@@ -379,7 +376,6 @@ public class ScanUtils {
      * distinguishing centroided from thresholded spectra is not trivial. MZmine
      * uses multiple checks for that purpose, as described in the code comments.
      */
-    @TestMethod("testDetectSpectrumType")
     public static MassSpectrumType detectSpectrumType(
 	    @Nonnull DataPoint[] dataPoints) {
 
