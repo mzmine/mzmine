@@ -25,13 +25,9 @@ import net.sf.mzmine.parameters.Parameter;
 import net.sf.mzmine.parameters.impl.SimpleParameterSet;
 import net.sf.mzmine.parameters.parametertypes.ComboParameter;
 import net.sf.mzmine.parameters.parametertypes.IntegerParameter;
-import net.sf.mzmine.parameters.parametertypes.PeakListsParameter;
 import net.sf.mzmine.parameters.parametertypes.WindowSettingsParameter;
 
 public class PeakListTableParameters extends SimpleParameterSet {
-
-    public static final PeakListsParameter peakLists = new PeakListsParameter(
-	    1, 1);
 
     public static final ColumnSettingParameter<CommonColumnType> commonColumns = new ColumnSettingParameter<CommonColumnType>(
 	    "Common columns", "Visible common columns",
@@ -54,8 +50,8 @@ public class PeakListTableParameters extends SimpleParameterSet {
     public static final WindowSettingsParameter windowSettings = new WindowSettingsParameter();
 
     public PeakListTableParameters() {
-	super(new Parameter[] { peakLists, commonColumns, dataFileColumns,
-		rowHeight, peakShapeNormalization, windowSettings });
+	super(new Parameter[] { commonColumns, dataFileColumns, rowHeight,
+		peakShapeNormalization, windowSettings });
 
 	// Set the default settings for data file columns
 	DataFileColumnType[] defaultColumns = new DataFileColumnType[] {
